@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
         <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
-        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
+        <target state="translated">L'initialiseur de collection donne lieu à une chaîne infinie d'instanciations de la collection « {0} ».</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</target>
+        <target state="translated">La fonctionnalité « intercepteurs » n'est pas activée dans cet espace de noms. Ajoutez « {0} » à votre projet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1744,7 +1744,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
         <source>A partial property cannot have an initializer on both the definition and implementation.</source>
-        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
+        <target state="translated">Une propriété partielle ne peut pas avoir d'initialiseur à la fois sur la définition et sur l'implémentation.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -2934,12 +2934,12 @@
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
         <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
-        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</target>
+        <target state="translated">Dans la version linguistique {0}, le mot-clé « field » se lie à un champ de support synthétisé pour la propriété. Pour éviter de générer un champ de support synthétisé et pour faire référence au membre existant, utilisez plutôt « this.field » ou « @field ».</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous_Title">
         <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
-        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
+        <target state="translated">Le mot-clé « field » se lie à un champ de support synthétisé pour la propriété.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -5290,12 +5290,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <target state="translated">Non nullable {0} « {1} » doit contenir une valeur non nulle lors de la sortie du constructeur. Pensez à ajouter le modificateur « obligatoire », ou à déclarer {0} comme nullable, ou à ajouter les attributs « [field : MaybeNull, AllowNull] ».</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
-        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <target state="translated">Une propriété non nullable doit contenir une valeur non nulle lors de la sortie du constructeur. Pensez à ajouter le modificateur « obligatoire », ou à déclarer la propriété comme nullable, ou à ajouter les attributs « [field : MaybeNull, AllowNull] ».</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -12176,7 +12176,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
         <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
-        <target state="new">Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</target>
+        <target state="translated">Seules les propriétés implémentées automatiquement, ou les propriétés qui utilisent le mot-clé 'field', peuvent avoir des initialiseurs.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
