@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics;
 /// helper type to package diagnostic arguments to pass around between remote hosts
 /// </summary>
 [DataContract]
-internal class DiagnosticArguments
+internal sealed class DiagnosticArguments
 {
     /// <summary>
     /// Flag indicating if suppressed diagnostics should be returned.

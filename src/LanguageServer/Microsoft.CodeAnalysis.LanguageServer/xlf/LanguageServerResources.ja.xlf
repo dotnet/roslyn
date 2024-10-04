@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Additional_Info_Messages">
         <source>Additional Info Messages</source>
-        <target state="new">Additional Info Messages</target>
+        <target state="translated">追加情報メッセージ</target>
         <note />
       </trans-unit>
       <trans-unit id="Attaching_debugger_to_process_0">
@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Debug_Trace_Messages">
         <source>Debug Trace Messages</source>
-        <target state="new">Debug Trace Messages</target>
+        <target state="translated">デバッグ トレース メッセージ</target>
         <note />
       </trans-unit>
       <trans-unit id="Debugging_tests">
@@ -174,12 +174,12 @@
       </trans-unit>
       <trans-unit id="Standard_Error_Messages">
         <source>Standard Error Messages</source>
-        <target state="new">Standard Error Messages</target>
+        <target state="translated">標準エラー メッセージ</target>
         <note />
       </trans-unit>
       <trans-unit id="Standard_Output_Messages">
         <source>Standard Output Messages</source>
-        <target state="new">Standard Output Messages</target>
+        <target state="translated">標準出力メッセージ</target>
         <note />
       </trans-unit>
       <trans-unit id="Starting_test_discovery">

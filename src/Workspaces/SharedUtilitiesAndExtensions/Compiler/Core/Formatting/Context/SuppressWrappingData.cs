@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// <summary>
 /// data that will be used in an interval tree related to suppressing wrapping operations.
 /// </summary>
-internal class SuppressWrappingData(TextSpan textSpan, bool ignoreElastic)
+internal sealed class SuppressWrappingData(TextSpan textSpan, bool ignoreElastic)
 {
     public TextSpan TextSpan { get; } = textSpan;
     public bool IgnoreElastic { get; } = ignoreElastic;

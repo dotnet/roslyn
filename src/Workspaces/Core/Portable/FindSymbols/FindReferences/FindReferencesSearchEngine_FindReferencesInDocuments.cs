@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class FindReferencesSearchEngine
+internal sealed partial class FindReferencesSearchEngine
 {
     public async Task FindReferencesInDocumentsAsync(
         ISymbol originalSymbol, IImmutableSet<Document> documents, CancellationToken cancellationToken)

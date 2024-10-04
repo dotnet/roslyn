@@ -162,7 +162,7 @@ DoAction(action, 1); // error CS1503: Argument 1: cannot convert from '<anonymou
 void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
 ```
 
-You can learn more about this change in the associated [proposal](https://github.com/dotnet/csharplang/blob/main/proposals/lambda-method-group-defaults.md#breaking-change).
+You can learn more about this change in the associated [proposal](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/lambda-method-group-defaults.md#breaking-change).
 
 ## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
 

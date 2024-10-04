@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 /// such as 'record Student(int Id) : Person($$"first", "last");`.
 /// </summary>
 [ExportSignatureHelpProvider("PrimaryConstructorBaseTypeSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class PrimaryConstructorBaseTypeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed partial class PrimaryConstructorBaseTypeSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

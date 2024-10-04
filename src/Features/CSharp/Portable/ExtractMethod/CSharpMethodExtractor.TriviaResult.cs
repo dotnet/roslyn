@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpMethodExtractor
+internal sealed partial class CSharpMethodExtractor
 {
-    private class CSharpTriviaResult : TriviaResult
+    private sealed class CSharpTriviaResult : TriviaResult
     {
         public static async Task<CSharpTriviaResult> ProcessAsync(CSharpSelectionResult selectionResult, CancellationToken cancellationToken)
         {

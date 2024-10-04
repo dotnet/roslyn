@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and that span cannot be captured in a returned ref struct
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
             BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
-                ? spreadExpression
+                ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
             var invocation = new BoundCall(

@@ -28,7 +28,7 @@ using static DocumentationCommentXmlNames;
 [ExportCompletionProvider(nameof(XmlDocCommentCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(PartialTypeCompletionProvider))]
 [Shared]
-internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
+internal sealed partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompletionProvider<DocumentationCommentTriviaSyntax>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

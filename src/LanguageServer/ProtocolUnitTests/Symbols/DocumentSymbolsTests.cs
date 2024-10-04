@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
     {
     }
 }";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
             var expected = new LSP.SymbolInformation[]
             {
                 CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal),

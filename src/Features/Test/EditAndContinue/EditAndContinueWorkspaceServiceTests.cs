@@ -350,7 +350,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         using var _ = CreateWorkspace(out var solution, out var service);
 
-        // The workspace starts with 
+        // The workspace starts with
         // [added == false] a version of the source that's not updated with the output of single file generator (or design-time build):
         // [added == true] without the output of single file generator (design-time build has not completed)
 

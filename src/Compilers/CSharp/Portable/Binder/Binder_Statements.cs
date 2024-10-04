@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1749,26 +1750,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BadEventUsageNoField, leastOverridden);
         }
 
+#nullable enable
         internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember, propertyAccess.AutoPropertyAccessorKind);
         }
 
-        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
+        private static bool AccessingAutoPropertyFromConstructor(BoundExpression? receiver, PropertySymbol propertySymbol, Symbol fromMember, AccessorKind accessorKind)
+        {
+            if (!HasSynthesizedBackingField(propertySymbol, out var sourceProperty))
+            {
+                return false;
+            }
+
+            var propertyIsStatic = propertySymbol.IsStatic;
+
+            return sourceProperty is { } &&
+                sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue: accessorKind != AccessorKind.Get) &&
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
+                IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
+                (propertyIsStatic || receiver?.Kind == BoundKind.ThisReference);
+        }
+
+        private static bool HasSynthesizedBackingField(PropertySymbol propertySymbol, [NotNullWhen(true)] out SourcePropertySymbolBase? sourcePropertyDefinition)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            var sourceProperty = propertySymbol as SourcePropertySymbolBase;
-            var propertyIsStatic = propertySymbol.IsStatic;
+            if (propertySymbol is SourcePropertySymbolBase { BackingField: { } } sourceProperty)
+            {
+                sourcePropertyDefinition = sourceProperty;
+                return true;
+            }
 
-            return (object)sourceProperty != null &&
-                    sourceProperty.IsAutoPropertyWithGetAccessor &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
-                    IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
-                    (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+            sourcePropertyDefinition = null;
+            return false;
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
@@ -1778,6 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 MethodKind.Constructor) ||
                     (member as FieldSymbol)?.IsStatic == isStatic;
         }
+#nullable disable
 
         private TypeSymbol GetAccessThroughType(BoundExpression receiver)
         {
@@ -2494,15 +2513,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundStatement BindIfStatement(IfStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var condition = BindBooleanExpression(node.Condition, diagnostics);
-            var consequence = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-            BoundStatement alternative = (node.Else == null) ? null : BindPossibleEmbeddedStatement(node.Else.Statement, diagnostics);
+            return bindIfStatement(this, node, diagnostics);
 
-            BoundStatement result = new BoundIfStatement(node, condition, consequence, alternative);
-            return result;
+            static BoundStatement bindIfStatement(Binder binder, IfStatementSyntax node, BindingDiagnosticBag diagnostics)
+            {
+                var stack = ArrayBuilder<(Binder, IfStatementSyntax IfStatementSyntax, BoundExpression Condition, BoundStatement Consequence)>.GetInstance();
+
+                BoundStatement? alternative;
+                while (true)
+                {
+                    var condition = binder.BindBooleanExpression(node.Condition, diagnostics);
+                    var consequence = binder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+                    stack.Push((binder, node, condition, consequence));
+
+                    if (node.Else == null)
+                    {
+                        alternative = null;
+                        break;
+                    }
+
+                    var elseStatementSyntax = node.Else.Statement;
+                    if (elseStatementSyntax is IfStatementSyntax ifStatementSyntax)
+                    {
+                        var b = binder.GetBinder(ifStatementSyntax);
+                        Debug.Assert(b != null);
+                        binder = b;
+                        node = ifStatementSyntax;
+                    }
+                    else
+                    {
+                        alternative = binder.BindPossibleEmbeddedStatement(elseStatementSyntax, diagnostics);
+                        break;
+                    }
+                }
+
+                BoundStatement result;
+                do
+                {
+                    BoundExpression condition;
+                    BoundStatement consequence;
+                    (binder, node, condition, consequence) = stack.Pop();
+                    result = new BoundIfStatement(node, condition, consequence, alternative);
+                    if (stack.Any())
+                    {
+                        result = binder.WrapWithVariablesIfAny(node, result);
+                    }
+                    alternative = result;
+                }
+                while (stack.Any());
+
+                stack.Free();
+
+                return result;
+            }
         }
+#nullable disable
 
         internal BoundExpression BindBooleanExpression(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {

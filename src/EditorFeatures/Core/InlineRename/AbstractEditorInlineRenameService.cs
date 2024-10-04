@@ -32,9 +32,9 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
             _refactorNotifyServices, symbolicInfo, cancellationToken);
     }
 
-    public virtual Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+    public virtual Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
-        return Task.FromResult(ImmutableDictionary<string, ImmutableArray<string>>.Empty);
+        return Task.FromResult(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty);
     }
 
     /// <summary>

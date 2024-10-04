@@ -222,18 +222,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [Conditional("DEBUG")]
             private void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol>? dependentSymbols)
             {
-                Debug.Assert(_lazyPendingMemberSymbolsMap != null, $"{nameof(_lazyPendingMemberSymbolsMap)} was expected to be a non-null value.");
+                RoslynDebug.Assert(_lazyPendingMemberSymbolsMap != null, $"{nameof(_lazyPendingMemberSymbolsMap)} was expected to be a non-null value.");
 
                 if (_lazyPendingMemberSymbolsMap.TryGetValue(symbol, out var existingDependentSymbols))
                 {
                     if (existingDependentSymbols == null)
                     {
-                        Debug.Assert(dependentSymbols == null, $"{nameof(dependentSymbols)} was expected to be null.");
+                        RoslynDebug.Assert(dependentSymbols == null, $"{nameof(dependentSymbols)} was expected to be null.");
                     }
                     else
                     {
-                        Debug.Assert(dependentSymbols != null, $"{nameof(dependentSymbols)} was expected to be a non-null value.");
-                        Debug.Assert(existingDependentSymbols.IsSubsetOf(dependentSymbols), $"{nameof(existingDependentSymbols)} was expected to be a subset of {nameof(dependentSymbols)}");
+                        RoslynDebug.Assert(dependentSymbols != null, $"{nameof(dependentSymbols)} was expected to be a non-null value.");
+                        RoslynDebug.Assert(existingDependentSymbols.IsSubsetOf(dependentSymbols), $"{nameof(existingDependentSymbols)} was expected to be a subset of {nameof(dependentSymbols)}");
                     }
                 }
             }

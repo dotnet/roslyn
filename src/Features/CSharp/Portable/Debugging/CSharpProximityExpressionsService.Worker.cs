@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Debugging;
 
-internal partial class CSharpProximityExpressionsService
+internal sealed partial class CSharpProximityExpressionsService
 {
     internal class Worker(SyntaxTree syntaxTree, int position)
     {
