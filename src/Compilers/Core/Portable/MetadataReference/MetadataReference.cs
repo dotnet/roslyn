@@ -320,17 +320,9 @@ namespace Microsoft.CodeAnalysis
 
         internal static MetadataImageReference CreateFromAssemblyInternal(
             Assembly assembly,
-            MetadataReferenceProperties properties) =>
-            CreateFromAssemblyInternal(assembly, properties, documentation: null);
-
-        internal static MetadataImageReference CreateFromAssemblyInternal(
-            Assembly assembly,
             MetadataReferenceProperties properties,
             DocumentationProvider? documentation = null)
         {
-            // Note: returns MetadataReference and not PortableExecutableReference so that we can in future support assemblies that
-            // which are not backed by PE image.
-
             if (assembly == null)
             {
                 throw new ArgumentNullException(nameof(assembly));

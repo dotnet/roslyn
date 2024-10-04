@@ -14,24 +14,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
-        private readonly Func<CSharpCommandLineArguments, TouchedFileLogger?, MetadataReferenceResolver> _createResolverFunc;
+        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _createFromFileFunc;
 
         internal CSharpInteractiveCompiler(
             string? responseFile,
             BuildPaths buildPaths,
             string[] args,
             IAnalyzerAssemblyLoader analyzerLoader,
-            Func<CSharpCommandLineArguments, TouchedFileLogger?, MetadataReferenceResolver>? createResolverFunc = null)
+            Func<string, MetadataReferenceProperties, PortableExecutableReference>? createFromFileFunc = null)
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
             : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, additionalReferenceDirectories: null, analyzerLoader)
         {
-            _createResolverFunc = createResolverFunc ?? CommandLineRunner.GetMetadataReferenceResolver;
+            _createFromFileFunc = createFromFileFunc ?? RuntimeMetadataReferenceResolver.CreateFromFile;
         }
 
         internal override Type Type => typeof(CSharpInteractiveCompiler);
 
         internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger? loggerOpt) =>
-           _createResolverFunc(Arguments, loggerOpt);
+           CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt, _createFromFileFunc);
 
         public override void PrintLogo(TextWriter consoleOutput)
         {

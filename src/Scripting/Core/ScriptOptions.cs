@@ -174,18 +174,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             AllowUnsafe = allowUnsafe;
             WarningLevel = warningLevel;
             ParseOptions = parseOptions;
-            CreateFromAssemblyFunc = createFromAssemblyFunc ?? createFromAssemblyDefault;
-
-            // Having a local function makes it much easier to identify cases in our unit tests
-            // that are implicitly using ScriptOptions.Default. Doing so leads to pressure on the
-            // finalizer queue because CreateFromAssemblyInternal passively frees resources. Tests
-            // should use a version of ScriptOptions that hook this member and actively free
-            // the resources.
-            //
-            // This local function lets us set a breakpoint, run tests under the debugger and
-            // identify places the hook was not set.
-            static MetadataImageReference createFromAssemblyDefault(Assembly assembly, MetadataReferenceProperties metadataReferenceProperties) =>
-                MetadataReference.CreateFromAssemblyInternal(assembly, metadataReferenceProperties);
+            CreateFromAssemblyFunc = createFromAssemblyFunc ?? RuntimeMetadataReferenceResolver.CreateFromAssembly;
         }
 
         private ScriptOptions(ScriptOptions other)

@@ -37,14 +37,14 @@ public class CSharpScriptTestBase : TestBase
         var runtimeMetadataReferenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
             searchPaths: [],
             baseDirectory: null,
-            CreateFromFilePath);
+            CreateFromFile);
         ScriptMetadataResolver = new ScriptMetadataResolver(runtimeMetadataReferenceResolver);
         ScriptOptions = ScriptOptions.Default
             .WithMetadataResolver(ScriptMetadataResolver)
             .WithCreateAssemblyFunc(CreateFromAssembly);
     }
 
-    private PortableExecutableReference CreateFromFilePath(string filePath, MetadataReferenceProperties properties)
+    private PortableExecutableReference CreateFromFile(string filePath, MetadataReferenceProperties properties)
     {
         var reference = MetadataReference.CreateFromFile(filePath, properties);
         Debug.Assert(reference is MetadataImageReference);
@@ -78,16 +78,8 @@ public class CSharpScriptTestBase : TestBase
             buildPaths,
             args?.Where(a => a != null).ToArray() ?? s_defaultArgs,
             new NotImplementedAnalyzerLoader(),
-            createResolverFunc: (args, logger) => RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
-                args.ReferencePaths,
-                args.BaseDirectory,
-                fileReferenceProvider: (path, properties) =>
-                {
-                    logger?.AddRead(path);
-                    return CreateFromFilePath(path, properties);
-                }));
-
-        return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance, CreateFromAssembly);
+            CreateFromFile);
+        return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance, CreateFromAssembly, CreateFromFile);
     }
 
     private static IEnumerable<string> GetReferences()

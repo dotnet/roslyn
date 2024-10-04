@@ -136,6 +136,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return null;
         }
 
+        internal static PortableExecutableReference CreateFromFile(string filePath, MetadataReferenceProperties properties)
+            => MetadataReference.CreateFromFile(filePath, properties);
+
+        internal static MetadataImageReference CreateFromAssembly(Assembly assembly, MetadataReferenceProperties properties)
+            => MetadataReference.CreateFromAssemblyInternal(assembly, properties);
+
         private PortableExecutableReference CreateResolvedMissingReference(string fullPath)
         {
             return _fileReferenceProvider(fullPath, s_resolvedMissingAssemblyReferenceProperties);

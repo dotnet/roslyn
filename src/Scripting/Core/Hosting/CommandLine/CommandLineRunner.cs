@@ -23,14 +23,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private readonly ScriptCompiler _scriptCompiler;
         private readonly ObjectFormatter _objectFormatter;
-        private readonly Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? _createFromAssemblyFunc;
+        private readonly Func<Assembly, MetadataReferenceProperties, MetadataImageReference> _createFromAssemblyFunc;
+        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _createFromFileFunc;
 
         internal CommandLineRunner(
             ConsoleIO console,
             CommonCompiler compiler,
             ScriptCompiler scriptCompiler,
             ObjectFormatter objectFormatter,
-            Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? createFromAssemblyFunc = null)
+            Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? createFromAssemblyFunc = null,
+            Func<string, MetadataReferenceProperties, PortableExecutableReference>? createFromFileFunc = null)
         {
             Debug.Assert(console != null);
             Debug.Assert(compiler != null);
@@ -41,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             Compiler = compiler;
             _scriptCompiler = scriptCompiler;
             _objectFormatter = objectFormatter;
-            _createFromAssemblyFunc = createFromAssemblyFunc;
+            _createFromAssemblyFunc = createFromAssemblyFunc ?? RuntimeMetadataReferenceResolver.CreateFromAssembly;
+            _createFromFileFunc = createFromFileFunc ?? RuntimeMetadataReferenceResolver.CreateFromFile;
         }
 
         // for testing:
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var emitDebugInformation = !Compiler.Arguments.InteractiveMode;
 
             var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
-            var scriptOptions = GetScriptOptions(Compiler.Arguments, scriptPathOpt, Compiler.MessageProvider, diagnosticsInfos, emitDebugInformation, _createFromAssemblyFunc);
+            var scriptOptions = GetScriptOptions(Compiler.Arguments, scriptPathOpt, Compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
 
             var errors = Compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
             if (Compiler.ReportDiagnostics(errors, Console.Error, errorLogger, compilation: null))
@@ -147,11 +150,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private static ScriptOptions? GetScriptOptions(CommandLineArguments arguments, string? scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation, Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? createFromAssemblyFunc)
+        private ScriptOptions? GetScriptOptions(CommandLineArguments arguments, string? scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation)
         {
             var touchedFilesLoggerOpt = (arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
-            var metadataResolver = GetMetadataReferenceResolver(arguments, touchedFilesLoggerOpt);
+            var metadataResolver = GetMetadataReferenceResolver(arguments, touchedFilesLoggerOpt, _createFromFileFunc);
             var sourceResolver = GetSourceReferenceResolver(arguments, touchedFilesLoggerOpt);
 
             var resolvedReferences = new List<MetadataReference>();
@@ -174,12 +177,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 checkOverflow: false,
                 warningLevel: 4,
                 parseOptions: arguments.ParseOptions,
-                createFromAssemblyFunc: createFromAssemblyFunc);
+                createFromAssemblyFunc: _createFromAssemblyFunc);
         }
 
 #nullable enable
 
-        internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger? loggerOpt)
+        internal static MetadataReferenceResolver GetMetadataReferenceResolver(
+            CommandLineArguments arguments,
+            TouchedFileLogger? loggerOpt,
+            Func<string, MetadataReferenceProperties, PortableExecutableReference> createFromFileFunc)
         {
             return RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
                 arguments.ReferencePaths,
@@ -187,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 fileReferenceProvider: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
-                    return MetadataReference.CreateFromFile(path, properties);
+                    return createFromFileFunc(path, properties);
                 });
         }
 

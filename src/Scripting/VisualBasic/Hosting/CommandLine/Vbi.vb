@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         End Sub
 
         Friend Overrides Function GetCommandLineMetadataReferenceResolver(loggerOpt As TouchedFileLogger) As MetadataReferenceResolver
-            Return CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt)
+            Return CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt, AddressOf RuntimeMetadataReferenceResolver.CreateFromFile)
         End Function
 
         Friend Overrides ReadOnly Property Type As Type
