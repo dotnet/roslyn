@@ -28,7 +28,7 @@ jobs:
 
 - job: Linux
   pool:
-    vmImage: Ubuntu 22.04
+    vmImage: Ubuntu-22.04
   steps:
   - checkout: self
     fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
