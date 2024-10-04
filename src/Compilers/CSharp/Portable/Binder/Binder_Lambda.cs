@@ -348,31 +348,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
             var data = lambda.Data;
 
-            int firstDefault = -1;
-            var hasExplicitTypes = lambda.HasExplicitlyTypedParameterList;
-            for (int i = 0; i < lambda.ParameterCount; i++)
+            var parameterList = syntax switch
             {
-                // paramSyntax should not be null here; we should always be operating on an anonymous function which
-                // will have parameter information.  Note the parameter may or may not have a type specified here though.
-                var paramSyntax = lambda.ParameterSyntax(i);
-                Debug.Assert(paramSyntax is { });
-                if (paramSyntax.Default != null && firstDefault == -1)
+                AnonymousMethodExpressionSyntax anonymousMethodExpression => anonymousMethodExpression.ParameterList,
+                ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression => parenthesizedLambdaExpression.ParameterList,
+                _ => null,
+            };
+
+            if (parameterList != null)
+            {
+                int firstDefault = -1;
+                var hasExplicitTypes = lambda.HasExplicitlyTypedParameterList;
+                for (int i = 0; i < parameterList.Parameters.Count; i++)
                 {
-                    firstDefault = i;
+                    // paramSyntax should not be null here; we should always be operating on an anonymous function which
+                    // will have parameter information.  Note the parameter may or may not have a type specified here though.
+                    var paramSyntax = parameterList.Parameters[i];
+                    Debug.Assert(paramSyntax is { });
+                    if (paramSyntax.Default != null && firstDefault == -1)
+                    {
+                        firstDefault = i;
+                    }
+
+                    ParameterHelpers.GetModifiers(paramSyntax.Modifiers, refnessKeyword: out _, out var paramsKeyword, thisKeyword: out _, scope: out _);
+                    var isParams = paramsKeyword.Kind() != SyntaxKind.None;
+
+                    // UNDONE: Where do we report improper use of pointer types?
+
+                    // Note: it's fine to not pass a type here in the case where the user wrote `(ref i) => ```. The point
+                    // of passing this type is to validate the user is referencing a valid type as a parameter (e.g. no
+                    // static types).  Since there is no type specified, there's no need to validate that part here.
+                    var parameterType = hasExplicitTypes ? lambda.ParameterTypeWithAnnotations(i) : default;
+                    ParameterHelpers.ReportParameterErrors(
+                        owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, parameterType,
+                        lambda.RefKind(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
                 }
-
-                ParameterHelpers.GetModifiers(paramSyntax.Modifiers, refnessKeyword: out _, out var paramsKeyword, thisKeyword: out _, scope: out _);
-                var isParams = paramsKeyword.Kind() != SyntaxKind.None;
-
-                // UNDONE: Where do we report improper use of pointer types?
-
-                // Note: it's fine to not pass a type here in the case where the user wrote `(ref i) => ```. The point
-                // of passing this type is to validate the user is referencing a valid type as a parameter (e.g. no
-                // static types).  Since there is no type specified, there's no need to validate that part here.
-                var parameterType = hasExplicitTypes ? lambda.ParameterTypeWithAnnotations(i) : default;
-                ParameterHelpers.ReportParameterErrors(
-                    owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, parameterType,
-                    lambda.RefKind(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
             }
 
             // Parser will only have accepted static/async as allowed modifiers on this construct.

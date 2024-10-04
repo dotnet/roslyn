@@ -463,7 +463,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             => Data.HasExplicitReturnType(out refKind, out returnType);
         public Binder GetWithParametersBinder(LambdaSymbol lambdaSymbol, Binder binder)
             => Data.GetWithParametersBinder(lambdaSymbol, binder);
-        public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
+
+        /// <summary>
+        /// Whether or not the original syntax had explicit parameter list specified where all parameters had an
+        /// explicit type syntax included.  Examples of where this is true are: `() => ...` `(int a) => ...` `(int a,
+        /// ref int b) => ...` and so on.
+        /// 
+        /// Examples of where this is false is `a => ...` `(a) => ...` `(a, b) => ...` `(ref a) => ...`.
+        /// 
+        /// Note 1: in the case where some parameters have types and some do not, this will return false.  That case is an
+        /// error case and an error will already be reported to the user.  In this case, we treat the parameter list as
+        /// if no parameters were provided.
+        /// 
+        /// Note 2: `(ref a) => ...` is legal.  So this property should not be used to determine if a parameter should
+        /// have its ref/scoped/attributes checked.
+        /// </summary>
+        public bool HasExplicitlyTypedParameterList => Data.HasExplicitlyTypedParameterList;
+
         public int ParameterCount { get { return Data.ParameterCount; } }
         public TypeWithAnnotations InferReturnType(ConversionsBase conversions, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool inferredFromFunctionType)
             => BindForReturnTypeInference(delegateType).GetInferredReturnType(conversions, _nullableState, ref useSiteInfo, out inferredFromFunctionType);
@@ -1527,18 +1543,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool ParameterIsDiscard(int index)
         {
+            Debug.Assert(0 <= index && index < this.ParameterCount);
             return _parameterIsDiscardOpt.IsDefault ? false : _parameterIsDiscardOpt[index];
         }
 
         public override RefKind RefKind(int index)
         {
-            Debug.Assert(0 <= index && index < _parameterRefKinds.Length);
+            Debug.Assert(0 <= index && index < this.ParameterCount);
             return _parameterRefKinds.IsDefault ? Microsoft.CodeAnalysis.RefKind.None : _parameterRefKinds[index];
         }
 
         public override ScopedKind DeclaredScope(int index)
         {
-            Debug.Assert(0 <= index && index < _parameterDeclaredScopes.Length);
+            Debug.Assert(0 <= index && index < this.ParameterCount);
             return _parameterDeclaredScopes.IsDefault ? ScopedKind.None : _parameterDeclaredScopes[index];
         }
 
