@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -29,9 +30,10 @@ namespace Microsoft.CodeAnalysis
     {
         private bool _hookedAssemblyResolve;
 
-        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors)
         {
             _externalResolvers = externalResolvers;
+            _externalRedirectors = externalRedirectors;
         }
 
         private partial void DisposeWorker()
