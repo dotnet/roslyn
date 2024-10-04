@@ -358,15 +358,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (hasExplicitlyTypedParameterList)
                 {
                     type = unboundLambda.ParameterTypeWithAnnotations(p);
+                    paramSyntax = unboundLambda.ParameterSyntax(p);
                     refKind = unboundLambda.RefKind(p);
                     scope = unboundLambda.DeclaredScope(p);
-                    paramSyntax = unboundLambda.ParameterSyntax(p);
                 }
                 else if (p < numDelegateParameters)
                 {
                     type = parameterTypes[p];
-                    refKind = RefKind.None;
-                    scope = ScopedKind.None;
+                    refKind = unboundLambda.RefKind(p);
+                    scope = unboundLambda.DeclaredScope(p);
                 }
                 else
                 {
