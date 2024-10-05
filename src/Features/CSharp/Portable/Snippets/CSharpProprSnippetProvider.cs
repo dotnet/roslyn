@@ -28,7 +28,7 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
 
     protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
-        if(!base.IsValidSnippetLocationCore(context, cancellationToken))
+        if (!base.IsValidSnippetLocationCore(context, cancellationToken))
             return false;
 
         var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
@@ -46,11 +46,11 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
             return false;
 
         // "protected internal" modifiers are valid for required property
-        if(precedingModifiers.IsSupersetOf([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]))
+        if (precedingModifiers.IsSupersetOf([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]))
             return true;
 
         // "protected" and "private protected" modifiers are NOT valid for required property
-        if(precedingModifiers.Any(syntaxKind => syntaxKind == SyntaxKind.ProtectedKeyword))
+        if (precedingModifiers.Any(syntaxKind => syntaxKind == SyntaxKind.ProtectedKeyword))
             return false;
 
         return true;
