@@ -56,22 +56,14 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
             """);
     }
 
-    [Fact]
-    public async Task InsertSnippetInRecordTest()
+    [Theory]
+    [InlineData("record")]
+    [InlineData("record struct")]
+    [InlineData("record class")]
+    public async Task InsertSnippetInRecordTest(string text)
     {
-        await VerifyDefaultPropertyAsync("""
-            record MyRecord
-            {
-                $$
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task InsertSnippetInRecordStructTest()
-    {
-        await VerifyDefaultPropertyAsync("""
-            record struct MyRecordStruct
+        await VerifyDefaultPropertyAsync($$"""
+            {{text}} MyRecord
             {
                 $$
             }
@@ -101,7 +93,7 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
     // This case might produce non-default results for different snippets (e.g. no `set` accessor in 'propg' snippet),
     // so it is tested separately for all of them
     [Fact]
-    public abstract Task InsertSnippetInInterfaceTest();
+    public abstract Task VerifySnippetInInterfaceTest();
 
     [Fact]
     public async Task InsertSnippetNamingTest()
@@ -154,7 +146,7 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
             """);
     }
 
-    public virtual async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
+    public virtual async Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
     {
         await VerifyPropertyAsync($$"""
             class Program

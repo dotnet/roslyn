@@ -57,7 +57,7 @@ public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoProperty
             """, "public {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    public override async Task InsertSnippetInInterfaceTest()
+    public override async Task VerifySnippetInInterfaceTest()
     {
         // Ensure we don't generate redundant `set` accessor when executed in interface
         await VerifyPropertyAsync("""
@@ -70,5 +70,5 @@ public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoProperty
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public override Task InsertSnippetAfterAccessibilityModifierTest(string modifier) => base.InsertSnippetAfterAccessibilityModifierTest(modifier);
+    public override Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier) => base.InsertSnippetAfterAllowedAccessibilityModifierTest(modifier);
 }

@@ -63,7 +63,7 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
     }
 
     [WorkItem("https://github.com/dotnet/roslyn/issues/75128")]
-    public override async Task InsertSnippetInInterfaceTest()
+    public override async Task VerifySnippetInInterfaceTest()
     {
         await VerifySnippetIsAbsentAsync("""
             interface MyInterface
@@ -77,7 +77,7 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
     [InlineData("public")]
     [InlineData("internal")]
     [InlineData("protected internal")]
-    public override async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
+    public override async Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
     {
         await VerifyPropertyAsync($$"""
             class Program
@@ -91,7 +91,7 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
     [InlineData("private")]
     [InlineData("protected")]
     [InlineData("private protected")]
-    public async Task DoNotInsertSnippetAfterAccessibilityModifierTest(string modifier)
+    public async Task NoSnippetAfterWrongAccessibilityModifierTest(string modifier)
     {
         await VerifySnippetIsAbsentAsync($$"""
             class Program

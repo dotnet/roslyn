@@ -26,6 +26,8 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
 
     public override string Description => FeaturesResources.required_property;
 
+    protected override SyntaxToken[] GetAdditionalPropertyModifiers(CSharpSyntaxContext? syntaxContext) => [RequiredKeyword];
+
     protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         if (!base.IsValidSnippetLocationCore(context, cancellationToken))
@@ -41,16 +43,12 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
         if (syntaxContext.PrecedingModifiers.IsEmpty())
             return true;
 
-        // "private" and "private protected" modifiers are NOT valid for required property
-        if (precedingModifiers.Any(syntaxKind => syntaxKind == SyntaxKind.PrivateKeyword))
-            return false;
-
         // "protected internal" modifiers are valid for required property
         if (precedingModifiers.IsSupersetOf([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]))
             return true;
 
-        // "protected" and "private protected" modifiers are NOT valid for required property
-        if (precedingModifiers.Any(syntaxKind => syntaxKind == SyntaxKind.ProtectedKeyword))
+        // "private", "private protected", "protected" and "private protected" modifiers are NOT valid for required property
+        if (precedingModifiers.Any(syntaxKind => syntaxKind is SyntaxKind.PrivateKeyword or SyntaxKind.ProtectedKeyword))
             return false;
 
         return true;
@@ -67,10 +65,5 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
         }
 
         return base.GenerateSetAccessorDeclaration(syntaxContext, generator, cancellationToken);
-    }
-
-    protected override SyntaxToken[] GetAdditionalPropertyModifiers(CSharpSyntaxContext? syntaxContext)
-    {
-        return [RequiredKeyword];
     }
 }

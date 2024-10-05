@@ -57,7 +57,7 @@ public sealed class CSharpPropSnippetProviderTests : AbstractCSharpAutoPropertyS
             """, "public {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    public override async Task InsertSnippetInInterfaceTest()
+    public override async Task VerifySnippetInInterfaceTest()
     {
         await VerifyDefaultPropertyAsync("""
             interface MyInterface
@@ -69,5 +69,5 @@ public sealed class CSharpPropSnippetProviderTests : AbstractCSharpAutoPropertyS
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public override Task InsertSnippetAfterAccessibilityModifierTest(string modifier) => base.InsertSnippetAfterAccessibilityModifierTest(modifier);
+    public override Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier) => base.InsertSnippetAfterAllowedAccessibilityModifierTest(modifier);
 }
