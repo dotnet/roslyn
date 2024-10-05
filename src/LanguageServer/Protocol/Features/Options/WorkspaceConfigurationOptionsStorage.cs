@@ -13,7 +13,11 @@ internal static class WorkspaceConfigurationOptionsStorage
             SourceGeneratorExecution:
                 globalOptions.GetOption(SourceGeneratorExecution) ??
                 (globalOptions.GetOption(SourceGeneratorExecutionBalancedFeatureFlag) ? SourceGeneratorExecutionPreference.Balanced : SourceGeneratorExecutionPreference.Automatic),
+            UnifyLinkedDocumentContentsAcrossProjectFlavors: globalOptions.GetOption(UnifyLinkedDocumentContentsAcrossProjectFlavors),
             ValidateCompilationTrackerStates: globalOptions.GetOption(ValidateCompilationTrackerStates));
+
+    public static readonly Option2<bool> UnifyLinkedDocumentContentsAcrossProjectFlavors = new(
+        "dotnet_unify_linked_document_contents_across_project_flavors", WorkspaceConfigurationOptions.Default.UnifyLinkedDocumentContentsAcrossProjectFlavors);
 
     public static readonly Option2<bool> ValidateCompilationTrackerStates = new(
         "dotnet_validate_compilation_tracker_states", WorkspaceConfigurationOptions.Default.ValidateCompilationTrackerStates);
