@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 [CallerFilePath] string createdAtFilePath = null
 #endif
                 ) => throw ExceptionUtilities.Unreachable();
+            internal override uint ValEscapeScope => throw ExceptionUtilities.Unreachable();
+            internal override uint RefEscapeScope => throw ExceptionUtilities.Unreachable();
             internal override ScopedKind Scope => ScopedKind.None;
         }
     }

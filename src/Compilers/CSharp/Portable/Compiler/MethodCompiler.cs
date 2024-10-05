@@ -999,10 +999,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
-
-                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol,
-                                                  new BoundBlock(analyzedInitializers.Syntax, ImmutableArray<LocalSymbol>.Empty, analyzedInitializers.Statements), // The block is necessary to establish the right local scope for the analysis 
-                                                  diagsForCurrentMethod);
                     }
 
                     body = BindMethodBody(
@@ -1835,15 +1831,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 finalNullableState: out _);
                         }
                     }
-
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
 
 #if DEBUG
                     Debug.Assert(IsEmptyRewritePossible(methodBody));
                     Debug.Assert(WasPropertyBackingFieldAccessChecked.FindUncheckedAccess(methodBody) is null);
 #endif
-
-                    RefSafetyAnalysis.Analyze(compilation, method, methodBody, diagnostics);
 
                     switch (methodBody.Kind)
                     {

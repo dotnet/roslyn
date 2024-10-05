@@ -118,6 +118,7 @@
   <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="VariableSymbol" Type="Symbol?"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
     <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
   </Node>
 
@@ -135,6 +136,7 @@
   -->
   <Node Name="BoundAwaitableValuePlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="allow"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!--
@@ -159,12 +161,14 @@
   <!-- This node is used to represent the receiver for an implicit Index or Range indexer. It does not survive lowering -->
   <Node Name="BoundImplicitIndexerReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
     <Field Name="IsEquivalentToThisReference" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!-- This node represents the receiver for a list pattern. It does not survive lowering -->
   <Node Name="BoundListPatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- This node represents the Index value of accessing an element in a list pattern. It does not survive lowering -->
@@ -175,6 +179,7 @@
   <!-- This node represents the receiver for a slice pattern. It does not survive lowering -->
   <Node Name="BoundSlicePatternReceiverPlaceholder" Base="BoundEarlyValuePlaceholderBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
   <!-- This node represents the Range value of accessing a range in a slice pattern. It does not survive lowering -->
@@ -1816,7 +1821,7 @@
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
-    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/> <!-- PROTOTYPE: Remove. This is handled in initial binding now, not subsequent RefSafetyAnalysis. -->
     <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
@@ -2192,7 +2197,7 @@
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
-    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/> <!-- PROTOTYPE: Remove. This is handled in initial binding now, not subsequent RefSafetyAnalysis. -->
     <Field Name="PropertySymbol" Type="PropertySymbol"/>
     <!-- The property accessor kind, set for properties with synthesized backing field only. -->
     <Field Name="AutoPropertyAccessorKind" Type="AccessorKind" />
@@ -2215,7 +2220,7 @@
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
-    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/> <!-- PROTOTYPE: Remove. This is handled in initial binding now, not subsequent RefSafetyAnalysis. -->
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
@@ -2357,6 +2362,7 @@
     <!-- The index in the containing member of the argument this is the placeholder for. Should be a positive number or
          one of the constants in the other part of the partial class. -->
     <Field Name="ArgumentIndex" Type="int" />
+    <Field Name="ValSafeToEscape" Type="uint" />
   </Node>
 
   <Node Name="BoundStringInsert" Base="BoundExpression">
@@ -2526,12 +2532,13 @@
 
   <!-- The node is transformed into BoundLocal or BoundFieldAccess after inference -->
   <Node Name="DeconstructionVariablePendingInference" Base="VariablePendingInference" />
-  
+
   <!-- The node is transformed into BoundDeconstructValuePlaceholder after inference -->
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="VariableSymbol" Type="Symbol?"/>
+    <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
     <Field Name="IsDiscardExpression" Type="bool" Null="NotApplicable"/>
   </Node>
   

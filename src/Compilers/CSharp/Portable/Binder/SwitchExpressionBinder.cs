@@ -175,23 +175,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundSwitchExpressionArm> BindSwitchExpressionArms(SwitchExpressionSyntax node, Binder originalBinder, BoundExpression inputExpression, BindingDiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundSwitchExpressionArm>.GetInstance();
-            TypeSymbol inputType = GetInputType(inputExpression);
+            (TypeSymbol inputType, uint valEscape) = GetInputTypeAndValEscape(inputExpression);
             foreach (var arm in node.Arms)
             {
                 var armBinder = originalBinder.GetRequiredBinder(arm);
                 Debug.Assert(inputExpression.Type is not null);
-                var boundArm = armBinder.BindSwitchExpressionArm(arm, inputType, diagnostics);
+                var boundArm = armBinder.BindSwitchExpressionArm(arm, inputType, valEscape, diagnostics);
                 builder.Add(boundArm);
             }
 
             return builder.ToImmutableAndFree();
         }
 
-        internal TypeSymbol GetInputType(BoundExpression? inputExpression = null)
+        internal (TypeSymbol GoverningType, uint GoverningValEscape) GetInputTypeAndValEscape(BoundExpression? inputExpression = null)
         {
             inputExpression ??= BindSwitchGoverningExpression(BindingDiagnosticBag.Discarded);
             Debug.Assert(inputExpression.Type is not null);
-            return inputExpression.Type;
+            return (inputExpression.Type, GetValEscape(inputExpression, LocalScopeDepth));
         }
 
         private BoundExpression BindSwitchGoverningExpression(BindingDiagnosticBag diagnostics)
