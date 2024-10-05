@@ -120,6 +120,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static SyntaxToken CreateMissing(SyntaxKind kind, GreenNode leading, GreenNode trailing)
         {
+            if (leading == null && trailing == null)
+            {
+                if (kind <= LastTokenWithWellKnownText)
+                {
+                    return s_missingTokensWithNoTrivia[(int)kind].Value;
+                }
+                else if (kind == SyntaxKind.IdentifierToken)
+                {
+                    return s_missingIdentifierTokenWithNoTrivia;
+                }
+            }
+
             return new MissingTokenWithTrivia(kind, leading, trailing);
         }
 
@@ -131,6 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private static readonly ArrayElement<SyntaxToken>[] s_tokensWithElasticTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
         private static readonly ArrayElement<SyntaxToken>[] s_tokensWithSingleTrailingSpace = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
         private static readonly ArrayElement<SyntaxToken>[] s_tokensWithSingleTrailingCRLF = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
+        private static readonly ArrayElement<SyntaxToken>[] s_missingTokensWithNoTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];
+
+        private static readonly SyntaxToken s_missingIdentifierTokenWithNoTrivia = new MissingTokenWithTrivia(SyntaxKind.IdentifierToken, leading: null, trailing: null);
 
         static SyntaxToken()
         {
@@ -140,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 s_tokensWithElasticTrivia[(int)kind].Value = new SyntaxTokenWithTrivia(kind, SyntaxFactory.ElasticZeroSpace, SyntaxFactory.ElasticZeroSpace);
                 s_tokensWithSingleTrailingSpace[(int)kind].Value = new SyntaxTokenWithTrivia(kind, null, SyntaxFactory.Space);
                 s_tokensWithSingleTrailingCRLF[(int)kind].Value = new SyntaxTokenWithTrivia(kind, null, SyntaxFactory.CarriageReturnLineFeed);
+                s_missingTokensWithNoTrivia[(int)kind].Value = new MissingTokenWithTrivia(kind, leading: null, trailing: null);
             }
         }
 
