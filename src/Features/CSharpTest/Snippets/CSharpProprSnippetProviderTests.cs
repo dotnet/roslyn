@@ -15,7 +15,6 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
 
     protected override string DefaultPropertyBlockText => "{ get; set; }";
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/75128")]
     public override async Task InsertSnippetInReadonlyStructTest()
     {
         // Ensure we don't generate redundant `set` accessor when executed in readonly struct
@@ -27,7 +26,6 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             """, "public required {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/75128")]
     public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
     {
         // Ensure we don't generate redundant `set` accessor when executed in readonly struct
@@ -43,7 +41,6 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             """, "public required {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/75128")]
     public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
     {
         // Even though there is no `partial` modifier on the first declaration
@@ -62,7 +59,6 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             """, "public required {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    [WorkItem("https://github.com/dotnet/roslyn/issues/75128")]
     public override async Task VerifySnippetInInterfaceTest()
     {
         await VerifySnippetIsAbsentAsync("""
@@ -73,7 +69,7 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             """);
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75128")]
+    [Theory]
     [InlineData("public")]
     [InlineData("internal")]
     [InlineData("protected internal")]
@@ -87,7 +83,7 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
             """, $$"""required {|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
     }
 
-    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75128")]
+    [Theory]
     [InlineData("private")]
     [InlineData("protected")]
     [InlineData("private protected")]

@@ -40,9 +40,6 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
         if (syntaxContext.ContainingTypeDeclaration is InterfaceDeclarationSyntax)
             return false;
 
-        if (syntaxContext.PrecedingModifiers.IsEmpty())
-            return true;
-
         // "protected internal" modifiers are valid for required property
         if (precedingModifiers.IsSupersetOf([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]))
             return true;

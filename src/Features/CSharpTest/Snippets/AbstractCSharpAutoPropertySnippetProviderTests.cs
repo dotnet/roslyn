@@ -60,10 +60,10 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
     [InlineData("record")]
     [InlineData("record struct")]
     [InlineData("record class")]
-    public async Task InsertSnippetInRecordTest(string text)
+    public async Task InsertSnippetInRecordTest(string recordType)
     {
         await VerifyDefaultPropertyAsync($$"""
-            {{text}} MyRecord
+            {{recordType}} MyRecord
             {
                 $$
             }
