@@ -179,6 +179,9 @@ class C
                 // (21,25): error CS1678: Parameter 1 is declared as type 'double' but should be 'ref int'
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
                 Diagnostic(ErrorCode.ERR_BadParamType, "x6").WithArguments("1", "", "double", "ref ", "int").WithLocation(21, 25),
+                // (21,25): error CS1676: Parameter 1 must be declared with the 'ref' keyword
+                //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
+                Diagnostic(ErrorCode.ERR_BadParamRef, "x6").WithArguments("1", "ref").WithLocation(21, 25),
                 // (21,37): error CS1676: Parameter 2 must be declared with the 'out' keyword
                 //         D1 q6 = (double x6, ref int y6, ref int z6)=>1; 
                 Diagnostic(ErrorCode.ERR_BadParamRef, "y6").WithArguments("2", "out").WithLocation(21, 37),
@@ -191,9 +194,15 @@ class C
                 // (34,9): error CS0246: The type or namespace name 'Frob' could not be found (are you missing a using directive or an assembly reference?)
                 //         Frob q8 = ()=>{};
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Frob").WithArguments("Frob").WithLocation(34, 9),
+                // (36,19): error CS1661: Cannot convert lambda expression to type 'C.D2' because the parameter types do not match the delegate parameter types
+                //         D2 q9 = x9=>{};
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "C.D2").WithLocation(36, 19),
                 // (36,17): error CS1676: Parameter 1 must be declared with the 'out' keyword
                 //         D2 q9 = x9=>{};
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x9").WithArguments("1", "out").WithLocation(36, 17),
+                // (38,31): error CS1661: Cannot convert lambda expression to type 'C.D1' because the parameter types do not match the delegate parameter types
+                //         D1 q10 = (x10,y10,z10)=>{}; 
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "C.D1").WithLocation(38, 31),
                 // (38,19): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 q10 = (x10,y10,z10)=>{}; 
                 Diagnostic(ErrorCode.ERR_BadParamRef, "x10").WithArguments("1", "ref").WithLocation(38, 19),
@@ -7102,10 +7111,15 @@ public class DisplayAttribute : System.Attribute
                 // (9,17): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         D1 d1 = r1 => r1; // 1
                 Diagnostic(ErrorCode.ERR_BadParamRef, "r1").WithArguments("1", "ref").WithLocation(9, 17),
+                // (9,20): error CS1661: Cannot convert lambda expression to type 'D1' because the parameter types do not match the delegate parameter types
+                //         D1 d1 = r1 => r1; // 1
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1").WithLocation(9, 20),
                 // (10,11): error CS1676: Parameter 1 must be declared with the 'ref' keyword
                 //         M(r2 => r2); // 2
-                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11)
-                );
+                Diagnostic(ErrorCode.ERR_BadParamRef, "r2").WithArguments("1", "ref").WithLocation(10, 11),
+                // (10,14): error CS1661: Cannot convert lambda expression to type 'D1' because the parameter types do not match the delegate parameter types
+                //         M(r2 => r2); // 2
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "D1").WithLocation(10, 14));
 
             var syntaxTree = comp.SyntaxTrees[0];
             var root = syntaxTree.GetRoot();
@@ -7209,10 +7223,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(string s = null, x = 7, double d = 3.14) => { }").WithLocation(5, 19),
                 // (5,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         var lam = (string s = null, x = 7, double d = 3.14) => { };
-                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(5, 37),
-                // (5,37): error CS9098: Implicitly typed lambda parameter 'x' cannot have a default value.
-                //         var lam = (string s = null, x = 7, double d = 3.14) => { };
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedDefaultParameter, "x").WithArguments("x").WithLocation(5, 37));
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "x").WithLocation(5, 37));
         }
 
         [Fact]
