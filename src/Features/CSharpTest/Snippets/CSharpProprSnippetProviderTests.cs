@@ -77,15 +77,14 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
     [InlineData("public")]
     [InlineData("internal")]
     [InlineData("protected internal")]
-    public async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
+    public override async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
     {
         await VerifyPropertyAsync($$"""
             class Program
             {
                 {{modifier}} $$
             }
-            """,
-            $$"""required {|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
+            """, $$"""required {|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75128")]

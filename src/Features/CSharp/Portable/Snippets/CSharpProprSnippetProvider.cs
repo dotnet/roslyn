@@ -25,30 +25,30 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
     public override string Identifier => CSharpSnippetIdentifiers.RequiredProperty;
 
     public override string Description => FeaturesResources.required_property;
-    
+
     protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         if(!base.IsValidSnippetLocationCore(context, cancellationToken))
             return false;
-        
+
         var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
         var precedingModifiers = syntaxContext.PrecedingModifiers;
-        
+
         if (syntaxContext.PrecedingModifiers.IsEmpty())
             return true;
 
         // "private" and "private protected" modifiers are NOT valid for required property
         if (precedingModifiers.Any(syntaxKind => syntaxKind == SyntaxKind.PrivateKeyword))
             return false;
-        
+
         // "protected internal" modifiers are valid for required property
         if(precedingModifiers.IsSupersetOf([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]))
             return true;
-        
+
         // "protected" and "private protected" modifiers are NOT valid for required property
         if(precedingModifiers.Any(syntaxKind => syntaxKind == SyntaxKind.ProtectedKeyword))
             return false;
-                
+
         return true;
     }
 

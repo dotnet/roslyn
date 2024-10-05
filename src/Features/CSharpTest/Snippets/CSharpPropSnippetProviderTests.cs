@@ -69,13 +69,5 @@ public sealed class CSharpPropSnippetProviderTests : AbstractCSharpAutoPropertyS
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
-    {
-        await VerifyPropertyAsync($$"""
-            class Program
-            {
-                {{modifier}} $$
-            }
-            """, $$"""{|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
-    }
+    public override Task InsertSnippetAfterAccessibilityModifierTest(string modifier) => base.InsertSnippetAfterAccessibilityModifierTest(modifier);
 }

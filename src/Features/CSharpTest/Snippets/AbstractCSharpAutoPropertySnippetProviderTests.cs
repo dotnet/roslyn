@@ -143,6 +143,16 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
             """);
     }
 
+    public virtual async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
+    {
+        await VerifyPropertyAsync($$"""
+            class Program
+            {
+                {{modifier}} $$
+            }
+            """, $$"""{|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
+    }
+
     protected async Task VerifyPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyMarkup)
     {
         TestFileMarkupParser.GetPosition(markup, out var code, out var position);
