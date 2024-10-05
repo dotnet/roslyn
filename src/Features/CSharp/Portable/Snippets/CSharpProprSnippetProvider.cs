@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertySnippetProvider
 {
-    public override string Identifier => CommonSnippetIdentifiers.RequiredProperty;
+    public override string Identifier => CSharpSnippetIdentifiers.RequiredProperty;
 
     public override string Description => FeaturesResources.required_property;
     
