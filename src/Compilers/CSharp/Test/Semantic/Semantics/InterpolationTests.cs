@@ -15422,6 +15422,52 @@ class Program
         }
 
         [Fact]
+        public void RefEscape_17B()
+        {
+            string source = """
+                using System.Runtime.CompilerServices;
+                [InterpolatedStringHandler]
+                ref struct CustomHandler
+                {
+                    public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                    public void AppendFormatted(int i) { }
+                }
+                ref struct R
+                {
+                    public CustomHandler Handler;
+                    public R F(ref R r, [InterpolatedStringHandlerArgument("r")] CustomHandler handler) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        R x = new R();
+                        R y = x.F(ref x, $"{1}");
+                        return x;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
+            // PROTOTYPE: Why are duplicate errors reported?
+            comp.VerifyDiagnostics(
+                // (5,97): error CS8352: Cannot use variable 'out CustomHandler this' in this context because it may expose referenced variables outside of their declaration scope
+                //     public CustomHandler(int literalLength, int formattedCount, ref R r) : this() { r.Handler = this; }
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "this").WithArguments("out CustomHandler this").WithLocation(5, 97),
+                // (18,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         R y = x.F(ref x, $"{1}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(18, 23),
+                // (18,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         R y = x.F(ref x, $"{1}");
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(18, 23),
+                // (18,26): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         R y = x.F(ref x, $"{1}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 26),
+                // (18,26): error CS8347: Cannot use a result of 'CustomHandler.CustomHandler(int, int, ref R)' in this context because it may expose variables referenced by parameter 'r' outside of their declaration scope
+                //         R y = x.F(ref x, $"{1}");
+                Diagnostic(ErrorCode.ERR_EscapeCall, @"$""{1}""").WithArguments("CustomHandler.CustomHandler(int, int, ref R)", "r").WithLocation(18, 26));
+        }
+
+        [Fact]
         public void RefEscape_18()
         {
             string source = """
