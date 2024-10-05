@@ -69,5 +69,6 @@ public sealed class CSharpPropSnippetProviderTests : AbstractCSharpAutoPropertyS
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public override Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier) => base.InsertSnippetAfterAllowedAccessibilityModifierTest(modifier);
+    public override Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
+        => base.InsertSnippetAfterAllowedAccessibilityModifierTest(modifier);
 }
