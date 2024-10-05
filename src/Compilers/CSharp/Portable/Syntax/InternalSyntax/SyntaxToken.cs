@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     throw new ArgumentException(string.Format(CSharpResources.ThisMethodCanOnlyBeUsedToCreateTokens, kind), nameof(kind));
                 }
 
-                return CreateMissing(kind, null, null);
+                return CreateMissing(kind);
             }
 
             return s_tokensWithNoTrivia[(int)kind].Value;
@@ -118,20 +118,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxTokenWithTrivia(kind, leading, trailing);
         }
 
-        internal static SyntaxToken CreateMissing(SyntaxKind kind, GreenNode leading, GreenNode trailing)
+        internal static SyntaxToken CreateMissing(SyntaxKind kind)
         {
-            if (leading == null && trailing == null)
+            if (kind <= LastTokenWithWellKnownText)
             {
-                if (kind <= LastTokenWithWellKnownText)
-                {
-                    return s_missingTokensWithNoTrivia[(int)kind].Value;
-                }
-                else if (kind == SyntaxKind.IdentifierToken)
-                {
-                    return s_missingIdentifierTokenWithNoTrivia;
-                }
+                return s_missingTokensWithNoTrivia[(int)kind].Value;
+            }
+            else if (kind == SyntaxKind.IdentifierToken)
+            {
+                return s_missingIdentifierTokenWithNoTrivia;
             }
 
+            return new MissingTokenWithTrivia(kind, leading: null, trailing: null);
+        }
+
+        internal static SyntaxToken CreateMissing(SyntaxKind kind, GreenNode leading, GreenNode trailing)
+        {
             return new MissingTokenWithTrivia(kind, leading, trailing);
         }
 
