@@ -68,6 +68,17 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
     }
 
     [Fact]
+    public async Task InsertSnippetInRecordStructTest()
+    {
+        await VerifyDefaultPropertyAsync("""
+            record struct MyRecordStruct
+            {
+                $$
+            }
+            """);
+    }
+
+    [Fact]
     public async Task InsertSnippetInStructTest()
     {
         await VerifyDefaultPropertyAsync("""

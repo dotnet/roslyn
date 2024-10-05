@@ -65,7 +65,7 @@ public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoProperty
     [WorkItem("https://github.com/dotnet/roslyn/issues/75128")]
     public override async Task InsertSnippetInInterfaceTest()
     {
-        await VerifyDefaultPropertyAsync("""
+        await VerifySnippetIsAbsentAsync("""
             interface MyInterface
             {
                 $$

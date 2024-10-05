@@ -34,6 +34,10 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
         var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
         var precedingModifiers = syntaxContext.PrecedingModifiers;
 
+        // The required modifier can't be applied to members of an interface
+        if (syntaxContext.ContainingTypeDeclaration is InterfaceDeclarationSyntax)
+            return false;
+
         if (syntaxContext.PrecedingModifiers.IsEmpty())
             return true;
 
