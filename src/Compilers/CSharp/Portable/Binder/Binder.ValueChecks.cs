@@ -468,13 +468,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                var arguments = argumentsBuilder.ToImmutableAndFree();
+                var argumentRefKinds = refKindsBuilderOpt?.ToImmutableOrNull() ?? default;
+
+                bool hasErrors = indexerAccess.HasErrors;
+                if (!hasErrors)
+                {
+                    hasErrors = !CheckInvocationArgMixing(
+                        indexerAccess.Syntax,
+                        MethodInfo.Create(indexerAccess.Indexer, accessorKind),
+                        indexerAccess.ReceiverOpt,
+                        indexerAccess.InitialBindingReceiverIsSubjectToCloning,
+                        parameters,
+                        arguments,
+                        argumentRefKinds,
+                        argsToParams,
+                        this.LocalScopeDepth,
+                        diagnostics);
+                }
+
+                // PROTOTYPE: Should set hasErrors on indexerAccess.
+
                 indexerAccess = indexerAccess.Update(
                     indexerAccess.ReceiverOpt,
                     indexerAccess.InitialBindingReceiverIsSubjectToCloning,
                     indexerAccess.Indexer,
-                    argumentsBuilder.ToImmutableAndFree(),
+                    arguments,
                     argumentNamesOpt,
-                    refKindsBuilderOpt?.ToImmutableOrNull() ?? default,
+                    argumentRefKinds,
                     indexerAccess.Expanded,
                     accessorKind,
                     argsToParams,

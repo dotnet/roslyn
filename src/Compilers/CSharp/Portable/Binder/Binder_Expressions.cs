@@ -9906,29 +9906,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
-                var receiverIsSubjectToCloning = ReceiverIsSubjectToCloning(receiver, property);
-
-                if (!gotError)
-                {
-                    gotError = !CheckInvocationArgMixing(
-                        syntax,
-                        MethodInfo.Create(property, AccessorKind.Get), // PROTOTYPE: We don't know whether this is a get, set, or get+set at this point!
-                        receiver,
-                        receiverIsSubjectToCloning,
-                        property.Parameters,
-                        arguments,
-                        argumentRefKinds,
-                        argsToParams,
-                        this.LocalScopeDepth,
-                        diagnostics);
-                }
 
                 // Note that we do not bind default arguments here, because at this point we do not know whether
                 // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
                 propertyAccess = new BoundIndexerAccess(
                     syntax,
                     receiver,
-                    initialBindingReceiverIsSubjectToCloning: receiverIsSubjectToCloning,
+                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
                     property,
                     arguments,
                     argumentNames,
