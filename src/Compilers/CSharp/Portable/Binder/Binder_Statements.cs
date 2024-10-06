@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return op1.SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(inferredType));
         }
 
-        private BoundAssignmentOperator BindAssignment(
+        internal BoundAssignmentOperator BindAssignment(
             SyntaxNode node,
             BoundExpression op1,
             BoundExpression op2,

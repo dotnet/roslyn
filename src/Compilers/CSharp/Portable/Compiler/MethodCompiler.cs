@@ -1731,7 +1731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
             bool includeInitializersInBody,
-            BoundNode? initializersBody,
+            BoundStatementList? initializersBody,
             bool reportNullableDiagnostics,
             out ImportChain? importChain,
             out bool originalBodyNested,
@@ -1779,6 +1779,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap;
                     buildIdentifierMapOfBindIdentifierTargets(syntaxNode, bodyBinder, out inMethodBinder, out identifierMap);
 #endif
+
+                    // PROTOTYPE: Temporary approach. We really shouldn't be binding anything here.
+                    // We should have checked this when we created the BoundAssignmentOperators
+                    // in RewriteConstructor.
+                    foreach (var statement in initializersBody.Statements)
+                    {
+                        if (statement is BoundExpressionStatement { Expression: BoundAssignmentOperator assignment })
+                        {
+                            // PROTOTYPE: We shouldn't be binding anything.
+                            _ = bodyBinder.BindAssignment(assignment.Syntax, assignment.Left, assignment.Right, assignment.IsRef, verifyEscapeSafety: true, diagnostics);
+                        }
+                    }
 
                     BoundNode methodBody = bodyBinder.BindWithLambdaBindingCountDiagnostics(
                         syntaxNode,
