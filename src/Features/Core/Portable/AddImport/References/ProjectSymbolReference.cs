@@ -24,7 +24,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
     /// light bulb and we say "(from ProjectXXX)" to make it clear that this will do more than
     /// just add a using/import.
     /// </summary>
-    private partial class ProjectSymbolReference(
+    private sealed partial class ProjectSymbolReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SymbolResult<INamespaceOrTypeSymbol> symbolResult,
         Project project) : SymbolReference(provider, symbolResult)

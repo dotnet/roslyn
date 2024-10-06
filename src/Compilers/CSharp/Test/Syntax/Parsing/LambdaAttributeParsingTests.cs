@@ -2202,58 +2202,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_02()
         {
             string source = "x is string ? [A] y";
-            UsingExpression(source);
+            UsingExpression(source,
+                // (1,19): error CS1003: Syntax error, ':' expected
+                // x is string ? [A] y
+                Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(":").WithLocation(1, 19));
 
-            N(SyntaxKind.IsPatternExpression);
+            N(SyntaxKind.ConditionalExpression);
             {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.CollectionExpression);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+                M(SyntaxKind.ColonToken);
                 N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken, "x");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.DeclarationPattern);
-                {
-                    N(SyntaxKind.ArrayType);
-                    {
-                        N(SyntaxKind.NullableType);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.QuestionToken);
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                    }
-                    N(SyntaxKind.SingleVariableDesignation);
-                    {
-                        N(SyntaxKind.IdentifierToken, "y");
-                    }
+                    N(SyntaxKind.IdentifierToken, "y");
                 }
             }
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_03()
         {
             string source = "_ = x is string ? [] y => y : z";
             UsingExpression(source,
-                // (1,1): error CS1073: Unexpected token '=>'
+                // (1,20): error CS1001: Identifier expected
                 // _ = x is string ? [] y => y : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = x is string ? [] y").WithArguments("=>").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 20));
 
             N(SyntaxKind.SimpleAssignmentExpression);
             {
@@ -2262,53 +2263,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierToken, "_");
                 }
                 N(SyntaxKind.EqualsToken);
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.ConditionalExpression);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IsExpression);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.DeclarationPattern);
-                    {
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.NullableType);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.StringKeyword);
-                                }
-                                N(SyntaxKind.QuestionToken);
-                            }
-                            N(SyntaxKind.ArrayRankSpecifier);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.OmittedArraySizeExpression);
-                                {
-                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
+                            N(SyntaxKind.IdentifierToken, "x");
                         }
-                        N(SyntaxKind.SingleVariableDesignation);
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Attribute);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "y");
                         }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "z");
                     }
                 }
             }
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_04()
         {
             string source = "_ = x is string ? [A] y => y : z";
-            UsingExpression(source,
-                // (1,1): error CS1073: Unexpected token '=>'
-                // _ = x is string ? [A] y => y : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = x is string ? [A] y").WithArguments("=>").WithLocation(1, 1));
+            UsingExpression(source);
 
             N(SyntaxKind.SimpleAssignmentExpression);
             {
@@ -2317,56 +2325,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierToken, "_");
                 }
                 N(SyntaxKind.EqualsToken);
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.ConditionalExpression);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IsExpression);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.DeclarationPattern);
-                    {
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.NullableType);
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
                             {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.StringKeyword);
-                                }
-                                N(SyntaxKind.QuestionToken);
-                            }
-                            N(SyntaxKind.ArrayRankSpecifier);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "A");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
                             }
+                            N(SyntaxKind.CloseBracketToken);
                         }
-                        N(SyntaxKind.SingleVariableDesignation);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "y");
                         }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "z");
                     }
                 }
             }
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_05()
         {
             string source = "_ = x is string ? [return: A] y => y : z";
-            UsingExpression(source,
-                // (1,1): error CS1073: Unexpected token '=>'
-                // _ = x is string ? [return: A] y => y : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = x is string ? [return: A] y").WithArguments("=>").WithLocation(1, 1),
-                // (1,20): error CS1003: Syntax error, ',' expected
-                // _ = x is string ? [return: A] y => y : z
-                Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(",").WithLocation(1, 20));
+            UsingExpression(source);
 
             N(SyntaxKind.SimpleAssignmentExpression);
             {
@@ -2375,39 +2387,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierToken, "_");
                 }
                 N(SyntaxKind.EqualsToken);
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.ConditionalExpression);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IsExpression);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.DeclarationPattern);
-                    {
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.NullableType);
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.AttributeTargetSpecifier);
                             {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.StringKeyword);
-                                }
-                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.ReturnKeyword);
+                                N(SyntaxKind.ColonToken);
                             }
-                            N(SyntaxKind.ArrayRankSpecifier);
+                            N(SyntaxKind.Attribute);
                             {
-                                N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "A");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
                             }
+                            N(SyntaxKind.CloseBracketToken);
                         }
-                        N(SyntaxKind.SingleVariableDesignation);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "y");
                         }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "z");
                     }
                 }
             }

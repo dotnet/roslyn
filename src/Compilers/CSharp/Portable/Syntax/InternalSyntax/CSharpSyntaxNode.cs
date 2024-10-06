@@ -230,21 +230,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 SetFlags(NodeFlags.FactoryContextIsInQuery);
             }
-        }
 
-        internal static NodeFlags SetFactoryContext(NodeFlags flags, SyntaxFactoryContext context)
-        {
-            if (context.IsInAsync)
+            if (context.IsInFieldKeywordContext)
             {
-                flags |= NodeFlags.FactoryContextIsInAsync;
+                SetFlags(NodeFlags.FactoryContextIsInFieldKeywordContext);
             }
-
-            if (context.IsInQuery)
-            {
-                flags |= NodeFlags.FactoryContextIsInQuery;
-            }
-
-            return flags;
         }
 
         public sealed override CodeAnalysis.SyntaxToken CreateSeparator(SyntaxNode element)

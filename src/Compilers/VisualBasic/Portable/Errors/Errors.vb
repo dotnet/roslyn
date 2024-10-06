@@ -1611,7 +1611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PublicKeyContainerFailure = 36981
 
         ERR_InvalidAssemblyCulture = 36982
-        ERR_EncUpdateFailedMissingAttribute = 36983
+        ERR_EncUpdateFailedMissingSymbol = 36983
 
         ERR_CantAwaitAsyncSub1 = 37001
         ERR_ResumableLambdaInExpressionTree = 37050
@@ -1780,8 +1780,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_LockTypeUnsupported = 37329
         ERR_InvalidVersionFormatDeterministic = 37330
+        ERR_TypeReserved = 37331
 
-        ERR_NextAvailable = 37331
+        ERR_NextAvailable = 37332
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

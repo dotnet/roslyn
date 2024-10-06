@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -385,11 +386,15 @@ namespace Roslyn.Utilities
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
+            var builder = new TResult[source.Count];
+            var index = 0;
             foreach (var item in source)
-                builder.Add(selector(item));
+            {
+                builder[index] = selector(item);
+                index++;
+            }
 
-            return builder.ToImmutableAndFree();
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)

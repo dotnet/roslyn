@@ -7,16 +7,19 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Legend used to encode semantic token types in <see cref="SemanticTokens.Data"/>.
-    ///
+    /// Legend used by the server to describe how it encodes semantic token types in <see cref="SemanticTokens.Data"/>.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensLegend">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class SemanticTokensLegend
     {
-        /// <summary>
-        /// Gets or sets an array of token types that can be encoded in semantic tokens responses.
+        /// <summary>.
+        /// The semantic token types the server uses. Indices into this array are used to encode token types in semantic tokens responses.
         /// </summary>
         [JsonPropertyName("tokenTypes")]
+        [JsonRequired]
         public string[] TokenTypes
         {
             get;
@@ -24,9 +27,10 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets an array of token modfiers that can be encoded in semantic tokens responses.
+        /// The semantic token modifiers the server uses. Indices into this array are used to encode modifiers in semantic tokens responses.
         /// </summary>
         [JsonPropertyName("tokenModifiers")]
+        [JsonRequired]
         public string[] TokenModifiers
         {
             get;

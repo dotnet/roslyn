@@ -3596,7 +3596,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             => methodDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
 
         public override string[] GetFunctionExtenderNames()
-            => new[] { ExtenderNames.ExtensionMethod, ExtenderNames.PartialMethod };
+            => [ExtenderNames.ExtensionMethod, ExtenderNames.PartialMethod];
 
         public override object GetFunctionExtender(string name, SyntaxNode node, ISymbol symbol)
         {
@@ -3636,7 +3636,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetPropertyExtenderNames()
-            => new[] { ExtenderNames.AutoImplementedProperty };
+            => [ExtenderNames.AutoImplementedProperty];
 
         public override object GetPropertyExtender(string name, SyntaxNode node, ISymbol symbol)
         {
@@ -3658,7 +3658,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override string[] GetExternalTypeExtenderNames()
-            => new[] { ExtenderNames.ExternalLocation };
+            => [ExtenderNames.ExternalLocation];
 
         public override object GetExternalTypeExtender(string name, string externalLocation)
         {

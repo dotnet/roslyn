@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             if (document != null && formattingService != null)
             {
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-                var options = new XamlFormattingOptions { InsertSpaces = request.Options.InsertSpaces, TabSize = request.Options.TabSize, OtherOptions = request.Options.OtherOptions };
+                var options = new XamlFormattingOptions { InsertSpaces = request.Options.InsertSpaces, TabSize = request.Options.TabSize, OtherOptions = request.Options.OtherOptions?.AsUntyped() };
                 var textChanges = await formattingService.GetFormattingChangesAsync(document, options, request.Character[0], position, cancellationToken).ConfigureAwait(false);
                 if (textChanges != null)
                 {

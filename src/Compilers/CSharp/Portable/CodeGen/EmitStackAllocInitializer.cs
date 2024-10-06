@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                         // span.get_Item[0]
                         _builder.EmitIntConstant(0);
-                        _builder.EmitOpCode(ILOpCode.Call, 0);
+                        _builder.EmitOpCode(ILOpCode.Call, -1);
                         EmitSymbolToken(spanGetItem, syntaxNode, optArgList: null);
 
                         _builder.EmitIntConstant(data.Length);

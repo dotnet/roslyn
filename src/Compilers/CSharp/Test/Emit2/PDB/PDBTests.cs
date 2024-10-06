@@ -7989,7 +7989,7 @@ class C
         return 2;
     }
 }");
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyDiagnostics();
             comp.VerifyPdb(@"
 <symbols>
@@ -8022,7 +8022,7 @@ class C
         [Fact]
         public void ExpressionBodiedIndexer()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 using System;
 
 class C
@@ -8069,7 +8069,7 @@ class C
         [Fact]
         public void ExpressionBodiedMethod()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 using System;
 
 class C
@@ -8104,7 +8104,7 @@ class C
         [Fact]
         public void ExpressionBodiedOperator()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public static C operator ++(C c) => c;
@@ -8134,7 +8134,7 @@ class C
         [Fact]
         public void ExpressionBodiedConversion()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 using System;
 
 class C
@@ -8170,7 +8170,7 @@ class C
         [Fact]
         public void ExpressionBodiedConstructor()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 using System;
 
 class C
@@ -8207,7 +8207,7 @@ class C
         [Fact]
         public void ExpressionBodiedDestructor()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int X;
@@ -8240,7 +8240,7 @@ class C
         [Fact]
         public void ExpressionBodiedAccessor()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public int x;
@@ -8322,7 +8322,7 @@ class C
         f();
     }
 }");
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
   <files>
@@ -8367,7 +8367,7 @@ class C
         }
     }
 }");
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
   <files>
@@ -8422,7 +8422,7 @@ class C
         c.Select(i => i);
     }
 }");
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<F>d__0.MoveNext",
 @"<symbols>
   <files>
@@ -8474,7 +8474,7 @@ class C
         };
     }
 }");
-            var c = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var c = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
             c.VerifyPdb("C+<>c.<M>b__0_0",
 @"<symbols>
   <files>

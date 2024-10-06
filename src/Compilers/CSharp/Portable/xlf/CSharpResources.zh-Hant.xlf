@@ -287,11 +287,6 @@
         <target state="translated">記錄成員 '{0}' 必須是類型 '{1}' 的可讀取執行個體屬性或欄位，才能符合位置參數 '{2}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">foreach 陳述式無法對 async 或 iterator 方法中 '{0}' 類型的列舉值運作，因為 '{0}' 是 ref struct 或允許 ref struct 的型別參數。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">類型 '{0}' 的參數不得在非同步方法或非同步 Lambda 運算式中宣告。</target>
@@ -334,12 +329,12 @@
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <target state="translated">無法在此成員上使用 'OverloadResolutionPriorityAttribute'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <target state="translated">無法在覆寫成員上使用 'OverloadResolutionPriorityAttribute'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -507,6 +502,11 @@
         <target state="translated">無法使用集合運算式將類型 '{0}' 初始化，因為該類型為不可建構。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="translated">集合初始設定式會導致集合 '{0}' 的無限具現化鏈結。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">類型參數 '{1}' 有 'unmanaged' 條件約束，因此 '{1}' 不可作為 '{0}' 的條件約束</target>
@@ -630,6 +630,11 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' 無法開始陳述式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot emit update; {0} '{1}' is missing.</source>
+        <target state="new">Cannot emit update; {0} '{1}' is missing.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -784,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <target state="translated">C# 13.0 中無法使用功能 '{0}'。請使用語言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1148,8 +1153,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">未在此命名空間中啟用「攔截器」實驗功能。將 '{0}' 新增至您的專案。</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="translated">未在此命名空間中啟用「攔截器」功能。將 '{0}' 新增至您的專案。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1464,12 +1469,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。您指的是否為 'using'，而非 'await using'?</target>
+        <target state="translated">'{0}': 在非同步 using 陳述式中使用的類型，必須可實作 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。您是指 'using' 而不是 'await using' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">'{0}': using 陳述式中使用的類型必須可以隱含轉換為 'System.IDisposable'。您指的是 'await using' 而不是 'using' 嗎?</target>
+        <target state="translated">'{0}: 在 using 陳述式中使用的類型必須實作 'System.IDisposable'。您是指 'await using' 而不是 'using' 嗎?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1735,6 +1740,11 @@
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
         <target state="translated">部分屬性不可具有多個實作的宣告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="translated">部分屬性不能同時有定義和實作的初始設定式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -2399,7 +2409,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
-        <target state="new">field keyword</target>
+        <target state="translated">欄位關鍵字</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2604,7 +2614,7 @@
       </trans-unit>
       <trans-unit id="IDS_OverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">多載解析優先順序</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2630,11 +2640,6 @@
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">指標</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">'{0}' 是從語言版本 {1} 開始之屬性存取子中的內容相關關鍵字。請改用 '@{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
@@ -2925,6 +2930,16 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">在此內容中使用變數，可能會將參考的變數公開在其宣告範圍外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="translated">在語言版本 {0} 中，'field' 關鍵詞會繫結至屬性的合成備份欄位。若要避免產生合成的備份欄位，並參考現有的成員，請改用 'this.field' 或 '@field'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="translated">'field' 關鍵詞會繫結至屬性的合成備份欄位。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -5273,6 +5288,16 @@ strument:TestCoverage      產生檢測要收集
         <target state="translated">非同步迭代器成員有一或多個類型 'CancellationToken' 的參數，但因為沒有任何參數有裝飾 'EnumeratorCancellation' 屬性，所以將不會取用來自已產生 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' 的取消權杖參數</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="translated">退出建構函式時，不可為 Null {0} '{1}' 必須包含不可為 Null 值。請考慮新增 'required' 修飾元，或將 {0} 宣告為可為 Null，或新增 '[field: MaybeNull, AllowNull]' 屬性。</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="translated">退出建構函式時，不可為 Null 屬性必須包含不可為 Null 值。請考慮新增 'required' 修飾元，或將屬性宣告為可為 Null，或新增 '[field: MaybeNull, AllowNull]' 屬性。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
         <target state="translated">退出建構函式時，不可為 Null 的 {0} '{1}' 必須包含非 Null 值。請考慮新增 'required' 修飾元，或將 {0} 宣告為可以為 Null。</target>
@@ -7587,11 +7612,6 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">DllImport 屬性必須指定在標記為 'static' 和 'extern' 的方法上</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">無法更新 '{0}'; 缺少屬性 '{1}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
         <target state="translated">DllImport 屬性無法套用至泛型方法，或包含在泛型方法或類型中。</target>
@@ -9578,7 +9598,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
-        <target state="needs-review-translation">'{0}': using 陳述式中使用的類型必須可以隱含轉換為 'System.IDisposable'。</target>
+        <target state="translated">'{0}: 在 using 陳述式中使用的類型必須實作 'System.IDisposable'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -12155,8 +12175,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">只有自動實作的屬性可以有初始設定式。</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="translated">只有自動執行的屬性或使用 'field' 關鍵詞的屬性，才可以有初始設定式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
@@ -12975,8 +12995,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</source>
-        <target state="translated">無法從組件 '{2}' 讀取方法 '{0}' 的偵錯資訊 (權杖 0x{1:X8})</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">
@@ -13106,7 +13126,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': 在非同步 using 陳述式中使用的類型，必須可隱含地轉換為 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。</target>
+        <target state="translated">'{0}': 在非同步 using 陳述式中使用的類型，必須可實作 'System.IAsyncDisposable' 或實作合適的 'DisposeAsync' 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

@@ -8,21 +8,18 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the document link options for server capabilities.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLinkOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DocumentLinkOptions : IWorkDoneProgressOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether or not the server supports resolve providers.
+        /// Whether or not the server has a resolve provider for document links.
         /// </summary>
         [JsonPropertyName("resolveProvider")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        public bool ResolveProvider
-        {
-            get;
-            set;
-        }
+        public bool ResolveProvider { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether work done progress is supported.

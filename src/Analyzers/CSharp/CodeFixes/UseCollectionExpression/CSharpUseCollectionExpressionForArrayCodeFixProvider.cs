@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -26,7 +25,7 @@ using static UseCollectionExpressionHelpers;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForArray), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
+internal sealed partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
     : AbstractUseCollectionExpressionCodeFixProvider<ExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId)
@@ -72,6 +71,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
             var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
                 document,
                 arrayCreationExpression,
+                preMatches: [],
                 matches,
                 static e => e switch
                 {
@@ -97,17 +97,17 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
         static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
             => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
 
-        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches(
+        ImmutableArray<CollectionMatch<StatementSyntax>> GetMatches(
             SemanticModel semanticModel, ExpressionSyntax expression, INamedTypeSymbol? expressionType)
             => expression switch
             {
                 ImplicitArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
+                        semanticModel, arrayCreation, CreateReplacementCollectionExpressionForAnalysis(arrayCreation.Initializer), expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
                 ArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
+                        semanticModel, arrayCreation, CreateReplacementCollectionExpressionForAnalysis(arrayCreation.Initializer), expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

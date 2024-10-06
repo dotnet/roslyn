@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -73,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable disable
-        protected override string EncMissingStateMessage
-            => CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod;
+        protected sealed override HotReloadExceptionCode EncMissingStateErrorCode
+            => HotReloadExceptionCode.CannotResumeSuspendedIteratorMethod;
 
         protected override StateMachineState FirstIncreasingResumableState
             => StateMachineState.FirstResumableIteratorState;

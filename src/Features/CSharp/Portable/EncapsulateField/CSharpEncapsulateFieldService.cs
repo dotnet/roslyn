@@ -28,15 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-[ExportLanguageService(typeof(AbstractEncapsulateFieldService), LanguageNames.CSharp), Shared]
-internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
+[ExportLanguageService(typeof(IEncapsulateFieldService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateFieldService<ConstructorDeclarationSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpEncapsulateFieldService()
-    {
-    }
-
     protected override async Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -129,9 +125,10 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var fields = root.DescendantNodes(d => d.Span.IntersectsWith(span))
-                                .OfType<FieldDeclarationSyntax>()
-                                .Where(n => n.Span.IntersectsWith(span));
+        var fields = root
+            .DescendantNodes(d => d.Span.IntersectsWith(span))
+            .OfType<FieldDeclarationSyntax>()
+            .Where(n => n.Span.IntersectsWith(span));
 
         var declarations = fields.Where(CanEncapsulate).Select(f => f.Declaration);
 
@@ -196,12 +193,13 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
     private static string GenerateFieldName(string correspondingPropertyName)
         => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName[1..];
 
-    protected static string MakeUnique(string baseName, INamedTypeSymbol containingType)
+    private static string MakeUnique(string baseName, INamedTypeSymbol containingType)
     {
         var containingTypeMemberNames = containingType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(containingType).Select(m => m.Name);
         return NameGenerator.GenerateUniqueName(baseName, containingTypeMemberNames.ToSet(), StringComparer.Ordinal);
     }
 
-    protected override IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType)
-        => containingType.Constructors.SelectMany(c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()));
+    protected override IEnumerable<ConstructorDeclarationSyntax> GetConstructorNodes(INamedTypeSymbol containingType)
+        => containingType.Constructors.SelectMany(
+            c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()).OfType<ConstructorDeclarationSyntax>());
 }

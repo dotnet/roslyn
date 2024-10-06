@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -1741,7 +1742,7 @@ public class Test
 
         private static CSharpCompilation CreateCompilationWithCorlib20(string text)
         {
-            return CreateEmptyCompilation(new string[] { text }, new[] { TestMetadata.Net20.mscorlib });
+            return CreateEmptyCompilation(new string[] { text }, new[] { Net20.References.mscorlib });
         }
 
         #endregion Pre-4.0 codegen

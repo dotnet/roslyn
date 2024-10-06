@@ -601,7 +601,7 @@ internal readonly struct EditDistance(string text) : IDisposable
     }
 }
 
-internal class SimplePool<T>(Func<T> allocate) where T : class
+internal sealed class SimplePool<T>(Func<T> allocate) where T : class
 {
     private readonly object _gate = new();
     private readonly Stack<T> _values = new();

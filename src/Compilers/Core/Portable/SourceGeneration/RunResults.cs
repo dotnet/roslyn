@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<Diagnostic> diagnostics,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> namedSteps,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
-            ImmutableArray<(string Key, string Value)> hostOutputs,
+            ImmutableDictionary<string, object> hostOutputs,
             Exception? exception,
             TimeSpan elapsedTime)
         {
@@ -94,7 +95,9 @@ namespace Microsoft.CodeAnalysis
             this.Diagnostics = diagnostics;
             this.TrackedSteps = namedSteps;
             this.TrackedOutputSteps = outputSteps;
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             this.HostOutputs = hostOutputs;
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
             this.Exception = exception;
             this.ElapsedTime = elapsedTime;
         }
@@ -118,7 +121,11 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-        internal ImmutableArray<(string Key, string Value)> HostOutputs { get; }
+        /// <summary>
+        /// A collection of items added via <see cref="HostOutputProductionContext.AddOutput(string, object)"/>.
+        /// </summary>
+        [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
+        public ImmutableDictionary<string, object> HostOutputs { get; }
 
         /// <summary>
         /// An <see cref="System.Exception"/> instance that was thrown by the generator, or <c>null</c> if the generator completed without error.

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(OverrideCompletionProvider))]
 [Shared]
-internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
+internal sealed partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -5,11 +5,13 @@
 Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.Metadata
+Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
@@ -34,17 +36,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim serializationProperties = compilation.ConstructModuleSerializationProperties(emitOpts, runtimeMDVersion, baseline.ModuleVersionId)
             Dim manifestResources = SpecializedCollections.EmptyEnumerable(Of ResourceDescription)()
 
+            Dim predefinedHotReloadExceptionConstructor As MethodSymbol = Nothing
+            If Not GetPredefinedHotReloadExceptionTypeConstructor(compilation, diagnostics, predefinedHotReloadExceptionConstructor) Then
+                Return New EmitDifferenceResult(
+                    success:=False,
+                    diagnostics:=diagnostics.ToReadOnlyAndFree(),
+                    baseline:=Nothing,
+                    updatedMethods:=ImmutableArray(Of MethodDefinitionHandle).Empty,
+                    changedTypes:=ImmutableArray(Of TypeDefinitionHandle).Empty)
+            End If
+
+            Dim changes As VisualBasicSymbolChanges
+            Dim definitionMap As VisualBasicDefinitionMap
             Dim moduleBeingBuilt As PEDeltaAssemblyBuilder
             Try
+                Dim sourceAssembly = compilation.SourceAssembly
+                Dim initialBaseline = baseline.InitialBaseline
+                Dim previousSourceAssembly = DirectCast(baseline.Compilation, VisualBasicCompilation).SourceAssembly
+
+                ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
+                ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
+                Dim metadataSymbols = PEDeltaAssemblyBuilder.GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
+
+                Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
+                Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
+                Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, metadataAssembly)
+
+                Dim previousSourceToMetadata = New VisualBasicSymbolMatcher(
+                metadataSymbols.SynthesizedTypes,
+                previousSourceAssembly,
+                metadataAssembly)
+
+                Dim previousSourceToCurrentSource As VisualBasicSymbolMatcher = Nothing
+                If baseline.Ordinal > 0 Then
+                    Debug.Assert(baseline.PEModuleBuilder IsNot Nothing)
+
+                    previousSourceToCurrentSource = New VisualBasicSymbolMatcher(
+                        sourceAssembly:=sourceAssembly,
+                        otherAssembly:=previousSourceAssembly,
+                        baseline.SynthesizedTypes,
+                        otherSynthesizedMembersOpt:=baseline.SynthesizedMembers,
+                        otherDeletedMembersOpt:=baseline.DeletedMembers)
+                End If
+
+                definitionMap = New VisualBasicDefinitionMap(edits, metadataDecoder, previousSourceToMetadata, matchToMetadata, previousSourceToCurrentSource, baseline)
+                changes = New VisualBasicSymbolChanges(definitionMap, edits, isAddedSymbol)
+
                 moduleBeingBuilt = New PEDeltaAssemblyBuilder(
                     compilation.SourceAssembly,
-                    emitOptions:=emitOpts,
-                    outputKind:=compilation.Options.OutputKind,
-                    serializationProperties:=serializationProperties,
-                    manifestResources:=manifestResources,
-                    previousGeneration:=baseline,
-                    edits:=edits,
-                    isAddedSymbol:=isAddedSymbol)
+                    changes,
+                    emitOpts,
+                    compilation.Options.OutputKind,
+                    serializationProperties,
+                    manifestResources,
+                    predefinedHotReloadExceptionConstructor)
             Catch e As NotSupportedException
                 ' TODO: https://github.com/dotnet/roslyn/issues/9004
                 diagnostics.Add(ERRID.ERR_ModuleEmitFailure, NoLocation.Singleton, compilation.AssemblyName, e.Message)
@@ -60,9 +105,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 moduleBeingBuilt.SetTestData(testData)
             End If
 
-            Dim definitionMap = moduleBeingBuilt.PreviousDefinitions
-            Dim changes = moduleBeingBuilt.EncSymbolChanges
-
             Dim newBaseline As EmitBaseline = Nothing
             Dim updatedMethods = ArrayBuilder(Of MethodDefinitionHandle).GetInstance()
             Dim changedTypes = ArrayBuilder(Of TypeDefinitionHandle).GetInstance()
@@ -73,14 +115,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                    filterOpt:=Function(s) changes.RequiresCompilation(s),
                                    cancellationToken:=cancellationToken) Then
 
-                ' Map the definitions from the previous compilation to the current compilation.
-                ' This must be done after compiling above since synthesized definitions
-                ' (generated when compiling method bodies) may be required.
-                Dim mappedBaseline = MapToCompilation(compilation, moduleBeingBuilt)
-
                 newBaseline = compilation.SerializeToDeltaStreams(
                     moduleBeingBuilt,
-                    mappedBaseline,
                     definitionMap,
                     changes,
                     metadataStream,
@@ -102,6 +138,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 changedTypes:=changedTypes.ToImmutableAndFree())
         End Function
 
+        ''' <summary>
+        ''' Returns true if the correct constructor is found or if the type is not defined at all, in which case it can be synthesized.
+        ''' </summary>
+        Private Function GetPredefinedHotReloadExceptionTypeConstructor(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag, <Out> ByRef constructor As MethodSymbol) As Boolean
+            constructor = TryCast(compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32), MethodSymbol)
+            If constructor IsNot Nothing Then
+                Return True
+            End If
+
+            Dim type = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_HotReloadException)
+            If type.Kind = SymbolKind.ErrorType Then
+                ' type is missing and will be synthesized
+                Return True
+            End If
+
+            diagnostics.Add(
+                ERRID.ERR_ModuleEmitFailure,
+                NoLocation.Singleton,
+                compilation.AssemblyName,
+                String.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)))
+
+            Return False
+        End Function
+
         Friend Function MapToCompilation(
             compilation As VisualBasicCompilation,
             moduleBeingBuilt As PEDeltaAssemblyBuilder) As EmitBaseline
@@ -121,10 +181,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim currentDeletedMembers = moduleBeingBuilt.EncSymbolChanges.DeletedMembers
 
             ' Mapping from previous compilation to the current.
-            Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
+            Dim previousSourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                sourceAssembly,
+                previousSourceAssembly,
                 compilation.SourceAssembly,
                 synthesizedTypes,
                 currentSynthesizedMembers,
@@ -135,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             ' TODO can we reuse some data from the previous matcher?
             Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
-                sourceAssembly,
+                previousSourceAssembly,
                 compilation.SourceAssembly,
                 synthesizedTypes,
                 mappedSynthesizedMembers,

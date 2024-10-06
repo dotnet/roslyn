@@ -54,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
         <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
-        <target state="new">Instantiated part(s) threw exception(s) from IDisposable.Dispose().</target>
+        <target state="translated">Části v instancích vrátily výjimky z metody IDisposable.Dispose().</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface">

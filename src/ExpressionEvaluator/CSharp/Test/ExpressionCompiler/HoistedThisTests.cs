@@ -932,7 +932,7 @@ class C
 
         private void VerifyHasThis(string source, string methodName, string expectedType, string expectedIL, bool thisCanBeElided = true)
         {
-            var sourceCompilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
+            var sourceCompilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: ExpressionCompilerUtilities.GenerateUniqueName());
             WithRuntimeInstance(sourceCompilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName);
@@ -998,7 +998,7 @@ class C
 
         private void VerifyNoThis(string source, string methodName)
         {
-            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime => VerifyNoThis(CreateMethodContext(runtime, methodName)));
         }
 
@@ -1077,7 +1077,7 @@ class C
         await Console.Out.WriteLineAsync(this.ToString());
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<F>d__1.MoveNext");
@@ -1190,7 +1190,7 @@ class Derived : Base
         await Console.Out.WriteLineAsync(this.ToString());
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "Derived.<M>d__1.MoveNext");

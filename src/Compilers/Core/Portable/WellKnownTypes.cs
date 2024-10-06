@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -328,7 +329,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute,
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute,
 
-        System_MissingMethodException,
+        System_Runtime_CompilerServices_HotReloadException,
         System_IndexOutOfRangeException,
 
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute,
@@ -652,7 +653,7 @@ namespace Microsoft.CodeAnalysis
             "System.MemoryExtensions",
             "System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute",
             "System.Diagnostics.CodeAnalysis.UnscopedRefAttribute",
-            "System.MissingMethodException",
+            "System.Runtime.CompilerServices.HotReloadException",
             "System.IndexOutOfRangeException",
             "System.Runtime.CompilerServices.MetadataUpdateOriginalTypeAttribute",
             "System.Runtime.CompilerServices.Unsafe",
@@ -710,7 +711,7 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
+                RoslynDebug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
             }
 
 #if DEBUG

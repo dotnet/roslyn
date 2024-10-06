@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (!string.IsNullOrWhiteSpace(importNamespacesCommand))
             {
-                await interactiveWindow.SubmitAsync(new[] { importNamespacesCommand }).ConfigureAwait(true);
+                await interactiveWindow.SubmitAsync([importNamespacesCommand]).ConfigureAwait(true);
             }
         }
 

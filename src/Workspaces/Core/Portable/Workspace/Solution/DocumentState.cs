@@ -358,7 +358,7 @@ internal partial class DocumentState : TextDocumentState
             if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirective(syntaxKinds.IfDirectiveTrivia))
             {
                 var treeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
-                newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);
+                newTree = treeFactory.CreateSyntaxTree(Attributes.SyntaxTreeFilePath, options, text: null, existingTree.Encoding, LoadTextOptions.ChecksumAlgorithm, existingRoot);
             }
 
             if (newTree is not null)
@@ -538,7 +538,7 @@ internal partial class DocumentState : TextDocumentState
             ParseOptions options,
             ISyntaxTreeFactoryService factory)
         {
-            var tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, encoding, checksumAlgorithm, newRoot);
+            var tree = factory.CreateSyntaxTree(attributes.SyntaxTreeFilePath, options, text: null, encoding, checksumAlgorithm, newRoot);
 
             // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
             var lazyTextAndVersion = new TreeTextSource(

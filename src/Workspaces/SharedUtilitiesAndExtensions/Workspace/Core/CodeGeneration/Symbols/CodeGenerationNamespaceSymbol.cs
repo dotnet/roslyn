@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members) : CodeGenerationNamespaceOrTypeSymbol(null, null, default, Accessibility.NotApplicable, default, name), INamespaceSymbol
+internal sealed class CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrTypeSymbol> members) : CodeGenerationNamespaceOrTypeSymbol(null, null, default, Accessibility.NotApplicable, default, name), INamespaceSymbol
 {
     private readonly IList<INamespaceOrTypeSymbol> _members = members ?? SpecializedCollections.EmptyList<INamespaceOrTypeSymbol>();
 

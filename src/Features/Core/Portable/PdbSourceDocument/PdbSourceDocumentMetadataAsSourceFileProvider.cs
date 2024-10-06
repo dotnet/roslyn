@@ -68,7 +68,12 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     /// generally run concurrently.  However, to be safe, we make this a concurrent dictionary to be safe to that
     /// potentially happening.
     /// </summary>
-    private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = [];
+    private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Only accessed and mutated in serial calls either from the UI thread or LSP queue.
+    /// </summary>
+    private readonly HashSet<DocumentId> _openedDocumentIds = new();
 
     public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
         MetadataAsSourceWorkspace metadataWorkspace,
@@ -244,14 +249,25 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             return null;
 
         var symbolId = SymbolKey.Create(symbol, cancellationToken);
-        var navigateProject = metadataWorkspace.CurrentSolution.GetRequiredProject(projectId);
 
-        var documentInfos = CreateDocumentInfos(sourceFileInfos, encoding, navigateProject.Id, sourceWorkspace, sourceProject);
+        // Get a view of the solution with the document added, but do not actually update the workspace.
+        // TryAddDocumentToWorkspace is responsible for actually updating the solution with the new document(s).
+        // We just need a view with the document added so we can find the right location in the generated source.
+        var pendingSolution = metadataWorkspace.CurrentSolution;
+        var documentInfos = CreateDocumentInfos(sourceFileInfos, encoding, projectId, sourceWorkspace, sourceProject);
         if (documentInfos.Length > 0)
         {
-            metadataWorkspace.OnDocumentsAdded(documentInfos);
-            navigateProject = metadataWorkspace.CurrentSolution.GetRequiredProject(projectId);
+            foreach (var documentInfo in documentInfos)
+            {
+                // The document might have already been added by a previous go to definition call.
+                if (!pendingSolution.ContainsDocument(documentInfo.Id))
+                {
+                    pendingSolution = pendingSolution.AddDocument(documentInfo);
+                }
+            }
         }
+
+        var navigateProject = pendingSolution.GetRequiredProject(projectId);
 
         // If MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync can't find the actual document to navigate to, it will fall back
         // to the document passed in, which we just use the first document for.
@@ -319,20 +335,22 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             }
 
             // If a document has multiple symbols then we might already know about it
-            if (_fileToDocumentInfoMap.ContainsKey(info.FilePath))
+            if (_fileToDocumentInfoMap.TryGetValue(info.FilePath, out var sourceDocumentInfo))
             {
+                documents.Add(sourceDocumentInfo.DocumentInfo);
                 continue;
             }
 
             var documentId = DocumentId.CreateNewId(projectId);
 
-            documents.Add(DocumentInfo.Create(
+            var documentInfo = DocumentInfo.Create(
                 documentId,
                 name: Path.GetFileName(info.FilePath),
                 loader: info.Loader,
                 filePath: info.FilePath,
                 isGenerated: true)
-                .WithDesignTimeOnly(true));
+                .WithDesignTimeOnly(true);
+            documents.Add(documentInfo);
 
             // If we successfully got something from SourceLink for this project then its nice to wait a bit longer
             // if the user performs subsequent navigation
@@ -342,7 +360,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
             }
 
             // In order to open documents in VS we need to understand the link from temp file to document and its encoding etc.
-            _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, info.ChecksumAlgorithm, sourceProject.Id, sourceWorkspace);
+            _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, info.ChecksumAlgorithm, sourceProject.Id, sourceWorkspace, documentInfo);
         }
 
         return documents.ToImmutableAndClear();
@@ -359,8 +377,12 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         {
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
+                Contract.ThrowIfTrue(_openedDocumentIds.Contains(info.DocumentId));
+
+                workspace.OnDocumentAdded(info.DocumentInfo);
                 workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
                 documentId = info.DocumentId;
+                _openedDocumentIds.Add(documentId);
                 return true;
             }
 
@@ -375,8 +397,18 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         {
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
-                workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
-                return true;
+                // In LSP, while calls to TryAddDocumentToWorkspace and TryRemoveDocumentFromWorkspace are handled
+                // serially, it is possible that TryRemoveDocumentFromWorkspace called without TryAddDocumentToWorkspace first.
+                // This can happen if the document is immediately closed after opening - only feature requests that force us
+                // to materialize a solution will trigger TryAddDocumentToWorkspace, if none are made it is never called.
+                // However TryRemoveDocumentFromWorkspace is always called on close.
+                if (_openedDocumentIds.Contains(info.DocumentId))
+                {
+                    workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
+                    workspace.OnDocumentRemoved(info.DocumentId);
+                    _openedDocumentIds.Remove(info.DocumentId);
+                    return true;
+                }
             }
 
             return false;
@@ -418,11 +450,29 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
 
         // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
         _fileToDocumentInfoMap.Clear();
+        _openedDocumentIds.Clear();
         _sourceLinkEnabledProjects.Clear();
         _implementationAssemblyLookupService.Clear();
+    }
+
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor
+    {
+        private readonly PdbSourceDocumentMetadataAsSourceFileProvider _instance;
+
+        internal TestAccessor(PdbSourceDocumentMetadataAsSourceFileProvider instance)
+        {
+            _instance = instance;
+        }
+
+        public ImmutableDictionary<string, SourceDocumentInfo> Documents => _instance._fileToDocumentInfoMap.ToImmutableDictionary();
     }
 }
 
 internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm ChecksumAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl);
 
-internal record struct SourceDocumentInfo(DocumentId DocumentId, Encoding Encoding, SourceHashAlgorithm ChecksumAlgorithm, ProjectId SourceProjectId, Workspace SourceWorkspace);
+internal record struct SourceDocumentInfo(DocumentId DocumentId, Encoding Encoding, SourceHashAlgorithm ChecksumAlgorithm, ProjectId SourceProjectId, Workspace SourceWorkspace, DocumentInfo DocumentInfo);

@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     session.Cancel()
                     VerifyBufferContentsInWorkspace(actualWorkspace, actualWorkspace)
                 ElseIf sessionCommit Then
-                    Await session.CommitAsync(previewChanges:=False, CancellationToken.None)
+                    Await session.CommitAsync(previewChanges:=False)
                     VerifyBufferContentsInWorkspace(actualWorkspace, resolvedConflictWorkspace)
                 End If
             End If
