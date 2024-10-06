@@ -78,8 +78,10 @@ namespace Microsoft.CodeAnalysis.Remote
         protected override JsonRpcConnection CreateConnection(JsonRpc jsonRpc)
         {
             jsonRpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
+            jsonRpc.ExceptionStrategy = ExceptionProcessing.ISerializable;
             var connection = base.CreateConnection(jsonRpc);
             connection.LocalRpcTargetOptions = s_jsonRpcTargetOptions;
+
             return connection;
         }
 
