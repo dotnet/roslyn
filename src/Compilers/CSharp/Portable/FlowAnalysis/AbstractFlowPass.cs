@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // as optionally evaluated. Otherwise, we treat them as always evaluated
             (BoundExpression? construction, bool useBoolReturns, bool firstPartIsConditional) = data switch
             {
-                null => (null, false, false),
+                null or { BuilderType: null } => (null, false, false),
                 { } d => (d.Construction, d.UsesBoolReturns, d.HasTrailingHandlerValidityParameter)
             };
 

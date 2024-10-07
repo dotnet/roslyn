@@ -838,12 +838,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics);
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<BoundExpression> args, bool ignoreNormalFormIfHasValidParamsParameter)
-        {
-            return MakeInvocationExpression(
-                BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args, this.Diagnostics, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
-        }
-
         public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
         {
             return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics, typeArgs);

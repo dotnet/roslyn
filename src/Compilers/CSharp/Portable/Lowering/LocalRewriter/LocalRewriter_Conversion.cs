@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var (data, parts) = node.Operand switch
                     {
-                        BoundInterpolatedString { InterpolationData: { } d, Parts: { } p } => (d, p),
+                        BoundInterpolatedString { InterpolationData: { BuilderType: not null } d, Parts: { } p } => (d, p),
                         BoundBinaryOperator { InterpolatedStringHandlerData: { } d } binary => (d, CollectBinaryOperatorInterpolatedStringParts(binary)),
                         _ => throw ExceptionUtilities.UnexpectedValue(node.Operand.Kind)
                     };
