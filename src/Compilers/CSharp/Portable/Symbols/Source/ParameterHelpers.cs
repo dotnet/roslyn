@@ -643,7 +643,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public static void ReportParameterErrors(
+        /// <param name="typeWithAnnotations">Can be <see langword="default"/> if this is called for a lambda parameter
+        /// with an explicit type provided.</param>
+        public static void ReportLambdaParameterErrors(
             Symbol? owner,
             BaseParameterSyntax syntax,
             int ordinal,
