@@ -57,6 +57,11 @@ internal partial class StreamingFindUsagesPresenter
                 document.Project.Solution.Workspace,
                 document.Id,
                 NavigateToTargetSpan.Start,
+                virtualSpace: 0,
+                // The location we're trying to navigate to may be gone at this point.  For example if the location was
+                // at the end of a file, and the user edited the document to be shorter.  We want to not throw in this
+                // case as stale results are a normal part of how find-references works.
+                allowInvalidPosition: true,
                 options,
                 cancellationToken).ConfigureAwait(false);
         }
