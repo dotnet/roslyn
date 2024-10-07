@@ -12087,33 +12087,36 @@ done:
             }
 
             //  case 1:  ( x ,      or       ( ref x ,
-            if (isParenVarCommaSyntax(out var currentTokenIndex))
             {
-                // Make sure it really looks like a lambda, not just a tuple
-                while (true)
+                // Inner scope so that later code doesn't try to use index
+                if (isParenVarCommaSyntax(out var index))
                 {
-                    var token = this.PeekToken(currentTokenIndex++);
-
-                    // Keep skipping modifiers, commas, and identifiers to consume the rest of the lambda arguments.
-                    if (this.IsTrueIdentifier(token) ||
-                        token.Kind is SyntaxKind.CommaToken ||
-                        IsParameterModifierIncludingScoped(token))
+                    // Make sure it really looks like a lambda, not just a tuple
+                    while (true)
                     {
-                        continue;
+                        var token = this.PeekToken(index++);
+
+                        // Keep skipping modifiers, commas, and identifiers to consume the rest of the lambda arguments.
+                        if (this.IsTrueIdentifier(token) ||
+                            token.Kind is SyntaxKind.CommaToken ||
+                            IsParameterModifierIncludingScoped(token))
+                        {
+                            continue;
+                        }
+
+                        break;
                     }
 
-                    break;
+                    // ) =>
+                    return this.PeekToken(index - 1).Kind == SyntaxKind.CloseParenToken &&
+                           this.PeekToken(index).Kind == SyntaxKind.EqualsGreaterThanToken;
                 }
-
-                // ) =>
-                return this.PeekToken(currentTokenIndex - 1).Kind == SyntaxKind.CloseParenToken &&
-                       this.PeekToken(currentTokenIndex).Kind == SyntaxKind.EqualsGreaterThanToken;
             }
 
             //  case 2:  ( x ) =>       or    ( ref x ) => 
             {
-                var index = 1;
-                skipParameterModifiers(ref index);
+                // Inner scope so that later code doesn't try to use index
+                skipParameterModifiers(out var index);
 
                 if (IsTrueIdentifier(this.PeekToken(index++)))
                 {
@@ -12156,8 +12159,7 @@ done:
 
                 afterCommaIndex = 0;
 
-                var index = 1;
-                skipParameterModifiers(ref index);
+                skipParameterModifiers(out var index);
 
                 var token1 = this.PeekToken(index++);
 
@@ -12177,19 +12179,13 @@ done:
                 return false;
             }
 
-            void skipParameterModifiers(ref int index)
+            void skipParameterModifiers(out int afterModifiersIndex)
             {
-                while (true)
-                {
-                    var token = this.PeekToken(index);
-                    if (IsParameterModifierIncludingScoped(token))
-                    {
-                        index++;
-                        continue;
-                    }
+                Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
+                afterModifiersIndex = 1;
 
-                    break;
-                }
+                while (IsParameterModifierIncludingScoped(this.PeekToken(afterModifiersIndex)))
+                    afterModifiersIndex++;
             }
         }
 
