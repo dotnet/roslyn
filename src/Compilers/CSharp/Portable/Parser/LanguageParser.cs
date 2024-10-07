@@ -4707,34 +4707,6 @@ parse_member_name:;
                 equalsToken == null ? null : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
         }
 
-        /// <summary>
-        /// Merges two successive tokens into a single token with the given <paramref name="kind"/>.  If the two tokens
-        /// have no trivia between them, then the final token will be trivially generated, properly passing on the right
-        /// leading/trailing trivia.  However, if there is trivia between the tokens, then appropriate errors will be
-        /// reported that the tokens cannot merge successfully.
-        /// </summary>
-        /// <remarks>
-        /// IsFabricatedToken should be updated for tokens whose SyntaxKind is <paramref name="kind"/>.
-        /// </remarks>
-        private SyntaxToken? MergeAdjacent(SyntaxToken t1, SyntaxToken t2, SyntaxKind kind)
-        {
-            // Make sure we don't reuse the merged token for incremental parsing.
-            // "=>" wasn't proven to be a source of issues. See https://github.com/dotnet/roslyn/issues/60002
-            Debug.Assert(Blender.Reader.IsFabricatedToken(kind) || kind == SyntaxKind.EqualsGreaterThanToken);
-            if (NoTriviaBetween(t1, t2))
-                return SyntaxFactory.Token(t1.GetLeadingTrivia(), kind, t2.GetTrailingTrivia());
-
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            t1.WriteTo(writer, leading: false, trailing: true);
-            t2.WriteTo(writer, leading: true, trailing: false);
-            var text = sb.ToStringAndFree();
-
-            return WithAdditionalDiagnostics(
-                SyntaxFactory.Token(t1.GetLeadingTrivia(), kind, text, text, t2.GetTrailingTrivia()),
-                GetExpectedTokenError(kind, t1.Kind));
-        }
-
         internal static bool NoTriviaBetween(SyntaxToken token1, SyntaxToken token2)
             => token1.GetTrailingTriviaWidth() == 0 && token2.GetLeadingTriviaWidth() == 0;
 
