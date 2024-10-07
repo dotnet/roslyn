@@ -52,11 +52,11 @@ internal partial class StreamingFindUsagesPresenter
             var document = Document;
             var documentNavigationService = document.Project.Solution.Services.GetRequiredService<IDocumentNavigationService>();
 
-            await documentNavigationService.TryNavigateToSpanAsync(
+            await documentNavigationService.TryNavigateToPositionAsync(
                 threadingContext,
                 document.Project.Solution.Workspace,
                 document.Id,
-                NavigateToTargetSpan,
+                NavigateToTargetSpan.Start,
                 options,
                 cancellationToken).ConfigureAwait(false);
         }

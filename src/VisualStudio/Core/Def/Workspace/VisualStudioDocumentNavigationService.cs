@@ -65,7 +65,8 @@ internal sealed class VisualStudioDocumentNavigationService(
             documentId, vsTextSpan, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<bool> CanNavigateToPositionAsync(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+    public async Task<bool> CanNavigateToPositionAsync(
+        Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, CancellationToken cancellationToken)
     {
         // Navigation should not change the context of linked files and Shared Projects.
         documentId = workspace.GetDocumentIdInCurrentContext(documentId);
@@ -77,7 +78,7 @@ internal sealed class VisualStudioDocumentNavigationService(
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
-        if (boundedPosition != position)
+        if (boundedPosition != position && !allowInvalidPosition)
         {
             try
             {
@@ -110,9 +111,9 @@ internal sealed class VisualStudioDocumentNavigationService(
     }
 
     public async Task<INavigableLocation?> GetLocationForPositionAsync(
-        Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
+        Workspace workspace, DocumentId documentId, int position, int virtualSpace, bool allowInvalidPosition, CancellationToken cancellationToken)
     {
-        if (!await this.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, cancellationToken).ConfigureAwait(false))
+        if (!await this.CanNavigateToPositionAsync(workspace, documentId, position, virtualSpace, allowInvalidPosition, cancellationToken).ConfigureAwait(false))
             return null;
 
         return await GetNavigableLocationAsync(workspace,
