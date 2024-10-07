@@ -12084,79 +12084,25 @@ done:
             if (precedence > Precedence.Lambda)
                 return false;
 
-            //  case 1:  ( x ,      or       ( ref x ,
+            //  ( x ) =>           or       ( ref x ) =>
+            //  ( x , ... ) =>     or       ( ref x , ...) =>
+            var index = 1;
+
+            while (true)
             {
-                // Inner scope so that later code doesn't try to use index
-                if (isParenVarCommaSyntax(out var index))
+                var token = this.PeekToken(index++);
+
+                // Keep skipping modifiers, commas, and identifiers to consume the rest of the lambda arguments.
+                if (this.IsTrueIdentifier(token) ||
+                    token.Kind is SyntaxKind.CommaToken ||
+                    IsParameterModifierIncludingScoped(token))
                 {
-                    // Make sure it really looks like a lambda, not just a tuple
-                    while (true)
-                    {
-                        var token = this.PeekToken(index);
-
-                        // Keep skipping modifiers, commas, and identifiers to consume the rest of the lambda arguments.
-                        if (!this.IsTrueIdentifier(token) &&
-                            token.Kind is not SyntaxKind.CommaToken &&
-                            !IsParameterModifierIncludingScoped(token))
-                        {
-                            break;
-                        }
-
-                        index++;
-                    }
-
-                    // ) =>
-                    return isCloseParenAndArrow(index);
+                    continue;
                 }
+
+                return token.Kind == SyntaxKind.CloseParenToken &&
+                       this.PeekToken(index).Kind == SyntaxKind.EqualsGreaterThanToken;
             }
-
-            //  case 2:  ( x ) =>       or    ( ref x ) => 
-            {
-                // Inner scope so that later code doesn't try to use index
-                skipParameterModifiers(out var index);
-
-                if (IsTrueIdentifier(this.PeekToken(index++)) &&
-                    isCloseParenAndArrow(index))
-                {
-                    return true;
-                }
-            }
-
-            //  case 4:  ( ) =>
-            if (isCloseParenAndArrow(index: 1))
-                return true;
-
-            // case 5:  ( params
-            // This case is interesting in that it is not legal; this error could be caught at parse time but we would rather
-            // recover from the error and let the semantic analyzer deal with it.
-            if (this.PeekToken(1).Kind == SyntaxKind.ParamsKeyword)
-                return true;
-
-            return false;
-
-            bool isParenVarCommaSyntax(out int index)
-            {
-                Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
-
-                skipParameterModifiers(out index);
-
-                // Ensure next token is a variable followed by a comma:  ( x , [...]
-                return this.IsTrueIdentifier(this.PeekToken(index++)) &&
-                       this.PeekToken(index++).Kind == SyntaxKind.CommaToken;
-            }
-
-            void skipParameterModifiers(out int afterModifiersIndex)
-            {
-                Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
-                afterModifiersIndex = 1;
-
-                while (IsParameterModifierIncludingScoped(this.PeekToken(afterModifiersIndex)))
-                    afterModifiersIndex++;
-            }
-
-            bool isCloseParenAndArrow(int index)
-                => this.PeekToken(index).Kind == SyntaxKind.CloseParenToken &&
-                   this.PeekToken(index + 1).Kind == SyntaxKind.EqualsGreaterThanToken;
         }
 
         private bool ScanExplicitlyTypedLambda(Precedence precedence)
