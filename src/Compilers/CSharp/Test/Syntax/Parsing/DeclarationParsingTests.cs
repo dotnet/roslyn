@@ -7911,7 +7911,6 @@ class C<T> where T : struct? {}
                 // void M(string name !!=null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 20));
 
-
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8059,7 +8058,6 @@ class C<T> where T : struct? {}
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // void M(string name!!= = null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
-
 
             N(SyntaxKind.LocalFunctionStatement);
             {
