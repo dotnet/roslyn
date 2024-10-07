@@ -315,41 +315,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void CheckParenthesizedLambdaParameters(
             SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, BindingDiagnosticBag diagnostics)
         {
-            if (parameterSyntaxList.Count == 0)
-                return;
-
-            var requiresTypes = parameterSyntaxList.Any(static p => p.Type != null);
-
-            // If one parameter has a type, then all parameters must have a type.
-
-            foreach (var parameter in parameterSyntaxList)
+            if (parameterSyntaxList.Count > 0)
             {
-                // Ignore parameters with missing names.  We'll have already reported an error
-                // about them in the parser.
-                if (parameter.Identifier.IsMissing)
-                    continue;
+                // If one parameter has a type, then all parameters must have a type.
+                var requiresTypes = parameterSyntaxList.Any(static p => p.Type != null);
 
-                if (requiresTypes)
+                foreach (var parameter in parameterSyntaxList)
                 {
-                    if (parameter.Type is null)
+                    // Ignore parameters with missing names.  We'll have already reported an error
+                    // about them in the parser.
+                    if (!parameter.Identifier.IsMissing)
                     {
-                        diagnostics.Add(ErrorCode.ERR_InconsistentLambdaParameterUsage,
-                            parameter.Identifier.GetLocation());
-                    }
-                }
-                else
-                {
-                    if (parameter.Default != null)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
-                            parameter.Identifier.GetLocation(), parameter.Identifier.Text);
-                    }
-                }
+                        if (requiresTypes)
+                        {
+                            if (parameter.Type is null)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_InconsistentLambdaParameterUsage,
+                                    parameter.Identifier.GetLocation());
+                            }
+                        }
+                        else
+                        {
+                            if (parameter.Default != null)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ImplicitlyTypedDefaultParameter,
+                                    parameter.Identifier.GetLocation(), parameter.Identifier.Text);
+                            }
+                        }
 
-                // Check if `(ref i) => ...` is supported by this language version.
-                if (parameter.Modifiers.Count > 0 && parameter.Type is null)
-                {
-                    CheckFeatureAvailability(parameter, MessageID.IDS_FeatureSimpleLambdaParameterModifiers, diagnostics);
+                        // Check if `(ref i) => ...` is supported by this language version.
+                        if (parameter.Modifiers.Count > 0 && parameter.Type is null)
+                        {
+                            CheckFeatureAvailability(parameter, MessageID.IDS_FeatureSimpleLambdaParameterModifiers, diagnostics);
+                        }
+                    }
                 }
             }
         }
