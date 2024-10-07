@@ -2175,14 +2175,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
-                    var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
-                    var lambdaRefKind = anonymousFunction.RefKind(i);
-                    var delegateParameterType = delegateParameters[i].Type;
-                    var delegateRefKind = delegateParameters[i].RefKind;
                     var lambdaParameterType = anonymousFunction.ParameterType(i);
 
                     // Can't be an error type.  This was already checked in a loop above this one.
                     Debug.Assert(!lambdaParameterType.IsErrorType());
+
+                    var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
+                    var lambdaRefKind = anonymousFunction.RefKind(i);
+                    var delegateParameterType = delegateParameters[i].Type;
+                    var delegateRefKind = delegateParameters[i].RefKind;
 
                     if (!lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
