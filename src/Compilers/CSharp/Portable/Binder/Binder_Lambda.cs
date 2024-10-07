@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var type = p.Type is not null ? BindType(p.Type, diagnostics) : default;
+                    var typeOpt = p.Type is not null ? BindType(p.Type, diagnostics) : default;
 
                     var refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out var scope);
                     var isParams = paramsKeyword.Kind() != SyntaxKind.None;
@@ -186,11 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parsingAnonymousMethodParams: isAnonymousMethod);
 
                     ParameterHelpers.ReportLambdaParameterErrors(
-                        owner: null, p, ordinal: i, lastParameterIndex: n - 1, isParams: isParams, type,
+                        owner: null, p, ordinal: i, lastParameterIndex: n - 1, isParams: isParams, typeOpt,
                         refKind, containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
 
                     var isLastParameter = parameterCount == parameterSyntaxListOpt.Value.Count;
-                    if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None && !type.IsDefault && type.IsSZArray())
+                    if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None && !typeOpt.IsDefault && typeOpt.IsSZArray())
                     {
                         ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
                             WellKnownMember.System_ParamArrayAttribute__ctor,
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     namesBuilder.Add(p.Identifier.ValueText);
-                    typesBuilder.Add(type);
+                    typesBuilder.Add(typeOpt);
                     refKindsBuilder.Add(refKind);
                     scopesBuilder.Add(scope);
                     attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
