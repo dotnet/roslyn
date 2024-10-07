@@ -984,9 +984,7 @@ End Class
 
         <ConditionalFact(GetType(NotMono))>
         Public Sub AsyncMethodOverloads()
-
             Using New EditAndContinueTest(_logger).
-
                 AddBaseline(
                     source:="
 Imports System.Threading.Tasks
