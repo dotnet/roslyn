@@ -941,26 +941,22 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            N(SyntaxKind.ParenthesizedExpression);
                             {
-                                N(SyntaxKind.ParameterList);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.SuppressNullableWarningExpression);
                                 {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.SuppressNullableWarningExpression);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "x");
                                         }
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.ExclamationToken);
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.ExclamationToken);
                                 }
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
                         }
                     }
@@ -1342,26 +1338,22 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            N(SyntaxKind.ParenthesizedExpression);
                             {
-                                N(SyntaxKind.ParameterList);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.SuppressNullableWarningExpression);
                                 {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.SuppressNullableWarningExpression);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "_");
                                         }
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.ExclamationToken);
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.ExclamationToken);
                                 }
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.NumericLiteralExpression);
-                                {
-                                    N(SyntaxKind.NumericLiteralToken, "42");
-                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
                         }
                     }
@@ -4851,26 +4843,22 @@ class C {
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                            N(SyntaxKind.ParenthesizedExpression);
                             {
-                                N(SyntaxKind.ParameterList);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.SuppressNullableWarningExpression);
                                 {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.Parameter);
+                                    N(SyntaxKind.SuppressNullableWarningExpression);
                                     {
                                         N(SyntaxKind.IdentifierName);
                                         {
                                             N(SyntaxKind.IdentifierToken, "x");
                                         }
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.ExclamationToken);
                                     }
-                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.ExclamationToken);
                                 }
-                                N(SyntaxKind.EqualsGreaterThanToken);
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x");
-                                }
+                                N(SyntaxKind.CloseParenToken);
                             }
                         }
                     }
