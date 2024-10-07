@@ -903,6 +903,132 @@ public class FirstClassSpanTests : CSharpTestBase
         verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_IsOperator(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            Console.Write(arr() is Span<int>);
+            static int[] arr() => new[] { 1, 2, 3 };
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: "False");
+        verifier.VerifyDiagnostics(
+            // (2,15): warning CS0184: The given expression is never of the provided ('Span<int>') type
+            // Console.Write(arr() is Span<int>);
+            Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "arr() is Span<int>").WithArguments("System.Span<int>").WithLocation(2, 15));
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       13 (0xd)
+              .maxstack  1
+              IL_0000:  call       "int[] Program.<<Main>$>g__arr|0_0()"
+              IL_0005:  pop
+              IL_0006:  ldc.i4.0
+              IL_0007:  call       "void System.Console.Write(bool)"
+              IL_000c:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_IsPattern(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            if (arr() is Span<int> s)
+            {
+                Console.Write(s.Length);
+            }
+            static int[] arr() => throw null;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (2,14): error CS8121: An expression of type 'int[]' cannot be handled by a pattern of type 'Span<int>'.
+            // if (arr() is Span<int> s)
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("int[]", "System.Span<int>").WithLocation(2, 14));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_SwitchPattern(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            switch (arr())
+            {
+                case Span<int> s:
+                    Console.Write(s.Length);
+                    break;
+            }
+            static int[] arr() => throw null;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,10): error CS8121: An expression of type 'int[]' cannot be handled by a pattern of type 'Span<int>'.
+            //     case Span<int> s:
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<int>").WithArguments("int[]", "System.Span<int>").WithLocation(4, 10));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Explicit_IsOperator(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            Console.Write(arr() is Span<string>);
+            static object[] arr() => new[] { "a", "b" };
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: "False");
+        verifier.VerifyDiagnostics(
+            // (2,15): warning CS0184: The given expression is never of the provided ('Span<string>') type
+            // Console.Write(arr() is Span<string>);
+            Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "arr() is Span<string>").WithArguments("System.Span<string>").WithLocation(2, 15));
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       13 (0xd)
+              .maxstack  1
+              IL_0000:  call       "object[] Program.<<Main>$>g__arr|0_0()"
+              IL_0005:  pop
+              IL_0006:  ldc.i4.0
+              IL_0007:  call       "void System.Console.Write(bool)"
+              IL_000c:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Explicit_IsPattern(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            if (arr() is Span<string> s)
+            {
+                Console.Write(s.Length);
+            }
+            static object[] arr() => throw null;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (2,14): error CS8121: An expression of type 'object[]' cannot be handled by a pattern of type 'Span<string>'.
+            // if (arr() is Span<string> s)
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<string>").WithArguments("object[]", "System.Span<string>").WithLocation(2, 14));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Explicit_SwitchPattern(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            switch (arr())
+            {
+                case Span<string> s:
+                    Console.Write(s.Length);
+                    break;
+            }
+            static object[] arr() => throw null;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,10): error CS8121: An expression of type 'object[]' cannot be handled by a pattern of type 'Span<string>'.
+            //     case Span<string> s:
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<string>").WithArguments("object[]", "System.Span<string>").WithLocation(4, 10));
+    }
+
     [Fact]
     public void Conversion_Array_Span_Implicit_MissingHelper()
     {
