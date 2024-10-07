@@ -7363,6 +7363,7 @@ class C<T> where T : struct? {}
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // void M(string name!! = null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7380,14 +7381,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7397,12 +7390,17 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
         public void TestOptParamMethodDeclarationWithNullValidationNoSpaces()
         {
-            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview);
+            UsingStatement(@"void M(string name!!=null) { }", options: TestOptions.RegularPreview,
+                // (1,19): error CS1003: Syntax error, ',' expected
+                // void M(string name!!=null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7420,14 +7418,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7437,6 +7427,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -7586,6 +7577,7 @@ class C<T> where T : struct? {}
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // void M(__arglist[]!!= null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7620,14 +7612,6 @@ class C<T> where T : struct? {}
                             M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.IdentifierToken);
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7741,6 +7725,7 @@ class C<T> where T : struct? {}
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // void M(string name !!=null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 20));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7758,14 +7743,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7775,6 +7752,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -7784,6 +7762,7 @@ class C<T> where T : struct? {}
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // void M(string name!!=null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7801,14 +7780,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7818,6 +7789,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -7827,6 +7799,7 @@ class C<T> where T : struct? {}
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // void M(string name!!= null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7844,14 +7817,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7861,6 +7826,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -7870,6 +7836,7 @@ class C<T> where T : struct? {}
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // void M(string name!!=null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7887,14 +7854,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7904,12 +7863,17 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
         public void TestNullCheckedArgWithSpaceInbetween()
         {
-            UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview);
+            UsingStatement(@"void M(string name! !=null) { }", options: TestOptions.RegularPreview,
+                // (1,19): error CS1003: Syntax error, ',' expected
+                // void M(string name! !=null) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7927,14 +7891,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7954,6 +7910,8 @@ class C<T> where T : struct? {}
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // void M(string name !!=null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 20));
+
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -7971,14 +7929,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -7988,6 +7938,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -7997,6 +7948,7 @@ class C<T> where T : struct? {}
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // void M(string name! ! =null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8014,14 +7966,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -8041,6 +7985,7 @@ class C<T> where T : struct? {}
                 // (1,20): error CS1003: Syntax error, ',' expected
                 // void M(string name ! !=null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 20));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8058,14 +8003,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -8085,6 +8022,7 @@ class C<T> where T : struct? {}
                 // (1,19): error CS1003: Syntax error, ',' expected
                 // void M(string name!!= null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8102,14 +8040,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.NullLiteralExpression);
-                            {
-                                N(SyntaxKind.NullKeyword);
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
@@ -8119,6 +8049,7 @@ class C<T> where T : struct? {}
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
+            EOF();
         }
 
         [Fact]
@@ -8129,6 +8060,7 @@ class C<T> where T : struct? {}
                 // void M(string name!!= = null) { }
                 Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 19));
 
+
             N(SyntaxKind.LocalFunctionStatement);
             {
                 N(SyntaxKind.PredefinedType);
@@ -8146,22 +8078,6 @@ class C<T> where T : struct? {}
                             N(SyntaxKind.StringKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "name");
-                        N(SyntaxKind.EqualsValueClause);
-                        {
-                            N(SyntaxKind.EqualsToken);
-                            N(SyntaxKind.SimpleAssignmentExpression);
-                            {
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                                N(SyntaxKind.EqualsToken);
-                                N(SyntaxKind.NullLiteralExpression);
-                                {
-                                    N(SyntaxKind.NullKeyword);
-                                }
-                            }
-                        }
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
