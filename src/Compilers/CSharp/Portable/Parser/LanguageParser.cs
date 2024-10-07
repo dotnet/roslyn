@@ -12103,13 +12103,6 @@ done:
                     }
 
                     break;
-                    //// skip  identifiers commas and predefined types in any combination for error recovery
-                    //if (tk.Kind is not SyntaxKind.IdentifierToken and not SyntaxKind.CommaToken
-                    //    && !SyntaxFacts.IsPredefinedType(tk.Kind)
-                    //    && (this.IsInQuery || !IsTokenQueryContextualKeyword(tk)))
-                    //{
-                    //    break;
-                    //};
                 }
 
                 // ) =>
