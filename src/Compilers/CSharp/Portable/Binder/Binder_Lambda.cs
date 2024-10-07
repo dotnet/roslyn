@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parsingLambdaParams: !isAnonymousMethod,
                         parsingAnonymousMethodParams: isAnonymousMethod);
 
-                    ParameterHelpers.ReportLambdaParameterErrors(
+                    ParameterHelpers.ReportParameterErrors(
                         owner: null, p, ordinal: i, lastParameterIndex: n - 1, isParams: isParams, typeOpt,
                         refKind, containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
 
