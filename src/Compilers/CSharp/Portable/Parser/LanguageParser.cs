@@ -12096,8 +12096,8 @@ done:
 
                     // Keep skipping modifiers, commas, and identifiers to consume the rest of the lambda arguments.
                     if (this.IsTrueIdentifier(token) ||
-                        token.Kind is SyntaxKind.CommaToken or SyntaxKind.ScopedKeyword ||
-                        IsParameterModifierExcludingScoped(token))
+                        token.Kind is SyntaxKind.CommaToken ||
+                        IsParameterModifierIncludingScoped(token))
                     {
                         continue;
                     }
