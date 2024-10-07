@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTokens;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
@@ -24,7 +23,7 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
 {
     public override string Identifier => CSharpSnippetIdentifiers.RequiredProperty;
 
-    public override string Description => FeaturesResources.required_property;
+    public override string Description => CSharpFeaturesResources.required_property;
 
     protected override SyntaxToken[] GetAdditionalPropertyModifiers(CSharpSyntaxContext? syntaxContext) => [RequiredKeyword];
 
