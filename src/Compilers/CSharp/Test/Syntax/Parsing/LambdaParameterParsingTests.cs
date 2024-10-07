@@ -909,9 +909,12 @@ class C {
         public void TestNullCheckedSingleParamInParens()
         {
             UsingDeclaration("Func<int, int> func1 = (x!!) => x;", options: TestOptions.RegularPreview,
-                // (1,30): error CS1003: Syntax error, ',' expected
+                // (1,26): error CS1001: Identifier expected
                 // Func<int, int> func1 = (x!!) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 30));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 26),
+                // (1,26): error CS1003: Syntax error, ',' expected
+                // Func<int, int> func1 = (x!!) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 26));
 
             N(SyntaxKind.FieldDeclaration);
             {
@@ -1306,9 +1309,12 @@ class C {
         public void TestNullCheckedDiscard()
         {
             UsingDeclaration("Func<int, int> func1 = (_!!) => 42;", options: TestOptions.RegularPreview,
-                // (1,30): error CS1003: Syntax error, ',' expected
+                // (1,26): error CS1001: Identifier expected
                 // Func<int, int> func1 = (_!!) => 42;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 30));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 26),
+                // (1,26): error CS1003: Syntax error, ',' expected
+                // Func<int, int> func1 = (_!!) => 42;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 26));
 
             N(SyntaxKind.FieldDeclaration);
             {
@@ -4811,9 +4817,12 @@ class C {
         public void TestNullCheckedSpaceBetweenParenthesizedLambda1()
         {
             UsingDeclaration("Func<string, string> func0 = (x! !) => x;", options: TestOptions.RegularPreview,
-                // (1,37): error CS1003: Syntax error, ',' expected
+                // (1,32): error CS1001: Identifier expected
                 // Func<string, string> func0 = (x! !) => x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 37));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "!").WithLocation(1, 32),
+                // (1,32): error CS1003: Syntax error, ',' expected
+                // Func<string, string> func0 = (x! !) => x;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(1, 32));
 
             N(SyntaxKind.FieldDeclaration);
             {
