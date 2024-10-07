@@ -189,8 +189,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         owner: null, p, ordinal: i, lastParameterIndex: n - 1, isParams: isParams, typeOpt,
                         refKind, containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
 
-                    var isLastParameter = parameterCount == parameterSyntaxListOpt.Value.Count;
-                    if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None && !typeOpt.IsDefault && typeOpt.IsSZArray())
+                    if (parameterCount == parameterSyntaxList.Count &&
+                        paramsKeyword.Kind() != SyntaxKind.None &&
+                        !typeOpt.IsDefault &&
+                        typeOpt.IsSZArray())
                     {
                         ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
                             WellKnownMember.System_ParamArrayAttribute__ctor,
