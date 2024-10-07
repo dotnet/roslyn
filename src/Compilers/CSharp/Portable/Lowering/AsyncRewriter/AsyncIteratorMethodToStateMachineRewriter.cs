@@ -317,6 +317,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Goto(_currentDisposalLabel));
         }
 
+        protected override BoundStatement MakeAwaitPreamble()
+        {
+            // _current = default;
+            return GenerateClearCurrent();
+        }
+
         private BoundExpressionStatement SetDisposeMode(bool value)
         {
             return F.Assignment(F.InstanceField(_asyncIteratorInfo.DisposeModeField), F.Literal(value));

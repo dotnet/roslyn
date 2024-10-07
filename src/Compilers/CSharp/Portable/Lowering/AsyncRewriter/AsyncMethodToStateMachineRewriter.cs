@@ -333,8 +333,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
+#nullable enable
+        protected virtual BoundStatement? MakeAwaitPreamble() { return F.NoOp(NoOpStatementFlavor.Default); }
+#nullable disable
+
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
+            var preamble = MakeAwaitPreamble();
+
             var expression = (BoundExpression)Visit(node.Expression);
             var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
 
@@ -388,6 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return F.Block(
                 ImmutableArray.Create(awaiterTemp),
+                preamble,
                 awaitIfIncomplete,
                 getResultStatement);
         }
