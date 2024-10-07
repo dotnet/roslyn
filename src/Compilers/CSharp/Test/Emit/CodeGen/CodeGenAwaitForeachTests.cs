@@ -9403,5 +9403,44 @@ class C
                 expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "D" : null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting()
+        {
+            var src = """
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+var enumerable = C.M();
+var enumerator = enumerable.GetAsyncEnumerator();
+if (!await enumerator.MoveNextAsync())
+    throw null;
+
+System.Console.Write(enumerator.Current);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current is null);
+
+if (!await promise)
+    throw null;
+
+System.Console.Write(enumerator.Current);
+
+public class C
+{
+    public static async IAsyncEnumerable<object> M()
+    {
+        object o = "first ";
+        yield return o;
+        await Task.Yield();
+        yield return " second";
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first False second" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
     }
 }
