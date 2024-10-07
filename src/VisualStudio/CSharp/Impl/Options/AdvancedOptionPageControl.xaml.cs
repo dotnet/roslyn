@@ -70,6 +70,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
 
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit);
+            BindToOption(Automatically_reload_updated_analyzers_and_generators, WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences, () =>
+            {
+                // If the option has not been set by the user, check if the option is enabled from experimentation. If
+                // so, default to that.
+                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferencesFeatureFlag);
+            });
 
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
@@ -270,6 +276,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             this.OptionStore.SetOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, false);
             UpdateInlineHintsOptions();
+        }
+
+        private void RunCodeAnalysisInSeparateProcess_Checked(object sender, RoutedEventArgs e)
+        {
+            Automatically_reload_updated_analyzers_and_generators.IsEnabled = true;
+        }
+
+        private void RunCodeAnalysisInSeparateProcess_Unchecked(object sender, RoutedEventArgs e)
+        {
+            Automatically_reload_updated_analyzers_and_generators.IsEnabled = false;
         }
 
         private void EnterOutliningMode_Checked(object sender, RoutedEventArgs e)
