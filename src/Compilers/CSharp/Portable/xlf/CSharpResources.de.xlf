@@ -1622,11 +1622,6 @@
         <target state="translated">Die Methode "{0}" gibt eine struct-Einschränkung für den Typparameter "{1}" an, aber der zugehörige Typparameter "{2}" der außer Kraft gesetzten oder explizit implementierten Methode "{3}" ist kein Non-Nullable-Werttyp.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">Das "Parameter null-checking"-Feature wird nicht unterstützt.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Der Konstruktor "{0}" lässt den erforderlichen Member "{1}" deinitialisiert.</target>

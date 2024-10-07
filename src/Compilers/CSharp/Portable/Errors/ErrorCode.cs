@@ -2029,7 +2029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ScopedMismatchInParameterOfPartial = 8988,
 
         // param-nullchecking feature removed from C# 11
-        ERR_ParameterNullCheckingNotSupported = 8989,
+        // ERR_ParameterNullCheckingNotSupported = 8989,
         // ERR_DiscardCannotBeNullChecked = 8990,
         // ERR_MustNullCheckInImplementation = 8991,
         // ERR_NonNullableValueTypeIsNullChecked = 8992,

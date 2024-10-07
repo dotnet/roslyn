@@ -1622,11 +1622,6 @@
         <target state="translated">メソッド '{0}' は、型パラメーター '{1}' に対して 'struct' 制約を指定していますが、オーバーライドされた、または明示的に実装されたメソッド '{3}' の対応する型パラメーター '{2}' は NULL 非許容の値型ではありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">'parameter null-checking' 機能はサポートされていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">コンストラクター '{0}' は、必要なメンバー '{1}' を初期化しないままにします。</target>

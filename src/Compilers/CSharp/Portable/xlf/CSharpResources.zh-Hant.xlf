@@ -1622,11 +1622,6 @@
         <target state="translated">方法 '{0}' 會為型別參數 '{1}' 指定 'struct' 條件約束，但覆寫或明確實作的方法 '{3}' 對應型別參數 '{2}' 是不可為 Null 實值型別。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">不支援 'parameter null-checking' 功能。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">建構函式 '{0}' 未初始化必要的成員 '{1}'。</target>
