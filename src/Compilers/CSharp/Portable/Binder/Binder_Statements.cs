@@ -2164,6 +2164,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.MismatchedParameterType)
             {
+                // This is checked in the code that returns LambdaConversionResult.MismatchedParameterType
+                Debug.Assert(anonymousFunction.HasExplicitlyTypedParameterList);
+
                 // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
                 //
                 // Or: There is a ref-kind mismatch.
@@ -2176,22 +2179,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lambdaRefKind = anonymousFunction.RefKind(i);
                     var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
+                    var lambdaParameterType = anonymousFunction.ParameterType(i);
 
-                    if (hasExplicitlyTypedParameterList)
+                    // Can't be an error type.  This was already checked in a loop above this one.
+                    Debug.Assert(!lambdaParameterType.IsErrorType());
+
+                    if (!lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
-                        var lambdaParameterType = anonymousFunction.ParameterType(i);
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
 
-                        // Can't be an error type.  This was already checked in a loop above this one.
-                        Debug.Assert(!lambdaParameterType.IsErrorType());
-
-                        if (!lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
-                        {
-                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, lambdaParameterType, delegateParameterType);
-
-                            // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
-                            Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
-                                i + 1, lambdaRefKind.ToParameterPrefix(), distinguisher.First, delegateRefKind.ToParameterPrefix(), distinguisher.Second);
-                        }
+                        // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
+                        Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
+                            i + 1, lambdaRefKind.ToParameterPrefix(), distinguisher.First, delegateRefKind.ToParameterPrefix(), distinguisher.Second);
                     }
                 }
                 return;
