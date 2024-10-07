@@ -598,7 +598,9 @@ public class CodeFixServiceTests
             }
         }
 
+#pragma warning disable RS1042 // Do not implement
         public class MockGenerator : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
         {
             private readonly DiagnosticDescriptor s_descriptor = new(MockFixer.Id, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 

@@ -213,9 +213,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         internal static Uri CreateRelativePatternBaseUri(string path)
         {
-            // According to VSCode LSP RelativePattern spec, 
+            // According to VSCode LSP RelativePattern spec,
             // found at https://github.com/microsoft/vscode/blob/9e1974682eb84eebb073d4ae775bad1738c281f6/src/vscode-dts/vscode.d.ts#L2226
-            // the baseUri should not end in a trailing separator, nor should it 
+            // the baseUri should not end in a trailing separator, nor should it
             // have any relative segmeents (., ..)
             if (path[^1] == System.IO.Path.DirectorySeparatorChar)
             {
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
                     return $"[{text}]({taggedText.NavigationHint})";
 
-                // Markdown ignores spaces at the start of lines outside of code blocks, 
+                // Markdown ignores spaces at the start of lines outside of code blocks,
                 // so we replace regular spaces with non-breaking spaces to ensure structural space is retained.
                 // We want to use regular spaces everywhere else to allow the client to wrap long text.
                 if (!isCode && taggedText.Tag is TextTags.Space or TextTags.ContainerStart)
@@ -981,7 +981,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     TaggedTextStyle.Strong => $"**{text}**",
                     TaggedTextStyle.Emphasis => $"_{text}_",
                     TaggedTextStyle.Underline => $"<u>{text}</u>",
-                    TaggedTextStyle.Code => $"`{text}`",
+                    // Use double backticks to escape code which contains a backtick.
+                    TaggedTextStyle.Code => text.Contains('`') ? $"``{text}``" : $"`{text}`",
                     _ => text,
                 };
             }
