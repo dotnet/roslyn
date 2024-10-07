@@ -2121,12 +2121,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The simplest possible case is (x, y, z)=>whatever where the target type has a ref or out parameter.
 
             var delegateParameters = delegateType.DelegateParameters();
-            if (reason == LambdaConversionResult.RefInImplicitlyTypedLambda)
+            if (reason == LambdaConversionResult.MismatchedParameterRefKind)
             {
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
                     var delegateRefKind = delegateParameters[i].RefKind;
-                    if (delegateRefKind != RefKind.None)
+                    if (delegateRefKind != anonymousFunction.RefKind(i))
                     {
                         // Parameter {0} must be declared with the '{1}' keyword
                         Error(diagnostics, ErrorCode.ERR_BadParamRef, anonymousFunction.ParameterLocation(i),

@@ -1499,7 +1499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             delegateParameterRefKind: delegateParameters[p].RefKind,
                             compilation))
                     {
-                        return LambdaConversionResult.MismatchedParameterType;
+                        return LambdaConversionResult.MismatchedParameterRefKind;
                     }
                 }
 
