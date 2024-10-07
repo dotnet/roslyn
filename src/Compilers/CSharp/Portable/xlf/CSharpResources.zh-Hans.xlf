@@ -1622,11 +1622,6 @@
         <target state="translated">方法 "{0}" 为类型参数 "{1}" 指定了 "struct" 约束，但重写的或显式实现的方法 "{3}" 的相应类型参数 "{2}" 不是不可为 null 的值类型。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">不支持 'parameter null-checking' 功能。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">构造函数“{0}”的必需成员“{1}”未初始化。</target>

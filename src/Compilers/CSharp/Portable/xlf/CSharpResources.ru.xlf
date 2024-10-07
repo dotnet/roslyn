@@ -1622,11 +1622,6 @@
         <target state="translated">Метод "{0}" задает ограничение struct для параметра типа "{1}", но соответствующий параметр типа "{2}" переопределенного или явно реализованного метода "{3}" не является типом значения, не допускающим значение NULL.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">Функция "проверка значений NULL параметров" не поддерживается.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Конструктор "{0}" оставляет необходимый элемент "{1}" не инициализированным.</target>

@@ -132,6 +132,11 @@
         <target state="translated">Aprire automaticamente Stack Trace Explorer sullo stato attivo</target>
         <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
+      <trans-unit id="Automatically_reload_updated_analyzers_and_generators">
+        <source>Automatically reload updated analyzers and generators (requires restart)</source>
+        <target state="new">Automatically reload updated analyzers and generators (requires restart)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
         <target state="translated">Evita le istruzioni di espressione che ignorano il valore in modo implicito</target>

@@ -268,6 +268,11 @@
         <target state="translated">SuppressionDescriptor türünün kimliği, null veya boş bir dize ya da yalnızca boşluk içeren bir dize olmamalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SymWriterMetadataOverLimit">
+        <source>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</source>
+        <target state="new">Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Demet öğelerine yönelik boş değer atanabilir ek açıklamalar belirtildiyse, ek açıklamaların sayısı demetin kardinalitesiyle eşleşmelidir.</target>
