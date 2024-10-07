@@ -358,9 +358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (hasExplicitlyTypedParameterList)
                 {
                     type = unboundLambda.ParameterTypeWithAnnotations(p);
-                    paramSyntax = unboundLambda.ParameterSyntax(p);
                     refKind = unboundLambda.RefKind(p);
                     scope = unboundLambda.DeclaredScope(p);
+                    paramSyntax = unboundLambda.ParameterSyntax(p);
                 }
                 else if (p < numDelegateParameters)
                 {
