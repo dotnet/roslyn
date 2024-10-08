@@ -5925,7 +5925,6 @@ class C {
             string source = "(ref readonly a) => { }";
             UsingExpression(source);
 
-
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
                 N(SyntaxKind.ParameterList);
@@ -6242,7 +6241,6 @@ class C {
         {
             string source = "(ref a = 1) => { }";
             UsingExpression(source);
-
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {

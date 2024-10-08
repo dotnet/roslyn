@@ -235,7 +235,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = "[A] (ref x) => x";
             UsingExpression(source, TestOptions.RegularPreview);
 
-
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
                 N(SyntaxKind.AttributeList);
