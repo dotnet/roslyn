@@ -210,8 +210,8 @@ steps:
         -updateCoreXTLibraries "(default)" `
         -visualStudioBranchName "$(Template.VSBranchName)" `
         -writePullRequest "prid.txt" `
-        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
-        -updatexamlroslynversion "${{ parameters.updateXamlRoslynVersion }}"
+        -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}" `
+        -updateXamlRoslynVersion "${{ parameters.updateXamlRoslynVersion }}"
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
