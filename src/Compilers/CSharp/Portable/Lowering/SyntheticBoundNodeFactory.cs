@@ -92,24 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A binder used only for performing overload resolution of runtime helper methods.
-        /// </summary>
-        private sealed class SyntheticBinderImpl : BuckStopsHereBinder
-        {
-            private readonly SyntheticBoundNodeFactory _factory;
-            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation, associatedFileIdentifier: null)
-            {
-                _factory = factory;
-            }
-
-            internal override Symbol? ContainingMemberOrLambda { get { return _factory.CurrentFunction; } }
-            internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, ConsList<TypeSymbol> basesBeingResolved)
-            {
-                return AccessCheck.IsSymbolAccessible(symbol, _factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteInfo, basesBeingResolved);
-            }
-        }
-
-        /// <summary>
         /// Create a bound node factory. Note that the use of the factory to get special or well-known members
         /// that do not exist will result in an exception of type <see cref="MissingPredefinedMember"/> being thrown.
         /// </summary>
