@@ -949,13 +949,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Initializer is { } initializer)
             {
-                var oldEnclosing = _enclosing;
-                var localInProgressBinder = new LocalInProgressBinder(initializer, _enclosing);
-                AddToMap(initializer, localInProgressBinder);
+                var enclosing = _enclosing;
+                if (node.Parent is VariableDeclarationSyntax { Parent: LocalDeclarationStatementSyntax { IsConst: true } })
+                {
+                    enclosing = new LocalInProgressBinder(initializer, _enclosing);
+                    AddToMap(initializer, enclosing);
+                }
 
-                _enclosing = localInProgressBinder;
-                Visit(initializer.Value);
-                _enclosing = oldEnclosing;
+                Visit(initializer.Value, enclosing);
             }
         }
 

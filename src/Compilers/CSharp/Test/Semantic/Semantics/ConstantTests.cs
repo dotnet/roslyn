@@ -4171,6 +4171,51 @@ const int x = y switch { _ => 42 }, y = x switch { _ => 42 };
                 // const int x = y switch { _ => 42 }, y = x switch { _ => 42 };
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "x switch { _ => 42 }").WithArguments("y").WithLocation(1, 41));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_CollectionExpression_IEnumerable_Struct()
+        {
+            var source = """
+const S x = [x];
+
+public struct S : System.Collections.Generic.IEnumerable<S>
+{
+    public S() => throw null;
+    public void Add(S s) => throw null;
+    System.Collections.Generic.IEnumerator<S> System.Collections.Generic.IEnumerable<S>.GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0283: The type 'S' cannot be declared const
+                // const S x = [x];
+                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_CollectionExpression_IEnumerable_Class()
+        {
+            var source = """
+const S x = [x];
+
+public class S : System.Collections.Generic.IEnumerable<S>
+{
+    public S() => throw null;
+    public void Add(S s) => throw null;
+    System.Collections.Generic.IEnumerator<S> System.Collections.Generic.IEnumerable<S>.GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,13): error CS0133: The expression being assigned to 'x' must be constant
+                // const S x = [x];
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "[x]").WithArguments("x").WithLocation(1, 13),
+                // (1,14): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                // const S x = [x];
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(1, 14));
+        }
     }
 
     internal sealed class BoundTreeSequencer : BoundTreeWalkerWithStackGuard

@@ -27,10 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerSyntax = initializerSyntax;
         }
 
-        internal override LocalSymbol? LocalInProgress
+        internal override LocalSymbol LocalInProgress
         {
             get
             {
+                // The local symbol should have been initialized by now
+                Debug.Assert(_localSymbol is not null);
                 return _localSymbol;
             }
         }
