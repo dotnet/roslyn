@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         public const string DataPropertyName = "data";
         public const string EditRangePropertyName = "editRange";
 
-        private readonly CompletionSetting? _completionSetting;
-        private readonly VSInternalCompletionSetting? _vsCompletionSetting;
-
         public bool SupportVSInternalClientCapabilities { get; }
         public bool SupportDefaultEditRange { get; }
         public bool SupportCompletionListData { get; }
@@ -33,32 +30,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
         public ISet<CompletionItemTag> SupportedItemTags { get; }
 
         public CompletionCapabilityHelper(ClientCapabilities clientCapabilities)
+            : this(supportsVSExtensions: clientCapabilities.HasVisualStudioLspCapability(),
+                   completionSetting: clientCapabilities.TextDocument?.Completion)
+        {
+        }
+
+        public CompletionCapabilityHelper(bool supportsVSExtensions, CompletionSetting? completionSetting)
         {
             // public LSP
-            _completionSetting = clientCapabilities.TextDocument?.Completion;
-
-            SupportSnippets = _completionSetting?.CompletionItem?.SnippetSupport ?? false;
-            SupportDefaultEditRange = _completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(EditRangePropertyName) == true;
-            SupportsMarkdownDocumentation = _completionSetting?.CompletionItem?.DocumentationFormat?.Contains(MarkupKind.Markdown) == true;
-            SupportCompletionListData = _completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(DataPropertyName) == true;
-            SupportDefaultCommitCharacters = _completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(CommitCharactersPropertyName) == true;
-            SupportedItemKinds = _completionSetting?.CompletionItemKind?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemKind>();
-            SupportedItemTags = _completionSetting?.CompletionItem?.TagSupport?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemTag>();
+            SupportSnippets = completionSetting?.CompletionItem?.SnippetSupport ?? false;
+            SupportDefaultEditRange = completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(EditRangePropertyName) == true;
+            SupportsMarkdownDocumentation = completionSetting?.CompletionItem?.DocumentationFormat?.Contains(MarkupKind.Markdown) == true;
+            SupportCompletionListData = completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(DataPropertyName) == true;
+            SupportDefaultCommitCharacters = completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(CommitCharactersPropertyName) == true;
+            SupportedItemKinds = completionSetting?.CompletionItemKind?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemKind>();
+            SupportedItemTags = completionSetting?.CompletionItem?.TagSupport?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemTag>();
 
             // internal VS LSP
-            if (clientCapabilities.HasVisualStudioLspCapability())
+            if (supportsVSExtensions)
             {
                 SupportVSInternalClientCapabilities = true;
-                _vsCompletionSetting = ((VSInternalClientCapabilities)clientCapabilities).TextDocument?.Completion as VSInternalCompletionSetting;
-            }
-            else
-            {
-                SupportVSInternalClientCapabilities = false;
-                _vsCompletionSetting = null;
-            }
 
-            SupportVSInternalCompletionListData = SupportVSInternalClientCapabilities && _vsCompletionSetting?.CompletionList?.Data == true;
-            SupportVSInternalDefaultCommitCharacters = SupportVSInternalClientCapabilities && _vsCompletionSetting?.CompletionList?.CommitCharacters == true;
+                var vsCompletionSetting = completionSetting as VSInternalCompletionSetting;
+                SupportVSInternalCompletionListData = vsCompletionSetting?.CompletionList?.Data == true;
+                SupportVSInternalDefaultCommitCharacters = vsCompletionSetting?.CompletionList?.CommitCharacters == true;
+            }
         }
     }
 }

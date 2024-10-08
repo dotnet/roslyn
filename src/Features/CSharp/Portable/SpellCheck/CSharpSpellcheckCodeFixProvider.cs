@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SpellCheck), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
-internal partial class CSharpSpellCheckCodeFixProvider : AbstractSpellCheckCodeFixProvider<SimpleNameSyntax>
+internal sealed partial class CSharpSpellCheckCodeFixProvider : AbstractSpellCheckCodeFixProvider<SimpleNameSyntax>
 {
     private const string CS0426 = nameof(CS0426); // The type name '0' does not exist in the type '1'
     private const string CS1520 = nameof(CS1520); // Method must have a return type

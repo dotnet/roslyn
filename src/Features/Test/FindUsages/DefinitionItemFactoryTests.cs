@@ -112,7 +112,7 @@ public class DefinitionItemFactoryTests
             {
                 assert();
             }
-            catch (AssertActualExpectedException e)
+            catch (Exception e) when (e is IAssertionException)
             {
                 failures.Add(e);
             }
@@ -353,7 +353,7 @@ public class DefinitionItemFactoryTests
                 "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'",
                 "System 4.0.0.0 ''",
                 "System.Core 4.0.0.0 ''",
-                "System.ValueTuple 4.0.1.0 ''",
+                "System.ValueTuple 4.0.3.0 'System.ValueTuple.dll'",
                 "System.Runtime 4.0.20.0 ''"
             ],
             tags:
@@ -405,7 +405,7 @@ public class DefinitionItemFactoryTests
                 "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'",
                 "System 4.0.0.0 ''",
                 "System.Core 4.0.0.0 ''",
-                "System.ValueTuple 4.0.1.0 ''",
+                "System.ValueTuple 4.0.3.0 'System.ValueTuple.dll'",
                 "System.Runtime 4.0.20.0 ''"
             ],
             sourceSpans:
@@ -735,7 +735,7 @@ public class DefinitionItemFactoryTests
             // the symbol has metadata locations because the generic type is in metadata:
             metadataLocations:
             [
-                "System.ValueTuple 4.0.1.0 ''"
+                "System.ValueTuple 4.0.3.0 'System.ValueTuple.dll'"
             ],
             tags:
             [
@@ -791,7 +791,7 @@ public class DefinitionItemFactoryTests
             ],
             metadataLocations:
             [
-                "System.ValueTuple 4.0.1.0 ''"
+                "System.ValueTuple 4.0.3.0 'System.ValueTuple.dll'"
             ],
             tags:
             [

@@ -214,16 +214,16 @@ internal sealed partial class RemoteWorkspace : Workspace
             return currentSolution;
 
         // If not, have to create a new, fresh, solution instance to update.
-        var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, cancellationToken).ConfigureAwait(false);
+        var solutionInfo = await assetProvider.CreateSolutionInfoAsync(
+            solutionChecksum, this.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
         return CreateSolutionFromInfo(solutionInfo);
 
         async Task<bool> IsIncrementalUpdateAsync()
         {
             var newSolutionCompilationChecksums = await assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                    AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
             var newSolutionChecksums = await assetProvider.GetAssetAsync<SolutionStateChecksums>(
                 AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
-
             var newSolutionInfo = await assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
                 AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
 

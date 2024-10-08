@@ -485,6 +485,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool IsAutoPropertyAccessor => _isAutoPropertyAccessor;
+
         internal sealed override bool IsInitOnly => !IsStatic && _usesInit;
 
         private static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation,

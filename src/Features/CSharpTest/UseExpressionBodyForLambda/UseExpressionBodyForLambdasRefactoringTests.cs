@@ -11,12 +11,13 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new UseExpressionBodyForLambdaCodeRefactoringProvider();
@@ -207,5 +208,21 @@ public class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharpCodeAct
                 }
             }
             """, parameters: new TestParameters(options: UseExpressionBody));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74137")]
+    public async Task TestNotWithPreprocessorDirectives()
+    {
+        await TestMissingAsync(
+            """
+            app.UseSwaggerUI(c [||]=>
+            {
+            #if DEBUG
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "API V1");
+            #else
+                c.SwaggerEndpoint("/api/swagger/v1/swagger.json", "API V1");
+            #endif
+            });
+            """, parameters: new TestParameters(options: UseExpressionBodyDisabledDiagnostic));
     }
 }

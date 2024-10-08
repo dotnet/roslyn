@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting;
 
 [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-internal class UnitTestingStackTraceServiceAccessor(
+internal sealed class UnitTestingStackTraceServiceAccessor(
     IStackTraceExplorerService stackTraceExplorerService) : IUnitTestingStackTraceServiceAccessor
 {
     private readonly IStackTraceExplorerService _stackTraceExplorerService = stackTraceExplorerService;

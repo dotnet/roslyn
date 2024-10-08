@@ -2523,6 +2523,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        Private Protected Overrides Function MapToCompilation(moduleBeingBuilt As CommonPEModuleBuilder) As EmitBaseline
+            Return EmitHelpers.MapToCompilation(Me, DirectCast(moduleBeingBuilt, PEDeltaAssemblyBuilder))
+        End Function
+
         Friend Overrides Function GenerateResources(
             moduleBuilder As CommonPEModuleBuilder,
             win32Resources As Stream,

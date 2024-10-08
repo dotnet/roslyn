@@ -155,15 +155,18 @@ public abstract class AbstractPdbSourceDocumentTests
 
             var masWorkspace = service.TryGetWorkspace();
 
-            using var fileStream = File.OpenRead(file.FilePath);
-            var sourceText = SourceText.From(fileStream);
-            var text = SourceText.From(File.ReadAllText(file.FilePath));
-
             var pdbService = (PdbSourceDocumentMetadataAsSourceFileProvider)workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().Single(s => s is PdbSourceDocumentMetadataAsSourceFileProvider);
 
-            var documentInfo = pdbService.GetTestAccessor().Documents[file.FilePath];
-            masWorkspace!.OnDocumentAdded(documentInfo.DocumentInfo);
-            var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First(d => d.FilePath == file.FilePath);
+            // Add the document to the workspace.  We provide an empty static source text as the API requires it to open the document.
+            // We're not really trying to verify that the source text the editor hands to us is the right encoding - just that the document we added has the right encoding.
+            var result = pdbService.TryAddDocumentToWorkspace((MetadataAsSourceWorkspace)masWorkspace!, file.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out _);
+            Assert.True(result);
+
+            // Immediately close the document so that we get the source text provided by the workspace (instead of the empty one we passed).
+            var info = pdbService.GetTestAccessor().Documents[file.FilePath];
+            masWorkspace!.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, file.FilePath, info.Encoding));
+
+            var document = masWorkspace!.CurrentSolution.GetRequiredDocument(info.DocumentId);
 
             // Mapping the project from the generated document should map back to the original project
             var provider = workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
@@ -339,7 +342,7 @@ public abstract class AbstractPdbSourceDocumentTests
         return Path.Combine(path, "reference.pdb");
     }
 
-    private class StaticSourceTextContainer(SourceText sourceText) : SourceTextContainer
+    protected class StaticSourceTextContainer(SourceText sourceText) : SourceTextContainer
     {
         public override SourceText CurrentText => sourceText;
 

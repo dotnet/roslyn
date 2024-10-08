@@ -3051,12 +3051,17 @@ class C { }
                 });
         }
 
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.         
+
         [Theory]
         [CombinatorialData]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation)]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.PostInit)]
         [InlineData(IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Host)]
+        [InlineData(IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host)]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit | IncrementalGeneratorOutputKind.Host)]
         public void Generator_Output_Kinds_Can_Be_Disabled(IncrementalGeneratorOutputKind disabledOutput)
         {
             var source = @"
@@ -3072,6 +3077,7 @@ class C { }
                 ctx.RegisterPostInitializationOutput((context) => context.AddSource("PostInit", ""));
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Source", ""));
                 ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Implementation", ""));
+                ctx.RegisterHostOutput(ctx.CompilationOptionsProvider, (context, ct) => context.AddOutput("Host", ""));
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, driverOptions: new GeneratorDriverOptions(disabledOutput), parseOptions: parseOptions);
@@ -3090,16 +3096,32 @@ class C { }
 
                 if (disabledOutput.HasFlag((IncrementalGeneratorOutputKind)kind))
                 {
-                    Assert.DoesNotContain(result.Results[0].GeneratedSources, isTextForKind);
+                    if (kind == IncrementalGeneratorOutputKind.Host)
+                    {
+                        Assert.DoesNotContain(result.Results[0].HostOutputs, o => o.Key == "Host");
+                    }
+                    else
+                    {
+                        Assert.DoesNotContain(result.Results[0].GeneratedSources, isTextForKind);
+                    }
                 }
                 else
                 {
-                    Assert.Contains(result.Results[0].GeneratedSources, isTextForKind);
+                    if (kind == IncrementalGeneratorOutputKind.Host)
+                    {
+                        Assert.Contains(result.Results[0].HostOutputs, o => o.Key == "Host");
+                    }
+                    else
+                    {
+                        Assert.Contains(result.Results[0].GeneratedSources, isTextForKind);
+                    }
                 }
 
                 bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
             }
         }
+
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         [Fact]
         public void IncrementalGeneratorInputSourcesHaveNames()
@@ -3223,22 +3245,24 @@ class C { }
         [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
         public void LongBinaryExpression()
         {
-            var source = @"
-class C {
-public static readonly string F = ""a""
-";
-
-            for (int i = 0; i < 7000; i++)
+            const int count = 7000;
+            const string header = """
+                class C {
+                    public static readonly string F = "a"
+                """;
+            const string expr = @" + ""a""";
+            var capacity = header.Length + (expr.Length * count) + 5;
+            var builder = new StringBuilder(capacity);
+            builder.Append(header);
+            for (int i = 0; i < count; i++)
             {
-                source += @" + ""a""
-";
+                builder.Append(expr);
             }
-
-            source += @";
-}
-";
+            builder.AppendLine(";");
+            builder.Append("}");
+            Assert.True(capacity >= builder.Capacity);
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(builder.ToString(), options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
@@ -4108,7 +4132,7 @@ class C { }
         {
             var generator = new IncrementalGeneratorWrapper(new InterceptorGenerator1());
 
-            var parseOptions = TestOptions.RegularPreview.WithFeature("InterceptorsPreviewNamespaces", "global");
+            var parseOptions = TestOptions.RegularPreview.WithFeature("InterceptorsNamespaces", "global");
 
             var source1 = ("""
                 public class Program
@@ -4465,5 +4489,132 @@ class C { }
             Assert.Same(newParseOptions, result.GeneratedTrees[0].Options);
             Assert.Same(newParseOptions, result.GeneratedTrees[1].Options);
         }
+
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+        [Fact]
+        public void GeneratorDriver_Makes_HostOutputs_Available()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("a", "value"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            var (key, value) = Assert.Single(result.HostOutputs);
+            Assert.Equal("a", key);
+            Assert.Equal("value", value);
+        }
+
+        [Fact]
+        public void GeneratorDriver_No_HostOutputs_WhenDisabled()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("a", "value"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.Host));
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            Assert.Empty(result.HostOutputs);
+        }
+
+        [Fact]
+        public void GeneratorDriver_Multiple_HostOutputs()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("a", "value"); hostCtx.AddOutput("b", "value2"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            Assert.Equal(2, result.HostOutputs.Keys.Count());
+            Assert.Contains("a", (IDictionary<string, object>)result.HostOutputs);
+            Assert.Equal("value", result.HostOutputs["a"]);
+            Assert.Contains("b", (IDictionary<string, object>)result.HostOutputs);
+            Assert.Equal("value2", result.HostOutputs["b"]);
+        }
+
+        [Fact]
+        public void GeneratorDriver_Multiple_HostOutputs_SameName()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("a", "value"); hostCtx.AddOutput("a", "value2"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            Assert.Empty(result.HostOutputs);
+            Assert.IsType<ArgumentException>(result.Exception);
+        }
+
+        [Fact]
+        public void GeneratorDriver_Makes_HostOutputs_MultipleGenerators()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("gen1", "value1"); }); });
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("gen2", "value2"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1.AsSourceGenerator(), generator2.AsSourceGenerator()], parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+
+            Assert.Collection(runResult.Results,
+                (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen1", result.Key); Assert.Equal("value1", result.Value); },
+                (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen2", result.Key); Assert.Equal("value2", result.Value); }
+            );
+        }
+
+        [Fact]
+        public void GeneratorDriver_Makes_HostOutputs_MultipleGenerators_SameName()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("gen", "value1"); }); });
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("gen", "value2"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1.AsSourceGenerator(), generator2.AsSourceGenerator()], parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+
+            Assert.Collection(runResult.Results,
+                (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen", result.Key); Assert.Equal("value1", result.Value); },
+                (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen", result.Key); Assert.Equal("value2", result.Value); }
+            );
+        }
+
+        [Fact]
+        public void GeneratorDriver_HostOutputs_Throws()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { throw new InvalidOperationException("failed"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            Assert.Empty(result.HostOutputs);
+            var exception = Assert.IsType<InvalidOperationException>(result.Exception);
+            Assert.Equal("failed", exception.Message);
+        }
+
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
 }

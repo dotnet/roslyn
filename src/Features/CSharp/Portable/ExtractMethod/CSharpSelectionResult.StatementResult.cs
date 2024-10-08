@@ -13,9 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpSelectionResult
+internal abstract partial class CSharpSelectionResult
 {
-    private class StatementResult(
+    private sealed class StatementResult(
         TextSpan originalSpan,
         TextSpan finalSpan,
         bool selectionInExpression,

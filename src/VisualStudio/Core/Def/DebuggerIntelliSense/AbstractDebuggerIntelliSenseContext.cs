@@ -143,7 +143,7 @@ internal abstract class AbstractDebuggerIntelliSenseContext : IDisposable
 
         // Wrap the original ContextBuffer in a projection buffer that we can make read-only
         this.ContextBuffer = this.ProjectionBufferFactoryService.CreateProjectionBuffer(null,
-            new object[] { this.ContextBuffer.CurrentSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive) }, ProjectionBufferOptions.None, ContentType);
+            [this.ContextBuffer.CurrentSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive)], ProjectionBufferOptions.None, ContentType);
 
         // Make projection readonly so we can't edit it by mistake.
         using (var regionEdit = this.ContextBuffer.CreateReadOnlyRegionEdit())
@@ -166,7 +166,7 @@ internal abstract class AbstractDebuggerIntelliSenseContext : IDisposable
 
         // Put it all into a projection buffer
         _projectionBuffer = this.ProjectionBufferFactoryService.CreateProjectionBuffer(null,
-            new object[] { previousStatementSpan, debuggerMappedSpan, this.StatementTerminator, restOfFileSpan }, ProjectionBufferOptions.None, ContentType);
+            [previousStatementSpan, debuggerMappedSpan, this.StatementTerminator, restOfFileSpan], ProjectionBufferOptions.None, ContentType);
 
         // Fork the solution using this new primary buffer for the document and all of its linked documents.
         var forkedSolution = solution.WithDocumentText(document.Id, _projectionBuffer.CurrentSnapshot.AsText(), PreservationMode.PreserveIdentity);
@@ -208,13 +208,13 @@ internal abstract class AbstractDebuggerIntelliSenseContext : IDisposable
 
         var debuggerMappedSpan = _textView.TextSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive);
         var projectionBuffer = this.ProjectionBufferFactoryService.CreateProjectionBuffer(null,
-            new object[] { debuggerMappedSpan }, ProjectionBufferOptions.PermissiveEdgeInclusiveSourceSpans, ContentType);
+            [debuggerMappedSpan], ProjectionBufferOptions.PermissiveEdgeInclusiveSourceSpans, ContentType);
 
         // There's currently a bug in the editor (515925) where an elision buffer can't be projected into
         // another projection buffer.  So workaround by using a second projection buffer that only 
         // projects the text we care about
         var elisionProjectionBuffer = this.ProjectionBufferFactoryService.CreateProjectionBuffer(null,
-            new object[] { projectionBuffer.CurrentSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive) },
+            [projectionBuffer.CurrentSnapshot.CreateFullTrackingSpan(SpanTrackingMode.EdgeInclusive)],
             ProjectionBufferOptions.None, ContentType);
 
         immediateWindowContext = new ImmediateWindowContext()

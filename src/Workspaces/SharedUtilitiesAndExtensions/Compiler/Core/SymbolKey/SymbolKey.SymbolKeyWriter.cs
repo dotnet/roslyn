@@ -51,7 +51,7 @@ internal partial struct SymbolKey
         TypeParameterOrdinal = '@',
     }
 
-    private class SymbolKeyWriter : SymbolVisitor, IDisposable
+    private sealed class SymbolKeyWriter : SymbolVisitor, IDisposable
     {
         private static readonly ObjectPool<SymbolKeyWriter> s_writerPool = SharedPools.Default<SymbolKeyWriter>();
 

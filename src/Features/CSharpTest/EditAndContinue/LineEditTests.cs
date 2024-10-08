@@ -69,12 +69,12 @@ void F()
         var src1 = @"
 class C
 {
-    static void Goo()
+    static void G()
     {
         Console.ReadLine(1);
     }
 
-    static void Bar()
+    static void F()
     {
         Console.ReadLine(2);
     }
@@ -83,76 +83,83 @@ class C
         var src2 = @"
 class C
 {
-    static void Bar()
+    static void F()
     {
         Console.ReadLine(2);
     }
 
-    static void Goo()
+    static void G()
     {
         Console.ReadLine(1);
     }
 }";
         var edits = GetTopEdits(src1, src2);
+
+        // Consider: we could detect that the body of the method hasn't changed and avoid creating an update.
         edits.VerifyLineEdits(
             new[]
             {
                 new SourceLineUpdate(4, 9),
                 new SourceLineUpdate(7, 7),
                 new SourceLineUpdate(9, 4)
-            });
+            },
+            semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"))]);
     }
 
     [Fact]
     public void Method_Reorder2()
     {
         var src1 = @"
-class Program
+class C
 {
     static void Main()
     {
-        Goo();
-        Bar();
+        F();
+        G();
     }
 
-    static int Goo()
+    static int G()
     {
         return 1;
     }
 
-    static int Bar()
+    static int F()
     {
         return 2;
     }
 }";
         var src2 = @"
-class Program
+class C
 {
-    static int Goo()
+    static int F()
     {
         return 1;
     }
 
     static void Main()
     {
-        Goo();
-        Bar();
+        F();
+        G();
     }
 
-    static int Bar()
+    static int G()
     {
         return 2;
     }
 }";
         var edits = GetTopEdits(src1, src2);
+
+        // Consider: we could detect that the body of the method hasn't changed and create line edits instead of an update.
         edits.VerifyLineEdits(
             new[]
             {
                 new SourceLineUpdate(4, 9),
-                new SourceLineUpdate(8, 8),
-                new SourceLineUpdate(10, 4),
-                new SourceLineUpdate(13, 13),
-            });
+            },
+            semanticEdits:
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.G"))
+            ]);
     }
 
     [Fact]
@@ -758,13 +765,19 @@ class C
     }
 }";
         var edits = GetTopEdits(src1, src2);
+
+        // Consider: we could detect that the body of the method hasn't changed and avoid creating an update.
         edits.VerifyLineEdits(
             new[]
             {
                 new SourceLineUpdate(3, 7),
                 new SourceLineUpdate(6, 6),
                 new SourceLineUpdate(7, 3)
-            });
+            },
+            semanticEdits:
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").Constructors.Single(c => c.Parameters is [{ Type.SpecialType: SpecialType.System_Boolean }]), preserveLocalVariables: true)
+            ]);
     }
 
     [Fact]
@@ -1357,13 +1370,13 @@ class C
         var src2 = @"
 class C
 {
-    static int Bar = 2;
-    static int Goo = 1;
+    static int Bar = 1;
+    static int Goo = 2;
 }";
         var edits = GetTopEdits(src1, src2);
         edits.VerifyLineEdits(
             Array.Empty<SequencePointUpdates>(),
-            diagnostics: [Diagnostic(RudeEditKind.Move, "static int Bar = 2", FeaturesResources.field)]);
+            semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").StaticConstructors.Single(), preserveLocalVariables: true)]);
     }
 
     [Fact]

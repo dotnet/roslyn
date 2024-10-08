@@ -91,7 +91,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DiffPlex" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" />
     <PackageReference Include="Microsoft.NETCore.Platforms" />
@@ -106,10 +105,7 @@
 
     <!-- Needed to find the Unsafe.dll binary to lay out at runtime for the compiler when testing analyzers. -->
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.CSharp" GeneratePathProperty="true" />
-    <PackageReference Include="Microsoft.VisualBasic" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-
+    <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Basic.Reference.Assemblies.NetStandard20" />
     <PackageReference Include="Basic.Reference.Assemblies.Net20" />
     <PackageReference Include="Basic.Reference.Assemblies.Net70" />
@@ -117,6 +113,4 @@
     <PackageReference Include="Basic.Reference.Assemblies.Net461" />
     <PackageReference Include="Microsoft.ILVerification" />
   </ItemGroup>
-
-  <Import Project="Generated.targets" />
 </Project>

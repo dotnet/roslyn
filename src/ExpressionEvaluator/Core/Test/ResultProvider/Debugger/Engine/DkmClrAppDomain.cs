@@ -10,14 +10,30 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
     public class DkmClrAppDomain
     {
+        /// <summary>
+        /// This keeps a mapping of the type to attributes. This is relatively expensive to calculate (lots of 
+        /// allocations) hence we cache it here.
+        /// </summary>
+        /// <remarks>
+        /// This is a concurrent dictionary instead of regular as other lazy init members in this area are done 
+        /// in a thread aware fashion. It's unclear if this actually can be called concurrently or if it's a 
+        /// legacy of the code we are mocking here. Using concurrent dictionary here out of an abundance of caution.
+        /// </remarks>
+        internal ConcurrentDictionary<Type, ReadOnlyCollection<DkmClrEvalAttribute>> TypeToEvalAttributesMap { get; }
+
         internal DkmClrAppDomain(DkmClrRuntimeInstance runtime)
         {
             RuntimeInstance = runtime;
+            TypeToEvalAttributesMap = new ConcurrentDictionary<Type, ReadOnlyCollection<DkmClrEvalAttribute>>();
         }
 
         public DkmClrRuntimeInstance RuntimeInstance { get; }

@@ -187,14 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (conversion.Kind == ConversionKind.InterpolatedString)
                 {
+                    Debug.Assert(destination.SpecialType != SpecialType.System_String);
                     var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
-                    source = new BoundInterpolatedString(
-                        unconvertedSource.Syntax,
-                        interpolationData: null,
-                        BindInterpolatedStringParts(unconvertedSource, diagnostics),
-                        unconvertedSource.ConstantValueOpt,
-                        unconvertedSource.Type,
-                        unconvertedSource.HasErrors);
+                    source = BindUnconvertedInterpolatedExpressionToFormattableStringFactory(unconvertedSource, destination, diagnostics);
                 }
 
                 if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
@@ -487,6 +482,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private BoundExpression BindUnconvertedInterpolatedExpressionToFormattableStringFactory(BoundUnconvertedInterpolatedString unconvertedSource, TypeSymbol destination, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(destination.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything) ||
+                         destination.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything));
+
+            ImmutableArray<BoundExpression> parts = BindInterpolatedStringPartsForFactory(unconvertedSource, diagnostics, out bool haveErrors);
+            var stringFactory = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory, diagnostics, unconvertedSource.Syntax);
+
+            if (stringFactory.IsErrorType() || haveErrors)
+            {
+                return new BoundInterpolatedString(
+                    unconvertedSource.Syntax,
+                    interpolationData: null,
+                    BindInterpolatedStringParts(unconvertedSource, diagnostics),
+                    unconvertedSource.ConstantValueOpt,
+                    unconvertedSource.Type,
+                    unconvertedSource.HasErrors);
+            }
+
+            return BindUnconvertedInterpolatedExpressionToFactory(unconvertedSource, parts, stringFactory, factoryMethod: "Create", destination, diagnostics);
+        }
+
         private static void CheckInlineArrayTypeIsSupported(SyntaxNode syntax, TypeSymbol inlineArrayType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)
         {
             if (elementType.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
@@ -648,7 +665,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
                              (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
 
-                var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+                if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, targetType);
+                    return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                }
+
+                var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
                     BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
@@ -659,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             implicitReceiver,
                             diagnostics) :
                         BindCollectionInitializerElementAddMethod(
-                            (ExpressionSyntax)element.Syntax,
+                            element.Syntax,
                             ImmutableArray.Create((BoundExpression)element),
                             hasEnumerableInitializerType: true,
                             collectionInitializerAddMethodBinder,
@@ -749,6 +772,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iteratorBody: new BoundExpressionStatement(syntax, convertElement) { WasCompilerGenerated = true },
                     lengthOrCount: element.LengthOrCount);
             }
+        }
+
+        private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
+        {
+            Binder? current = this;
+            while (current?.Flags.Includes(BinderFlags.CollectionInitializerAddMethod) == true)
+            {
+                if (current is CollectionInitializerAddMethodBinder binder &&
+                    binder.Syntax == syntax &&
+                    binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return true;
+                }
+
+                current = current.Next;
+            }
+
+            return false;
         }
 
         internal MethodSymbol? GetAndValidateCollectionBuilderMethod(
