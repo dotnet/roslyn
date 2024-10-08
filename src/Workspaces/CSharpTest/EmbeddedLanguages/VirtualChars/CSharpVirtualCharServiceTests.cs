@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -20,15 +19,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
     {
         private const string _statementPrefix = "var v = ";
 
-        private static IEnumerable<SyntaxToken>? GetStringTokens(string text, bool allowFailure)
+        private static IEnumerable<SyntaxToken>? GetStringTokens(
+            string text, bool allowFailure, ParseOptions? options = null)
         {
             var statement = _statementPrefix + text;
-            var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement);
+            var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement, options: options);
             var expression = parsedStatement.Declaration.Variables[0].Initializer!.Value;
 
             if (expression is LiteralExpressionSyntax literal)
             {
-                return SpecializedCollections.SingletonEnumerable(literal.Token);
+                return [literal.Token];
             }
             else if (expression is InterpolatedStringExpressionSyntax interpolation)
             {
@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             }
         }
 
-        private static void Test(string stringText, string expected)
+        private static void Test(string stringText, string expected, ParseOptions? options = null)
         {
-            var tokens = GetStringTokens(stringText, allowFailure: false);
+            var tokens = GetStringTokens(stringText, allowFailure: false, options);
             Contract.ThrowIfNull(tokens);
             foreach (var token in tokens)
                 Assert.False(token.ContainsDiagnostics);
@@ -161,6 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         [Fact]
         public void TestEscapeInInterpolatedSimpleString()
             => Test("$\"\\n\"", @"['\u000A',[2,4]]");
+
+        [Fact]
+        public void TestEscapeInInterpolatedSimpleString_E()
+            => Test("$\"\\e\"", @"['\u001B',[2,4]]");
 
         [Fact]
         public void TestEscapeInInterpolatedVerbatimSimpleString()

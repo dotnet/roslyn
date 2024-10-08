@@ -9,45 +9,42 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal sealed class SupportedPlatformData(Solution solution, List<ProjectId> invalidProjects, IEnumerable<ProjectId> candidateProjects)
 {
-    internal sealed class SupportedPlatformData(Solution solution, List<ProjectId> invalidProjects, IEnumerable<ProjectId> candidateProjects)
+    // Because completion finds lots of symbols that exist in 
+    // all projects, we'll instead maintain a list of projects 
+    // missing the symbol.
+    public readonly List<ProjectId> InvalidProjects = invalidProjects;
+    public readonly IEnumerable<ProjectId> CandidateProjects = candidateProjects;
+    public readonly Solution Solution = solution;
+
+    public IList<SymbolDisplayPart> ToDisplayParts()
     {
-        // Because completion finds lots of symbols that exist in 
-        // all projects, we'll instead maintain a list of projects 
-        // missing the symbol.
-        public readonly List<ProjectId> InvalidProjects = invalidProjects;
-        public readonly IEnumerable<ProjectId> CandidateProjects = candidateProjects;
-        public readonly Solution Solution = solution;
+        if (InvalidProjects == null || InvalidProjects.Count == 0)
+            return [];
 
-        public IList<SymbolDisplayPart> ToDisplayParts()
+        var builder = new List<SymbolDisplayPart>();
+        builder.AddLineBreak();
+
+        var projects = CandidateProjects.Select(Solution.GetRequiredProject).OrderBy(p => p.Name);
+        foreach (var project in projects)
         {
-            if (InvalidProjects == null || InvalidProjects.Count == 0)
-            {
-                return SpecializedCollections.EmptyList<SymbolDisplayPart>();
-            }
-
-            var builder = new List<SymbolDisplayPart>();
+            var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!InvalidProjects.Contains(project.Id)));
+            builder.AddText(text);
             builder.AddLineBreak();
-
-            var projects = CandidateProjects.Select(Solution.GetRequiredProject).OrderBy(p => p.Name);
-            foreach (var project in projects)
-            {
-                var text = string.Format(FeaturesResources._0_1, project.Name, Supported(!InvalidProjects.Contains(project.Id)));
-                builder.AddText(text);
-                builder.AddLineBreak();
-            }
-
-            builder.AddLineBreak();
-            builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts);
-
-            return builder;
         }
 
-        private static string Supported(bool supported)
-            => supported ? FeaturesResources.Available : FeaturesResources.Not_Available;
+        builder.AddLineBreak();
+        builder.AddText(FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts);
 
-        public bool HasValidAndInvalidProjects()
-            => InvalidProjects.Any() && InvalidProjects.Count != CandidateProjects.Count();
+        return builder;
     }
+
+    private static string Supported(bool supported)
+        => supported ? FeaturesResources.Available : FeaturesResources.Not_Available;
+
+    public bool HasValidAndInvalidProjects()
+        => InvalidProjects.Any() && InvalidProjects.Count != CandidateProjects.Count();
 }

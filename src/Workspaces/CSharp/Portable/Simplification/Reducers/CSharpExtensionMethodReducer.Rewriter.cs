@@ -7,24 +7,23 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
-{
-    internal partial class CSharpExtensionMethodReducer
-    {
-        private class Rewriter : AbstractReductionRewriter
-        {
-            public Rewriter(ObjectPool<IReductionRewriter> pool)
-                : base(pool)
-            {
-            }
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
-            public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
-            {
-                return SimplifyNode(
-                    node,
-                    newNode: base.VisitInvocationExpression(node),
-                    simplifier: s_simplifyExtensionMethod);
-            }
+internal partial class CSharpExtensionMethodReducer
+{
+    private class Rewriter : AbstractReductionRewriter
+    {
+        public Rewriter(ObjectPool<IReductionRewriter> pool)
+            : base(pool)
+        {
+        }
+
+        public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
+        {
+            return SimplifyNode(
+                node,
+                newNode: base.VisitInvocationExpression(node),
+                simplifier: s_simplifyExtensionMethod);
         }
     }
 }

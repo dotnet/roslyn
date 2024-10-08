@@ -68,13 +68,12 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
         // Haven't initialized any fields/properties with this parameter.  Offer to assign to an existing matching
         // field/prop if we can find one, or add a new field/prop if we can't.
-        var fallbackOptions = context.Options;
-        var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         var parameterNameParts = IdentifierNameParts.CreateIdentifierNameParts(parameter, rules);
         if (parameterNameParts.BaseName == "")
             return;
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var fieldOrProperty = TryFindMatchingUninitializedFieldOrPropertySymbol();
         var refactorings = fieldOrProperty == null
@@ -157,10 +156,10 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
             var fieldAction = CreateCodeAction(
                 string.Format(FeaturesResources.Create_and_assign_field_0, field.Name),
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(field), fallbackOptions, cancellationToken));
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, [parameter], [field], cancellationToken));
             var propertyAction = CreateCodeAction(
                 string.Format(FeaturesResources.Create_and_assign_property_0, property.Name),
-                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, ImmutableArray.Create(parameter), ImmutableArray.Create(property), fallbackOptions, cancellationToken));
+                cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, [parameter], [property], cancellationToken));
 
             yield return siblingFieldOrProperty is IFieldSymbol ? fieldAction : propertyAction;
             yield return siblingFieldOrProperty is IFieldSymbol ? propertyAction : fieldAction;
@@ -170,10 +169,10 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             {
                 var allFieldsAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_fields,
-                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), fallbackOptions, cancellationToken));
+                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateField), cancellationToken));
                 var allPropertiesAction = CodeAction.Create(
                     FeaturesResources.Create_and_assign_remaining_as_properties,
-                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), fallbackOptions, cancellationToken));
+                    cancellationToken => AddMultipleMembersAsync(document, typeDeclaration, parameters, parameters.SelectAsArray(CreateProperty), cancellationToken));
 
                 yield return siblingFieldOrProperty is IFieldSymbol ? allFieldsAction : allPropertiesAction;
                 yield return siblingFieldOrProperty is IFieldSymbol ? allPropertiesAction : allFieldsAction;

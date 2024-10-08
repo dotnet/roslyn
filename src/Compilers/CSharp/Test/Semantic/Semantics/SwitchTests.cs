@@ -2392,7 +2392,7 @@ switch (1)
     case 2:
         Console.WriteLine(2);
 }";
-            CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (4,5): error CS0163: Control cannot fall through from one case label ('default:') to another
                 //     default:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "default:").WithArguments("default:").WithLocation(4, 5),
@@ -3557,7 +3557,7 @@ namespace System.Runtime.CompilerServices
     IL_008a:  br.s       IL_0097
     IL_008c:  ldloc.1
     IL_008d:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>""
-    IL_0092:  call       ""ThrowSwitchExpressionException(object)""
+    IL_0092:  call       ""void <PrivateImplementationDetails>.ThrowSwitchExpressionException(object)""
     IL_0097:  ldloc.0
     IL_0098:  call       ""void System.Console.WriteLine(int)""
     IL_009d:  leave.s    IL_00ac
@@ -3687,7 +3687,7 @@ namespace System.Runtime.CompilerServices
     IL_009f:  br.s       IL_00ac
     IL_00a1:  ldloc.1
     IL_00a2:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>""
-    IL_00a7:  call       ""ThrowSwitchExpressionException(object)""
+    IL_00a7:  call       ""void <PrivateImplementationDetails>.ThrowSwitchExpressionException(object)""
     IL_00ac:  ldloc.0
     IL_00ad:  call       ""void System.Console.WriteLine(int)""
     IL_00b2:  leave.s    IL_00c1

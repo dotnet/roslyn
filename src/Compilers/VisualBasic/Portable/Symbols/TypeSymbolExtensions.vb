@@ -1297,6 +1297,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit")
         End Function
 
+        ' Keep in sync with C# equivalent.
+        <Extension>
+        Friend Function IsWellKnownTypeLock(typeSymbol As TypeSymbol) As Boolean
+            Dim namedTypeSymbol = TryCast(typeSymbol, NamedTypeSymbol)
+            Return namedTypeSymbol IsNot Nothing AndAlso
+                namedTypeSymbol.Name = WellKnownMemberNames.LockTypeName AndAlso
+                namedTypeSymbol.Arity = 0 AndAlso
+                namedTypeSymbol.ContainingType Is Nothing AndAlso
+                namedTypeSymbol.IsContainedInNamespace(NameOf(System), NameOf(System.Threading))
+        End Function
+
         <Extension>
         Private Function IsWellKnownCompilerServicesTopLevelType(typeSymbol As TypeSymbol, name As String) As Boolean
             If Not String.Equals(typeSymbol.Name, name) Then
@@ -1312,13 +1323,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         <Extension>
-        Private Function IsContainedInNamespace(typeSymbol As TypeSymbol, outerNS As String, midNS As String, innerNS As String) As Boolean
-            Dim innerNamespace = typeSymbol.ContainingNamespace
-            If Not String.Equals(innerNamespace?.Name, innerNS) Then
-                Return False
+        Private Function IsContainedInNamespace(typeSymbol As TypeSymbol, outerNS As String, midNS As String, Optional innerNS As String = Nothing) As Boolean
+            Dim midNamespace As NamespaceSymbol
+
+            If innerNS IsNot Nothing Then
+                Dim innerNamespace = typeSymbol.ContainingNamespace
+                If Not String.Equals(innerNamespace?.Name, innerNS) Then
+                    Return False
+                End If
+                midNamespace = innerNamespace.ContainingNamespace
+            Else
+                midNamespace = typeSymbol.ContainingNamespace
             End If
 
-            Dim midNamespace = innerNamespace.ContainingNamespace
             If Not String.Equals(midNamespace?.Name, midNS) Then
                 Return False
             End If

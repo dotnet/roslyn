@@ -154,9 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the string might be null or an invalid guid representation. False, 
         ''' if there is no GuidAttribute with string argument.
         ''' </summary>
-        Friend Overridable Function GetGuidString(ByRef guidString As String) As Boolean
-            Return GetGuidStringDefaultImplementation(guidString)
-        End Function
+        Friend MustOverride Function GetGuidString(ByRef guidString As String) As Boolean
 
         ' Named types have the arity suffix added to the metadata name.
         Public Overrides ReadOnly Property MetadataName As String
@@ -1228,6 +1226,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.EnumUnderlyingType
             End Get
         End Property
+
+        Private Function INamedTypeSymbolInternal_GetMembers() As ImmutableArray(Of ISymbolInternal) Implements INamedTypeSymbolInternal.GetMembers
+            Return GetMembers().CastArray(Of ISymbolInternal)
+        End Function
+
+        Private Function INamedTypeSymbolInternal_GetMembers(name As String) As ImmutableArray(Of ISymbolInternal) Implements INamedTypeSymbolInternal.GetMembers
+            Return GetMembers(name).CastArray(Of ISymbolInternal)
+        End Function
 
         Private ReadOnly Property INamedTypeSymbol_MemberNames As IEnumerable(Of String) Implements INamedTypeSymbol.MemberNames
             Get

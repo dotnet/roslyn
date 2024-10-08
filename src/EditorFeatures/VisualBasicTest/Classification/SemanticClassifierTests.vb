@@ -14,11 +14,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Protected Overrides Async Function GetClassificationSpansAsync(code As String, span As TextSpan, parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
+        Protected Overrides Async Function GetClassificationSpansAsync(code As String, spans As ImmutableArray(Of TextSpan), parseOptions As ParseOptions, testHost As TestHost) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using workspace = CreateWorkspace(code, testHost)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
-                Return Await GetSemanticClassificationsAsync(document, span)
+                Return Await GetSemanticClassificationsAsync(document, spans)
             End Using
         End Function
 
@@ -876,6 +876,37 @@ class Program
     [|property prop as string = ""$(\b\G\z)""|]
 end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
                 testHost,
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/69237")>
+        Public Async Function TestRegexStringSyntaxAttribute_Initializer(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+class Program
+    <StringSyntax(StringSyntaxAttribute.Regex)>
+    public property P as string
+
+    sub Goo()
+        dim x = new Program With {
+            [|.P = ""$(\b\G\z)""|]
+        }
+    end sub
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Property]("P"),
 Regex.Anchor("$"),
 Regex.Grouping("("),
 Regex.Anchor("\"),

@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         System.Console.WriteLine(""{0}, {1}, {2}, {3}"", F1, F2, F3, F4);
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib461);
             CompileAndVerify(comp, expectedOutput: $"{int.MinValue}, {int.MaxValue}, -1, 1");
 
             var corLibB = comp.Assembly.CorLibrary;
@@ -3773,23 +3773,23 @@ class Program
                 // (1,12): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // using A1 = nint;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("native-sized integers", "9.0").WithLocation(1, 12),
-                // (1,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8400: Feature 'using type alias' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // using A1 = nint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("using type alias").WithLocation(1, 12),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nint").WithArguments("using type alias", "12.0").WithLocation(1, 12),
                 // (2,12): error CS8400: Feature 'native-sized integers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // using A2 = nuint;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("native-sized integers", "9.0").WithLocation(2, 12),
-                // (2,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,12): error CS8400: Feature 'using type alias' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // using A2 = nuint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("using type alias").WithLocation(2, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "nuint").WithArguments("using type alias", "12.0").WithLocation(2, 12));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,12): error CS8773: Feature 'using type alias' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // using A1 = nint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nint").WithArguments("using type alias").WithLocation(1, 12),
-                // (2,12): error CS8652: The feature 'using type alias' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "nint").WithArguments("using type alias", "12.0").WithLocation(1, 12),
+                // (2,12): error CS8773: Feature 'using type alias' is not available in C# 9.0. Please use language version 12.0 or greater.
                 // using A2 = nuint;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nuint").WithArguments("using type alias").WithLocation(2, 12));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "nuint").WithArguments("using type alias", "12.0").WithLocation(2, 12));
 
             comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
@@ -4369,14 +4369,37 @@ unsafe class Program
         yield return sizeof(nuint);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9);
-            comp.VerifyDiagnostics(
-                // (6,22): error CS1629: Unsafe code may not appear in iterators
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (6,22): error CS8773: Feature 'ref and unsafe in async and iterator methods' is not available in C# 9.0. Please use language version 13.0 or greater.
                 //         yield return sizeof(nint);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(nint)").WithLocation(6, 22),
-                // (7,22): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22),
+                // (7,22): error CS8773: Feature 'ref and unsafe in async and iterator methods' is not available in C# 9.0. Please use language version 13.0 or greater.
                 //         yield return sizeof(nuint);
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "sizeof(nuint)").WithLocation(7, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "sizeof(nuint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22)
+                );
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         yield return sizeof(nint);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22),
+                // (7,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         yield return sizeof(nuint);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "sizeof(nuint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22)
+               );
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,22): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         yield return sizeof(nint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(6, 22),
+                // (7,22): error CS0233: 'nuint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
+                //         yield return sizeof(nuint);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nuint)").WithArguments("nuint").WithLocation(7, 22)
+            };
+
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -4662,7 +4685,10 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9);
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            // See tracking issue https://github.com/dotnet/runtime/issues/96695
+            var verifier = CompileAndVerify(comp,
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[GetHashCode]: Unrecognized arguments for delegate .ctor. { Offset = 0x12 }" },
+                expectedOutput:
 $@"42
 {42.GetHashCode()}
 False
@@ -4786,7 +4812,7 @@ False
                 static void verifyUnaryOperators(CSharpCompilation comp, UnaryOperatorKind operatorKind, bool skipNativeIntegerOperators)
                 {
                     var builder = ArrayBuilder<UnaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
+                    comp.BuiltInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
                     var operators = builder.ToImmutableAndFree();
                     int expectedSigned = skipNativeIntegerOperators ? 0 : 1;
                     int expectedUnsigned = skipNativeIntegerOperators ? 0 : (operatorKind == UnaryOperatorKind.UnaryMinus) ? 0 : 1;
@@ -4797,7 +4823,7 @@ False
                 static void verifyBinaryOperators(CSharpCompilation comp, BinaryOperatorKind operatorKind, bool skipNativeIntegerOperators)
                 {
                     var builder = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
-                    comp.builtInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
+                    comp.BuiltInOperators.GetSimpleBuiltInOperators(operatorKind, builder, skipNativeIntegerOperators);
                     var operators = builder.ToImmutableAndFree();
                     int expected = skipNativeIntegerOperators ? 0 : 1;
                     verifyOperators(operators, (op, signed) => isNativeInt(op.LeftType, signed), expected, expected);
@@ -12358,7 +12384,7 @@ $@"class Program
 
                 if (expectedDiagnostics.Length == 0)
                 {
-                    CompileAndVerify(comp);
+                    CompileAndVerify(comp, emitOptions: EmitOptions.Default);
                 }
 
                 static bool useUnsafe(string type) => type == "void*";

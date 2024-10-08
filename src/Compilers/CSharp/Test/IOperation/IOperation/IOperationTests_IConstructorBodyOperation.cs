@@ -1133,5 +1133,46 @@ namespace System
                     null
                 """);
         }
+
+        [Fact]
+        public void ConstructorBody_19()
+        {
+            string source = @"
+class Base
+{
+    public Base(int x){}
+}
+
+class Program : Base
+{
+    Program()
+    {}
+}
+";
+            var compilation = CreateCompilation(source);
+
+            compilation.VerifyEmitDiagnostics(
+                // (9,5): error CS7036: There is no argument given that corresponds to the required parameter 'x' of 'Base.Base(int)'
+                //     Program()
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Program").WithArguments("x", "Base.Base(int)").WithLocation(9, 5)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Skip(1).Single();
+            compilation.VerifyOperationTree(node1, """
+                IConstructorBodyOperation (OperationKind.ConstructorBody, Type: null, IsInvalid) (Syntax: 'Program() ... {}')
+                Initializer:
+                  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'Program() ... {}')
+                    Expression:
+                      IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'Program() ... {}')
+                        Children(0)
+                BlockBody:
+                  IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{}')
+                ExpressionBody:
+                  null
+                """);
+        }
     }
 }

@@ -7,83 +7,82 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
+namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList;
+
+/// <summary>
+/// Base type for all wrappers that involve wrapping a comma-separated list of items.
+/// </summary>
+internal abstract partial class AbstractSeparatedSyntaxListWrapper<
+    TListSyntax,
+    TListItemSyntax>
+    : AbstractSyntaxWrapper
+    where TListSyntax : SyntaxNode
+    where TListItemSyntax : SyntaxNode
 {
-    /// <summary>
-    /// Base type for all wrappers that involve wrapping a comma-separated list of items.
-    /// </summary>
-    internal abstract partial class AbstractSeparatedSyntaxListWrapper<
-        TListSyntax,
-        TListItemSyntax>
-        : AbstractSyntaxWrapper
-        where TListSyntax : SyntaxNode
-        where TListItemSyntax : SyntaxNode
+    protected abstract string Unwrap_list { get; }
+    protected abstract string Wrap_long_list { get; }
+
+    protected abstract string Unwrap_and_indent_all_items { get; }
+    protected abstract string Unwrap_all_items { get; }
+    protected abstract string Indent_all_items { get; }
+    protected abstract string Align_wrapped_items { get; }
+    protected abstract string Indent_wrapped_items { get; }
+
+    protected abstract string Wrap_every_item { get; }
+
+    public abstract bool Supports_WrapEveryGroup_UnwrapFirst { get; }
+    public abstract bool Supports_UnwrapGroup_WrapFirst_IndentRest { get; }
+    public abstract bool Supports_WrapLongGroup_UnwrapFirst { get; }
+
+    protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
+        : base(indentationService)
     {
-        protected abstract string Unwrap_list { get; }
-        protected abstract string Wrap_long_list { get; }
+    }
 
-        protected abstract string Unwrap_and_indent_all_items { get; }
-        protected abstract string Unwrap_all_items { get; }
-        protected abstract string Indent_all_items { get; }
-        protected abstract string Align_wrapped_items { get; }
-        protected abstract string Indent_wrapped_items { get; }
+    protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
+    protected abstract bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options);
 
-        protected abstract string Wrap_every_item { get; }
+    protected abstract SyntaxToken FirstToken(TListSyntax listSyntax);
+    protected abstract SyntaxToken LastToken(TListSyntax listSyntax);
+    protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
+    protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
+    protected abstract bool PositionIsApplicable(
+        SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, TListSyntax listSyntax);
 
-        public abstract bool Supports_WrapEveryGroup_UnwrapFirst { get; }
-        public abstract bool Supports_UnwrapGroup_WrapFirst_IndentRest { get; }
-        public abstract bool Supports_WrapLongGroup_UnwrapFirst { get; }
+    public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
+        Document document, int position, SyntaxNode declaration, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
+    {
+        var listSyntax = TryGetApplicableList(declaration);
+        if (listSyntax == null || listSyntax.Span.IsEmpty)
+            return null;
 
-        protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
-            : base(indentationService)
+        var firstToken = FirstToken(listSyntax);
+        var lastToken = LastToken(listSyntax);
+
+        if (firstToken.IsMissing || lastToken.IsMissing || firstToken.Span.IsEmpty || lastToken.Span.IsEmpty)
+            return null;
+
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (!PositionIsApplicable(root, position, declaration, containsSyntaxError, listSyntax))
+            return null;
+
+        var listItems = GetListItems(listSyntax);
+        if (listItems.Count <= 1)
         {
+            // nothing to do with 0-1 items.  Simple enough for users to just edit
+            // themselves, and this prevents constant clutter with formatting that isn't
+            // really that useful.
+            return null;
         }
 
-        protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
-        protected abstract bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options);
+        var containsUnformattableContent = await ContainsUnformattableContentAsync(
+            document, listItems.GetWithSeparators(), cancellationToken).ConfigureAwait(false);
 
-        protected abstract SyntaxToken FirstToken(TListSyntax listSyntax);
-        protected abstract SyntaxToken LastToken(TListSyntax listSyntax);
-        protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
-        protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
-        protected abstract bool PositionIsApplicable(
-            SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, TListSyntax listSyntax);
+        if (containsUnformattableContent)
+            return null;
 
-        public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode declaration, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
-        {
-            var listSyntax = TryGetApplicableList(declaration);
-            if (listSyntax == null || listSyntax.Span.IsEmpty)
-                return null;
-
-            var firstToken = FirstToken(listSyntax);
-            var lastToken = LastToken(listSyntax);
-
-            if (firstToken.IsMissing || lastToken.IsMissing || firstToken.Span.IsEmpty || lastToken.Span.IsEmpty)
-                return null;
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!PositionIsApplicable(root, position, declaration, containsSyntaxError, listSyntax))
-                return null;
-
-            var listItems = GetListItems(listSyntax);
-            if (listItems.Count <= 1)
-            {
-                // nothing to do with 0-1 items.  Simple enough for users to just edit
-                // themselves, and this prevents constant clutter with formatting that isn't
-                // really that useful.
-                return null;
-            }
-
-            var containsUnformattableContent = await ContainsUnformattableContentAsync(
-                document, listItems.GetWithSeparators(), cancellationToken).ConfigureAwait(false);
-
-            if (containsUnformattableContent)
-                return null;
-
-            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            return new SeparatedSyntaxListCodeActionComputer(
-                this, document, sourceText, options, listSyntax, listItems, cancellationToken);
-        }
+        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        return new SeparatedSyntaxListCodeActionComputer(
+            this, document, sourceText, options, listSyntax, listItems, cancellationToken);
     }
 }

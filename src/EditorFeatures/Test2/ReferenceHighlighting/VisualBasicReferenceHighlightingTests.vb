@@ -191,8 +191,7 @@ End Module
                 </Workspace>, testHost)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         <CombinatorialData>
         Public Async Function TestAccessor1(testHost As TestHost) As Task
             Dim input =
@@ -216,8 +215,7 @@ End Class
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/567959")>
         <CombinatorialData>
         Public Async Function TestAccessor2(testHost As TestHost) As Task
             Dim input =
@@ -241,8 +239,7 @@ End Class
             Await VerifyHighlightsAsync(input, testHost)
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531624")>
         <CombinatorialData>
         Public Async Function TestHighlightParameterizedPropertyParameter(testHost As TestHost) As Task
             Dim input =

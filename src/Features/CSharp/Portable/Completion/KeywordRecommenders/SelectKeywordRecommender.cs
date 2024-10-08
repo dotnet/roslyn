@@ -6,34 +6,33 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal class SelectKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
-    internal class SelectKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    public SelectKeywordRecommender()
+        : base(SyntaxKind.SelectKeyword)
     {
-        public SelectKeywordRecommender()
-            : base(SyntaxKind.SelectKeyword)
+    }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        var token = context.TargetToken;
+
+        // for orderby, ascending is the default so select should be available in the orderby direction context
+        if (token.IsOrderByDirectionContext())
         {
+            return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        // var q = from x in y
+        //         |
+        if (!token.IntersectsWith(position) &&
+            token.IsLastTokenOfQueryClause())
         {
-            var token = context.TargetToken;
-
-            // for orderby, ascending is the default so select should be available in the orderby direction context
-            if (token.IsOrderByDirectionContext())
-            {
-                return true;
-            }
-
-            // var q = from x in y
-            //         |
-            if (!token.IntersectsWith(position) &&
-                token.IsLastTokenOfQueryClause())
-            {
-                return true;
-            }
-
-            return false;
+            return true;
         }
+
+        return false;
     }
 }

@@ -2,38 +2,41 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
-Imports Microsoft.CodeAnalysis.Text
-Imports LSP = Microsoft.VisualStudio.LanguageServer.Protocol
-Imports Roslyn.Utilities
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports System.Threading
-Imports System.IO
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.Extensions.Logging
+Imports Roslyn.Utilities
+Imports LSP = Roslyn.LanguageServer.Protocol
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.Utilities
     Friend Class TestLsifOutput
         Private ReadOnly _testLsifJsonWriter As TestLsifJsonWriter
-        Private ReadOnly _workspace As TestWorkspace
+        Private ReadOnly _workspace As EditorTestWorkspace
 
         ''' <summary>
         ''' A MEF composition that matches the exact same MEF composition that will be used in the actual LSIF tool.
         ''' </summary>
         Public Shared ReadOnly TestComposition As TestComposition = TestComposition.Empty.AddAssemblies(Composition.MefCompositionAssemblies)
 
-        Public Sub New(testLsifJsonWriter As TestLsifJsonWriter, workspace As TestWorkspace)
+        Public Sub New(testLsifJsonWriter As TestLsifJsonWriter, workspace As EditorTestWorkspace)
             _testLsifJsonWriter = testLsifJsonWriter
             _workspace = workspace
         End Sub
 
         Public Shared Function GenerateForWorkspaceAsync(workspaceElement As XElement) As Task(Of TestLsifOutput)
-            Dim workspace = TestWorkspace.CreateWorkspace(workspaceElement, openDocuments:=False, composition:=TestComposition)
+            Dim workspace = EditorTestWorkspace.CreateWorkspace(workspaceElement, openDocuments:=False, composition:=TestComposition)
             Return GenerateForWorkspaceAsync(workspace)
         End Function
 
-        Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace) As Task(Of TestLsifOutput)
+        Public Shared Async Function GenerateForWorkspaceAsync(workspace As EditorTestWorkspace) As Task(Of TestLsifOutput)
             Dim testLsifJsonWriter = New TestLsifJsonWriter()
 
             Await GenerateForWorkspaceAsync(workspace, testLsifJsonWriter)
@@ -41,13 +44,13 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             Return New TestLsifOutput(testLsifJsonWriter, workspace)
         End Function
 
-        Public Shared Async Function GenerateForWorkspaceAsync(workspace As TestWorkspace, jsonWriter As ILsifJsonWriter) As Task
+        Public Shared Async Function GenerateForWorkspaceAsync(workspace As EditorTestWorkspace, jsonWriter As ILsifJsonWriter) As Task
             ' We always want to assert that we're running with the correct composition, or otherwise the test doesn't reflect the real
             ' world function of the indexer.
             Assert.Equal(workspace.Composition, TestComposition)
 
-            Dim log = New StringWriter()
-            Dim lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(jsonWriter, log)
+            Dim logger = New TestLogger()
+            Dim lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(jsonWriter, logger)
 
             For Each project In workspace.CurrentSolution.Projects
                 Dim compilation = Await project.GetCompilationAsync()
@@ -59,8 +62,27 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
             Next
 
             ' The only things would have logged were an error, so this should be empty
-            Assert.Empty(log.ToString())
+            Assert.Empty(logger.LoggedMessages)
         End Function
+
+        Private Class TestLogger
+            Implements ILogger
+
+            Public ReadOnly LoggedMessages As New ConcurrentBag(Of String)
+
+            Public Sub Log(Of TState)(logLevel As LogLevel, eventId As EventId, state As TState, exception As Exception, formatter As Func(Of TState, Exception, String)) Implements ILogger.Log
+                Dim message = formatter(state, exception)
+                LoggedMessages.Add(message)
+            End Sub
+
+            Public Function IsEnabled(logLevel As LogLevel) As Boolean Implements ILogger.IsEnabled
+                Return True
+            End Function
+
+            Public Function BeginScope(Of TState)(state As TState) As IDisposable Implements ILogger.BeginScope
+                Throw New NotImplementedException()
+            End Function
+        End Class
 
         Public Function GetElementById(Of T As Element)(id As Id(Of T)) As T
             Return _testLsifJsonWriter.GetElementById(id)
@@ -126,6 +148,18 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests.U
 
         Public Async Function GetAnnotatedRangeAsync(annotation As String) As Task(Of Graph.Range)
             Return (Await GetAnnotatedRangesAsync(annotation)).Single()
+        End Function
+
+        ''' <summary>
+        ''' Returns an LSP Range type for the text span annotated with the given name. This is distinct from returning an LSIF Range vertex, which is what <see cref="GetAnnotatedRangeAsync(String)"/> does.
+        ''' </summary>
+        Public Async Function GetAnnotatedLspRangeAsync(annotation As String) As Task(Of LSP.Range)
+            Dim annotatedDocument = _workspace.Documents.Single(Function(d) d.AnnotatedSpans.ContainsKey(annotation))
+            Dim annotatedSpan = annotatedDocument.AnnotatedSpans(annotation).Single()
+
+            Dim text = Await _workspace.CurrentSolution.GetRequiredDocument(annotatedDocument.Id).GetTextAsync()
+            Dim linePositionSpan = text.Lines.GetLinePositionSpan(annotatedSpan)
+            Return ProtocolConversions.LinePositionToRange(linePositionSpan)
         End Function
 
         Public Function GetFoldingRanges(document As Document) As LSP.FoldingRange()

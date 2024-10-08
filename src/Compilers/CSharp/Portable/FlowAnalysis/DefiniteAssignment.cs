@@ -17,7 +17,6 @@
 #define REFERENCE_STATE
 #endif
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -362,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)methodThisParameter != null)
             {
                 EnterParameter(methodThisParameter);
-                if (methodThisParameter.Type.SpecialType != SpecialType.None)
+                if (methodThisParameter.Type.SpecialType.CanOptimizeBehavior())
                 {
                     int slot = GetOrCreateSlot(methodThisParameter);
                     SetSlotState(slot, true);
@@ -508,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!reported)
                         {
-                            if (parameterType.HasInlineArrayAttribute(out int length) && length > 1 && parameterType.TryGetInlineArrayElementField() is FieldSymbol elementField)
+                            if (parameterType.HasInlineArrayAttribute(out int length) && length > 1 && parameterType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
                             {
                                 if (!compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                                 {
@@ -1269,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    if (!foundUnassignedField && containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetInlineArrayElementField() is FieldSymbol elementField)
+                    if (!foundUnassignedField && containingType.HasInlineArrayAttribute(out int length) && length > 1 && containingType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is FieldSymbol elementField)
                     {
                         // Add the element field to the set of fields requiring initialization to indicate that the whole instance needs initialization.
                         // This is done explicitly only for unreported cases, because, if something was reported, then we already have added the
@@ -1324,7 +1323,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
                         AddImplicitlyInitializedField((FieldSymbol)fieldIdentifier.Symbol);
 
-                        if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
+                        if (fieldSymbol.RefKind != RefKind.None)
+                        {
+                            // 'hasAssociatedProperty' is only true here in error scenarios where we don't need to report this as a cascading diagnostic
+                            if (!hasAssociatedProperty)
+                            {
+                                Diagnostics.Add(
+                                    ErrorCode.WRN_UseDefViolationRefField,
+                                    node.Location,
+                                    symbolName);
+                            }
+                        }
+                        else if (compilation.IsFeatureEnabled(MessageID.IDS_FeatureAutoDefaultStructs))
                         {
                             Diagnostics.Add(
                                 hasAssociatedProperty ? ErrorCode.WRN_UseDefViolationPropertySupportedVersion : ErrorCode.WRN_UseDefViolationFieldSupportedVersion,
@@ -1497,6 +1507,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void Assign(BoundNode node, BoundExpression value, bool isRef = false, bool read = true)
         {
+            if (!isRef && node is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None } fieldAccess)
+            {
+                CheckAssigned(fieldAccess, node.Syntax);
+            }
             AssignImpl(node, value, written: true, isRef: isRef, read: read);
         }
 
@@ -1657,7 +1671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableIdentifier variable = variableBySlot[containingSlot];
             TypeSymbol structType = variable.Symbol.GetTypeOrReturnType().Type;
 
-            if (structType.HasInlineArrayAttribute(out int length) && length > 1 && structType.TryGetInlineArrayElementField() is object)
+            if (structType.HasInlineArrayAttribute(out int length) && length > 1 && structType.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is object)
             {
                 // An inline array of length > 1 cannot be considered fully initialized judging only based on fields.
                 return false;
@@ -1774,22 +1788,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)current != CurrentSymbol && current is MethodSymbol method)
                 {
-                    // Enclosing method parameters are definitely assigned
+                    // Enclosing method input parameters are definitely assigned
                     foreach (var parameter in method.Parameters)
                     {
-                        int slot = GetOrCreateSlot(parameter);
-                        if (slot > 0)
+                        if (parameter.RefKind != RefKind.Out)
                         {
-                            SetSlotAssigned(slot, ref topState);
+                            int slot = GetOrCreateSlot(parameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
                         }
                     }
 
                     if (method.TryGetThisParameter(out ParameterSymbol thisParameter) && thisParameter is not null)
                     {
-                        int slot = GetOrCreateSlot(thisParameter);
-                        if (slot > 0)
+                        if (thisParameter.RefKind != RefKind.Out)
                         {
-                            SetSlotAssigned(slot, ref topState);
+                            int slot = GetOrCreateSlot(thisParameter);
+                            if (slot > 0)
+                            {
+                                SetSlotAssigned(slot, ref topState);
+                            }
                         }
                     }
                 }
@@ -2044,9 +2064,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.BinaryPattern:
                         {
                             var pat = (BoundBinaryPattern)pattern;
-                            bool def = definitely && !pat.Disjunction;
-                            assignPatternVariablesAndMarkReadFields(pat.Left, def);
-                            assignPatternVariablesAndMarkReadFields(pat.Right, def);
+
+                            if (pat.Left is not BoundBinaryPattern)
+                            {
+                                bool def = definitely && !pat.Disjunction;
+                                assignPatternVariablesAndMarkReadFields(pat.Left, def);
+                                assignPatternVariablesAndMarkReadFields(pat.Right, def);
+                                break;
+                            }
+
+                            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+                            var stack = ArrayBuilder<(BoundBinaryPattern pattern, bool def)>.GetInstance();
+
+                            do
+                            {
+                                definitely = definitely && !pat.Disjunction;
+                                stack.Push((pat, definitely));
+                                pat = pat.Left as BoundBinaryPattern;
+                            } while (pat is not null);
+
+                            var patAndDef = stack.Pop();
+                            assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Left, patAndDef.def);
+
+                            do
+                            {
+                                assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Right, patAndDef.def);
+                            } while (stack.TryPop(out patAndDef));
+
+                            stack.Free();
                             break;
                         }
                     default:
@@ -2054,13 +2099,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
-
-        public override BoundNode VisitBlock(BoundBlock node)
+#nullable enable
+        public override BoundNode? VisitBlock(BoundBlock node)
         {
-            if (node.Instrumentation != null)
+            var instrumentation = node.Instrumentation;
+            if (instrumentation != null)
             {
-                DeclareVariable(node.Instrumentation.Local);
-                Visit(node.Instrumentation.Prologue);
+                DeclareVariables(instrumentation.Locals);
+
+                if (instrumentation.Prologue != null)
+                {
+                    Visit(instrumentation.Prologue);
+                }
             }
 
             DeclareVariables(node.Locals);
@@ -2079,14 +2129,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);
 
-            if (node.Instrumentation != null)
+            if (instrumentation?.Epilogue != null)
             {
-                Visit(node.Instrumentation.Epilogue);
+                Visit(instrumentation.Epilogue);
             }
 
             return null;
         }
-
+#nullable disable
         private void VisitStatementsWithLocalFunctions(BoundBlock block)
         {
             if (!TrackingRegions && !block.LocalFunctions.IsDefaultOrEmpty)
@@ -2215,6 +2265,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void DeclareVariables(ImmutableArray<LocalSymbol> locals)
+        {
+            foreach (var symbol in locals)
+            {
+                DeclareVariable(symbol);
+            }
+        }
+
+        private void DeclareVariables(OneOrMany<LocalSymbol> locals)
         {
             foreach (var symbol in locals)
             {
@@ -2753,7 +2811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = new StringBuilder();
             builder.Append("[assigned ");
             AppendBitNames(state.Assigned, builder);
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 
@@ -2774,7 +2832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (id.ContainingSlot > 0)
             {
                 AppendBitName(id.ContainingSlot, builder);
-                builder.Append(".");
+                builder.Append('.');
             }
 
             builder.Append(

@@ -90,11 +90,18 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(newBinPath, project.BinOutputPath);
 
-            // Change bin output folder to non-normalized path - verify that binOutputPath changes to normalized path, but objOutputPath is the same.
+            // Change bin output folder to non-absolute path - verify that binOutputPath changes to normalized path, but objOutputPath is the same.
             newBinPath = @"test.dll";
             var expectedNewBinPath = Path.Combine(Path.GetTempPath(), newBinPath);
             project.BinOutputPath = newBinPath;
             Assert.Equal(newObjPath, project.CompilationOutputAssemblyFilePath);
+            Assert.Equal(expectedNewBinPath, project.BinOutputPath);
+
+            // Change obj  folder to non-canonical path - verify that objOutputPath changes to normalized path, but binOutputPath is unchanged.
+            var relativeObjPath = @"..\folder\\test.dll";
+            var absoluteObjPath = Path.GetFullPath(Path.Combine(Path.GetTempPath(), relativeObjPath));
+            project.SetOptions(ImmutableArray.Create($"/out:{relativeObjPath}"));
+            Assert.Equal(absoluteObjPath, project.CompilationOutputAssemblyFilePath);
             Assert.Equal(expectedNewBinPath, project.BinOutputPath);
         }
 

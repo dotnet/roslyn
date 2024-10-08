@@ -1203,7 +1203,7 @@ public class C : IEnumerable
                 var runtime = new DkmClrRuntimeInstance(assemblies);
                 var type = assembly.GetType("C");
                 var value = CreateDkmClrValue(
-                    value: type.Instantiate(new object[] { new object[] { string.Empty } }),
+                    value: type.Instantiate([new object[] { string.Empty }]),
                     type: runtime.GetType((TypeImpl)type));
                 var evalResult = FormatResult("o", value);
                 Verify(evalResult,
@@ -1804,7 +1804,7 @@ class C
                 var parameters = ctor.GetParameters();
                 var listType = typeof(List<>).MakeGenericType(anonymousType);
                 var source = listType.Instantiate();
-                listType.GetMethod("Add").Invoke(source, new[] { anonymousType.Instantiate(1, 1) });
+                listType.GetMethod("Add").Invoke(source, [anonymousType.Instantiate(1, 1)]);
                 var predicate = Delegate.CreateDelegate(parameters[1].ParameterType, instance, displayClass.GetMethod("<M>b__0_2", BindingFlags.Instance | BindingFlags.NonPublic));
                 var selector = Delegate.CreateDelegate(parameters[2].ParameterType, instance, displayClass.GetMethod("<M>b__0_3", BindingFlags.Instance | BindingFlags.NonPublic));
                 var value = CreateDkmClrValue(
@@ -1850,6 +1850,33 @@ class C
                 propertyName,
                 CreateDkmClrValue(propertyValue, type: valueType, valueFlags: DkmClrValueFlags.Synthetic),
                 declaredType: propertyType);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74082")]
+        public void LiftedPrimaryConstructorParameters()
+        {
+            var source = """
+                class C(int x, int y) { int F() => x; int A = y; int Z => 2; }
+                """;
+            var assembly = GetAssembly(source);
+            var assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(assembly);
+            using (ReflectionUtilities.LoadAssemblies(assemblies))
+            {
+                var runtime = new DkmClrRuntimeInstance(assemblies);
+                var type = assembly.GetType("C");
+                var value = CreateDkmClrValue(
+                    value: type.Instantiate([3, 1]),
+                    type: runtime.GetType((TypeImpl)type));
+                var evalResult = FormatResult("o", value);
+                Verify(evalResult,
+                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(name: "A", value: "1", type: "int", fullName: "o.A", DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult(name: "Z", value: "2", type: "int", fullName: "o.Z", DkmEvaluationResultFlags.CanFavorite | DkmEvaluationResultFlags.ReadOnly),
+                    EvalResult(name: "x", value: "3", type: "int", fullName: null, DkmEvaluationResultFlags.CanFavorite));
+            }
         }
     }
 }

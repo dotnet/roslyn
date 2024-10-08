@@ -77,27 +77,23 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
             End Property
         End Class
 
-        <ExportLanguageService(GetType(IGoToDefinitionService), NoCompilationConstants.LanguageName), [Shared]>
-        Private Class FakeGoToDefinitionService
-            Implements IGoToDefinitionService
+        <ExportLanguageService(GetType(INavigableItemsService), NoCompilationConstants.LanguageName), [Shared]>
+        Private Class FakeNavigableItemsService
+            Implements INavigableItemsService
 
             <ImportingConstructor>
             <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 
-            Public Function FindDefinitionsAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of INavigableItem)) Implements IGoToDefinitionService.FindDefinitionsAsync
-                Return Task.FromResult(SpecializedCollections.SingletonEnumerable(Of INavigableItem)(New FakeNavigableItem(document)))
-            End Function
-
-            Public Function TryGoToDefinition(document As Document, position As Integer, cancellationToken As CancellationToken) As Boolean Implements IGoToDefinitionService.TryGoToDefinition
-                Throw New NotImplementedException()
+            Public Function GetNavigableItemsAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of INavigableItem)) Implements INavigableItemsService.GetNavigableItemsAsync
+                Return Task.FromResult(ImmutableArray.Create(Of INavigableItem)(New FakeNavigableItem(document)))
             End Function
         End Class
 
         <Fact>
         Public Async Function DocumentWithNoSemanticModel() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="NoCompilation">
                         <Document>
@@ -105,17 +101,14 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                         </Document>
                     </Project>
                 </Workspace>,
-                composition:=AbstractCodeDefinitionWindowTests.TestComposition.AddParts(GetType(FakeGoToDefinitionService)))
+                composition:=AbstractCodeDefinitionWindowTests.TestComposition.AddParts(GetType(FakeNavigableItemsService)))
 
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
-                    workspace,
-                    document,
-                    hostDocument.CursorPosition.Value,
-                    CancellationToken.None)
+                    document, hostDocument.CursorPosition.Value, CancellationToken.None)
 
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "DisplayText",
@@ -128,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
         <Fact>
         Public Async Function VisualBasicReferencingCSharp() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <ProjectReference>ReferencedProject</ProjectReference>

@@ -12,121 +12,125 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
+    : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind, CSharpSimplifierOptions>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
-        : SimplifyTypeNamesDiagnosticAnalyzerBase<SyntaxKind, CSharpSimplifierOptions>
+    private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
+        [
+            SyntaxKind.QualifiedName,
+            SyntaxKind.AliasQualifiedName,
+            SyntaxKind.GenericName,
+            SyntaxKind.IdentifierName,
+            SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxKind.QualifiedCref,
+        ];
+
+    protected override bool IsIgnoredCodeBlock(SyntaxNode codeBlock)
     {
-        private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest =
-            ImmutableArray.Create(
-                SyntaxKind.QualifiedName,
-                SyntaxKind.AliasQualifiedName,
-                SyntaxKind.GenericName,
-                SyntaxKind.IdentifierName,
-                SyntaxKind.SimpleMemberAccessExpression,
-                SyntaxKind.QualifiedCref);
+        // Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
+        // callbacks when they include attributes, but analysis of the node at this level would block more efficient
+        // analysis of descendant members.
+        return codeBlock.Kind() is
+            SyntaxKind.CompilationUnit or
+            SyntaxKind.ClassDeclaration or
+            SyntaxKind.RecordDeclaration or
+            SyntaxKind.StructDeclaration or
+            SyntaxKind.RecordStructDeclaration or
+            SyntaxKind.InterfaceDeclaration or
+            SyntaxKind.DelegateDeclaration or
+            SyntaxKind.EnumDeclaration;
+    }
 
-        protected override bool IsIgnoredCodeBlock(SyntaxNode codeBlock)
+    protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root)
+    {
+        Debug.Assert(context.CodeBlock.DescendantNodesAndSelf().Contains(root));
+
+        var semanticModel = context.SemanticModel;
+        var cancellationToken = context.CancellationToken;
+
+        var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+        if (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(options), cancellationToken))
+            return [];
+
+        using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, context.Options, ignoredSpans: null, cancellationToken);
+        simplifier.Visit(root);
+        return simplifier.Diagnostics;
+    }
+
+    protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanMutableIntervalTree? codeBlockIntervalTree)
+    {
+        var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
+        if (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(options), context.CancellationToken))
+            return [];
+
+        var simplifier = new TypeSyntaxSimplifierWalker(this, context.SemanticModel, options, context.Options, ignoredSpans: codeBlockIntervalTree, context.CancellationToken);
+        simplifier.Visit(root);
+        return simplifier.Diagnostics;
+    }
+
+    internal override bool IsCandidate(SyntaxNode node)
+        => node != null && s_kindsOfInterest.Contains(node.Kind());
+
+    internal override bool CanSimplifyTypeNameExpression(
+        SemanticModel model, SyntaxNode node, CSharpSimplifierOptions options,
+        out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
+        CancellationToken cancellationToken)
+    {
+        inDeclaration = false;
+        issueSpan = default;
+        diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
+
+        if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression.IsKind(SyntaxKind.ThisExpression))
         {
-            // Avoid analysis of compilation units and types in AnalyzeCodeBlock. These nodes appear in code block
-            // callbacks when they include attributes, but analysis of the node at this level would block more efficient
-            // analysis of descendant members.
-            return codeBlock.Kind() is
-                SyntaxKind.CompilationUnit or
-                SyntaxKind.ClassDeclaration or
-                SyntaxKind.RecordDeclaration or
-                SyntaxKind.StructDeclaration or
-                SyntaxKind.RecordStructDeclaration or
-                SyntaxKind.InterfaceDeclaration or
-                SyntaxKind.DelegateDeclaration or
-                SyntaxKind.EnumDeclaration;
+            // don't bother analyzing "this.Goo" expressions.  They will be analyzed by
+            // the CSharpSimplifyThisOrMeDiagnosticAnalyzer.
+            return false;
         }
 
-        protected override ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root)
+        if (node.ContainsDiagnostics)
         {
-            Debug.Assert(context.CodeBlock.DescendantNodesAndSelf().Contains(root));
-
-            var semanticModel = context.SemanticModel;
-            var cancellationToken = context.CancellationToken;
-
-            var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
-            using var simplifier = new TypeSyntaxSimplifierWalker(this, semanticModel, options, ignoredSpans: null, cancellationToken);
-            simplifier.Visit(root);
-            return simplifier.Diagnostics;
+            return false;
         }
 
-        protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree)
+        SyntaxNode replacementSyntax;
+        if (node is QualifiedCrefSyntax crefSyntax)
         {
-            var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
-            var simplifier = new TypeSyntaxSimplifierWalker(this, context.SemanticModel, options, ignoredSpans: codeBlockIntervalTree, context.CancellationToken);
-            simplifier.Visit(root);
-            return simplifier.Diagnostics;
+            if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, options, out var replacement, out issueSpan, cancellationToken))
+                return false;
+
+            replacementSyntax = replacement;
+        }
+        else
+        {
+            if (!ExpressionSimplifier.Instance.TrySimplify((ExpressionSyntax)node, model, options, out var replacement, out issueSpan, cancellationToken))
+                return false;
+
+            replacementSyntax = replacement;
         }
 
-        internal override bool IsCandidate(SyntaxNode node)
-            => node != null && s_kindsOfInterest.Contains(node.Kind());
-
-        internal override bool CanSimplifyTypeNameExpression(
-            SemanticModel model, SyntaxNode node, CSharpSimplifierOptions options,
-            out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
-            CancellationToken cancellationToken)
+        // set proper diagnostic ids.
+        if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
+        {
+            inDeclaration = true;
+            diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
+        }
+        else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
         {
             inDeclaration = false;
-            issueSpan = default;
-            diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
-
-            if (node is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression.IsKind(SyntaxKind.ThisExpression))
-            {
-                // don't bother analyzing "this.Goo" expressions.  They will be analyzed by
-                // the CSharpSimplifyThisOrMeDiagnosticAnalyzer.
-                return false;
-            }
-
-            if (node.ContainsDiagnostics)
-            {
-                return false;
-            }
-
-            SyntaxNode replacementSyntax;
-            if (node is QualifiedCrefSyntax crefSyntax)
-            {
-                if (!QualifiedCrefSimplifier.Instance.TrySimplify(crefSyntax, model, options, out var replacement, out issueSpan, cancellationToken))
-                    return false;
-
-                replacementSyntax = replacement;
-            }
-            else
-            {
-                if (!ExpressionSimplifier.Instance.TrySimplify((ExpressionSyntax)node, model, options, out var replacement, out issueSpan, cancellationToken))
-                    return false;
-
-                replacementSyntax = replacement;
-            }
-
-            // set proper diagnostic ids.
-            if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration)))
-            {
-                inDeclaration = true;
-                diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
-            }
-            else if (replacementSyntax.HasAnnotations(nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
-            {
-                inDeclaration = false;
-                diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
-            }
-            else if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
-            {
-                diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
-            }
-
-            return true;
+            diagnosticId = IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId;
         }
+        else if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+        {
+            diagnosticId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
+        }
+
+        return true;
     }
 }

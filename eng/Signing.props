@@ -4,12 +4,21 @@
 
   <PropertyGroup>
     <UseDotNetCertificate>true</UseDotNetCertificate>
+    <!--
+      We have a few large packages that when repacked in parallel can cause an OOM in MSBuild.
+      Reduce the parallelism from the default (16) so that we can avoid OOMs.
+    -->
+    <SignToolRepackParallelism>10</SignToolRepackParallelism>
+    <SignToolRepackMaximumParallelFileSize>64</SignToolRepackMaximumParallelFileSize>
   </PropertyGroup>
 
   <!--
     Non-default certificates.
   -->
   <ItemGroup>
+    <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.tgz" />
+    <ItemsToSign Include="$(VisualStudioSetupOutputPath)**\*.zip" />
+
     <!-- Expression Compiler dependencies that run in remote debugger must be signed with Microsoft101240624 certificate in order to work on Windows 10S -->
 
     <FileSignInfo Include="Microsoft.CodeAnalysis.ExpressionEvaluator.ExpressionCompiler.dll" CertificateName="Microsoft101240624"/>

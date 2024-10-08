@@ -11,6 +11,7 @@
              xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
              xmlns:platformimaging="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:ComponentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             d:DataContext="{d:DesignInstance Type=self:DocumentOutlineViewModel}"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              x:Name="DocumentOutline"
@@ -59,7 +60,7 @@
                 </Style.Triggers>
             </Style>
 
-            <Style TargetType="TreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
+            <Style TargetType="self:VirtualizingTreeView" BasedOn="{StaticResource {x:Static vsshell:VsResourceKeys.ThemedDialogTreeViewStyleKey}}" >
                 <Setter Property="BorderThickness" Value="0" />
                 <Setter Property="Padding" Value="0, 5, 0, 0" />
             </Style>
@@ -76,10 +77,6 @@
         </Grid.RowDefinitions>
         <ContentControl Grid.Row="0" Name="Commands" Focusable="True" />
         <Grid Grid.Row="1" x:Name="SearchHost" />
-        <!-- Two important properties are being set for TreeView:
-               We set IsVirtualizing to "True" so that WPF only generates internal data-structures elements that are visible.
-               Setting VirtualizationMode to "Recycling" ensures that WPF internal data is reused as items scroll in and out of view.
-        -->
         <!-- Note: we register TreeViewItem.SourceUpdated and set `NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=False`
              for the item `IsSelected` event.  This is important for a reentrancy issue we would otherwise have.  Specifically,
              As the user moves around, we want to expand/select the correct item of interest in the tree.  However, we do not 
@@ -87,13 +84,12 @@
              to mean that we should navigate to that item.  By only hearing when the source is updated (meaning the user actually
              clicked on the tree view item, not that we programmatically set it) we only actual perform the navigation on user
              interaction. -->
-        <TreeView Grid.Row="2"
-                  Name="SymbolTree"
+        <self:VirtualizingTreeView Grid.Row="2"
+                  x:Name="SymbolTree"
                   AutomationProperties.Name="{x:Static self:DocumentOutlineStrings.Document_Outline}"
-                  VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  TreeViewItem.SourceUpdated="SymbolTreeItem_SourceUpdated"
+                  SourceUpdated="SymbolTree_SourceUpdated"
                   TreeViewItem.Selected="SymbolTreeItem_Selected"
+                  Visibility="{Binding Visibility, Mode=OneWayToSource}"
                   ItemsSource="{Binding Source={StaticResource DocumentSymbolItems}}"> <!-- Binding to our CollectionViewSource -->
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type self:DocumentSymbolDataViewModel}">
@@ -128,6 +124,6 @@
                     <Setter Property="Margin" Value="0, 0, 0, 1" />
                 </Style>
             </TreeView.ItemContainerStyle>
-        </TreeView>
+        </self:VirtualizingTreeView>
     </Grid>
 </UserControl>

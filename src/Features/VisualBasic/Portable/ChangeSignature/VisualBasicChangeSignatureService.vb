@@ -7,6 +7,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ChangeSignature
+Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Formatting
@@ -276,7 +277,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             potentiallyUpdatedNode As SyntaxNode,
             originalNode As SyntaxNode,
             updatedSignature As SignatureChange,
-            fallbackOptions As LineFormattingOptionsProvider,
             cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
             Dim vbnode = DirectCast(potentiallyUpdatedNode, VisualBasicSyntaxNode)
@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                vbnode.IsKind(SyntaxKind.EventBlock) OrElse
                vbnode.IsKind(SyntaxKind.EventStatement) Then
 
-                Dim updatedLeadingTrivia = Await UpdateParamNodesInLeadingTriviaAsync(document, vbnode, declarationSymbol, updatedSignature, fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim updatedLeadingTrivia = Await UpdateParamNodesInLeadingTriviaAsync(document, vbnode, declarationSymbol, updatedSignature, cancellationToken).ConfigureAwait(False)
                 vbnode = vbnode.WithLeadingTrivia(updatedLeadingTrivia)
             End If
 
@@ -607,7 +607,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             node As VisualBasicSyntaxNode,
             declarationSymbol As ISymbol,
             updatedSignature As SignatureChange,
-            fallbackOptions As LineFormattingOptionsProvider,
             cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxTrivia))
 
             If Not node.HasLeadingTrivia Then
@@ -626,7 +625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return node.GetLeadingTrivia().ToImmutableArray()
             End If
 
-            Dim options = Await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(False)
+            Dim options = Await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
             Return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options)
         End Function
 
@@ -734,8 +733,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return results.ToImmutableAndFree()
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+            Dim coreRules = Formatter.GetDefaultFormattingRules(document)
+            Dim result = New FixedSizeArrayBuilder(Of AbstractFormattingRule)(1 + coreRules.Length)
+            result.Add(New ChangeSignatureFormattingRule())
+            result.AddRange(coreRules)
+            Return result.MoveToImmutable()
         End Function
 
         Protected Overrides Function TransferLeadingWhitespaceTrivia(Of T As SyntaxNode)(newArgument As T, oldArgument As SyntaxNode) As T

@@ -4,36 +4,21 @@
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateCompilerExecutableBindingRedirects.targets" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <ServerGarbageCollection>true</ServerGarbageCollection>
-  </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <!--
-      Avoid allocation interference due to a boxing bug which was fixed for .NET 5.
-      https://github.com/dotnet/runtime/issues/1713
-    -->
-    <TieredCompilation>false</TieredCompilation>
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="$(MicrosoftBuildLocatorVersion)" />
-    <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="$(MicrosoftWin32RegistryVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" />
   </ItemGroup>
-
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
+    <ProjectReference Include="..\..\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" />
@@ -55,10 +40,10 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <!-- Install the AppDomainManager from SourceBrowser https://github.com/microsoft/MSBuildLocator/issues/16 -->
-    <PackageReference Include="SourceBrowser" Version="$(SourceBrowserVersion)" ExcludeAssets="build;compile" PrivateAssets="all" />
+    <PackageReference Include="SourceBrowser" GeneratePathProperty="true" ExcludeAssets="build;compile" PrivateAssets="all" />
 
-    <Content Include="$(NuGetPackageRoot)\sourcebrowser\$(SourceBrowserVersion)\tools\HtmlGenerator.exe" Visible="false" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="$(NuGetPackageRoot)\sourcebrowser\$(SourceBrowserVersion)\tools\Microsoft.SourceBrowser.Common.dll" Visible="false" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(PkgSourceBrowser)\tools\HtmlGenerator.exe" Visible="false" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(PkgSourceBrowser)\tools\Microsoft.SourceBrowser.Common.dll" Visible="false" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

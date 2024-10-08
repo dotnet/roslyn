@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -20,9 +18,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsCaseSensitive
             => true;
-
-        protected override int AttributeListKind
-            => (int)SyntaxKind.AttributeList;
 
         public override bool IsValidIdentifier(string name)
             => SyntaxFacts.IsValidIdentifier(name);

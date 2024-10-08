@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return ImmutableArray.CreateRange(
                     arrayBounds.Arguments.
                         SelectMany(AddressOf GetArgumentExpressions).
-                        SelectMany(Function(expr) model.AnalyzeDataFlow(expr).Captured).
+                        SelectMany(Function(expr) model.AnalyzeDataFlow(expr).CapturedInside).
                         Distinct())
         End Function
 

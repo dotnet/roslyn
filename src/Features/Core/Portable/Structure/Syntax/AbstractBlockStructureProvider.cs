@@ -3,48 +3,77 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+/// <summary>
+/// Note: this type is for subclassing by the VB and C# provider only.
+/// It presumes that the language supports Syntax Trees.
+/// </summary>
+internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
 {
-    /// <summary>
-    /// Note: this type is for subclassing by the VB and C# provider only.
-    /// It presumes that the language supports Syntax Trees.
-    /// </summary>
-    internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
+    private static readonly IComparer<BlockSpan> s_blockSpanComparer = Comparer<BlockSpan>.Create(static (x, y) => y.TextSpan.Start.CompareTo(x.TextSpan.Start));
+
+    private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
+    private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
+
+    protected AbstractBlockStructureProvider(
+        ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> defaultNodeOutlinerMap,
+        ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> defaultTriviaOutlinerMap)
     {
-        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
-        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
+        _nodeProviderMap = defaultNodeOutlinerMap;
+        _triviaProviderMap = defaultTriviaOutlinerMap;
+    }
 
-        protected AbstractBlockStructureProvider(
-            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> defaultNodeOutlinerMap,
-            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> defaultTriviaOutlinerMap)
+    public override void ProvideBlockStructure(in BlockStructureContext context)
+    {
+        try
         {
-            _nodeProviderMap = defaultNodeOutlinerMap;
-            _triviaProviderMap = defaultTriviaOutlinerMap;
+            var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
+            var initialContextCount = context.Spans.Count;
+            BlockSpanCollector.CollectBlockSpans(
+                syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, context.Spans, context.CancellationToken);
+
+            // Sort descending, and keep track of the "last added line".
+            // Then, ignore if we found a span on the same line.
+            // The effect for this is if we have something like:
+            //
+            // M1(M2(
+            //     ...
+            //     ...
+            // )
+            //
+            // We only collapse the "inner" span which has larger start.
+            context.Spans.Sort(initialContextCount, s_blockSpanComparer);
+
+            var lastAddedLineStart = -1;
+            var lastAddedLineEnd = -1;
+            var text = context.SyntaxTree.GetText(context.CancellationToken);
+            context.Spans.RemoveWhere((span, index, _) =>
+                {
+                    // do not remove items before the first item that we added
+                    if (index < initialContextCount)
+                        return false;
+
+                    var lineStart = text.Lines.GetLinePosition(span.TextSpan.Start).Line;
+                    var lineEnd = text.Lines.GetLinePosition(span.TextSpan.End).Line;
+                    if (lineStart == lastAddedLineStart && lastAddedLineEnd == lineEnd)
+                        return true;
+
+                    lastAddedLineStart = lineStart;
+                    lastAddedLineEnd = lineEnd;
+
+                    return false;
+                },
+                arg: default(VoidResult));
         }
-
-        public override void ProvideBlockStructure(in BlockStructureContext context)
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
         {
-            try
-            {
-                var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
-                using var spans = TemporaryArray<BlockSpan>.Empty;
-                BlockSpanCollector.CollectBlockSpans(
-                    syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
-
-                context.Spans.EnsureCapacity(context.Spans.Count + spans.Count);
-                foreach (var span in spans)
-                    context.Spans.Add(span);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

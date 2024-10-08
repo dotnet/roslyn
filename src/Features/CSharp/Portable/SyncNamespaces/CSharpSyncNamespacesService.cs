@@ -12,17 +12,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SyncNamespaces;
 
-namespace Microsoft.CodeAnalysis.CSharp.SyncNamespaces
-{
-    [ExportLanguageService(typeof(ISyncNamespacesService), LanguageNames.CSharp), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class CSharpSyncNamespacesService(
-        CSharpMatchFolderAndNamespaceDiagnosticAnalyzer diagnosticAnalyzer,
-        CSharpChangeNamespaceToMatchFolderCodeFixProvider codeFixProvider) : AbstractSyncNamespacesService<SyntaxKind, BaseNamespaceDeclarationSyntax>
-    {
-        public override AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax> DiagnosticAnalyzer { get; } = diagnosticAnalyzer;
+namespace Microsoft.CodeAnalysis.CSharp.SyncNamespaces;
 
-        public override AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; } = codeFixProvider;
-    }
+[ExportLanguageService(typeof(ISyncNamespacesService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSyncNamespacesService(
+    CSharpMatchFolderAndNamespaceDiagnosticAnalyzer diagnosticAnalyzer,
+    CSharpChangeNamespaceToMatchFolderCodeFixProvider codeFixProvider) : AbstractSyncNamespacesService<SyntaxKind, BaseNamespaceDeclarationSyntax>
+{
+    public override AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<SyntaxKind, BaseNamespaceDeclarationSyntax> DiagnosticAnalyzer { get; } = diagnosticAnalyzer;
+
+    public override AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; } = codeFixProvider;
 }

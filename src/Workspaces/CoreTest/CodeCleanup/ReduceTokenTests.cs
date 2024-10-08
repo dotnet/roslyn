@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
     public class ReduceTokenTests
     {
-#if NETCOREAPP
+#if NET
         private static bool IsNetCoreApp => true;
 #else
         private static bool IsNetCoreApp => false;
@@ -2002,13 +2001,12 @@ End Module
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.ReduceTokens or PredefinedCodeCleanupProviderNames.CaseCorrection or PredefinedCodeCleanupProviderNames.Format);
 
-            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], CodeCleanupOptions.GetDefault(document.Project.Services), codeCleanups);
+            var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], await document.GetCodeCleanupOptionsAsync(CancellationToken.None), codeCleanups);
 
             AssertEx.EqualOrDiff(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
         }
@@ -2019,7 +2017,7 @@ End Module
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestMetadata.Net451.mscorlib)
+            return project.AddMetadataReference(NetFramework.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

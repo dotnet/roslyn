@@ -6,56 +6,55 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern
+namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern;
+
+internal static class SimplifyPropertyPatternHelpers
 {
-    internal static class SimplifyPropertyPatternHelpers
+    public static bool IsSimplifiable(
+        SubpatternSyntax subpattern,
+        [NotNullWhen(true)] out SubpatternSyntax? innerSubpattern,
+        [NotNullWhen(true)] out BaseExpressionColonSyntax? outerExpressionColon)
     {
-        public static bool IsSimplifiable(
-            SubpatternSyntax subpattern,
-            [NotNullWhen(true)] out SubpatternSyntax? innerSubpattern,
-            [NotNullWhen(true)] out BaseExpressionColonSyntax? outerExpressionColon)
-        {
-            // can't simplify if parent pattern is not a property pattern 
-            //
-            // can't simplify if we have anything inside other than a property pattern clause.  i.e.
-            // `a: { b: ... } x` is not simplifiable as we'll lose the `x` binding for the `a` property.
-            //
-            // can't simplify `a: { }` or `a: { b: ..., c: ... }`
-            if (subpattern is
-                {
-                    Parent: PropertyPatternClauseSyntax,
-                    ExpressionColon: { } outer,
-                    Pattern: RecursivePatternSyntax
-                    {
-                        Type: null,
-                        PositionalPatternClause: null,
-                        Designation: null,
-                        PropertyPatternClause.Subpatterns: { Count: 1 } subpatterns
-                    }
-                } &&
-                subpatterns[0] is { ExpressionColon: { } inner } &&
-                IsMergable(outer.Expression) &&
-                IsMergable(inner.Expression))
+        // can't simplify if parent pattern is not a property pattern 
+        //
+        // can't simplify if we have anything inside other than a property pattern clause.  i.e.
+        // `a: { b: ... } x` is not simplifiable as we'll lose the `x` binding for the `a` property.
+        //
+        // can't simplify `a: { }` or `a: { b: ..., c: ... }`
+        if (subpattern is
             {
-                innerSubpattern = subpatterns[0];
-                outerExpressionColon = outer;
-                return true;
-            }
-
-            innerSubpattern = null;
-            outerExpressionColon = null;
-            return false;
-        }
-
-        public static bool IsMergable([NotNullWhen(true)] ExpressionSyntax? expression)
+                Parent: PropertyPatternClauseSyntax,
+                ExpressionColon: { } outer,
+                Pattern: RecursivePatternSyntax
+                {
+                    Type: null,
+                    PositionalPatternClause: null,
+                    Designation: null,
+                    PropertyPatternClause.Subpatterns: { Count: 1 } subpatterns
+                }
+            } &&
+            subpatterns[0] is { ExpressionColon: { } inner } &&
+            IsMergable(outer.Expression) &&
+            IsMergable(inner.Expression))
         {
-            if (expression is SimpleNameSyntax)
-                return true;
-
-            if (expression is MemberAccessExpressionSyntax memberAccessExpression && IsMergable(memberAccessExpression.Expression))
-                return true;
-
-            return false;
+            innerSubpattern = subpatterns[0];
+            outerExpressionColon = outer;
+            return true;
         }
+
+        innerSubpattern = null;
+        outerExpressionColon = null;
+        return false;
+    }
+
+    public static bool IsMergable([NotNullWhen(true)] ExpressionSyntax? expression)
+    {
+        if (expression is SimpleNameSyntax)
+            return true;
+
+        if (expression is MemberAccessExpressionSyntax memberAccessExpression && IsMergable(memberAccessExpression.Expression))
+            return true;
+
+        return false;
     }
 }

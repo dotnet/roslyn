@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -11,23 +13,21 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
+        IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId,
+        EnforceOnBuildValues.MakeStructMemberReadOnly,
+        CSharpCodeStyleOptions.PreferReadOnlyStructMember,
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_member_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+        new LocalizableResourceString(nameof(CSharpAnalyzersResources.Member_can_be_made_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    public CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId,
-               EnforceOnBuildValues.MakeStructMemberReadOnly,
-               CSharpCodeStyleOptions.PreferReadOnlyStructMember,
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Make_member_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Member_can_be_made_readonly), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -43,11 +43,16 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 if (!ShouldAnalyze(context, out var option))
                     return;
 
+                var methodToDiagnostic = PooledDictionary<IMethodSymbol, Diagnostic>.GetInstance();
+
                 context.RegisterOperationBlockAction(
-                    context => AnalyzeBlock(context, option.Notification.Severity));
+                    context => AnalyzeBlock(context, option.Notification, methodToDiagnostic));
+
+                context.RegisterSymbolEndAction(
+                    context => ProcessResults(context, option.Notification.Severity, methodToDiagnostic));
             }, SymbolKind.NamedType);
 
-            static bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
+            bool ShouldAnalyze(SymbolStartAnalysisContext context, [NotNullWhen(true)] out CodeStyleOption2<bool>? option)
             {
                 // Only run on non-readonly structs.  If the struct is already readonly, no need to make the members readonly.
                 if (context.Symbol is not INamedTypeSymbol
@@ -65,7 +70,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 var declaration = reference.GetSyntax(cancellationToken);
                 var options = context.GetCSharpAnalyzerOptions(declaration.SyntaxTree);
                 option = options.PreferReadOnlyStructMember;
-                if (!option.Value)
+                if (!option.Value || ShouldSkipAnalysis(declaration.SyntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
                     return false;
 
                 // Skip analysis if the analysis filter span does not contain the primary location where we would report a diagnostic.
@@ -92,11 +97,42 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
 
                 return true;
             }
+
+            void ProcessResults(
+                SymbolAnalysisContext context, ReportDiagnostic severity, PooledDictionary<IMethodSymbol, Diagnostic> methodToDiagnostic)
+            {
+                var cancellationToken = context.CancellationToken;
+
+                // No need to lock the dictionary here.  Processing only is called once, after all mutation work is done.
+                foreach (var (method, diagnostic) in methodToDiagnostic)
+                {
+                    if (method.IsInitOnly && method.AssociatedSymbol is IPropertySymbol owningProperty)
+                    {
+                        // Iff we have an init method that we want to mark as readonly, we can only do so if there is no
+                        // `get` accessor, or if the `get` method is already `readonly` or would determined we want to
+                        // mark as `readonly`.
+                        var getMethodIsReadOnly =
+                            owningProperty.GetMethod is null ||
+                            owningProperty.GetMethod.IsReadOnly ||
+                            methodToDiagnostic.ContainsKey(owningProperty.GetMethod);
+
+                        // Skip marking this property as readonly for this init method if it would conflict with the get method.
+                        if (!getMethodIsReadOnly)
+                            continue;
+                    }
+
+                    // normal case
+                    context.ReportDiagnostic(diagnostic);
+                }
+
+                methodToDiagnostic.Free();
+            }
         });
 
     private void AnalyzeBlock(
         OperationBlockAnalysisContext context,
-        ReportDiagnostic severity)
+        NotificationOption2 notificationOption,
+        Dictionary<IMethodSymbol, Diagnostic> methodToDiagnostic)
     {
         var cancellationToken = context.CancellationToken;
 
@@ -119,12 +155,17 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 return;
         }
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            location,
-            severity,
-            additionalLocations: ImmutableArray.Create(additionalLocation),
-            properties: null));
+        // Called concurrently.  Make sure we write to this dictionary safely.
+        lock (methodToDiagnostic)
+        {
+            methodToDiagnostic[owningMethod] = DiagnosticHelper.Create(
+                Descriptor,
+                location,
+                notificationOption,
+                context.Options,
+                additionalLocations: ImmutableArray.Create(additionalLocation),
+                properties: null);
+        }
     }
 
     private static (Location? location, Location? additionalLocation) GetDiagnosticLocation(
@@ -137,7 +178,17 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             || owningMethod.IsStatic
             || owningMethod.IsImplicitlyDeclared)
         {
-            return (null, null);
+            return default;
+        }
+
+        // An init accessor in a readonly property is already readonly.  No need to analyze it.  Note: there is no way
+        // to tell this symbolically.  We have to check to the syntax here.
+        if (owningMethod.IsInitOnly &&
+            owningMethod.AssociatedSymbol is IPropertySymbol { DeclaringSyntaxReferences: [var reference, ..] } &&
+            reference.GetSyntax(cancellationToken) is PropertyDeclarationSyntax property &&
+            property.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+        {
+            return default;
         }
 
         var methodReference = owningMethod.DeclaringSyntaxReferences[0];
@@ -157,7 +208,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             declaration = declaration.GetRequiredParent();
 
         if (nameToken is null)
-            return (null, null);
+            return default;
 
         return (nameToken.Value.GetLocation(), declaration.GetLocation());
     }
@@ -175,14 +226,30 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
             if (operation is IInvalidOperation)
                 return true;
 
-            if (operation is IInstanceReferenceOperation instanceOperation &&
-                InstanceReferencePotentiallyMutatesThis(semanticModel, owningMethod, instanceOperation, cancellationToken))
+            if (ReferencesThisInstance(operation, cancellationToken) &&
+                OperationPotentiallyMutatesThis(semanticModel, owningMethod, operation, cancellationToken))
             {
                 return true;
             }
         }
 
         return false;
+
+        static bool ReferencesThisInstance(IOperation operation, CancellationToken cancellationToken)
+        {
+            // An actual usage of `this` or `base` in the code.
+            if (operation is IInstanceReferenceOperation)
+                return true;
+
+            // A primary constructor parameter implicitly references 'this' instance.
+            if (operation is IParameterReferenceOperation { Parameter: var parameter } &&
+                parameter.IsPrimaryConstructor(cancellationToken))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     private static bool IsPotentiallyValueType(IOperation? instance)
@@ -193,10 +260,10 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                instance is { Type: ITypeParameterSymbol { HasReferenceTypeConstraint: false } };
     }
 
-    private static bool InstanceReferencePotentiallyMutatesThis(
+    private static bool OperationPotentiallyMutatesThis(
         SemanticModel semanticModel,
         IMethodSymbol owningMethod,
-        IInstanceReferenceOperation instanceOperation,
+        IOperation instanceOperation,
         CancellationToken cancellationToken)
     {
         // if we have an explicit 'this' in code, and we're overwriting it directly (e.g. `ref this` or `this = ...`
@@ -206,6 +273,12 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
         {
             return true;
         }
+
+        // We only care if operation is a value type when looking at if it is somehow mutated with the operations that
+        // are performed on it.  In other words.  `valueType.X = 0` is not allowed while `referenceType.X = 0` is fine
+        // (since the former actually mutates storage in 'this' which would prevent this method from becoming readonly.
+        if (!IsPotentiallyValueType(instanceOperation))
+            return false;
 
         // Now walk up the instance-operation and see if any operation actually or potentially mutates this value.
         for (var operation = instanceOperation.Parent; operation != null; operation = operation.Parent)
@@ -257,6 +330,17 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 return false;
             }
 
+            if (operation is IInlineArrayAccessOperation)
+            {
+                // If we're writing into an inline-array off of 'this'.  Then we can't make this `readonly`.
+                if (CSharpSemanticFacts.Instance.IsWrittenTo(semanticModel, operation.Syntax, cancellationToken))
+                    return true;
+
+                // We're reading a value from inside the inline-array.  Have to keep looking upwards to see how the
+                // value is treated.
+                continue;
+            }
+
             // See if we're accessing or invoking a method.
             if (operation is IMethodReferenceOperation methodRefOperation)
             {
@@ -270,6 +354,15 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer : Abstrac
                 // Either a mutating or not mutating method reference.  Regardless, once we examine it, we're done
                 // looking up as the method itself cannot return anything that could mutate this.
                 return IsPotentiallyMutatingMethod(owningMethod, invocationOperation.Instance, invocationOperation.TargetMethod);
+            }
+
+            // Converting an inline-array into a Span<T> allows the array to be written into.  As such, we have to
+            // consider this a potential future mutation of 'this'.
+            if (operation is IConversionOperation conversionOperation)
+            {
+                var conversion = conversionOperation.GetConversion();
+                if (conversion.IsInlineArray && conversionOperation.Type.IsSpan())
+                    return true;
             }
 
             // Wasn't something that mutates this instance.  Go onto the next instance expression.

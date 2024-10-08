@@ -2,16 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -40,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 """));
             var portableExecutableReference = MetadataReference.CreateFromFile(roslynCompilersLocation, documentation: documentationProvider);
 
-            var compilation = CSharpCompilation.Create(nameof(XmlDocumentationProviderReturnsEntireMemberNode), references: new[] { portableExecutableReference });
+            var compilation = CSharpCompilation.Create(nameof(XmlDocumentationProviderReturnsEntireMemberNode), references: [portableExecutableReference]);
 
             // Verify we can parse it and it contains a single node
             var xml = compilation.GetTypeByMetadataName("Microsoft.CodeAnalysis.AdditionalTextFile")!.GetDocumentationCommentXml();

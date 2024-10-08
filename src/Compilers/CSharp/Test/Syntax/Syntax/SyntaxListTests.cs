@@ -40,14 +40,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<NotSupportedException>(() => default(SyntaxList<CSharpSyntaxNode>.Enumerator).Equals(default(SyntaxList<CSharpSyntaxNode>.Enumerator)));
         }
 
-        [Fact]
-        public void TestAddInsertRemoveReplace()
+        [Theory, CombinatorialData]
+        public void TestAddInsertRemoveReplace(bool collectionExpression)
         {
-            var list = SyntaxFactory.List<SyntaxNode>(
-                new[] {
+            var list = collectionExpression
+                ? [
                     SyntaxFactory.ParseExpression("A "),
                     SyntaxFactory.ParseExpression("B "),
-                    SyntaxFactory.ParseExpression("C ") });
+                    SyntaxFactory.ParseExpression("C ")]
+                : SyntaxFactory.List<SyntaxNode>(
+                    new[] {
+                        SyntaxFactory.ParseExpression("A "),
+                        SyntaxFactory.ParseExpression("B "),
+                        SyntaxFactory.ParseExpression("C ") });
 
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
@@ -180,6 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAddInsertRemoveReplaceOnEmptyList()
         {
             DoTestAddInsertRemoveReplaceOnEmptyList(SyntaxFactory.List<SyntaxNode>());
+            DoTestAddInsertRemoveReplaceOnEmptyList([]);
             DoTestAddInsertRemoveReplaceOnEmptyList(default(SyntaxList<SyntaxNode>));
         }
 
@@ -231,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             newMethodDeclaration.AddAttributeLists(attributes);
         }
 
-        [Fact]
-        public void AddNamespaceAttributeListsAndModifiers()
+        [Theory, CombinatorialData]
+        public void AddNamespaceAttributeListsAndModifiers(bool collectionExpression)
         {
             var declaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("M"));
 
@@ -241,8 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             declaration = declaration.AddAttributeLists(new[]
             {
-                SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
+                SyntaxFactory.AttributeList(collectionExpression
+                    ? [SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr"))]
+                    : SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Attribute(SyntaxFactory.ParseName("Attr")))),
             });
 
             Assert.True(declaration.AttributeLists.Count == 1);

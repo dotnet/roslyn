@@ -6,12 +6,11 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
+
+internal sealed class JsonTree(
+    VirtualCharSequence text,
+    JsonCompilationUnit root,
+    ImmutableArray<EmbeddedDiagnostic> diagnostics) : EmbeddedSyntaxTree<JsonKind, JsonNode, JsonCompilationUnit>(text, root, diagnostics)
 {
-    internal sealed class JsonTree(
-        VirtualCharSequence text,
-        JsonCompilationUnit root,
-        ImmutableArray<EmbeddedDiagnostic> diagnostics) : EmbeddedSyntaxTree<JsonKind, JsonNode, JsonCompilationUnit>(text, root, diagnostics)
-    {
-    }
 }

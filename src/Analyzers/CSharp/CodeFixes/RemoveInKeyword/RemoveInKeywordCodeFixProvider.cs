@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -17,57 +16,52 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveInKeyword
+namespace Microsoft.CodeAnalysis.CSharp.RemoveInKeyword;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveIn), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class RemoveInKeywordCodeFixProvider() : CodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveIn), Shared]
-    internal class RemoveInKeywordCodeFixProvider : CodeFixProvider
+    private const string CS1615 = nameof(CS1615); // Argument 1 may not be passed with the 'in' keyword
+
+    public override FixAllProvider GetFixAllProvider()
+        => WellKnownFixAllProviders.BatchFixer;
+
+    public override ImmutableArray<string> FixableDiagnosticIds => [CS1615];
+
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        private const string CS1615 = nameof(CS1615); // Argument 1 may not be passed with the 'in' keyword
+        var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RemoveInKeywordCodeFixProvider()
-        {
-        }
+        var diagnostic = context.Diagnostics.First();
+        var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        public override FixAllProvider GetFixAllProvider()
-            => WellKnownFixAllProviders.BatchFixer;
+        var token = root.FindToken(diagnosticSpan.Start);
 
-        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(CS1615);
+        var argumentSyntax = token.GetAncestor<ArgumentSyntax>();
+        if (argumentSyntax == null || argumentSyntax.GetRefKind() != RefKind.In)
+            return;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                CSharpCodeFixesResources.Remove_in_keyword,
+                cancellationToken => FixAsync(context.Document, argumentSyntax, cancellationToken),
+                nameof(CSharpCodeFixesResources.Remove_in_keyword)),
+            context.Diagnostics);
+    }
 
-            var diagnostic = context.Diagnostics.First();
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
+    private static async Task<Document> FixAsync(
+        Document document,
+        ArgumentSyntax argumentSyntax,
+        CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var token = root.FindToken(diagnosticSpan.Start);
-
-            var argumentSyntax = token.GetAncestor<ArgumentSyntax>();
-            if (argumentSyntax == null || argumentSyntax.GetRefKind() != RefKind.In)
-                return;
-
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    CSharpCodeFixesResources.Remove_in_keyword,
-                    cancellationToken => FixAsync(context.Document, argumentSyntax, cancellationToken),
-                    nameof(CSharpCodeFixesResources.Remove_in_keyword)),
-                context.Diagnostics);
-        }
-
-        private static async Task<Document> FixAsync(
-            Document document,
-            ArgumentSyntax argumentSyntax,
-            CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-            return document.WithSyntaxRoot(root.ReplaceNode(
-                argumentSyntax,
-                generator.Argument(syntaxFacts.GetExpressionOfArgument(argumentSyntax))));
-        }
+        return document.WithSyntaxRoot(root.ReplaceNode(
+            argumentSyntax,
+            generator.Argument(syntaxFacts.GetExpressionOfArgument(argumentSyntax))));
     }
 }

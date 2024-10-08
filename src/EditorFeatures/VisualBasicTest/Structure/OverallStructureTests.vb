@@ -34,8 +34,8 @@ End Class|}
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span1", "Class C ...", autoCollapse:=False),
-                Region("span2", "Something", autoCollapse:=False, isDefaultCollapsed:=True))
+                Region("span2", "Something", autoCollapse:=False, isDefaultCollapsed:=True),
+                Region("span1", "Class C ...", autoCollapse:=False))
         End Function
     End Class
 End Namespace

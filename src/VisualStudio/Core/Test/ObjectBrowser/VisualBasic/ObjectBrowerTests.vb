@@ -142,8 +142,7 @@ End Namespace
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers1()
             Dim code =
 <Code>
@@ -197,8 +196,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers2()
             Dim code =
 <Code>
@@ -253,8 +251,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_InheritedMembers3()
             Dim code =
 <Code>
@@ -309,8 +306,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/932387")>
         Public Sub TestContent_HelpKeyword_Ctor()
             Dim code =
 <Code>
@@ -887,8 +883,7 @@ $"    {String.Format(ServicesVSResources.Member_of_0, "N.C")}")
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939739")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/939739")>
         Public Sub TestDescription_SubInInterface()
             Dim code =
 <Code>
@@ -2286,8 +2281,7 @@ ServicesVSResources.Value_colon & vbCrLf &
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         Public Sub TestNavInfo_Class()
             Dim code =
 <Code>
@@ -2310,8 +2304,7 @@ End Namespace
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942021")>
         Public Sub TestNavInfo_NestedEnum()
             Dim code =
 <Code>

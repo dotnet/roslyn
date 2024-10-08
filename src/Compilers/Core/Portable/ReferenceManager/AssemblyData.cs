@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// The sequence of AssemblySymbols the Binder can choose from.
             /// </summary>
-            public abstract IEnumerable<TAssemblySymbol> AvailableSymbols { get; }
+            public abstract ImmutableArray<TAssemblySymbol> AvailableSymbols { get; }
 
             /// <summary>
             /// Check if provided AssemblySymbol is created for assembly described by this instance. 
@@ -48,13 +49,13 @@ namespace Microsoft.CodeAnalysis
             /// In other words, match assembly identities returned by AssemblyReferences property against 
             /// assemblies described by provided AssemblyData objects.
             /// </summary>
-            /// <param name="assemblies">An array of AssemblyData objects to match against.</param>
+            /// <param name="assemblies">AssemblyData objects to match against.</param>
             /// <param name="assemblyIdentityComparer">Used to compare assembly identities.</param>
             /// <returns>
             /// For each assembly referenced by this assembly (<see cref="AssemblyReferences"/>) 
             /// a description of how it binds to one of the input assemblies.
             /// </returns>
-            public abstract AssemblyReferenceBinding[] BindAssemblyReferences(ImmutableArray<AssemblyData> assemblies, AssemblyIdentityComparer assemblyIdentityComparer);
+            public abstract AssemblyReferenceBinding[] BindAssemblyReferences(MultiDictionary<string, (AssemblyData DefinitionData, int DefinitionIndex)> assemblies, AssemblyIdentityComparer assemblyIdentityComparer);
 
             public abstract bool ContainsNoPiaLocalTypes { get; }
 
@@ -69,6 +70,17 @@ namespace Microsoft.CodeAnalysis
             public abstract Compilation? SourceCompilation { get; }
 
             private string GetDebuggerDisplay() => $"{GetType().Name}: [{Identity.GetDisplayName()}]";
+#if DEBUG
+            public sealed override bool Equals(object? obj)
+            {
+                return base.Equals(obj);
+            }
+
+            public sealed override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+#endif
         }
     }
 }

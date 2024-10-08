@@ -1087,6 +1087,147 @@ namespace ConsoleApplication22
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestCSharp_PropertyDefinedInSourceGeneratedDocument1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+namespace ConsoleApplication22
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int temp = C.[|Goo|];
+        }
+    }
+}
+        </Document>
+        <DocumentFromSourceGenerator>
+
+using System;
+namespace ConsoleApplication22
+{
+    class C
+    {
+        static public int {|Definition:G$$oo|}
+        {
+            get
+            {
+                return 1;
+            }
+        } 
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestCSharp_PropertyDefinedInSourceGeneratedDocument2(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+namespace ConsoleApplication22
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int temp = C.[|Goo|];
+        }
+    }
+}
+        </Document>
+        <DocumentFromSourceGenerator>
+
+using System;
+namespace ConsoleApplication22
+{
+    class C
+    {
+        static public int {|Definition:G$$oo|}
+        {
+            get
+            {
+                return 1;
+            }
+        }
+
+        void M()
+        {
+            int temp = C.[|Goo|];
+        }
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestCSharp_PropertyDefinedInSourceGeneratedDocument3(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+namespace ConsoleApplication22
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int temp = C.[|Goo|];
+        }
+    }
+}
+        </Document>
+        <DocumentFromSourceGenerator>
+
+using System;
+namespace ConsoleApplication22
+{
+    class C
+    {
+        static public int {|Definition:G$$oo|}
+        {
+            get
+            {
+                return 1;
+            }
+        }
+
+        void M()
+        {
+            int temp = C.[|Goo|];
+        }
+    }
+}
+        </DocumentFromSourceGenerator>
+        <DocumentFromSourceGenerator>
+
+using System;
+namespace ConsoleApplication22
+{
+    class D
+    {
+        void M()
+        {
+            int temp = C.[|Goo|];
+        }
+    }
+}
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCSharp_AbstractStaticPropertyInInterface(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -1412,6 +1553,33 @@ class P
     }
 }
 
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538886")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestCSharp_PartialProperty1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+namespace ConsoleApplication22
+{
+    class Program
+    {
+        public static partial int {|Definition:Prop|} { get; }
+        public static partial int {|Definition:P$$rop|} => 1;
+
+        static void Main(string[] args)
+        {
+            int temp = Program.[|Prop|];
+        }
+    }
+}
         </Document>
     </Project>
 </Workspace>

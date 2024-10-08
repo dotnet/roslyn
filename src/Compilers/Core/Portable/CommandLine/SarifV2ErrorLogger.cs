@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -85,8 +87,8 @@ namespace Microsoft.CodeAnalysis
                 if (diagnostic.ProgrammaticSuppressionInfo is { } programmaticSuppressionInfo)
                 {
                     var suppressionsStr = programmaticSuppressionInfo.Suppressions
-                        .OrderBy(idAndJustification => idAndJustification.Id)
-                        .Select(idAndJustification => $"Suppression Id: {idAndJustification.Id}, Suppression Justification: {idAndJustification.Justification}")
+                        .OrderBy(suppression => suppression.Descriptor.Id)
+                        .Select(suppression => $"Suppression Id: {suppression.Descriptor.Id}, Suppression Justification: {suppression.Descriptor.Justification}")
                         .Join(", ");
                     suppressionType = $"DiagnosticSuppressor {{ {suppressionsStr} }}";
                 }
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(HasPath(diagnosticLocation));
 
-            FileLinePositionSpan span = diagnosticLocation.GetLineSpan();
+            FileLinePositionSpan span = diagnosticLocation.GetMappedLineSpan();
 
             _writer.WriteObjectStart(); // physicalLocation
 
@@ -217,20 +219,24 @@ namespace Microsoft.CodeAnalysis
             // Emit the 'language' property only if it is a non-empty string to match the SARIF spec.
             if (_culture.Name.Length > 0)
                 _writer.Write("language", _culture.Name);
-            WriteRules();
+            var effectiveSeverities = WriteRules();
 
             _writer.WriteObjectEnd(); // driver
             _writer.WriteObjectEnd(); // tool
+
+            WriteInvocations(effectiveSeverities);
         }
 
-        private void WriteRules()
+        private ImmutableArray<(string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> WriteRules()
         {
+            var effectiveSeveritiesBuilder = ArrayBuilder<(string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)>.GetInstance(_descriptors.Count);
+
             if (_descriptors.Count > 0)
             {
                 _writer.WriteArrayStart("rules");
 
                 var reportAnalyzerExecutionTime = !string.IsNullOrEmpty(_totalAnalyzerExecutionTime);
-                foreach (var (_, descriptor, descriptorInfo) in _descriptors.ToSortedList())
+                foreach (var (index, descriptor, descriptorInfo) in _descriptors.ToSortedList())
                 {
                     _writer.WriteObjectStart(); // rule
                     _writer.Write("id", descriptor.Id);
@@ -323,10 +329,95 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     _writer.WriteObjectEnd(); // rule
+
+                    var defaultSeverity = descriptor.IsEnabledByDefault ? DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity) : ReportDiagnostic.Suppress;
+                    var hasNonDefaultEffectiveSeverities = descriptorInfo.EffectiveSeverities != null &&
+                        (descriptorInfo.EffectiveSeverities.Count != 1 || descriptorInfo.EffectiveSeverities.Single() != defaultSeverity);
+                    if (hasNonDefaultEffectiveSeverities)
+                    {
+                        effectiveSeveritiesBuilder.Add((descriptor.Id, index, descriptorInfo.EffectiveSeverities!));
+                    }
                 }
 
                 _writer.WriteArrayEnd(); // rules
             }
+
+            return effectiveSeveritiesBuilder.ToImmutableAndFree();
+        }
+
+        private void WriteInvocations(ImmutableArray<(string DescriptorId, int DescriptorIndex, ImmutableHashSet<ReportDiagnostic> EffectiveSeverities)> effectiveSeverities)
+        {
+            if (effectiveSeverities.IsEmpty)
+                return;
+
+            // Emit effective severities for each overridden rule severity.
+            /*
+                "invocations": [                          # See §3.14.11.
+                  {                                       # An invocation object (§3.20).
+                    "executionSuccessful" : true,         # See $3.20.14. A boolean value.
+                    "ruleConfigurationOverrides": [       # See §3.20.5.
+                      {                                   # A configurationOverride object
+                                                          #  (§3.51).
+                        "descriptor": {                   # See §3.51.2.
+                          "id": "CA1000",
+                          "index": 0
+                        },
+                        "configuration": {                # See §3.51.3.
+                          "level": "warning"
+                        }
+                      }
+                    ],
+                  ...
+                  }
+                ]
+             */
+
+            _writer.WriteArrayStart("invocations");
+            _writer.WriteObjectStart(); // invocation
+
+            // Boolean property that is true if the engineering system that started the process knows that the analysis tool succeeded,
+            // and false if the engineering system knows that the tool failed.
+            // https://github.com/dotnet/roslyn/issues/70069 tracks detecting when the compiler exits with an exception and emit "false".
+            _writer.Write("executionSuccessful", true);
+
+            _writer.WriteArrayStart("ruleConfigurationOverrides");
+
+            foreach (var (id, index, severities) in effectiveSeverities)
+            {
+                Debug.Assert(!severities.IsEmpty);
+
+                foreach (var severity in severities.OrderBy(Comparer<ReportDiagnostic>.Default))
+                {
+                    _writer.WriteObjectStart(); // ruleConfigurationOverride
+
+                    _writer.WriteObjectStart("descriptor");
+                    _writer.Write("id", id);
+                    _writer.Write("index", index);
+                    _writer.WriteObjectEnd(); // descriptor
+
+                    // Emit 'configuration' property bag with "enabled: false" for disabled diagnostics and
+                    // "level: severity" for enabled diagnostics with overridden severity. 
+                    _writer.WriteObjectStart("configuration");
+                    var reportDiagnostic = DiagnosticDescriptor.MapReportToSeverity(severity);
+                    if (!reportDiagnostic.HasValue)
+                    {
+                        _writer.Write("enabled", false);
+                    }
+                    else
+                    {
+                        var level = GetLevel(reportDiagnostic.Value);
+                        _writer.Write("level", level);
+                    }
+                    _writer.WriteObjectEnd(); // configuration
+
+                    _writer.WriteObjectEnd(); // ruleConfigurationOverride
+                }
+            }
+
+            _writer.WriteArrayEnd(); // ruleConfigurationOverrides
+
+            _writer.WriteObjectEnd(); // invocation
+            _writer.WriteArrayEnd(); // invocations
         }
 
         private void WriteDefaultConfiguration(DiagnosticDescriptor descriptor)

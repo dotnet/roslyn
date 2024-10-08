@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -15,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// When used for a synthesized method the ordinal and generation numbers are included its name.
     /// For user defined methods the ordinal is included in Custom Debug Information record attached to the method.
     /// </remarks>
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal struct DebugId : IEquatable<DebugId>
+    internal readonly record struct DebugId : IComparable<DebugId>
     {
         public const int UndefinedOrdinal = -1;
 
@@ -39,25 +39,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.Generation = generation;
         }
 
-        public bool Equals(DebugId other)
-        {
-            return this.Ordinal == other.Ordinal
-                && this.Generation == other.Generation;
-        }
+        public int CompareTo(DebugId other)
+            => Ordinal.CompareTo(other.Ordinal) is int result and not 0 ? result : Generation.CompareTo(other.Generation);
 
-        public override bool Equals(object? obj)
-        {
-            return obj is DebugId && Equals((DebugId)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(this.Ordinal, this.Generation);
-        }
-
-        internal string GetDebuggerDisplay()
-        {
-            return (Generation > 0) ? $"{Ordinal}#{Generation}" : Ordinal.ToString();
-        }
+        public override string ToString()
+            => (Generation > 0) ? $"{Ordinal}{CommonGeneratedNames.GenerationSeparator}{Generation}" : Ordinal.ToString();
     }
 }

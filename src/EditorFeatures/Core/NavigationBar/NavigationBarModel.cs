@@ -6,20 +6,19 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
+namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
+
+internal sealed class NavigationBarModel(INavigationBarItemService itemService, ImmutableArray<NavigationBarItem> types) : IEquatable<NavigationBarModel>
 {
-    internal sealed class NavigationBarModel(INavigationBarItemService itemService, ImmutableArray<NavigationBarItem> types) : IEquatable<NavigationBarModel>
-    {
-        public INavigationBarItemService ItemService { get; } = itemService;
-        public ImmutableArray<NavigationBarItem> Types { get; } = types;
+    public INavigationBarItemService ItemService { get; } = itemService;
+    public ImmutableArray<NavigationBarItem> Types { get; } = types;
 
-        public override bool Equals(object? obj)
-            => Equals(obj as NavigationBarModel);
+    public override bool Equals(object? obj)
+        => Equals(obj as NavigationBarModel);
 
-        public bool Equals(NavigationBarModel? other)
-            => other != null && Types.SequenceEqual(other.Types);
+    public bool Equals(NavigationBarModel? other)
+        => other != null && Types.SequenceEqual(other.Types);
 
-        public override int GetHashCode()
-            => throw new NotImplementedException();
-    }
+    public override int GetHashCode()
+        => throw new NotImplementedException();
 }

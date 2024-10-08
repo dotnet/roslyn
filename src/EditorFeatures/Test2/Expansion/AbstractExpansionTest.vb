@@ -5,10 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -19,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
     Public MustInherit Class AbstractExpansionTest
 
         Protected Shared Async Function TestAsync(definition As XElement, expected As XElement, Optional useLastProject As Boolean = False, Optional expandParameter As Boolean = False) As System.Threading.Tasks.Task
-            Using workspace = TestWorkspace.Create(definition)
+            Using workspace = EditorTestWorkspace.Create(definition)
                 Dim hostDocument = If(Not useLastProject, workspace.Documents.Single(), workspace.Documents.Last())
 
                 If hostDocument.AnnotatedSpans.Count <> 1 Then
@@ -30,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Dim root = Await document.GetSyntaxRootAsync()
 
-                Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services)
+                Dim cleanupOptions = Await document.GetCodeCleanupOptionsAsync(CancellationToken.None)
 
                 Dim spans As ImmutableArray(Of TextSpan) = Nothing
                 If hostDocument.AnnotatedSpans.TryGetValue("Expand", spans) Then

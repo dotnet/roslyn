@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 
+using static CSharpSyntaxTokens;
 using static InitializeParameterHelpers;
 using static InitializeParameterHelpersCore;
 using static SyntaxFactory;
@@ -30,7 +30,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         TypeDeclarationSyntax typeDeclaration,
         ImmutableArray<IParameterSymbol> parameters,
         ImmutableArray<ISymbol> fieldsOrProperties,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(parameters.Length >= 1);
@@ -66,7 +65,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                 currentTypeDeclaration,
                 currentParameter,
                 fieldOrProperty,
-                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -81,7 +79,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             TypeDeclarationSyntax typeDeclaration,
             IParameterSymbol parameter,
             ISymbol fieldOrProperty,
-            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var project = document.Project;
@@ -92,7 +89,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             var parseOptions = document.DocumentState.ParseOptions!;
 
             var solutionEditor = new SolutionEditor(solution);
-            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             // We're assigning the parameter to a new field/prop .  Convert all existing references to this primary
@@ -175,10 +172,16 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             .ToImmutableHashSet();
 
         var references = await SymbolFinder.FindReferencesAsync(parameter, solution, documents, cancellationToken).ConfigureAwait(false);
-        foreach (var group in references.SelectMany(r => r.Locations.Where(loc => !loc.IsImplicit).GroupBy(loc => loc.Document)))
+        var groups = references.SelectMany(static r => r.Locations.Where(loc => !loc.IsImplicit)).GroupBy(static loc => loc.Document);
+
+        foreach (var group in groups)
         {
             var editor = await solutionEditor.GetDocumentEditorAsync(group.Key.Id, cancellationToken).ConfigureAwait(false);
-            foreach (var location in group)
+
+            // We may hit a location multiple times due to how we do FAR for linked symbols, but each linked symbol is
+            // allowed to report the entire set of references it think it is compatible with.  So ensure we're hitting
+            // each location only once.
+            foreach (var location in group.Distinct(LinkedFileReferenceLocationEqualityComparer.Instance))
             {
                 var node = location.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);
                 if (node is IdentifierNameSyntax { Parent: not NameColonSyntax } identifierName &&
@@ -229,7 +232,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                     editor.ReplaceNode(
                         propertyDeclaration,
                         newPropertyDeclaration.WithoutTrailingTrivia()
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
+                            .WithSemicolonToken(SemicolonToken.WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
                             .WithInitializer(initializer));
                     break;
                 }

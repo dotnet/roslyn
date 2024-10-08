@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration_Interactive()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -69,8 +74,10 @@ $$");
         public async Task TestAfterStackAlloc()
         {
             await VerifyKeywordAsync(
-@"class C {
-     int* goo = stackalloc $$");
+                """
+                class C {
+                     int* goo = stackalloc $$
+                """);
         }
 
         [Fact]
@@ -105,24 +112,30 @@ $$");
         public async Task TestAfterConstInMemberContext()
         {
             await VerifyKeywordAsync(
-@"class C {
-    const $$");
+                """
+                class C {
+                    const $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRefInMemberContext()
         {
             await VerifyKeywordAsync(
-@"class C {
-    ref $$");
+                """
+                class C {
+                    ref $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRefReadonlyInMemberContext()
         {
             await VerifyKeywordAsync(
-@"class C {
-    ref readonly $$");
+                """
+                class C {
+                    ref readonly $$
+                """);
         }
 
         [Fact]
@@ -262,60 +275,74 @@ $$");
         public async Task TestAfterMethod()
         {
             await VerifyKeywordAsync(
-@"class C {
-  void Goo() {}
-  $$");
+                """
+                class C {
+                  void Goo() {}
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterField()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i;
-  $$");
+                """
+                class C {
+                  int i;
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterProperty()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i { get; }
-  $$");
+                """
+                class C {
+                  int i { get; }
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-  [goo]
-  $$");
+                """
+                class C {
+                  [goo]
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideStruct()
         {
             await VerifyKeywordAsync(
-@"struct S {
-   $$");
+                """
+                struct S {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideInterface()
         {
             await VerifyKeywordAsync(
-@"interface I {
-   $$");
+                """
+                interface I {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-   $$");
+                """
+                class C {
+                   $$
+                """);
         }
 
         [Fact]
@@ -326,88 +353,110 @@ $$");
         public async Task TestNotAfterNestedPartial()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    partial $$");
+                """
+                class C {
+                    partial $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedAbstract()
         {
             await VerifyKeywordAsync(
-@"class C {
-    abstract $$");
+                """
+                class C {
+                    abstract $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedInternal()
         {
             await VerifyKeywordAsync(
-@"class C {
-    internal $$");
+                """
+                class C {
+                    internal $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedStaticPublic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    static public $$");
+                """
+                class C {
+                    static public $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedPublicStatic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public static $$");
+                """
+                class C {
+                    public static $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterVirtualPublic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    virtual public $$");
+                """
+                class C {
+                    virtual public $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedPublic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public $$");
+                """
+                class C {
+                    public $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedPrivate()
         {
             await VerifyKeywordAsync(
-@"class C {
-   private $$");
+                """
+                class C {
+                   private $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedProtected()
         {
             await VerifyKeywordAsync(
-@"class C {
-    protected $$");
+                """
+                class C {
+                    protected $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedSealed()
         {
             await VerifyKeywordAsync(
-@"class C {
-    sealed $$");
+                """
+                class C {
+                    sealed $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedStatic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    static $$");
+                """
+                class C {
+                    static $$
+                """);
         }
 
         [Fact]
@@ -449,56 +498,70 @@ $$");
         public async Task TestInJoinVariableDeclaration()
         {
             await VerifyKeywordAsync(AddInsideMethod(
-@"var q = from a in b 
-          join $$"));
+                """
+                var q = from a in b 
+                          join $$
+                """));
         }
 
         [Fact]
         public async Task TestAfterMethodOpenParen()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo($$");
+                """
+                class C {
+                    void Goo($$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethodComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo(int i, $$");
+                """
+                class C {
+                    void Goo(int i, $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethodAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-    void Goo(int i, [Goo]$$");
+                """
+                class C {
+                    void Goo(int i, [Goo]$$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorOpenParen()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C($$");
+                """
+                class C {
+                    public C($$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C(int i, $$");
+                """
+                class C {
+                    public C(int i, $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterConstructorAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public C(int i, [Goo]$$");
+                """
+                class C {
+                    public C(int i, [Goo]$$
+                """);
         }
 
         [Fact]
@@ -526,82 +589,102 @@ $$");
         public async Task TestAfterThis()
         {
             await VerifyKeywordAsync(
-@"static class C {
-     public static void Goo(this $$");
+                """
+                static class C {
+                     public static void Goo(this $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRef()
         {
             await VerifyKeywordAsync(
-@"class C {
-     void Goo(ref $$");
+                """
+                class C {
+                     void Goo(ref $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterOut()
         {
             await VerifyKeywordAsync(
-@"class C {
-     void Goo(out $$");
+                """
+                class C {
+                     void Goo(out $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterLambdaRef()
         {
             await VerifyKeywordAsync(
-@"class C {
-     void Goo() {
-          System.Func<int, int> f = (ref $$");
+                """
+                class C {
+                     void Goo() {
+                          System.Func<int, int> f = (ref $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterLambdaOut()
         {
             await VerifyKeywordAsync(
-@"class C {
-     void Goo() {
-          System.Func<int, int> f = (out $$");
+                """
+                class C {
+                     void Goo() {
+                          System.Func<int, int> f = (out $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterParams()
         {
             await VerifyKeywordAsync(
-@"class C {
-     void Goo(params $$");
+                """
+                class C {
+                     void Goo(params $$
+                """);
         }
 
         [Fact]
         public async Task TestInImplicitOperator()
         {
             await VerifyKeywordAsync(
-@"class C {
-     public static implicit operator $$");
+                """
+                class C {
+                     public static implicit operator $$
+                """);
         }
 
         [Fact]
         public async Task TestInExplicitOperator()
         {
             await VerifyKeywordAsync(
-@"class C {
-     public static explicit operator $$");
+                """
+                class C {
+                     public static explicit operator $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterIndexerBracket()
         {
             await VerifyKeywordAsync(
-@"class C {
-    int this[$$");
+                """
+                class C {
+                    int this[$$
+                """);
         }
 
         [Fact]
         public async Task TestAfterIndexerBracketComma()
         {
             await VerifyKeywordAsync(
-@"class C {
-    int this[int i, $$");
+                """
+                class C {
+                    int this[int i, $$
+                """);
         }
 
         [Fact]
@@ -635,36 +718,38 @@ $$");
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544219")]
         public async Task TestNotInObjectInitializerMemberContext()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    public int x, y;
-    void M()
-    {
-        var c = new C { x = 2, y = 3, $$");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    public int x, y;
+                    void M()
+                    {
+                        var c = new C { x = 2, y = 3, $$
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546938")]
         public async Task TestInCrefContext()
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    /// <see cref=""$$"">
-    static void Main(string[] args)
-    {
-        
-    }
-}");
+            await VerifyKeywordAsync("""
+                class Program
+                {
+                    /// <see cref="$$">
+                    static void Main(string[] args)
+                    {
+
+                    }
+                }
+                """);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546955")]
         public async Task TestInCrefContextNotAfterDot()
         {
-            await VerifyAbsenceAsync(@"
-/// <see cref=""System.$$"" />
-class C { }
-");
+            await VerifyAbsenceAsync("""
+                /// <see cref="System.$$" />
+                class C { }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
@@ -678,85 +763,91 @@ class C { }
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1468")]
         public async Task TestNotInCrefTypeParameter()
         {
-            await VerifyAbsenceAsync(@"
-using System;
-/// <see cref=""List{$$}"" />
-class C { }
-");
+            await VerifyAbsenceAsync("""
+                using System;
+                /// <see cref="List{$$}" />
+                class C { }
+                """);
         }
 
         [Fact]
         public async Task Preselection()
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    static void Main(string[] args)
-    {
-        Helper($$)
-    }
-    static void Helper(ushort x) { }
-}
-");
+            await VerifyKeywordAsync("""
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Helper($$)
+                    }
+                    static void Helper(ushort x) { }
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14127")]
         public async Task TestInTupleWithinType()
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    ($$
-}");
+            await VerifyKeywordAsync("""
+                class Program
+                {
+                    ($$
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14127")]
         public async Task TestInTupleWithinMember()
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    void Method()
-    {
-        ($$
-    }
-}");
+            await VerifyKeywordAsync("""
+                class Program
+                {
+                    void Method()
+                    {
+                        ($$
+                    }
+                }
+                """);
         }
 
         [Fact]
         public async Task TestInFunctionPointerType()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    delegate*<$$");
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    delegate*<$$
+                """);
         }
 
         [Fact]
         public async Task TestInFunctionPointerTypeAfterComma()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    delegate*<int, $$");
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    delegate*<int, $$
+                """);
         }
 
         [Fact]
         public async Task TestInFunctionPointerTypeAfterModifier()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    delegate*<ref $$");
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    delegate*<ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterDelegateAsterisk()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    delegate*$$");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    delegate*$$
+                """);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
@@ -778,11 +869,12 @@ class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64585")]
         public async Task TestAfterRequired()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    required $$
-}");
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    required $$
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
@@ -824,10 +916,12 @@ class C
         {
             // This is only legal for a struct declaration
             await VerifyAbsenceAsync(
-@"namespace N
-{
-    ref $$
-}");
+                """
+                namespace N
+                {
+                    ref $$
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
@@ -835,10 +929,12 @@ class C
         {
             // This is only legal for a struct declaration
             await VerifyAbsenceAsync(
-@"namespace N
-{
-    readonly $$
-}");
+                """
+                namespace N
+                {
+                    readonly $$
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
@@ -846,10 +942,12 @@ class C
         {
             // This is only legal for a struct declaration
             await VerifyAbsenceAsync(
-@"namespace N
-{
-    ref readonly $$
-}");
+                """
+                namespace N
+                {
+                    ref readonly $$
+                }
+                """);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/67061")]
@@ -893,5 +991,123 @@ $@"{type} N
     ref readonly $$
 }}");
         }
+
+        #region Collection expressions
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_BeforeFirstElementToVar()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+                """
+                var x = [$$
+                """));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_BeforeFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [$$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_AfterFirstElementToVar()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+                """
+                var x = [new object(), $$
+                """));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_AfterFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [string.Empty, $$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_SpreadBeforeFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [.. $$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_SpreadAfterFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [string.Empty, .. $$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_ParenAtFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [($$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_ParenAfterFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [string.Empty, ($$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_ParenSpreadAtFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [.. ($$
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70677")]
+        public async Task TestInCollectionExpressions_ParenSpreadAfterFirstElementToReturn()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C
+                {
+                    IEnumerable<string> M() => [string.Empty, .. ($$
+                }
+                """);
+        }
+
+        #endregion
     }
 }

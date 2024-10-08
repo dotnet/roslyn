@@ -3,28 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
 [ExportStatelessLspService(typeof(IRequestExecutionQueueProvider<RequestContext>), ProtocolConstants.TypeScriptLanguageContract), Shared]
-internal sealed class VSTypeScriptRequestExecutionQueueProvider : IRequestExecutionQueueProvider<RequestContext>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, true)]
+internal sealed class VSTypeScriptRequestExecutionQueueProvider(IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider) : IRequestExecutionQueueProvider<RequestContext>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, true)]
-    public VSTypeScriptRequestExecutionQueueProvider()
+    public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
     {
-    }
-
-    public IRequestExecutionQueue<RequestContext> CreateRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, IHandlerProvider handlerProvider)
-    {
-        var queue = new RoslynRequestExecutionQueue(languageServer, logger, handlerProvider);
+        var queue = new RoslynRequestExecutionQueue(languageServer, logger, handlerProvider, asynchronousOperationListenerProvider);
         queue.Start();
         return queue;
     }

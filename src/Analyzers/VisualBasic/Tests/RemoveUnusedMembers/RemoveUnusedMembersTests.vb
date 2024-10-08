@@ -10,7 +10,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedMembers
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedMembers
     <Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedMembers)>
     Public Class RemoveUnusedMembersTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRemoveUnusedMembersDiagnosticAnalyzer(), New VisualBasicRemoveUnusedMembersCodeFixProvider())
         End Function
@@ -1619,7 +1620,6 @@ End Class",
 parseOptions:=Nothing,
 compilationOptions:=Nothing,
 options:=Nothing,
-globalOptions:=Nothing,
 "IDE0051",
 DiagnosticSeverity.Info,
 diagnosticMessage:=String.Format(AnalyzersResources.Private_member_0_is_unused, "C.New"))

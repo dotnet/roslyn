@@ -100,19 +100,8 @@ public class VisualStudioSettingsOptionPersisterTests
            optionType == typeof(ImmutableArray<string>) ? (ImmutableArray.Create("a", "b"), new[] { "a", "b" }) :
            throw ExceptionUtilities.UnexpectedValue(optionType);
 
-    private static Type GetStorageType(Type optionType)
-        => optionType.IsEnum ? typeof(int) :
-           (Nullable.GetUnderlyingType(optionType)?.IsEnum == true) ? typeof(int?) :
-           optionType == typeof(NamingStylePreferences) ? typeof(string) :
-           typeof(ICodeStyleOption2).IsAssignableFrom(optionType) ? typeof(string) :
-           optionType == typeof(ImmutableArray<string>) ? typeof(string[]) :
-           optionType == typeof(ImmutableArray<bool>) ? typeof(bool[]) :
-           optionType == typeof(ImmutableArray<int>) ? typeof(int[]) :
-           optionType == typeof(ImmutableArray<long>) ? typeof(long[]) :
-           optionType;
-
     private static bool IsDefaultImmutableArray(object array)
-        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, Array.Empty<object>())!;
+        => (bool)array.GetType().GetMethod("get_IsDefault").Invoke(array, [])!;
 
     [Fact]
     public void SettingsChangeEvent()
@@ -166,8 +155,7 @@ public class VisualStudioSettingsOptionPersisterTests
         refreshedOptions.Clear();
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void SettingsManagerReadOptionValue_Success(
         [CombinatorialValues(
             typeof(bool),
@@ -200,8 +188,7 @@ public class VisualStudioSettingsOptionPersisterTests
         Assert.Equal(optionValue, result.Value);
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void SettingsManagerReadOptionValue_Error(
         [CombinatorialValues(
             GetValueResult.Missing,
@@ -229,11 +216,10 @@ public class VisualStudioSettingsOptionPersisterTests
         Type optionType)
     {
         var (optionValue, storageValue) = GetSomeOptionValue(optionType);
-        var storageType = GetStorageType(optionType);
 
         var mockManager = new MockSettingsManager()
         {
-            GetValueImpl = (_, type) => (type == storageType ? specializedTypeResult : GetValueResult.Success, storageValue)
+            GetValueImpl = (_, type) => (specializedTypeResult, storageValue)
         };
 
         var result = VisualStudioSettingsOptionPersister.TryReadOptionValue(mockManager, "key", optionType, optionValue);

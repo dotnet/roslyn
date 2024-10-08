@@ -9,22 +9,21 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.CodeStyle;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.ColumnDefinitions
-{
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(Description)]
-    internal class CodeStyleDescriptionColumnDefinition : TableColumnDefinitionBase
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeStyleDescriptionColumnDefinition()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.ColumnDefinitions;
 
-        public override string Name => Description;
-        public override string DisplayName => ServicesVSResources.Description;
-        public override bool IsFilterable => false;
-        public override bool IsSortable => false;
-        public override double MinWidth => 350;
+[Export(typeof(ITableColumnDefinition))]
+[Name(Description)]
+internal class CodeStyleDescriptionColumnDefinition : TableColumnDefinitionBase
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CodeStyleDescriptionColumnDefinition()
+    {
     }
+
+    public override string Name => Description;
+    public override string DisplayName => ServicesVSResources.Description;
+    public override bool IsFilterable => false;
+    public override bool IsSortable => false;
+    public override double MinWidth => 350;
 }

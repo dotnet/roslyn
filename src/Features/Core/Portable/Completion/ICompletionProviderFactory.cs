@@ -4,10 +4,9 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Completion
+namespace Microsoft.CodeAnalysis.Completion;
+
+internal interface ICompletionProviderFactory
 {
-    internal interface ICompletionProviderFactory
-    {
-        ImmutableArray<CompletionProvider> GetCompletionProviders();
-    }
+    ImmutableArray<CompletionProvider> GetCompletionProviders();
 }

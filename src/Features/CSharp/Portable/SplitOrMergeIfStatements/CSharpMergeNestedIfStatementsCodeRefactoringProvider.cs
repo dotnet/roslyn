@@ -12,53 +12,52 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SplitOrMergeIfStatements;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements
+namespace Microsoft.CodeAnalysis.CSharp.SplitOrMergeIfStatements;
+
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MergeNestedIfStatements), Shared]
+internal sealed class CSharpMergeNestedIfStatementsCodeRefactoringProvider
+    : AbstractMergeNestedIfStatementsCodeRefactoringProvider
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MergeNestedIfStatements), Shared]
-    internal sealed class CSharpMergeNestedIfStatementsCodeRefactoringProvider
-        : AbstractMergeNestedIfStatementsCodeRefactoringProvider
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    public CSharpMergeNestedIfStatementsCodeRefactoringProvider()
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpMergeNestedIfStatementsCodeRefactoringProvider()
+    }
+
+    protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifOrElseIf)
+    {
+        if (node is IfStatementSyntax ifStatement)
         {
+            // Cases:
+            // 1. Position is at a child token of an if statement with no selection (e.g. 'if' keyword, a parenthesis)
+            // 2. Selection around the 'if' keyword
+            // 3. Selection around the header - from 'if' keyword to the end of the condition
+            // 4. Selection around the whole if statement
+            if (span.Length == 0 ||
+                span.IsAround(ifStatement.IfKeyword) ||
+                span.IsAround(ifStatement.IfKeyword, ifStatement.CloseParenToken) ||
+                span.IsAround(ifStatement.IfKeyword, ifStatement))
+            {
+                ifOrElseIf = ifStatement;
+                return true;
+            }
         }
 
-        protected override bool IsApplicableSpan(SyntaxNode node, TextSpan span, out SyntaxNode ifOrElseIf)
+        if (node is ElseClauseSyntax elseClause && elseClause.Statement is IfStatementSyntax elseIfStatement)
         {
-            if (node is IfStatementSyntax ifStatement)
+            // 5. Position is at a child token of an else clause with no selection ('else' keyword)
+            // 6. Selection around the header including the 'else' keyword - from 'else' keyword to the end of the condition
+            // 7. Selection from the 'else' keyword to the end of the if statement
+            if (span.Length == 0 ||
+                span.IsAround(elseClause.ElseKeyword, elseIfStatement.CloseParenToken) ||
+                span.IsAround(elseClause.ElseKeyword, elseIfStatement))
             {
-                // Cases:
-                // 1. Position is at a child token of an if statement with no selection (e.g. 'if' keyword, a parenthesis)
-                // 2. Selection around the 'if' keyword
-                // 3. Selection around the header - from 'if' keyword to the end of the condition
-                // 4. Selection around the whole if statement
-                if (span.Length == 0 ||
-                    span.IsAround(ifStatement.IfKeyword) ||
-                    span.IsAround(ifStatement.IfKeyword, ifStatement.CloseParenToken) ||
-                    span.IsAround(ifStatement.IfKeyword, ifStatement))
-                {
-                    ifOrElseIf = ifStatement;
-                    return true;
-                }
+                ifOrElseIf = elseIfStatement;
+                return true;
             }
-
-            if (node is ElseClauseSyntax elseClause && elseClause.Statement is IfStatementSyntax elseIfStatement)
-            {
-                // 5. Position is at a child token of an else clause with no selection ('else' keyword)
-                // 6. Selection around the header including the 'else' keyword - from 'else' keyword to the end of the condition
-                // 7. Selection from the 'else' keyword to the end of the if statement
-                if (span.Length == 0 ||
-                    span.IsAround(elseClause.ElseKeyword, elseIfStatement.CloseParenToken) ||
-                    span.IsAround(elseClause.ElseKeyword, elseIfStatement))
-                {
-                    ifOrElseIf = elseIfStatement;
-                    return true;
-                }
-            }
-
-            ifOrElseIf = null;
-            return false;
         }
+
+        ifOrElseIf = null;
+        return false;
     }
 }

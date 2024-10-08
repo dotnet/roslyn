@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
@@ -52,27 +51,25 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         {
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
-            using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
-            using (var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
+            using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+            var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            cpsProject.SetProperty(BuildPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion?.ToDisplayString());
+
+            var canApply = environment.Workspace.CanApplyParseOptionChange(
+                oldParseOptions,
+                oldParseOptions.WithLanguageVersion(attemptedVersion),
+                project);
+
+            if (maxSupportedLangVersion.HasValue)
             {
-                var project = environment.Workspace.CurrentSolution.Projects.Single();
-                var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
-
-                cpsProject.SetProperty(BuildPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion?.ToDisplayString());
-
-                var canApply = environment.Workspace.CanApplyParseOptionChange(
-                    oldParseOptions,
-                    oldParseOptions.WithLanguageVersion(attemptedVersion),
-                    project);
-
-                if (maxSupportedLangVersion.HasValue)
-                {
-                    Assert.Equal(attemptedVersion <= maxSupportedLangVersion.Value, canApply);
-                }
-                else
-                {
-                    Assert.True(canApply);
-                }
+                Assert.Equal(attemptedVersion <= maxSupportedLangVersion.Value, canApply);
+            }
+            else
+            {
+                Assert.True(canApply);
             }
         }
 
@@ -81,19 +78,17 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         {
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
-            using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
-            using (var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
-            {
-                var project = environment.Workspace.CurrentSolution.Projects.Single();
-                var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
+            using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+            var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
 
-                var canApply = environment.Workspace.CanApplyParseOptionChange(
-                    oldParseOptions,
-                    oldParseOptions.WithLanguageVersion(attemptedVersion),
-                    project);
+            var canApply = environment.Workspace.CanApplyParseOptionChange(
+                oldParseOptions,
+                oldParseOptions.WithLanguageVersion(attemptedVersion),
+                project);
 
-                Assert.True(canApply);
-            }
+            Assert.True(canApply);
         }
 
         [WpfTheory]

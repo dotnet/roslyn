@@ -4,17 +4,16 @@
 
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal class ConflictTag : TextMarkerTag
 {
-    internal class ConflictTag : TextMarkerTag
+    public const string TagId = "RoslynConflictTag";
+
+    public static readonly ConflictTag Instance = new();
+
+    private ConflictTag()
+        : base(TagId)
     {
-        public const string TagId = "RoslynConflictTag";
-
-        public static readonly ConflictTag Instance = new();
-
-        private ConflictTag()
-            : base(TagId)
-        {
-        }
     }
 }

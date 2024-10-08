@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -4976,7 +4977,7 @@ Class C
     Private f As (Integer, String)
 End Class
                     </file>
-                </compilation>, references:={TestMetadata.Net40.SystemCore})
+                </compilation>, references:={Net40.References.SystemCore})
 
             Dim format = New SymbolDisplayFormat(memberOptions:=SymbolDisplayMemberOptions.IncludeType, miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.CollapseTupleTypes)
 
@@ -5013,13 +5014,13 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation},
-                references:={MetadataReference.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib)})
+                references:={Net461.ExtraReferences.SystemValueTuple})
         End Sub
 
         <Fact()>
@@ -5283,6 +5284,34 @@ End Class
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword)
+        End Sub
+
+        <Fact>
+        Public Sub RefReadonlyParameter()
+            Dim source =
+"public class C
+{
+    public void M(ref readonly int p) { }
+}"
+            Dim parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Preview)
+            Dim comp = CreateCSharpCompilation(source, parseOptions).VerifyDiagnostics()
+            Dim m = comp.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single()
+            ' Ref modifiers are not included: https://github.com/dotnet/roslyn/issues/14683
+            Dim format = SymbolDisplayFormat.VisualBasicErrorMessageFormat.
+                AddParameterOptions(SymbolDisplayParameterOptions.IncludeParamsRefOut)
+            Verify(ToDisplayParts(m, format), "Public Sub M(p As Integer)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation)
         End Sub
 
         ' SymbolDisplayMemberOptions.IncludeRef is ignored in VB.
@@ -6025,7 +6054,7 @@ end class"
             expectedText As String,
             ParamArray kinds As SymbolDisplayPartKind())
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={TestMetadata.Net40.SystemCore})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={Net40.References.SystemCore})
 
             ' symbol:
             Dim symbol = findSymbol(comp.GlobalNamespace)

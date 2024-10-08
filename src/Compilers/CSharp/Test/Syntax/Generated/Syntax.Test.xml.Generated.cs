@@ -121,6 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.LiteralExpressionSyntax GenerateLiteralExpression()
             => InternalSyntaxFactory.LiteralExpression(SyntaxKind.ArgListExpression, InternalSyntaxFactory.Token(SyntaxKind.ArgListKeyword));
 
+        private static Syntax.InternalSyntax.FieldExpressionSyntax GenerateFieldExpression()
+            => InternalSyntaxFactory.FieldExpression(InternalSyntaxFactory.Token(SyntaxKind.FieldKeyword));
+
         private static Syntax.InternalSyntax.MakeRefExpressionSyntax GenerateMakeRefExpression()
             => InternalSyntaxFactory.MakeRefExpression(InternalSyntaxFactory.Token(SyntaxKind.MakeRefKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
@@ -541,6 +544,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.DefaultConstraintSyntax GenerateDefaultConstraint()
             => InternalSyntaxFactory.DefaultConstraint(InternalSyntaxFactory.Token(SyntaxKind.DefaultKeyword));
 
+        private static Syntax.InternalSyntax.AllowsConstraintClauseSyntax GenerateAllowsConstraintClause()
+            => InternalSyntaxFactory.AllowsConstraintClause(InternalSyntaxFactory.Token(SyntaxKind.AllowsKeyword), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.AllowsConstraintSyntax>());
+
+        private static Syntax.InternalSyntax.RefStructConstraintSyntax GenerateRefStructConstraint()
+            => InternalSyntaxFactory.RefStructConstraint(InternalSyntaxFactory.Token(SyntaxKind.RefKeyword), InternalSyntaxFactory.Token(SyntaxKind.StructKeyword));
+
         private static Syntax.InternalSyntax.FieldDeclarationSyntax GenerateFieldDeclaration()
             => InternalSyntaxFactory.FieldDeclaration(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.AttributeListSyntax>(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.SyntaxToken>(), GenerateVariableDeclaration(), InternalSyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
@@ -632,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.CrefBracketedParameterList(InternalSyntaxFactory.Token(SyntaxKind.OpenBracketToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.CrefParameterSyntax>(), InternalSyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static Syntax.InternalSyntax.CrefParameterSyntax GenerateCrefParameter()
-            => InternalSyntaxFactory.CrefParameter(null, GenerateIdentifierName());
+            => InternalSyntaxFactory.CrefParameter(null, null, GenerateIdentifierName());
 
         private static Syntax.InternalSyntax.XmlElementSyntax GenerateXmlElement()
             => InternalSyntaxFactory.XmlElement(GenerateXmlElementStartTag(), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.XmlNodeSyntax>(), GenerateXmlElementEndTag());
@@ -1149,6 +1158,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateLiteralExpression();
 
             Assert.Equal(SyntaxKind.ArgListKeyword, node.Token.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestFieldExpressionFactoryAndProperties()
+        {
+            var node = GenerateFieldExpression();
+
+            Assert.Equal(SyntaxKind.FieldKeyword, node.Token.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -2961,6 +2980,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAllowsConstraintClauseFactoryAndProperties()
+        {
+            var node = GenerateAllowsConstraintClause();
+
+            Assert.Equal(SyntaxKind.AllowsKeyword, node.AllowsKeyword.Kind);
+            Assert.Equal(default, node.Constraints);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestRefStructConstraintFactoryAndProperties()
+        {
+            var node = GenerateRefStructConstraint();
+
+            Assert.Equal(SyntaxKind.RefKeyword, node.RefKeyword.Kind);
+            Assert.Equal(SyntaxKind.StructKeyword, node.StructKeyword.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
         public void TestFieldDeclarationFactoryAndProperties()
         {
             var node = GenerateFieldDeclaration();
@@ -3379,6 +3420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefParameter();
 
             Assert.Null(node.RefKindKeyword);
+            Assert.Null(node.ReadOnlyKeyword);
             Assert.NotNull(node.Type);
 
             AttachAndCheckDiagnostics(node);
@@ -4791,6 +4833,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLiteralExpressionIdentityRewriter()
         {
             var oldNode = GenerateLiteralExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFieldExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFieldExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFieldExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateFieldExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -8438,6 +8506,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAllowsConstraintClauseTokenDeleteRewriter()
+        {
+            var oldNode = GenerateAllowsConstraintClause();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAllowsConstraintClauseIdentityRewriter()
+        {
+            var oldNode = GenerateAllowsConstraintClause();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestRefStructConstraintTokenDeleteRewriter()
+        {
+            var oldNode = GenerateRefStructConstraint();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRefStructConstraintIdentityRewriter()
+        {
+            var oldNode = GenerateRefStructConstraint();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
         public void TestFieldDeclarationTokenDeleteRewriter()
         {
             var oldNode = GenerateFieldDeclaration();
@@ -10217,6 +10337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static LiteralExpressionSyntax GenerateLiteralExpression()
             => SyntaxFactory.LiteralExpression(SyntaxKind.ArgListExpression, SyntaxFactory.Token(SyntaxKind.ArgListKeyword));
 
+        private static FieldExpressionSyntax GenerateFieldExpression()
+            => SyntaxFactory.FieldExpression(SyntaxFactory.Token(SyntaxKind.FieldKeyword));
+
         private static MakeRefExpressionSyntax GenerateMakeRefExpression()
             => SyntaxFactory.MakeRefExpression(SyntaxFactory.Token(SyntaxKind.MakeRefKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
@@ -10637,6 +10760,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static DefaultConstraintSyntax GenerateDefaultConstraint()
             => SyntaxFactory.DefaultConstraint(SyntaxFactory.Token(SyntaxKind.DefaultKeyword));
 
+        private static AllowsConstraintClauseSyntax GenerateAllowsConstraintClause()
+            => SyntaxFactory.AllowsConstraintClause(SyntaxFactory.Token(SyntaxKind.AllowsKeyword), new SeparatedSyntaxList<AllowsConstraintSyntax>());
+
+        private static RefStructConstraintSyntax GenerateRefStructConstraint()
+            => SyntaxFactory.RefStructConstraint(SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.StructKeyword));
+
         private static FieldDeclarationSyntax GenerateFieldDeclaration()
             => SyntaxFactory.FieldDeclaration(new SyntaxList<AttributeListSyntax>(), new SyntaxTokenList(), GenerateVariableDeclaration(), SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
@@ -10728,7 +10857,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.CrefBracketedParameterList(SyntaxFactory.Token(SyntaxKind.OpenBracketToken), new SeparatedSyntaxList<CrefParameterSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBracketToken));
 
         private static CrefParameterSyntax GenerateCrefParameter()
-            => SyntaxFactory.CrefParameter(default(SyntaxToken), GenerateIdentifierName());
+            => SyntaxFactory.CrefParameter(default(SyntaxToken), default(SyntaxToken), GenerateIdentifierName());
 
         private static XmlElementSyntax GenerateXmlElement()
             => SyntaxFactory.XmlElement(GenerateXmlElementStartTag(), new SyntaxList<XmlNodeSyntax>(), GenerateXmlElementEndTag());
@@ -11245,6 +11374,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateLiteralExpression();
 
             Assert.Equal(SyntaxKind.ArgListKeyword, node.Token.Kind());
+            var newNode = node.WithToken(node.Token);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestFieldExpressionFactoryAndProperties()
+        {
+            var node = GenerateFieldExpression();
+
+            Assert.Equal(SyntaxKind.FieldKeyword, node.Token.Kind());
             var newNode = node.WithToken(node.Token);
             Assert.Equal(node, newNode);
         }
@@ -13057,6 +13196,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestAllowsConstraintClauseFactoryAndProperties()
+        {
+            var node = GenerateAllowsConstraintClause();
+
+            Assert.Equal(SyntaxKind.AllowsKeyword, node.AllowsKeyword.Kind());
+            Assert.Equal(default, node.Constraints);
+            var newNode = node.WithAllowsKeyword(node.AllowsKeyword).WithConstraints(node.Constraints);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestRefStructConstraintFactoryAndProperties()
+        {
+            var node = GenerateRefStructConstraint();
+
+            Assert.Equal(SyntaxKind.RefKeyword, node.RefKeyword.Kind());
+            Assert.Equal(SyntaxKind.StructKeyword, node.StructKeyword.Kind());
+            var newNode = node.WithRefKeyword(node.RefKeyword).WithStructKeyword(node.StructKeyword);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
         public void TestFieldDeclarationFactoryAndProperties()
         {
             var node = GenerateFieldDeclaration();
@@ -13475,8 +13636,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateCrefParameter();
 
             Assert.Equal(SyntaxKind.None, node.RefKindKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, node.ReadOnlyKeyword.Kind());
             Assert.NotNull(node.Type);
-            var newNode = node.WithRefKindKeyword(node.RefKindKeyword).WithType(node.Type);
+            var newNode = node.WithRefKindKeyword(node.RefKindKeyword).WithReadOnlyKeyword(node.ReadOnlyKeyword).WithType(node.Type);
             Assert.Equal(node, newNode);
         }
 
@@ -14887,6 +15049,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLiteralExpressionIdentityRewriter()
         {
             var oldNode = GenerateLiteralExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFieldExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFieldExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFieldExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateFieldExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -18527,6 +18715,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDefaultConstraintIdentityRewriter()
         {
             var oldNode = GenerateDefaultConstraint();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestAllowsConstraintClauseTokenDeleteRewriter()
+        {
+            var oldNode = GenerateAllowsConstraintClause();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestAllowsConstraintClauseIdentityRewriter()
+        {
+            var oldNode = GenerateAllowsConstraintClause();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestRefStructConstraintTokenDeleteRewriter()
+        {
+            var oldNode = GenerateRefStructConstraint();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestRefStructConstraintIdentityRewriter()
+        {
+            var oldNode = GenerateRefStructConstraint();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

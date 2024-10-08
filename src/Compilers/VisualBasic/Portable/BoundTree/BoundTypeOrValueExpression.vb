@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _valueDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
-        Public ReadOnly Property ValueDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Private ReadOnly _valueDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
+        Public ReadOnly Property ValueDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             Get
                 Return Me._valueDiagnostics
             End Get
@@ -34,14 +34,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly _typeDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
-        Public ReadOnly Property TypeDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+        Private ReadOnly _typeDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
+        Public ReadOnly Property TypeDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             Get
                 Return Me._typeDiagnostics
             End Get
         End Property
 
-        Public Sub New(valueExpression As BoundExpression, valueDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol), typeExpression As BoundExpression, typeDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol))
+        Public Sub New(valueExpression As BoundExpression, valueDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol), typeExpression As BoundExpression, typeDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol))
             Debug.Assert(valueExpression IsNot Nothing, "Field 'valueExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(typeExpression IsNot Nothing, "Field 'typeExpression' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 

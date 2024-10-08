@@ -5,10 +5,9 @@
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+
+internal interface ILanguageServerSnippetExpander
 {
-    internal interface ILanguageServerSnippetExpander
-    {
-        bool TryExpand(string lspSnippetText, SnapshotSpan snapshotSpan, ITextView textView);
-    }
+    bool TryExpand(string lspSnippetText, SnapshotSpan snapshotSpan, ITextView textView);
 }

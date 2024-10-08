@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal readonly struct UnitTestingTextDocumentEventArgsWrapper(TextDocumentEventArgs underlyingObject)
 {
-    internal readonly struct UnitTestingTextDocumentEventArgsWrapper(TextDocumentEventArgs underlyingObject)
-    {
-        internal TextDocumentEventArgs UnderlyingObject { get; } = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
+    internal TextDocumentEventArgs UnderlyingObject { get; } = underlyingObject ?? throw new ArgumentNullException(nameof(underlyingObject));
 
-        public TextDocument Document => UnderlyingObject.Document;
-    }
+    public TextDocument Document => UnderlyingObject.Document;
 }

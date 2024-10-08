@@ -484,6 +484,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.Variables, operation.Body }, operation.ChildOperations);
         }
 
+        public override void VisitCollectionExpression(ICollectionExpressionOperation operation)
+        {
+            Assert.Equal(OperationKind.CollectionExpression, operation.Kind);
+            AssertEx.Equal(operation.Elements, operation.ChildOperations);
+        }
+
+        public override void VisitSpread(ISpreadOperation operation)
+        {
+            Assert.Equal(OperationKind.Spread, operation.Kind);
+            Assert.Same(operation.Operand, operation.ChildOperations.Single());
+        }
+
         internal override void VisitAggregateQuery(IAggregateQueryOperation operation)
         {
             Assert.Equal(OperationKind.None, operation.Kind);
@@ -564,7 +576,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitArgument(IArgumentOperation operation)
         {
             Assert.Equal(OperationKind.Argument, operation.Kind);
-            Assert.Contains(operation.ArgumentKind, new[] { ArgumentKind.DefaultValue, ArgumentKind.Explicit, ArgumentKind.ParamArray });
+            Assert.Contains(operation.ArgumentKind, new[] { ArgumentKind.DefaultValue, ArgumentKind.Explicit, ArgumentKind.ParamArray, ArgumentKind.ParamCollection });
             var parameter = operation.Parameter;
 
             Assert.Same(operation.Value, operation.ChildOperations.Single());

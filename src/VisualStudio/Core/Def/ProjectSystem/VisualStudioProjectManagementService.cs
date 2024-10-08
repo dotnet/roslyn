@@ -10,83 +10,80 @@ using System.Composition;
 using System.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Roslyn.Utilities;
 
-namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
+namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem;
+
+[ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Host), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VisualStudioProjectManagementService(IThreadingContext threadingContext) : IProjectManagementService
 {
-    [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Host), Shared]
-    internal class VisualStudioProjectManagementService : ForegroundThreadAffinitizedObject, IProjectManagementService
+    private readonly IThreadingContext _threadingContext = threadingContext;
+
+    public string GetDefaultNamespace(Microsoft.CodeAnalysis.Project project, Workspace workspace)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioProjectManagementService(IThreadingContext threadingContext)
-            : base(threadingContext)
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        if (project.Language == LanguageNames.VisualBasic)
         {
+            return "";
         }
 
-        public string GetDefaultNamespace(Microsoft.CodeAnalysis.Project project, Workspace workspace)
+        var defaultNamespace = "";
+
+        if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
         {
-            this.AssertIsForeground();
+            vsWorkspace.GetProjectData(project.Id,
+                out _, out var envDTEProject);
 
-            if (project.Language == LanguageNames.VisualBasic)
+            try
             {
-                return "";
+                defaultNamespace = (string)envDTEProject.ProjectItems.ContainingProject.Properties.Item("DefaultNamespace").Value; // Do not Localize
             }
-
-            var defaultNamespace = "";
-
-            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
+            catch (ArgumentException)
             {
-                vsWorkspace.GetProjectData(project.Id,
-                    out _, out var envDTEProject);
-
-                try
-                {
-                    defaultNamespace = (string)envDTEProject.ProjectItems.ContainingProject.Properties.Item("DefaultNamespace").Value; // Do not Localize
-                }
-                catch (ArgumentException)
-                {
-                    // DefaultNamespace does not exist for this project.
-                }
+                // DefaultNamespace does not exist for this project.
             }
-
-            return defaultNamespace;
         }
 
-        public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
+        return defaultNamespace;
+    }
+
+    public IList<string> GetFolders(ProjectId projectId, Workspace workspace)
+    {
+        var folders = new List<string>();
+
+        if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
         {
-            var folders = new List<string>();
+            vsWorkspace.GetProjectData(projectId,
+                out var hierarchy, out var envDTEProject);
 
-            if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
+            var projectItems = envDTEProject.ProjectItems;
+
+            using var _ = ArrayBuilder<Tuple<ProjectItem, string>>.GetInstance(out var projectItemsStack);
+
+            // Populate the stack
+            projectItems.OfType<ProjectItem>().Where(n => n.IsFolder()).Do(n => projectItemsStack.Push(Tuple.Create(n, "\\")));
+            while (projectItemsStack.TryPop(out var projectItemTuple))
             {
-                vsWorkspace.GetProjectData(projectId,
-                    out var hierarchy, out var envDTEProject);
+                var projectItem = projectItemTuple.Item1;
+                var currentFolderPath = projectItemTuple.Item2;
 
-                var projectItems = envDTEProject.ProjectItems;
+                var folderPath = currentFolderPath + projectItem.Name + "\\";
 
-                var projectItemsStack = new Stack<Tuple<ProjectItem, string>>();
-
-                // Populate the stack
-                projectItems.OfType<ProjectItem>().Where(n => n.IsFolder()).Do(n => projectItemsStack.Push(Tuple.Create(n, "\\")));
-                while (projectItemsStack.Count != 0)
-                {
-                    var projectItemTuple = projectItemsStack.Pop();
-                    var projectItem = projectItemTuple.Item1;
-                    var currentFolderPath = projectItemTuple.Item2;
-
-                    var folderPath = currentFolderPath + projectItem.Name + "\\";
-
-                    folders.Add(folderPath);
-                    projectItem.ProjectItems.OfType<ProjectItem>().Where(n => n.IsFolder()).Do(n => projectItemsStack.Push(Tuple.Create(n, folderPath)));
-                }
+                folders.Add(folderPath);
+                projectItem.ProjectItems.OfType<ProjectItem>().Where(n => n.IsFolder()).Do(n => projectItemsStack.Push(Tuple.Create(n, folderPath)));
             }
-
-            return folders;
         }
+
+        return folders;
     }
 }

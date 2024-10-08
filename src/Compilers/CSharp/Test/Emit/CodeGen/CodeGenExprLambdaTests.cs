@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -2460,14 +2461,15 @@ public class Test
 }
                     ");
 
-            var comp45 = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
 
             // no use Array.Empty here since it is not available
             CompileAndVerify(
-                comp45,
+                comp,
                 expectedOutput: expectedOutput).
                     VerifyIL("Test.Main",
                     @"
@@ -3511,7 +3513,7 @@ class Program
 
             var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore },
+                new[] { Net40.References.mscorlib, Net40.References.SystemCore },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
@@ -3519,7 +3521,7 @@ class Program
             //NOTE: different shape of delegate creation in 45+ is bydesign and matches behavior of the with old compiler.
             string expectedOutput45 = @"Convert(Call(Constant(Int32 Func1(System.String) Type:System.Reflection.MethodInfo).[System.Delegate CreateDelegate(System.Type, System.Object)](Constant(Del Type:System.Type), Parameter(tc1 Type:TestClass1)) Type:System.Delegate) Type:Del)";
 
-            var comp45 = CreateCompilationWithMscorlib45(
+            var comp45 = CreateCompilationWithMscorlib461(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 TestOptions.ReleaseExe);
@@ -5939,7 +5941,7 @@ class C : TestBase
     public class Expression<T> { }
     public class ParameterExpression : Expression { }
 }";
-            var compilation1 = CreateCompilationWithMscorlib45(source1);
+            var compilation1 = CreateCompilationWithMscorlib461(source1);
             compilation1.VerifyDiagnostics();
             var reference1 = compilation1.EmitToImageReference();
 
@@ -5950,7 +5952,7 @@ class C
 {
     static Expression<D> E = () => 1;
 }";
-            var compilation2 = CreateCompilationWithMscorlib45(source2, references: new[] { reference1 });
+            var compilation2 = CreateCompilationWithMscorlib461(source2, references: new[] { reference1 });
             compilation2.VerifyDiagnostics();
 
             using (var stream = new MemoryStream())

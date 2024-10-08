@@ -94,7 +94,6 @@
 
     <!--
       Exclude dependencies that are not inserted from Roslyn repo and are installed by other VS components.
-
       Note: can't use globs due to https://github.com/Microsoft/msbuild/issues/3791.
     -->
     <ItemGroup>
@@ -104,14 +103,21 @@
       <_Dependency Remove="@(_Dependency)" Condition="$([MSBuild]::ValueOrDefault('%(Identity)', '').StartsWith('Microsoft.Internal.VisualStudio.'))"/>
       <_Dependency Remove="EnvDTE"/>
       <_Dependency Remove="EnvDTE80"/>
+      <_Dependency Remove="EnvDTE90"/>
+      <_Dependency Remove="EnvDTE90A"/>
+      <_Dependency Remove="EnvDTE100"/>
       <_Dependency Remove="MessagePack"/>
       <_Dependency Remove="MessagePack.Annotations"/>
       <_Dependency Remove="Microsoft.Bcl.AsyncInterfaces"/>
       <_Dependency Remove="Microsoft.Build"/>
       <_Dependency Remove="Microsoft.Build.Framework"/>
+      <_Dependency Remove="Microsoft.Build.Tasks.Core"/>
+      <_Dependency Remove="Microsoft.Build.Utilities.Core"/>
       <_Dependency Remove="Microsoft.Diagnostics.Tracing.EventSource.Redist"/>
-      <_Dependency Remove="Microsoft.MSXML"/>
+      <_Dependency Remove="Microsoft.Extensions.DependencyInjection"/>
+      <_Dependency Remove="Microsoft.Extensions.DependencyInjection.Abstractions"/>
       <_Dependency Remove="Microsoft.Internal.Performance.CodeMarkers.DesignTime"/>
+      <_Dependency Remove="Microsoft.MSXML"/>
       <_Dependency Remove="Microsoft.NET.StringTools"/>
       <_Dependency Remove="Microsoft.Win32.Registry"/>
       <_Dependency Remove="Nerdbank.NetStandardBridge" />
@@ -123,16 +129,21 @@
       <_Dependency Remove="StreamJsonRpc"/>
       <_Dependency Remove="System.Buffers" />
       <_Dependency Remove="System.Collections.Immutable"/>
+      <_Dependency Remove="System.Configuration.ConfigurationManager"/>
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.Drawing.Common"/>
+      <_Dependency Remove="System.IO.Packaging"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Memory"/>
       <_Dependency Remove="System.Numerics.Vectors"/>
       <_Dependency Remove="System.Reflection.Metadata"/>
+      <_Dependency Remove="System.Reflection.MetadataLoadContext"/>
       <_Dependency Remove="System.Reflection.TypeExtensions"/>
+      <_Dependency Remove="System.Resources.Extensions"/>
       <_Dependency Remove="System.Runtime.CompilerServices.Unsafe"/>
       <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Security.AccessControl"/>
+      <_Dependency Remove="System.Security.Permissions"/>
       <_Dependency Remove="System.Security.Principal.Windows"/>
       <_Dependency Remove="System.Text.Encoding.CodePages" />
       <_Dependency Remove="System.Text.Encodings.Web" />
@@ -144,7 +155,14 @@
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
       <_Dependency Remove="VSLangProj80"/>
+      <_Dependency Remove="VSLangProj90"/>
+      <_Dependency Remove="VSLangProj100"/>
+      <_Dependency Remove="VSLangProj110"/>
       <_Dependency Remove="VSLangProj140"/>
+      <_Dependency Remove="VSLangProj150"/>
+      <_Dependency Remove="VSLangProj157"/>
+      <_Dependency Remove="VSLangProj158"/>
+      <_Dependency Remove="VSLangProj165"/>
       <_Dependency Remove="VsWebSite.Interop"/>
       <_Dependency Remove="Microsoft.NET.StringTools" />
       <_Dependency Remove="Microsoft.IO.Redist" />

@@ -6,10 +6,9 @@
 
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
-namespace Microsoft.CodeAnalysis.Editor.Host
+namespace Microsoft.CodeAnalysis.Editor.Host;
+
+internal interface ICallHierarchyPresenter
 {
-    internal interface ICallHierarchyPresenter
-    {
-        void PresentRoot(CallHierarchyItem root);
-    }
+    void PresentRoot(CallHierarchyItem root);
 }

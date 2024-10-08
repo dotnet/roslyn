@@ -2,15 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 [assembly: DebuggerTypeProxy(typeof(MefLanguageServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<ILanguageService, WorkspaceServiceMetadata>>))]
 
@@ -20,10 +21,13 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     {
         private readonly MefWorkspaceServices _workspaceServices;
         private readonly string _language;
-        private readonly ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> _services;
+        private readonly ImmutableArray<(Lazy<ILanguageService, LanguageServiceMetadata> lazyService, bool usesFactory)> _services;
 
-        private ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>> _serviceMap
-            = ImmutableDictionary<Type, Lazy<ILanguageService, LanguageServiceMetadata>>.Empty;
+        private ImmutableDictionary<Type, (Lazy<ILanguageService, LanguageServiceMetadata>? lazyService, bool usesFactory)> _serviceMap
+            = ImmutableDictionary<Type, (Lazy<ILanguageService, LanguageServiceMetadata>? lazyService, bool usesFactory)>.Empty;
+
+        private readonly object _gate = new();
+        private readonly HashSet<IDisposable> _ownedDisposableServices = new(ReferenceEqualityComparer.Instance);
 
         public MefLanguageServices(
             MefWorkspaceServices workspaceServices,
@@ -34,11 +38,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
             var hostServices = workspaceServices.HostExportProvider;
 
-            var services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>();
+            var services = hostServices.GetExports<ILanguageService, LanguageServiceMetadata>()
+                .Select(lz => (lazyService: lz, usesFactory: false));
             var factories = hostServices.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>()
-                .Select(lz => new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata));
+                .Select(lz => (lazyService: new Lazy<ILanguageService, LanguageServiceMetadata>(() => lz.Value.CreateLanguageService(this), lz.Metadata), usesFactory: true));
 
-            _services = services.Concat(factories).Where(lz => lz.Metadata.Language == language).ToImmutableArray();
+            _services = services.Concat(factories).Where(lz => lz.lazyService.Metadata.Language == language).ToImmutableArray();
         }
 
         public override HostWorkspaceServices WorkspaceServices => _workspaceServices;
@@ -50,81 +55,86 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             get { return _services.Length > 0; }
         }
 
+        public override void Dispose()
+        {
+            ImmutableArray<IDisposable> disposableServices;
+            lock (_gate)
+            {
+                disposableServices = _ownedDisposableServices.ToImmutableArray();
+                _ownedDisposableServices.Clear();
+            }
+
+            // Take care to give all disposal parts a chance to dispose even if some parts throw exceptions.
+            List<Exception>? exceptions = null;
+            foreach (var service in disposableServices)
+            {
+                MefUtilities.DisposeWithExceptionTracking(service, ref exceptions);
+            }
+
+            if (exceptions is not null)
+            {
+                throw new AggregateException(CompilerExtensionsResources.Instantiated_parts_threw_exceptions_from_IDisposable_Dispose, exceptions);
+            }
+
+            base.Dispose();
+        }
+
         public override TLanguageService GetService<TLanguageService>()
         {
-            if (TryGetService(typeof(TLanguageService), out var service))
+            if (TryGetService<TLanguageService>(static _ => true, out var service))
             {
-                return (TLanguageService)service.Value;
+                return service;
             }
             else
             {
-                return default;
+                return default!;
             }
         }
 
-        internal bool TryGetService(Type serviceType, out Lazy<ILanguageService, LanguageServiceMetadata> service)
+        internal bool TryGetService<TLanguageService>(HostWorkspaceServices.MetadataFilter filter, [MaybeNullWhen(false)] out TLanguageService languageService)
         {
-            if (!_serviceMap.TryGetValue(serviceType, out service))
+            if (TryGetService(typeof(TLanguageService), out var lazyService, out var usesFactory)
+                && filter(lazyService.Metadata.Data))
             {
-                service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, svctype =>
+                // MEF language service instances created by a factory are not owned by the MEF catalog or disposed
+                // when the MEF catalog is disposed. Whenever we are potentially going to create an instance of a
+                // service provided by a factory, we need to check if the resulting service implements IDisposable. The
+                // specific conditions here are:
+                //
+                // * usesFactory: This is true when the language service is provided by a factory. Services provided
+                //   directly are owned by the MEF catalog so they do not need to be tracked by the workspace.
+                // * IsValueCreated: This will be false at least once prior to accessing the lazy value. Once the value
+                //   is known to be created, we no longer need to try adding it to _ownedDisposableServices, so we use a
+                //   lock-free fast path.
+                var checkAddDisposable = usesFactory && !lazyService.IsValueCreated;
+
+                languageService = (TLanguageService)lazyService.Value;
+                if (checkAddDisposable && languageService is IDisposable disposable)
                 {
-                    // PERF: Hoist AssemblyQualifiedName out of inner lambda to avoid repeated string allocations.
-                    var assemblyQualifiedName = svctype.AssemblyQualifiedName;
-                    return PickLanguageService(_services.Where(lz => lz.Metadata.ServiceType == assemblyQualifiedName));
-                });
-            }
+                    lock (_gate)
+                    {
+                        _ownedDisposableServices.Add(disposable);
+                    }
+                }
 
-            return service != null;
+                return true;
+            }
+            else
+            {
+                languageService = default;
+                return false;
+            }
         }
 
-        private Lazy<ILanguageService, LanguageServiceMetadata> PickLanguageService(IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services)
+        private bool TryGetService(Type serviceType, [NotNullWhen(true)] out Lazy<ILanguageService, LanguageServiceMetadata>? lazyService, out bool usesFactory)
         {
-            Lazy<ILanguageService, LanguageServiceMetadata> service;
-#if !CODE_STYLE
-            // test layer overrides everything else
-            if (TryGetServiceByLayer(ServiceLayer.Test, services, out service))
+            if (!_serviceMap.TryGetValue(serviceType, out var service))
             {
-                return service;
-            }
-#endif
-            // workspace specific kind is best
-            if (TryGetServiceByLayer(_workspaceServices.WorkspaceKind, services, out service))
-            {
-                return service;
+                service = ImmutableInterlocked.GetOrAdd(ref _serviceMap, serviceType, serviceType => LayeredServiceUtilities.PickService(serviceType, _workspaceServices.WorkspaceKind, _services));
             }
 
-            // host layer overrides editor, desktop or default
-            if (TryGetServiceByLayer(ServiceLayer.Host, services, out service))
-            {
-                return service;
-            }
-
-            // editor layer overrides desktop or default
-            if (TryGetServiceByLayer(ServiceLayer.Editor, services, out service))
-            {
-                return service;
-            }
-
-            // desktop layer overrides default
-            if (TryGetServiceByLayer(ServiceLayer.Desktop, services, out service))
-            {
-                return service;
-            }
-
-            // that just leaves default
-            if (TryGetServiceByLayer(ServiceLayer.Default, services, out service))
-            {
-                return service;
-            }
-
-            // no service
-            return null;
-        }
-
-        private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services, out Lazy<ILanguageService, LanguageServiceMetadata> service)
-        {
-            service = services.SingleOrDefault(lz => lz.Metadata.Layer == layer);
-            return service != null;
+            (lazyService, usesFactory) = (service.lazyService, service.usesFactory);
+            return lazyService != null;
         }
 
         internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<ILanguageService, LanguageServiceMetadata>> services)

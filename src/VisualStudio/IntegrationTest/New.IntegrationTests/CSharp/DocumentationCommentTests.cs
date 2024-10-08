@@ -9,23 +9,23 @@ using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+[Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+public class DocumentationCommentTests : AbstractEditorTest
 {
-    [Trait(Traits.Feature, Traits.Features.DocumentationComments)]
-    public class DocumentationCommentTests : AbstractEditorTest
+    public DocumentationCommentTests()
+        : base(nameof(DocumentationCommentTests))
     {
-        public DocumentationCommentTests()
-            : base(nameof(DocumentationCommentTests))
-        {
 
-        }
+    }
 
-        protected override string LanguageName => LanguageNames.CSharp;
+    protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/54391")]
-        public async Task TypingCharacter_MultiCaret()
-        {
-            var code =
+    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/54391")]
+    public async Task TypingCharacter_MultiCaret()
+    {
+        var code =
 @"
 //{|selection:|}
 class C1 { }
@@ -36,9 +36,9 @@ class C2 { }
 //{|selection:|}
 class C3 { }
 ";
-            await SetUpEditorAsync(code, HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync('/', HangMitigatingCancellationToken);
-            var expected =
+        await SetUpEditorAsync(code, HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync('/', HangMitigatingCancellationToken);
+        var expected =
 @"
 /// <summary>
 /// $$
@@ -56,7 +56,6 @@ class C2 { }
 class C3 { }
 ";
 
-            await TestServices.EditorVerifier.TextContainsAsync(expected, assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
-        }
+        await TestServices.EditorVerifier.TextContainsAsync(expected, assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
     }
 }

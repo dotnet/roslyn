@@ -273,9 +273,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Gets corresponding special TypeId of this type.
         ''' </summary>
-        Public Overridable ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
+        Public Overridable ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
             Get
-                Return SpecialType.None
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property SpecialType As SpecialType Implements ITypeSymbol.SpecialType, ITypeSymbolInternal.SpecialType
+            Get
+                Return CType(ExtendedSpecialType, SpecialType)
             End Get
         End Property
 

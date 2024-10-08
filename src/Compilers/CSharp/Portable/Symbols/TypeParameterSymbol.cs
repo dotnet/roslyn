@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
+        protected sealed override ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected bool? CalculateIsNotNullableFromNonTypeConstraints()
+        internal bool? CalculateIsNotNullableFromNonTypeConstraints()
         {
             if (this.HasNotNullConstraint || this.HasValueTypeConstraint)
             {
@@ -571,6 +571,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
+        /// <returns>
+        /// - 'true' if constraints disallow nullable reference types
+        /// - 'false' if constraints (or lack of constraints) permit nullable reference types
+        /// - 'null' if constrained to oblivious type
+        /// </returns>
         internal abstract bool? IsNotNullable { get; }
 
         public sealed override bool IsValueType
@@ -628,6 +633,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool HasNotNullConstraint { get; }
 
         public abstract bool HasValueTypeConstraint { get; }
+
+        public abstract bool AllowsRefLikeType { get; }
 
         public abstract bool IsValueTypeFromConstraintTypes { get; }
 

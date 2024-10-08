@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver;
@@ -26,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private readonly ImmutableArray<DiagnosticSuppressor> _suppressors;
         private readonly CompilationWithAnalyzersOptions _analysisOptions;
-        private readonly CancellationToken _cancellationToken;
 
         /// <summary>
         /// Builder for storing current, possibly partial, analysis results:
@@ -61,7 +62,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// An optional cancellation token which can be used to cancel analysis.
         /// Note: This token is only used if the API invoked to get diagnostics doesn't provide a cancellation token.
         /// </summary>
-        public CancellationToken CancellationToken => _cancellationToken;
+        [Obsolete("This CancellationToken is always 'None'", error: false)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public CancellationToken CancellationToken => CancellationToken.None;
+
+        /// <inheritdoc cref="CompilationWithAnalyzers(Compilation, ImmutableArray{DiagnosticAnalyzer}, AnalyzerOptions?)"/>
+        [Obsolete("Use constructor without a cancellation token")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions? options, CancellationToken cancellationToken)
+            : this(compilation, analyzers, options)
+        {
+        }
 
         /// <summary>
         /// Creates a new compilation by attaching diagnostic analyzers to an existing compilation.
@@ -69,9 +80,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="compilation">The original compilation.</param>
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="options">Options that are passed to analyzers.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions? options, CancellationToken cancellationToken)
-            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false), cancellationToken)
+        public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions? options)
+            : this(compilation, analyzers, new CompilationWithAnalyzersOptions(options, onAnalyzerException: null, analyzerExceptionFilter: null, concurrentAnalysis: true, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: false))
         {
         }
 
@@ -82,11 +92,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
         /// <param name="analysisOptions">Options to configure analyzer execution.</param>
         public CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions)
-            : this(compilation, analyzers, analysisOptions, cancellationToken: CancellationToken.None)
-        {
-        }
-
-        private CompilationWithAnalyzers(Compilation compilation, ImmutableArray<DiagnosticAnalyzer> analyzers, CompilationWithAnalyzersOptions analysisOptions, CancellationToken cancellationToken)
         {
             VerifyArguments(compilation, analyzers, analysisOptions);
 
@@ -98,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _analyzers = analyzers;
             _suppressors = analyzers.OfType<DiagnosticSuppressor>().ToImmutableArrayOrEmpty();
             _analysisOptions = analysisOptions;
-            _cancellationToken = cancellationToken;
 
             _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers, _analysisOptions.Options?.AdditionalFiles ?? ImmutableArray<AdditionalText>.Empty);
             _compilationAnalysisScope = AnalysisScope.Create(_compilation, _analyzers, this);
@@ -225,15 +229,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns diagnostics produced by all <see cref="Analyzers"/>.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync()
         {
-            return GetAnalyzerDiagnosticsAsync(_cancellationToken);
+            return GetAnalyzerDiagnosticsAsync(CancellationToken.None);
         }
 
         /// <summary>
         /// Returns diagnostics produced by all <see cref="Analyzers"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(CancellationToken cancellationToken)
+#pragma warning disable RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
+        public async Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(CancellationToken cancellationToken = default)
+#pragma warning restore RS0027 // API with optional parameter(s) should have the most parameters amongst its public overloads
         {
             return await GetAnalyzerDiagnosticsCoreAsync(Analyzers, cancellationToken).ConfigureAwait(false);
         }
@@ -273,15 +280,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns all diagnostics produced by compilation and by all <see cref="Analyzers"/>.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync()
         {
-            return GetAllDiagnosticsAsync(_cancellationToken);
+            return GetAllDiagnosticsAsync(CancellationToken.None);
         }
 
         /// <summary>
         /// Returns all diagnostics produced by compilation and by all <see cref="Analyzers"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(CancellationToken cancellationToken = default)
         {
             var diagnostics = await getAllDiagnosticsWithoutStateTrackingAsync(Analyzers, cancellationToken: cancellationToken).ConfigureAwait(false);
             return diagnostics.AddRange(_exceptionDiagnostics);
@@ -1076,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
 
                         case SymbolDeclaredCompilationEvent symbolDeclaredCompilationEvent:
-                            if (!symbolDeclaredCompilationEvent.SymbolInternal.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken))
+                            if (!shouldIncludeSymbol(symbolDeclaredCompilationEvent.SymbolInternal, tree, cancellationToken))
                                 continue;
 
                             break;
@@ -1094,6 +1102,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return builder.ToImmutableAndFree();
+
+                static bool shouldIncludeSymbol(ISymbolInternal symbol, SyntaxTree tree, CancellationToken cancellationToken)
+                {
+                    if (symbol.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken))
+                        return true;
+
+                    // Always include both parts of partial in analysis if any one part is defined in the tree.
+                    if (symbol is IMethodSymbolInternal methodSymbol)
+                    {
+                        if (methodSymbol.PartialDefinitionPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true
+                            || methodSymbol.PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true)
+                        {
+                            return true;
+                        }
+                    }
+                    else if (symbol is IPropertySymbolInternal propertySymbol)
+                    {
+                        if (propertySymbol.PartialDefinitionPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true
+                            || propertySymbol.PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
             }
         }
 

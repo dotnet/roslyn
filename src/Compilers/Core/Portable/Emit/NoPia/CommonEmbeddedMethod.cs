@@ -82,20 +82,23 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                if (TypeManager.IsTargetAttribute(UnderlyingMethod, attrData, AttributeDescription.LCIDConversionAttribute))
+                if (TypeManager.IsTargetAttribute(attrData, AttributeDescription.LCIDConversionAttribute, out int signatureIndex))
                 {
-                    if (attrData.CommonConstructorArguments.Length == 1)
+                    if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out var constructorArguments, out var namedArguments, syntaxNodeOpt, diagnostics))
                     {
-                        return TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_LCIDConversionAttribute__ctor, attrData, syntaxNodeOpt, diagnostics);
+                        return TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_LCIDConversionAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics);
                     }
                 }
 
                 return null;
             }
+#nullable enable
+            public bool HasBody
+                => Cci.DefaultImplementations.HasBody(this);
 
-            Cci.IMethodBody Cci.IMethodDefinition.GetBody(EmitContext context)
+            Cci.IMethodBody? Cci.IMethodDefinition.GetBody(EmitContext context)
             {
-                if (Cci.Extensions.HasBody(this))
+                if (HasBody)
                 {
                     // This is an error condition, which we already reported.
                     // To prevent metadata emitter/visitor from crashing, let's
@@ -105,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 return null;
             }
-
+#nullable disable
             private sealed class EmptyBody : Cci.IMethodBody
             {
                 private readonly CommonEmbeddedMethod _method;
@@ -155,11 +158,14 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 ImmutableArray<Cci.ITypeReference> Cci.IMethodBody.StateMachineAwaiterSlots =>
                     default(ImmutableArray<Cci.ITypeReference>);
 
-                ImmutableArray<ClosureDebugInfo> Cci.IMethodBody.ClosureDebugInfo =>
-                    default(ImmutableArray<ClosureDebugInfo>);
+                ImmutableArray<EncClosureInfo> Cci.IMethodBody.ClosureDebugInfo =>
+                    default(ImmutableArray<EncClosureInfo>);
 
-                ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo =>
-                    default(ImmutableArray<LambdaDebugInfo>);
+                ImmutableArray<EncLambdaInfo> Cci.IMethodBody.LambdaDebugInfo =>
+                    default(ImmutableArray<EncLambdaInfo>);
+
+                ImmutableArray<LambdaRuntimeRudeEditInfo> Cci.IMethodBody.OrderedLambdaRuntimeRudeEdits =>
+                    ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty;
 
                 public StateMachineStatesDebugInfo StateMachineStatesDebugInfo
                     => default;
@@ -255,8 +261,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             bool Cci.IMethodReference.AcceptsExtraArguments => AcceptsExtraArguments;
 
             ushort Cci.IMethodReference.GenericParameterCount => (ushort)_typeParameters.Length;
-
-            bool Cci.IMethodReference.IsGeneric => _typeParameters.Length > 0;
 
             Cci.IMethodDefinition Cci.IMethodReference.GetResolvedMethod(EmitContext context)
             {

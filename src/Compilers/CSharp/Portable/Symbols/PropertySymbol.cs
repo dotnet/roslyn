@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a property or indexer.
     /// </summary>
-    internal abstract partial class PropertySymbol : Symbol
+    internal abstract partial class PropertySymbol : Symbol, IPropertySymbolInternal
     {
         /// <summary>
         /// As a performance optimization, cache parameter types and refkinds - overload resolution uses them a lot.
@@ -321,6 +322,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public abstract ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations { get; }
 
+#nullable enable
+        internal virtual PropertySymbol? PartialImplementationPart => null;
+        internal virtual PropertySymbol? PartialDefinitionPart => null;
+
+        IPropertySymbolInternal? IPropertySymbolInternal.PartialImplementationPart => PartialImplementationPart;
+        IPropertySymbolInternal? IPropertySymbolInternal.PartialDefinitionPart => PartialDefinitionPart;
+#nullable disable
+
         /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
@@ -331,6 +340,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return SymbolKind.Property;
             }
         }
+
+        internal int OverloadResolutionPriority
+        {
+            get
+            {
+                if (!CanHaveOverloadResolutionPriority)
+                {
+                    return 0;
+                }
+
+                return TryGetOverloadResolutionPriority() ?? 0;
+            }
+        }
+
+        internal abstract int? TryGetOverloadResolutionPriority();
+
+        internal bool CanHaveOverloadResolutionPriority => !IsOverride && !IsExplicitInterfaceImplementation && (IsIndexer || IsIndexedProperty);
 
         /// <summary>
         /// Implements visitor pattern.

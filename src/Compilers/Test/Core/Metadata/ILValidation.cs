@@ -106,6 +106,7 @@ namespace Roslyn.Test.Utilities
                         // signing implementation.
                         Array.Reverse(reversedSignature);
 
+                        // CodeQL [SM02196] ECMA-335 requires us to support SHA-1 and this is testing that support
                         if (!rsa.VerifyHash(hash, reversedSignature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
                         {
                             return false;
@@ -145,6 +146,7 @@ namespace Roslyn.Test.Utilities
                 buffer[authenticodeOffset + i] = 0;
             }
 
+            // CodeQL [SM02196] ECMA-335 requires us to support SHA-1 and this is testing that support
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
                 // First hash the DOS header and PE headers
@@ -182,10 +184,10 @@ namespace Roslyn.Test.Utilities
                 + sizeof(int)                                  // Checksum
                 + sizeof(short)                                // Subsystem
                 + sizeof(short)                                // DllCharacteristics
-                + 4 * (is32bit ? sizeof(int) : sizeof(long)) + // SizeOfStackReserve, SizeOfStackCommit, SizeOfHeapReserve, SizeOfHeapCommit
-                +sizeof(int) +                                // LoaderFlags
-                +sizeof(int) +                                // NumberOfRvaAndSizes
-                +4 * sizeof(long);                            // directory entries before Authenticode
+                + 4 * (is32bit ? sizeof(int) : sizeof(long))   // SizeOfStackReserve, SizeOfStackCommit, SizeOfHeapReserve, SizeOfHeapCommit
+                + sizeof(int)                                  // LoaderFlags
+                + sizeof(int)                                  // NumberOfRvaAndSizes
+                + 4 * sizeof(long);                            // directory entries before Authenticode
         }
 
         private static MethodInfo s_peheaderSizeMethod;

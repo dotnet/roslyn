@@ -30,5 +30,5 @@ internal abstract class AbstractSimpleMemberBody(SyntaxNode node) : MemberBody
         => node.DescendantTokens();
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => model.AnalyzeDataFlow(Node).Captured;
+        => model.AnalyzeDataFlow(Node).CapturedInside;
 }

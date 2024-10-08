@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using Roslyn.Test.Performance.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -129,7 +128,7 @@ namespace Roslyn.Test.Performance.Utilities
 
     public class WallClockTraceManager : ITraceManager
     {
-        private readonly List<long> _durations = new List<long>();
+        private readonly List<long> _durations = [];
         private string _testName = "";
 
         private Stopwatch _stopwatch;

@@ -4,11 +4,10 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.LineSeparators
-{
-    internal static class LineSeparatorsOptionsStorage
-    {
-        public static readonly PerLanguageOption2<bool> LineSeparator = new("dotnet_display_line_separators", defaultValue: false);
+namespace Microsoft.CodeAnalysis.LineSeparators;
 
-    }
+internal static class LineSeparatorsOptionsStorage
+{
+    public static readonly PerLanguageOption2<bool> LineSeparator = new("dotnet_display_line_separators", defaultValue: false);
+
 }

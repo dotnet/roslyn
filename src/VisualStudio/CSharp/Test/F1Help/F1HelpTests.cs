@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
@@ -263,6 +262,14 @@ class Program<T> wh[||]ere T : class
         {
             await TestAsync(
 @"#regi[||]on
+#endregion", "#region");
+        }
+
+        [Fact]
+        public async Task TestPreprocessor2()
+        {
+            await TestAsync(
+@"#region[||]
 #endregion", "#region");
         }
 
@@ -796,6 +803,34 @@ class Program
         M1(parameter: argument);   // 2
     }
 }", "System.Int32");
+        }
+
+        [Fact]
+        public async Task TestRefReadonlyParameter_Ref()
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    void M(r[||]ef readonly int x)
+                    {
+                    }
+                }
+                """, "ref_CSharpKeyword");
+        }
+
+        [Fact]
+        public async Task TestRefReadonlyParameter_ReadOnly()
+        {
+            await TestAsync(
+                """
+                class C
+                {
+                    void M(ref read[||]only int x)
+                    {
+                    }
+                }
+                """, "readonly_CSharpKeyword");
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/862420")]
@@ -1440,6 +1475,19 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48392")]
+        public async Task TestAllowsRefStructAntiConstraint()
+        {
+            await Test_KeywordAsync(
+@"class C
+{ 
+    void M<T>()
+        where T : all[||]ows ref struct
+    {
+    }
+}", "allows");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48392")]
         public async Task TestUsingStaticOnUsingKeyword()
         {
             await Test_KeywordAsync(
@@ -1914,6 +1962,79 @@ class C
             await Test_KeywordAsync("""
                 1 >>[||]>= 2;
                 """, expectedText: ">>>=");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorIf()
+        {
+            await TestAsync(
+@"
+#i[||]f ANY
+#endif
+", "#if");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorIf2()
+        {
+            await TestAsync(
+@"
+#if ANY[||]
+#endif
+", "#if");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorEndIf()
+        {
+            await TestAsync(
+@"
+#if ANY
+#en[||]dif
+", "#endif");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorEndIf2()
+        {
+            await TestAsync(
+@"
+#if ANY
+#endif[||]
+", "#endif");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElse()
+        {
+            await TestAsync(
+@"
+#if ANY
+#el[||]se
+#endif
+", "#else");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElse2()
+        {
+            await TestAsync(
+@"
+#if ANY
+#else[||]
+#endif
+", "#else");
+        }
+
+        [Fact]
+        public async Task TestPreprocessorElIf()
+        {
+            await TestAsync(
+@"
+#if ANY
+#el[||]if SOME
+#endif
+", "#elif");
         }
     }
 }

@@ -31,15 +31,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
         ''' name preceded by an underscore. We will use this as the field name so we don't mess up 
         ''' any existing references to this field.
         ''' </summary>
-        Protected Overrides Function GetFieldNameAsync(document As Document, propertySymbol As IPropertySymbol, fallbackOptions As NamingStylePreferencesProvider, cancellationToken As CancellationToken) As Task(Of String)
+        Protected Overrides Function GetFieldNameAsync(document As Document, propertySymbol As IPropertySymbol, cancellationToken As CancellationToken) As Task(Of String)
             Return Task.FromResult(Underscore + propertySymbol.Name)
         End Function
 
         Protected Overrides Function GetNewAccessors(
-            info As VisualBasicCodeGenerationContextInfo,
-            propertyNode As SyntaxNode,
-            fieldName As String,
-            generator As SyntaxGenerator) As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
+                info As VisualBasicCodeGenerationContextInfo,
+                propertyNode As SyntaxNode,
+                fieldName As String,
+                generator As SyntaxGenerator,
+                cancellationToken As CancellationToken) As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
 
             Dim returnStatement = New SyntaxList(Of StatementSyntax)(DirectCast(generator.ReturnStatement(
                 generator.IdentifierName(fieldName)), StatementSyntax))

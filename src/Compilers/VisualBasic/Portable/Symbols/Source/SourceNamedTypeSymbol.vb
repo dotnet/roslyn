@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' Attributes on type. Set once after construction. IsNull means not set.  
         Protected m_lazyCustomAttributesBag As CustomAttributesBag(Of VisualBasicAttributeData)
 
-        Private ReadOnly _corTypeId As SpecialType
+        Private ReadOnly _corTypeId As ExtendedSpecialType
 
         Private _lazyDocComment As String
         Private _lazyExpandedDocComment As String
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 emittedName = MetadataHelpers.BuildQualifiedName(emittedName, MetadataName)
                 _corTypeId = SpecialTypes.GetTypeFromMetadataName(emittedName)
             Else
-                _corTypeId = SpecialType.None
+                _corTypeId = Nothing
             End If
 
             If containingSymbol.Kind = SymbolKind.NamedType Then
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Public Overrides ReadOnly Property SpecialType As SpecialType
+        Public Overrides ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
             Get
                 Return _corTypeId
             End Get
@@ -1972,11 +1972,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Is System.Runtime.InteropServices.GuidAttribute applied to this type in code.
         ''' </summary>
         Friend Function HasGuidAttribute() As Boolean
-            ' So far this information is used only by ComClass feature, therefore, I do not believe
-            ' it is worth to intercept this attribute in DecodeWellKnownAttribute and cache the fact of attribute's
-            ' presence and the guid value. If we start caching that information, implementation of this function 
-            ' should change to take advantage of the cache.
-            Return GetAttributes().IndexOfAttribute(Me, AttributeDescription.GuidAttribute) > -1
+            Return Me.GetDecodedWellKnownAttributeData()?.GuidString IsNot Nothing
+        End Function
+
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = Me.GetDecodedWellKnownAttributeData()?.GuidString
+            Return guidString IsNot Nothing
         End Function
 
         ''' <summary>
@@ -1987,7 +1988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' it is worth to intercept this attribute in DecodeWellKnownAttribute and cache the fact of attribute's
             ' presence and its data. If we start caching that information, implementation of this function 
             ' should change to take advantage of the cache.
-            Return GetAttributes().IndexOfAttribute(Me, AttributeDescription.ClassInterfaceAttribute) > -1
+            Return GetAttributes().IndexOfAttribute(AttributeDescription.ClassInterfaceAttribute) > -1
         End Function
 
         ''' <summary>
@@ -1998,7 +1999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' it is worth to intercept this attribute in DecodeWellKnownAttribute and cache the fact of attribute's
             ' presence and the its data. If we start caching that information, implementation of this function 
             ' should change to take advantage of the cache.
-            Return GetAttributes().IndexOfAttribute(Me, AttributeDescription.ComSourceInterfacesAttribute) > -1
+            Return GetAttributes().IndexOfAttribute(AttributeDescription.ComSourceInterfacesAttribute) > -1
         End Function
 
         Friend Overrides Function EarlyDecodeWellKnownAttribute(ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation)) As VisualBasicAttributeData
@@ -2173,7 +2174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' If we start caching information about ComSourceInterfacesAttribute here, implementation of HasComSourceInterfacesAttribute function should be changed accordingly.
             ' If we start caching information about ComVisibleAttribute here, implementation of GetComVisibleState function should be changed accordingly.
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 diagnostics.Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
@@ -2181,11 +2182,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Select Case Me.TypeKind
                 Case TypeKind.Class
-                    If attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
+                    If attrData.IsTargetAttribute(AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                         diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionOnlyAllowedOnModuleSubOrFunction), Me.Locations(0))
                         decoded = True
 
-                    ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.VisualBasicComClassAttribute) Then
+                    ElseIf attrData.IsTargetAttribute(AttributeDescription.VisualBasicComClassAttribute) Then
                         If Me.IsGenericType Then
                             diagnostics.Add(ERRID.ERR_ComClassOnGeneric, Me.Locations(0))
                         Else
@@ -2194,7 +2195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         decoded = True
 
-                    ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DefaultEventAttribute) Then
+                    ElseIf attrData.IsTargetAttribute(AttributeDescription.DefaultEventAttribute) Then
                         If attrData.CommonConstructorArguments.Length = 1 AndAlso attrData.CommonConstructorArguments(0).Kind = TypedConstantKind.Primitive Then
                             Dim eventName = TryCast(attrData.CommonConstructorArguments(0).ValueInternal, String)
 
@@ -2208,7 +2209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                 Case TypeKind.Interface
-                    If attrData.IsTargetAttribute(Me, AttributeDescription.CoClassAttribute) Then
+                    If attrData.IsTargetAttribute(AttributeDescription.CoClassAttribute) Then
                         Debug.Assert(Not attrData.CommonConstructorArguments.IsDefault AndAlso attrData.CommonConstructorArguments.Length = 1)
                         Dim argument As TypedConstant = attrData.CommonConstructorArguments(0)
 
@@ -2228,12 +2229,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                 Case TypeKind.Module
-                    If ContainingSymbol.Kind = SymbolKind.Namespace AndAlso attrData.IsTargetAttribute(Me, AttributeDescription.CaseInsensitiveExtensionAttribute) Then
+                    If ContainingSymbol.Kind = SymbolKind.Namespace AndAlso attrData.IsTargetAttribute(AttributeDescription.CaseInsensitiveExtensionAttribute) Then
                         ' Already have an attribute, no need to add another one.
                         SuppressExtensionAttributeSynthesis()
                         decoded = True
 
-                    ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.VisualBasicComClassAttribute) Then
+                    ElseIf attrData.IsTargetAttribute(AttributeDescription.VisualBasicComClassAttribute) Then
                         ' Can't apply ComClassAttribute to a Module
                         diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_InvalidAttributeUsage2, AttributeDescription.VisualBasicComClassAttribute.Name, Me.Name), Me.Locations(0))
                         decoded = True
@@ -2241,7 +2242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Select
 
             If Not decoded Then
-                If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultMemberAttribute) Then
+                If attrData.IsTargetAttribute(AttributeDescription.DefaultMemberAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasDefaultMemberAttribute = True
 
                     ' Check that the explicit <DefaultMember(...)> argument matches the default property if any.
@@ -2252,14 +2253,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(ERRID.ERR_ConflictDefaultPropertyAttribute, Locations(0), Me)
                     End If
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SerializableAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.SerializableAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSerializableAttribute = True
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasExcludeFromCodeCoverageAttribute = True
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSpecialNameAttribute = True
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.StructLayoutAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.StructLayoutAttribute) Then
                     Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
 
                     Dim defaultAutoLayoutSize = If(Me.TypeKind = TypeKind.Structure, 1, 0)
@@ -2270,33 +2271,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         diagnostics.Add(ERRID.ERR_StructLayoutAttributeNotAllowed, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                     End If
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.SuppressUnmanagedCodeSecurityAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSuppressUnmanagedCodeSecurityAttribute = True
 
                 ElseIf attrData.IsSecurityAttribute(Me.DeclaringCompilation) Then
                     attrData.DecodeSecurityAttribute(Of CommonTypeWellKnownAttributeData)(Me, Me.DeclaringCompilation, arguments)
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ClassInterfaceAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.ClassInterfaceAttribute) Then
                     attrData.DecodeClassInterfaceAttribute(arguments.AttributeSyntaxOpt, diagnostics)
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.InterfaceTypeAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.InterfaceTypeAttribute) Then
                     attrData.DecodeInterfaceTypeAttribute(arguments.AttributeSyntaxOpt, diagnostics)
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
-                    attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.GuidAttribute) Then
+                    arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().GuidString = attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, diagnostics)
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.WindowsRuntimeImportAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.WindowsRuntimeImportAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasWindowsRuntimeImportAttribute = True
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SecurityCriticalAttribute) OrElse
-                       attrData.IsTargetAttribute(Me, AttributeDescription.SecuritySafeCriticalAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.SecurityCriticalAttribute) OrElse
+                       attrData.IsTargetAttribute(AttributeDescription.SecuritySafeCriticalAttribute) Then
                     arguments.GetOrCreateData(Of CommonTypeWellKnownAttributeData)().HasSecurityCriticalAttributes = True
 
                 ElseIf _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown AndAlso
-                    attrData.IsTargetAttribute(Me, AttributeDescription.TypeIdentifierAttribute) Then
+                    attrData.IsTargetAttribute(AttributeDescription.TypeIdentifierAttribute) Then
                     _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True
 
-                ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.RequiredAttributeAttribute) Then
+                ElseIf attrData.IsTargetAttribute(AttributeDescription.RequiredAttributeAttribute) Then
                     Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
                     diagnostics.Add(ERRID.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.GetLocation(), Me)
                 End If
@@ -2537,7 +2538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Add MetadataUpdateOriginalTypeAttribute when a reloadable type is emitted to EnC delta
-            If moduleBuilder.EncSymbolChanges?.IsReplaced(CType(Me, ISymbolInternal).GetISymbol()) = True Then
+            If moduleBuilder.EncSymbolChanges?.IsReplaced(Me) = True Then
                 ' Note that we use this source named type symbol in the attribute argument (of System.Type).
                 ' We do not have access to the original symbol from this compilation. However, System.Type
                 ' is encoded in the attribute as a string containing a fully qualified type name.

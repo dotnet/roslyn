@@ -5,11 +5,9 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -19,6 +17,8 @@ using static Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions2;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
+    using static CSharpSyntaxTokens;
+
     [Trait(Traits.Feature, Traits.Features.Formatting)]
     public class FormattingTests : CSharpFormattingTestBase
     {
@@ -3541,6 +3541,118 @@ static void Main(string[] args)
 ");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer0()
+        {
+            await AssertFormatAsync("""
+                F(stackalloc int[]
+                    {
+                        1,
+                        2,
+                    });
+                """, """
+                F(stackalloc int[]
+                    {
+                        1,
+                        2,
+                    }                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer0_Implicit()
+        {
+            await AssertFormatAsync("""
+                F(stackalloc[]
+                    {
+                        1,
+                        2,
+                    }
+                );
+                """, """
+                F(                    stackalloc []
+                    {
+                        1,
+                        2,
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer1()
+        {
+            await AssertFormatAsync("""
+                F(
+                    stackalloc int[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """, """
+                F(
+                    stackalloc int[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer1_Implicit()
+        {
+            await AssertFormatAsync("""
+                F(
+                    stackalloc[]
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """, """
+                F(
+                    stackalloc []
+                    {
+                        1,2,
+                        3,4
+                    }
+                );
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer2()
+        {
+            await AssertFormatAsync("""
+                var x = (stackalloc int[] {1,2,
+                     3
+                });
+                """, """
+                var x = (stackalloc int[] {1,2,
+                     3
+                });
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/65498")]
+        public async Task StackAllocArrayInitializer2_Implicit()
+        {
+            await AssertFormatAsync("""
+                var x = (stackalloc[]
+                {1,
+                    2, 3
+                });
+                """, """
+                var x = (stackalloc []
+                {1,
+                    2, 3
+                });
+                """);
+        }
+
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537884")]
         public async Task CollectionInitializer()
         {
@@ -3930,6 +4042,26 @@ public       void       Method      (       )           {
         Main(args: null);
     }
 }";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact]
+        public async Task RefReadonlyParameters()
+        {
+            var code = """
+                class C
+                {
+                    int   this  [   ref     readonly    int      x   ,   ref    readonly   int   y   ]   {   get ;   set ;  }
+                    void    M  (   ref    readonly     int   x    ,   ref    readonly   int   y   )  {   }
+                }
+                """;
+            var expected = """
+                class C
+                {
+                    int this[ref readonly int x, ref readonly int y] { get; set; }
+                    void M(ref readonly int x, ref readonly int y) { }
+                }
+                """;
             await AssertFormatAsync(expected, code);
         }
 
@@ -4505,22 +4637,18 @@ class innerClass
 }";
 
             var property = SyntaxFactory.PropertyDeclaration(
-                SyntaxFactory.List<AttributeListSyntax>(),
-                SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)),
+                attributeLists: [],
+                [PublicKeyword],
                 SyntaxFactory.ParseTypeName("int"),
                 null,
                 SyntaxFactory.Identifier("Prop"),
-                SyntaxFactory.AccessorList(
-                    SyntaxFactory.List(
-                        new AccessorDeclarationSyntax[]
-                        {
-                        SyntaxFactory.AccessorDeclaration(
-                            SyntaxKind.GetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("return c;")))),
-                        SyntaxFactory.AccessorDeclaration(
-                            SyntaxKind.SetAccessorDeclaration,
-                            SyntaxFactory.Block(SyntaxFactory.SingletonList(SyntaxFactory.ParseStatement("c = value;"))))
-                        })));
+                SyntaxFactory.AccessorList([
+                    SyntaxFactory.AccessorDeclaration(
+                        SyntaxKind.GetAccessorDeclaration,
+                        SyntaxFactory.Block(SyntaxFactory.ParseStatement("return c;"))),
+                    SyntaxFactory.AccessorDeclaration(
+                        SyntaxKind.SetAccessorDeclaration,
+                        SyntaxFactory.Block(SyntaxFactory.ParseStatement("c = value;")))]));
 
             Assert.NotNull(property);
             using var workspace = new AdhocWorkspace();
@@ -5149,8 +5277,10 @@ _ = this is  C(  ){}  ; }
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34683")]
         public async Task FormatRecursivePattern_InBinaryOperation()
         {
-            var changingOptions = new OptionsCollection(LanguageNames.CSharp);
-            changingOptions.Add(CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true);
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { CSharpFormattingOptions2.SpaceWithinMethodCallParentheses, true }
+            };
             var code = @"class C
 {
     void M()
@@ -9949,6 +10079,44 @@ class A
         return a is
         {
             Name: ""foo"",
+        };
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(57854, "https://github.com/dotnet/roslyn/issues/57854")]
+        public async Task NewLinesForBraces_PropertyPatternClauses_NonDefaultInSwitchExpression()
+        {
+            var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { NewLineBeforeOpenBrace, NewLineBeforeOpenBrace.DefaultValue.WithFlagValue(NewLineBeforeOpenBracePlacement.ObjectCollectionArrayInitializers, false) },
+            };
+            await AssertFormatAsync(
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a switch {
+            { Name: ""foo"" } => true,
+            _ => false,
+        };
+    }
+}",
+                @"
+class A
+{
+    public string Name { get; }
+
+    public bool IsFoo(A a)
+    {
+        return a switch
+        {
+            { Name: ""foo"" } => true,
+            _ => false,
         };
     }
 }", changedOptionSet: changingOptions);

@@ -9,23 +9,21 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Analyzer;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View.ColumnDefinitions
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View.ColumnDefinitions;
+
+[Export(typeof(ITableColumnDefinition))]
+[Name(Title)]
+internal class AnalyzerTitleColumnDefinition : TableColumnDefinitionBase
 {
-
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(Title)]
-    internal class AnalyzerTitleColumnDefinition : TableColumnDefinitionBase
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AnalyzerTitleColumnDefinition()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerTitleColumnDefinition()
-        {
-        }
-
-        public override string Name => Title;
-        public override string DisplayName => ServicesVSResources.Title;
-        public override bool IsFilterable => false;
-        public override bool IsSortable => false;
-        public override double MinWidth => 350;
     }
+
+    public override string Name => Title;
+    public override string DisplayName => ServicesVSResources.Title;
+    public override bool IsFilterable => false;
+    public override bool IsSortable => false;
+    public override double MinWidth => 350;
 }

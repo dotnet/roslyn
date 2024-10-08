@@ -6,20 +6,19 @@
 
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
+
+internal partial class CSharpVarReducer : AbstractCSharpReducer
 {
-    internal partial class CSharpVarReducer : AbstractCSharpReducer
+    private static readonly ObjectPool<IReductionRewriter> s_pool = new(
+        () => new Rewriter(s_pool));
+
+    public CSharpVarReducer() : base(s_pool)
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
-            () => new Rewriter(s_pool));
-
-        public CSharpVarReducer() : base(s_pool)
-        {
-        }
-
-        protected override bool IsApplicable(CSharpSimplifierOptions options)
-            => options.VarForBuiltInTypes.Value ||
-               options.VarWhenTypeIsApparent.Value ||
-               options.VarElsewhere.Value;
     }
+
+    protected override bool IsApplicable(CSharpSimplifierOptions options)
+        => options.VarForBuiltInTypes.Value ||
+           options.VarWhenTypeIsApparent.Value ||
+           options.VarElsewhere.Value;
 }

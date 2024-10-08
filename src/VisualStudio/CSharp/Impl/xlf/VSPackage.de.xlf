@@ -410,14 +410,39 @@ Elemente aus nicht importierten Namespaces anzeigen (experimentell);</target>
         <target state="translated">C#-Komponenten, die in der IDE verwendet werden. Abhängig von Ihrem Projekttyp und den zugehörigen Einstellungen kann eine andere Version des Compilers verwendet werden.</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">Eine leere C#-Skriptdatei.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Nach Drücken der EINGABETASTE immer neue Zeile hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Visual C#-Skript</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Schnipsel immer einschließen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default">
+        <source>Default</source>
+        <target state="translated">Standard</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when Tab is typed after an identifier</source>
+        <target state="translated">Ausschnitte einschließen, wenn Tab nach einem Bezeichner eingegeben wird</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Nach Drücken der EINGABETASTE niemals neue Zeile hinzufügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Schnipsel nie einschließen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Nach Drücken der EINGABETASTE nur nach dem Ende eines vollständigen Worts neue Zeile hinzufügen</target>
         <note />
       </trans-unit>
     </body>

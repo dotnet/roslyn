@@ -21,25 +21,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.Rename)>
     Public Class RenameTagProducerTests
-        Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As RenameCommandHandler
+        Private Shared Function CreateCommandHandler(workspace As EditorTestWorkspace) As RenameCommandHandler
             Return workspace.ExportProvider.GetCommandHandler(Of RenameCommandHandler)(PredefinedCommandHandlerNames.Rename)
         End Function
 
-        Private Shared Async Function VerifyEmptyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+        Private Shared Async Function VerifyEmptyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService) As Task
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, SpecializedCollections.EmptyEnumerable(Of Span))
         End Function
 
-        Private Shared Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+        Private Shared Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService) As Task
             Dim expectedSpans = actualWorkspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Select(Function(ts) ts.ToSpan())
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, expectedSpans)
         End Function
 
-        Private Shared Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As TestWorkspace) As Task
+        Private Shared Async Function VerifyTaggedSpans(tagType As TextMarkerTag, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As EditorTestWorkspace) As Task
             Dim expectedSpans = expectedTaggedWorkspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Select(Function(ts) ts.ToSpan())
             Await VerifyTaggedSpansCore(tagType, actualWorkspace, renameService, expectedSpans)
         End Function
 
-        Private Shared Async Function VerifyAnnotatedTaggedSpans(tagType As TextMarkerTag, annotationString As String, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As TestWorkspace) As Task
+        Private Shared Async Function VerifyAnnotatedTaggedSpans(tagType As TextMarkerTag, annotationString As String, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService, expectedTaggedWorkspace As EditorTestWorkspace) As Task
             Dim annotatedDocument = expectedTaggedWorkspace.Documents.SingleOrDefault(Function(d) d.AnnotatedSpans.Any())
 
             Dim expectedSpans As IEnumerable(Of Span)
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                                                End Function)
         End Function
 
-        Private Shared Async Function VerifySpansBeforeConflictResolution(actualWorkspace As TestWorkspace, renameService As InlineRenameService) As Task
+        Private Shared Async Function VerifySpansBeforeConflictResolution(actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService) As Task
             ' Verify no fixup/resolved non-reference conflict span.
             Await VerifyEmptyTaggedSpans(HighlightTags.RenameFixupTag.Instance, actualWorkspace, renameService)
 
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, actualWorkspace, renameService)
         End Function
 
-        Private Shared Async Function VerifySpansAndBufferForConflictResolution(actualWorkspace As TestWorkspace, renameService As InlineRenameService, resolvedConflictWorkspace As TestWorkspace,
+        Private Shared Async Function VerifySpansAndBufferForConflictResolution(actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService, resolvedConflictWorkspace As EditorTestWorkspace,
                                                                 session As IInlineRenameSession, Optional sessionCommit As Boolean = False, Optional sessionCancel As Boolean = False) As System.Threading.Tasks.Task
             Await WaitForRename(actualWorkspace)
 
@@ -89,18 +89,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     session.Cancel()
                     VerifyBufferContentsInWorkspace(actualWorkspace, actualWorkspace)
                 ElseIf sessionCommit Then
-                    Await session.CommitAsync(previewChanges:=False, CancellationToken.None)
+                    Await session.CommitAsync(previewChanges:=False)
                     VerifyBufferContentsInWorkspace(actualWorkspace, resolvedConflictWorkspace)
                 End If
             End If
         End Function
 
-        Private Shared Async Function VerifyTaggedSpansCore(tagType As TextMarkerTag, actualWorkspace As TestWorkspace, renameService As InlineRenameService, expectedSpans As IEnumerable(Of Span)) As Task
+        Private Shared Async Function VerifyTaggedSpansCore(tagType As TextMarkerTag, actualWorkspace As EditorTestWorkspace, renameService As InlineRenameService, expectedSpans As IEnumerable(Of Span)) As Task
             Dim taggedSpans = Await GetTagsOfType(tagType, actualWorkspace, renameService)
             Assert.Equal(expectedSpans, taggedSpans)
         End Function
 
-        Private Shared Sub VerifyBufferContentsInWorkspace(actualWorkspace As TestWorkspace, expectedWorkspace As TestWorkspace)
+        Private Shared Sub VerifyBufferContentsInWorkspace(actualWorkspace As EditorTestWorkspace, expectedWorkspace As EditorTestWorkspace)
             Dim actualDocs = actualWorkspace.Documents
             Dim expectedDocs = expectedWorkspace.Documents
             Assert.Equal(expectedDocs.Count, actualDocs.Count)
@@ -1682,7 +1682,7 @@ static class E
             End Using
         End Function
 
-        Private Shared Async Function GetTagsOfType(expectedTagType As ITextMarkerTag, workspace As TestWorkspace, renameService As InlineRenameService) As Task(Of IEnumerable(Of Span))
+        Private Shared Async Function GetTagsOfType(expectedTagType As ITextMarkerTag, workspace As EditorTestWorkspace, renameService As InlineRenameService) As Task(Of IEnumerable(Of Span))
             Dim textBuffer = workspace.Documents.Single().GetTextBuffer()
             Await WaitForRename(workspace)
 

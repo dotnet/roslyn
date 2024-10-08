@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [Fact]
         public static void TestEmptyDictionaryReturnNoNamingStylePreferencesObjectReturnsFalse()
         {
-            var options = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.EmptyDictionary);
+            var options = StructuredAnalyzerConfigOptions.Create(DictionaryAnalyzerConfigOptions.Empty);
             var value = options.GetNamingStylePreferences();
             Assert.True(value.IsEmpty);
         }
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
         [Fact]
         public static void TestNonEmptyDictionaryReturnsTrue()
         {
-            var options = StructuredAnalyzerConfigOptions.Create(new Dictionary<string, string>()
+            var options = StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(new Dictionary<string, string>()
             {
                 ["dotnet_naming_rule.methods_and_properties_must_be_pascal_case.severity"] = "error",
                 ["dotnet_naming_rule.methods_and_properties_must_be_pascal_case.symbols"] = "method_and_property_symbols",
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.EditorConfig.StorageLocation
                 ["dotnet_naming_symbols.method_and_property_symbols.applicable_kinds"] = "method,property",
                 ["dotnet_naming_symbols.method_and_property_symbols.applicable_accessibilities"] = "*",
                 ["dotnet_naming_style.pascal_case_style.capitalization"] = "pascal_case"
-            }.ToImmutableDictionary(AnalyzerConfigOptions.KeyComparer));
+            }.ToImmutableDictionary(AnalyzerConfigOptions.KeyComparer)));
 
             var value = options.GetNamingStylePreferences();
             Assert.Equal(ReportDiagnostic.Error, value.Rules.NamingRules[0].EnforcementLevel);

@@ -3,83 +3,81 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Options
+namespace Microsoft.CodeAnalysis.Options;
+
+/// <inheritdoc cref="OptionKey2"/>
+[NonDefaultable]
+public readonly record struct OptionKey
 {
-    /// <inheritdoc cref="OptionKey2"/>
-    [NonDefaultable]
-    public readonly record struct OptionKey
+    /// <inheritdoc cref="OptionKey2.Option"/>
+    public IOption Option { get; }
+
+    /// <inheritdoc cref="OptionKey2.Language"/>
+    public string? Language { get; }
+
+    public OptionKey(IOption option, string? language = null)
     {
-        /// <inheritdoc cref="OptionKey2.Option"/>
-        public IOption Option { get; }
-
-        /// <inheritdoc cref="OptionKey2.Language"/>
-        public string? Language { get; }
-
-        public OptionKey(IOption option, string? language = null)
+        if (option is null)
         {
-            if (option is null)
-            {
-                throw new ArgumentNullException(nameof(option));
-            }
-
-            if (language != null && !option.IsPerLanguage)
-            {
-                throw new ArgumentException(WorkspacesResources.A_language_name_cannot_be_specified_for_this_option);
-            }
-
-            if (language == null && option.IsPerLanguage)
-            {
-                throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
-            }
-
-            Option = option;
-            Language = language;
+            throw new ArgumentNullException(nameof(option));
         }
 
-        public bool Equals(OptionKey other)
+        if (language != null && !option.IsPerLanguage)
         {
-            return OptionEqual(Option, other.Option) && Language == other.Language;
-
-            static bool OptionEqual(IOption thisOption, IOption otherOption)
-            {
-                if (thisOption is not IOption2 thisOption2 ||
-                    otherOption is not IOption2 otherOption2)
-                {
-                    // Third party definition of 'IOption'.
-                    return thisOption.Equals(otherOption);
-                }
-
-                return thisOption2.Equals(otherOption2);
-            }
+            throw new ArgumentException(WorkspacesResources.A_language_name_cannot_be_specified_for_this_option);
         }
 
-        public override int GetHashCode()
+        if (language == null && option.IsPerLanguage)
         {
-            var hash = Option?.GetHashCode() ?? 0;
-
-            if (Language != null)
-            {
-                hash = unchecked((hash * (int)0xA5555529) + Language.GetHashCode());
-            }
-
-            return hash;
+            throw new ArgumentNullException(WorkspacesResources.A_language_name_must_be_specified_for_this_option);
         }
 
-        public override string ToString()
+        Option = option;
+        Language = language;
+    }
+
+    public bool Equals(OptionKey other)
+    {
+        return OptionEqual(Option, other.Option) && Language == other.Language;
+
+        static bool OptionEqual(IOption thisOption, IOption otherOption)
         {
-            if (Option is null)
+            if (thisOption is not IOption2 thisOption2 ||
+                otherOption is not IOption2 otherOption2)
             {
-                return "";
+                // Third party definition of 'IOption'.
+                return thisOption.Equals(otherOption);
             }
 
-            var languageDisplay = Option.IsPerLanguage
-                ? $"({Language}) "
-                : string.Empty;
-
-            return languageDisplay + Option.ToString();
+            return thisOption2.Equals(otherOption2);
         }
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = Option?.GetHashCode() ?? 0;
+
+        if (Language != null)
+        {
+            hash = unchecked((hash * (int)0xA5555529) + Language.GetHashCode());
+        }
+
+        return hash;
+    }
+
+    public override string ToString()
+    {
+        if (Option is null)
+        {
+            return "";
+        }
+
+        var languageDisplay = Option.IsPerLanguage
+            ? $"({Language}) "
+            : string.Empty;
+
+        return languageDisplay + Option.ToString();
     }
 }

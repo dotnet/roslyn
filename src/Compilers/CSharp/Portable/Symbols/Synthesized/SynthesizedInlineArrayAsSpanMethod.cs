@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedInlineArrayAsSpanMethod : SynthesizedGlobalMethodSymbol
     {
-        internal SynthesizedInlineArrayAsSpanMethod(SourceModuleSymbol containingModule, PrivateImplementationDetails privateImplType, string synthesizedMethodName, NamedTypeSymbol spanType, NamedTypeSymbol intType)
-            : base(containingModule, privateImplType, synthesizedMethodName)
+        internal SynthesizedInlineArrayAsSpanMethod(SynthesizedPrivateImplementationDetailsType privateImplType, string synthesizedMethodName, NamedTypeSymbol spanType, NamedTypeSymbol intType)
+            : base(privateImplType, synthesizedMethodName)
         {
             this.SetTypeParameters(ImmutableArray.Create<TypeParameterSymbol>(new SynthesizedSimpleMethodTypeParameterSymbol(this, 0, "TBuffer"), new SynthesizedSimpleMethodTypeParameterSymbol(this, 1, "TElement")));
             this.SetReturnType(spanType.Construct(TypeParameters[1]));

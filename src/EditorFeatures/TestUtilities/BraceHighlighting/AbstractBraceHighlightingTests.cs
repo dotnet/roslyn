@@ -7,11 +7,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceMatching;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -28,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             string markup, ParseOptions options = null, bool swapAnglesWithBrackets = false)
         {
             MarkupTestFile.GetPositionAndSpans(markup,
-                out var text, out int cursorPosition, out var expectedSpans);
+                out var text, out var cursorPosition, out var expectedSpans);
 
             // needed because markup test file can't support [|[|] to indicate selecting
             // just an open bracket.
@@ -37,35 +33,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 text = text.Replace("<", "[").Replace(">", "]");
             }
 
-            using (var workspace = CreateWorkspace(text, options))
-            {
-                WpfTestRunner.RequireWpfFact($"{nameof(AbstractBraceHighlightingTests)}.{nameof(TestBraceHighlightingAsync)} creates asynchronous taggers");
+            using var workspace = CreateWorkspace(text, options);
+            WpfTestRunner.RequireWpfFact($"{nameof(AbstractBraceHighlightingTests)}.{nameof(TestBraceHighlightingAsync)} creates asynchronous taggers");
 
-                var provider = new BraceHighlightingViewTaggerProvider(
-                    workspace.GetService<IThreadingContext>(),
-                    GetBraceMatchingService(workspace),
-                    workspace.GetService<IGlobalOptionService>(),
-                    visibilityTracker: null,
-                    AsynchronousOperationListenerProvider.NullProvider);
+            var provider = new BraceHighlightingViewTaggerProvider(
+                workspace.GetService<TaggerHost>(),
+                GetBraceMatchingService(workspace));
 
-                var testDocument = workspace.Documents.First();
-                var buffer = testDocument.GetTextBuffer();
-                var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
-                var context = new TaggerContext<BraceHighlightTag>(
-                    document, buffer.CurrentSnapshot,
-                    new SnapshotPoint(buffer.CurrentSnapshot, cursorPosition));
-                await provider.GetTestAccessor().ProduceTagsAsync(context);
+            var testDocument = workspace.Documents.First();
+            var buffer = testDocument.GetTextBuffer();
+            var document = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault();
+            var context = new TaggerContext<BraceHighlightTag>(
+                document, buffer.CurrentSnapshot, frozenPartialSemantics: false,
+                new SnapshotPoint(buffer.CurrentSnapshot, cursorPosition));
+            await provider.GetTestAccessor().ProduceTagsAsync(context);
 
-                var expectedHighlights = expectedSpans.Select(ts => ts.ToSpan()).OrderBy(s => s.Start).ToList();
-                var actualHighlights = context.TagSpans.Select(ts => ts.Span.Span).OrderBy(s => s.Start).ToList();
+            var expectedHighlights = expectedSpans.Select(ts => ts.ToSpan()).OrderBy(s => s.Start).ToList();
+            var actualHighlights = context.TagSpans.Select(ts => ts.Span.Span).OrderBy(s => s.Start).ToList();
 
-                Assert.Equal(expectedHighlights, actualHighlights);
-            }
+            Assert.Equal(expectedHighlights, actualHighlights);
         }
 
-        internal virtual IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
+        internal virtual IBraceMatchingService GetBraceMatchingService(EditorTestWorkspace workspace)
             => workspace.GetService<IBraceMatchingService>();
 
-        protected abstract TestWorkspace CreateWorkspace(string markup, ParseOptions options);
+        protected abstract EditorTestWorkspace CreateWorkspace(string markup, ParseOptions options);
     }
 }

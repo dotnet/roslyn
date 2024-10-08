@@ -67,9 +67,14 @@
         <target state="translated">El recuento debe ser positivo y debe hacer referencia a una ubicación en la cadena, matriz o colección.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentOutOfRange_Index">
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLess">
         <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
         <target state="translated">El índice estaba fuera del intervalo. Debe ser un valor no negativo e inferior al tamaño de la colección.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
+        <source>Index was out of range. Must be non-negative and less than or equal to the size of the collection.</source>
+        <target state="translated">El índice estaba fuera de alcance. Debe ser no negativo y menor o igual que el tamaño de la colección.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_ListInsert">
@@ -92,7 +97,7 @@
         <target state="translated">Ya se agregó un elemento con la misma clave. Clave: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Argument_InvalidArrayType">
+      <trans-unit id="Argument_IncompatibleArrayType">
         <source>Target array type is not compatible with the type of items in the collection.</source>
         <target state="translated">El tipo de matriz de destino no es compatible con el tipo de elementos de la colección.</target>
         <note />

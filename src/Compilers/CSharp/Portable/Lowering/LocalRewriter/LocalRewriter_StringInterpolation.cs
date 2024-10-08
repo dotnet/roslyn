@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the arguments first in this situation because we do not know what conversions will be
             // produced for the arguments until after we've done overload resolution. So we produce the invocation
             // and then lower it along with its arguments.
-            var result = _factory.StaticCall(stringFactory, "Create", expressions.ToImmutableAndFree(),
-                allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
+            var result = _factory.StaticCall(stringFactory, "Create", disallowExpandedNonArrayParams: _inExpressionLambda, expressions.ToImmutableAndFree(),
+                ignoreNormalFormIfHasValidParamsParameter: true // if an interpolation expression is the null literal, it should not match a params parameter.
                 );
             if (!result.HasAnyErrors)
             {
@@ -351,8 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and then lower it along with its arguments.
                 expressions.Insert(0, format);
                 var stringType = node.Type;
-                result = _factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree(),
-                    allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
+                result = _factory.StaticCall(stringType, "Format", disallowExpandedNonArrayParams: _inExpressionLambda, expressions.ToImmutableAndFree(),
+                    ignoreNormalFormIfHasValidParamsParameter: true // if an interpolation expression is the null literal, it should not match a params parameter.
                     );
             }
 
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // resultTemp = builderTemp.ToStringAndClear();
             var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: syntax);
             BoundExpression toStringAndClearCall = toStringAndClear is not null
-                ? BoundCall.Synthesized(syntax, result.HandlerTemp, toStringAndClear)
+                ? BoundCall.Synthesized(syntax, result.HandlerTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, toStringAndClear)
                 : new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, type);
 
             return result.WithFinalResult(toStringAndClearCall);

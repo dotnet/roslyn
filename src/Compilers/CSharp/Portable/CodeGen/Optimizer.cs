@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -616,12 +616,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.Instrumentation != null)
             {
-                DeclareLocal(node.Instrumentation.Local, stack: 0);
+                foreach (var local in node.Instrumentation.Locals)
+                    DeclareLocal(local, stack: 0);
             }
 
             // normally we would not allow stack locals
             // when evaluation stack is not empty.
-            DeclareLocals(node.Locals, 0);
+            DeclareLocals(node.Locals, stack: 0);
 
             return base.VisitBlock(node);
         }
@@ -1185,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             BoundCall visitArgumentsAndUpdateCall(BoundCall node, BoundExpression receiver)
             {
                 var rewrittenArguments = VisitArguments(node.Arguments, node.Method.Parameters, node.ArgumentRefKindsOpt);
-                return node.Update(receiver, node.Method, rewrittenArguments);
+                return node.Update(receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, node.Method, rewrittenArguments);
             }
         }
 
@@ -2185,6 +2186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (isLast)
             {
+                if (node.IsRef &&
+                    !node.WasCompilerGenerated &&
+                    left.LocalSymbol.RefKind == RefKind.Ref &&
+                    right is BoundArrayAccess arrayAccess &&
+                    // Value types do not need runtime element type checks.
+                    !arrayAccess.Type.IsValueType)
+                {
+                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess);
+                }
+
                 // assigned local is not used later => just emit the Right
                 return right;
             }
@@ -2267,7 +2278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
                 TypeSymbol? type = this.VisitType(node.Type);
-                return node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.OriginalMethodsOpt, type);
+                return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.OriginalMethodsOpt, type);
             }
         }
 #nullable disable
@@ -2402,7 +2413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             get { return true; }
         }
 
-        internal override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
             throw new NotImplementedException();
         }

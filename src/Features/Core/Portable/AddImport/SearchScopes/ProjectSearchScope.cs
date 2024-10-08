@@ -4,29 +4,28 @@
 
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImport;
+
+internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
+    private abstract class ProjectSearchScope : SearchScope
     {
-        private abstract class ProjectSearchScope : SearchScope
+        protected readonly Project _project;
+
+        public ProjectSearchScope(
+            AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+            Project project,
+            bool exact)
+            : base(provider, exact)
         {
-            protected readonly Project _project;
+            Contract.ThrowIfFalse(project.SupportsCompilation);
+            _project = project;
+        }
 
-            public ProjectSearchScope(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                Project project,
-                bool exact)
-                : base(provider, exact)
-            {
-                Contract.ThrowIfFalse(project.SupportsCompilation);
-                _project = project;
-            }
-
-            public override SymbolReference CreateReference<T>(SymbolResult<T> symbol)
-            {
-                return new ProjectSymbolReference(
-                    provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project);
-            }
+        public override SymbolReference CreateReference<T>(SymbolResult<T> symbol)
+        {
+            return new ProjectSymbolReference(
+                provider, symbol.WithSymbol<INamespaceOrTypeSymbol>(symbol.Symbol), _project);
         }
     }
 }

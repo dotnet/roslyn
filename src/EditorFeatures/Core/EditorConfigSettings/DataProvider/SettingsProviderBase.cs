@@ -20,162 +20,161 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+
+internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue> : ISettingsProvider<TData>
+    where TOptionsUpdater : ISettingUpdater<TOption, TValue>
 {
-    internal abstract class SettingsProviderBase<TData, TOptionsUpdater, TOption, TValue> : ISettingsProvider<TData>
-        where TOptionsUpdater : ISettingUpdater<TOption, TValue>
+    private readonly List<TData> _snapshot = [];
+    private static readonly object s_gate = new();
+    private ISettingsEditorViewModel? _viewModel;
+    protected readonly string FileName;
+    protected readonly TOptionsUpdater SettingsUpdater;
+    protected readonly Workspace Workspace;
+    public readonly IGlobalOptionService GlobalOptions;
+
+    protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope);
+
+    protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
     {
-        private readonly List<TData> _snapshot = new();
-        private static readonly object s_gate = new();
-        private ISettingsEditorViewModel? _viewModel;
-        protected readonly string FileName;
-        protected readonly TOptionsUpdater SettingsUpdater;
-        protected readonly Workspace Workspace;
-        public readonly IGlobalOptionService GlobalOptions;
+        FileName = fileName;
+        SettingsUpdater = settingsUpdater;
+        Workspace = workspace;
+        GlobalOptions = globalOptions;
+    }
 
-        protected abstract void UpdateOptions(TieredAnalyzerConfigOptions options, ImmutableArray<Project> projectsInScope);
-
-        protected SettingsProviderBase(string fileName, TOptionsUpdater settingsUpdater, Workspace workspace, IGlobalOptionService globalOptions)
+    protected void Update()
+    {
+        var givenFolder = new DirectoryInfo(FileName).Parent;
+        if (givenFolder is null)
         {
-            FileName = fileName;
-            SettingsUpdater = settingsUpdater;
-            Workspace = workspace;
-            GlobalOptions = globalOptions;
+            return;
         }
 
-        protected void Update()
+        var solution = Workspace.CurrentSolution;
+        var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
+        var project = projects.FirstOrDefault();
+        if (project is null)
         {
-            var givenFolder = new DirectoryInfo(FileName).Parent;
-            if (givenFolder is null)
-            {
-                return;
-            }
-
-            var solution = Workspace.CurrentSolution;
-            var projects = solution.GetProjectsUnderEditorConfigFile(FileName);
-            var project = projects.FirstOrDefault();
-            if (project is null)
-            {
-                // no .NET projects in the solution
-                return;
-            }
-
-            var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
-            var projectDirectoryOptions = project.GetAnalyzerConfigOptions();
-
-            // TODO: Support for multiple languages https://github.com/dotnet/roslyn/issues/65859
-            var options = new TieredAnalyzerConfigOptions(
-                new CombinedAnalyzerConfigOptions(configFileDirectoryOptions, projectDirectoryOptions),
-                GlobalOptions,
-                language: LanguageNames.CSharp,
-                editorConfigFileName: FileName);
-
-            UpdateOptions(options, projects);
+            // no .NET projects in the solution
+            return;
         }
 
-        public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)
-        {
-            if (!await SettingsUpdater.HasAnyChangesAsync().ConfigureAwait(false))
-            {
-                return sourceText;
-            }
+        var configFileDirectoryOptions = project.State.GetAnalyzerOptionsForPath(givenFolder.FullName, CancellationToken.None);
+        var projectDirectoryOptions = project.GetAnalyzerConfigOptions();
 
-            var text = await SettingsUpdater.GetChangedEditorConfigAsync(sourceText, default).ConfigureAwait(false);
-            return text is not null ? text : sourceText;
+        // TODO: Support for multiple languages https://github.com/dotnet/roslyn/issues/65859
+        var options = new TieredAnalyzerConfigOptions(
+            new CombinedAnalyzerConfigOptions(configFileDirectoryOptions, projectDirectoryOptions),
+            GlobalOptions,
+            language: LanguageNames.CSharp,
+            editorConfigFileName: FileName);
+
+        UpdateOptions(options, projects);
+    }
+
+    public async Task<SourceText> GetChangedEditorConfigAsync(SourceText sourceText)
+    {
+        if (!await SettingsUpdater.HasAnyChangesAsync().ConfigureAwait(false))
+        {
+            return sourceText;
         }
 
-        public ImmutableArray<TData> GetCurrentDataSnapshot()
+        var text = await SettingsUpdater.GetChangedEditorConfigAsync(sourceText, default).ConfigureAwait(false);
+        return text is not null ? text : sourceText;
+    }
+
+    public ImmutableArray<TData> GetCurrentDataSnapshot()
+    {
+        lock (s_gate)
         {
-            lock (s_gate)
-            {
-                return _snapshot.ToImmutableArray();
-            }
+            return [.. _snapshot];
+        }
+    }
+
+    protected void AddRange(IEnumerable<TData> items)
+    {
+        lock (s_gate)
+        {
+            _snapshot.AddRange(items);
         }
 
-        protected void AddRange(IEnumerable<TData> items)
+        _viewModel?.NotifyOfUpdate();
+    }
+
+    public void RegisterViewModel(ISettingsEditorViewModel viewModel)
+        => _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+
+    private sealed class CombinedAnalyzerConfigOptions(AnalyzerConfigData fileDirectoryConfigData, AnalyzerConfigData? projectDirectoryConfigData) : StructuredAnalyzerConfigOptions
+    {
+        private readonly AnalyzerConfigData _fileDirectoryConfigData = fileDirectoryConfigData;
+        private readonly AnalyzerConfigData? _projectDirectoryConfigData = projectDirectoryConfigData;
+
+        public override NamingStylePreferences GetNamingStylePreferences()
         {
-            lock (s_gate)
+            var preferences = _fileDirectoryConfigData.ConfigOptions.GetNamingStylePreferences();
+            if (preferences.IsEmpty && _projectDirectoryConfigData.HasValue)
             {
-                _snapshot.AddRange(items);
+                preferences = _projectDirectoryConfigData.Value.ConfigOptions.GetNamingStylePreferences();
             }
 
-            _viewModel?.NotifyOfUpdate();
+            return preferences;
         }
 
-        public void RegisterViewModel(ISettingsEditorViewModel viewModel)
-            => _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
-
-        private sealed class CombinedAnalyzerConfigOptions(AnalyzerConfigData fileDirectoryConfigData, AnalyzerConfigData? projectDirectoryConfigData) : StructuredAnalyzerConfigOptions
+        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
         {
-            private readonly AnalyzerConfigData _fileDirectoryConfigData = fileDirectoryConfigData;
-            private readonly AnalyzerConfigData? _projectDirectoryConfigData = projectDirectoryConfigData;
-
-            public override NamingStylePreferences GetNamingStylePreferences()
+            if (_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out value))
             {
-                var preferences = _fileDirectoryConfigData.ConfigOptions.GetNamingStylePreferences();
-                if (preferences.IsEmpty && _projectDirectoryConfigData.HasValue)
-                {
-                    preferences = _projectDirectoryConfigData.Value.ConfigOptions.GetNamingStylePreferences();
-                }
-
-                return preferences;
+                return true;
             }
 
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            if (!_projectDirectoryConfigData.HasValue)
             {
-                if (_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out value))
-                {
-                    return true;
-                }
-
-                if (!_projectDirectoryConfigData.HasValue)
-                {
-                    value = null;
-                    return false;
-                }
-
-                if (_projectDirectoryConfigData.Value.AnalyzerOptions.TryGetValue(key, out value))
-                {
-                    return true;
-                }
-
-                var diagnosticKey = "dotnet_diagnostic.(?<key>.*).severity";
-                var match = Regex.Match(key, diagnosticKey);
-                if (match.Success && match.Groups["key"].Value is string isolatedKey &&
-                    _projectDirectoryConfigData.Value.TreeOptions.TryGetValue(isolatedKey, out var severity))
-                {
-                    value = severity.ToEditorConfigString();
-                    return true;
-                }
-
                 value = null;
                 return false;
             }
 
-            public override IEnumerable<string> Keys
+            if (_projectDirectoryConfigData.Value.ConfigOptions.TryGetValue(key, out value))
             {
-                get
+                return true;
+            }
+
+            var diagnosticKey = "dotnet_diagnostic.(?<key>.*).severity";
+            var match = Regex.Match(key, diagnosticKey);
+            if (match.Success && match.Groups["key"].Value is string isolatedKey &&
+                _projectDirectoryConfigData.Value.TreeOptions.TryGetValue(isolatedKey, out var severity))
+            {
+                value = severity.ToEditorConfigString();
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        public override IEnumerable<string> Keys
+        {
+            get
+            {
+                foreach (var key in _fileDirectoryConfigData.ConfigOptions.Keys)
+                    yield return key;
+
+                if (!_projectDirectoryConfigData.HasValue)
+                    yield break;
+
+                foreach (var key in _projectDirectoryConfigData.Value.ConfigOptions.Keys)
                 {
-                    foreach (var key in _fileDirectoryConfigData.ConfigOptions.Keys)
+                    if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out _))
                         yield return key;
+                }
 
-                    if (!_projectDirectoryConfigData.HasValue)
-                        yield break;
-
-                    foreach (var key in _projectDirectoryConfigData.Value.AnalyzerOptions.Keys)
+                foreach (var (key, severity) in _projectDirectoryConfigData.Value.TreeOptions)
+                {
+                    var diagnosticKey = "dotnet_diagnostic." + key + ".severity";
+                    if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(diagnosticKey, out _) &&
+                        !_projectDirectoryConfigData.Value.ConfigOptions.TryGetValue(diagnosticKey, out _))
                     {
-                        if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(key, out _))
-                            yield return key;
-                    }
-
-                    foreach (var (key, severity) in _projectDirectoryConfigData.Value.TreeOptions)
-                    {
-                        var diagnosticKey = "dotnet_diagnostic." + key + ".severity";
-                        if (!_fileDirectoryConfigData.ConfigOptions.TryGetValue(diagnosticKey, out _) &&
-                            !_projectDirectoryConfigData.Value.AnalyzerOptions.TryGetKey(diagnosticKey, out _))
-                        {
-                            yield return diagnosticKey;
-                        }
+                        yield return diagnosticKey;
                     }
                 }
             }

@@ -647,7 +647,7 @@ class Test
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, @"""Hi!""").WithArguments(@"""Hi!""").WithLocation(4, 30)
                 };
 
-            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, cancellationToken: default).Verify(expected);
+            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, symbolFilter: null, cancellationToken: default).Verify(expected);
             comp.VerifyDiagnostics(expected);
         }
 
@@ -675,7 +675,7 @@ namespace Test
                 Diagnostic(ErrorCode.ERR_EOFExpected, @"""Hi!""").WithLocation(4, 30)
                 };
 
-            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, cancellationToken: default).Verify(expected);
+            comp.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, symbolFilter: null, cancellationToken: default).Verify(expected);
             comp.VerifyDiagnostics(expected);
         }
 
@@ -1114,12 +1114,24 @@ await System.Threading.Tasks.Task.Yield();
 ";
 
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-
             comp.VerifyDiagnostics(
-                // (3,9): error CS8177: Async methods cannot have by-reference locals
+                // (3,9): error CS8773: Feature 'ref and unsafe in async and iterator methods' is not available in C# 9.0. Please use language version 13.0 or greater.
                 // ref int d = ref c;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "d").WithLocation(3, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "d").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(3, 9)
                 );
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                // ref int d = ref c;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "d").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(3, 9)
+                );
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -4411,9 +4423,9 @@ localI();
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
-                // (14,14): error CS0751: A partial method must be declared within a partial type
+                // (14,14): error CS0751: A partial member must be declared within a partial type
                 // partial void localG() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "localG").WithLocation(14, 14),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "localG").WithLocation(14, 14),
                 // (15,1): error CS0103: The name 'localG' does not exist in the current context
                 // localG();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localG").WithArguments("localG").WithLocation(15, 1),
@@ -9700,6 +9712,118 @@ public class C
             model.TryGetSpeculativeSemanticModel(root.DescendantNodes().Single(n => n is ExpressionStatementSyntax { Parent: BlockSyntax }).Span.End, nodeToSpeculate, out var speculativeModelOutsideTopLevel);
             var conversionOutsideTopLevel = speculativeModelOutsideTopLevel.GetConversion(nodeToSpeculate.DescendantTokens().Single(n => n.ValueText == "x").Parent);
             Assert.Equal(ConversionKind.NoConversion, conversionOutsideTopLevel.Kind);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67050")]
+        public void EmptyLocalDeclaration()
+        {
+            var src = """
+struct S { }
+partial ext X
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // (1,13): error CS1031: Type expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term 'partial'
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
+                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                // (2,14): error CS1002: ; expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_01()
+        {
+            var src1 = """
+PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program : ProgramBase
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_02()
+        {
+            var src1 = """
+ProgramBase.PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program : object
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70909")]
+        public void ExplicitBase_03()
+        {
+            var src1 = """
+ProgramBase.PrintLine();
+""";
+
+            var src2 = """
+﻿public class ProgramBase
+{
+    public static void PrintLine()
+    {
+        System.Console.WriteLine("Done");
+    }
+}
+
+partial class Program
+{
+}
+""";
+            var comp = CreateCompilation(new[] { src1, src2 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+
+            comp = CreateCompilation(new[] { src2, src1 }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
         }
     }
 }

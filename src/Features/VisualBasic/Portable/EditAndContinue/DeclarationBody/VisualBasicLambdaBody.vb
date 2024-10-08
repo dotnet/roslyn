@@ -41,6 +41,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return VisualBasicEditAndContinueAnalyzer.GetStateMachineInfo(_node)
         End Function
 
+        Public Overrides Function GetCapturedVariables(model As SemanticModel) As ImmutableArray(Of ISymbol)
+            Return model.AnalyzeDataFlow(If(TryCast(_node.Parent, LambdaExpressionSyntax), _node)).CapturedInside
+        End Function
+
         Public Overrides Function TryGetPartnerLambdaBody(newLambda As SyntaxNode) As LambdaBody
             Return SyntaxUtilities.CreateLambdaBody(LambdaUtilities.GetCorrespondingLambdaBody(_node, newLambda))
         End Function

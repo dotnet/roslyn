@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void Test1()
         {
-            var mscorlibRef = TestMetadata.Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
             var compilation = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
             var sys = compilation.GlobalNamespace.ChildNamespace("System");
             Conversions c = new BuckStopsHereBinder(compilation, associatedFileIdentifier: null).Conversions;
@@ -221,7 +222,7 @@ class X {
     O<dynamic> f10;
 }
 ";
-            var mscorlibRef = TestMetadata.Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
             var compilation = CSharpCompilation.Create("Test", new[] { Parse(code) }, new[] { mscorlibRef });
             var global = compilation.GlobalNamespace;
 
@@ -1194,7 +1195,7 @@ class C
     }
 }";
             CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
-                // (6,16): error CS1674: 'ConvertibleToIDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,16): error CS1674: 'ConvertibleToIDisposable': type used in a using statement must implement 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var d = new ConvertibleToIDisposable()").WithArguments("ConvertibleToIDisposable"));
         }
 
@@ -1992,15 +1993,15 @@ public class Test
             // but that's the native behavior.  We need to replicate it for back-compat, but most of the strangeness will
             // not be spec'd.
             CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (46,17): error CS1660: Cannot convert lambda expression to type 'Q' because it is not a delegate type
+                // (46,20): error CS1660: Cannot convert lambda expression to type 'Q' because it is not a delegate type
                 //             q = () => 1; //CS1660
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "() => 1").WithArguments("lambda expression", "Q"),
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "Q").WithLocation(46, 20),
                 // (53,17): error CS0428: Cannot convert method group 'F' to non-delegate type 'Q'. Did you intend to invoke the method?
                 //             q = F; //CS0428
-                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "Q"),
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "Q").WithLocation(53, 17),
                 // (60,17): error CS0029: Cannot implicitly convert type 'int' to 'R'
                 //             r = 0; //CS0029
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "R"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "R").WithLocation(60, 17));
         }
 
         [Fact]

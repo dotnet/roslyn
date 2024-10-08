@@ -4,6 +4,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
@@ -13,10 +14,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-
-#if !COCOA
-using System.Linq;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -31,19 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
     [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
-    internal partial class RenameCommandHandler : AbstractRenameCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class RenameCommandHandler(
+        IThreadingContext threadingContext,
+        InlineRenameService renameService,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+        : AbstractRenameCommandHandler(threadingContext, renameService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameCommandHandler(
-            IThreadingContext threadingContext,
-            InlineRenameService renameService,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
-        {
-        }
-
-#if !COCOA
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
             => GetAdornment(textView) switch
             {
@@ -98,11 +90,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected override void Commit(InlineRenameSession activeSession, ITextView textView)
+        protected override void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
         {
             try
             {
-                base.Commit(activeSession, textView);
+                base.CommitAndSetFocus(activeSession, textView, operationContext);
             }
             catch (NotSupportedException ex)
             {
@@ -131,29 +123,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
             }
         }
-#else
-        protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
-            => false;
-
-        protected override void SetFocusToTextView(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-
-        protected override void SetFocusToAdornment(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-
-        protected override void SetAdornmentFocusToNextElement(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-
-        protected override void SetAdornmentFocusToPreviousElement(ITextView textView)
-        {
-            // No action taken for Cocoa
-        }
-#endif
     }
 }

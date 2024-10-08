@@ -118,6 +118,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
 #nullable enable
         private DiagnosticInfo? _lazyCachedCompilerFeatureRequiredDiagnosticInfo = CSDiagnosticInfo.EmptyErrorInfo;
+
+        private ObsoleteAttributeData? _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 #nullable disable
 
         internal PEModuleSymbol(PEAssemblySymbol assemblySymbol, PEModule module, MetadataImportOptions importOptions, int ordinal)
@@ -658,8 +660,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var assemblyAttributes = GetAssemblyAttributes();
-                return assemblyAttributes.IndexOfAttribute(this, AttributeDescription.CompilationRelaxationsAttribute) >= 0;
+                // This API is called only for added modules. Assembly level attributes from added modules are 
+                // copied to the resulting assembly and that is done by using CSharpAttributeData for them.
+                // Therefore, it is acceptable to implement this property by using the same CSharpAttributeData
+                // objects rather than trying to avoid creating them and going to metadata directly.
+                ImmutableArray<CSharpAttributeData> assemblyAttributes = GetAssemblyAttributes();
+                return assemblyAttributes.IndexOfAttribute(AttributeDescription.CompilationRelaxationsAttribute) >= 0;
             }
         }
 
@@ -667,8 +673,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var assemblyAttributes = GetAssemblyAttributes();
-                return assemblyAttributes.IndexOfAttribute(this, AttributeDescription.RuntimeCompatibilityAttribute) >= 0;
+                // This API is called only for added modules. Assembly level attributes from added modules are 
+                // copied to the resulting assembly and that is done by using CSharpAttributeData for them.
+                // Therefore, it is acceptable to implement this property by using the same CSharpAttributeData
+                // objects rather than trying to avoid creating them and going to metadata directly.
+                ImmutableArray<CSharpAttributeData> assemblyAttributes = GetAssemblyAttributes();
+                return assemblyAttributes.IndexOfAttribute(AttributeDescription.RuntimeCompatibilityAttribute) >= 0;
             }
         }
 
@@ -855,6 +865,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         ? RefSafetyRulesAttributeVersion.UnrecognizedAttribute
                         : RefSafetyRulesAttributeVersion.NoAttribute;
                 }
+            }
+        }
+
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData
+        {
+            get
+            {
+                if (_lazyObsoleteAttributeData == ObsoleteAttributeData.Uninitialized)
+                {
+                    var experimentalData = _module.TryDecodeExperimentalAttributeData(Token, new MetadataDecoder(this));
+                    Interlocked.CompareExchange(ref _lazyObsoleteAttributeData, experimentalData, ObsoleteAttributeData.Uninitialized);
+                }
+
+                return _lazyObsoleteAttributeData;
             }
         }
     }

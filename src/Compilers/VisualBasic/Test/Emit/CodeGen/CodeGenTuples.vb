@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <CompilerTrait(CompilerFeature.Tuples)>
@@ -6331,7 +6330,7 @@ Module Extensions
 End Module
     </file>
 </compilation>,
-                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
+                references:={ValueTupleRef, NetFramework.SystemRuntime, NetFramework.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp.AssertTheseDiagnostics(<errors>
@@ -6449,7 +6448,7 @@ End Module
             ' When VB 15 shipped, no tuple element would be found/inferred, so the extension method was called.
             ' The VB 15.3 compiler disallows that, even when LanguageVersion is 15.
             Dim comp15 = CreateCompilationWithMscorlib45AndVBRuntime(source,
-                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
+                references:={ValueTupleRef, NetFramework.SystemRuntime, NetFramework.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp15.AssertTheseDiagnostics(<errors>
 BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
@@ -6458,7 +6457,7 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
                                           </errors>)
 
             Dim verifier15_3 = CompileAndVerify(source,
-                allReferences:={ValueTupleRef, Net451.mscorlib, Net451.SystemCore, Net451.SystemRuntime, Net451.MicrosoftVisualBasic},
+                allReferences:={ValueTupleRef, NetFramework.mscorlib, NetFramework.SystemCore, NetFramework.SystemRuntime, NetFramework.MicrosoftVisualBasic},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
                 expectedOutput:="lambda")
             verifier15_3.VerifyDiagnostics()
@@ -9091,7 +9090,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30652: Reference required to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' containing the type 'ValueTuple(Of ,)'. Add one to your project.
+BC30652: Reference required to assembly 'System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' containing the type 'ValueTuple(Of ,)'. Add one to your project.
         A.M()
         ~~~~~
 </errors>)
@@ -14925,7 +14924,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 "ReadOnly Property (System.Int32, System.Int32).System.ITupleInternal.Size As System.Int32"
                 )
 
-            Assert.Equal({
+            AssertEx.Equal({
                 ".ctor",
                 ".ctor",
                 "CompareTo",
@@ -14968,7 +14967,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 "ReadOnly Property (a2 As System.Int32, b2 As System.Int32).System.ITupleInternal.Size As System.Int32"
                 )
 
-            Assert.Equal({
+            AssertEx.Equal({
                 ".ctor",
                 ".ctor",
                 "CompareTo",
@@ -15009,7 +15008,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 "ReadOnly Property (Item1 As System.Int32, Item2 As System.Int32).System.ITupleInternal.Size As System.Int32"
                 )
 
-            Assert.Equal({
+            AssertEx.Equal({
                 ".ctor",
                 ".ctor",
                 "CompareTo",
@@ -15042,7 +15041,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.Same(m1Tuple.TupleUnderlyingType.ContainingSymbol, m1Tuple.ContainingSymbol)
             Assert.Null(m1Tuple.EnumUnderlyingType)
 
-            Assert.Equal({
+            AssertEx.Equal({
                 "Item1",
                 "Item2",
                 ".ctor",
@@ -15060,7 +15059,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 "System.ITupleInternal.Size"},
                 m1Tuple.MemberNames.ToArray())
 
-            Assert.Equal({
+            AssertEx.Equal({
                 "Item1",
                 "a2",
                 "Item2",
@@ -16300,9 +16299,9 @@ options:=TestOptions.DebugExe)
             Assert.Same(m1Tuple.TupleUnderlyingType.ContainingSymbol, m1Tuple.ContainingSymbol)
             Assert.Null(m1Tuple.GetUseSiteErrorInfo())
             Assert.Null(m1Tuple.EnumUnderlyingType)
-            Assert.Equal({".ctor", "Item1", "Item2", "ToString"},
+            AssertEx.Equal({".ctor", "Item1", "Item2", "ToString"},
                          m1Tuple.MemberNames.ToArray())
-            Assert.Equal({".ctor", "Item1", "a2", "Item2", "b2", "ToString"},
+            AssertEx.Equal({".ctor", "Item1", "a2", "Item2", "b2", "ToString"},
                          m2Tuple.MemberNames.ToArray())
             Assert.Equal(0, m1Tuple.Arity)
             Assert.True(m1Tuple.TypeParameters.IsEmpty)
@@ -19360,7 +19359,7 @@ Interface I
 End Interface
     </file>
 </compilation>,
-                references:={ValueTupleRef})
+                references:={ValueTupleLegacyRef})
             comp.AssertTheseEmitDiagnostics(
 <errors>
 BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
@@ -20067,7 +20066,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef})
+</compilation>, additionalRefs:={ValueTupleLegacyRef})
 
             Assert.Equal(TypeKind.Class, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind)
 
@@ -20114,7 +20113,6 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
-Imports System
 Imports System.Collections.Generic
 
 Public Class C
@@ -20123,7 +20121,7 @@ Public Class C
     End Function
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef})
+</compilation>, additionalRefs:={ValueTupleLegacyRef})
 
             comp.AssertTheseEmitDiagnostics(
 <errors>
@@ -21355,7 +21353,7 @@ BC30149: Class 'Derived1' must implement 'Function M() As (notA As Integer, notB
             Dim derived2 As INamedTypeSymbol = comp.GetTypeByMetadataName("Derived2")
             Assert.Equal("ITest(Of (a As System.Int32, b As System.Int32))", derived2.Interfaces(0).ToTestDisplayString())
 
-            Dim m = comp.GetTypeByMetadataName("Base").GetMembers("ITest<(System.Int32a,System.Int32b)>.M").Single()
+            Dim m = comp.GetTypeByMetadataName("Base").GetMembers("ITest<System.ValueTuple<System.Int32,System.Int32>>.M").Single()
             Dim mImplementations = DirectCast(m, IMethodSymbol).ExplicitInterfaceImplementations
             Assert.Equal(1, mImplementations.Length)
             Assert.Equal("Function ITest(Of (System.Int32, System.Int32)).M() As (System.Int32, System.Int32)", mImplementations(0).ToTestDisplayString())
@@ -23370,6 +23368,121 @@ True
   IL_0013:  ret
 }
 ]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")>
+        Public Sub MissingRest()
+            Dim source = "
+Class C
+    Shared Sub Main()
+        Dim tuple = (1, 2, 3, 4, 5, 6, 7, 8)
+        System.Console.WriteLine(tuple.Item8)
+    End Sub
+End Class
+                
+Namespace System
+    Public Structure ValueTuple(Of T1)
+        Public Item1 AS T1
+                
+        Public Sub New(item1 As T1)
+            Me.Item1 = item1
+        End Sub
+    End Structure
+                
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest)
+        Public Item1 As T1
+        Public Item2 As T2
+        Public Item3 As T3
+        Public Item4 As T4
+        Public Item5 As T5
+        Public Item6 As T6
+        Public Item7 As T7
+        ' Public Rest As TRest
+                
+        Public Sub New(item1 As T1, item2 As T2, item3 As T3, item4 As T4, item5 As T5, item6 As T6, item7 As T7, rest As TRest)
+            Me.Item1 = item1
+            Me.Item2 = item2
+            Me.Item3 = item3
+            Me.Item4 = item4
+            Me.Item5 = item5
+            Me.Item6 = item6
+            Me.Item7 = item7
+            ' Me.Rest = rest
+        End Sub
+    End Structure
+End Namespace"
+            Dim comp = CreateCompilation(source, assemblyName:="comp")
+            comp.AssertTheseDiagnostics()
+            comp.AssertTheseEmitDiagnostics(<errors><![CDATA[
+BC35000: Requested operation is not available because the runtime library function 'ValueTuple.Rest' is not defined.
+        System.Console.WriteLine(tuple.Item8)
+                                 ~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")>
+        Public Sub ExplicitInterfaceImplementation_Indexer_Partial()
+            Dim source = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)
+        Implements System.IEquatable(Of (T1, T2, T3, T4, T5, T6, T7, TRest))
+        Public Item1 As T1
+        Public Item2 As T2
+        Public Item3 As T3
+        Public Item4 As T4
+        Public Item5 As T5
+        Public Item6 As T6
+        Public Item7 As T7
+        Public Rest As TRest
+        ReadOnly Property Item(index As Integer) As System.Object Implements System.Runtime.CompilerServices.ITuple.Item
+            Get
+                Return Nothing
+            End Get
+        End Property
+    End Structure
+End Namespace"
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp)
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30149: Structure 'ValueTuple' must implement 'Function Equals(other As (T1, T2, T3, T4, T5, T6, T7, TRest)) As Boolean' for interface 'IEquatable(Of (T1, T2, T3, T4, T5, T6, T7, TRest))'.
+        Implements System.IEquatable(Of (T1, T2, T3, T4, T5, T6, T7, TRest))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC31035: Interface 'ITuple' is not implemented by this class.
+        ReadOnly Property Item(index As Integer) As System.Object Implements System.Runtime.CompilerServices.ITuple.Item
+                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60961")>
+        Public Sub ExplicitInterfaceImplementation_Indexer()
+            Dim source = "
+Namespace System
+    Public Structure ValueTuple(Of T1, T2, T3, T4, T5, T6, T7, TRest As Structure)
+        Implements System.IEquatable(Of (T1, T2, T3, T4, T5, T6, T7, TRest)), System.Runtime.CompilerServices.ITuple
+        Public Item1 As T1
+        Public Item2 As T2
+        Public Item3 As T3
+        Public Item4 As T4
+        Public Item5 As T5
+        Public Item6 As T6
+        Public Item7 As T7
+        Public Rest As TRest
+        Public ReadOnly Property Length As Integer Implements System.Runtime.CompilerServices.ITuple.Length
+            Get
+                Return 0
+            End Get
+        End Property
+        ReadOnly Property Item(index As Integer) As System.Object Implements System.Runtime.CompilerServices.ITuple.Item
+            Get
+                Return Nothing
+            End Get
+        End Property
+        Function IEquatable_Equals(other As (T1, T2, T3, T4, T5, T6, T7, TRest)) As Boolean Implements System.IEquatable(Of (T1, T2, T3, T4, T5, T6, T7, TRest)).Equals
+            Return False
+        End Function
+    End Structure
+End Namespace"
+            Dim comp = CreateCompilation(source, targetFramework:=TargetFramework.NetCoreApp)
+            comp.AssertTheseEmitDiagnostics()
         End Sub
     End Class
 

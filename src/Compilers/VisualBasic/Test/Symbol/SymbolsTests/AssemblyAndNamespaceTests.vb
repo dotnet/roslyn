@@ -515,7 +515,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib = TestMetadata.Net451.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
+            Dim aliasedCorlib = NetFramework.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
 
             Dim comp = CreateEmptyCompilationWithReferences(source, {aliasedCorlib})
 

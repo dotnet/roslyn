@@ -289,17 +289,14 @@
   <data name="Remove_operator_preserves_semantics" xml:space="preserve">
     <value>Remove operator (preserves semantics)</value>
   </data>
-  <data name="Remove_suppression_operators" xml:space="preserve">
-    <value>Remove suppression operators</value>
-  </data>
   <data name="Remove_unnecessary_suppression_operator" xml:space="preserve">
     <value>Remove unnecessary suppression operator</value>
   </data>
   <data name="Suppression_operator_has_no_effect_and_can_be_misinterpreted" xml:space="preserve">
     <value>Suppression operator has no effect and can be misinterpreted</value>
   </data>
-  <data name="typeof_can_be_converted_ to_nameof" xml:space="preserve">
-    <value>'typeof' can be converted  to 'nameof'</value>
+  <data name="typeof_can_be_converted_to_nameof" xml:space="preserve">
+    <value>'typeof' can be converted to 'nameof'</value>
   </data>
   <data name="Use_new" xml:space="preserve">
     <value>Use 'new(...)'</value>
@@ -414,5 +411,15 @@
   </data>
   <data name="Use_primary_constructor" xml:space="preserve">
     <value>Use primary constructor</value>
+  </data>
+  <data name="Anonymous_function_can_be_made_static" xml:space="preserve">
+    <value>Anonymous function can be made static</value>
+  </data>
+  <data name="Make_anonymous_function_static" xml:space="preserve">
+    <value>Make anonymous function static</value>
+  </data>
+  <data name="Use_System_Threading_Lock" xml:space="preserve">
+    <value>Use 'System.Threading.Lock'</value>
+    <comment>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</comment>
   </data>
 </root>

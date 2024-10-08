@@ -710,7 +710,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public NotInferredTypeArguments As BitVector
 
-            Public TypeArgumentInferenceDiagnosticsOpt As ImmutableBindingDiagnostic(Of AssemblySymbol)
+            Public TypeArgumentInferenceDiagnosticsOpt As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
 
             Public Sub New(candidate As Candidate, state As CandidateAnalysisResultState)
                 Me.Candidate = candidate

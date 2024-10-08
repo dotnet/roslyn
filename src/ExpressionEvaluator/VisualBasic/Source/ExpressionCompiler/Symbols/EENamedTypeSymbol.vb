@@ -371,6 +371,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Next
         End Sub
 
+        Friend Overrides Function GetGuidString(ByRef guidString As String) As Boolean
+            guidString = Nothing
+            Return False
+        End Function
+
         Friend Overrides Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
             Return SpecializedCollections.EmptyEnumerable(Of PropertySymbol)()
         End Function

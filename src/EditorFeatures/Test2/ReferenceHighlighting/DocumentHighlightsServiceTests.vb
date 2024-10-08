@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         </Document>
                     </Project>
                 </Workspace>
-            Using workspace = TestWorkspace.Create(workspaceElement, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
+            Using workspace = EditorTestWorkspace.Create(workspaceElement, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
 
                 Dim solution = workspace.CurrentSolution

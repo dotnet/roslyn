@@ -6,7 +6,6 @@ Imports Microsoft.CodeAnalysis.Editor.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
@@ -46,7 +45,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)
@@ -89,7 +88,7 @@ int y = x$$</Document>
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim document = workspace.Documents.First()
                 Dim view = document.GetTextView()
@@ -134,7 +133,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim document = workspace.Documents.First()
                 Dim view = document.GetTextView()

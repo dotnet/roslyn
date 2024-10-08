@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseNullPropagation
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseNullPropagation)>
     Partial Public Class UseNullPropagationTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseNullPropagationDiagnosticAnalyzer(),

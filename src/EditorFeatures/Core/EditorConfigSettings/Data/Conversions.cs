@@ -4,11 +4,10 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+
+internal readonly struct Conversions<TFrom, TTo>(Func<TFrom, TTo> to, Func<TTo, TFrom> from)
 {
-    internal readonly struct Conversions<TFrom, TTo>(Func<TFrom, TTo> to, Func<TTo, TFrom> from)
-    {
-        public readonly Func<TFrom, TTo> To = to;
-        public readonly Func<TTo, TFrom> From = from;
-    }
+    public readonly Func<TFrom, TTo> To = to;
+    public readonly Func<TTo, TFrom> From = from;
 }

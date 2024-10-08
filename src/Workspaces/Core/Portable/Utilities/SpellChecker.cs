@@ -4,65 +4,61 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Collections;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+/// <summary>
+/// Explicitly a reference type so that the consumer of this in <see cref="BKTree"/> can safely operate on an
+/// instance without having to lock to ensure it sees the entirety of the value written out.
+/// </summary>>
+internal sealed class SpellChecker(BKTree bKTree)
 {
-    internal readonly struct SpellChecker(Checksum checksum, BKTree bKTree) : IObjectWritable, IChecksummedObject
+    private const string SerializationFormat = "4";
+
+    public SpellChecker(IEnumerable<string> corpus)
+        : this(BKTree.Create(corpus))
     {
-        private const string SerializationFormat = "3";
+    }
 
-        public Checksum Checksum { get; } = checksum;
+    public void FindSimilarWords(ref TemporaryArray<string> similarWords, string value, bool substringsAreSimilar)
+    {
+        using var result = TemporaryArray<string>.Empty;
+        using var checker = new WordSimilarityChecker(value, substringsAreSimilar);
 
-        public SpellChecker(Checksum checksum, IEnumerable<string> corpus)
-            : this(checksum, BKTree.Create(corpus))
+        bKTree.Find(ref result.AsRef(), value, threshold: null);
+
+        foreach (var current in result)
         {
+            if (checker.AreSimilar(current))
+                similarWords.Add(current);
         }
+    }
 
-        public void FindSimilarWords(ref TemporaryArray<string> similarWords, string value, bool substringsAreSimilar)
+    public void WriteTo(ObjectWriter writer)
+    {
+        writer.WriteString(SerializationFormat);
+        bKTree.WriteTo(writer);
+    }
+
+    internal static SpellChecker? TryReadFrom(ObjectReader reader)
+    {
+        try
         {
-            using var result = TemporaryArray<string>.Empty;
-            using var checker = new WordSimilarityChecker(value, substringsAreSimilar);
-
-            bKTree.Find(ref result.AsRef(), value, threshold: null);
-
-            foreach (var current in result)
+            var formatVersion = reader.ReadString();
+            if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
             {
-                if (checker.AreSimilar(current))
-                    similarWords.Add(current);
+                var bkTree = BKTree.ReadFrom(reader);
+                if (bkTree != null)
+                    return new SpellChecker(bkTree.Value);
             }
         }
-
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        public void WriteTo(ObjectWriter writer)
+        catch
         {
-            writer.WriteString(SerializationFormat);
-            Checksum.WriteTo(writer);
-            bKTree.WriteTo(writer);
+            Logger.Log(FunctionId.SpellChecker_ExceptionInCacheRead);
         }
 
-        internal static SpellChecker? TryReadFrom(ObjectReader reader)
-        {
-            try
-            {
-                var formatVersion = reader.ReadString();
-                if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
-                {
-                    var checksum = Checksum.ReadFrom(reader);
-                    var bkTree = BKTree.ReadFrom(reader);
-                    if (bkTree != null)
-                        return new SpellChecker(checksum, bkTree.Value);
-                }
-            }
-            catch
-            {
-                Logger.Log(FunctionId.SpellChecker_ExceptionInCacheRead);
-            }
-
-            return null;
-        }
+        return null;
     }
 }

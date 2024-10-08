@@ -8,33 +8,32 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[DiagnosticAnalyzer(InternalLanguageNames.TypeScript)]
+internal sealed class VSTypeScriptDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(InternalLanguageNames.TypeScript)]
-    internal sealed class VSTypeScriptDocumentDiagnosticAnalyzer : DocumentDiagnosticAnalyzer
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
+
+    public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        var analyzer = document.Project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
+        if (analyzer == null)
         {
-            var analyzer = document.Project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
-            if (analyzer == null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-            }
-
-            return analyzer.AnalyzeDocumentSyntaxAsync(document, cancellationToken);
+            return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
         }
 
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var analyzer = document.Project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
-            if (analyzer == null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-            }
+        return analyzer.AnalyzeDocumentSyntaxAsync(document, cancellationToken);
+    }
 
-            return analyzer.AnalyzeDocumentSemanticsAsync(document, cancellationToken);
+    public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+    {
+        var analyzer = document.Project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
+        if (analyzer == null)
+        {
+            return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
         }
+
+        return analyzer.AnalyzeDocumentSemanticsAsync(document, cancellationToken);
     }
 }

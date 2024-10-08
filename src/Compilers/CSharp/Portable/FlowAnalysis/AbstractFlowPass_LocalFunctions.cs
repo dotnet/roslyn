@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return usages;
         }
 
+        protected bool HasLocalFuncUsagesCreated(LocalFunctionSymbol localFunc)
+        {
+            return _localFuncVarUsages?.ContainsKey(localFunc) == true;
+        }
+
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement localFunc)
         {
             if (localFunc.Symbol.IsExtern)

@@ -4,11 +4,10 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Host.Mef
+namespace Microsoft.CodeAnalysis.Host.Mef;
+
+internal static class MefConstruction
 {
-    internal static class MefConstruction
-    {
-        internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
-        internal const string FactoryMethodMessage = "This factory method only provides services for the MEF export provider.";
-    }
+    internal const string ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider.";
+    internal const string FactoryMethodMessage = "This factory method only provides services for the MEF export provider.";
 }

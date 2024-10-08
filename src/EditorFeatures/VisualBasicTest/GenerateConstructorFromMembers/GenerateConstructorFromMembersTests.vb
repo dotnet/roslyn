@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 Imports Microsoft.CodeAnalysis.Options
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
     Public Class GenerateConstructorFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicGenerateConstructorFromMembersCodeRefactoringProvider(DirectCast(parameters.fixProviderData, IPickMembersService))
         End Function
 
@@ -367,8 +368,7 @@ End Class", chosenSymbols:={"i"})
             Dim options = New OptionsCollection(LanguageNames.VisualBasic)
             options.Add(LegacyGlobalOptionsWorkspaceService.s_addNullChecks, True)
 
-            Dim parameters = New TestParameters()
-            parameters = parameters.WithGlobalOptions(options)
+            Dim parameters = New TestParameters(globalOptions:=options)
 
             Await TestWithPickMembersDialogAsync(
 "Class Program

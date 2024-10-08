@@ -2099,6 +2099,156 @@ class C
             EOF();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void WithParsingInConditionalExpression1()
+        {
+            var text = "x is X ? record with { } : record with { }";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void WithParsingInConditionalExpression2()
+        {
+            var text = "x is X.Y ? record with { } : record with { }";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.WithExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "record");
+                    }
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void WithParsingInConditionalExpression_Incomplete()
+        {
+            var text = "x is X ? record with";
+
+            UsingExpression(text,
+                // (1,17): error CS1003: Syntax error, ':' expected
+                // x is X ? record with
+                Diagnostic(ErrorCode.ERR_SyntaxError, "with").WithArguments(":").WithLocation(1, 17));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "record");
+                }
+                M(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "with");
+                }
+            }
+            EOF();
+        }
+
         [Fact]
         public void ParameterListAndBaseListOnClass()
         {
@@ -2604,9 +2754,9 @@ class C(int X, int Y)
                 // (1,8): error CS1002: ; expected
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 8),
-                // (1,16): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,16): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // record struct C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int X, int Y)").WithArguments("primary constructors").WithLocation(1, 16),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int X, int Y)").WithArguments("primary constructors", "12.0").WithLocation(1, 16),
                 // (1,21): warning CS9113: Parameter 'X' is unread.
                 // record struct C(int X, int Y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(1, 21),
@@ -2790,9 +2940,9 @@ class C(int X, int Y)
                 // (1,8): error CS1002: ; expected
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "class").WithLocation(1, 8),
-                // (1,15): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,15): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // record class C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(int X, int Y)").WithArguments("primary constructors").WithLocation(1, 15),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "(int X, int Y)").WithArguments("primary constructors", "12.0").WithLocation(1, 15),
                 // (1,20): warning CS9113: Parameter 'X' is unread.
                 // record class C(int X, int Y);
                 Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "X").WithArguments("X").WithLocation(1, 20),
@@ -3651,9 +3801,9 @@ class C(int X, int Y)
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
                 // ref record struct S;
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "record").WithLocation(1, 5),
-                // (1,20): error CS8652: The feature 'primary constructors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,20): error CS8400: Feature 'primary constructors' is not available in C# 8.0. Please use language version 12.0 or greater.
                 // ref record struct S;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ";").WithArguments("primary constructors").WithLocation(1, 20)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, ";").WithArguments("primary constructors", "12.0").WithLocation(1, 20)
                 );
             UsingTree(text, options: TestOptions.Regular8,
                 // (1,5): error CS0116: A namespace cannot directly contain members such as fields or methods

@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.InlineRename
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
-            <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), globalOptions As IGlobalOptionService)
-            MyBase.New(refactorNotifyServices, globalOptions)
+            <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService))
+            MyBase.New(refactorNotifyServices)
         End Sub
     End Class
 End Namespace

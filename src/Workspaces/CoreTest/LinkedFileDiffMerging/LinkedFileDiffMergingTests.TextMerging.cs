@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         {
             TestLinkedFileSet(
                 "x",
-                new List<string> { "y", "y" },
+                ["y", "y"],
                 @"y",
                 LanguageNames.CSharp);
         }
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         {
             TestLinkedFileSet(
                 "a b c d e",
-                new List<string> { "a b c d e", "a z c z e" },
+                ["a b c d e", "a z c z e"],
                 @"a z c z e",
                 LanguageNames.CSharp);
         }
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         {
             TestLinkedFileSet(
                 "a b c d e",
-                new List<string> { "a z c d e", "a b c z e" },
+                ["a z c d e", "a b c z e"],
                 @"a z c z e",
                 LanguageNames.CSharp);
         }
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         {
             TestLinkedFileSet(
                 "a; b; c; d; e;",
-                new List<string> { "a; zzz; c; xx; e;", "a; b; c; xx; e;" },
+                ["a; zzz; c; xx; e;", "a; b; c; xx; e;"],
                 @"a; zzz; c; xx; e;",
                 LanguageNames.CSharp);
         }
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
         {
             TestLinkedFileSet(
                 "a b c d e",
-                new List<string> { "a b y d e", "a b z d e" },
+                ["a b y d e", "a b z d e"],
                 @"
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
 " + WorkspacesResources.Before_colon + @"
@@ -76,7 +75,7 @@ a b y d e",
         {
             TestLinkedFileSet(
                 "a b c d e",
-                new List<string> { "a q1 c z1 e", "a q2 c z2 e" },
+                ["a q1 c z1 e", "a q2 c z2 e"],
                 @"
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
 " + WorkspacesResources.Before_colon + @"
@@ -96,8 +95,7 @@ a q1 c z1 e",
 Two
 Three
 Four",
-                new List<string>
-                {
+                [
                     @"One
 TwoY
 ThreeY
@@ -106,7 +104,7 @@ Four",
 TwoZ
 ThreeZ
 Four"
-                },
+                ],
                 @"One
 
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
@@ -132,8 +130,7 @@ Two;
 Three;
 Four;
 Five;",
-                new List<string>
-                {
+                [
                     @"One;
 TwoY;
 Three;
@@ -144,7 +141,7 @@ TwoZ;
 Three;
 FourZ;
 Five;"
-                },
+                ],
                 @"One;
 
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
@@ -172,13 +169,12 @@ Five;",
         {
             TestLinkedFileSet(
                 @"A",
-                new List<string>
-                {
+                [
                     @"A",
                     @"B",
                     @"C",
                     @"",
-                },
+                ],
                 @"
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName2") + @"
 " + WorkspacesResources.Before_colon + @"
@@ -200,11 +196,10 @@ B",
         {
             TestLinkedFileSet(
                 @"",
-                new List<string>
-                {
+                [
                     @"A",
                     @"B",
-                },
+                ],
                 @"
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
 " + WorkspacesResources.Added_colon + @"
@@ -219,11 +214,10 @@ A",
         {
             TestLinkedFileSet(
                 @"",
-                new List<string>
-                {
+                [
                     @"A",
                     @"B",
-                },
+                ],
                 @"
 ' " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @" 
 ' " + WorkspacesResources.Added_colon + @"
@@ -237,11 +231,10 @@ A",
         {
             TestLinkedFileSet(
                 @"A",
-                new List<string>
-                {
+                [
                     @"B",
                     @"",
-                },
+                ],
                 @"
 /* " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @"
 " + WorkspacesResources.Removed_colon + @"
@@ -256,11 +249,10 @@ B",
         {
             TestLinkedFileSet(
                 @"A",
-                new List<string>
-                {
+                [
                     @"B",
                     @"",
-                },
+                ],
                 @"
 ' " + string.Format(WorkspacesResources.Unmerged_change_from_project_0, "ProjectName1") + @" 
 ' " + WorkspacesResources.Removed_colon + @"

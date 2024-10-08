@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1760,13 +1761,13 @@ class C
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (3,23): error CS8703: The modifier 'static' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
-                // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (3,23): error CS8703: The modifier 'public' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
-                // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (4,18): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
                 // (4,30): error CS0106: The modifier 'static' is not valid for this item
@@ -1796,6 +1797,9 @@ class C
                 // (14,21): error CS0106: The modifier 'sealed' is not valid for this item
                 //     int P4 { sealed get { return 0; } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("sealed").WithLocation(14, 21),
+                // (15,31): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     protected internal object P5 { get { return null; } extern set; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("field keyword").WithLocation(15, 31),
                 // (15,64): error CS0106: The modifier 'extern' is not valid for this item
                 //     protected internal object P5 { get { return null; } extern set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(15, 64),
@@ -2486,12 +2490,21 @@ class MyClass
 ";
             CreateCompilation(text).
                 VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a"),
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a"),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x"),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value"),
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "value").WithArguments("value")
-                );
+                    // (7,14): error CS0136: A local or parameter named 'a' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         long a; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a").WithLocation(7, 14),
+                    // (7,14): warning CS0168: The variable 'a' is declared but never used
+                    //         long a; // 0136
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(7, 14),
+                    // (12,14): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         long x = 1; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(12, 14),
+                    // (20,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             int value; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(20, 17),
+                    // (20,17): warning CS0168: The variable 'value' is declared but never used
+                    //             int value; // 0136
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "value").WithArguments("value").WithLocation(20, 17));
         }
 
         [Fact]
@@ -3099,7 +3112,7 @@ abstract class C<T>
         }
 
         [Fact]
-        public void CS0225ERR_ParamsMustBeArray01()
+        public void CS0225ERR_ParamsMustBeCollection01()
         {
             var text = @"
 using System.Collections.Generic;
@@ -3122,9 +3135,11 @@ public class A
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParamsMustBeArray, Line = 8, Column = 46 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ParamsMustBeArray, Line = 13, Column = 28 });
+            var comp = CreateCompilation(text).VerifyDiagnostics(
+                // (13,28): error CS0225: The params parameter must have a valid collection type
+                //     public static void Goo(params int a) {}
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(13, 28)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetTypeMembers("A").Single() as NamedTypeSymbol;
             // TODO...
@@ -3467,6 +3482,52 @@ class BAttribute : System.Attribute { }
                 // (3,19): error CS0246: The type or namespace name 'Nada' could not be found (are you missing a using directive or an assembly reference?)
                 //     public static Nada x = null, y = null;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nada").WithArguments("Nada")
+                );
+        }
+
+        [Fact, WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
+        public void CS0246ERR_SingleTypeNameNotFound07()
+        {
+            var text =
+@"class C
+{
+    [SomeAttribute<int>]
+    static void M()
+    {
+    }
+}
+";
+            CreateCompilation(text).
+                VerifyDiagnostics(
+                // (3,6): error CS0246: The type or namespace name 'SomeAttributeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [SomeAttribute<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttributeAttribute<>"),
+                // (3,6): error CS0246: The type or namespace name 'SomeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [SomeAttribute<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "SomeAttribute<int>").WithArguments("SomeAttribute<>")
+                );
+        }
+
+        [Fact, WorkItem(69700, "https://github.com/dotnet/roslyn/issues/69700")]
+        public void CS0246ERR_SingleTypeNameNotFound08()
+        {
+            var text =
+@"class C
+{
+    [Some<int>]
+    static void M()
+    {
+    }
+}
+";
+            CreateCompilation(text).
+                VerifyDiagnostics(
+                // (3,6): error CS0246: The type or namespace name 'SomeAttribute<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [Some<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Some<int>").WithArguments("SomeAttribute<>"),
+                // (3,6): error CS0246: The type or namespace name 'Some<>' could not be found (are you missing a using directive or an assembly reference?)
+                //      [Some<int>]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Some<int>").WithArguments("Some<>")
                 );
         }
 
@@ -4379,7 +4440,7 @@ static class S
                 //         Console.WriteLine(typeof(Nullable<TypedReference>));
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "TypedReference").WithArguments("System.TypedReference").WithLocation(17, 43));
 
-            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         new C<int*>();
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "new C<int*>()").WithLocation(7, 9),
@@ -4453,7 +4514,7 @@ static class S
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(8, 9)
             };
 
-            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext)
+            CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12)
                 .VerifyDiagnostics(expected);
 
             CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11)
@@ -4503,7 +4564,7 @@ class C<T>
                 // using COfArgIterator = C<System.ArgIterator>; // unused
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using COfArgIterator = C<System.ArgIterator>;").WithLocation(3, 1));
 
-            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (2,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 21),
@@ -8068,13 +8129,21 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
     protected abstract object S { set; } // no error
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (3,20): error CS0501: 'C.P.get' must declare a body because it is not marked abstract, extern, or partial
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.P.get"),
-                // (4,38): error CS0501: 'C.Q.set' must declare a body because it is not marked abstract, extern, or partial
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Q.set"),
+            CreateCompilation(text, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P { get; set { } }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("field keyword").WithLocation(3, 16),
+                // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int Q { get { return 0; } set; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q").WithArguments("field keyword").WithLocation(4, 16),
                 // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get"));
+                //     public extern object R { get; } // no error
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     public extern object R { get; } // no error
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
         }
 
         [Fact]
@@ -12303,7 +12372,7 @@ class TestClass
         }
 
         [Fact]
-        public void CS0674ERR_ExplicitParamArray()
+        public void CS0674ERR_ExplicitParamArrayOrCollection()
         {
             var text = @"using System;
 public class MyClass
@@ -12317,7 +12386,7 @@ public class MyClass
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitParamArray, Line = 4, Column = 35 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitParamArrayOrCollection, Line = 4, Column = 35 });
         }
 
         [Fact]
@@ -12496,8 +12565,13 @@ class C2 : I
             var compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (11,14): error CS0682: 'C2.I.P' cannot implement 'I.P' because it is not supported by the language
+                //     object I.P
                 Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "P").WithArguments("C2.I.P", "I.P").WithLocation(11, 14),
+                // (14,9): warning CS9196: Reference kind modifier of parameter 'object value' doesn't match the corresponding parameter 'ref object v' in overridden or implemented member.
+                //         set { }
+                Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("object value", "ref object v").WithLocation(14, 9),
                 // (16,20): error CS0682: 'C2.I.E' cannot implement 'I.E' because it is not supported by the language
+                //     event Action I.E
                 Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "E").WithArguments("C2.I.E", "I.E").WithLocation(16, 20));
         }
 
@@ -13894,7 +13968,7 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
-        public void CS0750ERR_PartialMethodInvalidModifier()
+        public void CS0750ERR_PartialMemberCannotBeAbstract()
         {
             var text = @"
 
@@ -13951,9 +14025,9 @@ public partial class C : Base
                 // (23,26): error CS8796: Partial method 'C.PartE()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void PartE();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartE").WithArguments("C.PartE()").WithLocation(23, 26),
-                // (24,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (24,27): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract partial void PartF();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF").WithLocation(24, 27),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "PartF").WithLocation(24, 27),
                 // (25,27): error CS8796: Partial method 'C.PartG()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     override partial void PartG();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartG").WithArguments("C.PartG()").WithLocation(25, 27),
@@ -13978,7 +14052,7 @@ public partial class C : Base
         }
 
         [Fact]
-        public void CS0751ERR_PartialMethodOnlyInPartialClass()
+        public void CS0751ERR_PartialMemberOnlyInPartialClass()
         {
             var text = @"
 
@@ -13992,7 +14066,7 @@ public class C
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodOnlyInPartialClass, Line = 5, Column = 18 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMemberOnlyInPartialClass, Line = 5, Column = 18 });
         }
 
         [Fact]
@@ -14031,22 +14105,22 @@ partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (5,20): error CS9249: Partial property 'C.P' must have a definition part.
                 //     partial object P { get { return null; } }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P").WithArguments("C.P").WithLocation(5, 20),
+                // (6,17): error CS9249: Partial property 'C.this[int]' must have a definition part.
                 //     partial int this[int index]
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments("C.this[int]").WithLocation(6, 17),
                 // (4,17): warning CS0169: The field 'C.f' is never used
                 //     partial int f;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f").WithLocation(4, 17));
         }
 
         [Fact]
-        public void CS0754ERR_PartialMethodNotExplicit()
+        public void CS0754ERR_PartialMemberNotExplicit()
         {
             var text = @"
 public interface IF
@@ -14063,7 +14137,7 @@ public partial class C : IF
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodNotExplicit, Line = 8, Column = 21 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMemberNotExplicit, Line = 8, Column = 21 });
         }
 
         [Fact]
@@ -14131,7 +14205,7 @@ public partial class C
         }
 
         [Fact]
-        public void CS0758ERR_PartialMethodParamsDifference()
+        public void CS0758ERR_PartialMemberParamsDifference()
         {
             var text =
 @"partial class C
@@ -14143,9 +14217,9 @@ public partial class C
 }";
             CreateCompilation(text).VerifyDiagnostics(
                 // (4,18): error CS0758: Both partial method declarations must use a parameter array or neither may use a parameter array
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M1").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "M1").WithLocation(4, 18),
                 // (5,18): error CS0758: Both partial method declarations must use a parameter array or neither may use a parameter array
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M2").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "M2").WithLocation(5, 18));
         }
 
         [Fact]
@@ -14365,14 +14439,14 @@ namespace N
     partial void M2();
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,18): error CS07: Both partial method declarations must be static or neither may be static
-                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M1").WithLocation(4, 18),
-                // (5,25): error CS07: Both partial method declarations must be static or neither may be static
-                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M2").WithLocation(5, 25));
+                // (4,18): error CS07: Both partial member declarations must be static or neither may be static
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "M1").WithLocation(4, 18),
+                // (5,25): error CS07: Both partial member declarations must be static or neither may be static
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "M2").WithLocation(5, 25));
         }
 
         [Fact]
-        public void CS0764ERR_PartialMethodUnsafeDifference()
+        public void CS0764ERR_PartialMemberUnsafeDifference()
         {
             var text =
 @"partial class C
@@ -14383,10 +14457,10 @@ namespace N
     partial void M2();
 }";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,18): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M1").WithLocation(4, 18),
-                // (5,25): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M2").WithLocation(5, 25));
+                // (4,18): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M1").WithLocation(4, 18),
+                // (5,25): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M2").WithLocation(5, 25));
         }
 
         [Fact]
@@ -14871,7 +14945,7 @@ class B
 {
     public static void M4(this object o) { }
 }";
-            var compilation = CreateEmptyCompilation(source, new[] { TestMetadata.Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
                 // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
@@ -15476,12 +15550,9 @@ class AAttribute : Attribute { }
                 // (4,33): error CS1002: ; expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "[").WithLocation(4, 33),
-                // (4,34): error CS1001: Identifier expected
+                // (4,33): error CS1031: Type expected
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "2").WithLocation(4, 34),
-                // (4,34): error CS1003: Syntax error, ',' expected
-                //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments(",").WithLocation(4, 34),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(4, 33),
                 // (4,36): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public unsafe fixed int B[2][2];   // CS1003,CS1001,CS1519
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(4, 36),
@@ -16163,7 +16234,7 @@ class Test
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 // 'i': A value of type '<null>' cannot be used as a default parameter because there are no standard conversions to type 'int'
                 new ErrorDescription { Code = 1750, Line = 3, Column = 24 },
-                // 'params': error CS1751: Cannot specify a default value for a parameter array
+                // 'params': error CS1751: Cannot specify a default value for a parameter collection
                 new ErrorDescription { Code = 1751, Line = 3, Column = 34 });
         }
 
@@ -16679,7 +16750,7 @@ class C<T>
 class E1 : I<dynamic> {}
 unsafe class E2 : I<C<dynamic>.D*[]> {}
 ";
-            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // unsafe class E2 : I<C<dynamic>.D*[]> {}
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E2").WithLocation(10, 14),
@@ -16690,7 +16761,7 @@ unsafe class E2 : I<C<dynamic>.D*[]> {}
                 // unsafe class E2 : I<C<dynamic>.D*[]> {}
                 Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>").WithLocation(10, 19));
 
-            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (11,12): error CS1966: 'E2': cannot implement a dynamic interface 'I<C<dynamic>.D*[]>'
                 // class E2 : I<C<dynamic>.D*[]> {}
                 Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<C<dynamic>.D*[]>").WithArguments("E2", "I<C<dynamic>.D*[]>"),
@@ -16773,7 +16844,7 @@ namespace N1
                 Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
             };
 
-            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib461(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -16789,13 +16860,13 @@ namespace N1
     protected int P { get { throw null; } set {  } } = 1;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,9): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     int I { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(5, 9),
-                // (6,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (6,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     static int S { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithLocation(6, 16),
-                // (7,19): error CS8050: Only auto-implemented properties can have initializers.
+                // (7,19): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     protected int P { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(7, 19)
             );
@@ -20378,7 +20449,7 @@ class C
 @"internal abstract void M();
 internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();
@@ -20732,10 +20803,23 @@ namespace C
 }";
             var referenceD = CreateCompilation(codeD, assemblyName: "D").EmitToImageReference();
 
-            CompileAndVerify(
+            // ECMA-335 "II.22.14 ExportedType : 0x27" rule 14: "Ignoring nested Types, there shall be no duplicate rows, based upon FullName [ERROR]".
+            var verifier = CompileAndVerify(
                 source: codeA,
                 references: new MetadataReference[] { referenceB, referenceC2, referenceD },
-                expectedOutput: "obj is null");
+                expectedOutput: "obj is null",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[Main]: Unable to resolve token. { Offset = 0x1, Token = 167772167 }" });
+
+            verifier.VerifyIL("A.ClassA.Main", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldnull
+  IL_0001:  call       "string B.ClassB.MethodB(C.ClassC)"
+  IL_0006:  call       "void System.Console.WriteLine(string)"
+  IL_000b:  ret
+}
+""");
         }
 
         [Fact, WorkItem(16484, "https://github.com/dotnet/roslyn/issues/16484")]

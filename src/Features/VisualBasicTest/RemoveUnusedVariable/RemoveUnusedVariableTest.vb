@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnusedVariable
     Partial Public Class RemoveUnusedVariableTest
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicRemoveUnusedVariableCodeFixProvider())

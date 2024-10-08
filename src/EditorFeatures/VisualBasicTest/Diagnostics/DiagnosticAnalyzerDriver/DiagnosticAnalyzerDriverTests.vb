@@ -14,9 +14,7 @@ Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 <[UseExportProvider]>
 Public Class DiagnosticAnalyzerDriverTests
 
-    Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
-        .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
-        .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+    Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures
 
     <Fact>
     Public Async Function DiagnosticAnalyzerDriverAllInOne() As Task

@@ -9,14 +9,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-[ExportWorkspaceService(typeof(IWorkpacePartialSolutionsTestHook), ServiceLayer.Host), Shared]
-internal class WorkpacePartialSolutionsTestHook : IWorkpacePartialSolutionsTestHook
+[ExportWorkspaceService(typeof(IWorkspacePartialSolutionsTestHook), ServiceLayer.Host), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class WorkspacePartialSolutionsTestHook() : IWorkspacePartialSolutionsTestHook
 {
     public bool IsPartialSolutionDisabled { get; set; }
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public WorkpacePartialSolutionsTestHook()
-    {
-    }
 }

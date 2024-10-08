@@ -7,8 +7,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CommandHandlers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -27,53 +25,49 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToAdjacentMember
         {
             var kinds = sourceCodeKind != null
                 ? SpecializedCollections.SingletonEnumerable(sourceCodeKind.Value)
-                : new[] { SourceCodeKind.Regular, SourceCodeKind.Script };
+                : [SourceCodeKind.Regular, SourceCodeKind.Script];
 
             foreach (var kind in kinds)
             {
-                using (var workspace = TestWorkspace.Create(
+                using var workspace = TestWorkspace.Create(
                     LanguageName,
                     compilationOptions: null,
                     parseOptions: DefaultParseOptions.WithKind(kind),
-                    content: code))
-                {
-                    var hostDocument = workspace.DocumentWithCursor;
-                    var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                    var parsedDocument = await ParsedDocument.CreateAsync(document, CancellationToken.None);
-                    Assert.Empty(parsedDocument.SyntaxTree.GetDiagnostics());
-                    var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                    content: code);
+                var hostDocument = workspace.DocumentWithCursor;
+                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+                var parsedDocument = await ParsedDocument.CreateAsync(document, CancellationToken.None);
+                Assert.Empty(parsedDocument.SyntaxTree.GetDiagnostics());
+                var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-                    var targetPosition = GoToAdjacentMemberCommandHandler.GetTargetPosition(
-                        service,
-                        parsedDocument.Root,
-                        hostDocument.CursorPosition.Value,
-                        next);
+                var targetPosition = GoToAdjacentMemberCommandHandler.GetTargetPosition(
+                    service,
+                    parsedDocument.Root,
+                    hostDocument.CursorPosition.Value,
+                    next);
 
-                    Assert.NotNull(targetPosition);
-                    Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value);
-                }
+                Assert.NotNull(targetPosition);
+                Assert.Equal(hostDocument.SelectedSpans.Single().Start, targetPosition.Value);
             }
         }
 
         protected async Task<int?> GetTargetPositionAsync(string code, bool next)
         {
-            using (var workspace = TestWorkspace.Create(
+            using var workspace = TestWorkspace.Create(
                 LanguageName,
                 compilationOptions: null,
                 parseOptions: DefaultParseOptions,
-                content: code))
-            {
-                var hostDocument = workspace.DocumentWithCursor;
-                var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var parsedDocument = await ParsedDocument.CreateAsync(document, CancellationToken.None);
-                Assert.Empty(parsedDocument.SyntaxTree.GetDiagnostics());
+                content: code);
+            var hostDocument = workspace.DocumentWithCursor;
+            var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
+            var parsedDocument = await ParsedDocument.CreateAsync(document, CancellationToken.None);
+            Assert.Empty(parsedDocument.SyntaxTree.GetDiagnostics());
 
-                return GoToAdjacentMemberCommandHandler.GetTargetPosition(
-                    document.GetRequiredLanguageService<ISyntaxFactsService>(),
-                    parsedDocument.Root,
-                    hostDocument.CursorPosition.Value,
-                    next);
-            }
+            return GoToAdjacentMemberCommandHandler.GetTargetPosition(
+                document.GetRequiredLanguageService<ISyntaxFactsService>(),
+                parsedDocument.Root,
+                hostDocument.CursorPosition.Value,
+                next);
         }
     }
 }

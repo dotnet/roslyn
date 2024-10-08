@@ -126,12 +126,6 @@
   <data name="Fix_all_0_in_1" xml:space="preserve">
     <value>Fix all '{0}' in '{1}'</value>
   </data>
-  <data name="Fix_all_0_in_containing_member_for_1" xml:space="preserve">
-    <value>Fix all '{0}' in containing member for '{1}'</value>
-  </data>
-  <data name="Fix_all_0_in_containing_type_for_1" xml:space="preserve">
-    <value>Fix all '{0}' in containing type for '{1}'</value>
-  </data>
   <data name="Fix_all_0_in_Solution" xml:space="preserve">
     <value>Fix all '{0}' in Solution</value>
   </data>
@@ -197,5 +191,11 @@
   </data>
   <data name="Namespace_can_not_be_added_in_this_destination" xml:space="preserve">
     <value>Namespace can not be added in this destination.</value>
+  </data>
+  <data name="Type_members" xml:space="preserve">
+    <value>Type members</value>
+  </data>
+  <data name="Document_does_not_support_syntax_trees" xml:space="preserve">
+    <value>Document does not support syntax trees</value>
   </data>
 </root>
