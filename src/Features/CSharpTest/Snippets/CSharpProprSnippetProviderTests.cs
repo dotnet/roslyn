@@ -2,16 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
-public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoPropertySnippetProviderTests
+public sealed class CSharpProprSnippetProviderTests : AbstractCSharpAutoPropertySnippetProviderTests
 {
-    protected override string SnippetIdentifier => "propg";
+    protected override string SnippetIdentifier => "propr";
 
-    protected override string DefaultPropertyBlockText => "{ get; private set; }";
+    protected override string DefaultPropertyBlockText => "{ get; set; }";
 
     public override async Task InsertSnippetInReadonlyStructTest()
     {
@@ -21,7 +23,7 @@ public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoProperty
             {
                 $$
             }
-            """, "public {|0:int|} {|1:MyProperty|} { get; }");
+            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
     }
 
     public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
@@ -36,7 +38,7 @@ public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoProperty
             readonly partial struct MyStruct
             {
             }
-            """, "public {|0:int|} {|1:MyProperty|} { get; }");
+            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
     }
 
     public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
@@ -54,22 +56,47 @@ public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoProperty
             readonly partial struct MyStruct
             {
             }
-            """, "public {|0:int|} {|1:MyProperty|} { get; }");
+            """, "public required {|0:int|} {|1:MyProperty|} { get; }");
     }
 
     public override async Task VerifySnippetInInterfaceTest()
     {
-        // Ensure we don't generate redundant `set` accessor when executed in interface
-        await VerifyPropertyAsync("""
+        await VerifySnippetIsAbsentAsync("""
             interface MyInterface
             {
                 $$
             }
-            """, "public {|0:int|} {|1:MyProperty|} { get; }");
+            """);
     }
 
     [Theory]
-    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public override Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
-        => base.InsertSnippetAfterAllowedAccessibilityModifierTest(modifier);
+    [InlineData("public")]
+    [InlineData("internal")]
+    [InlineData("protected internal")]
+    public override async Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
+    {
+        await VerifyPropertyAsync($$"""
+            class Program
+            {
+                {{modifier}} $$
+            }
+            """, $$"""required {|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
+    }
+
+    [Theory]
+    [InlineData("private")]
+    [InlineData("protected")]
+    [InlineData("private protected")]
+    public async Task NoSnippetAfterWrongAccessibilityModifierTest(string modifier)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class Program
+            {
+                {{modifier}} $$
+            }
+            """);
+    }
+
+    protected override Task VerifyDefaultPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyName = "MyProperty")
+        => VerifyPropertyAsync(markup, $$"""public required {|0:int|} {|1:{{propertyName}}|} {{DefaultPropertyBlockText}}""");
 }
