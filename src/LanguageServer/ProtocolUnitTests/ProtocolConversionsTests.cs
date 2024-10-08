@@ -5,17 +5,24 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using Range = Roslyn.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
-    public class ProtocolConversionsTests
+    public class ProtocolConversionsTests : AbstractLanguageServerProtocolTests
     {
+        public ProtocolConversionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public void CreateAbsoluteUri_LocalPaths_AllAscii()
         {
@@ -275,6 +282,63 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
     var x = 5;
 }";
             return markup;
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ProjectToProjectContext_HostWorkspace(bool mutatingLspWorkspace)
+        {
+            var source = """
+                class {|caret:A|}
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+
+            // Create a server with an existing file.
+            await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+            var caret = testLspServer.GetLocations("caret").Single();
+
+            var document = await GetTextDocumentAsync(testLspServer, caret.Uri);
+            Assert.NotNull(document);
+
+            var projectContext = ProtocolConversions.ProjectToProjectContext(document.Project);
+
+            Assert.False(projectContext.IsMiscellaneous);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ProjectToProjectContext_MiscellaneousFilesWorkspace(bool mutatingLspWorkspace)
+        {
+            var source = """
+                class A
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+
+            // Create a server that supports LSP misc files.
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+            // Open an empty loose file.
+            var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SomeFile.cs");
+            await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
+
+            var document = await GetTextDocumentAsync(testLspServer, looseFileUri);
+            Assert.NotNull(document);
+
+            var projectContext = ProtocolConversions.ProjectToProjectContext(document.Project);
+
+            Assert.True(projectContext.IsMiscellaneous);
+        }
+
+        internal static async Task<TextDocument?> GetTextDocumentAsync(TestLspServer testLspServer, Uri uri)
+        {
+            var (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None);
+            return textDocument;
         }
     }
 }
