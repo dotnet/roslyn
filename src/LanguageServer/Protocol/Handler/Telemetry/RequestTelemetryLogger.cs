@@ -122,6 +122,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
                 }
             }));
         }
+        _findDocumentResults.Clear();
     }
 
     private void OnFlushed(object? sender, EventArgs e)
@@ -155,7 +156,6 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         }
 
         _requestCounters.Clear();
-        _findDocumentResults.Clear();
         _usedForkedSolutionCounter.Clear();
     }
 

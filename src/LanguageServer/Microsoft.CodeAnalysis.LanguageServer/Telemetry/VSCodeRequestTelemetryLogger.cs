@@ -27,11 +27,7 @@ internal class VSCodeRequestTelemetryLogger() : RequestTelemetryLogger(WellKnown
     ///   2.  After initial load, almost all requests should resolve to the host workspace.
     /// A large amount of misc files requests in 2 could indicate either a bug or feature improvements in order to load what the user is expecting.
     /// </summary>
-    private readonly ConcurrentDictionary<bool, CountLogAggregator<string>> _findDocumentCounters = new()
-    {
-        [true] = new(),
-        [false] = new(),
-    };
+    private readonly ConcurrentDictionary<bool, CountLogAggregator<string>> _findDocumentCounters = new();
 
     public static void ReportProjectInitializationComplete()
     {
