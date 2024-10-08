@@ -92,39 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// A binder suitable for performing overload resolution to synthesize a call to a helper method.
-        /// </summary>
-        private Binder? _binder;
-
-        private BoundExpression MakeInvocationExpression(
-            BinderFlags flags,
-            SyntaxNode node,
-            BoundExpression receiver,
-            string methodName,
-            bool disallowExpandedNonArrayParams,
-            ImmutableArray<BoundExpression> args,
-            BindingDiagnosticBag diagnostics,
-            ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
-            bool ignoreNormalFormIfHasValidParamsParameter = false)
-        {
-            if (_binder is null || _binder.Flags != flags)
-            {
-                _binder = new SyntheticBinderImpl(this).WithFlags(flags);
-            }
-
-            return _binder.MakeInvocationExpression(
-                node,
-                receiver,
-                methodName,
-                args,
-                diagnostics,
-                typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeWithAnnotations>) : typeArgs.SelectAsArray(t => TypeWithAnnotations.Create(t)),
-                allowFieldsAndProperties: false,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
-                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
-        }
-
-        /// <summary>
         /// A binder used only for performing overload resolution of runtime helper methods.
         /// </summary>
         private sealed class SyntheticBinderImpl : BuckStopsHereBinder
@@ -833,16 +800,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, params BoundExpression[] args)
-        {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics);
-        }
-
-        public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
-        {
-            return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics, typeArgs);
-        }
-
         public BoundExpression StaticCall(TypeSymbol receiver, MethodSymbol method, params BoundExpression[] args)
         {
             if (method is null)
@@ -862,6 +819,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder.ReportUseSite(methodSymbol, Diagnostics, Syntax);
             Debug.Assert(methodSymbol.IsStatic);
             return Call(null, methodSymbol, args);
+        }
+
+        public BoundExpression StaticCall(WellKnownMember method, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
+        {
+            MethodSymbol methodSymbol = WellKnownMethod(method);
+            Binder.ReportUseSite(methodSymbol, Diagnostics, Syntax);
+            Debug.Assert(methodSymbol.IsStatic);
+            Debug.Assert(methodSymbol.IsGenericMethod);
+            Debug.Assert(methodSymbol.Arity == typeArgs.Length);
+
+            return Call(null, methodSymbol.Construct(typeArgs), args);
         }
 
         public BoundExpression StaticCall(SpecialMember method, params BoundExpression[] args)
