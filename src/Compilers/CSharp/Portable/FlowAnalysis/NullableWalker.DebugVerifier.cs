@@ -56,7 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
                         {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                            // <Metalama> Commented out. Triggers on unusual ASP.NET Core code, see comment in https://postsharp.tpondemand.com/entity/34064.
+                            // Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                            // </Metalama>
                         }
                     }
                 }

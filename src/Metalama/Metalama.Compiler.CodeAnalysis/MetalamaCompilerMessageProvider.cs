@@ -21,7 +21,6 @@ namespace Metalama.Compiler
         ERR_TransformerNotUnique = 616,
         WRN_AnalyzerAssembliesRedirected = 617,
         WRN_AnalyzerAssemblyCantRedirect = 618,
-        ERR_InterceptorsNotSupported = 619,
         WRN_LanguageVersionUpdated = 620, // Emitted by Microsoft.CSharp.Core.targets.
         WRN_GeneratorAssemblyCantRedirect = 621,
         WRN_TargetFrameworkNotSupported = 622 // Emitted by Microsoft.CSharp.Core.targets.
@@ -217,8 +216,7 @@ namespace Metalama.Compiler
             ERR_HowToDiagnoseInvalidAspect or
             ERR_HowToReportMetalamaBug or
             ERR_ManyTransformersOfSameName or
-            ERR_TransformerNotUnique or
-            ERR_InterceptorsNotSupported => DiagnosticSeverity.Error,
+            ERR_TransformerNotUnique => DiagnosticSeverity.Error,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
             WRN_TransformersNotOrdered or
             WRN_AnalyzerAssembliesRedirected or
@@ -244,7 +242,6 @@ namespace Metalama.Compiler
                 ERR_TransformerNotUnique => "There are several transformers of the same name",
                 WRN_AnalyzerAssembliesRedirected => "Some analyzer assemblies were downgraded because of Metalama/Roslyn version mismatch.",
                 WRN_AnalyzerAssemblyCantRedirect => "Analyzer assembly was disabled because of Metalama/Roslyn version mismatch.",
-                ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.",
                 WRN_GeneratorAssemblyCantRedirect => "Source generator assembly was disabled because of Metalama/Roslyn version mismatch.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };
@@ -273,7 +270,6 @@ namespace Metalama.Compiler
                 ERR_TransformerNotUnique => "There are several transformers named '{0}': {1}.",
                 WRN_AnalyzerAssembliesRedirected => "Analyzer assemblies for this project reference Roslyn version {0}, which is newer than what is supported by the current version of Metalama ({1}). Some analyzer assemblies were downgraded to the latest supported version.",
                 WRN_AnalyzerAssemblyCantRedirect => """The analyzer assembly '{0}' was disabled because it references Roslyn version {1}, which is newer than the version supported by the current version of Metalama ({2}). Consider one of the following remedies: (1) Update Metalama to a newer version if one is available. (2) Set the version of the .NET SDK to {3} in global.json and limit roll-forwarding the SDK to the latest patch: {{ "sdk": {{ "version": "{3}", "rollForward": "latestPatch" }} }}. (3) If this analyzer assembly is not essential, disable the LAMA0618 warning in your project file.""",
-                ERR_InterceptorsNotSupported => "Interceptors and Metalama can't currently be used together.{0}",
                 WRN_GeneratorAssemblyCantRedirect => """The source generator assembly '{0}' was disabled because it references Roslyn version {1}, which is newer than the version supported by the current version of Metalama ({2}). Consider one of the following remedies: (1) Update Metalama to a newer version if one is available. (2) Set the version of the .NET SDK to {3} in global.json and limit roll-forwarding the SDK to the latest patch: {{ "sdk": {{ "version": "{3}", "rollForward": "latestPatch" }} }}. (3) If your project compiles anyway because it does not rely on this source generator, ignore the LAMA0621 warning in your project file.""",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
             };

@@ -429,40 +429,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
 
-            var interceptorsNamespaces = (((CSharpParseOptions?)inputCompilation.SyntaxTrees.FirstOrDefault()?.Options)?.InterceptorsPreviewNamespaces).GetValueOrDefault();
-
-            if (!interceptorsNamespaces.IsDefaultOrEmpty)
-            {
-                List<string> csprojLines = new();
-
-                // See https://github.com/dotnet/sdk/blob/v8.0.100/src/WebSdk/ProjectSystem/Targets/Microsoft.NET.Sdk.Web.ProjectSystem.targets#L55-L67
-                // for list of inteceptor namespaces that are enabled by default in trimmed/AOT web apps in .Net 8, and ways to disable them.
-
-                if (interceptorsNamespaces.Any(ns => ns is ["Microsoft", "AspNetCore", "Http", "Generated"]))
-                {
-                    csprojLines.Add("<EnableRequestDelegateGenerator>false</EnableRequestDelegateGenerator>");
-                }
-
-                if (interceptorsNamespaces.Any(ns => ns is ["Microsoft", "Extensions", "Configuration", "Binder", "SourceGeneration"]))
-                {
-                    csprojLines.Add("<EnableConfigurationBindingGenerator>false</EnableConfigurationBindingGenerator>");
-                }
-
-                string additionalInfo = string.Empty;
-
-                if (csprojLines.Any())
-                {
-                    additionalInfo = $" To disable this preview feature, set {string.Concat(csprojLines)} in your project file.";
-                }
-
-                var diagnostic =
-                    Diagnostic.Create(new DiagnosticInfo(MetalamaCompilerMessageProvider.Instance, (int)MetalamaErrorCode.ERR_InterceptorsNotSupported, additionalInfo));
-
-                diagnostics.Add(diagnostic);
-
-                return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
-            }
-
             // Run transformers.
             ImmutableArray<ResourceDescription> resources = Arguments.ManifestResources;
 
