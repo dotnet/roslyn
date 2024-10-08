@@ -33,6 +33,7 @@
       <ProfilingInputsSource Include="ProfilingInputs.props" />
       <ProfilingInputsTarget Include="$(IntermediateOutputPath)ProfilingInputs.props" />
     </ItemGroup>
+    <MakeDir Directories="$(IntermediateOutputPath)" />
     <ReplaceFileText
       Condition="'$(ProfilingInputsDropName)' != ''"
       InputFilename="@(ProfilingInputsSource)"
