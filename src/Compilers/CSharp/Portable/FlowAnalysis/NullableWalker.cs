@@ -2012,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ThisReference:
                     case BoundKind.BaseReference:
                         {
-                            var method = getTopLevelMethod(_symbol as MethodSymbol);
+                            var method = GetTopLevelMethod(_symbol as MethodSymbol);
                             var thisParameter = method?.ThisParameter;
                             return thisParameter is object ? GetOrCreateSlot(thisParameter) : -1;
                         }
@@ -2090,20 +2090,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 return -1;
             }
+        }
 
-            static MethodSymbol? getTopLevelMethod(MethodSymbol? method)
+        static MethodSymbol? GetTopLevelMethod(MethodSymbol? method)
+        {
+            while (method is object)
             {
-                while (method is object)
+                var container = method.ContainingSymbol;
+                if (container.Kind == SymbolKind.NamedType)
                 {
-                    var container = method.ContainingSymbol;
-                    if (container.Kind == SymbolKind.NamedType)
-                    {
-                        return method;
-                    }
-                    method = container as MethodSymbol;
+                    return method;
                 }
-                return null;
+                method = container as MethodSymbol;
             }
+            return null;
         }
 
         protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false, bool createIfMissing = true)
@@ -7011,6 +7011,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.IsStatic ? 0 :
                 receiverOpt is null ? -1 :
                 MakeSlot(receiverOpt);
+
+            if (method.MethodKind == MethodKind.LocalFunction
+                && GetTopLevelMethod(method) is { ThisParameter: { } thisParameter })
+            {
+                receiverSlot = GetOrCreateSlot(thisParameter);
+            }
 
             if (receiverSlot < 0)
             {
