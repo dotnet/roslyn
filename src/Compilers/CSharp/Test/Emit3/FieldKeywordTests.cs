@@ -215,12 +215,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,9): warning CS9265: The 'get' accessor of property 'C.P1' should use the backing 'field' because the other accessor is using it.
+                // (6,9): warning CS9265: 'C.P1.get' should use the backing 'field' because the other accessor is using it.
                 //         get { return _field; } // 1
-                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P1").WithLocation(6, 9),
-                // (13,9): warning CS9265: The 'set' accessor of property 'C.P2' should use the backing 'field' because the other accessor is using it.
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("C.P1.get").WithLocation(6, 9),
+                // (13,9): warning CS9265: 'C.P2.set' should use the backing 'field' because the other accessor is using it.
                 //         set { _field = value; } // 2
-                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P2").WithLocation(13, 9));
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("C.P2.set").WithLocation(13, 9));
         }
 
         [Fact]
@@ -245,12 +245,140 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,9): warning CS9265: The 'get' accessor of property 'C.P1' should use the backing 'field' because the other accessor is using it.
+                // (6,9): warning CS9265: 'C.P1.get' should use the backing 'field' because the other accessor is using it.
                 //         get { return _field; } // 1
-                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P1").WithLocation(6, 9),
-                // (13,9): warning CS9265: The 'set' accessor of property 'C.P2' should use the backing 'field' because the other accessor is using it.
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("C.P1.get").WithLocation(6, 9),
+                // (13,9): warning CS9265: 'C.P2.set' should use the backing 'field' because the other accessor is using it.
                 //         set { _field = value; } // 2
-                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P2").WithLocation(13, 9));
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("C.P2.set").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void MigratingToFieldKeyword_03()
+        {
+            string source = """
+                partial class C
+                {
+                    object _field;
+                    partial object P1 { get; set; }
+                    partial object P1
+                    {
+                        get { return _field; } // 1
+                        set;
+                    }
+                    
+                    partial object P2 { get; set; }
+                    partial object P2
+                    {
+                        get;
+                        set { _field = value; } // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,9): warning CS9265: 'C.P1.get' should use the backing 'field' because the other accessor is using it.
+                //         get { return _field; } // 1
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("C.P1.get").WithLocation(7, 9),
+                // (15,9): warning CS9265: 'C.P2.set' should use the backing 'field' because the other accessor is using it.
+                //         set { _field = value; } // 2
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("C.P2.set").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void PleaseWork_01()
+        {
+            var source = """
+                partial class C
+                {
+                    partial string Prop { get; set; } = "1";
+                    partial string Prop { get => field; set => field = value; } = "2";
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MigratingToFieldKeyword_04()
+        {
+            string source = """
+                partial class C
+                {
+                    object _field;
+
+                    partial object P1 { get; set; }
+                    partial object P1
+                    {
+                        get { return _field; } // 1
+                        set;
+                    } = "1";
+                    
+                    partial object P2 { get; set; }
+                    partial object P2
+                    {
+                        get;
+                        set { _field = value; } // ok: backing field is still being assigned
+                    } = "2";
+
+                    partial object P3 { get; set; } = "3";
+                    partial object P3
+                    {
+                        get { return _field; } // 2
+                        set;
+                    }
+                    
+                    partial object P4 { get; set; } = "4";
+                    partial object P4
+                    {
+                        get;
+                        set { _field = value; } // ok: backing field is still being assigned
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,9): warning CS9265: 'C.P1.get' should use the backing 'field' because the other accessor is using it.
+                //         get { return _field; } // 1
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("C.P1.get").WithLocation(8, 9),
+                // (22,9): warning CS9265: 'C.P3.get' should use the backing 'field' because the other accessor is using it.
+                //         get { return _field; } // 2
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("C.P3.get").WithLocation(22, 9));
+        }
+
+        [Fact]
+        public void MigratingToFieldKeyword_05()
+        {
+            // Do not warn for a setter not using the 'field' when an initializer is present.
+            string source = """
+                interface I
+                {
+                    public string Prop { get; set; }
+                }
+
+                class ReadonlyC1 : I
+                {
+                    public string Prop { get; set => throw null!; } // 1
+                }
+                
+                class ReadonlyC2 : I
+                {
+                    public string Prop { get; set => throw null!; } = null!; // ok: field is being assigned
+                }
+                
+                class ReadonlyC3 : I
+                {
+                    public string Prop { get => throw null!; set; } = null!; // 2
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,31): warning CS9265: 'ReadonlyC1.Prop.set' should use the backing 'field' because the other accessor is using it.
+                //     public string Prop { get; set => throw null!; } // 1
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("ReadonlyC1.Prop.set").WithLocation(8, 31),
+                // (18,26): warning CS9265: 'ReadonlyC3.Prop.get' should use the backing 'field' because the other accessor is using it.
+                //     public string Prop { get => throw null!; set; } = null!; // 2
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("ReadonlyC3.Prop.get").WithLocation(18, 26));
         }
 
         [Fact]

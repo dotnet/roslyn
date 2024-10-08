@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt;
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceType, out aliasQualifierOpt);
 
-            var symbol = new SourcePropertySymbol(
+            return new SourcePropertySymbol(
                 containingType,
                 syntax,
                 hasGetAccessor: getSyntax != null || isExpressionBodied,
@@ -88,30 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                usesFieldKeyword: getterUsesFieldKeyword || setterUsesFieldKeyword,
+                getterUsesFieldKeyword: getterUsesFieldKeyword,
+                setterUsesFieldKeyword: setterUsesFieldKeyword,
                 memberName,
                 location,
                 diagnostics);
-
-            if (binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword))
-            {
-                AccessorDeclarationSyntax? accessorToBlame = null;
-                if (hasSetAccessorImplementation && !setterUsesFieldKeyword && (hasAutoPropertyGet || getterUsesFieldKeyword))
-                {
-                    accessorToBlame = setSyntax;
-                }
-                else if (hasGetAccessorImplementation && !getterUsesFieldKeyword && (hasAutoPropertySet || setterUsesFieldKeyword))
-                {
-                    accessorToBlame = getSyntax;
-                }
-
-                if (accessorToBlame is not null)
-                {
-                    diagnostics.Add(ErrorCode.WRN_AccessorDoesNotUseBackingField, accessorToBlame.Keyword, [accessorToBlame.Keyword.ValueText, symbol]);
-                }
-            }
-
-            return symbol;
         }
 
         private SourcePropertySymbol(
@@ -128,7 +109,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertySet,
             bool isExpressionBodied,
             bool accessorsHaveImplementation,
-            bool usesFieldKeyword,
+            bool getterUsesFieldKeyword,
+            bool setterUsesFieldKeyword,
             string memberName,
             Location location,
             BindingDiagnosticBag diagnostics)
@@ -147,7 +129,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                usesFieldKeyword: usesFieldKeyword,
+                getterUsesFieldKeyword: getterUsesFieldKeyword,
+                setterUsesFieldKeyword: setterUsesFieldKeyword,
                 syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                 memberName,
                 syntax.AttributeLists,
