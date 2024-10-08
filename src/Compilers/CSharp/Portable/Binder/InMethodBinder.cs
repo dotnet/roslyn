@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
         /// <summary>
-        /// This map is used by <see cref="MethodCompiler.BindMethodBody(MethodSymbol, TypeCompilationState, BindingDiagnosticBag, bool, BoundNode?, bool, out ImportChain?, out bool, out bool, out MethodBodySemanticModel.InitialState)"/>
+        /// This map is used by <see cref="MethodCompiler.BindMethodBody(MethodSymbol, TypeCompilationState, BindingDiagnosticBag, bool, BoundStatementList?, bool, out ImportChain?, out bool, out bool, out MethodBodySemanticModel.InitialState)"/>
         /// and <see cref="Binder.BindIdentifier"/> to validate some assumptions around identifiers.
         /// 
         /// Values in the dictionary are bit flags.
