@@ -815,7 +815,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var projectContext = new LSP.VSProjectContext
             {
                 Id = ProjectIdToProjectContextId(project.Id),
-                Label = project.Name
+                Label = project.Name,
+                IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles,
             };
 
             if (project.Language == LanguageNames.CSharp)
@@ -825,16 +826,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             else if (project.Language == LanguageNames.VisualBasic)
             {
                 projectContext.Kind = LSP.VSProjectKind.VisualBasic;
-            }
-
-            var solution = project.Solution;
-            if (solution.WorkspaceKind == WorkspaceKind.Host)
-            {
-                projectContext.WorkspaceKind = LSP.VSWorkspaceKind.Host;
-            }
-            else if (solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
-            {
-                projectContext.WorkspaceKind = LSP.VSWorkspaceKind.MiscellaneousFiles;
             }
 
             return projectContext;

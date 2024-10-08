@@ -45,10 +45,10 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the kind of the workspace the project context is associated.
+        /// Gets or sets this project context represents miscellaneous files.
         /// </summary>
-        [JsonPropertyName("_vs_workspace_kind")]
-        public VSWorkspaceKind WorkspaceKind
+        [JsonPropertyName("_vs_is_miscellaneous")]
+        public bool IsMiscellaneous
         {
             get;
             set;
