@@ -1798,9 +1798,9 @@ ref struct R
 """;
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (7,29): warning CS0649: Field 'R.field' is never assigned to, and will always have its default value (null reference)
+                // (7,29): warning CS9265: Field 'R.field' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref int field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("R.field", "(null reference)").WithLocation(7, 29)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "field").WithArguments("R.field").WithLocation(7, 29)
                 );
 
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("explicit ctor"));
@@ -2279,7 +2279,7 @@ public class B
         {
             var source = """
                 #pragma warning disable 169
-                #pragma warning disable 649
+                #pragma warning disable 9265
                 ref struct R<T, U>
                 {
                     public required ref T F1;
@@ -5213,9 +5213,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,19): warning CS0649: Field 'R<T>._t' is never assigned to, and will always have its default value (null reference)
+                // (3,19): warning CS9265: Field 'R<T>._t' is never ref-assigned to, and will always have its default value (null reference)
                 //     private ref T _t;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "_t").WithArguments("R<T>._t", "(null reference)").WithLocation(3, 19),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "_t").WithArguments("R<T>._t").WithLocation(3, 19),
                 // (4,25): warning CS9201: Ref field '_t' should be ref-assigned before use.
                 //     public R(ref T t) { _t = t; }
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "_t").WithArguments("_t").WithLocation(4, 25));
@@ -5464,12 +5464,34 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,18): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,18): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 18),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 18),
                 // (6,9): warning CS9201: Ref field 'F' should be ref-assigned before use.
                 //         F = t;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(6, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
+        public void DefiniteAssignment_WarningWave()
+        {
+            var source = """
+                ref struct R
+                {
+                    public ref int F;
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(9), targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
+                //     public ref int F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20)
+            };
+
+            CreateCompilation(source, options: TestOptions.ReleaseDll.WithWarningLevel(10), targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5490,9 +5512,9 @@ class Program
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5556,9 +5578,9 @@ class Program
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5588,12 +5610,12 @@ class Program
                 // (3,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R2 F;
                 Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R2").WithLocation(3, 12),
-                // (3,19): warning CS0649: Field 'R1.F' is never assigned to, and will always have its default value (null reference)
+                // (3,19): warning CS9265: Field 'R1.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref R2 F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R1.F", "(null reference)").WithLocation(3, 19),
-                // (8,20): warning CS0649: Field 'R2.F' is never assigned to, and will always have its default value (null reference)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R1.F").WithLocation(3, 19),
+                // (8,20): warning CS9265: Field 'R2.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R2.F", "(null reference)").WithLocation(8, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R2.F").WithLocation(8, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5623,9 +5645,9 @@ class Program
                 // (3,12): error CS9050: A ref field cannot refer to a ref struct.
                 //     public ref R2 F;
                 Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R2").WithLocation(3, 12),
-                // (3,19): warning CS0649: Field 'R1.F' is never assigned to, and will always have its default value (null reference)
+                // (3,19): warning CS9265: Field 'R1.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref R2 F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R1.F", "(null reference)").WithLocation(3, 19));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R1.F").WithLocation(3, 19));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5647,9 +5669,9 @@ class Program
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5693,9 +5715,9 @@ class Program
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5739,9 +5761,9 @@ class Program
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5782,9 +5804,9 @@ class Program
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
@@ -5912,9 +5934,9 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(3,18): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // 0.cs(3,18): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 18),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 18),
                 // 0.cs(7,9): warning CS9201: Ref field 'F' should be ref-assigned before use.
                 //         F = tValue;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9));
@@ -5950,9 +5972,9 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,27): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,27): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 27),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 27),
                 // (7,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(7, 9),
@@ -6009,9 +6031,9 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // 0.cs(3,27): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // 0.cs(3,27): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 27),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 27),
                 // 0.cs(7,9): warning CS9201: Ref field 'F' should be ref-assigned before use.
                 //         F = tValue;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "F").WithArguments("F").WithLocation(7, 9));
@@ -6047,9 +6069,9 @@ class Program
 }";
             var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,36): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,36): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref readonly T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 36),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 36),
                 // (7,9): error CS8331: Cannot assign to field 'F' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         F = tValue; // 1
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "F").WithArguments("field", "F").WithLocation(7, 9),
@@ -7489,7 +7511,7 @@ class Program
         public void AssignOutParameterFrom_RefField()
         {
             var source =
-@"#pragma warning disable 649
+@"#pragma warning disable 9265
 ref struct S<T>
 {
     public ref T Ref;
@@ -7560,18 +7582,18 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,18): warning CS0649: Field 'S<T>.Ref' is never assigned to, and will always have its default value (null reference)
+                // (3,18): warning CS9265: Field 'S<T>.Ref' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref T Ref;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Ref").WithArguments("S<T>.Ref", "(null reference)").WithLocation(3, 18),
-                // (4,27): warning CS0649: Field 'S<T>.RefReadonly' is never assigned to, and will always have its default value (null reference)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "Ref").WithArguments("S<T>.Ref").WithLocation(3, 18),
+                // (4,27): warning CS9265: Field 'S<T>.RefReadonly' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly T RefReadonly;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "RefReadonly").WithArguments("S<T>.RefReadonly", "(null reference)").WithLocation(4, 27),
-                // (5,27): warning CS0649: Field 'S<T>.ReadonlyRef' is never assigned to, and will always have its default value (null reference)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "RefReadonly").WithArguments("S<T>.RefReadonly").WithLocation(4, 27),
+                // (5,27): warning CS9265: Field 'S<T>.ReadonlyRef' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref T ReadonlyRef;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ReadonlyRef").WithArguments("S<T>.ReadonlyRef", "(null reference)").WithLocation(5, 27),
-                // (6,36): warning CS0649: Field 'S<T>.ReadonlyRefReadonly' is never assigned to, and will always have its default value (null reference)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "ReadonlyRef").WithArguments("S<T>.ReadonlyRef").WithLocation(5, 27),
+                // (6,36): warning CS9265: Field 'S<T>.ReadonlyRefReadonly' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref readonly T ReadonlyRefReadonly;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ReadonlyRefReadonly").WithArguments("S<T>.ReadonlyRefReadonly", "(null reference)").WithLocation(6, 36),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "ReadonlyRefReadonly").WithArguments("S<T>.ReadonlyRefReadonly").WithLocation(6, 36),
                 // (12,73): error CS8329: Cannot use field 'RefReadonly' as a ref or out value because it is a readonly variable
                 //     static void FromValueRefReadonly<T>(S<T> s)         { ref T t = ref s.RefReadonly; } // 1
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.RefReadonly").WithArguments("field", "RefReadonly").WithLocation(12, 73),
@@ -7634,18 +7656,18 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,18): warning CS0649: Field 'S<T>.Ref' is never assigned to, and will always have its default value (null reference)
+                // (3,18): warning CS9265: Field 'S<T>.Ref' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref T Ref;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Ref").WithArguments("S<T>.Ref", "(null reference)").WithLocation(3, 18),
-                // (4,27): warning CS0649: Field 'S<T>.RefReadonly' is never assigned to, and will always have its default value (null reference)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "Ref").WithArguments("S<T>.Ref").WithLocation(3, 18),
+                // (4,27): warning CS9265: Field 'S<T>.RefReadonly' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly T RefReadonly;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "RefReadonly").WithArguments("S<T>.RefReadonly", "(null reference)").WithLocation(4, 27),
-                // (5,27): warning CS0649: Field 'S<T>.ReadonlyRef' is never assigned to, and will always have its default value (null reference)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "RefReadonly").WithArguments("S<T>.RefReadonly").WithLocation(4, 27),
+                // (5,27): warning CS9265: Field 'S<T>.ReadonlyRef' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref T ReadonlyRef;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ReadonlyRef").WithArguments("S<T>.ReadonlyRef", "(null reference)").WithLocation(5, 27),
-                // (6,36): warning CS0649: Field 'S<T>.ReadonlyRefReadonly' is never assigned to, and will always have its default value (null reference)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "ReadonlyRef").WithArguments("S<T>.ReadonlyRef").WithLocation(5, 27),
+                // (6,36): warning CS9265: Field 'S<T>.ReadonlyRefReadonly' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref readonly T ReadonlyRefReadonly;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ReadonlyRefReadonly").WithArguments("S<T>.ReadonlyRefReadonly", "(null reference)").WithLocation(6, 36));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "ReadonlyRefReadonly").WithArguments("S<T>.ReadonlyRefReadonly").WithLocation(6, 36));
         }
 
         [Fact]
@@ -7705,9 +7727,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,18): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,18): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 18));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 18));
         }
 
         [Fact]
@@ -7733,9 +7755,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,27): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,27): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 27),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 27),
                 // (4,30): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "F").WithLocation(4, 30),
@@ -7776,9 +7798,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,27): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,27): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 27));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 27));
         }
 
         [Fact]
@@ -7804,9 +7826,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,36): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,36): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref readonly T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 36),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 36),
                 // (4,30): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     public ref T F1() => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "F").WithLocation(4, 30),
@@ -8078,9 +8100,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,18): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,18): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 18));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 18));
         }
 
         [Fact]
@@ -8125,9 +8147,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,27): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,27): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 27),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 27),
                 // (14,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(14, 49),
@@ -8196,9 +8218,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,27): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,27): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 27));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 27));
         }
 
         [Fact]
@@ -8243,9 +8265,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyEmitDiagnostics(
-                // (3,36): warning CS0649: Field 'S<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,36): warning CS9265: Field 'S<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref readonly T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("S<T>.F", "(null reference)").WithLocation(3, 36),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("S<T>.F").WithLocation(3, 36),
                 // (14,49): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //     static void FromValue2<T>(S<T> s)  { M2(ref s.F); } // 1
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "s.F").WithArguments("field", "F").WithLocation(14, 49),
@@ -8276,7 +8298,7 @@ class Program
         public void RefParameter_ReadonlyRefReadonly_PEVerifyCompat()
         {
             var source =
-@"#pragma warning disable 649
+@"#pragma warning disable 9265
 ref struct S<T>
 {
     public readonly ref readonly T F;
@@ -10003,9 +10025,9 @@ ref struct R
                 // (14,12): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 // _ = M2(out c[0]);     //CS0206
                 Diagnostic(ErrorCode.ERR_RefProperty, "c[0]").WithLocation(14, 12),
-                // (28,21): warning CS0649: Field 'R.n' is never assigned to, and will always have its default value (null reference)
+                // (28,21): warning CS9265: Field 'R.n' is never ref-assigned to, and will always have its default value (null reference)
                 //     private ref int n;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("R.n", "(null reference)").WithLocation(28, 21)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "n").WithArguments("R.n").WithLocation(28, 21)
             );
         }
 
@@ -10223,9 +10245,9 @@ class C
                 // (10,36): warning CS0649: Field 'StructWithIndirectRefField.Field' is never assigned to, and will always have its default value 
                 //     public StructWithRefField<int> Field;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field").WithArguments("StructWithIndirectRefField.Field", "").WithLocation(10, 36),
-                // (14,18): warning CS0649: Field 'StructWithRefField<T>.RefField' is never assigned to, and will always have its default value (null reference)
+                // (14,18): warning CS9265: Field 'StructWithRefField<T>.RefField' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref T RefField;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "RefField").WithArguments("StructWithRefField<T>.RefField", "(null reference)").WithLocation(14, 18)
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "RefField").WithArguments("StructWithRefField<T>.RefField").WithLocation(14, 18)
                 );
 
             Assert.True(comp.GetTypeByMetadataName("StructWithIndirectRefField").IsManagedTypeNoUseSiteDiagnostics);
@@ -18671,9 +18693,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (3,18): warning CS0649: Field 'R<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,18): warning CS9265: Field 'R<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R<T>.F", "(null reference)").WithLocation(3, 18));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R<T>.F").WithLocation(3, 18));
         }
 
         [Fact]
@@ -18689,9 +18711,9 @@ class Program
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics(
-                // (3,27): warning CS0649: Field 'R<T>.F' is never assigned to, and will always have its default value (null reference)
+                // (3,27): warning CS9265: Field 'R<T>.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly T F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R<T>.F", "(null reference)").WithLocation(3, 27),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R<T>.F").WithLocation(3, 27),
                 // (5,34): error CS8333: Cannot return field 'F' by writable reference because it is a readonly variable
                 //     public ref T GetRef() => ref F; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnReadonlyNotField, "F").WithArguments("field", "F").WithLocation(5, 34));
@@ -30293,9 +30315,9 @@ Block[B2] - Exit
                 expectedOutput: "1");
 
             verifier.VerifyDiagnostics(
-                // (14,13): warning CS0649: Field 'RS.ri' is never assigned to, and will always have its default value (null reference)
+                // (14,13): warning CS9265: Field 'RS.ri' is never ref-assigned to, and will always have its default value (null reference)
                 //     ref int ri;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ri").WithArguments("RS.ri", "(null reference)").WithLocation(14, 13),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "ri").WithArguments("RS.ri").WithLocation(14, 13),
                 // (15,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
                 //     public RS() => ri = 0;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(15, 20));
@@ -30347,9 +30369,9 @@ Block[B2] - Exit
                 expectedOutput: "1");
 
             verifier.VerifyDiagnostics(
-                // (14,13): warning CS0649: Field 'RS.ri' is never assigned to, and will always have its default value (null reference)
+                // (14,13): warning CS9265: Field 'RS.ri' is never ref-assigned to, and will always have its default value (null reference)
                 //     ref int ri;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ri").WithArguments("RS.ri", "(null reference)").WithLocation(14, 13),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "ri").WithArguments("RS.ri").WithLocation(14, 13),
                 // (15,12): warning CS9022: Control is returned to caller before field 'RS.ri' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                 //     public RS()
                 Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "RS").WithArguments("RS.ri").WithLocation(15, 12),
@@ -30415,9 +30437,9 @@ Block[B2] - Exit
                 expectedOutput: "12");
 
             verifier.VerifyDiagnostics(
-                // (17,13): warning CS0649: Field 'RS.ri' is never assigned to, and will always have its default value (null reference)
+                // (17,13): warning CS9265: Field 'RS.ri' is never ref-assigned to, and will always have its default value (null reference)
                 //     ref int ri;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ri").WithArguments("RS.ri", "(null reference)").WithLocation(17, 13),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "ri").WithArguments("RS.ri").WithLocation(17, 13),
                 // (20,29): warning CS9201: Ref field 'ri' should be ref-assigned before use.
                 //         ref int local = ref ri; // 1
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(20, 29),
@@ -30493,9 +30515,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (3,22): warning CS0649: Field 'RS.ri' is never assigned to, and will always have its default value (null reference)
+                // (3,22): warning CS9265: Field 'RS.ri' is never ref-assigned to, and will always have its default value (null reference)
                 //     ref readonly int ri;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ri").WithArguments("RS.ri", "(null reference)").WithLocation(3, 22),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "ri").WithArguments("RS.ri").WithLocation(3, 22),
                 // (4,20): error CS8331: Cannot assign to field 'ri' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //     public RS() => ri = 0;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "ri").WithArguments("field", "ri").WithLocation(4, 20),
@@ -30526,9 +30548,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 20));
 
             verifier.VerifyIL("S.Test1",
 @"
@@ -30567,9 +30589,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29),
                 // (11,15): error CS8329: Cannot use field 'F1' as a ref or out value because it is a readonly variable
                 //         M(ref GetS().F1);
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "GetS().F1").WithArguments("field", "F1").WithLocation(11, 15)
@@ -30600,9 +30622,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29));
 
             verifier.VerifyIL("S.Test1", """
                 {
@@ -30640,9 +30662,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             comp.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29),
                 // (11,15): error CS8329: Cannot use field 'F1' as a ref or out value because it is a readonly variable
                 //         M(ref GetS().F1);
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "GetS().F1").WithArguments("field", "F1").WithLocation(11, 15)
@@ -30673,9 +30695,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29));
 
             verifier.VerifyIL("S.Test1", """
                 {
@@ -30696,7 +30718,7 @@ Block[B2] - Exit
         public void RefField_AsRefArgument_06()
         {
             var verifier = CompileAndVerify("""
-                #pragma warning disable CS0649 // Field 'S.F1' is never assigned to, and will always have its default value 0
+                #pragma warning disable CS9265 // Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
 
                 ref struct S
                 {
@@ -30755,9 +30777,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29));
 
             verifier.VerifyIL("S.Test1",
 @"
@@ -30797,9 +30819,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29));
 
             verifier.VerifyIL("S.Test1",
 @"
@@ -30841,9 +30863,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29));
 
             verifier.VerifyIL("S.Test1", """
                 {
@@ -30882,9 +30904,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29),
                 // (11,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
                 //         M(ref GetS().F1);
                 Diagnostic(ErrorCode.WRN_BadArgRef, "GetS().F1").WithArguments("1").WithLocation(11, 15)
@@ -30930,9 +30952,9 @@ Block[B2] - Exit
                 targetFramework: TargetFramework.NetCoreApp);
 
             verifier.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'S.F1' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
                 //     public readonly ref int F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S.F1", "(null reference)").WithLocation(3, 29));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F1").WithArguments("S.F1").WithLocation(3, 29));
 
             verifier.VerifyIL("S.Test1", """
                 {
@@ -30953,7 +30975,7 @@ Block[B2] - Exit
         public void RefField_AsRefArgument_12()
         {
             var verifier = CompileAndVerify("""
-                #pragma warning disable CS0649 // Field 'S.F1' is never assigned to, and will always have its default value 0
+                #pragma warning disable CS9265 // Field 'S.F1' is never ref-assigned to, and will always have its default value (null reference)
 
                 ref struct S
                 {
@@ -31010,9 +31032,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
@@ -31035,9 +31057,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
@@ -31062,9 +31084,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
@@ -31087,9 +31109,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
@@ -31112,9 +31134,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20),
                 // (11,11): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
                 //         M(GetValue().F);
                 Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "GetValue().F").WithArguments("1").WithLocation(11, 11));
@@ -31140,9 +31162,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
@@ -31165,9 +31187,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,20): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,20): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 20),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 20),
                 // (11,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         M(GetValue().F);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetValue().F").WithArguments("1", "ref").WithLocation(11, 11));
@@ -31193,9 +31215,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 29),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 29),
                 // (11,15): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M(ref GetValue().F);
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "GetValue().F").WithArguments("field", "F").WithLocation(11, 15));
@@ -31221,9 +31243,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 29));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 29));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
@@ -31246,9 +31268,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 29),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 29),
                 // (11,15): error CS8329: Cannot use field 'F' as a ref or out value because it is a readonly variable
                 //         M(out GetValue().F);
                 Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "GetValue().F").WithArguments("field", "F").WithLocation(11, 15));
@@ -31274,9 +31296,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 29),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 29),
                 // (11,11): warning CS9195: Argument 1 should be passed with the 'in' keyword
                 //         M(GetValue().F);
                 Diagnostic(ErrorCode.WRN_ArgExpectedIn, "GetValue().F").WithArguments("1").WithLocation(11, 11));
@@ -31302,9 +31324,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 29));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 29));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
@@ -31327,9 +31349,9 @@ Block[B2] - Exit
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (3,29): warning CS0649: Field 'R.F' is never assigned to, and will always have its default value (null reference)
+                // (3,29): warning CS9265: Field 'R.F' is never ref-assigned to, and will always have its default value (null reference)
                 //     public ref readonly int F;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R.F", "(null reference)").WithLocation(3, 29),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalRefField, "F").WithArguments("R.F").WithLocation(3, 29),
                 // (11,11): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         M(GetValue().F);
                 Diagnostic(ErrorCode.ERR_BadArgRef, "GetValue().F").WithArguments("1", "ref").WithLocation(11, 11));

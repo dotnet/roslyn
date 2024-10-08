@@ -2740,9 +2740,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.GetFirstLocationOrNone(), field);
                     }
+                    else if (field.RefKind != RefKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalRefField, field.GetFirstLocationOrNone(), field);
+                    }
                     else
                     {
-                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.GetFirstLocationOrNone(), field, DefaultValue(field.Type, isRef: field.RefKind != RefKind.None));
+                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.GetFirstLocationOrNone(), field, DefaultValue(field.Type));
                     }
                 }
 
@@ -2773,10 +2777,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _unusedFieldWarnings;
         }
 
-        private static string DefaultValue(TypeSymbol type, bool isRef)
+        private static string DefaultValue(TypeSymbol type)
         {
             // TODO: localize these strings
-            if (isRef) return "(null reference)";
             if (type.IsReferenceType) return "null";
             switch (type.SpecialType)
             {
