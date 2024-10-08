@@ -6802,6 +6802,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
+            BoundObjectInitializerExpressionBase boundInitializerOpt;
+            boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
+
             if (!hasError)
             {
                 hasError = !CheckInvocationArgMixing(
@@ -6817,8 +6820,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
-            BoundObjectInitializerExpressionBase boundInitializerOpt;
-            boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
+            // PROTOTYPE: Previously this code from RefSafetyAnalysis was used
+            // for the following cases. Only the first case is covered here.
+            // - BoundObjectCreationExpression
+            // - BoundDynamicObjectCreationExpression
+            // - BoundNewT
+            // - BoundNoPiaObjectCreationExpression
+            if (boundInitializerOpt is { })
+            {
+                // Object initializers are different than a normal constructor in that the 
+                // scope of the receiver is determined by evaluating the inputs to the constructor
+                // *and* all of the initializers. Another way of thinking about this is that
+                // every argument in an initializer that can escape to the receiver is 
+                // effectively an argument to the constructor. That means we need to do
+                // a second mixing pass here where we consider the receiver escaping 
+                // back into the ref parameters of the constructor.
+                //
+                // At the moment this is only a hypothetical problem. Because the language 
+                // doesn't support ref field of ref struct mixing like this could not actually
+                // happen in practice. At the same time we want to error on this now so that 
+                // in a future when we do have ref field to ref struct this is not a breaking 
+                // change. Customers can respond to failures like this by putting scoped on
+                // such parameters in the constructor.
+                var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
+                var escapeFrom = GetValEscape(boundInitializerOpt, LocalScopeDepth);
+                GetEscapeValues(
+                    MethodInfo.Create(method),
+                    receiver: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
+                    method.Parameters,
+                    arguments,
+                    refKinds,
+                    argToParams,
+                    ignoreArglistRefKinds: false,
+                    mixableArguments: null,
+                    escapeValues);
+
+                foreach (var (parameter, argument, _, isRefEscape) in escapeValues)
+                {
+                    if (!isRefEscape)
+                    {
+                        continue;
+                    }
+
+                    if (parameter?.Type?.IsRefLikeOrAllowsRefLikeType() != true ||
+                        !parameter.RefKind.IsWritableReference())
+                    {
+                        continue;
+                    }
+
+                    if (escapeFrom > GetValEscape(argument, LocalScopeDepth))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, method, parameter.Name);
+                    }
+                }
+
+                escapeValues.Free();
+            }
+
             var creation = new BoundObjectCreationExpression(
                 node,
                 method,
