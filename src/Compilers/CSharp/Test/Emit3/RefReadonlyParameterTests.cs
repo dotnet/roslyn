@@ -8419,30 +8419,18 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (7,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = (int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(7, 11),
-            // (7,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(7, 14),
             // (8,15): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = (ref int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(8, 15),
-            // (8,18): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (ref int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(8, 18),
             // (9,6): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int p' in target.
             // rr = (in int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref readonly int p").WithLocation(9, 6),
             // (10,15): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = (out int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(10, 15),
-            // (10,18): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (out int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(10, 18),
             // (11,23): error CS1677: Parameter 1 should not be declared with the 'ref readonly' keyword
             // v = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamExtraRef, "x").WithArguments("1", "ref readonly").WithLocation(11, 23),
-            // (11,26): error CS1661: Cannot convert lambda expression to type 'V' because the parameter types do not match the delegate parameter types
-            // v = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "V").WithLocation(11, 26),
             // (12,5): warning CS9198: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int p' in target.
             // i = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(ref readonly int x) => throw null").WithArguments("ref readonly int x", "in int p").WithLocation(12, 5),
@@ -8452,24 +8440,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (14,23): error CS1676: Parameter 1 must be declared with the 'out' keyword
             // o = (ref readonly int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "out").WithLocation(14, 23),
-            // (14,26): error CS1661: Cannot convert lambda expression to type 'O' because the parameter types do not match the delegate parameter types
-            // o = (ref readonly int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "O").WithLocation(14, 26),
             // (15,5): warning CS9198: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref int p' in target.
             // r = (in int x) => throw null;
             Diagnostic(ErrorCode.WRN_TargetDifferentRefness, "(in int x) => throw null").WithArguments("in int x", "ref int p").WithLocation(15, 5),
             // (16,14): error CS1676: Parameter 1 must be declared with the 'in' keyword
             // i = (ref int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "in").WithLocation(16, 14),
-            // (16,17): error CS1661: Cannot convert lambda expression to type 'I' because the parameter types do not match the delegate parameter types
-            // i = (ref int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "I").WithLocation(16, 17),
             // (18,11): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = (int x) => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(18, 11),
-            // (18,14): error CS1661: Cannot convert lambda expression to type 'RR' because the parameter types do not match the delegate parameter types
-            // rr = (int x) => throw null;
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "RR").WithLocation(18, 14),
             // (19,6): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
             // rr = x => throw null;
             Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "ref readonly").WithLocation(19, 6));
@@ -8502,10 +8481,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             CreateCompilation(source1).VerifyDiagnostics(
                 // (8,18): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
                 // x = (X)((ref int p) => System.Console.Write("3"));
-                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(8, 18),
-                // (8,21): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
-                // x = (X)((ref int p) => System.Console.Write("3"));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "X").WithLocation(8, 21));
+                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(8, 18));
         }
         else
         {
@@ -8578,19 +8554,13 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (1,14): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
                 // C.X((ref int p) => System.Console.Write("4"));
-                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(1, 14),
-                // (1,17): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
-                // C.X((ref int p) => System.Console.Write("4"));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "X").WithLocation(1, 17));
+                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(1, 14));
 
             expectedDiagnostics = new[]
             {
                 // (1,14): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
                 // C.X((ref int p) => System.Console.Write("4"));
-                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(1, 14),
-                // (1,17): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
-                // C.X((ref int p) => System.Console.Write("4"));
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "X").WithLocation(1, 17)
+                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(1, 14)
             };
 
             CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
@@ -8649,15 +8619,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (4,13): error CS1676: Parameter 1 must be declared with the 'ref' keyword
             // C.X((in int p) => System.Console.Write("3"));
             Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref").WithLocation(4, 13),
-            // (4,16): error CS1661: Cannot convert lambda expression to type 'X' because the parameter types do not match the delegate parameter types
-            // C.X((in int p) => System.Console.Write("3"));
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "X").WithLocation(4, 16),
             // (5,14): error CS1676: Parameter 1 must be declared with the 'in' keyword
             // C.Y((ref int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "in").WithLocation(5, 14),
-            // (5,17): error CS1661: Cannot convert lambda expression to type 'Y' because the parameter types do not match the delegate parameter types
-            // C.Y((ref int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "Y").WithLocation(5, 17));
+            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "in").WithLocation(5, 14));
 
         var expectedDiagnostics = new[]
         {
@@ -8675,10 +8639,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         {
             // (1,14): error CS1676: Parameter 1 must be declared with the 'in' keyword
             // C.Y((ref int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "in").WithLocation(1, 14),
-            // (1,17): error CS1661: Cannot convert lambda expression to type 'Y' because the parameter types do not match the delegate parameter types
-            // C.Y((ref int p) => System.Console.Write("4"));
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "Y").WithLocation(1, 17)
+            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "in").WithLocation(1, 14)
         };
 
         CreateCompilation(source3, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
