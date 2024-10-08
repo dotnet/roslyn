@@ -475,7 +475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual LocalSymbol LocalInProgress
+        internal virtual LocalSymbol? LocalInProgress
         {
             get
             {
