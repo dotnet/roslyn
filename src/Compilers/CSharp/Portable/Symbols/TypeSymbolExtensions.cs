@@ -14,6 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class TypeSymbolExtensions
     {
+        private sealed class VisitTypeData
+        {
+            public Symbol? Symbol;
+            public CompoundUseSiteInfo<AssemblySymbol> UseSiteInfo;
+        }
+
         private static readonly ObjectPool<VisitTypeData> s_visitTypeDataPool
             = new ObjectPool<VisitTypeData>(() => new VisitTypeData(), size: 4);
 
@@ -662,12 +668,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SpecialType GetSpecialTypeSafe(this TypeSymbol? type)
         {
             return type is object ? type.SpecialType : SpecialType.None;
-        }
-
-        private class VisitTypeData
-        {
-            public Symbol? Symbol;
-            public CompoundUseSiteInfo<AssemblySymbol> UseSiteInfo;
         }
 
         public static bool IsAtLeastAsVisibleAs(this TypeSymbol type, Symbol sym, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
