@@ -53,7 +53,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             else
             {
                 // The caller has asked us to not rethrow, so record a NFW and swallow.
-                await nonMutatingRequestTask.ReportNonFatalErrorAsync().ConfigureAwait(false);
+                try
+                {
+                    await nonMutatingRequestTask.ConfigureAwait(false);
+                }
+                catch (StreamJsonRpc.LocalRpcException localRpcException) when (localRpcException.ErrorCode == LspErrorCodes.ContentModified)
+                {
+                    // Content modified exceptions are expected and should not be reported as NFWs.
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, ErrorSeverity.Critical))
+                {
+                    // Swallow the exception so it does not bubble up into the queue.
+                }
             }
         }
 

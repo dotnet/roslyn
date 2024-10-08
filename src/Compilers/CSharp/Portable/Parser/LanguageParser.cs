@@ -4697,10 +4697,7 @@ parse_member_name:;
                     this.EatToken()));
             }
 
-            ParseParameterNullCheck(ref identifier, out var equalsToken);
-
-            // If we didn't already consume an equals sign as part of !!=, then try to scan one out now.
-            equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+            var equalsToken = TryEatToken(SyntaxKind.EqualsToken);
 
             return _syntaxFactory.Parameter(
                 attributes,
@@ -4708,80 +4705,6 @@ parse_member_name:;
                 type,
                 identifier,
                 equalsToken == null ? null : _syntaxFactory.EqualsValueClause(equalsToken, this.ParseExpressionCore()));
-        }
-
-        /// <summary>
-        /// Parses the <c>!!</c> as skipped tokens following a parameter name token.  If the parameter name
-        /// is followed by <c>!!=</c> or <c>! !=</c>, then the final equals will be returned through <paramref
-        /// name="equalsToken"/>.
-        /// </summary>
-        private void ParseParameterNullCheck(
-            ref SyntaxToken identifier,
-            out SyntaxToken? equalsToken)
-        {
-            equalsToken = null;
-
-            if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
-            {
-                // split != into two tokens.
-                var exclamationEquals = this.EatToken();
-
-                // treat the '!' as '!!' and give the feature unsupported error
-                identifier = AddTrailingSkippedSyntax(
-                    identifier,
-                    this.AddError(SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, "!", "!", trailing: null), ErrorCode.ERR_ParameterNullCheckingNotSupported));
-
-                // Return the split out `=` for the consumer to handle.
-                equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
-            }
-            else if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
-            {
-                // We have seen at least '!'
-                // We check for a following '!' or '!=' to see if the user is trying to use '!!' (so we can give an appropriate error).
-                identifier = AddTrailingSkippedSyntax(identifier, this.AddError(this.EatToken(), ErrorCode.ERR_ParameterNullCheckingNotSupported));
-                if (this.CurrentToken.Kind is SyntaxKind.ExclamationToken)
-                {
-                    identifier = AddTrailingSkippedSyntax(identifier, this.EatToken());
-                }
-                else if (this.CurrentToken.Kind is SyntaxKind.ExclamationEqualsToken)
-                {
-                    // split != into two tokens.
-                    var exclamationEquals = this.EatToken();
-
-                    identifier = AddTrailingSkippedSyntax(
-                        identifier,
-                        SyntaxFactory.Token(exclamationEquals.GetLeadingTrivia(), SyntaxKind.ExclamationToken, trailing: null));
-                    equalsToken = SyntaxFactory.Token(leading: null, SyntaxKind.EqualsToken, exclamationEquals.GetTrailingTrivia());
-                }
-            }
-        }
-
-        /// <summary>
-        /// Merges two successive tokens into a single token with the given <paramref name="kind"/>.  If the two tokens
-        /// have no trivia between them, then the final token will be trivially generated, properly passing on the right
-        /// leading/trailing trivia.  However, if there is trivia between the tokens, then appropriate errors will be
-        /// reported that the tokens cannot merge successfully.
-        /// </summary>
-        /// <remarks>
-        /// IsFabricatedToken should be updated for tokens whose SyntaxKind is <paramref name="kind"/>.
-        /// </remarks>
-        private SyntaxToken? MergeAdjacent(SyntaxToken t1, SyntaxToken t2, SyntaxKind kind)
-        {
-            // Make sure we don't reuse the merged token for incremental parsing.
-            // "=>" wasn't proven to be a source of issues. See https://github.com/dotnet/roslyn/issues/60002
-            Debug.Assert(Blender.Reader.IsFabricatedToken(kind) || kind == SyntaxKind.EqualsGreaterThanToken);
-            if (NoTriviaBetween(t1, t2))
-                return SyntaxFactory.Token(t1.GetLeadingTrivia(), kind, t2.GetTrailingTrivia());
-
-            var sb = PooledStringBuilder.GetInstance();
-            var writer = new StringWriter(sb.Builder, System.Globalization.CultureInfo.InvariantCulture);
-            t1.WriteTo(writer, leading: false, trailing: true);
-            t2.WriteTo(writer, leading: true, trailing: false);
-            var text = sb.ToStringAndFree();
-
-            return WithAdditionalDiagnostics(
-                SyntaxFactory.Token(t1.GetLeadingTrivia(), kind, text, text, t2.GetTrailingTrivia()),
-                GetExpectedTokenError(kind, t1.Kind));
         }
 
         internal static bool NoTriviaBetween(SyntaxToken token1, SyntaxToken token2)
@@ -12150,13 +12073,8 @@ done:
             //  case 2:  ( x ) =>
             if (IsTrueIdentifier(this.PeekToken(1)))
             {
-                // allow for       a) =>      or     a!!) =>
+                // allow for       a) =>
                 var skipIndex = 2;
-                if (PeekToken(skipIndex).Kind == SyntaxKind.ExclamationToken
-                    && this.PeekToken(skipIndex + 1).Kind == SyntaxKind.ExclamationToken)
-                {
-                    skipIndex += 2;
-                }
 
                 // Must have:     ) => 
                 if (this.PeekToken(skipIndex).Kind == SyntaxKind.CloseParenToken
@@ -12199,18 +12117,9 @@ done:
                         {
                             return true;
                         }
-
-                        var token3 = this.PeekToken(3);
-                        // ( x!! , [...]
-                        // https://github.com/dotnet/roslyn/issues/58335: https://github.com/dotnet/roslyn/pull/46520#discussion_r466650228
-                        if (token2.Kind == SyntaxKind.ExclamationToken
-                            && token3.Kind == SyntaxKind.ExclamationToken
-                            && this.PeekToken(4).Kind == SyntaxKind.CommaToken)
-                        {
-                            return true;
-                        }
                     }
                 }
+
                 return false;
             }
         }
@@ -12263,9 +12172,7 @@ done:
                 // eat the parameter name.
                 var identifier = this.IsTrueIdentifier() ? this.EatToken() : CreateMissingIdentifierToken();
 
-                // eat a !! if present.
-                this.ParseParameterNullCheck(ref identifier, out var equalsToken);
-                equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+                var equalsToken = TryEatToken(SyntaxKind.EqualsToken);
 
                 // If we have an `=` then parse out a default value.  Note: this is not legal, but this allows us to
                 // to be resilient to the user writing this so we don't go completely off the rails.
@@ -12519,25 +12426,6 @@ done:
             //
             // Def a lambda.
             if (token1.Kind == SyntaxKind.EqualsGreaterThanToken)
-            {
-                return true;
-            }
-
-            var token2 = this.PeekToken(2);
-            var token3 = this.PeekToken(3);
-
-            if ((token1.Kind, token2.Kind, token3.Kind) is
-
-                // x!! =>
-                //
-                // Def a lambda (though possibly has errors).
-                (SyntaxKind.ExclamationToken, SyntaxKind.ExclamationToken, SyntaxKind.EqualsGreaterThanToken)
-
-                // Broken case but error will be added in lambda function (!=>).
-                or (SyntaxKind.ExclamationEqualsToken, SyntaxKind.GreaterThanToken, _)
-
-                // Broken case but error will be added in lambda function (!!=>).
-                or (SyntaxKind.ExclamationToken, SyntaxKind.ExclamationEqualsToken, SyntaxKind.GreaterThanToken))
             {
                 return true;
             }
@@ -13358,28 +13246,12 @@ done:
                 {
                     // Unparenthesized lambda case
                     // x => ...
-                    // x!! => ...
                     var identifier = (this.CurrentToken.Kind != SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.EqualsGreaterThanToken)
                         ? this.EatTokenAsKind(SyntaxKind.IdentifierToken)
                         : this.ParseIdentifierToken();
 
-                    ParseParameterNullCheck(ref identifier, out var equalsToken);
-
-                    SyntaxToken arrow;
-                    if (equalsToken != null)
-                    {
-                        // we only get an equals token if we had !!=> or !=> (enforced by IsPossibleLambdaExpression).
-                        // So we must have a greater than token following.  If not, some invariant is badly broken.
-
-                        var greaterThan = this.EatToken();
-                        Debug.Assert(greaterThan.Kind == SyntaxKind.GreaterThanToken);
-                        arrow = MergeAdjacent(equalsToken, greaterThan, SyntaxKind.EqualsGreaterThanToken);
-                    }
-                    else
-                    {
-                        // Case x=>, x =>
-                        arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
-                    }
+                    // Case x=>, x =>
+                    var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
 
                     var parameter = _syntaxFactory.Parameter(
                         attributeLists: default, modifiers: default, type: null, identifier, @default: null);
@@ -13470,10 +13342,9 @@ done:
                 : null;
 
             var identifier = this.ParseIdentifierToken();
-            ParseParameterNullCheck(ref identifier, out var equalsToken);
 
             // Parse default value if any
-            equalsToken ??= TryEatToken(SyntaxKind.EqualsToken);
+            var equalsToken = TryEatToken(SyntaxKind.EqualsToken);
 
             return _syntaxFactory.Parameter(
                 attributes,
@@ -13512,7 +13383,6 @@ done:
                 //      (a)
                 //      (a =>
                 //      (a {
-                //      (a !!    or    (a !!=
                 //      (a =
                 //
                 // In all other cases, parse out a type.
@@ -13521,7 +13391,6 @@ done:
                     peek1.Kind != SyntaxKind.CloseParenToken &&
                     peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
                     peek1.Kind != SyntaxKind.OpenBraceToken &&
-                    peek1.Kind != SyntaxKind.ExclamationToken &&
                     peek1.Kind != SyntaxKind.EqualsToken)
                 {
                     return true;

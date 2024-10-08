@@ -1622,11 +1622,6 @@
         <target state="translated">Il metodo '{0}' specifica un vincolo 'struct' per il parametro di tipo '{1}', ma il parametro di tipo corrispondente '{2}' del metodo '{3}' sottoposto a override o implementato in modo esplicito non è un tipo valore che non ammette valori Null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">La funzionalità 'parameter null-checking' non è supportata.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Il costruttore '{0}' lascia non inizializzato il membro richiesto '{1}'.</target>
