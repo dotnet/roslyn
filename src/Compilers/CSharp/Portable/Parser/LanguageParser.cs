@@ -13328,16 +13328,15 @@ done:
         {
             var attributes = ParseAttributeDeclarations(inExpressionContext: false);
 
-            // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
-            // give the "params unexpected" error at semantic analysis time.
             SyntaxListBuilder modifiers = _pool.Allocate();
             if (IsParameterModifierExcludingScoped(this.CurrentToken) || this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
             {
                 ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
             }
 
-            // If we have "scoped/ref/out/in/params" always try to parse out a type.
-            var paramType = modifiers.Count != 0 || ShouldParseLambdaParameterType()
+            bool shouldParseLambdaParameterType = ShouldParseLambdaParameterType();
+
+            var paramType = shouldParseLambdaParameterType
                 ? ParseType(ParseTypeMode.Parameter)
                 : null;
 
