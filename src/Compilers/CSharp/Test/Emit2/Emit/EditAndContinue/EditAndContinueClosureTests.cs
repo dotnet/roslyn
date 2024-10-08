@@ -9850,5 +9850,103 @@ class C
                     })
                 .Verify();
         }
+
+        /// <summary>
+        /// Some lambda rude edits are simpler to detect in the IDE. They are specified via <see cref="RuntimeRudeEdit"/>.
+        /// The IDE tests cover the specific cases.
+        /// </summary>
+        [Fact]
+        public void IdeDetectedRuntimeRudeEdit()
+        {
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            _ = new Func<int>(<N:1>() => 1</N:1>);
+                        }</N:0>
+                    }
+                    """,
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(displayTypeKind: true,
+                        [
+                            "class C: {<>c}",
+                            "class C.<>c: {<>9__0_0, <F>b__0_0}"
+                        ]);
+                    })
+
+                .AddGeneration(
+                    source: """
+                    using System;
+                    class C
+                    {
+                        public void F()
+                        <N:0>{
+                            _ = new Func<double>(<N:1>() => 1.0</N:1>);
+                        }</N:0>
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true, rudeEdits: _ => new RuntimeRudeEdit("Return type changed", 0x123)),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C: {<>c}",
+                            "C.<>c: {<>9__0_0#1, <F>b__0_0#1}");
+
+                        g.VerifyMethodDefNames(
+                            "F", "<F>b__0_0", ".ctor", "<F>b__0_0#1");
+
+                        g.VerifyIL(
+                        """
+                        {
+                          // Code size       30 (0x1e)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  ldsfld     0x04000004
+                          IL_0006:  brtrue.s   IL_001d
+                          IL_0008:  ldsfld     0x04000001
+                          IL_000d:  ldftn      0x06000007
+                          IL_0013:  newobj     0x0A000008
+                          IL_0018:  stsfld     0x04000004
+                          IL_001d:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  ldc.i4     0x123
+                          IL_000a:  newobj     0x06000006
+                          IL_000f:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
+                        }
+                        {
+                          // Code size       10 (0xa)
+                          .maxstack  8
+                          IL_0000:  ldc.r8     1
+                          IL_0009:  ret
+                        }
+                        """);
+                    })
+                .Verify();
+        }
     }
 }

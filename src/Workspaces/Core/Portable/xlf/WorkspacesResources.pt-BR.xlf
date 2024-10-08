@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_1_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</source>
-        <target state="new">Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</target>
+        <target state="translated">O serviço do tipo '{0}' é necessário para realizar a tarefa, mas não está disponível no workspace '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">

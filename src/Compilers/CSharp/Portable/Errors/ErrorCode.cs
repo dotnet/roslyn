@@ -2029,7 +2029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ScopedMismatchInParameterOfPartial = 8988,
 
         // param-nullchecking feature removed from C# 11
-        ERR_ParameterNullCheckingNotSupported = 8989,
+        // ERR_ParameterNullCheckingNotSupported = 8989,
         // ERR_DiscardCannotBeNullChecked = 8990,
         // ERR_MustNullCheckInImplementation = 8991,
         // ERR_NonNullableValueTypeIsNullChecked = 8992,
@@ -2355,5 +2355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
         //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+        //  3) Update ErrorFacts.GetWarningLevel (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+        //  4) Update DiagnosticTest.WarningLevel_2 (src/Compilers/CSharp/Test/Syntax/Diagnostics/DiagnosticTest.cs)
     }
 }

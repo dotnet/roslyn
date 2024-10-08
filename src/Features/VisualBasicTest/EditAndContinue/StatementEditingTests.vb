@@ -4,10 +4,8 @@
 
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>
@@ -1342,7 +1340,7 @@ Class C
     End Sub
 
     Sub F()
-        G1(Function(a) a)
+        G1(<N:0>Function(a) a</N:0>)
     End Sub
 End Class
 "
@@ -1357,13 +1355,18 @@ Class C
     End Sub
 
     Sub F()
-        G2(Function(a) a)
+        G2(<N:0>Function(a) a</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                }))
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
@@ -1379,7 +1382,7 @@ Class C
     End Sub
 
     Sub F()
-        G1(Function(a) a)
+        G1(<N:0>Function(a) a</N:0>)
     End Sub
 End Class
 "
@@ -1394,13 +1397,18 @@ Class C
     End Sub
 
     Sub F()
-        G2(Function(a, b) a + b)
+        G2(<N:0>Function(a, b) a + b</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                }))
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
@@ -1416,7 +1424,7 @@ Class C
     End Sub
 
     Sub F()
-        G1(Function(a) a)
+        G1(<N:0>Function(a) a</N:0>)
     End Sub
 End Class
 "
@@ -1431,13 +1439,20 @@ Class C
     End Sub
 
     Sub F()
-        G2(Function(a) a)
+        G2(<N:0>Function(a) a</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function(a)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                })
+            })
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
@@ -1454,8 +1469,8 @@ Class C
 
     Sub F()
         G1(
-Sub(a)
-End Sub)
+<N:0>Sub(a)
+End Sub</N:0>)
     End Sub
 End Class
 "
@@ -1471,14 +1486,19 @@ Class C
 
     Sub F()
         G2(
-Sub(a)
-End Sub)
+<N:0>Sub(a)
+End Sub</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Sub(a)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                }))
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
@@ -1495,8 +1515,8 @@ Class C
 
     Sub F()
         G1(
-Sub()
-End Sub)
+<N:0>Sub()
+End Sub</N:0>)
     End Sub
 End Class
 "
@@ -1512,14 +1532,21 @@ Class C
 
     Sub F()
         G2(
-Function()
-End Function)
+<N:0>Function()
+End Function</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Function()", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                })
+            })
         End Sub
 
         <Fact>
@@ -1571,9 +1598,9 @@ Class C
     End Sub
 
     Sub F()
-        G1(Function(a)
+        G1(<N:0>Function(a)
             Return 1
-        End Function)
+        End Function</N:0>)
     End Sub
 End Class
 "
@@ -1588,14 +1615,21 @@ Class C
     End Sub
 
     Sub F()
-        G2(Sub(a)
-           End Sub)
+        G2(<N:0>Sub(a)
+           End Sub</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaReturnType, "Sub(a)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                })
+            })
         End Sub
 
         <Fact>
@@ -1688,7 +1722,7 @@ Class C
     End Sub
 
     Sub F()
-        G1(Function(ByRef a As Integer) 1)
+        G1(<N:0>Function(ByRef a As Integer) 1</N:0>)
     End Sub
 End Class
 "
@@ -1706,13 +1740,18 @@ Class C
     End Sub
 
     Sub F()
-        G2(Function(a As Integer) 2)
+        G2(<N:0>Function(a As Integer) 2</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a As Integer)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                }))
         End Sub
 
         <Fact>
@@ -1820,7 +1859,7 @@ Class C
     End Sub
 
     Sub F()
-        G1(Function(a) a)
+        G1(<N:0>Function(a) a</N:0>)
     End Sub
 End Class
 "
@@ -1841,13 +1880,18 @@ Class C
     End Sub
 
     Sub F()
-        G2(Function(a) a)
+        G2(<N:0>Function(a) a</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                }))
         End Sub
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1290")>
@@ -1870,7 +1914,7 @@ Namespace [System]
         End Sub
 
         Sub F()
-            G1(Function(a) a)
+            G1(<N:0>Function(a) a</N:0>)
         End Sub
     End Class
 End Namespace
@@ -1892,14 +1936,19 @@ Namespace [System]
         End Sub
 
         Sub F()
-            G2(Function(a) a)
+            G2(<N:0>Function(a) a</N:0>)
         End Sub
     End Class
 End Namespace
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("System.C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                }))
         End Sub
 
         <Fact>
@@ -1955,7 +2004,7 @@ Class C
     End Sub
 
     Sub F()
-        G1(Function(a, b) 1)
+        G1(<N:0>Function(a, b) 1</N:0>)
     End Sub
 End Class
 "
@@ -1971,13 +2020,18 @@ Class C
     End Sub
 
     Sub F()
-        G2(Function(a, b) 1)
+        G2(<N:0>Function(a, b) 1</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a, b)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                }))
         End Sub
 
         <Fact>
@@ -3546,20 +3600,19 @@ Imports System
 
 Class C
     <N:0>Shared Sub F()
-        Dim X As Integer = 1
+        Dim <S:0>X</S:0> As Integer = 1
         Dim f As Func(Of Integer) = Function() X
     End Sub</N:0>
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             ' Note that lifted variable is a field, which can't be renamed
-            Dim syntaxMap = GetSyntaxMap(src1, src2)(0)
-
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
                 {
-                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (6, 13), {"x", "X"})
+                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), {"x", "X"})
                 }))
         End Sub
 
@@ -3580,19 +3633,19 @@ Imports System
 
 Class C
     <N:0>Shared Sub F()
-        Dim y As Integer = 1
+        Dim <S:0>y</S:0> As Integer = 1
         Dim f As Func(Of Integer) = Function() y
     End Sub</N:0>
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            Dim syntaxMap = GetSyntaxMap(src1, src2)(0)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             edits.VerifySemantics(
                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
                 {
-                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (6, 13), {"x", "y"})
+                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), {"x", "y"})
                 }))
         End Sub
 
@@ -3613,21 +3666,21 @@ Imports System
 
 Class C
     <N:0>Shared Sub F()
-        Dim x As Byte = 1
+        Dim <S:0>x</S:0> As Byte = 1
         Dim f As Func(Of Integer) = <N:1>Function() x</N:1>
     End Sub</N:0>
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            Dim syntaxMap = GetSyntaxMap(src1, src2)(0)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             edits.VerifySemantics(
                 SemanticEdit(
                     SemanticEditKind.Update,
                     Function(c) c.GetMember("C.F"),
                     syntaxMap,
-                    rudeEdits:={RuntimeRudeEdit(marker:=0, RudeEditKind.ChangingCapturedVariableType, (6, 13), {"x", "Integer"})}))
+                    rudeEdits:={RuntimeRudeEdit(marker:=0, RudeEditKind.ChangingCapturedVariableType, syntaxMap.Position(0), {"x", "Integer"})}))
         End Sub
 
         <Fact>
@@ -3645,20 +3698,20 @@ End Class
 Imports System
 
 Class C
-    <N:0>Shared Sub F(y As Integer)
+    <N:0>Shared Sub F(<S:0>y</S:0> As Integer)
         Dim f As Func(Of Integer) = Function() y
     End Sub</N:0>
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            Dim syntaxMap = GetSyntaxMap(src1, src2)(0)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             edits.VerifySemantics(
             {
                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
                 {
-                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (5, 23), {"x", "y"})
+                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), {"x", "y"})
                 })
             },
             capabilities:=EditAndContinueCapabilities.UpdateParameters)
@@ -3682,7 +3735,7 @@ Imports System
 
 Class C
     <N:0>Shared Sub F(x As Integer)
-        Dim f1 = <N:1>Function(y)
+        Dim f1 = <N:1>Function(<S:0>y</S:0>)
                     Dim f2 = <N:2>Function() y</N:2>
                  End Function</N:1>
     End Sub</N:0>
@@ -3690,13 +3743,13 @@ End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            Dim syntaxMap = GetSyntaxMap(src1, src2)(0)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             edits.VerifySemantics(
             {
                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
                 {
-                    RuntimeRudeEdit(1, RudeEditKind.RenamingCapturedVariable, (6, 32), {"x", "y"})
+                    RuntimeRudeEdit(1, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), {"x", "y"})
                 })
             },
             capabilities:=EditAndContinueCapabilities.UpdateParameters)
@@ -3726,19 +3779,19 @@ Class C
     End Function
 
     <N:0>Shared Sub F(x As Integer)
-        Dim f1 = <N:1>Function(y) G(<N:2>Function() y</N:2>)</N:1>
+        Dim f1 = <N:1>Function(<S:0>y</S:0>) G(<N:2>Function() y</N:2>)</N:1>
     End Sub</N:0>
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            Dim syntaxMap = GetSyntaxMap(src1, src2)(0)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             edits.VerifySemantics(
             {
                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
                 {
-                    RuntimeRudeEdit(1, RudeEditKind.RenamingCapturedVariable, (10, 32), {"x", "y"})
+                    RuntimeRudeEdit(1, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), {"x", "y"})
                 })
             },
             capabilities:=EditAndContinueCapabilities.UpdateParameters)
@@ -3759,20 +3812,20 @@ End Class
 Imports System
 
 Class C
-    <N:0>Sub New(y As Integer)
+    <N:0>Sub New(<S:0>y</S:0> As Integer)
         Dim f As Func(Of Integer) = Function() y
     End Sub</N:0>
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            Dim syntaxMap = GetSyntaxMap(src1, src2)(0)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             edits.VerifySemantics(
             {
                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C..ctor"), syntaxMap, rudeEdits:=
                 {
-                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (5, 18), {"x", "y"})
+                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), {"x", "y"})
                 })
             },
             capabilities:=EditAndContinueCapabilities.UpdateParameters)
@@ -3861,7 +3914,7 @@ Class C
     End Sub
 
     Sub F()
-        G1(Function(a) 1)
+        G1(<N:0>Function(a) 1</N:0>)
     End Sub
 End Class
 "
@@ -3877,12 +3930,18 @@ Class C
     End Sub
 
     Sub F()
-        G2(Function(a) 2)
+        G2(<N:0>Function(a) 2</N:0>)
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.ChangingLambdaParameters, "Function(a)", VBFeaturesResources.Lambda))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), {GetResource("lambda")})
+                }))
         End Sub
 
 #End Region
@@ -3896,7 +3955,7 @@ Imports System.Linq
 
 Class C
     Sub F()
-        Dim result = From a In {1} Select a
+        Dim result = From a In {1} <N:0>Select a</N:0>
     End Sub
 End Class
 "
@@ -3906,13 +3965,20 @@ Imports System.Linq
 
 Class C
     Sub F()
-        Dim result = From a In {1.0} Select a
+        Dim result = From a In {1.0} <N:0>Select a</N:0>
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.Select_clause))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), {GetResource("select clause")})
+                })
+            })
         End Sub
 
         <Fact>
@@ -3923,7 +3989,7 @@ Imports System.Linq
 
 Class C
     Sub F()
-        Dim result = From a In {1} Select b = a
+        Dim result = From a In {1} <N:0>Select b = a</N:0>
     End Sub
 End Class
 "
@@ -3933,13 +3999,20 @@ Imports System.Linq
 
 Class C
     Sub F()
-        Dim result = From a In {1.0} Select b = a.ToString()
+        Dim result = From a In {1.0} <N:0>Select b = a.ToString()</N:0>
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.Select_clause))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), {GetResource("select clause")})
+                })
+            })
         End Sub
 
         <Fact>
@@ -3950,7 +4023,7 @@ Imports System.Linq
 
 Class C
     Sub F()
-        Dim result = From a In {1} Select b = a, c = a
+        Dim result = From a In {1} <N:0>Select b = a, c = a</N:0>
     End Sub
 End Class
 "
@@ -3960,13 +4033,20 @@ Imports System.Linq
 
 Class C
     Sub F()
-        Dim result = From a In {1.0} Select b = a, c = a.ToString()
+        Dim result = From a In {1.0} <N:0>Select b = a, c = a.ToString()</N:0>
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Select", VBFeaturesResources.Select_clause))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), {GetResource("select clause")})
+                })
+            })
         End Sub
 
         <Fact>
@@ -3977,7 +4057,7 @@ Imports System.Linq
 
 Class C
     Sub F()
-        Dim result = From a In {1} From b In {2} Select b
+        Dim result = From a In {1} From <N:0>b In {2}</N:0> Select b
     End Sub
 End Class
 "
@@ -3987,13 +4067,20 @@ Imports System.Linq
 
 Class C
     Sub F()
-        Dim result = From a In {1.0} From b In {2} Select b
+        Dim result = From a In {1.0} <S:0>From</S:0> <N:0>b In {2}</N:0> Select b
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "From", VBFeaturesResources.From_clause))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.Position(0), {GetResource("from clause")})
+                })
+            })
         End Sub
 
         <Fact>
@@ -4152,7 +4239,7 @@ Imports System.Collections.Generic
 
 Class C
     Sub F()
-        Dim result = From a In {1} Let b = 1 Select a
+        Dim result = From a In {1} Let <N:0>b = 1</N:0> Select a
     End Sub
 End Class
 "
@@ -4163,13 +4250,20 @@ Imports System.Collections.Generic
 
 Class C
     Sub F()
-        Dim result = From a In {1} Let b = 1.0 Select a
+        Dim result = From a In {1} <S:0>Let</S:0> <N:0>b = 1.0</N:0> Select a
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "Let", VBFeaturesResources.Let_clause))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.Position(0), {GetResource("let clause")})
+                })
+            })
         End Sub
 
         <Fact>
@@ -4181,7 +4275,7 @@ Imports System.Collections.Generic
 
 Class C
     Sub F()
-        Dim result = From a In {1} Order By a + 1 Descending, a + 2 Ascending Select a
+        Dim result = From a In {1} Order By <N:0>a + 1 Descending</N:0>, a + 2 Ascending Select a
     End Sub
 End Class
 "
@@ -4192,13 +4286,20 @@ Imports System.Collections.Generic
 
 Class C
     Sub F()
-        Dim result = From a In {1} Order By a + 1.0 Descending, a + 2 Ascending Select a
+        Dim result = From a In {1} Order By <N:0>a + 1.0 Descending</N:0>, a + 2 Ascending Select a
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 1.0 Descending", VBFeaturesResources.Ordering_clause))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), {GetResource("orderby clause")})
+                })
+            })
         End Sub
 
         <Fact>
@@ -4210,7 +4311,7 @@ Imports System.Collections.Generic
 
 Class C
     Sub F()
-        Dim result = From a In {1} Order By a + 1 Descending, a + 2 Ascending Select a
+        Dim result = From a In {1} Order By a + 1 Descending, <N:0>a + 2 Ascending</N:0> Select a
     End Sub
 End Class
 "
@@ -4221,13 +4322,20 @@ Imports System.Collections.Generic
 
 Class C
     Sub F()
-        Dim result = From a In {1} Order By a + 1 Descending, a + 2.0 Ascending Select a
+        Dim result = From a In {1} Order By a + 1 Descending, <N:0>a + 2.0 Ascending</N:0> Select a
     End Sub
 End Class
 "
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 Ascending", VBFeaturesResources.Ordering_clause))
+            Dim syntaxMap = edits.GetSyntaxMap()
+
+            edits.VerifySemantics(
+            {
+                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), syntaxMap, rudeEdits:=
+                {
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), {GetResource("orderby clause")})
+                })
+            })
         End Sub
 
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1212"), WorkItem("https://github.com/dotnet/roslyn/issues/1212")>

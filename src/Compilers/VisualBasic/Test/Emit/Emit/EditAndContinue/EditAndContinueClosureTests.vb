@@ -6,7 +6,9 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -3946,6 +3948,100 @@ End Class
   IL_000f:  br.s       IL_0011
   IL_0011:  ldloc.0
   IL_0012:  ret
+}
+")
+                    End Sub).
+                    Verify()
+            End Using
+        End Sub
+
+        ''' <summary>
+        ''' Some lambda rude edits are simpler to detect in the IDE. They are specified via <see cref="RuntimeRudeEdit"/>.
+        ''' The IDE tests cover the specific cases.
+        ''' </summary>
+        <Fact>
+        Public Sub IdeDetectedRuntimeRudeEdit()
+            Using test = New EditAndContinueTest()
+                test.AddBaseline(
+                    source:="
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Integer)(<N:0>Function() 1</N:0>)
+    End Sub
+End Class
+",
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "C._Closure$__: {$I1-0, _Lambda$__1-0}",
+                            "C: {_Closure$__}")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+Class C
+    Sub F()
+        Dim f1 = New Func(Of Double)(<N:0>Function() 1.0</N:0>)
+    End Sub
+End Class
+",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True,
+                                 rudeEdits:=Function(node) New RuntimeRudeEdit("Return type changed", &H123))},
+                    validator:=
+                    Sub(g)
+                        g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C: {_Closure$__}",
+                            "C._Closure$__: {$I1-0#1, _Lambda$__1-0#1}")
+
+                        g.VerifyMethodDefNames("F", "_Lambda$__1-0", ".ctor", "_Lambda$__1-0#1")
+
+                        g.VerifyIL("
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x04000004
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     0x04000004
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     0x04000001
+  IL_0014:  ldftn      0x06000007
+  IL_001a:  newobj     0x0A000008
+  IL_001f:  dup
+  IL_0020:  stsfld     0x04000004
+  IL_0025:  stloc.1
+  IL_0026:  ret
+}
+{
+  // Code size       12 (0xc)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000005
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000006
+  IL_000b:  throw
+}
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A000009
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000003
+  IL_000e:  ret
+}
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.r8     1
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_000d
+  IL_000d:  ldloc.0
+  IL_000e:  ret
 }
 ")
                     End Sub).

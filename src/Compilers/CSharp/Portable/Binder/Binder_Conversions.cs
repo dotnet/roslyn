@@ -187,14 +187,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (conversion.Kind == ConversionKind.InterpolatedString)
                 {
+                    Debug.Assert(destination.SpecialType != SpecialType.System_String);
                     var unconvertedSource = (BoundUnconvertedInterpolatedString)source;
-                    source = new BoundInterpolatedString(
-                        unconvertedSource.Syntax,
-                        interpolationData: null,
-                        BindInterpolatedStringParts(unconvertedSource, diagnostics),
-                        unconvertedSource.ConstantValueOpt,
-                        unconvertedSource.Type,
-                        unconvertedSource.HasErrors);
+                    source = BindUnconvertedInterpolatedExpressionToFormattableStringFactory(unconvertedSource, destination, diagnostics);
                 }
 
                 if (conversion.Kind == ConversionKind.InterpolatedStringHandler)
@@ -485,6 +480,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CheckInlineArrayTypeIsSupported(syntax, source.Type, elementField.Type, diagnostics);
                 }
             }
+        }
+
+        private BoundExpression BindUnconvertedInterpolatedExpressionToFormattableStringFactory(BoundUnconvertedInterpolatedString unconvertedSource, TypeSymbol destination, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(destination.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything) ||
+                         destination.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything));
+
+            ImmutableArray<BoundExpression> parts = BindInterpolatedStringPartsForFactory(unconvertedSource, diagnostics, out bool haveErrors);
+            var stringFactory = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory, diagnostics, unconvertedSource.Syntax);
+
+            if (stringFactory.IsErrorType() || haveErrors)
+            {
+                return new BoundInterpolatedString(
+                    unconvertedSource.Syntax,
+                    interpolationData: null,
+                    BindInterpolatedStringParts(unconvertedSource, diagnostics),
+                    unconvertedSource.ConstantValueOpt,
+                    unconvertedSource.Type,
+                    unconvertedSource.HasErrors);
+            }
+
+            return BindUnconvertedInterpolatedExpressionToFactory(unconvertedSource, parts, stringFactory, factoryMethod: "Create", destination, diagnostics);
         }
 
         private static void CheckInlineArrayTypeIsSupported(SyntaxNode syntax, TypeSymbol inlineArrayType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)

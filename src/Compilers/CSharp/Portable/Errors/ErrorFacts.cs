@@ -2223,7 +2223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ScopedMismatchInParameterOfTarget
                 or ErrorCode.ERR_ScopedMismatchInParameterOfOverrideOrImplementation
                 or ErrorCode.ERR_ScopedMismatchInParameterOfPartial
-                or ErrorCode.ERR_ParameterNullCheckingNotSupported
                 or ErrorCode.ERR_RawStringNotInDirectives
                 or ErrorCode.ERR_UnterminatedRawString
                 or ErrorCode.ERR_TooManyQuotesForRawString

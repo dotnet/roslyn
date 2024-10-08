@@ -466,6 +466,39 @@ if (true) {
             Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/1499")]
+        public async Task TestGetHoverAsync_UsingMarkupContentEscapesBacktickInCode(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// Hello <c>A`1[B,C]</c>
+    /// </summary>
+    void {|caret:AMethod|}(int i)
+    {
+    }
+}";
+            var clientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            };
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
+            var expectedLocation = testLspServer.GetLocations("caret").Single();
+
+            var expectedMarkdown = @"```csharp
+void A.AMethod(int i)
+```
+  
+Hello&nbsp;``A`1[B,C]``  
+";
+
+            var results = await RunGetHoverAsync(
+                testLspServer,
+                expectedLocation).ConfigureAwait(false);
+            Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
+        }
+
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
         public async Task TestGetHoverAsync_UsesInlineCodeFencesInAwaitReturn(bool mutatingLspWorkspace)
         {

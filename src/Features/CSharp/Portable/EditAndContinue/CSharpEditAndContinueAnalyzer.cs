@@ -1865,7 +1865,8 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return ((AnonymousObjectCreationExpressionSyntax)node).NewKeyword.Span;
 
             case SyntaxKind.ParenthesizedLambdaExpression:
-                return ((ParenthesizedLambdaExpressionSyntax)node).ParameterList.Span;
+                var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)node;
+                return CombineSpans(parenthesizedLambda.ReturnType?.Span ?? default, parenthesizedLambda.ParameterList.Span, defaultSpan: default);
 
             case SyntaxKind.SimpleLambdaExpression:
                 return ((SimpleLambdaExpressionSyntax)node).Parameter.Span;
