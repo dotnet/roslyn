@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax variables = ((ForEachVariableStatementSyntax)_syntax).Variable;
 
             // Tracking narrowest safe-to-escape scope by default, the proper val escape will be set when doing full binding of the foreach statement
-            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, variableSymbol: null, isDiscardExpression: false, inferredType.Type ?? CreateErrorType("var"));
+            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, variableSymbol: null, this.LocalScopeDepth, isDiscardExpression: false, inferredType.Type ?? CreateErrorType("var"));
 
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var expr = _syntax.Expression;
                 ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
-                var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
+                var placeholder = new BoundAwaitableValuePlaceholder(expr, valEscape: this.LocalScopeDepth, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
                 awaitInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
 
                 if (!hasErrors && awaitInfo.GetResult?.ReturnType.SpecialType != SpecialType.System_Boolean)
@@ -267,6 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
             BoundExpression iterationErrorExpression = null;
+            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
@@ -312,6 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         SourceLocalSymbol local = this.IterationVariable;
                         local.SetTypeWithAnnotations(declType);
+                        local.SetValEscape(collectionEscape);
 
                         CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
 
@@ -322,6 +324,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (local.RefKind != RefKind.None)
                         {
+                            // The ref-escape of a ref-returning property is decided
+                            // by the value escape of its receiver, in this case the
+                            // collection
+                            local.SetRefEscape(collectionEscape);
+
                             if (CheckRefLocalInAsyncOrIteratorMethod(local.IdentifierToken, diagnostics))
                             {
                                 hasErrors = true;
@@ -372,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, variableSymbol: null, isDiscardExpression: false, iterationVariableType.Type).MakeCompilerGenerated();
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, variableSymbol: null, collectionEscape, isDiscardExpression: false, iterationVariableType.Type).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -600,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expr = _syntax.Expression;
             ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
 
-            var placeholder = new BoundAwaitableValuePlaceholder(expr, awaitableType);
+            var placeholder = new BoundAwaitableValuePlaceholder(expr, valEscape: this.LocalScopeDepth, awaitableType);
             builder.DisposeAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
             return hasErrors;
         }

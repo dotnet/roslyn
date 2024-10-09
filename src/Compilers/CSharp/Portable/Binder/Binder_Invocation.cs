@@ -1298,6 +1298,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
+            var initialBindingReceiverIsSubjectToCloning = ReceiverIsSubjectToCloning(receiver, method);
+            if (!gotError)
+            {
+                CheckInvocationArgMixing(
+                    node,
+                    MethodInfo.Create(method),
+                    receiver,
+                    initialBindingReceiverIsSubjectToCloning,
+                    method.Parameters,
+                    args,
+                    argRefKinds,
+                    argsToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
+            }
+
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
@@ -1311,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
+            return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                         argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
@@ -2446,6 +2462,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
             bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics);
+            if (!hasErrors)
+            {
+                hasErrors = !CheckInvocationArgMixing(
+                    node,
+                    MethodInfo.Create(funcPtr.Signature),
+                    receiverOpt: null,
+                    receiverIsSubjectToCloning: ThreeState.False,
+                    funcPtr.Signature.Parameters,
+                    args,
+                    refKinds,
+                    methodResult.Result.ArgsToParamsOpt,
+                    LocalScopeDepth,
+                    diagnostics);
+            }
+
             return new BoundFunctionPointerInvocation(
                 node,
                 boundExpression,
