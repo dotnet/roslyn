@@ -13,6 +13,11 @@ sealed class NetSdkDownloader : IDisposable
 
     public SemanticVersion SdkVersion { get; }
 
+    static NetSdkDownloader()
+    {
+        s_httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PostSharp.Engineering");
+    }
+
     private NetSdkDownloader(ZipArchive archive, SemanticVersion sdkVersion)
     {
         this._archive = archive;
