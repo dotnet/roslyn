@@ -243,8 +243,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
             var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, best.Signature.LeftType, diagnostics);
 
-            return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
+            var result = new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
                 leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
+
+            ValidateAssignment(node, left, result, isRef: false, diagnostics);
+
+            return result;
         }
 
         /// <summary>
