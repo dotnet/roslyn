@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsBuilder,
                 numberIncludingLastSpread,
                 sideEffects,
-                addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue) =>
+                addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue, bool isLastElement) =>
                 {
                     Debug.Assert(arrayTemp.Type is ArrayTypeSymbol);
                     Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
@@ -754,14 +754,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenValue,
                             isRef: false,
                             elementType));
-                    // index = index + 1;
-                    expressions.Add(
-                        new BoundAssignmentOperator(
-                            expressionSyntax,
-                            indexTemp,
-                            _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
-                            isRef: false,
-                            indexTemp.Type));
+                    if (!isLastElement)
+                    {
+                        // index = index + 1;
+                        expressions.Add(
+                            new BoundAssignmentOperator(
+                                expressionSyntax,
+                                indexTemp,
+                                _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                                isRef: false,
+                                indexTemp.Type));
+                    }
                 },
                 tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression arrayTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                 {
@@ -1072,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder,
                     numberIncludingLastSpread,
                     sideEffects,
-                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue) =>
+                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue, bool isLastElement) =>
                     {
                         Debug.Assert(spanTemp.Type is NamedTypeSymbol);
                         Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
@@ -1088,14 +1091,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 rewrittenValue,
                                 isRef: false,
                                 elementType));
-                        // index = index + 1;
-                        expressions.Add(
-                            new BoundAssignmentOperator(
-                                expressionSyntax,
-                                indexTemp,
-                                _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
-                                isRef: false,
-                                indexTemp.Type));
+                        if (!isLastElement)
+                        {
+                            // index = index + 1;
+                            expressions.Add(
+                                new BoundAssignmentOperator(
+                                    expressionSyntax,
+                                    indexTemp,
+                                    _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                                    isRef: false,
+                                    indexTemp.Type));
+                        }
                     },
                     tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
@@ -1116,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder,
                     numberIncludingLastSpread,
                     sideEffects,
-                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue) =>
+                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue, bool isLastElement) =>
                     {
                         // list.Add(element);
                         expressions.Add(
@@ -1180,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundLocal> rewrittenExpressions,
             int numberIncludingLastSpread,
             ArrayBuilder<BoundExpression> sideEffects,
-            Action<ArrayBuilder<BoundExpression>, BoundExpression, BoundExpression> addElement,
+            Action<ArrayBuilder<BoundExpression>, BoundExpression, BoundExpression, bool> addElement,
             Func<ArrayBuilder<BoundExpression>, BoundExpression, BoundCollectionExpressionSpreadElement, BoundExpression, bool> tryOptimizeSpreadElement)
         {
             for (int i = 0; i < elements.Length; i++)
@@ -1202,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var rewrittenValue = VisitExpression(((BoundExpressionStatement)iteratorBody).Expression);
                             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-                            addElement(builder, rewrittenReceiver, rewrittenValue);
+                            addElement(builder, rewrittenReceiver, rewrittenValue, false);
                             var statements = builder.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));
                             builder.Free();
                             Debug.Assert(statements.Length > 0);
@@ -1214,7 +1220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    addElement(sideEffects, rewrittenReceiver, rewrittenExpression);
+                    var isLastElement = i == (elements.Length - 1);
+                    addElement(sideEffects, rewrittenReceiver, rewrittenExpression, isLastElement);
                 }
             }
         }
