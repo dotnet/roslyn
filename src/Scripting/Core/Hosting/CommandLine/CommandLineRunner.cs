@@ -178,8 +178,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 createFromFileFunc: _createFromFileFunc);
         }
 
-#nullable enable
-
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(
             CommandLineArguments arguments,
             TouchedFileLogger? loggerOpt,
@@ -194,8 +192,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return createFromFileFunc(path, PEStreamOptions.PrefetchEntireImage, properties);
                 });
         }
-
-#nullable disable
 
         internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {
