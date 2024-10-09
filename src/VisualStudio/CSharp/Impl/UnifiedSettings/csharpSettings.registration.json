@@ -4,6 +4,40 @@
 // See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more details
 {
   "properties": {
+    "textEditor.csharp.advanced.analysis.analyzerDiagnosticsScope": {
+      "title": "@Run_background_code_analysis_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "none", "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics", "openFiles", "fullSolution" ],
+      "enumItemLabels": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "default": "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics",
+      "order": 1,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.BackgroundAnalysisScopeOption"
+          },
+          "map": [
+            {
+              "result": "VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics",
+              "match": 0
+            },
+            {
+              "result": "openFiles",
+              "match": 1
+            },
+            {
+              "result": "FullSolution",
+              "match": 2
+            },
+            {
+              "result": "None",
+              "match": 3
+            }
+          ]
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
