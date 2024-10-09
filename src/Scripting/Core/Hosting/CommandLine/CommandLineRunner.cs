@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             var cancellationToken = new CancellationToken();
 
+            Debug.Assert(scriptOptions is not null);
             if (Compiler.Arguments.InteractiveMode)
             {
                 RunInteractiveLoop(scriptOptions, code?.ToString(), cancellationToken);
@@ -193,12 +194,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 });
         }
 
-        internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
+        internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger? loggerOpt)
         {
             return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty, loggerOpt);
         }
 
-        private int RunScript(ScriptOptions options, SourceText code, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        private int RunScript(ScriptOptions? options, SourceText? code, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
             var globals = new CommandLineScriptGlobals(Console.Out, _objectFormatter);
             globals.Args.AddRange(Compiler.Arguments.ScriptArguments);
@@ -220,12 +221,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private void RunInteractiveLoop(ScriptOptions options, string initialScriptCodeOpt, CancellationToken cancellationToken)
+        private void RunInteractiveLoop(ScriptOptions options, string? initialScriptCodeOpt, CancellationToken cancellationToken)
         {
             var globals = new InteractiveScriptGlobals(Console.Out, _objectFormatter);
             globals.Args.AddRange(Compiler.Arguments.ScriptArguments);
 
-            ScriptState<object> state = null;
+            ScriptState<object>? state = null;
 
             if (initialScriptCodeOpt != null)
             {
@@ -237,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 Console.Out.Write("> ");
                 var input = new StringBuilder();
-                string line;
+                string? line;
                 bool cancelSubmission = false;
 
                 while (true)
@@ -292,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private void BuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object> state, ref ScriptOptions options, bool displayResult, CancellationToken cancellationToken)
+        private void BuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object>? state, ref ScriptOptions options, bool displayResult, CancellationToken cancellationToken)
         {
             var diagnostics = newScript.Compile(cancellationToken);
             DisplayDiagnostics(diagnostics);
