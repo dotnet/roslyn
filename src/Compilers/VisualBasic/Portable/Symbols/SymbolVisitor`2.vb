@@ -94,6 +94,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Function VisitEvent(symbol As EventSymbol, arg As TArgument) As TResult
             Return DefaultVisit(symbol, arg)
         End Function
-
     End Class
 End Namespace

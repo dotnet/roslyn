@@ -41,6 +41,8 @@ internal interface ISyntaxKinds
     int EndRegionDirectiveTrivia { get; }
     int RegionDirectiveTrivia { get; }
     int? ShebangDirectiveTrivia { get; }
+    int DefineDirectiveTrivia { get; }
+    int? UndefDirectiveTrivia { get; }
 
     #endregion
 

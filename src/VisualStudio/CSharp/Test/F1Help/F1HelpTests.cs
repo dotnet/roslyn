@@ -1634,8 +1634,8 @@ class C
 }", "discard");
         }
 
-        [Fact]
-        public async Task TestNotFound()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
+        public async Task TestNotFound_PreprocessingSymbol()
         {
             await TestAsync(
 @"
