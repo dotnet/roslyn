@@ -107,7 +107,7 @@ End Try", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        End Try", cancellationToken: HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75458")]
     public async Task EditLambdaExpression()
     {
         await TestServices.Editor.SetTextAsync(@"
