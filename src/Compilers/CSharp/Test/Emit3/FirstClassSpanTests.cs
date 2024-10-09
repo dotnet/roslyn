@@ -1029,6 +1029,69 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_PatternWrongType, "Span<string>").WithArguments("object[]", "System.Span<string>").WithLocation(4, 10));
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Implicit_IsOperator(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            Console.Write(str() is ReadOnlySpan<char>);
+            static string str() => "abc";
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: "False");
+        verifier.VerifyDiagnostics(
+            // (2,15): warning CS0184: The given expression is never of the provided ('ReadOnlySpan<int>') type
+            // Console.Write(str() is ReadOnlySpan<char>);
+            Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "str() is ReadOnlySpan<char>").WithArguments("System.ReadOnlySpan<char>").WithLocation(2, 15));
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       13 (0xd)
+              .maxstack  1
+              IL_0000:  call       "string Program.<<Main>$>g__str|0_0()"
+              IL_0005:  pop
+              IL_0006:  ldc.i4.0
+              IL_0007:  call       "void System.Console.Write(bool)"
+              IL_000c:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Implicit_IsPattern(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            if (str() is ReadOnlySpan<char> s)
+            {
+                Console.Write(s.Length);
+            }
+            static string str() => throw null;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (2,14): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+            // if (str() is ReadOnlySpan<char> s)
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("string", "System.ReadOnlySpan<char>").WithLocation(2, 14));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Implicit_SwitchPattern(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            switch (str())
+            {
+                case ReadOnlySpan<char> s:
+                    Console.Write(s.Length);
+                    break;
+            }
+            static string str() => throw null;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,10): error CS8121: An expression of type 'string' cannot be handled by a pattern of type 'ReadOnlySpan<char>'.
+            //     case ReadOnlySpan<char> s:
+            Diagnostic(ErrorCode.ERR_PatternWrongType, "ReadOnlySpan<char>").WithArguments("string", "System.ReadOnlySpan<char>").WithLocation(4, 10));
+    }
+
     [Fact]
     public void Conversion_Array_Span_Implicit_MissingHelper()
     {
