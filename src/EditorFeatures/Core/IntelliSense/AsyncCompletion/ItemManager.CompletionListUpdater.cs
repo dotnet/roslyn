@@ -427,7 +427,7 @@ internal partial class ItemManager
                     return null;
                 }
 
-                var isHardSelection = IsHardSelection(bestOrFirstMatchResult.CompletionItem, bestOrFirstMatchResult.ShouldBeConsideredMatchingFilterText);
+                var isHardSelection = CompletionService.IsHardSelection(bestOrFirstMatchResult.CompletionItem, bestOrFirstMatchResult.ShouldBeConsideredMatchingFilterText, _hasSuggestedItemOptions, _filterText);
                 var updateSelectionHint = isHardSelection ? UpdateSelectionHint.Selected : UpdateSelectionHint.SoftSelected;
 
                 return new(selectedItemIndex, updateSelectionHint, uniqueItem);
@@ -752,84 +752,6 @@ internal partial class ItemManager
 
             initialTriggerLocation = default;
             return false;
-        }
-
-        private bool IsHardSelection(
-            RoslynCompletionItem item,
-            bool matchedFilterText)
-        {
-            if (_hasSuggestedItemOptions)
-            {
-                return false;
-            }
-
-            // We don't have a builder and we have a best match.  Normally this will be hard
-            // selected, except for a few cases.  Specifically, if no filter text has been
-            // provided, and this is not a preselect match then we will soft select it.  This
-            // happens when the completion list comes up implicitly and there is something in
-            // the MRU list.  In this case we do want to select it, but not with a hard
-            // selection.  Otherwise you can end up with the following problem:
-            //
-            //  dim i as integer =<space>
-            //
-            // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
-            // not want 'space' to commit this.
-
-            // If all that has been typed is punctuation, then don't hard select anything.
-            // It's possible the user is just typing language punctuation and selecting
-            // anything in the list will interfere.  We only allow this if the filter text
-            // exactly matches something in the list already. 
-            if (_filterText.Length > 0 && IsAllPunctuation(_filterText) && _filterText != item.DisplayText)
-            {
-                return false;
-            }
-
-            // If the user hasn't actually typed anything, then don't hard select any item.
-            // The only exception to this is if the completion provider has requested the
-            // item be preselected.
-            if (_filterText.Length == 0)
-            {
-                // Item didn't want to be hard selected with no filter text.
-                // So definitely soft select it.
-                if (item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
-                {
-                    return false;
-                }
-
-                // Item did not ask to be preselected.  So definitely soft select it.
-                if (item.Rules.MatchPriority == MatchPriority.Default)
-                {
-                    return false;
-                }
-            }
-
-            // The user typed something, or the item asked to be preselected.  In 
-            // either case, don't soft select this.
-            Debug.Assert(_filterText.Length > 0 || item.Rules.MatchPriority != MatchPriority.Default);
-
-            // If the user moved the caret left after they started typing, the 'best' match may not match at all
-            // against the full text span that this item would be replacing.
-            if (!matchedFilterText)
-            {
-                return false;
-            }
-
-            // There was either filter text, or this was a preselect match.  In either case, we
-            // can hard select this.
-            return true;
-        }
-
-        private static bool IsAllPunctuation(string filterText)
-        {
-            foreach (var ch in filterText)
-            {
-                if (!char.IsPunctuation(ch))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>
