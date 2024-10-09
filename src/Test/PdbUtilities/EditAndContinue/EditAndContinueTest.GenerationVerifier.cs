@@ -161,7 +161,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 });
 
             internal void VerifyMethodBody(string qualifiedMemberName, string expectedILWithSequencePoints)
-                => Verify(() => generationInfo.CompilationVerifier!.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints));
+                 => Verify(() =>
+                 {
+                     if (generationInfo.CompilationVerifier != null)
+                     {
+                         generationInfo.CompilationVerifier.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints);
+                     }
+                     else
+                     {
+                         Debug.Assert(generationInfo.CompilationDifference != null);
+                         var updatedMethods = generationInfo.CompilationDifference.EmitResult.UpdatedMethods;
+
+                         Debug.Assert(updatedMethods.Length == 1, "Only supported for a single method update");
+                         var updatedMethodToken = updatedMethods.Single();
+
+                         generationInfo.CompilationDifference.VerifyIL(qualifiedMemberName, expectedILWithSequencePoints, methodToken: updatedMethodToken);
+                     }
+                 });
 
             internal void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
                 => Verify(() => generationInfo.CompilationDifference!.VerifyPdb(methodTokens, expectedPdb, expectedIsRawXml: true));

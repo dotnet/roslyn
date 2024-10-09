@@ -54,7 +54,7 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
                     namespaceInScope,
                     inferredTypes,
                     forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
-                    hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
+                    hideAdvancedMembers: completionContext.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result is not null)

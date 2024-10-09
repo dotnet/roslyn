@@ -56,7 +56,7 @@
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" Condition="'$(TargetFramework)' == 'net472'" />
 
     <Reference Include="System.Configuration" Condition="'$(TargetFramework)' == 'net472'" />
 

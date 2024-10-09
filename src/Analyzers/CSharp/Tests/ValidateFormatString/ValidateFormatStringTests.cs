@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.ValidateFormatString;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.ValidateFormatString;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -620,28 +621,6 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
             """);
     }
 
-#if CODE_STYLE
-    // Option has no effect on CodeStyle layer CI execution as it is not an editorconfig option.
-    [Fact]
-    public async Task TestOption_Ignored()
-    {
-        var source = """
-            class Program
-            {
-                static void Main(string[] args)
-                {
-                    string.Format("This [|{1}|] is my test", "teststring1");
-                }     
-            }
-            """;
-        await TestDiagnosticInfoAsync(
-            source,
-            options: null,
-            diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
-            diagnosticSeverity: DiagnosticSeverity.Info,
-            diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
-    }
-#else
     [Fact]
     public async Task TestOption_Enabled()
     {
@@ -654,12 +633,11 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """;
-        var options = Option(IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, true);
+        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, true);
 
         await TestDiagnosticInfoAsync(
             source,
-            options: null,
-            globalOptions: options,
+            options: options,
             diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
             diagnosticSeverity: DiagnosticSeverity.Info,
             diagnosticMessage: AnalyzersResources.Format_string_contains_invalid_placeholder);
@@ -677,11 +655,11 @@ public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUs
                 }     
             }
             """;
-        var options = Option(IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, false);
+        var options = Option(FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, false);
 
-        await TestDiagnosticMissingAsync(source, new TestParameters(globalOptions: options));
+        await TestDiagnosticMissingAsync(source, new TestParameters(options: options));
     }
-#endif
+
     [Fact]
     public async Task OnePlaceholderOutOfBounds()
     {

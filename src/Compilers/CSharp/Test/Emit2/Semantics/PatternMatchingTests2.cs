@@ -4,11 +4,7 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -122,7 +118,7 @@ public static class PointExtensions
 }
 ";
             // We use a compilation profile that provides System.Runtime.CompilerServices.ExtensionAttribute needed for this test
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "");
@@ -1153,7 +1149,7 @@ class Frog
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source); // doesn't have ITuple
+            var compilation = CreateCompilationWithMscorlib461(source); // doesn't have ITuple
             // Two errors below instead of one due to https://github.com/dotnet/roslyn/issues/25533
             compilation.VerifyDiagnostics(
                 // (8,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
@@ -2680,7 +2676,7 @@ public class C
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
         public void IsNullableReferenceType_01()
         {
             var source =
@@ -2712,25 +2708,12 @@ public class C {
                 // (10,22): error CS8650: It is not legal to use nullable reference type 'string?' in an is-type expression; use the underlying type 'string' instead.
                 //         var t = o is string?;
                 Diagnostic(ErrorCode.ERR_IsNullableType, "string?").WithArguments("string").WithLocation(10, 22),
-                // (13,30): error CS0103: The name '_' does not exist in the current context
+                // (13,22): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
                 //         var t = o is string? _;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(13, 30),
-                // (13,31): error CS1003: Syntax error, ':' expected
-                //         var t = o is string? _;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":").WithLocation(13, 31),
-                // (13,31): error CS1525: Invalid expression term ';'
-                //         var t = o is string? _;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 31),
-                // (16,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'object', with 2 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(13, 22),
+                // (16,23): error CS8116: It is not legal to use nullable type 'string?' in a pattern; use the underlying type 'string' instead.
                 //         var t = o is (string? _);
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(string? _)").WithArguments("object", "2").WithLocation(16, 22),
-                // (16,29): error CS1003: Syntax error, ',' expected
-                //         var t = o is (string? _);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "?").WithArguments(",").WithLocation(16, 29),
-                // (16,31): error CS1003: Syntax error, ',' expected
-                //         var t = o is (string? _);
-                Diagnostic(ErrorCode.ERR_SyntaxError, "_").WithArguments(",").WithLocation(16, 31)
-                );
+                Diagnostic(ErrorCode.ERR_PatternNullableType, "string?").WithArguments("string").WithLocation(16, 23));
         }
 
         [Fact]

@@ -80,7 +80,7 @@ internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntax
 
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var options = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var (node, diagnosticId) = GetNodeToSimplify(
             root, model, span, options, cancellationToken);
@@ -100,11 +100,11 @@ internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntax
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = (TSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var diagnostic in diagnostics)
         {

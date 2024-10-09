@@ -96,6 +96,11 @@
         <target state="translated">请避免在代码中使用未使用的参数。如果无法删除该参数，请更改其名称，使其以下划线开头，也可在下划线后面跟一个整数(如 "_"、"_1"、"_2" 等)。这些被视为特殊丢弃符号名。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
         <target state="translated">块与后续语句之间需要有空白行</target>
@@ -144,6 +149,16 @@
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
         <target state="translated">可简化 "GetHashCode" 实现</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="new">Implement abstract class</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="new">Implement through '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">

@@ -26,7 +26,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 /// <typeparam name="TDiagnosticsParams">The LSP input param type</typeparam>
 /// <typeparam name="TReport">The LSP type that is reported via IProgress</typeparam>
 /// <typeparam name="TReturn">The LSP type that is returned on completion of the request.</typeparam>
-internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
+internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>(
+    IDiagnosticAnalyzerService diagnosticAnalyzerService,
+    IDiagnosticsRefresher diagnosticRefresher,
+    IGlobalOptionService globalOptions)
+    : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
     where TDiagnosticsParams : IPartialResultParams<TReport>
 {
     /// <summary>
@@ -37,10 +41,10 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     protected const int WorkspaceDiagnosticIdentifier = 1;
     protected const int DocumentDiagnosticIdentifier = 2;
 
-    private readonly IDiagnosticsRefresher _diagnosticRefresher;
-    protected readonly IGlobalOptionService GlobalOptions;
+    private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
 
-    protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService;
+    protected readonly IGlobalOptionService GlobalOptions = globalOptions;
+    protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService = diagnosticAnalyzerService;
 
     /// <summary>
     /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
@@ -53,16 +57,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
-
-    protected AbstractPullDiagnosticHandler(
-        IDiagnosticAnalyzerService diagnosticAnalyzerService,
-        IDiagnosticsRefresher diagnosticRefresher,
-        IGlobalOptionService globalOptions)
-    {
-        DiagnosticAnalyzerService = diagnosticAnalyzerService;
-        _diagnosticRefresher = diagnosticRefresher;
-        GlobalOptions = globalOptions;
-    }
 
     /// <summary>
     /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
@@ -411,17 +405,11 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             if (capabilities.HasVisualStudioLspCapability())
             {
                 var expandedMessage = string.IsNullOrEmpty(diagnosticData.Description) ? null : diagnosticData.Description;
+                var informationService = project.Solution.Services.GetRequiredService<IDiagnosticProjectInformationService>();
 
                 diagnostic.DiagnosticType = diagnosticData.Category;
                 diagnostic.ExpandedMessage = expandedMessage;
-                diagnostic.Projects =
-                [
-                    new VSDiagnosticProjectInformation
-                    {
-                        ProjectIdentifier = project.Id.Id.ToString(),
-                        ProjectName = project.Name,
-                    },
-                ];
+                diagnostic.Projects = [informationService.GetDiagnosticProjectInformation(project)];
 
                 // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
                 // to be merged from separate projects if they have the same code, filepath, range, and message.

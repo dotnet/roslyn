@@ -3934,14 +3934,14 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (4,23): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,23): error CS9202: Feature 'params collections' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static void Test1(params System.ReadOnlySpan<long> a) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.ReadOnlySpan<long> a").WithArguments("params collections").WithLocation(4, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "params System.ReadOnlySpan<long> a").WithArguments("params collections", "13.0").WithLocation(4, 23)
                 );
         }
 
@@ -3981,7 +3981,7 @@ class Program
                 var comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
                 comp2.VerifyDiagnostics();
 
-                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
                 comp2.VerifyDiagnostics();
 
                 comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
@@ -4028,14 +4028,14 @@ class Program
             var comp = CreateCompilation(src2 + src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src2 + src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2 + src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src2 + src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (22,30): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (22,30): error CS9202: Feature 'params collections' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static public void Test1(params System.ReadOnlySpan<long> a) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.ReadOnlySpan<long> a").WithArguments("params collections").WithLocation(22, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "params System.ReadOnlySpan<long> a").WithArguments("params collections", "13.0").WithLocation(22, 30)
                 );
 
             var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
@@ -4048,7 +4048,7 @@ class Program
                 var comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
                 comp2.VerifyDiagnostics();
 
-                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
                 comp2.VerifyDiagnostics();
 
                 comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
@@ -4096,17 +4096,17 @@ class Program
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (6,19): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,19): error CS9202: Feature 'params collections' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         var x1 = (params System.ReadOnlySpan<long> a) => {};
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.ReadOnlySpan<long> a").WithArguments("params collections").WithLocation(6, 19),
-                // (21,13): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "params System.ReadOnlySpan<long> a").WithArguments("params collections", "13.0").WithLocation(6, 19),
+                // (21,13): error CS9202: Feature 'params collections' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         M1((params System.ReadOnlySpan<long> b) => {});
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.ReadOnlySpan<long> b").WithArguments("params collections").WithLocation(21, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "params System.ReadOnlySpan<long> b").WithArguments("params collections", "13.0").WithLocation(21, 13)
                 );
         }
 
@@ -4143,14 +4143,14 @@ class Program
             var comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (23,30): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (23,30): error CS9202: Feature 'params collections' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     static public void Test1(params System.Collections.Generic.IEnumerable<long> a) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.Collections.Generic.IEnumerable<long> a").WithArguments("params collections").WithLocation(23, 30)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "params System.Collections.Generic.IEnumerable<long> a").WithArguments("params collections", "13.0").WithLocation(23, 30)
                 );
 
             var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -4197,7 +4197,7 @@ class Program
 ";
                 verifier.VerifyIL("Program.Test1", expectedIL);
 
-                comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+                comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
                 verifier = CompileAndVerify(comp2, symbolValidator: checkParamsInDelegate1).VerifyDiagnostics();
                 verifier.VerifyIL("Program.Test1", expectedIL);
 
@@ -4267,14 +4267,14 @@ class Program2
             var comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(src2 + src1, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (23,25): error CS8652: The feature 'params collections' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (23,25): error CS9202: Feature 'params collections' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public delegate void D1(params System.Collections.Generic.IEnumerable<long> a);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "params System.Collections.Generic.IEnumerable<long> a").WithArguments("params collections").WithLocation(23, 25)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "params System.Collections.Generic.IEnumerable<long> a").WithArguments("params collections", "13.0").WithLocation(23, 25)
                 );
 
             var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
@@ -4287,7 +4287,7 @@ class Program2
                 var comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularPreview);
                 comp2.VerifyDiagnostics();
 
-                comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.RegularNext);
+                comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular13);
                 comp2.VerifyDiagnostics();
 
                 comp2 = CreateCompilation(src2, references: [comp1Ref], options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), parseOptions: TestOptions.Regular12);
@@ -4363,7 +4363,7 @@ class Program
                 var comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
                 CompileAndVerify(comp2, expectedOutput: ExpectedOutput("span"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
-                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+                comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
                 CompileAndVerify(comp2, expectedOutput: ExpectedOutput("span"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
                 comp2 = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
@@ -6150,7 +6150,7 @@ class Program
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp.VerifyEmitDiagnostics();
 
@@ -6224,7 +6224,7 @@ class Program
 
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
@@ -6370,7 +6370,7 @@ class P
                 Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(d, 2, 3)").WithArguments("Program.Test<T>(params System.Collections.Generic.IEnumerable<T>)").WithLocation(8, 9)
                 );
 
-            comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp1.VerifyDiagnostics(
                 // (8,9): error CS9218: 'Program.Test<T>(params IEnumerable<T>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
@@ -6448,7 +6448,7 @@ class P
                 Diagnostic(ErrorCode.ERR_DynamicDispatchToParamsCollection, "Test(0, d, 2, 3)").WithArguments("Program.Test<T>(T, params System.Collections.Generic.IEnumerable<long>)").WithLocation(8, 9)
                 );
 
-            comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp1 = CreateCompilation(src1, references: [comp0Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp1.VerifyDiagnostics(
                 // (8,9): error CS9218: 'Program.Test<T>(T, params IEnumerable<long>)' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.
@@ -7066,7 +7066,7 @@ class Program
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp.VerifyEmitDiagnostics();
 
@@ -7182,7 +7182,7 @@ class P
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp.VerifyEmitDiagnostics();
 
@@ -7259,7 +7259,7 @@ class Program
 
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
@@ -7781,7 +7781,7 @@ class Program
 
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
 
             comp.VerifyEmitDiagnostics();
 
@@ -7863,7 +7863,7 @@ class Program
 
             comp.VerifyDiagnostics(expected);
 
-            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics(expected);
 
             comp = CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12);
@@ -15755,6 +15755,53 @@ namespace OverloadResolutionRepro
 """;
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AttributeFromSDK()
+        {
+            var source = """
+                using System;
+
+                C.M(1, 2, 3);
+
+                class C
+                {
+                    public static void M(params Span<int> span)
+                    {
+                        foreach (var item in span)
+                            Console.Write(item);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                symbolValidator: verify8,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("123"));
+            verifier.VerifyDiagnostics();
+
+            void verify8(ModuleSymbol module)
+            {
+                // attribute is embedded.
+                Assert.NotNull(module.GlobalNamespace.GetMember("System.Runtime.CompilerServices.ParamCollectionAttribute"));
+            }
+
+            verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net90,
+                symbolValidator: verify9,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("123"));
+            verifier.VerifyDiagnostics();
+
+            void verify9(ModuleSymbol module)
+            {
+                // attribute is not embedded.
+                Assert.Empty(module.GlobalNamespace.GetMembers("System"));
+            }
         }
     }
 }

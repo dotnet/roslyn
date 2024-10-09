@@ -115,8 +115,7 @@ End Module
                 Dim textView = workspace.Documents.Single().GetTextView()
 
                 Dim handler = New VisualBasicChangeSignatureCommandHandler(
-                    workspace.GetService(Of IThreadingContext),
-                    workspace.GlobalOptions)
+                    workspace.GetService(Of IThreadingContext))
 
                 Dim state = handler.GetCommandState(New ReorderParametersCommandArgs(textView, textView.TextBuffer))
                 Assert.True(state.IsUnspecified)

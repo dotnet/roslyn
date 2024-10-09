@@ -12,10 +12,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [Export(typeof(RazorWorkspaceListenerInitializer)), Shared]
 internal sealed class RazorWorkspaceListenerInitializer
 {
-    // This should be moved to the Razor side once things are announced, so defaults are all in one
-    // place, in case things ever need to change
-    private const string _projectRazorJsonFileName = "project.razor.vscode.bin";
-
     private readonly ILogger _logger;
     private readonly Workspace _workspace;
     private readonly ILoggerFactory _loggerFactory;
@@ -36,7 +32,7 @@ internal sealed class RazorWorkspaceListenerInitializer
         _loggerFactory = loggerFactory;
     }
 
-    internal void Initialize()
+    internal void Initialize(string pipeName)
     {
         HashSet<ProjectId> projectsToInitialize;
         lock (_initializeGate)
@@ -47,9 +43,9 @@ internal sealed class RazorWorkspaceListenerInitializer
                 return;
             }
 
-            _logger.LogTrace("Initializing the Razor workspace listener");
+            _logger.LogTrace("Initializing the Razor workspace listener with pipe name {0}", pipeName);
             _razorWorkspaceListener = new RazorWorkspaceListener(_loggerFactory);
-            _razorWorkspaceListener.EnsureInitialized(_workspace, _projectRazorJsonFileName);
+            _razorWorkspaceListener.EnsureInitialized(_workspace, pipeName);
 
             projectsToInitialize = _projectIdWithDynamicFiles;
             // May as well clear out the collection, it will never get used again anyway.

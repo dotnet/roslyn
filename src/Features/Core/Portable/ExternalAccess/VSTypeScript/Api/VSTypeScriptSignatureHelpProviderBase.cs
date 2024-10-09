@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 /// </summary>
 internal abstract class VSTypeScriptSignatureHelpProviderBase : ISignatureHelpProvider
 {
-    Task<SignatureHelpItems?> ISignatureHelpProvider.GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    Task<SignatureHelpItems?> ISignatureHelpProvider.GetItemsAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
         => GetItemsAsync(document, position, triggerInfo, cancellationToken);
 
     public abstract bool IsTriggerCharacter(char ch);

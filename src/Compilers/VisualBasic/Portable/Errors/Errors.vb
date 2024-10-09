@@ -1779,8 +1779,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InvalidExperimentalDiagID = 37328
 
         ERR_LockTypeUnsupported = 37329
+        ERR_InvalidVersionFormatDeterministic = 37330
 
-        ERR_NextAvailable = 37330
+        ERR_NextAvailable = 37331
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

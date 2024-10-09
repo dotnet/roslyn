@@ -16,9 +16,8 @@ internal static class SignatureHelp
 {
     public static Task<LSP.SignatureHelp?> GetSignatureHelpAsync(Document document, LinePosition linePosition, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
     {
-        var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var signatureHelpService = document.Project.Solution.Services.ExportProvider.GetService<SignatureHelpService>();
 
-        return SignatureHelpHandler.GetSignatureHelpAsync(globalOptions, signatureHelpService, document, linePosition, supportsVisualStudioExtensions, cancellationToken);
+        return SignatureHelpHandler.GetSignatureHelpAsync(signatureHelpService, document, linePosition, supportsVisualStudioExtensions, cancellationToken);
     }
 }

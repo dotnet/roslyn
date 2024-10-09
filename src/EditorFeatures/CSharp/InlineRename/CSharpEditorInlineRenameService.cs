@@ -9,7 +9,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.GoToDefinition;
@@ -17,16 +16,14 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename;
 
 [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpEditorInlineRenameService(
-    [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-    IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
+internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+    : AbstractEditorInlineRenameService(refactorNotifyServices)
 {
     private const int NumberOfContextLines = 20;
     private const int MaxDefinitionCount = 10;
@@ -149,7 +146,7 @@ internal sealed class CSharpEditorInlineRenameService(
             // expand to select the corresponding lines completely.
             startPosition = documentText.Lines[startLine].Start;
             endPosition = documentText.Lines[endLine].End;
-            var length = endPosition - startPosition + 1;
+            var length = endPosition - startPosition;
 
             surroundingSpanOfInterest = new TextSpan(startPosition, length);
 

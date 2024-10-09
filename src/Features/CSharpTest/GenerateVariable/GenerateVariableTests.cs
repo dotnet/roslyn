@@ -92,11 +92,11 @@ public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDi
             }
             """,
             [
-                string.Format(FeaturesResources.Generate_field_0, "goo"),
-                string.Format(FeaturesResources.Generate_read_only_field_0, "goo"),
-                string.Format(FeaturesResources.Generate_property_0, "goo"),
-                string.Format(FeaturesResources.Generate_local_0, "goo"),
-                string.Format(FeaturesResources.Generate_parameter_0, "goo"),
+                string.Format(CodeFixesResources.Generate_field_0, "goo"),
+                string.Format(CodeFixesResources.Generate_read_only_field_0, "goo"),
+                string.Format(CodeFixesResources.Generate_property_0, "goo"),
+                string.Format(CodeFixesResources.Generate_local_0, "goo"),
+                string.Format(CodeFixesResources.Generate_parameter_0, "goo"),
             ]);
     }
 
@@ -114,8 +114,8 @@ public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDi
             }
             """,
             [
-                string.Format(FeaturesResources.Generate_field_0, "_goo"),
-                string.Format(FeaturesResources.Generate_read_only_field_0, "_goo"),
+                string.Format(CodeFixesResources.Generate_field_0, "_goo"),
+                string.Format(CodeFixesResources.Generate_read_only_field_0, "_goo"),
             ]);
     }
 
@@ -356,7 +356,7 @@ index: PropertyIndex);
                 }
             }
             """,
-[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo")]);
+[string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_property_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo")]);
     }
 
     [Fact]
@@ -377,7 +377,7 @@ index: PropertyIndex);
                 }
             }
             """,
-[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_property_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0_and_overrides_implementations, "goo")]);
+[string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_property_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0_and_overrides_implementations, "goo")]);
     }
 
     [Fact]
@@ -554,7 +554,7 @@ index: ReadonlyFieldIndex);
                 }
             }
             """,
-[string.Format(FeaturesResources.Generate_field_0, "goo"), string.Format(FeaturesResources.Generate_local_0, "goo"), string.Format(FeaturesResources.Generate_parameter_0, "goo")]);
+[string.Format(CodeFixesResources.Generate_field_0, "goo"), string.Format(CodeFixesResources.Generate_local_0, "goo"), string.Format(CodeFixesResources.Generate_parameter_0, "goo")]);
     }
 
     [Fact]
@@ -2431,7 +2431,7 @@ index: PropertyIndex);
                 }
             }
             """,
-[string.Format(FeaturesResources.Generate_field_0, "p"), string.Format(FeaturesResources.Generate_property_0, "p"), string.Format(FeaturesResources.Generate_local_0, "p"), string.Format(FeaturesResources.Generate_parameter_0, "p")]);
+[string.Format(CodeFixesResources.Generate_field_0, "p"), string.Format(CodeFixesResources.Generate_property_0, "p"), string.Format(CodeFixesResources.Generate_local_0, "p"), string.Format(CodeFixesResources.Generate_parameter_0, "p")]);
 
         await TestInRegularAndScriptAsync(
             """
@@ -5320,7 +5320,7 @@ index: PropertyIndex);
             #line hidden
             }
             """;
-        await TestExactActionSetOfferedAsync(code, [string.Format(FeaturesResources.Generate_local_0, "Bar"), string.Format(FeaturesResources.Generate_parameter_0, "Bar")]);
+        await TestExactActionSetOfferedAsync(code, [string.Format(CodeFixesResources.Generate_local_0, "Bar"), string.Format(CodeFixesResources.Generate_parameter_0, "Bar")]);
 
         await TestInRegularAndScriptAsync(code,
             """
@@ -10551,8 +10551,8 @@ class Class
             }
             """,
             [
-                string.Format(FeaturesResources.Generate_property_0, "Field"),
-                string.Format(FeaturesResources.Generate_field_0, "Field"),
+                string.Format(CodeFixesResources.Generate_property_0, "Field"),
+                string.Format(CodeFixesResources.Generate_field_0, "Field"),
             ]);
     }
 
@@ -10575,8 +10575,8 @@ class Class
             }
             """,
             [
-                string.Format(FeaturesResources.Generate_property_0, "Field"),
-                string.Format(FeaturesResources.Generate_field_0, "Field"),
+                string.Format(CodeFixesResources.Generate_property_0, "Field"),
+                string.Format(CodeFixesResources.Generate_field_0, "Field"),
             ]);
     }
 
@@ -10598,8 +10598,8 @@ class Class
                 }
             """,
             [
-                string.Format(FeaturesResources.Generate_local_0, "Error", "MyException"),
-                string.Format(FeaturesResources.Generate_parameter_0, "Error", "MyException"),
+                string.Format(CodeFixesResources.Generate_local_0, "Error", "MyException"),
+                string.Format(CodeFixesResources.Generate_parameter_0, "Error", "MyException"),
             ]);
     }
 

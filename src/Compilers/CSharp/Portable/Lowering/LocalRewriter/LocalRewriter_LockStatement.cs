@@ -58,10 +58,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     lockTypeInfo.EnterScopeMethod);
 
+                // the temp must be associated with the lock statement to support EnC slot mapping:
                 BoundLocal boundTemp = _factory.StoreToTemp(enterScopeCall,
                     out BoundAssignmentOperator tempAssignment,
-                    syntaxOpt: rewrittenArgument.Syntax,
+                    syntaxOpt: lockSyntax,
                     kind: SynthesizedLocalKind.Using);
+
                 var expressionStatement = new BoundExpressionStatement(rewrittenArgument.Syntax, tempAssignment);
 
                 BoundStatement tryFinally = RewriteUsingStatementTryFinally(

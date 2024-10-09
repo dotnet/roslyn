@@ -31,7 +31,7 @@ internal partial class VisualStudioWorkspaceImpl
     /// <summary>
     /// Singleton the updates the workspace in response to files being opened or closed.
     /// </summary>
-    public sealed class OpenFileTracker : IOpenTextBufferEventListener
+    public sealed partial class OpenFileTracker : IOpenTextBufferEventListener
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;

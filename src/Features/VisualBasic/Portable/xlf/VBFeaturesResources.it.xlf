@@ -1462,16 +1462,6 @@ Sub(&lt;elencoParametri&gt;) &lt;istruzione&gt;</target>
         <target state="translated">Funzione NameOf</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_narrowing_conversion_in_0">
-        <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">Genera la conversione che supporta un minor numero di dati in '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_widening_conversion_in_0">
-        <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">Genera la conversione che supporta un maggior numero di dati in '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Try_block">
         <source>Try block</source>
         <target state="translated">blocco Try</target>

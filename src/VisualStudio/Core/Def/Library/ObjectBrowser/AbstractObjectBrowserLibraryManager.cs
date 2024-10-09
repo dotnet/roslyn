@@ -38,8 +38,6 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
 
     private uint _classVersion;
     private uint _membersVersion;
-    private uint _packageVersion;
-
     private ObjectListItem _activeListItem;
     private AbstractListItemFactory _listItemFactory;
     private readonly object _classMemberGate = new();
@@ -150,10 +148,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         }
     }
 
-    internal uint PackageVersion
-    {
-        get { return _packageVersion; }
-    }
+    internal uint PackageVersion { get; private set; }
 
     internal void UpdateClassAndMemberVersions()
     {
@@ -171,7 +166,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
         => _membersVersion = unchecked(_membersVersion + 1);
 
     internal void UpdatePackageVersion()
-        => _packageVersion = unchecked(_packageVersion + 1);
+        => PackageVersion = unchecked(PackageVersion + 1);
 
     internal void SetActiveListItem(ObjectListItem listItem)
         => _activeListItem = listItem;
@@ -327,7 +322,7 @@ internal abstract partial class AbstractObjectBrowserLibraryManager : AbstractLi
     }
 
     protected override uint GetUpdateCounter()
-        => _packageVersion;
+        => PackageVersion;
 
     protected override int CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
     {

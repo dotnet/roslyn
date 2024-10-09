@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var compilation = CSharpCompilation.Create(
                 "test",
                 syntaxTrees: new[] { tree },
-                references: new[] { TestMetadata.Net451.mscorlib });
+                references: new[] { NetFramework.mscorlib });
 
             if (tree.IsInNonUserCode(position, CancellationToken.None) && !absent)
             {

@@ -48,18 +48,18 @@ internal sealed record class CSharpCodeGenerationOptions : CodeGenerationOptions
     {
     }
 
-    internal CSharpCodeGenerationOptions(IOptionsReader options, CSharpCodeGenerationOptions? fallbackOptions)
-        : base(options, fallbackOptions ??= Default, LanguageNames.CSharp)
+    internal CSharpCodeGenerationOptions(IOptionsReader options)
+        : base(options, LanguageNames.CSharp)
     {
-        PreferExpressionBodiedMethods = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, fallbackOptions.PreferExpressionBodiedMethods);
-        PreferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, fallbackOptions.PreferExpressionBodiedAccessors);
-        PreferExpressionBodiedProperties = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, fallbackOptions.PreferExpressionBodiedProperties);
-        PreferExpressionBodiedIndexers = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, fallbackOptions.PreferExpressionBodiedIndexers);
-        PreferExpressionBodiedConstructors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, fallbackOptions.PreferExpressionBodiedConstructors);
-        PreferExpressionBodiedOperators = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators, fallbackOptions.PreferExpressionBodiedOperators);
-        PreferExpressionBodiedLocalFunctions = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions, fallbackOptions.PreferExpressionBodiedLocalFunctions);
-        PreferExpressionBodiedLambdas = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas, fallbackOptions.PreferExpressionBodiedLambdas);
-        PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction, fallbackOptions.PreferStaticLocalFunction);
-        NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations, fallbackOptions.NamespaceDeclarations);
+        PreferExpressionBodiedMethods = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods);
+        PreferExpressionBodiedAccessors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors);
+        PreferExpressionBodiedProperties = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties);
+        PreferExpressionBodiedIndexers = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers);
+        PreferExpressionBodiedConstructors = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors);
+        PreferExpressionBodiedOperators = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators);
+        PreferExpressionBodiedLocalFunctions = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions);
+        PreferExpressionBodiedLambdas = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas);
+        PreferStaticLocalFunction = options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction);
+        NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
     }
 }

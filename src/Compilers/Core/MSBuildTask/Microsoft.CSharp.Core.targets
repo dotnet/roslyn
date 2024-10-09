@@ -29,6 +29,10 @@
     <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '8.0' AND
                                          '$(_MaxSupportedLangVersion)' == ''">12.0</_MaxSupportedLangVersion>
 
+    <!-- .NETCoreApp == 9.0 -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '9.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">13.0</_MaxSupportedLangVersion>
+
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
 
     <!-- <Metalama> -->

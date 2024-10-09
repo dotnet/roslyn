@@ -103,7 +103,7 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
     /// </summary>
     private static bool IsLegalUsingStatementType(Compilation compilation, ITypeSymbol disposableType, ITypeSymbol type)
     {
-        // CS1674: type used in a using statement must be implicitly convertible to 'System.IDisposable'
+        // CS1674: type used in a using statement must implement 'System.IDisposable'
         return compilation.ClassifyCommonConversion(type, disposableType).IsImplicit;
     }
 

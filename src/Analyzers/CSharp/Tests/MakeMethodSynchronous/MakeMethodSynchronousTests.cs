@@ -883,7 +883,7 @@ public class MakeMethodSynchronousTests
             TestCode = source,
             ExpectedDiagnostics =
             {
-                // /0/Test0.cs(5,22): error CS8410: 'object': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // /0/Test0.cs(5,22): error CS8410: 'object': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 DiagnosticResult.CompilerError("CS8410").WithLocation(0).WithArguments("object"),
             },
             FixedCode = source,
@@ -905,7 +905,7 @@ public class MakeMethodSynchronousTests
                 }
             }
             """,
-            // /0/Test0.cs(5,16): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+            // /0/Test0.cs(5,16): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
             DiagnosticResult.CompilerError("CS1674").WithLocation(0).WithArguments("object"),
             """
             class C

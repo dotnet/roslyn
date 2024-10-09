@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Structure;
@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Structure;
 /// </summary>
 internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
 {
+    private static readonly IComparer<BlockSpan> s_blockSpanComparer = Comparer<BlockSpan>.Create(static (x, y) => y.TextSpan.Start.CompareTo(x.TextSpan.Start));
+
     private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
     private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
 
@@ -32,11 +34,9 @@ internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
         try
         {
             var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
-            using var spans = TemporaryArray<BlockSpan>.Empty;
+            var initialContextCount = context.Spans.Count;
             BlockSpanCollector.CollectBlockSpans(
-                syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
-
-            context.Spans.EnsureCapacity(context.Spans.Count + spans.Count);
+                syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, context.Spans, context.CancellationToken);
 
             // Sort descending, and keep track of the "last added line".
             // Then, ignore if we found a span on the same line.
@@ -48,23 +48,28 @@ internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
             // )
             //
             // We only collapse the "inner" span which has larger start.
-            spans.Sort(static (x, y) => y.TextSpan.Start.CompareTo(x.TextSpan.Start));
+            context.Spans.Sort(initialContextCount, s_blockSpanComparer);
 
             var lastAddedLineStart = -1;
             var lastAddedLineEnd = -1;
             var text = context.SyntaxTree.GetText(context.CancellationToken);
+            context.Spans.RemoveWhere((span, index, _) =>
+                {
+                    // do not remove items before the first item that we added
+                    if (index < initialContextCount)
+                        return false;
 
-            foreach (var span in spans)
-            {
-                var lineStart = text.Lines.GetLinePosition(span.TextSpan.Start).Line;
-                var lineEnd = text.Lines.GetLinePosition(span.TextSpan.End).Line;
-                if (lineStart == lastAddedLineStart && lastAddedLineEnd == lineEnd)
-                    continue;
+                    var lineStart = text.Lines.GetLinePosition(span.TextSpan.Start).Line;
+                    var lineEnd = text.Lines.GetLinePosition(span.TextSpan.End).Line;
+                    if (lineStart == lastAddedLineStart && lastAddedLineEnd == lineEnd)
+                        return true;
 
-                lastAddedLineStart = lineStart;
-                lastAddedLineEnd = lineEnd;
-                context.Spans.Add(span);
-            }
+                    lastAddedLineStart = lineStart;
+                    lastAddedLineEnd = lineEnd;
+
+                    return false;
+                },
+                arg: default(VoidResult));
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
         {

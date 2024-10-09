@@ -281,14 +281,6 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox x:Uid="ExtractMethodGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
-                <StackPanel>
-                    <CheckBox x:Name="DontPutOutOrRefOnStruct"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
-                </StackPanel>
-            </GroupBox>
-
             <GroupBox x:Uid="Implement_Interface_or_Abstract_Class_GroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Implement_Interface_or_Abstract_Class}">
 

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
             return Methods.WorkspaceCodeLensRefreshName;
         }
 
-        private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
+        private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
             if (e.HasOption(static option => option.Equals(LspOptionsStorage.LspEnableReferencesCodeLens) || option.Equals(LspOptionsStorage.LspEnableTestsCodeLens)))
             {

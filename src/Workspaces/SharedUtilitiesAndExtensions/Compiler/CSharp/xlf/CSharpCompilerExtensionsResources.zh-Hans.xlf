@@ -7,6 +7,11 @@
         <target state="translated">代码块首选项</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig_option_0_contains_unrecognized_value_1">
+        <source>EditorConfig option '{0}' contains unrecognized value '{1}'</source>
+        <target state="new">EditorConfig option '{0}' contains unrecognized value '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">
         <source>Expected string or char literal</source>
         <target state="translated">预期的字符串或字符文本</target>

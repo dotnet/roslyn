@@ -1,1 +1,2 @@
-
+virtual Microsoft.CodeAnalysis.Host.HostLanguageServices.Dispose() -> void
+virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Dispose() -> void

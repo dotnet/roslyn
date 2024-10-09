@@ -74,13 +74,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            var candidates = result.Results;
+            RemoveLowerPriorityMembers<UnaryOperatorAnalysisResult, MethodSymbol>(candidates);
+
             // SPEC: Otherwise, the best function member is the one function member that is better than all other function 
             // SPEC: members with respect to the given argument list, provided that each function member is compared to all 
             // SPEC: other function members using the rules in 7.5.3.2. If there is not exactly one function member that is 
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            var candidates = result.Results;
             // Try to find a single best candidate
             int bestIndex = GetTheBestCandidateIndex(operand, candidates, ref useSiteInfo);
             if (bestIndex != -1)

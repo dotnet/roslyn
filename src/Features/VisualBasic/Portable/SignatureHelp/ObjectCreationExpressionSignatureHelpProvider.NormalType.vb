@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             structuralTypeDisplayService As IStructuralTypeDisplayService,
             normalType As INamedTypeSymbol,
             within As ISymbol,
-            options As SignatureHelpOptions, cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
+            options As MemberDisplayOptions, cancellationToken As CancellationToken) As (items As IList(Of SignatureHelpItem), selectedItem As Integer?)
 
             Dim accessibleConstructors = normalType.InstanceConstructors.
                                                     WhereAsArray(Function(c) c.IsAccessibleWithin(within)).

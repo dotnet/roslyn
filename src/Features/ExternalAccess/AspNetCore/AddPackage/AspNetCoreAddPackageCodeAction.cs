@@ -63,7 +63,7 @@ internal static class AspNetCoreAddPackageCodeAction
         var updatedDocument = await AddImportAsync(document, position, generator, importDirective, cancellationToken).ConfigureAwait(false);
 
         // Clean things up after adding (this is what normal add-package-import does).
-        var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(CodeCleanupOptions.GetDefault(document.Project.Services), cancellationToken).ConfigureAwait(false);
+        var codeCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
         var cleanedDocument = await CodeAction.CleanupDocumentAsync(
             updatedDocument, codeCleanupOptions, cancellationToken).ConfigureAwait(false);
 
@@ -78,7 +78,7 @@ internal static class AspNetCoreAddPackageCodeAction
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-        var addImportOptions = await document.GetAddImportPlacementOptionsAsync(AddImportPlacementOptions.Default, cancellationToken).ConfigureAwait(false);
+        var addImportOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var service = document.GetRequiredLanguageService<IAddImportsService>();
 

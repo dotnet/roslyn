@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -48,6 +50,9 @@ internal sealed partial class SyntaxTreeIndex
         var longLiterals = LongLiteralHashSetPool.Allocate();
 
         HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo = null;
+        Dictionary<InterceptsLocationData, TextSpan>? interceptsLocationInfo = null;
+
+        var isCSharp = project.Language == LanguageNames.CSharp;
 
         try
         {
@@ -67,6 +72,7 @@ internal sealed partial class SyntaxTreeIndex
             var containsConversion = false;
             var containsGlobalKeyword = false;
             var containsCollectionInitializer = false;
+            var containsAttribute = false;
 
             var predefinedTypes = (int)PredefinedType.None;
             var predefinedOperators = (int)PredefinedOperator.None;
@@ -97,8 +103,12 @@ internal sealed partial class SyntaxTreeIndex
                         containsGlobalSuppressMessageAttribute = containsGlobalSuppressMessageAttribute || IsGlobalSuppressMessageAttribute(syntaxFacts, node);
                         containsConversion = containsConversion || syntaxFacts.IsConversionExpression(node);
                         containsCollectionInitializer = containsCollectionInitializer || syntaxFacts.IsObjectCollectionInitializer(node);
+                        containsAttribute = containsAttribute || syntaxFacts.IsAttribute(node);
 
                         TryAddAliasInfo(syntaxFacts, ref aliasInfo, node);
+
+                        if (isCSharp)
+                            TryAddInterceptsLocationInfo(syntaxFacts, ref interceptsLocationInfo, node);
                     }
                     else
                     {
@@ -185,8 +195,10 @@ internal sealed partial class SyntaxTreeIndex
                     containsGlobalSuppressMessageAttribute,
                     containsConversion,
                     containsGlobalKeyword,
-                    containsCollectionInitializer),
-                aliasInfo);
+                    containsCollectionInitializer,
+                    containsAttribute),
+                aliasInfo,
+                interceptsLocationInfo);
         }
         finally
         {
@@ -217,6 +229,75 @@ internal sealed partial class SyntaxTreeIndex
         return
             syntaxFacts.StringComparer.Equals(identifierName, "SuppressMessage") ||
             syntaxFacts.StringComparer.Equals(identifierName, nameof(SuppressMessageAttribute));
+    }
+
+    private static void TryAddInterceptsLocationInfo(
+        ISyntaxFactsService syntaxFacts,
+        ref Dictionary<InterceptsLocationData, TextSpan>? interceptsLocationInfo,
+        SyntaxNode node)
+    {
+        // Look for methods with attributes of the form:
+        // [...InterceptsLocationAttribute(versionNumber, "base64EncodedData")...]
+        //
+        // We take advantage here that we know exactly the form that GetInterceptsLocationAttributeSyntax produced, and
+        // we only support that form.  In practice, we do not care if people are handcrafting these and choosing to emit
+        // them in some other format (like aliasing the names, or putting the encoded data in a constant in a separate
+        // location.  We perform the entire analysis syntactically as that's more than sufficient for our needs.
+
+        if (!syntaxFacts.IsMethodDeclaration(node))
+            return;
+
+        var attributeLists = syntaxFacts.GetAttributeLists(node);
+        if (attributeLists.Count == 0)
+            return;
+
+        foreach (var attributeList in attributeLists)
+        {
+            foreach (var attribute in syntaxFacts.GetAttributesOfAttributeList(attributeList))
+            {
+                syntaxFacts.GetPartsOfAttribute(attribute, out var attributeName, out var argumentList);
+                if (argumentList is null)
+                    continue;
+
+                var arguments = syntaxFacts.GetArgumentsOfAttributeArgumentList(argumentList);
+                if (arguments.Count != 2)
+                    continue;
+
+                var versionArg = syntaxFacts.GetExpressionOfAttributeArgument(arguments[0]);
+                var dataArg = syntaxFacts.GetExpressionOfAttributeArgument(arguments[1]);
+
+                if (!syntaxFacts.IsNumericLiteralExpression(versionArg) || !syntaxFacts.IsStringLiteralExpression(dataArg))
+                    continue;
+
+                var numericToken = syntaxFacts.GetTokenOfLiteralExpression(versionArg);
+                if (numericToken.Value is not int version)
+                    continue;
+
+                var dataToken = syntaxFacts.GetTokenOfLiteralExpression(dataArg);
+                if (dataToken.Value is not string data)
+                    continue;
+
+                if (syntaxFacts.IsQualifiedName(attributeName))
+                {
+                    syntaxFacts.GetPartsOfQualifiedName(attributeName, out _, out _, out var right);
+                    attributeName = right;
+                }
+
+                if (!syntaxFacts.IsIdentifierName(attributeName))
+                    continue;
+
+                var identifier = syntaxFacts.GetIdentifierOfIdentifierName(attributeName);
+                var identifierName = identifier.ValueText;
+                if (identifierName is not "InterceptsLocationAttribute")
+                    continue;
+
+                if (!InterceptsLocationUtilities.TryGetInterceptsLocationData(version, data, out var interceptsLocationData))
+                    continue;
+
+                interceptsLocationInfo ??= [];
+                interceptsLocationInfo[interceptsLocationData] = node.FullSpan;
+            }
+        }
     }
 
     private static void TryAddAliasInfo(

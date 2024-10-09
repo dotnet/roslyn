@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
         <Fact>
         Public Sub InstantiatedGenerics()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim source As String = <text> 
 Class A(Of T)
 
@@ -218,7 +219,7 @@ Public Class D
     Shared arrayField As String()
 End Class 
 </file>
-</compilation>, {Net40.mscorlib}, TestOptions.ReleaseExe)
+</compilation>, {Net40.References.mscorlib}, TestOptions.ReleaseExe)
 
             CompileAndVerify(comp,
                              expectedOutput:=
@@ -229,7 +230,7 @@ End Class
 
         <Fact>
         Public Sub AssemblyRefs()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim metadataTestLib1 = TestReferences.SymbolsTests.MDTestLib1
             Dim metadataTestLib2 = TestReferences.SymbolsTests.MDTestLib2
 
@@ -289,7 +290,7 @@ End Class
 
         <Fact>
         Public Sub AddModule()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim netModule1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1)
             Dim netModule2 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule2)
 
@@ -346,7 +347,7 @@ End Class
 
         <Fact>
         Public Sub ImplementingAnInterface()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
 
             Dim source As String = <text>
 Public Interface I1
@@ -403,7 +404,7 @@ End Class
 
         <Fact>
         Public Sub Types()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim source As String = <text>
 Public MustInherit Class A
 
@@ -551,7 +552,7 @@ End Class
 
         <Fact>
         Public Sub Fields()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim source As String = <text> 
 Public Class A
     public F1 As Integer

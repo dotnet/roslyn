@@ -40,7 +40,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"(?s)^.*$", "CS1646", "CS1024", "CS1525", "CS1002");
@@ -75,7 +75,7 @@ class D
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             DiagnosticsHelper.VerifyDiagnostics(model, source, @"var x = X;", "CS0103");
@@ -90,7 +90,7 @@ class C : Abracadabra
 {
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
 
             const string ErrorId = "CS0246";
@@ -114,7 +114,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             var diag = compilation.GetDiagnostics().Single();
 
             Assert.Equal(DiagnosticSeverity.Warning, diag.Severity);
@@ -166,7 +166,7 @@ namespace N1
             var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
             var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
             var eventQueue = new AsyncQueue<CompilationEvent>();
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
 
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             var model = compilation.GetSemanticModel(tree1);
@@ -215,7 +215,7 @@ namespace N1
             var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
             var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
             var eventQueue = new AsyncQueue<CompilationEvent>();
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
 
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             var model = compilation.GetSemanticModel(tree1);
@@ -267,7 +267,7 @@ namespace N1
             var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
             var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
             var eventQueue = new AsyncQueue<CompilationEvent>();
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
 
             // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
             var model = compilation.GetSemanticModel(tree1);
@@ -316,7 +316,7 @@ namespace N1
 ";
             var tree = CSharpSyntaxTree.ParseText(source, path: "file1");
             var eventQueue = new AsyncQueue<CompilationEvent>();
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }).WithEventQueue(eventQueue);
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree }).WithEventQueue(eventQueue);
             eventQueue.TryComplete(); // complete the queue before the compiler is finished with it
             var model = compilation.GetSemanticModel(tree);
             model.GetDiagnostics(tree.GetRoot().FullSpan);
@@ -369,7 +369,7 @@ namespace N1
         [Fact]
         public void TestEventQueueCompletionForEmptyCompilation()
         {
-            var compilation = CreateCompilationWithMscorlib45(CSharpTestSource.None).WithEventQueue(new AsyncQueue<CompilationEvent>());
+            var compilation = CreateCompilationWithMscorlib461(CSharpTestSource.None).WithEventQueue(new AsyncQueue<CompilationEvent>());
 
             // Force complete compilation event queue
             var unused = compilation.GetDiagnostics();
@@ -392,7 +392,7 @@ namespace N1
         public void CompilingCodeWithInvalidSourceCodeKindShouldProvideDiagnostics()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            var compilation = CreateCompilationWithMscorlib45(string.Empty, parseOptions: new CSharpParseOptions().WithKind(SourceCodeKind.Interactive));
+            var compilation = CreateCompilationWithMscorlib461(string.Empty, parseOptions: new CSharpParseOptions().WithKind(SourceCodeKind.Interactive));
 #pragma warning restore CS0618 // Type or member is obsolete
 
             compilation.VerifyDiagnostics(

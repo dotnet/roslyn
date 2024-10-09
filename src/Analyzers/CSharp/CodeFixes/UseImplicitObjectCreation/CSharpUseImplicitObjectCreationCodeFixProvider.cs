@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
@@ -22,18 +21,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 
-using static SyntaxFactory;
 using static CSharpUseImplicitObjectCreationDiagnosticAnalyzer;
+using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseImplicitObjectCreation), Shared]
-internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpUseImplicitObjectCreationCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpUseImplicitObjectCreationCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId];
 
@@ -48,18 +43,15 @@ internal class CSharpUseImplicitObjectCreationCodeFixProvider : SyntaxEditorBase
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         // process from inside->out so that outer rewrites see the effects of inner changes.
         var nodes = diagnostics
             .OrderBy(d => d.Location.SourceSpan.End)
             .SelectAsArray(d => (ObjectCreationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
-#if CODE_STYLE
-        var options = CSharpSimplifierOptions.Default;
-#else
-        var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-#endif
+        var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(
+            CSharpSimplification.Instance, cancellationToken).ConfigureAwait(false);
 
         // Bulk apply these, except at the expression level.  One fix at the expression level may prevent another fix
         // from being valid.  For example: `new List<C> { new C() }`.  If we apply the fix to the outer `List<C>`, we

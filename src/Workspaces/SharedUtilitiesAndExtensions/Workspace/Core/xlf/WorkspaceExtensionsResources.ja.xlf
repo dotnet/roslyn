@@ -47,6 +47,11 @@
         <target state="translated">ターゲットの型は {0} または {1} である必要がありますが、{2} が指定されています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="new">Document does not support syntax trees</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">すべての '{0}' を修正します</target>
@@ -120,6 +125,11 @@
       <trans-unit id="The_solution_does_not_contain_the_specified_document">
         <source>The solution does not contain the specified document.</source>
         <target state="translated">ソリューションには、指定されたドキュメントがありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">

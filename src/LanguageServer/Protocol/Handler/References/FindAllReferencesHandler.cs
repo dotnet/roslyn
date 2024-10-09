@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
-    internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<LSP.ReferenceParams, LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?>
+    internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<VSInternalReferenceParams, LSP.SumType<VSInternalReferenceItem, LSP.Location>[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalReferenceParams request) => request.TextDocument;
 
-        public async Task<LSP.SumType<LSP.VSInternalReferenceItem, LSP.Location>[]?> HandleRequestAsync(
-            ReferenceParams referenceParams,
+        public async Task<LSP.SumType<VSInternalReferenceItem, LSP.Location>[]?> HandleRequestAsync(
+            VSInternalReferenceParams referenceParams,
             RequestContext context,
             CancellationToken cancellationToken)
         {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Contract.ThrowIfNull(document);
             Contract.ThrowIfNull(workspace);
 
-            using var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LSP.Location>[]>(referenceParams.PartialResultToken);
+            using var progress = BufferedProgress.Create(referenceParams.PartialResultToken);
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(

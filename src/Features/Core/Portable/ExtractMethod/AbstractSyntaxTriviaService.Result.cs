@@ -17,8 +17,6 @@ internal abstract partial class AbstractSyntaxTriviaService
     {
         private static readonly AnnotationResolver s_defaultAnnotationResolver = ResolveAnnotation;
         private static readonly TriviaResolver s_defaultTriviaResolver = ResolveTrivia;
-
-        private readonly SyntaxNode _root;
         private readonly int _endOfLineKind;
 
         private readonly Dictionary<TriviaLocation, SyntaxAnnotation> _annotations;
@@ -34,14 +32,14 @@ internal abstract partial class AbstractSyntaxTriviaService
             Contract.ThrowIfNull(annotations);
             Contract.ThrowIfNull(triviaList);
 
-            _root = root;
+            Root = root;
             _endOfLineKind = endOfLineKind;
 
             _annotations = annotations;
             _triviaList = triviaList;
         }
 
-        public SyntaxNode Root => _root;
+        public SyntaxNode Root { get; }
 
         public SyntaxNode RestoreTrivia(
             SyntaxNode root,

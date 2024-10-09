@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation;
 
@@ -82,17 +84,35 @@ internal abstract partial class AbstractDefinitionLocationService(
             var isThirdPartyNavigationAllowed = await IsThirdPartyNavigationAllowedAsync(
                 symbol, position, document, cancellationToken).ConfigureAwait(false);
 
-            var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
-                symbol,
-                project.Solution,
-                _threadingContext,
-                _streamingPresenter,
-                thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+            var solution = project.Solution;
+            var regularDefinitions = await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
+                symbol, solution, isThirdPartyNavigationAllowed, cancellationToken).ConfigureAwait(false);
+            var interceptorDefinitions = await GetInterceptorDefinitionsAsync(
+                solution, document, span, cancellationToken).ConfigureAwait(false);
+
+            var symbolDisplayName = FindUsagesHelpers.GetDisplayName(symbol);
+            var title = interceptorDefinitions.Length == 0
+                ? string.Format(EditorFeaturesResources._0_declarations, symbolDisplayName)
+                : string.Format(EditorFeaturesResources._0_declarations_and_interceptors, symbolDisplayName);
+
+            var allDefinitions = regularDefinitions.Concat(interceptorDefinitions);
+            var location = await _streamingPresenter.GetStreamingLocationAsync(
+                _threadingContext, solution.Workspace, title, allDefinitions, cancellationToken).ConfigureAwait(false);
+
             if (location is null)
                 return null;
 
             return new DefinitionLocation(location, new DocumentSpan(document, span));
+        }
+
+        async ValueTask<ImmutableArray<DefinitionItem>> GetInterceptorDefinitionsAsync(
+            Solution solution, Document document, TextSpan span, CancellationToken cancellationToken)
+        {
+            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+
+            var interceptorSymbol = await semanticFacts.GetInterceptorSymbolAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
+            return await GoToDefinitionFeatureHelpers.GetDefinitionsAsync(
+                interceptorSymbol, solution, thirdPartyNavigationAllowed: false, cancellationToken).ConfigureAwait(false);
         }
     }
 

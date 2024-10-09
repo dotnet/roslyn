@@ -292,7 +292,6 @@ internal interface ISyntaxFacts
     SyntaxNode GetExpressionOfArgument(SyntaxNode node);
     SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node);
     SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
-    SyntaxNode GetNameOfAttribute(SyntaxNode node);
 
     bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node);
@@ -324,9 +323,9 @@ internal interface ISyntaxFacts
 
     bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node);
 
-    bool IsAttributeName(SyntaxNode node);
     // Violation.  Doesn't correspond to any shared structure for vb/c#
     SyntaxList<SyntaxNode> GetAttributeLists(SyntaxNode? node);
+    SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node);
 
     bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberInitializerNamedAssignmentIdentifier([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? initializedInstance);
@@ -410,9 +409,9 @@ internal interface ISyntaxFacts
     SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
     // Violation.  This is a feature level API.
-    List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
+    PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
     // Violation.  This is a feature level API.
-    List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root);
+    PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root);
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
     // Violation.  This is a feature level API.
@@ -515,6 +514,7 @@ internal interface ISyntaxFacts
 
     void GetPartsOfAnyIsTypeExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode type);
     void GetPartsOfArgumentList(SyntaxNode node, out SyntaxToken openParenToken, out SeparatedSyntaxList<SyntaxNode> arguments, out SyntaxToken closeParenToken);
+    void GetPartsOfAttribute(SyntaxNode node, out SyntaxNode name, out SyntaxNode? argumentList);
     void GetPartsOfBaseNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members);
     void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer);
     void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);
@@ -558,6 +558,8 @@ internal interface ISyntaxFacts
 
     SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node);
     SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node);
+
+    SyntaxToken GetTokenOfLiteralExpression(SyntaxNode node);
 
     #endregion
 }

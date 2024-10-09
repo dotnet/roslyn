@@ -55,7 +55,7 @@ internal static class ContainedLanguageCodeSupport
     }
 
     public static string CreateUniqueEventName(
-        Document document, IGlobalOptionService globalOptions, string className, string objectName, string nameOfEvent, CancellationToken cancellationToken)
+        Document document, string className, string objectName, string nameOfEvent, CancellationToken cancellationToken)
     {
         var type = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetTypeByMetadataName(className);
         var name = objectName + "_" + nameOfEvent;
@@ -65,7 +65,7 @@ internal static class ContainedLanguageCodeSupport
         var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
         var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
         var codeModel = document.GetRequiredLanguageService<ICodeModelNavigationPointService>();
-        var options = document.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+        var options = document.GetLineFormattingOptionsAsync(cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
         var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
         var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
 
@@ -152,7 +152,6 @@ internal static class ContainedLanguageCodeSupport
         uint itemidInsertionPoint,
         bool useHandlesClause,
         AbstractFormattingRule additionalFormattingRule,
-        IGlobalOptionService globalOptions,
         CancellationToken cancellationToken)
 #pragma warning restore IDE0060 // Remove unused parameter
     {
@@ -210,7 +209,7 @@ internal static class ContainedLanguageCodeSupport
 
         var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
         var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
-        var documentOptions = targetDocument.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+        var documentOptions = targetDocument.GetLineFormattingOptionsAsync(cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
         var insertionPoint = codeModel.GetEndPoint(destinationType, documentOptions, EnvDTE.vsCMPart.vsCMPartBody);
 
         if (insertionPoint == null)
@@ -218,8 +217,7 @@ internal static class ContainedLanguageCodeSupport
             throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
         }
 
-        var fallbackOptions = globalOptions.GetCleanCodeGenerationOptions(targetDocument.Project.Services);
-        var options = targetDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+        var options = targetDocument.GetCleanCodeGenerationOptionsAsync(cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
 
         var info = codeGenerationService.GetInfo(new CodeGenerationContext(autoInsertionLocation: false), options.GenerationOptions, destinationType.SyntaxTree.Options);
         var newType = codeGenerationService.AddMethod(destinationType, newMethod, info, cancellationToken);
@@ -251,7 +249,6 @@ internal static class ContainedLanguageCodeSupport
 
     public static bool TryGetMemberNavigationPoint(
         Document thisDocument,
-        IGlobalOptionService globalOptions,
         string className,
         string uniqueMemberID,
         out VsTextSpan textSpan,
@@ -274,7 +271,7 @@ internal static class ContainedLanguageCodeSupport
         if (memberNode != null)
         {
             var memberNodeDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
-            var options = memberNodeDocument.GetLineFormattingOptionsAsync(globalOptions, cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
+            var options = memberNodeDocument.GetLineFormattingOptionsAsync(cancellationToken).AsTask().WaitAndGetResult_Venus(cancellationToken);
             var navigationPoint = codeModel.GetStartPoint(memberNode, options, EnvDTE.vsCMPart.vsCMPartNavigate);
             if (navigationPoint != null)
             {

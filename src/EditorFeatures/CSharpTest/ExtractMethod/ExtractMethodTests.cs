@@ -10974,41 +10974,6 @@ public partial class ExtractMethodTests : ExtractMethodBase
     }
 
     [Fact]
-    public async Task TestDoNotPutOutOrRefForStructOff()
-    {
-        var code =
-            """
-            using System.Threading.Tasks;
-
-            namespace ClassLibrary9
-            {
-                public struct S
-                {
-                    public int I;
-                }
-
-                public class Class1
-                {
-                    private async Task<int> Test()
-                    {
-                        S s = new S();
-                        s.I = 10;
-
-                        [|int i = await Task.Run(() =>
-                        {
-                            var i2 = s.I;
-                            return Test();
-                        });|]
-
-                        return i;
-                    }
-                }
-            }
-            """;
-        await ExpectExtractMethodToFailAsync(code, dontPutOutOrRefOnStruct: false);
-    }
-
-    [Fact]
     public async Task TestDoNotPutOutOrRefForStructOn()
     {
         var code =
@@ -11075,7 +11040,7 @@ public partial class ExtractMethodTests : ExtractMethodBase
             }
             """;
 
-        await TestExtractMethodAsync(code, expected, dontPutOutOrRefOnStruct: true);
+        await TestExtractMethodAsync(code, expected);
     }
 
     [Theory]
@@ -11249,7 +11214,7 @@ $@"namespace ClassLibrary9
         var projectId = ProjectId.CreateNewId();
         var project = solution.AddProject(projectId, "Project", "Project.dll", LanguageNames.CSharp).GetProject(projectId);
 
-        var document = project.AddMetadataReference(TestMetadata.Net451.mscorlib)
+        var document = project.AddMetadataReference(NetFramework.mscorlib)
                               .AddDocument("Document", SourceText.From(""));
 
         var service = new CSharpExtractMethodService() as IExtractMethodService;

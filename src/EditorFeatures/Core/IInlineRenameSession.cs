@@ -50,5 +50,5 @@ internal interface IInlineRenameSession
     /// <summary>
     /// Dismisses the rename session, completing the rename operation across all files.
     /// </summary>
-    Task CommitAsync(bool previewChanges, CancellationToken cancellationToken);
+    Task CommitAsync(bool previewChanges);
 }

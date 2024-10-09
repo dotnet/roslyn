@@ -41,7 +41,7 @@ internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<TMemberA
 
     protected sealed override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

@@ -311,7 +311,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (proxies.TryGetValue(method.ThisParameter, out proxy))
                 {
-                    bodyBuilder.Add(F.Assignment(proxy.Replacement(F.Syntax, frameType1 => F.Local(stateMachineVariable)), F.This()));
+                    var leftExpression = proxy.Replacement(
+                        F.Syntax,
+                        static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
+                        (F, stateMachineVariable));
+
+                    bodyBuilder.Add(F.Assignment(leftExpression, F.This()));
                 }
             }
 
@@ -320,8 +325,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (proxies.TryGetValue(parameter, out proxy))
                 {
-                    bodyBuilder.Add(F.Assignment(proxy.Replacement(F.Syntax, frameType1 => F.Local(stateMachineVariable)),
-                                                 F.Parameter(parameter)));
+                    var leftExpression = proxy.Replacement(
+                        F.Syntax,
+                        static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
+                        (F, stateMachineVariable));
+
+                    bodyBuilder.Add(F.Assignment(leftExpression, F.Parameter(parameter)));
                 }
             }
 
@@ -456,10 +465,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CapturedSymbolReplacement proxy;
                 if (copyDest.TryGetValue(method.ThisParameter, out proxy))
                 {
-                    bodyBuilder.Add(
-                        F.Assignment(
-                            proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable)),
-                            copySrc[method.ThisParameter].Replacement(F.Syntax, stateMachineType => F.This())));
+                    var leftExpression = proxy.Replacement(
+                        F.Syntax,
+                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
+                        (F, resultVariable));
+
+                    var rightExpression = copySrc[method.ThisParameter].Replacement(F.Syntax, static (stateMachineType, F) => F.This(), F);
+
+                    bodyBuilder.Add(F.Assignment(leftExpression, rightExpression));
                 }
             }
 
@@ -471,9 +484,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (copyDest.TryGetValue(parameter, out proxy))
                 {
                     // result.parameter
-                    BoundExpression resultParameter = proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable));
+                    BoundExpression resultParameter = proxy.Replacement(
+                        F.Syntax,
+                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
+                        (F, resultVariable));
+
                     // this.parameterProxy
-                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This());
+                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, static (stateMachineType, F) => F.This(), F);
                     BoundStatement copy = InitializeParameterField(getEnumeratorMethod, parameter, resultParameter, parameterProxy);
 
                     bodyBuilder.Add(copy);

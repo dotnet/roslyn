@@ -101,6 +101,9 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                 AssetPathKind.SolutionAttributes, solutionStateChecksum.Attributes, cancellationToken).AsTask());
             tasks.Add(this.GetAssetsAsync<AnalyzerReference>(
                 AssetPathKind.SolutionAnalyzerReferences, solutionStateChecksum.AnalyzerReferences, cancellationToken));
+            tasks.Add(this.GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(
+                AssetPathKind.SolutionFallbackAnalyzerOptions, solutionStateChecksum.FallbackAnalyzerOptions, cancellationToken).AsTask());
+
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
             using var _3 = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectStateChecksums);

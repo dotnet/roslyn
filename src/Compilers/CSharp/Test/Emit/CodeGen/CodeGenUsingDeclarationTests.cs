@@ -815,7 +815,7 @@ This object has been disposed by IDisposable.Dispose().";
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (17,13): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (17,13): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //             using S1 s1 = new S1();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using S1 s1 = new S1();").WithArguments("S1").WithLocation(17, 13)
                 );
@@ -1445,7 +1445,7 @@ class C
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (5,9): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 //         using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(5, 9),
                 // (5,15): error CS9229: Modifiers cannot be placed on using declarations
@@ -1457,7 +1457,7 @@ using const var obj = new object();
 """;
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (1,1): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 // using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
                 // (1,7): error CS9229: Modifiers cannot be placed on using declarations
@@ -1502,7 +1502,7 @@ await using const var obj = new object();
                 Diagnostic(ErrorCode.WRN_InvalidMainSig, "await using const var obj = new object();").WithArguments("<top-level-statements-entry-point>").WithLocation(1, 1),
                 // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1),
-                // (1,1): error CS8410: 'object': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // (1,1): error CS8410: 'object': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 // await using const var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using const var obj = new object();").WithArguments("object").WithLocation(1, 1),
                 // (1,13): error CS9229: Modifiers cannot be placed on using declarations
@@ -1667,7 +1667,7 @@ class C
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (5,9): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 //         using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(5, 9),
                 // (5,15): error CS9229: Modifiers cannot be placed on using declarations
@@ -1679,7 +1679,7 @@ using readonly var obj = new object();
 """;
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (1,1): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 // using readonly var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using readonly var obj = new object();").WithArguments("object").WithLocation(1, 1),
                 // (1,7): error CS9229: Modifiers cannot be placed on using declarations
@@ -1725,7 +1725,7 @@ class C
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (5,9): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 //         using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(5, 9),
                 // (5,15): error CS9229: Modifiers cannot be placed on using declarations
@@ -1737,7 +1737,7 @@ using static var obj = new object();
 """;
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (1,1): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 // using static var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using static var obj = new object();").WithArguments("object").WithLocation(1, 1),
                 // (1,7): error CS9229: Modifiers cannot be placed on using declarations
@@ -1783,7 +1783,7 @@ class C
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (5,9): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 //         using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(5, 9),
                 // (5,15): error CS9229: Modifiers cannot be placed on using declarations
@@ -1795,7 +1795,7 @@ using volatile var obj = new object();
 """;
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (1,1): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 // using volatile var obj = new object();
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using volatile var obj = new object();").WithArguments("object").WithLocation(1, 1),
                 // (1,7): error CS9229: Modifiers cannot be placed on using declarations
@@ -1873,7 +1873,7 @@ class C
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,9): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,9): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 //         using ref object y = ref x;
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using ref object y = ref x;").WithArguments("object").WithLocation(6, 9),
                 // (6,15): error CS1073: Unexpected token 'ref'
@@ -1886,7 +1886,7 @@ using ref object y = ref x;
 """;
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,1): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (2,1): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 // using ref object y = ref x;
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using ref object y = ref x;").WithArguments("object").WithLocation(2, 1),
                 // (2,7): error CS1073: Unexpected token 'ref'
@@ -1902,7 +1902,7 @@ using (ref object y = ref x) { }
                 // (2,8): error CS1073: Unexpected token 'ref'
                 // using (ref object y = ref x) { }
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(2, 8),
-                // (2,8): error CS1674: 'object': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (2,8): error CS1674: 'object': type used in a using statement must implement 'System.IDisposable'.
                 // using (ref object y = ref x) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "ref object y = ref x").WithArguments("object").WithLocation(2, 8));
         }

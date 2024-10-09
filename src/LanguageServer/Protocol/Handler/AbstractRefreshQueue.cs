@@ -109,7 +109,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
                 {
-                    return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
+                    try
+                    {
+                        return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
+                    }
+                    catch (StreamJsonRpc.ConnectionLostException)
+                    {
+                        // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a notification
+                        // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
+                    }
                 }
             }
 

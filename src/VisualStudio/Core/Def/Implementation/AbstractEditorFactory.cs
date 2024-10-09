@@ -336,8 +336,7 @@ internal abstract class AbstractEditorFactory : IVsEditorFactory, IVsEditorFacto
 
         var addedDocument = forkedSolution.GetRequiredDocument(documentId);
 
-        var globalOptions = _componentModel.GetService<IGlobalOptionService>();
-        var cleanupOptions = await addedDocument.GetCodeCleanupOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(true);
+        var cleanupOptions = await addedDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(true);
 
         // Call out to various new document formatters to tweak what they want
         var formattingService = addedDocument.GetLanguageService<INewDocumentFormattingService>();

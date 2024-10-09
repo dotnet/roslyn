@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Structure;
 
@@ -12,13 +12,13 @@ internal abstract class AbstractSyntaxStructureProvider
     public abstract void CollectBlockSpans(
         SyntaxToken previousToken,
         SyntaxNode node,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken);
 
     public abstract void CollectBlockSpans(
         SyntaxTrivia trivia,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken);
 }

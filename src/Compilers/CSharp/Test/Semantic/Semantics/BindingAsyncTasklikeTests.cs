@@ -31,7 +31,7 @@ struct ValueTask<T> { }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
             var methodf = compilation.GetMember<MethodSymbol>("C.f");
             var methodg = compilation.GetMember<MethodSymbol>("C.g");
             Assert.True(methodf.IsAsync);
@@ -92,7 +92,7 @@ public class TasklikeMethodBuilder
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (15,9): error CS0118: 'GetAwaiter' is a field but is used like a method
                 //         await new Unawaitable(); // error: GetAwaiter must be a field not a delegate
                 Diagnostic(ErrorCode.ERR_BadSKknown, "await new Unawaitable()").WithArguments("GetAwaiter", "field", "method").WithLocation(15, 9)
@@ -184,7 +184,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             source = source.Replace("<<implicitConversionToTaskT>>", implicitConversionToTask ? "public static implicit operator Task<T>(ValueTask<T> t) => Task.FromResult<T>(t._result);" : "");
             if (isError)
             {
-                var compilation = CreateCompilationWithMscorlib45(source);
+                var compilation = CreateCompilationWithMscorlib461(source);
                 var diagnostics = compilation.GetDiagnostics();
                 Assert.True(diagnostics.Length == 1);
                 Assert.True(diagnostics.First().Code == (int)ErrorCode.ERR_AmbigCall);
@@ -306,7 +306,7 @@ class ValueTaskMethodBuilder<T> {}
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
             var methodf = compilation.GetMember<MethodSymbol>("C.f");
             var methodg = compilation.GetMember<MethodSymbol>("C.g");
             Assert.True(methodf.IsAsync);
@@ -325,7 +325,7 @@ class C
 }
 public class MyTask { }
 ";
-            CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source1).VerifyDiagnostics(
                 // (6,18): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async MyTask f() { await (Task)null; }
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(6, 18),
@@ -343,7 +343,7 @@ class C
 }
 public class MyTask { }
 ";
-            CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source2).VerifyDiagnostics(
                 // (6,18): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async MyTask f() { await (Task)null; }
                 Diagnostic(ErrorCode.ERR_BadAsyncReturn, "f").WithLocation(6, 18),
@@ -369,7 +369,7 @@ public class MyTaskBuilder
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source3).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source3).VerifyDiagnostics();
         }
 
         [Fact]
@@ -421,7 +421,7 @@ public class MyTaskBuilder
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h(Func<MyTask>)' and 'C.h(Func<Task>)'
                 //         h(async () => { await (Task)null; });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h(System.Func<MyTask>)", "C.h(System.Func<System.Threading.Tasks.Task>)").WithLocation(8, 9)
@@ -443,7 +443,7 @@ class Mismatch2MethodBuilder<T> {}
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyEmitDiagnostics(
                 // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }

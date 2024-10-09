@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.BraceCompletion;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -105,7 +106,7 @@ internal partial class BraceCompletionSessionProvider
             }
 
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-            var context = GetBraceCompletionContext(parsedDocument);
+            var context = GetBraceCompletionContext(parsedDocument, document.Project.GetFallbackAnalyzerOptions());
 
             // Note: completes synchronously unless Semantic Model is needed to determine the result:
             if (!_service.HasBraceCompletionAsync(context, document, cancellationToken).WaitAndGetResult(cancellationToken))
@@ -125,7 +126,7 @@ internal partial class BraceCompletionSessionProvider
 
             if (TryGetBraceCompletionContext(out var contextAfterStart, cancellationToken))
             {
-                var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, contextAfterStart.Document.LanguageServices, explicitFormat: false);
+                var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), contextAfterStart.Document.LanguageServices, explicitFormat: false);
                 var changesAfterStart = _service.GetTextChangesAfterCompletion(contextAfterStart, indentationOptions, cancellationToken);
                 if (changesAfterStart != null)
                 {
@@ -283,7 +284,7 @@ internal partial class BraceCompletionSessionProvider
                         return;
                     }
 
-                    var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, context.Document.LanguageServices, explicitFormat: false);
+                    var indentationOptions = SubjectBuffer.GetIndentationOptions(_editorOptionsService, context.FallbackOptions, context.Document.LanguageServices, explicitFormat: false);
                     var changesAfterReturn = _service.GetTextChangeAfterReturn(context, indentationOptions, CancellationToken.None);
                     if (changesAfterReturn != null)
                     {
@@ -397,11 +398,11 @@ internal partial class BraceCompletionSessionProvider
                 return false;
             }
 
-            context = GetBraceCompletionContext(ParsedDocument.CreateSynchronously(document, cancellationToken));
+            context = GetBraceCompletionContext(ParsedDocument.CreateSynchronously(document, cancellationToken), document.Project.GetFallbackAnalyzerOptions());
             return true;
         }
 
-        private BraceCompletionContext GetBraceCompletionContext(ParsedDocument document)
+        private BraceCompletionContext GetBraceCompletionContext(ParsedDocument document, StructuredAnalyzerConfigOptions fallbackOptions)
         {
             _threadingContext.ThrowIfNotOnUIThread();
             var snapshot = SubjectBuffer.CurrentSnapshot;
@@ -411,7 +412,7 @@ internal partial class BraceCompletionSessionProvider
             // The user is actively typing so the caret position should not be null.
             var caretPosition = this.GetCaretPosition().Value.Position;
 
-            return new BraceCompletionContext(document, openingSnapshotPoint, closingSnapshotPoint, caretPosition);
+            return new BraceCompletionContext(document, fallbackOptions, openingSnapshotPoint, closingSnapshotPoint, caretPosition);
         }
 
         private void ApplyBraceCompletionResult(BraceCompletionResult result)

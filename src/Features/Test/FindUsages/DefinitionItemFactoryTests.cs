@@ -354,7 +354,7 @@ public class DefinitionItemFactoryTests
                 "System 4.0.0.0 ''",
                 "System.Core 4.0.0.0 ''",
                 "System.ValueTuple 4.0.1.0 ''",
-                "System.Runtime 4.0.10.0 ''"
+                "System.Runtime 4.0.20.0 ''"
             ],
             tags:
             [
@@ -406,7 +406,7 @@ public class DefinitionItemFactoryTests
                 "System 4.0.0.0 ''",
                 "System.Core 4.0.0.0 ''",
                 "System.ValueTuple 4.0.1.0 ''",
-                "System.Runtime 4.0.10.0 ''"
+                "System.Runtime 4.0.20.0 ''"
             ],
             sourceSpans:
             [

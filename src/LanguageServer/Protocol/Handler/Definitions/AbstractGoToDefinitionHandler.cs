@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
-                        var options = globalOptions.GetMetadataAsSourceOptions(document.Project.Services);
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
+                        var options = globalOptions.GetMetadataAsSourceOptions();
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location

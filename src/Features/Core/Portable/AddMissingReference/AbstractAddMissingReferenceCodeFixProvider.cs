@@ -20,16 +20,6 @@ namespace Microsoft.CodeAnalysis.AddMissingReference;
 
 internal abstract partial class AbstractAddMissingReferenceCodeFixProvider : AbstractAddPackageCodeFixProvider
 {
-    /// <summary>
-    /// Values for these parameters can be provided (during testing) for mocking purposes.
-    /// </summary> 
-    protected AbstractAddMissingReferenceCodeFixProvider(
-        IPackageInstallerService? packageInstallerService = null,
-        ISymbolSearchService? symbolSearchService = null)
-        : base(packageInstallerService, symbolSearchService)
-    {
-    }
-
     protected override bool IncludePrerelease => false;
 
     public override FixAllProvider? GetFixAllProvider()

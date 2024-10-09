@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
             Project project,
-            IdeAnalyzerOptions ideOptions,
-            IEnumerable<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<DiagnosticAnalyzer> analyzers,
             bool includeSuppressedDiagnostics,
+            bool crashOnAnalyzerException,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Create driver that holds onto compilation and associated analyzers
-            var filteredAnalyzers = analyzers.Where(a => !a.IsWorkspaceDiagnosticAnalyzer()).ToImmutableArrayOrEmpty();
+            var filteredAnalyzers = analyzers.WhereAsArray(a => !a.IsWorkspaceDiagnosticAnalyzer());
 
             // PERF: there is no analyzers for this compilation.
             //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideOptions),
+                options: project.AnalyzerOptions,
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 return ex =>
                 {
-                    if (ex is not OperationCanceledException && ideOptions.CrashOnAnalyzerException)
+                    if (ex is not OperationCanceledException && crashOnAnalyzerException)
                     {
                         // report telemetry
                         FatalError.ReportAndPropagate(ex);

@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,14 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyPropertyPattern;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyPropertyPattern), Shared]
-internal class CSharpSimplifyPropertyPatternCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpSimplifyPropertyPatternCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSimplifyPropertyPatternCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.SimplifyPropertyPatternDiagnosticId];
 
@@ -42,7 +37,7 @@ internal class CSharpSimplifyPropertyPatternCodeFixProvider : SyntaxEditorBasedC
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         // Process subpatterns in reverse order so we rewrite from inside-to-outside with nested
         // patterns.

@@ -32,7 +32,6 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax stackAllocExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -48,7 +47,6 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
-            fallbackOptions,
             stackAllocExpression,
             matches,
             static e => e switch

@@ -27,7 +27,6 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         IMethodSymbol methodSymbol,
         SyntaxNode containingMethod,
         IntroduceParameterCodeActionKind selectedCodeAction,
-        CodeGenerationOptionsProvider fallbackOptions,
         bool allOccurrences)
     {
         private readonly AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax> _service = service;
@@ -39,7 +38,6 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         private readonly IMethodSymbol _methodSymbol = methodSymbol;
         private readonly SyntaxNode _containerMethod = containingMethod;
         private readonly IntroduceParameterCodeActionKind _actionKind = selectedCodeAction;
-        private readonly CodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
         private readonly bool _allOccurrences = allOccurrences;
 
         public async Task<SyntaxNode> RewriteDocumentAsync(Compilation compilation, Document document, List<TExpressionSyntax> invocations, CancellationToken cancellationToken)
@@ -443,7 +441,7 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         private async Task<SyntaxNode> CreateMethodDeclarationAsync(SyntaxNode newStatement, ImmutableArray<IParameterSymbol>? validParameters,
             string? newMethodIdentifier, ITypeSymbol? typeSymbol, bool isTrampoline, CancellationToken cancellationToken)
         {
-            var info = await _originalDocument.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await _originalDocument.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
             var newMethod = isTrampoline
                 ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: [newStatement], returnType: typeSymbol)

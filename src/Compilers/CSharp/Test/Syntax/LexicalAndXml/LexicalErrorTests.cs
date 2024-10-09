@@ -266,9 +266,9 @@ namespace x
                 """;
 
             ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
-                // (5,21): error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,21): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         string a = "\e";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"\e").WithArguments("string escape character").WithLocation(5, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 21));
         }
 
         [Fact]
@@ -285,9 +285,9 @@ namespace x
                 """;
 
             ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
-                // (5,22): error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,22): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         string a = "e\ee";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"\e").WithArguments("string escape character").WithLocation(5, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 22));
         }
 
         [Fact]
@@ -304,9 +304,9 @@ namespace x
                 """;
 
             ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
-                // (5,19): error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,19): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         char a = '\e';
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"\e").WithArguments("string escape character").WithLocation(5, 19));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 19));
         }
 
         [Fact]
@@ -322,7 +322,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
         }
 
         [Fact]
@@ -338,7 +338,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
         }
 
         [Fact]
@@ -354,7 +354,7 @@ namespace x
                 }
                 """;
 
-            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.RegularNext);
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
         }
 
         [Fact]

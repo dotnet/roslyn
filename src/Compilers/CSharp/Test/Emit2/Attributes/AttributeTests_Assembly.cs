@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1739,14 +1740,14 @@ class Program
                 public class Test { }
                 ";
 
-            var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { TestMetadata.Net40.SystemCore });
+            var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { Net40.References.SystemCore });
             var appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
             appCompilation.VerifyDiagnostics(
                 // error CS0012: The type 'ExtensionAttribute' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
                 );
 
-            appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef, TestMetadata.Net40.SystemCore }, options: TestOptions.ReleaseDll);
+            appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef, Net40.References.SystemCore }, options: TestOptions.ReleaseDll);
             appCompilation.VerifyEmitDiagnostics();
         }
 

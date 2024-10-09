@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -258,7 +259,7 @@ Module Program
     End Class
 End Module
     ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
 
             compilation.AssertNoDiagnostics()
 
@@ -399,7 +400,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={Net40.SystemCore})
+</compilation>, additionalRefs:={Net40.References.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 
@@ -451,7 +452,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={Net40.SystemCore})
+</compilation>, additionalRefs:={Net40.References.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 
@@ -508,7 +509,7 @@ Module Ext
     End Sub
 End Module
     ]]></file>
-</compilation>, additionalRefs:={Net40.SystemCore})
+</compilation>, additionalRefs:={Net40.References.SystemCore})
 
             compilation.AssertTheseDiagnostics()
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -54,9 +52,9 @@ internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeF
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var accessorLists = new HashSet<AccessorListSyntax>();
         foreach (var diagnostic in diagnostics)

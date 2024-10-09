@@ -42,6 +42,16 @@
         <target state="translated">Le changement du document '{0}' n'est pas pris en charge.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
+        <source>Changing project between ordinary and interactive submission is not supported</source>
+        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_language_is_not_supported">
+        <source>Changing project language is not supported</source>
+        <target state="new">Changing project language is not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">Le CodeAction '{0}' n'a pas produit de solution contenant des changements</target>
@@ -55,11 +65,6 @@
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
         <target state="translated">DateTimeKind doit être UTC</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_does_not_support_syntax_trees">
-        <source>Document does not support syntax trees</source>
-        <target state="translated">Le document ne prend pas en charge les arborescences de syntaxe</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
@@ -125,6 +130,16 @@
       <trans-unit id="Removing_analyzer_config_documents_is_not_supported">
         <source>Removing analyzer config documents is not supported.</source>
         <target state="translated">La suppression de documents de configuration de l'analyseur n'est pas prise en charge.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_compilation_options_is_not_supported">
+        <source>Removing compilation options is not supported</source>
+        <target state="new">Removing compilation options is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_parse_options_is_not_supported">
+        <source>Removing parse options is not supported</source>
+        <target state="new">Removing parse options is not supported</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">

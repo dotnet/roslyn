@@ -10040,7 +10040,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
                 Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments("Test.dll", "Module has invalid attributes.").WithLocation(1, 1));
 
             // Use different mscorlib to test retargeting scenario
-            var compilation3 = CreateCompilationWithMscorlib45(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
+            var compilation3 = CreateCompilationWithMscorlib461(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
             Assert.NotSame(compilation1.Assembly, compilation3.SourceModule.ReferencedAssemblySymbols[1]);
             compilation3.VerifyDiagnostics(
                 // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)

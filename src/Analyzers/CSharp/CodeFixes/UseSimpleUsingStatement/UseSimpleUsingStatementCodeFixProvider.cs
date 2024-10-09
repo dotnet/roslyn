@@ -8,11 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -31,14 +29,10 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseSimpleUsingStatement), Shared]
-internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public UseSimpleUsingStatementCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseSimpleUsingStatementDiagnosticId];
 
@@ -50,7 +44,7 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var topmostUsingStatements = diagnostics.Select(d => (UsingStatementSyntax)d.AdditionalLocations[0].FindNode(cancellationToken)).ToSet();
         var blocks = topmostUsingStatements.Select(u => (BlockSyntax)u.Parent);

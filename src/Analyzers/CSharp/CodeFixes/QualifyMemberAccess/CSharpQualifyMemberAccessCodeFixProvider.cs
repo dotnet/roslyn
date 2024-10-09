@@ -14,14 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.QualifyMemberAccess), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
-internal class CSharpQualifyMemberAccessCodeFixProvider : AbstractQualifyMemberAccessCodeFixprovider<SimpleNameSyntax, InvocationExpressionSyntax>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpQualifyMemberAccessCodeFixProvider() : AbstractQualifyMemberAccessCodeFixprovider<SimpleNameSyntax, InvocationExpressionSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpQualifyMemberAccessCodeFixProvider()
-    {
-    }
-
     protected override SimpleNameSyntax? GetNode(Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken);

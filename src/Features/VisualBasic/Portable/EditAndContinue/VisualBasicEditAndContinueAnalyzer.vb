@@ -2335,16 +2335,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                                        forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                        oldActiveStatement As SyntaxNode,
                                                                        oldBody As DeclarationBody,
+                                                                       oldModel As SemanticModel,
                                                                        newActiveStatement As SyntaxNode,
                                                                        newBody As DeclarationBody,
-                                                                       isNonLeaf As Boolean)
+                                                                       newModel As SemanticModel,
+                                                                       isNonLeaf As Boolean,
+                                                                       cancellationToken As CancellationToken)
 
             Dim onErrorOrResumeStatement = FindOnErrorOrResumeStatement(newBody)
             If onErrorOrResumeStatement IsNot Nothing Then
                 AddAroundActiveStatementRudeDiagnostic(diagnostics, oldActiveStatement, onErrorOrResumeStatement, newActiveStatement.Span)
             End If
 
-            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, forwardMap, oldActiveStatement, oldBody.EncompassingAncestor, newActiveStatement, newBody.EncompassingAncestor)
+            ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, forwardMap, oldActiveStatement, oldBody.EncompassingAncestor, oldModel, newActiveStatement, newBody.EncompassingAncestor, newModel, cancellationToken)
         End Sub
 
         Private Shared Function FindOnErrorOrResumeStatement(newBody As DeclarationBody) As SyntaxNode
@@ -2370,8 +2373,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                                             forwardMap As IReadOnlyDictionary(Of SyntaxNode, SyntaxNode),
                                                                             oldActiveStatement As SyntaxNode,
                                                                             oldEncompassingAncestor As SyntaxNode,
+                                                                            oldModel As SemanticModel,
                                                                             newActiveStatement As SyntaxNode,
-                                                                            newEncompassingAncestor As SyntaxNode)
+                                                                            newEncompassingAncestor As SyntaxNode,
+                                                                            newModel As SemanticModel,
+                                                                            cancellationToken As CancellationToken)
 
             ' Rude Edits for Using/SyncLock/With/ForEach statements that are added/updated around an active statement.
             ' Although such changes are technically possible, they might lead to confusion since 
@@ -2382,22 +2388,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' 
             ' Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
-            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.SyncLockBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
+            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.SyncLockBlock),
+                getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.SyncLockStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
-                areSimilar:=Nothing)
+                areSimilar:=Nothing,
+                cancellationToken)
 
-            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.WithBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
+            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.WithBlock),
+                getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.WithStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.WithStatement.Expression, n2.WithStatement.Expression),
-                areSimilar:=Nothing)
+                areSimilar:=Nothing,
+                cancellationToken)
 
-            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.UsingBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
+            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.UsingBlock),
+                getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.UsingStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
-                areSimilar:=Nothing)
+                areSimilar:=Nothing,
+                cancellationToken)
 
-            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, forwardMap, Function(node) node.IsKind(SyntaxKind.ForEachBlock), oldActiveStatement, oldEncompassingAncestor, newActiveStatement, newEncompassingAncestor,
+            ReportUnmatchedStatements(Of ForEachBlockSyntax)(diagnostics, forwardMap, oldActiveStatement, oldEncompassingAncestor, oldModel, newActiveStatement, newEncompassingAncestor, newModel,
+                nodeSelector:=Function(node) node.IsKind(SyntaxKind.ForEachBlock),
+                getTypedNodes:=Function(n) OneOrMany.Create(Of SyntaxNode)(n.ForEachStatement.Expression),
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
-                                                                               DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
+                                                                               DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable),
+                cancellationToken)
         End Sub
 
 #End Region

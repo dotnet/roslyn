@@ -139,24 +139,24 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
     }
 
     public Task<ImmutableArray<CodeFix>> GetFixesAsync(
-        TextDocument textDocument, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        TextDocument textDocument, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         if (textDocument is not Document document)
             return Task.FromResult(ImmutableArray<CodeFix>.Empty);
 
-        return GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
+        return GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: false, skipUnsuppress: false, cancellationToken: cancellationToken);
     }
 
-    internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    internal async Task<ImmutableArray<PragmaWarningCodeAction>> GetPragmaSuppressionsAsync(Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
-        var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, fallbackOptions, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var codeFixes = await GetSuppressionsAsync(document, span, diagnostics, skipSuppressMessage: true, skipUnsuppress: true, cancellationToken: cancellationToken).ConfigureAwait(false);
         return codeFixes.SelectMany(fix => fix.Action.NestedActions)
                         .OfType<PragmaWarningCodeAction>()
                         .ToImmutableArray();
     }
 
     private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
-        Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+        Document document, TextSpan span, IEnumerable<Diagnostic> diagnostics, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
     {
         var suppressionTargetInfo = await GetSuppressionTargetInfoAsync(document, span, cancellationToken).ConfigureAwait(false);
         if (suppressionTargetInfo == null)
@@ -165,11 +165,11 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         }
 
         return await GetSuppressionsAsync(
-            document, document.Project, diagnostics, suppressionTargetInfo, fallbackOptions, skipSuppressMessage, skipUnsuppress, cancellationToken).ConfigureAwait(false);
+            document, document.Project, diagnostics, suppressionTargetInfo, skipSuppressMessage, skipUnsuppress, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<CodeFix>> GetFixesAsync(
-        Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         if (!project.SupportsCompilation)
         {
@@ -180,12 +180,12 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         var suppressionTargetInfo = new SuppressionTargetInfo() { TargetSymbol = compilation.Assembly };
         return await GetSuppressionsAsync(
             documentOpt: null, project, diagnostics, suppressionTargetInfo,
-            fallbackOptions, skipSuppressMessage: false, skipUnsuppress: false,
+            skipSuppressMessage: false, skipUnsuppress: false,
             cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ImmutableArray<CodeFix>> GetSuppressionsAsync(
-        Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, CodeActionOptionsProvider fallbackOptions, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
+        Document documentOpt, Project project, IEnumerable<Diagnostic> diagnostics, SuppressionTargetInfo suppressionTargetInfo, bool skipSuppressMessage, bool skipUnsuppress, CancellationToken cancellationToken)
     {
         // We only care about diagnostics that can be suppressed/unsuppressed.
         diagnostics = diagnostics.Where(IsFixableDiagnostic);
@@ -212,7 +212,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 if (diagnostic.Location.IsInSource && documentOpt != null)
                 {
                     // pragma warning disable.
-                    lazyFormattingOptions ??= await documentOpt.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    lazyFormattingOptions ??= await documentOpt.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
                     nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, lazyFormattingOptions, diagnostic, this));
                 }
 
@@ -221,7 +221,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 {
                     // global assembly-level suppress message attribute.
                     nestedActions.Add(new GlobalSuppressMessageCodeAction(
-                        suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, project, diagnostic, this, fallbackOptions));
+                        suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, project, diagnostic, this));
 
                     // local suppress message attribute
                     // please note that in order to avoid issues with existing unit tests referencing the code fix
@@ -242,7 +242,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             }
             else if (!skipUnsuppress)
             {
-                var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var codeAction = await RemoveSuppressionCodeAction.CreateAsync(suppressionTargetInfo, documentOpt, project, diagnostic, this, cancellationToken).ConfigureAwait(false);
                 if (codeAction != null)
                 {
                     result.Add(new CodeFix(project, codeAction, diagnostic));

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
@@ -247,7 +248,7 @@ End Module
             ],
             HangMitigatingCancellationToken);
 
-        Assert.Empty(await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken));
+        AssertEx.Empty(await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken));
     }
 
     [IdeFact]

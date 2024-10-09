@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
+                    metadataReferences: new[] { NetFramework.mscorlib }));
 
             return emptyProject.AddDocument("test.cs", code);
         }

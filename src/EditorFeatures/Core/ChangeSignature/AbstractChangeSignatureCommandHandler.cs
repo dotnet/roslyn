@@ -23,12 +23,10 @@ internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<
     ICommandHandler<RemoveParametersCommandArgs>
 {
     private readonly IThreadingContext _threadingContext;
-    private readonly IGlobalOptionService _globalOptions;
 
-    protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+    protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext)
     {
         _threadingContext = threadingContext;
-        _globalOptions = globalOptions;
     }
 
     public string DisplayName => EditorFeaturesResources.Change_Signature;
@@ -87,7 +85,6 @@ internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<
                 document,
                 caretPoint.Value.Position,
                 restrictToDeclarations: false,
-                _globalOptions.CreateProvider(),
                 cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
             // UI thread bound operation to show the change signature dialog.

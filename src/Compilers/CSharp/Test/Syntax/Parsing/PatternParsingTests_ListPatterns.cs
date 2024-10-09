@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -767,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingExpression(@"c is [var x ..]",
                     // (1,13): error CS1003: Syntax error, ',' expected
-                    // c is {var x ..}
+                    // c is [var x ..]
                     Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",").WithLocation(1, 13));
 
             N(SyntaxKind.IsPatternExpression);
@@ -835,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             UsingExpression(@"c is [[]..]",
                 // (1,9): error CS1003: Syntax error, ',' expected
-                // c is {{}..}
+                // c is [[]..]
                 Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.IsPatternExpression);
@@ -1091,6 +1092,508 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             {
                                 N(SyntaxKind.NumericLiteralToken, "5");
                             }
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_20()
+        {
+            UsingExpression(@"c is [.. string?]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_21()
+        {
+            UsingExpression(@"c is [.. string? slice]");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "slice");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_22()
+        {
+            UsingExpression(@"c is [.. string? slice, ')']");
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "slice");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.CharacterLiteralExpression);
+                        {
+                            N(SyntaxKind.CharacterLiteralToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_23()
+        {
+            UsingExpression(@"c is [.. string? slice ')']",
+                // (1,24): error CS1003: Syntax error, ',' expected
+                // c is [.. string? slice ')']
+                Diagnostic(ErrorCode.ERR_SyntaxError, "')'").WithArguments(",").WithLocation(1, 24));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.StringKeyword);
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "slice");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.CharacterLiteralExpression);
+                        {
+                            N(SyntaxKind.CharacterLiteralToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_24()
+        {
+            UsingExpression(@"c is [.. string[]? slice "")""]",
+                // (1,26): error CS1003: Syntax error, ',' expected
+                // c is [.. string[]? slice ")"]
+                Diagnostic(ErrorCode.ERR_SyntaxError, @""")""").WithArguments(",").WithLocation(1, 26));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "slice");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.StringLiteralExpression);
+                        {
+                            N(SyntaxKind.StringLiteralToken, "\")\"");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_25()
+        {
+            UsingExpression(@"c is [.. int[]? slice 5]",
+                // (1,23): error CS1003: Syntax error, ',' expected
+                // c is [.. int[]? slice 5]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "5").WithArguments(",").WithLocation(1, 23));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "slice");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "5");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_26()
+        {
+            UsingExpression(@"c is [.. int[]? slice int i]",
+                // (1,23): error CS1003: Syntax error, ',' expected
+                // c is [.. int[]? slice int i]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",").WithLocation(1, 23));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "slice");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "i");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_27()
+        {
+            UsingExpression(@"c is [.. string[]? slice string s]",
+                // (1,26): error CS1003: Syntax error, ',' expected
+                // c is [.. string[]? slice string s]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "string").WithArguments(",").WithLocation(1, 26));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.StringKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "slice");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "s");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void SlicePattern_28()
+        {
+            UsingExpression(@"c is [.. char[]? slice char ch]",
+                // (1,24): error CS1003: Syntax error, ',' expected
+                // c is [.. char[]? slice char ch]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "char").WithArguments(",").WithLocation(1, 24));
+
+            N(SyntaxKind.IsPatternExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+                N(SyntaxKind.IsKeyword);
+                N(SyntaxKind.ListPattern);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.SlicePattern);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.ArrayType);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.CharKeyword);
+                                    }
+                                    N(SyntaxKind.ArrayRankSpecifier);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                        {
+                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "slice");
+                            }
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    N(SyntaxKind.DeclarationPattern);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.CharKeyword);
+                        }
+                        N(SyntaxKind.SingleVariableDesignation);
+                        {
+                            N(SyntaxKind.IdentifierToken, "ch");
                         }
                     }
                     N(SyntaxKind.CloseBracketToken);
