@@ -339,7 +339,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (accessorToBlame is not null)
                 {
-                    diagnostics.Add(ErrorCode.WRN_AccessorDoesNotUseBackingField, accessorToBlame.GetFirstLocation(), accessorToBlame);
+                    var accessorName = accessorToBlame switch
+                    {
+                        { MethodKind: MethodKind.PropertyGet, IsInitOnly: false } => SyntaxFacts.GetText(SyntaxKind.GetKeyword),
+                        { MethodKind: MethodKind.PropertySet, IsInitOnly: false } => SyntaxFacts.GetText(SyntaxKind.SetKeyword),
+                        { MethodKind: MethodKind.PropertySet, IsInitOnly: true } => SyntaxFacts.GetText(SyntaxKind.InitKeyword),
+                        _ => throw ExceptionUtilities.UnexpectedValue(accessorToBlame)
+                    };
+
+                    diagnostics.Add(ErrorCode.WRN_AccessorDoesNotUseBackingField, accessorToBlame.GetFirstLocation(), accessorName, @this);
                 }
             }
         }
