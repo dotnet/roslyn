@@ -1,10 +1,10 @@
-**This document lists known breaking changes in Roslyn (VS2015 and later) from the native VB compiler (VS2013 and previous).**
+**This document lists known breaking changes in Roslyn *(VS2015 and later)* from the native VB compiler *(VS2013 and previous)*.**
 
 <!--
-*Breaks are formatted with a monotonically increasing numbered list to allow them to referenced via shorthand (i.e., "known break #1").
-Each entry should include a short description of the break, followed by either a link to the issue describing the full details of the break or the full details of the break inline.*
--->
+*Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").
 
+Each entry should include a short description of the breaking change, followed by either a link to the issue describing the full details of the change or the full details inline.*
+-->
 ### For VB (Deviations from the Language Specification or Native Compiler)
 
 This list tracks known cases where the Roslyn compiler intentionally deviates from the language specification or previous versions. It includes both breaking changes and changes which enable things which would not be permitted by either the language specification or the native compiler. The bug numbers refer to Microsoft-internal bug databases. The checklist marks our progress moving the necessary documentation into this repository.
