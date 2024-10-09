@@ -2498,6 +2498,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.ERR_MissingPredefinedMember:
                 case ErrorCode.ERR_DefaultValueUsedWithAttributes:
                 case ErrorCode.ERR_ExplicitParamArrayOrCollection:
+                case ErrorCode.ERR_RefReturnLocal:
+                case ErrorCode.ERR_EscapeCall:
+                case ErrorCode.ERR_CallArgMixing:
+                case ErrorCode.ERR_EscapeVariable:
+                    // PROTOTYPE: Which other ref errors should be ignored (e.g. RefReturnLocal2, EscapeCall2)?
                     return false;
                 default:
                     return true;

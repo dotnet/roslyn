@@ -3288,7 +3288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>
+        /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>.
         /// In a case if it cannot a bad expression is returned and diagnostics is produced.
         /// </summary>
         internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
