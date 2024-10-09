@@ -8,6 +8,7 @@
     // Text Editor -> C# -> Advanced
     //
 
+
     //
     // Text Editor -> C# -> Intellisense
     //
@@ -253,6 +254,10 @@
     "textEditor.csharp.intellisense": {
       "title": "@103;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "legacyOptionPageId": "EDE66829-7A36-4c5d-8E20-9290195DCF80"
+    },
+    "textEditor.csharp.advanced": {
+      "title": "@102;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "legacyOptionPageId": "8FD0B177-B244-4A97-8E37-6FB7B27DE3AF"
     }
   }
 }
