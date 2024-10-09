@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             byte* resourceStart = peImage.Pointer + start;
-            BlobReader tmpresource = peImage.GetReader(start , peImage.Length-start);
+            BlobReader tmpresource = peImage.GetReader(start, peImage.Length-start);
             int resourceSize = tmpresource.ReadInt32();
             if (resourceSize > resourcesDir.Size - sizeof(int))
             {
