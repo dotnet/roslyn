@@ -73,7 +73,7 @@ class C
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
                 Await waiter.ExpeditedWaitAsync()
 
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
                 Assert.Equal(121, mockDocumentNavigationService._position)
             End Using
         End Function
