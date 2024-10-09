@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
         Protected Overrides Async Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateVariableService)()
 
-            ' While this service is defined for C#, we support running in a torn environment, where we have compiled
+            ' While this service is defined for Visual Basic, we support running in a torn environment, where we have compiled
             ' against the version in the features layer, but the value is provided from the code-fix layer.  In that
             ' case we just bail out.  This will not be necessary once we have the code that ensures no torn code
             ' scenarios happen regardless of which SDK you are running against.
