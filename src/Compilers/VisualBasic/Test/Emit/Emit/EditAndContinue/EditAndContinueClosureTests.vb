@@ -3871,8 +3871,7 @@ End Class
                     Verify()
             End Using
         End Sub
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-	<ConditionalFact(GetType(NotMono))>
+        <ConditionalFact(GetType(NotMono))>
         Public Sub CaptureOrdering()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
