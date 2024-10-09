@@ -749,7 +749,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// </remarks>
     public async Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null)
     {
-        if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+        if (this.RenameService.GlobalOptions.ShouldCommitAsynchronously())
         {
             await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, editorOperationContext).ConfigureAwait(false);
         }
@@ -779,6 +779,12 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             this.ReplacementText == _initialRenameText)
         {
             Cancel();
+            return false;
+        }
+
+        // Don't dup commit.
+        if (this.IsCommitInProgress)
+        {
             return false;
         }
 

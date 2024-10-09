@@ -18,6 +18,9 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
     {
+        if (IsRenameCommitInProgress())
+            return true;
+
         CommitIfActive(args, context.OperationContext);
         return false;
     }
@@ -27,6 +30,9 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
     {
+        if (IsRenameCommitInProgress())
+            return true;
+
         CommitIfActive(args, context.OperationContext);
         return false;
     }
@@ -36,6 +42,9 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
     {
+        if (IsRenameCommitInProgress())
+            return true;
+
         CommitIfActive(args, context.OperationContext);
         return false;
     }
@@ -45,6 +54,9 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
     {
+        if (IsRenameCommitInProgress())
+            return true;
+
         CommitIfActive(args, context.OperationContext);
         return false;
     }
