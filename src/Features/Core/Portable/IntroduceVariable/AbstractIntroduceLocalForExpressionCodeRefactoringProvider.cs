@@ -28,7 +28,7 @@ internal abstract class AbstractIntroduceLocalForExpressionCodeRefactoringProvid
     protected abstract TLocalDeclarationStatementSyntax FixupLocalDeclaration(TExpressionStatementSyntax expressionStatement, TLocalDeclarationStatementSyntax localDeclaration);
     protected abstract TExpressionStatementSyntax FixupDeconstruction(TExpressionStatementSyntax expressionStatement, TExpressionStatementSyntax localDeclaration);
     protected abstract Task<TExpressionStatementSyntax> CreateTupleDeconstructionAsync(
-        Document document, CodeActionOptionsProvider optionsProvider, INamedTypeSymbol tupleType, TExpressionSyntax expression, CancellationToken cancellationToken);
+        Document document, INamedTypeSymbol tupleType, TExpressionSyntax expression, CancellationToken cancellationToken);
 
     public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -55,7 +55,7 @@ internal abstract class AbstractIntroduceLocalForExpressionCodeRefactoringProvid
             context.RegisterRefactoring(
                 CodeAction.Create(
                     string.Format(FeaturesResources.Deconstruct_locals_for_0, nodeString),
-                    cancellationToken => IntroduceLocalAsync(document, context.Options, expressionStatement, type, deconstruct: true, cancellationToken),
+                    cancellationToken => IntroduceLocalAsync(document, expressionStatement, type, deconstruct: true, cancellationToken),
                     nameof(FeaturesResources.Deconstruct_locals_for_0) + "_" + nodeString),
                 expressionStatement.Span);
         }
@@ -63,7 +63,7 @@ internal abstract class AbstractIntroduceLocalForExpressionCodeRefactoringProvid
         context.RegisterRefactoring(
             CodeAction.Create(
                 string.Format(FeaturesResources.Introduce_local_for_0, nodeString),
-                cancellationToken => IntroduceLocalAsync(document, context.Options, expressionStatement, type, deconstruct: false, cancellationToken),
+                cancellationToken => IntroduceLocalAsync(document, expressionStatement, type, deconstruct: false, cancellationToken),
                 nameof(FeaturesResources.Introduce_local_for_0) + "_" + nodeString),
             expressionStatement.Span);
     }
@@ -78,7 +78,6 @@ internal abstract class AbstractIntroduceLocalForExpressionCodeRefactoringProvid
 
     private async Task<Document> IntroduceLocalAsync(
         Document document,
-        CodeActionOptionsProvider optionsProvider,
         TExpressionStatementSyntax expressionStatement,
         ITypeSymbol type,
         bool deconstruct,
@@ -112,7 +111,7 @@ internal abstract class AbstractIntroduceLocalForExpressionCodeRefactoringProvid
             {
                 Contract.ThrowIfNull(type);
                 return await this.CreateTupleDeconstructionAsync(
-                    document, optionsProvider, (INamedTypeSymbol)type, expression, cancellationToken).ConfigureAwait(false);
+                    document, (INamedTypeSymbol)type, expression, cancellationToken).ConfigureAwait(false);
             }
             else
             {

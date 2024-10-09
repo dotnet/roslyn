@@ -10,14 +10,12 @@ internal partial class AbstractSuppressionCodeFixProvider
 {
     internal abstract class AbstractSuppressionCodeAction : NestedSuppressionCodeAction
     {
-        private readonly AbstractSuppressionCodeFixProvider _fixer;
-
         protected AbstractSuppressionCodeAction(AbstractSuppressionCodeFixProvider fixer, string title)
             : base(title)
         {
-            _fixer = fixer;
+            Fixer = fixer;
         }
 
-        protected AbstractSuppressionCodeFixProvider Fixer => _fixer;
+        protected AbstractSuppressionCodeFixProvider Fixer { get; }
     }
 }

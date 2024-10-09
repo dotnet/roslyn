@@ -153,7 +153,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 // Create a context that will add the reported code actions into this
                 using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
                 var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
-                var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, fixAllContext.State.CodeActionOptionsProvider, cancellationToken);
+                var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, cancellationToken);
 
                 // Wait for the all the code actions to be reported for this diagnostic.
                 var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;

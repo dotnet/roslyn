@@ -21,7 +21,7 @@ internal partial class TaggerEventSources
             globalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
         }
 
-        private void OnGlobalOptionChanged(object? sender, OptionChangedEventArgs e)
+        private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
             if (e.HasOption(predicate))
             {

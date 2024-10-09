@@ -63,7 +63,7 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
         var uninitializedMembers = members.Where(m => !alreadyTypedMembers.Contains(m.Name));
 
         // Sort the members by name so if we preselect one, it'll be stable
-        uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(context.CompletionOptions.HideAdvancedMembers, semanticModel.Compilation))
+        uninitializedMembers = uninitializedMembers.Where(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation))
                                                    .OrderBy(m => m.Name);
 
         var firstUnitializedRequiredMember = true;

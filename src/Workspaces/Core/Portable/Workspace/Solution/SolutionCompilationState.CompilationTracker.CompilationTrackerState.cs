@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
-    private partial class CompilationTracker
+    private partial class RegularCompilationTracker
     {
         /// <summary>
-        /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
-        /// cref="CompilationTracker" /> starts at null, and then will progress through the other states until it
+        /// The base type of all <see cref="RegularCompilationTracker"/> states. The state of a <see
+        /// cref="RegularCompilationTracker" /> starts at null, and then will progress through the other states until it
         /// finally reaches <see cref="FinalCompilationTrackerState" />.
         /// </summary>
         private abstract class CompilationTrackerState

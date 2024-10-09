@@ -57,7 +57,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
     protected abstract bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType);
     protected abstract string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format);
-    protected abstract ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+    protected abstract ValueTask<bool> PrefersThrowExpressionAsync(Document document, CancellationToken cancellationToken);
     protected abstract IFieldSymbol? TryMapToWritableInstanceField(IPropertySymbol property, CancellationToken cancellationToken);
 
     public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -68,7 +68,6 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             context.RegisterRefactoring,
             actions => context.RegisterRefactorings(actions),
             desiredAccessibility: null,
-            context.Options,
             context.CancellationToken);
     }
 
@@ -84,7 +83,6 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             (singleAction, applicableToSpan) => actions.Add(singleAction),
             actions.AddRange,
             desiredAccessibility: accessibility,
-            intentDataProvider.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         if (actions.IsEmpty)
@@ -153,7 +151,6 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         Action<CodeAction, TextSpan> registerSingleAction,
         Action<ImmutableArray<CodeAction>> registerMultipleActions,
         Accessibility? desiredAccessibility,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         if (document.Project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
@@ -162,7 +159,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         }
 
         var actions = await GenerateConstructorFromMembersAsync(
-            document, textSpan, addNullChecks: false, desiredAccessibility, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            document, textSpan, addNullChecks: false, desiredAccessibility, cancellationToken).ConfigureAwait(false);
         if (!actions.IsDefault)
         {
             registerMultipleActions(actions);
@@ -170,7 +167,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
         if (actions.IsDefaultOrEmpty && textSpan.IsEmpty)
         {
-            var nonSelectionAction = await HandleNonSelectionAsync(document, textSpan, desiredAccessibility, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var nonSelectionAction = await HandleNonSelectionAsync(document, textSpan, desiredAccessibility, cancellationToken).ConfigureAwait(false);
             if (nonSelectionAction != null)
             {
                 registerSingleAction(nonSelectionAction.Value.CodeAction, nonSelectionAction.Value.ApplicableToSpan);
@@ -182,7 +179,6 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         Document document,
         TextSpan textSpan,
         Accessibility? desiredAccessibility,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
@@ -251,33 +247,33 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
         return (new GenerateConstructorWithDialogCodeAction(
                 this, document, textSpan, containingType, desiredAccessibility, viableMembers,
-                pickMemberOptions.ToImmutable(), fallbackOptions), typeDeclaration.Span);
+                pickMemberOptions.ToImmutable()), typeDeclaration.Span);
     }
 
     public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
-        Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, TextSpan textSpan, bool addNullChecks, Accessibility? desiredAccessibility, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructorFromMembers, cancellationToken))
         {
             var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
-                var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var state = await State.TryGenerateAsync(this, document, textSpan, info.ContainingType, desiredAccessibility, info.SelectedMembers, cancellationToken).ConfigureAwait(false);
                 if (state != null && state.MatchingConstructor == null)
-                    return GetCodeActions(document, state, addNullChecks, fallbackOptions);
+                    return GetCodeActions(document, state, addNullChecks);
             }
 
             return default;
         }
     }
 
-    private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CleanCodeGenerationOptionsProvider fallbackOptions)
+    private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks)
     {
         using var result = TemporaryArray<CodeAction>.Empty;
 
-        result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
+        result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks));
         if (state.DelegatedConstructor != null)
-            result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
+            result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks));
 
         return result.ToImmutableAndClear();
     }

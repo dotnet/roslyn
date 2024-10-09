@@ -237,6 +237,11 @@
         <target state="translated">到達できないコードが検出されました</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_System_Threading_Lock">
+        <source>Use 'System.Threading.Lock'</source>
+        <target state="new">Use 'System.Threading.Lock'</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
         <target state="translated">UTF-8 文字列リテラルを使用する</target>

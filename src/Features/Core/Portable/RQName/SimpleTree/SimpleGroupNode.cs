@@ -9,13 +9,11 @@ namespace Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 internal class SimpleGroupNode(string text, IList<SimpleTreeNode> children) : SimpleTreeNode(text)
 {
-    private readonly IList<SimpleTreeNode> _children = children;
-
     public SimpleGroupNode(string text, string singleLeafChildText) : this(text, new SimpleLeafNode(singleLeafChildText)) { }
 
     public SimpleGroupNode(string text, params SimpleTreeNode[] children) : this(text, children.ToList()) { }
 
-    public IList<SimpleTreeNode> Children { get { return _children; } }
+    public IList<SimpleTreeNode> Children { get; } = children;
 
     public SimpleTreeNode this[int index] { get { return Children[index]; } }
 

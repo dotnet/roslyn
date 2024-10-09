@@ -114,7 +114,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim openDocument = subjectDocument.GetOpenTextContainer()
                 Dim sourceGeneratedDocumentId = workspace.GetDocumentIdInCurrentContext(openDocument)
                 Dim document = Assert.IsType(Of SourceGeneratedDocument)(Await workspace.CurrentSolution.GetDocumentAsync(sourceGeneratedDocumentId, includeSourceGenerated:=True))
-                Dim documentServices = document.State.Services
+                Dim documentServices = document.State.DocumentServiceProvider
                 Dim documentOperations = documentServices.GetService(Of IDocumentOperationService)()
 
                 Assert.False(documentOperations.CanApplyChange)

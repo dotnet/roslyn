@@ -2,9 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -41,7 +38,7 @@ internal static class IncrementalGeneratorInitializationContextExtensions
     }
 }
 
-public class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpTestBase
+public sealed class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpTestBase
 {
     #region Non-Incremental tests
 
@@ -51,22 +48,22 @@ public class GeneratorDriverTests_Attributes_FullyQualifiedName : CSharpTestBase
     [Fact]
     public void FindCorrectAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1()
     {
-        var source = @"
-[N1.X]
-class C1 { }
-[N2.X]
-class C2 { }
+        var source = """
+            [N1.X]
+            class C1 { }
+            [N2.X]
+            class C2 { }
 
-namespace N1
-{
-    class XAttribute : System.Attribute { }
-}
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+            }
 
-namespace N2
-{
-    class XAttribute : System.Attribute { }
-}
-";
+            namespace N2
+            {
+                class XAttribute : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -93,22 +90,22 @@ namespace N2
     [InlineData("N1.x")]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingSimpleName1(string name)
     {
-        var source = @"
-[N1.X]
-class C1 { }
-[N2.X]
-class C2 { }
+        var source = """
+            [N1.X]
+            class C1 { }
+            [N2.X]
+            class C2 { }
 
-namespace N1
-{
-    class XAttribute : System.Attribute { }
-}
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+            }
 
-namespace N2
-{
-    class XAttribute : System.Attribute { }
-}
-";
+            namespace N2
+            {
+                class XAttribute : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -130,22 +127,22 @@ namespace N2
     [Fact]
     public void FindCorrectAttributeOnTopLevelClass_WhenSearchingForClassDeclaration2()
     {
-        var source = @"
-[N1.X]
-class C1 { }
-[N2.X]
-class C2 { }
+        var source = """
+            [N1.X]
+            class C1 { }
+            [N2.X]
+            class C2 { }
 
-namespace N1
-{
-    class XAttribute : System.Attribute { }
-}
+            namespace N1
+            {
+                class XAttribute : System.Attribute { }
+            }
 
-namespace N2
-{
-    class XAttribute : System.Attribute { }
-}
-";
+            namespace N2
+            {
+                class XAttribute : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -172,10 +169,10 @@ namespace N2
     [InlineData("System.CLSCompliantAttribute(true)")]
     public void FindAssemblyAttribute1(string attribute)
     {
-        var source = @$"
-using System;
-[assembly: {attribute}]
-";
+        var source = $"""
+            using System;
+            [assembly: {attribute}]
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -202,10 +199,10 @@ using System;
     [InlineData("System.CLSCompliantAttribute(true)")]
     public void FindModuleAttribute1(string attribute)
     {
-        var source = @$"
-using System;
-[module: {attribute}]
-";
+        var source = $"""
+            using System;
+            [module: {attribute}]
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -230,10 +227,10 @@ using System;
     [InlineData("class WithoutAttributes { }")]
     public void FindAssemblyAttribute2(string source2)
     {
-        var source1 = @"
-using System;
-[assembly: CLSCompliant(true)]
-";
+        var source1 = """
+            using System;
+            [assembly: CLSCompliant(true)]
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -257,10 +254,10 @@ using System;
     [InlineData("class WithoutAttributes { }")]
     public void FindAssemblyAttribute3(string source1)
     {
-        var source2 = @"
-using System;
-[assembly: CLSCompliant(true)]
-";
+        var source2 = """
+            using System;
+            [assembly: CLSCompliant(true)]
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -282,14 +279,14 @@ using System;
     [Fact]
     public void FindAssemblyAttribute4()
     {
-        var source1 = @"
-using System;
-[assembly: CLSCompliant(true)]
-";
-        var source2 = @"
-using System;
-[assembly: CLSCompliant(false)]
-";
+        var source1 = """
+            using System;
+            [assembly: CLSCompliant(true)]
+            """;
+        var source2 = """
+            using System;
+            [assembly: CLSCompliant(false)]
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -311,14 +308,14 @@ using System;
     [Fact]
     public void FindTopLocalFunctionAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-[CLSCompliant(true)]
-void LocalFunc()
-{
-}
-";
+            [CLSCompliant(true)]
+            void LocalFunc()
+            {
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -341,20 +338,20 @@ void LocalFunc()
     [Fact]
     public void FindNestedLocalFunctionAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    void M()
-    {
-        [CLSCompliant(true)]
-        void LocalFunc()
-        {
-        }
-    }
-}
-";
+            class C
+            {
+                void M()
+                {
+                    [CLSCompliant(true)]
+                    void LocalFunc()
+                    {
+                    }
+                }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -377,23 +374,23 @@ class C
     [Fact]
     public void FindNestedLocalFunctionAttribute2()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    void M()
-    {
-        var v = () =>
-        {
-            [CLSCompliant(true)]
-            void LocalFunc()
+            class C
             {
+                void M()
+                {
+                    var v = () =>
+                    {
+                        [CLSCompliant(true)]
+                        void LocalFunc()
+                        {
+                        }
+                    };
+                }
             }
-        };
-    }
-}
-";
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -416,13 +413,13 @@ class C
     [Fact]
     public void FindTypeParameterFunctionAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C<[CLSCompliant(true)] T>
-{
-}
-";
+            class C<[CLSCompliant(true)] T>
+            {
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -445,17 +442,17 @@ class C<[CLSCompliant(true)] T>
     [Fact]
     public void FindMethodAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    [CLSCompliant(true)]
-    void M()
-    {
-    }
-}
-";
+            class C
+            {
+                [CLSCompliant(true)]
+                void M()
+                {
+                }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -478,17 +475,17 @@ class C
     [Fact]
     public void FindMethodReturnAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    [return: CLSCompliant(true)]
-    void M()
-    {
-    }
-}
-";
+            class C
+            {
+                [return: CLSCompliant(true)]
+                void M()
+                {
+                }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -511,16 +508,16 @@ class C
     [Fact]
     public void FindPartialMethodAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    [CLSCompliant(true)]
-    internal partial void M();
-    internal partial void M() { }
-}
-";
+            class C
+            {
+                [CLSCompliant(true)]
+                internal partial void M();
+                internal partial void M() { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -543,16 +540,16 @@ class C
     [Fact]
     public void FindPartialMethodAttribute2()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    internal partial void M();
-    [CLSCompliant(true)]
-    internal partial void M() { }
-}
-";
+            class C
+            {
+                internal partial void M();
+                [CLSCompliant(true)]
+                internal partial void M() { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -575,15 +572,15 @@ class C
     [Fact]
     public void FindFieldAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    [CLSCompliant(true)]
-    int m;
-}
-";
+            class C
+            {
+                [CLSCompliant(true)]
+                int m;
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -606,15 +603,15 @@ class C
     [Fact]
     public void FindFieldAttribute2()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    [CLSCompliant(true)]
-    int m, n;
-}
-";
+            class C
+            {
+                [CLSCompliant(true)]
+                int m, n;
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -639,15 +636,15 @@ class C
     [Fact]
     public void FindEventFieldAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    [CLSCompliant(true)]
-    event Action m;
-}
-";
+            class C
+            {
+                [CLSCompliant(true)]
+                event Action m;
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -670,15 +667,15 @@ class C
     [Fact]
     public void FindEventFieldAttribute2()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    [CLSCompliant(true)]
-    event Action m, n;
-}
-";
+            class C
+            {
+                [CLSCompliant(true)]
+                event Action m, n;
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -703,11 +700,11 @@ class C
     [Fact]
     public void FindParenthesizedLambdaAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-Func<int, int> v = [CLSCompliant(true)] (int i) => i;
-";
+            Func<int, int> v = [CLSCompliant(true)] (int i) => i;
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -730,18 +727,18 @@ Func<int, int> v = [CLSCompliant(true)] (int i) => i;
     [Fact]
     public void FindAccessorAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C
-{
-    int Prop
-    {
-        [CLSCompliant(true)]
-        get => 0;
-    }
-}
-";
+            class C
+            {
+                int Prop
+                {
+                    [CLSCompliant(true)]
+                    get => 0;
+                }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -764,13 +761,13 @@ class C
     [Fact]
     public void FindTypeParameterAttribute1()
     {
-        var source = @"
-using System;
+        var source = """
+            using System;
 
-class C<[CLSCompliant(true)]T>
-{
-}
-";
+            class C<[CLSCompliant(true)]T>
+            {
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -793,21 +790,21 @@ class C<[CLSCompliant(true)]T>
     [Fact]
     public void FindNestedAttribute1()
     {
-        var source = @"
-[Outer1.Inner]
-class C1 { }
-[Outer2.Inner]
-class C2 { }
+        var source = """
+            [Outer1.Inner]
+            class C1 { }
+            [Outer2.Inner]
+            class C2 { }
 
-class Outer1
-{
-    public class InnerAttribute : System.Attribute { }
-}
-class Outer2
-{
-    public class InnerAttribute : System.Attribute { }
-}
-";
+            class Outer1
+            {
+                public class InnerAttribute : System.Attribute { }
+            }
+            class Outer2
+            {
+                public class InnerAttribute : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -830,21 +827,21 @@ class Outer2
     [Fact]
     public void FindNestedAttribute2()
     {
-        var source = @"
-[Outer1.Inner]
-class C1 { }
-[Outer2.Inner]
-class C2 { }
+        var source = """
+            [Outer1.Inner]
+            class C1 { }
+            [Outer2.Inner]
+            class C2 { }
 
-class Outer1
-{
-    public class InnerAttribute : System.Attribute { }
-}
-class Outer2
-{
-    public class InnerAttribute : System.Attribute { }
-}
-";
+            class Outer1
+            {
+                public class InnerAttribute : System.Attribute { }
+            }
+            class Outer2
+            {
+                public class InnerAttribute : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -867,21 +864,21 @@ class Outer2
     [Fact]
     public void FindNestedGenericAttribute1()
     {
-        var source = @"
-[Outer1.Inner<int>]
-class C1 { }
-[Outer2.Inner<int, string>]
-class C2 { }
+        var source = """
+            [Outer1.Inner<int>]
+            class C1 { }
+            [Outer2.Inner<int, string>]
+            class C2 { }
 
-class Outer1
-{
-    public class InnerAttribute<T1> : System.Attribute{ }
-}
-class Outer2
-{
-    public class InnerAttribute<T1, T2> : System.Attribute { }
-}
-";
+            class Outer1
+            {
+                public class InnerAttribute<T1> : System.Attribute{ }
+            }
+            class Outer2
+            {
+                public class InnerAttribute<T1, T2> : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -904,21 +901,21 @@ class Outer2
     [Fact]
     public void FindNestedGenericAttribute2()
     {
-        var source = @"
-[Outer1.Inner<int>]
-class C1 { }
-[Outer2.Inner<int, string>]
-class C2 { }
+        var source = """
+            [Outer1.Inner<int>]
+            class C1 { }
+            [Outer2.Inner<int, string>]
+            class C2 { }
 
-class Outer1
-{
-    public class InnerAttribute<T1> : System.Attribute{ }
-}
-class Outer2
-{
-    public class InnerAttribute<T1, T2> : System.Attribute { }
-}
-";
+            class Outer1
+            {
+                public class InnerAttribute<T1> : System.Attribute{ }
+            }
+            class Outer2
+            {
+                public class InnerAttribute<T1, T2> : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -941,21 +938,21 @@ class Outer2
     [Fact]
     public void DoNotFindNestedGenericAttribute1()
     {
-        var source = @"
-[Outer1.Inner<int>]
-class C1 { }
-[Outer2.Inner<int, string>]
-class C2 { }
+        var source = """
+            [Outer1.Inner<int>]
+            class C1 { }
+            [Outer2.Inner<int, string>]
+            class C2 { }
 
-class Outer1
-{
-    public class InnerAttribute<T1> : System.Attribute{ }
-}
-class Outer2
-{
-    public class InnerAttribute<T1, T2> : System.Attribute { }
-}
-";
+            class Outer1
+            {
+                public class InnerAttribute<T1> : System.Attribute{ }
+            }
+            class Outer2
+            {
+                public class InnerAttribute<T1, T2> : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -977,21 +974,21 @@ class Outer2
     [Fact]
     public void DoNotFindNestedGenericAttribute2()
     {
-        var source = @"
-[Outer1.Inner<int>]
-class C1 { }
-[Outer2.Inner<int, string>]
-class C2 { }
+        var source = """
+            [Outer1.Inner<int>]
+            class C1 { }
+            [Outer2.Inner<int, string>]
+            class C2 { }
 
-class Outer1
-{
-    public class InnerAttribute<T1> : System.Attribute{ }
-}
-class Outer2
-{
-    public class InnerAttribute<T1, T2> : System.Attribute { }
-}
-";
+            class Outer1
+            {
+                public class InnerAttribute<T1> : System.Attribute{ }
+            }
+            class Outer2
+            {
+                public class InnerAttribute<T1, T2> : System.Attribute { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1013,12 +1010,12 @@ class Outer2
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists1()
     {
-        var source = @"
-[X][X]
-class C { }
+        var source = """
+            [X][X]
+            class C { }
 
-class XAttribute : System.Attribute { }
-";
+            class XAttribute : System.Attribute { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1050,12 +1047,12 @@ class XAttribute : System.Attribute { }
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists1B()
     {
-        var source = @"
-[X, X]
-class C { }
+        var source = """
+            [X, X]
+            class C { }
 
-class XAttribute : System.Attribute { }
-";
+            class XAttribute : System.Attribute { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1087,13 +1084,13 @@ class XAttribute : System.Attribute { }
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists2()
     {
-        var source = @"
-[X][Y]
-class C { }
+        var source = """
+            [X][Y]
+            class C { }
 
-class XAttribute : System.Attribute { }
-class YAttribute : System.Attribute { }
-";
+            class XAttribute : System.Attribute { }
+            class YAttribute : System.Attribute { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1125,13 +1122,13 @@ class YAttribute : System.Attribute { }
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists2B()
     {
-        var source = @"
-[X, Y]
-class C { }
+        var source = """
+            [X, Y]
+            class C { }
 
-class XAttribute : System.Attribute { }
-class YAttribute : System.Attribute { }
-";
+            class XAttribute : System.Attribute { }
+            class YAttribute : System.Attribute { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1163,13 +1160,13 @@ class YAttribute : System.Attribute { }
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists3()
     {
-        var source = @"
-[Y][X]
-class C { }
+        var source = """
+            [Y][X]
+            class C { }
 
-class XAttribute : System.Attribute { }
-class YAttribute : System.Attribute { }
-";
+            class XAttribute : System.Attribute { }
+            class YAttribute : System.Attribute { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1201,13 +1198,13 @@ class YAttribute : System.Attribute { }
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_MultipleAttributeLists3B()
     {
-        var source = @"
-[Y, X]
-class C { }
+        var source = """
+            [Y, X]
+            class C { }
 
-class XAttribute : System.Attribute { }
-class YAttribute : System.Attribute { }
-";
+            class XAttribute : System.Attribute { }
+            class YAttribute : System.Attribute { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1304,6 +1301,98 @@ class YAttribute : System.Attribute { }
         }
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/runtime/issues/105137")]
+    public void LocalFileAlias_AttributeUsedMultipleTimes1()
+    {
+        var source = """
+            using System.Runtime.InteropServices;
+
+            namespace NetPlayground
+            {
+                using Import = LibraryImportAttribute;
+
+                internal partial class TestImport
+                {
+                    [Import("somedll.dll")]
+                    partial void SomeFunction(int a);
+
+                    [Import("somedll.dll")]
+                    partial void SomeFunction2(int a);
+                }
+            }
+
+            namespace System.Runtime.InteropServices
+            {
+                class LibraryImportAttribute(string s) : System.Attribute { }
+            }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        var compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<MethodDeclarationSyntax>("System.Runtime.InteropServices.LibraryImportAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        var driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        var runResult = driver.RunGenerators(compilation).GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(
+                step.Outputs is [
+                { Value: MethodDeclarationSyntax { Identifier.ValueText: "SomeFunction" } },
+                { Value: MethodDeclarationSyntax { Identifier.ValueText: "SomeFunction2" } }]));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/runtime/issues/105137")]
+    public void LocalFileAlias_AttributeUsedMultipleTimes2(bool withAttribute)
+    {
+        var source = $$"""
+            using System.Runtime.InteropServices;
+
+            namespace NetPlayground
+            {
+                using ImportAttribute = LibraryImportAttribute;
+
+                internal partial class TestImport
+                {
+                    [Import{{(withAttribute ? "Attribute" : "")}}("somedll.dll")]
+                    partial void SomeFunction(int a);
+
+                    [Import{{(withAttribute ? "Attribute" : "")}}("somedll.dll")]
+                    partial void SomeFunction2(int a);
+                }
+            }
+
+            namespace System.Runtime.InteropServices
+            {
+                class LibraryImportAttribute(string s) : System.Attribute { }
+            }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        var compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<MethodDeclarationSyntax>("System.Runtime.InteropServices.LibraryImportAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        var driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        var runResult = driver.RunGenerators(compilation).GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(
+                step.Outputs is [
+                { Value: MethodDeclarationSyntax { Identifier.ValueText: "SomeFunction" } },
+                { Value: MethodDeclarationSyntax { Identifier.ValueText: "SomeFunction2" } }]));
+    }
+
     #endregion
 
     #region Incremental tests
@@ -1313,14 +1402,14 @@ class YAttribute : System.Attribute { }
     [Fact]
     public void RerunOnSameCompilationCachesResultFully()
     {
-        var source = @"
-[X]
-class C { }
+        var source = """
+            [X]
+            class C { }
 
-class XAttribute : System.Attribute
-{
-}
-";
+            class XAttribute : System.Attribute
+            {
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1360,14 +1449,14 @@ class XAttribute : System.Attribute
     [Fact]
     public void RerunWithReferencesChange()
     {
-        var source = @"
-[X]
-class C { }
+        var source = """
+            [X]
+            class C { }
 
-class XAttribute : System.Attribute
-{
-}
-";
+            class XAttribute : System.Attribute
+            {
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1407,14 +1496,14 @@ class XAttribute : System.Attribute
     [Fact]
     public void RerunWithAddedFile1()
     {
-        var source = @"
-[X]
-class C { }
+        var source = """
+            [X]
+            class C { }
 
-class XAttribute : System.Attribute
-{
-}
-";
+            class XAttribute : System.Attribute
+            {
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1454,10 +1543,10 @@ class XAttribute : System.Attribute
     [Fact]
     public void RerunWithAddedFile2()
     {
-        var source = @"
-[X]
-class C { }
-";
+        var source = """
+            [X]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1475,10 +1564,11 @@ class C { }
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
 
-        driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-class XAttribute : System.Attribute
-{
-}"))));
+        driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+            class XAttribute : System.Attribute
+            {
+            }
+            """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
@@ -1499,12 +1589,12 @@ class XAttribute : System.Attribute
     [Fact]
     public void RerunWithAddedFile_MultipleResults_SameFile1()
     {
-        var source = @"
-[X]
-class C1 { }
-[X]
-class C2 { }
-";
+        var source = """
+            [X]
+            class C1 { }
+            [X]
+            class C2 { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1522,10 +1612,11 @@ class C2 { }
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
 
-        driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-class XAttribute : System.Attribute
-{
-}"))));
+        driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+            class XAttribute : System.Attribute
+            {
+            }
+            """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
@@ -1551,14 +1642,14 @@ class XAttribute : System.Attribute
     [Fact]
     public void RerunWithAddedFile_MultipleResults_MultipleFile1()
     {
-        var source1 = @"
-[X]
-class C1 { }
-";
-        var source2 = @"
-[X]
-class C2 { }
-";
+        var source1 = """
+            [X]
+            class C1 { }
+            """;
+        var source2 = """
+            [X]
+            class C2 { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1574,10 +1665,11 @@ class C2 { }
 
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttributeWithMetadataName"));
 
-        driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-class XAttribute : System.Attribute
-{
-}"))));
+        driver = driver.RunGenerators(compilation.AddSyntaxTrees(compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+            class XAttribute : System.Attribute
+            {
+            }
+            """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
@@ -1608,13 +1700,13 @@ class XAttribute : System.Attribute
     [Fact]
     public void RerunWithChangedFileThatNowReferencesAttribute1()
     {
-        var source = @"
-class C { }
+        var source = """
+            class C { }
 
-class XAttribute : System.Attribute
-{
-}
-";
+            class XAttribute : System.Attribute
+            {
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1634,14 +1726,14 @@ class XAttribute : System.Attribute
 
         driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
             compilation.SyntaxTrees.First(),
-            compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-[X]
-class C { }
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+                [X]
+                class C { }
 
-class XAttribute : System.Attribute
-{
-}
-"))));
+                class XAttribute : System.Attribute
+                {
+                }
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
@@ -1661,14 +1753,14 @@ class XAttribute : System.Attribute
     [Fact]
     public void RerunWithChangedFileThatNowReferencesAttribute2()
     {
-        var source1 = @"
-class C { }
-";
-        var source2 = @"
-class XAttribute : System.Attribute
-{
-}
-";
+        var source1 = """
+            class C { }
+            """;
+        var source2 = """
+            class XAttribute : System.Attribute
+            {
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1686,10 +1778,10 @@ class XAttribute : System.Attribute
 
         driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
             compilation.SyntaxTrees.First(),
-            compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-[X]
-class C { }
-"))));
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+                [X]
+                class C { }
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],

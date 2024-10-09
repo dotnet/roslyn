@@ -237,7 +237,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
     }
 
     [Fact]
-    public void TestHostAnalyzerOrdering()
+    public async Task TestHostAnalyzerOrderingAsync()
     {
         using var workspace = CreateWorkspace();
         var exportProvider = workspace.Services.SolutionServices.ExportProvider;
@@ -265,7 +265,8 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
         var service = Assert.IsType<DiagnosticAnalyzerService>(exportProvider.GetExportedValue<IDiagnosticAnalyzerService>());
 
         var incrementalAnalyzer = service.CreateIncrementalAnalyzer(workspace);
-        var analyzers = incrementalAnalyzer.GetAnalyzersTestOnly(project).ToArray();
+        var analyzers = await incrementalAnalyzer.GetAnalyzersTestOnlyAsync(project, CancellationToken.None).ConfigureAwait(false);
+        var analyzersArray = analyzers.ToArray();
 
         AssertEx.Equal(new[]
         {
@@ -278,7 +279,7 @@ dotnet_diagnostic.{DisabledByDefaultAnalyzer.s_compilationRule.Id}.severity = wa
             typeof(Priority10Analyzer),
             typeof(Priority15Analyzer),
             typeof(Priority20Analyzer)
-        }, analyzers.Select(a => a.GetType()));
+        }, analyzersArray.Select(a => a.GetType()));
     }
 
     [Fact]
@@ -701,9 +702,8 @@ class A
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
-        var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
+            document, project, Checksum.Null, span: null, analyzerIdsToRequestDiagnostics,
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
             isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
@@ -749,7 +749,6 @@ class B
         workspace.TryApplyChanges(project.Solution);
 
         project = workspace.CurrentSolution.Projects.Single();
-        var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
         var document = project.Documents.Single();
         var additionalDocument = project.AdditionalDocuments.Single();
 
@@ -772,7 +771,7 @@ class B
                 : AnalysisKind.Semantic;
             var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
             _ = await DiagnosticComputer.GetDiagnosticsAsync(
-                documentToAnalyze, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
+                documentToAnalyze, project, Checksum.Null, filterSpan, analyzerIdsToRequestDiagnostics,
                 analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
                 isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                 CancellationToken.None);
@@ -820,7 +819,6 @@ class A
         var document = project.Documents.Single();
         var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
-        var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
         var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
         var analyzerIds = new[] { analyzer.GetAnalyzerId() };
 
@@ -828,7 +826,7 @@ class A
         Assert.Empty(analyzer.CanceledCompilations);
         try
         {
-            _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
+            _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
                 analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
@@ -841,7 +839,7 @@ class A
         Assert.Single(analyzer.CanceledCompilations);
 
         // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-        var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
+        var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
             analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
             logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
         var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;
@@ -942,24 +940,6 @@ class A
             context.RegisterSemanticModelAction(c => c.ReportDiagnostic(Diagnostic.Create(s_semanticRule, c.SemanticModel.SyntaxTree.GetRoot().GetLocation())));
             context.RegisterCompilationAction(c => c.ReportDiagnostic(Diagnostic.Create(s_compilationRule, c.Compilation.SyntaxTrees.First().GetRoot().GetLocation())));
         }
-    }
-
-    private class OpenFileOnlyAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
-    {
-        internal static readonly DiagnosticDescriptor s_syntaxRule = new DiagnosticDescriptor("syntax", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true);
-
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(s_syntaxRule);
-
-        public override void Initialize(AnalysisContext context)
-            => context.RegisterSyntaxTreeAction(c => c.ReportDiagnostic(Diagnostic.Create(s_syntaxRule, c.Tree.GetRoot().GetLocation())));
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
-
-        public bool IsHighPriority => false;
-
-        public bool OpenFileOnly(SimplifierOptions options)
-            => true;
     }
 
     private class NoNameAnalyzer : DocumentDiagnosticAnalyzer

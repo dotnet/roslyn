@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var events = new List<OptionChangedEventArgs>();
 
-            var handler = new EventHandler<OptionChangedEventArgs>((_, e) => events.Add(e));
+            var handler = new WeakEventHandler<OptionChangedEventArgs>((_, _, e) => events.Add(e));
             globalOptions.AddOptionChangedHandler(this, handler);
 
             var values = globalOptions.GetOptions([new OptionKey2(option1), new OptionKey2(option2)]);

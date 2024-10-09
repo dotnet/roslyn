@@ -201,6 +201,8 @@ internal static class IDEDiagnosticIds
 
     public const string MakeAnonymousFunctionStaticDiagnosticId = "IDE0320";
 
+    public const string UseSystemThreadingLockDiagnosticId = "IDE0330";
+
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
     public const string AnalyzerDependencyConflictId = "IDE1002";

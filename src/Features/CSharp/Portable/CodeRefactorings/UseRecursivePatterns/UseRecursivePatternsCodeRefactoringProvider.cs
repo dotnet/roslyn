@@ -583,7 +583,6 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

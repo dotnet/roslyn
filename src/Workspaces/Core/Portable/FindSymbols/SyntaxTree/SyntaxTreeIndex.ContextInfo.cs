@@ -34,7 +34,8 @@ internal partial class SyntaxTreeIndex
             bool containsGlobalSuppressMessageAttribute,
             bool containsConversion,
             bool containsGlobalKeyword,
-            bool containsCollectionInitializer)
+            bool containsCollectionInitializer,
+            bool containsAttribute)
             : this(predefinedTypes, predefinedOperators,
                    ConvertToContainingNodeFlag(
                      containsForEachStatement,
@@ -52,7 +53,8 @@ internal partial class SyntaxTreeIndex
                      containsGlobalSuppressMessageAttribute,
                      containsConversion,
                      containsGlobalKeyword,
-                     containsCollectionInitializer))
+                     containsCollectionInitializer,
+                     containsAttribute))
         {
         }
 
@@ -79,7 +81,8 @@ internal partial class SyntaxTreeIndex
             bool containsGlobalSuppressMessageAttribute,
             bool containsConversion,
             bool containsGlobalKeyword,
-            bool containsCollectionInitializer)
+            bool containsCollectionInitializer,
+            bool containsAttribute)
         {
             var containingNodes = ContainingNodes.None;
 
@@ -99,6 +102,7 @@ internal partial class SyntaxTreeIndex
             containingNodes |= containsConversion ? ContainingNodes.ContainsConversion : 0;
             containingNodes |= containsGlobalKeyword ? ContainingNodes.ContainsGlobalKeyword : 0;
             containingNodes |= containsCollectionInitializer ? ContainingNodes.ContainsCollectionInitializer : 0;
+            containingNodes |= containsAttribute ? ContainingNodes.ContainsAttribute : 0;
 
             return containingNodes;
         }
@@ -157,6 +161,9 @@ internal partial class SyntaxTreeIndex
         public bool ContainsCollectionInitializer
             => (_containingNodes & ContainingNodes.ContainsCollectionInitializer) == ContainingNodes.ContainsCollectionInitializer;
 
+        public bool ContainsAttribute
+            => (_containingNodes & ContainingNodes.ContainsAttribute) == ContainingNodes.ContainsAttribute;
+
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteInt32(_predefinedTypes);
@@ -201,6 +208,7 @@ internal partial class SyntaxTreeIndex
             ContainsConversion = 1 << 13,
             ContainsGlobalKeyword = 1 << 14,
             ContainsCollectionInitializer = 1 << 15,
+            ContainsAttribute = 1 << 16,
         }
     }
 }

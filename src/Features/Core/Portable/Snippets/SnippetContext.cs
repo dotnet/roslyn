@@ -28,5 +28,10 @@ internal readonly struct SnippetContext
     /// </summary>
     public int Position => SyntaxContext.Position;
 
+    /// <summary>
+    /// The semantic model of the document.
+    /// </summary>
+    public SemanticModel SemanticModel => SyntaxContext.SemanticModel;
+
     internal SyntaxContext SyntaxContext { get; }
 }

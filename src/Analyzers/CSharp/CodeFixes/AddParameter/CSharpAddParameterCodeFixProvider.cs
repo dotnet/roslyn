@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -18,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParameter), Shared]
 [ExtensionOrder(Before = PredefinedCodeFixProviderNames.GenerateConstructor)]
-internal class CSharpAddParameterCodeFixProvider : AbstractAddParameterCodeFixProvider<
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpAddParameterCodeFixProvider() : AbstractAddParameterCodeFixProvider<
     ArgumentSyntax,
     AttributeArgumentSyntax,
     ArgumentListSyntax,
@@ -34,12 +34,6 @@ internal class CSharpAddParameterCodeFixProvider : AbstractAddParameterCodeFixPr
 
     private static readonly ImmutableArray<string> AddParameterFixableDiagnosticIds = [CS1501, CS1503, CS1660, CS1729, CS1739];
 
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpAddParameterCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => AddParameterFixableDiagnosticIds;
 
@@ -52,14 +46,14 @@ internal class CSharpAddParameterCodeFixProvider : AbstractAddParameterCodeFixPr
     protected override ITypeSymbol GetArgumentType(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken)
         => ((ArgumentSyntax)argumentNode).DetermineParameterType(semanticModel, cancellationToken);
 
-    protected override RegisterFixData<ArgumentSyntax> TryGetLanguageSpecificFixInfo(
+    protected override RegisterFixData<ArgumentSyntax>? TryGetLanguageSpecificFixInfo(
         SemanticModel semanticModel,
         SyntaxNode node,
         CancellationToken cancellationToken)
     {
         if (node is ConstructorInitializerSyntax constructorInitializer)
         {
-            var constructorDeclaration = constructorInitializer.Parent;
+            var constructorDeclaration = constructorInitializer.GetRequiredParent();
             if (semanticModel.GetDeclaredSymbol(constructorDeclaration, cancellationToken) is IMethodSymbol constructorSymbol)
             {
                 var type = constructorSymbol.ContainingType;

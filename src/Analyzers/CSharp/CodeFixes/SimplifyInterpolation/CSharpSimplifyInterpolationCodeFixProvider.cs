@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -15,16 +13,12 @@ using Microsoft.CodeAnalysis.SimplifyInterpolation;
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyInterpolation;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyInterpolation), Shared]
-internal class CSharpSimplifyInterpolationCodeFixProvider : AbstractSimplifyInterpolationCodeFixProvider<
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpSimplifyInterpolationCodeFixProvider() : AbstractSimplifyInterpolationCodeFixProvider<
     InterpolationSyntax, ExpressionSyntax, InterpolationAlignmentClauseSyntax,
     InterpolationFormatClauseSyntax, InterpolatedStringExpressionSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpSimplifyInterpolationCodeFixProvider()
-    {
-    }
-
     protected override AbstractSimplifyInterpolationHelpers GetHelpers() => CSharpSimplifyInterpolationHelpers.Instance;
 
     protected override InterpolationSyntax WithExpression(InterpolationSyntax interpolation, ExpressionSyntax expression)
@@ -33,7 +27,7 @@ internal class CSharpSimplifyInterpolationCodeFixProvider : AbstractSimplifyInte
     protected override InterpolationSyntax WithAlignmentClause(InterpolationSyntax interpolation, InterpolationAlignmentClauseSyntax alignmentClause)
         => interpolation.WithAlignmentClause(alignmentClause);
 
-    protected override InterpolationSyntax WithFormatClause(InterpolationSyntax interpolation, InterpolationFormatClauseSyntax formatClause)
+    protected override InterpolationSyntax WithFormatClause(InterpolationSyntax interpolation, InterpolationFormatClauseSyntax? formatClause)
         => interpolation.WithFormatClause(formatClause);
 
     protected override string Escape(InterpolatedStringExpressionSyntax interpolatedString, string formatString)

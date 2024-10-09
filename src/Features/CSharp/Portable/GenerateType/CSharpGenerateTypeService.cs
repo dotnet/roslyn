@@ -743,7 +743,7 @@ internal class CSharpGenerateTypeService :
         => expression is SimpleNameSyntax;
 
     internal override async Task<Solution> TryAddUsingsOrImportToDocumentAsync(
-        Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, AddImportPlacementOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Solution updatedSolution, SyntaxNode modifiedRoot, Document document, SimpleNameSyntax simpleName, string includeUsingsOrImports, CancellationToken cancellationToken)
     {
         // Nothing to include
         if (string.IsNullOrWhiteSpace(includeUsingsOrImports))
@@ -779,7 +779,7 @@ internal class CSharpGenerateTypeService :
                 return updatedSolution;
             }
 
-            var addImportOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addImportOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
             var addedCompilationRoot = compilationRoot.AddUsingDirectives([usingDirective], addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation);
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
         }

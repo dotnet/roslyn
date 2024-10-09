@@ -66,7 +66,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase : AbstractO
         Document document,
         int position,
         SignatureHelpTriggerInfo triggerInfo,
-        SignatureHelpOptions options,
+        MemberDisplayOptions options,
         CancellationToken cancellationToken)
     {
         var invocationExpression = await TryGetInvocationExpressionAsync(

@@ -1113,20 +1113,21 @@ System.Console.Write(d);
 await System.Threading.Tasks.Task.Yield();
 ";
 
-            var expectedDiagnostics = new[]
-            {
-                // (3,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // ref int d = ref c;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "d").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 9)
-            };
-
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS8773: Feature 'ref and unsafe in async and iterator methods' is not available in C# 9.0. Please use language version 13.0 or greater.
+                // ref int d = ref c;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "d").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(3, 9)
+                );
 
             comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                // ref int d = ref c;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "d").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(3, 9)
+                );
 
-            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(text, options: TestOptions.DebugExe);

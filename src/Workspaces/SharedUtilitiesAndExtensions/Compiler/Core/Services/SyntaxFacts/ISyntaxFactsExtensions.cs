@@ -561,6 +561,12 @@ internal static class ISyntaxFactsExtensions
         return members;
     }
 
+    public static SyntaxNode GetNameOfAttribute(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+    {
+        syntaxFacts.GetPartsOfAttribute(node, out var name, out _);
+        return name;
+    }
+
     public static SyntaxNode GetNameOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
     {
         syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out var name, out _, out _);
@@ -628,6 +634,15 @@ internal static class ISyntaxFactsExtensions
 
         syntaxFacts.GetPartsOfMemberAccessExpression(parent, out var expression, out _);
         return node == expression;
+    }
+
+    public static bool IsNameOfAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+    {
+        if (!syntaxFacts.IsAttribute(node?.Parent))
+            return false;
+
+        syntaxFacts.GetPartsOfAttribute(node.Parent, out var name, out _);
+        return name == node;
     }
 
     public static bool IsRightOfQualifiedName(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)

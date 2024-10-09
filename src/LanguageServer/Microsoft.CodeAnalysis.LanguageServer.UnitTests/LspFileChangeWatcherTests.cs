@@ -20,7 +20,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     {
         Workspace = new WorkspaceClientCapabilities
         {
-            DidChangeWatchedFiles = new DynamicRegistrationSetting { DynamicRegistration = true }
+            DidChangeWatchedFiles = new DidChangeWatchedFilesClientCapabilities { DynamicRegistration = true }
         }
     };
 
@@ -61,13 +61,13 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var tempDirectory = tempRoot.CreateDirectory();
 
         // Try creating a context and ensure we created the registration
-        var context = lspFileChangeWatcher.CreateContext(new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilter: null));
+        var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilter: null)]);
         await WaitForFileWatcherAsync(testLspServer);
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.BaseUri.LocalPath);
-        Assert.Equal("**/*", watcher.GlobPattern.Pattern);
+        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.Second.LocalPath);
+        Assert.Equal("**/*", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
         context.Dispose();
@@ -92,14 +92,14 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var tempDirectory = tempRoot.CreateDirectory();
 
         // Try creating a single file watch and ensure we created the registration
-        var context = lspFileChangeWatcher.CreateContext();
+        var context = lspFileChangeWatcher.CreateContext([]);
         var watchedFile = context.EnqueueWatchingFile("Z:\\SingleFile.txt");
         await WaitForFileWatcherAsync(testLspServer);
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal("Z:\\", watcher.GlobPattern.BaseUri.LocalPath);
-        Assert.Equal("SingleFile.txt", watcher.GlobPattern.Pattern);
+        Assert.Equal("Z:\\", watcher.GlobPattern.Second.BaseUri.Second.LocalPath);
+        Assert.Equal("SingleFile.txt", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
         watchedFile.Dispose();
@@ -134,7 +134,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         }
 
         [JsonRpcMethod("client/unregisterCapability", UseSingleObjectParameterDeserialization = true)]
-        public Task UnregisterCapabilityAsync(UnregistrationParamsWithMisspelling unregistrationParams, CancellationToken _)
+        public Task UnregisterCapabilityAsync(UnregistrationParams unregistrationParams, CancellationToken _)
         {
             foreach (var unregistration in unregistrationParams.Unregistrations)
                 Assert.True(Registrations.TryRemove(unregistration.Id, out var _));

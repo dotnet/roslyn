@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
@@ -22,10 +24,24 @@ internal interface IMetadataAsSourceFileService
     /// representation of the original sources; otherwise <see langword="true"/> to only show member
     /// signatures.</param>
     /// <param name="options">Options to use when navigating. See <see cref="MetadataAsSourceOptions"/> for details.</param>
-    Task<MetadataAsSourceFile> GetGeneratedFileAsync(Workspace sourceWorkspace, Project sourceProject, ISymbol symbol, bool signaturesOnly, MetadataAsSourceOptions options, CancellationToken cancellationToken = default);
+    Task<MetadataAsSourceFile> GetGeneratedFileAsync(
+        Workspace sourceWorkspace,
+        Project sourceProject,
+        ISymbol symbol,
+        bool signaturesOnly,
+        MetadataAsSourceOptions options,
+        CancellationToken cancellationToken);
 
-    bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer buffer);
+    /// <summary>
+    /// Checks if the given file path is a metadata as source file and adds to the metadata workspace if it is.
+    /// Callers must ensure this is only called serially.
+    /// </summary>
+    bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId);
 
+    /// <summary>
+    /// Checks if the given file path is a metadata as source file and removes from the metadata workspace if it is.
+    /// Callers must ensure this is only called serially.
+    /// </summary>
     bool TryRemoveDocumentFromWorkspace(string filePath);
 
     bool IsNavigableMetadataSymbol(ISymbol symbol);

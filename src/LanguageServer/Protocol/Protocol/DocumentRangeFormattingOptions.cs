@@ -8,14 +8,13 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the document range formatting options for server capabilities.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentRangeFormattingOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DocumentRangeFormattingOptions : IWorkDoneProgressOptions
     {
-        /// <summary>
-        /// Gets or sets a value indicating whether work done progress is supported.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName("workDoneProgress")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }

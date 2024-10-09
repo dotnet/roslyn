@@ -27,47 +27,208 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("internal")]
         [InlineData("protected")]
         [InlineData("private")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/74484")]
         public void AccessibilityModifierErrorRecovery(string accessibility)
         {
-            var file = ParseTree($@"
-class C
-{{
-    void M()
-    {{
-        // bad visibility modifier
-        {accessibility} void localFunc() {{}}
-    }}
-    void M2()
-    {{
-        typing
-        {accessibility} void localFunc() {{}}
-    }}
-    void M3()
-    {{
-    // Ambiguous between local func with bad modifier and missing closing
-    // brace on previous method. Parsing currently assumes the former,
-    // assuming the tokens are parseable as a local func.
-    {accessibility} void M4() {{}}
-}}");
+            var text = $$"""
+                class C
+                {
+                    void M()
+                    {
+                        // bad visibility modifier
+                        {{accessibility}} void localFunc() {}
+                    }
+                    void M2()
+                    {
+                        typing
+                        {{accessibility}} void localFunc() {}
+                    }
+                    void M3()
+                    {
+                    // Ambiguous between local func with bad modifier and missing closing
+                    // brace on previous method. Parsing currently assumes the latter
+                    {{accessibility}} void M4() {}
+                }
+                """;
 
-            Assert.NotNull(file);
-            file.GetDiagnostics().Verify(
-                // (7,9): error CS0106: The modifier '{accessibility}' is not valid for this item
-                //         {accessibility} void localFunc() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(7, 9),
-                // (11,15): error CS1002: ; expected
+            UsingTree(text,
+                // (4,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
+                // (8,5): error CS8803: Top-level statements must precede namespace and type declarations.
+                //     void M2()
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, """
+                void M2()
+                    {
+                        typing
+
+                """).WithLocation(8, 5),
+                // (10,15): error CS1002: ; expected
                 //         typing
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(11, 15),
-                // (12,9): error CS0106: The modifier '{accessibility}' is not valid for this item
-                //         {accessibility} void localFunc() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(12, 9),
-                // (19,5): error CS0106: The modifier '{accessibility}' is not valid for this item
-                //     {accessibility} void M4() {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, accessibility).WithArguments(accessibility).WithLocation(19, 5),
-                // (20,2): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 15),
+                // (10,15): error CS1513: } expected
+                //         typing
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 15),
+                // (11,9): error CS0106: The modifier 'internal' is not valid for this item
+                //         internal void localFunc() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, $"{accessibility}").WithArguments($"{accessibility}").WithLocation(11, 9),
+                // (12,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 5),
+                // (14,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(14, 6),
+                // (18,5): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal void M4() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, $"{accessibility}").WithArguments($"{accessibility}").WithLocation(17, 5),
+                // (19,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(20, 2)
-                );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(18, 1));
+
+            var accessibilityKind = SyntaxFacts.GetKeywordKind(accessibility);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(accessibilityKind);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "localFunc");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M2");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "typing");
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(accessibilityKind);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "localFunc");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M3");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            M(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.LocalFunctionStatement);
+                    {
+                        N(accessibilityKind);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M4");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]

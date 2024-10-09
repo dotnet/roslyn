@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     continue;
                 }
 
-                var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, [diagnostic], CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult();
+                var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, [diagnostic], CancellationToken.None).GetAwaiter().GetResult();
                 if (fixes == null || fixes.Count() <= 0)
                 {
                     continue;
@@ -141,8 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public bool IsHighPriority => false;
-
-            public bool OpenFileOnly(SimplifierOptions options) => false;
 
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 

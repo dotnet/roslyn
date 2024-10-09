@@ -72,7 +72,6 @@ public abstract partial class CodeAction
     internal static async Task<Solution> CleanSyntaxAndSemanticsAsync(
         Solution originalSolution,
         Solution changedSolution,
-        CodeCleanupOptionsProvider optionsProvider,
         IProgress<CodeAnalysisProgress> progress,
         CancellationToken cancellationToken)
     {
@@ -95,7 +94,7 @@ public abstract partial class CodeAction
                 // Only care about documents that support syntax.  Non-C#/VB files can't be cleaned.
                 if (document.SupportsSyntaxTree)
                 {
-                    var codeActionOptions = await document.GetCodeCleanupOptionsAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+                    var codeActionOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
                     documentIdsAndOptions.Add((documentId, codeActionOptions));
                 }
             }

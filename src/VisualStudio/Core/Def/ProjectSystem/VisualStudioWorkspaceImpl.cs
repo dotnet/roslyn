@@ -679,7 +679,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         bool ShouldApplyChangesToMappedDocuments(CodeAnalysis.Document document, [NotNullWhen(true)] out ISpanMappingService? spanMappingService)
         {
-            spanMappingService = document.Services.GetService<ISpanMappingService>();
+            spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
             // Only consider files that are mapped and that we are unable to apply changes to.
             // TODO - refactor how this is determined - https://github.com/dotnet/roslyn/issues/47908
             return spanMappingService != null && document?.CanApplyChange() == false;

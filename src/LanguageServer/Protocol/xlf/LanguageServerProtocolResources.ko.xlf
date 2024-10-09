@@ -7,6 +7,21 @@
         <target state="translated">URI를 역직렬화할 수 없습니다. 예기치 않은 값 {0}이(가) 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FormattingOptionsEncounteredInvalidToken">
+        <source>Unable to deserialize FormattingOptions. Invalid token: {0}</source>
+        <target state="new">Unable to deserialize FormattingOptions. Invalid token: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsEndedUnexpectedly">
+        <source>Unable to deserialize FormattingOptions as it ended unexpectedly</source>
+        <target state="new">Unable to deserialize FormattingOptions as it ended unexpectedly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsMissingRequiredProperty">
+        <source>Unable to deserialize FormattingOptions. Missing required property: {0}</source>
+        <target state="new">Unable to deserialize FormattingOptions. Missing required property: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MarkupContentSerializationError">
         <source>Unable to deserialize MarkupContent. Unexpected value encountered: {0}</source>
         <target state="translated">MarkupContent를 역직렬화할 수 없습니다. 예기치 않은 값 {0}이(가) 있습니다.</target>

@@ -45,7 +45,9 @@ var app = new EngineeringApp(product);
 
 app.Configure(delegate (IConfigurator root)
 {
-    root.AddCommand<PushNuGetDependenciesCommand>("push-nuget-dependencies").WithData(product).WithDescription("Pushes NuGet dependencies not coming from NuGet.org to Azure Artifacts repository. See See docs-Metalama/Merging.md for details.");
+    root.AddCommand<PushNuGetDependenciesCommand>("push-nuget-dependencies")
+        .WithData(new BaseCommandData(product))
+        .WithDescription("Pushes NuGet dependencies not coming from NuGet.org to Azure Artifacts repository. See See docs-Metalama/Merging.md for details.");
 });
 
 return app.Run( args );

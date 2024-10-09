@@ -79,8 +79,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return DiagnosticAnalysisResult.CreateEmpty(projectId, version);
         }
 
-        internal IEnumerable<DiagnosticAnalyzer> GetAnalyzersTestOnly(Project project)
-            => _stateManager.GetOrCreateStateSets(project).Select(s => s.Analyzer);
+        internal async Task<IEnumerable<DiagnosticAnalyzer>> GetAnalyzersTestOnlyAsync(Project project, CancellationToken cancellationToken)
+        {
+            var analyzers = await _stateManager.GetOrCreateStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
+
+            return analyzers.Select(s => s.Analyzer);
+        }
 
         private static string GetProjectLogMessage(Project project, ImmutableArray<StateSet> stateSets)
             => $"project: ({project.Id}), ({string.Join(Environment.NewLine, stateSets.Select(s => s.Analyzer.ToString()))})";

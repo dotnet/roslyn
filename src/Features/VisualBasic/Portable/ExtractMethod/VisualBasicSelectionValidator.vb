@@ -16,9 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Inherits SelectionValidator(Of VisualBasicSelectionResult, ExecutableStatementSyntax)
 
         Public Sub New(document As SemanticDocument,
-                       textSpan As TextSpan,
-                       options As ExtractMethodOptions)
-            MyBase.New(document, textSpan, options)
+                       textSpan As TextSpan)
+            MyBase.New(document, textSpan)
         End Sub
 
         Public Overrides Async Function GetValidSelectionAsync(cancellationToken As CancellationToken) As Task(Of (VisualBasicSelectionResult, OperationStatus))
@@ -65,7 +64,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Dim result = Await VisualBasicSelectionResult.CreateResultAsync(
                 selectionInfo.OriginalSpan,
                 selectionInfo.FinalSpan,
-                Me.Options,
                 selectionInfo.SelectionInExpression,
                 Me.SemanticDocument,
                 selectionInfo.FirstTokenInFinalSpan,

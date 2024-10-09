@@ -7,7 +7,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,7 +18,7 @@ internal class ArrowExpressionClauseStructureProvider : AbstractSyntaxNodeStruct
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         ArrowExpressionClauseSyntax node,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {

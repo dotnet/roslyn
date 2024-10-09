@@ -106,7 +106,7 @@ internal class StackTraceExplorerCommandHandler : IVsBroadcastMessageEvents, IDi
         }
     }
 
-    private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
+    private void GlobalOptionChanged(object sender, object target, OptionChangedEventArgs e)
     {
         bool? enabled = null;
         foreach (var (key, newValue) in e.ChangedOptions)

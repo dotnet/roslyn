@@ -28,7 +28,7 @@ internal class CSharpDecompiledSourceService : IDecompiledSourceService
     {
     }
 
-    public async Task<Document?> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference? metadataReference, string? assemblyLocation, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    public async Task<Document?> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference? metadataReference, string? assemblyLocation, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
     {
         // Get the name of the type the symbol is in
         var containingOrThis = symbol.GetContainingTypeOrThis();
@@ -52,7 +52,7 @@ internal class CSharpDecompiledSourceService : IDecompiledSourceService
         return await FormatDocumentAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+    public static async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
     {
         var node = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -60,7 +60,7 @@ internal class CSharpDecompiledSourceService : IDecompiledSourceService
         var formattedDoc = await Formatter.FormatAsync(
              document,
              [node.FullSpan],
-             options,
+             formattingOptions,
              [CSharpDecompiledSourceFormattingRule.Instance, .. Formatter.GetDefaultFormattingRules(document)],
              cancellationToken).ConfigureAwait(false);
 

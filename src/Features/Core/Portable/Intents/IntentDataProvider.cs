@@ -5,14 +5,12 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Features.Intents;
 
 internal sealed class IntentDataProvider(
-    string? serializedIntentData,
-    CleanCodeGenerationOptionsProvider fallbackOptions)
+    string? serializedIntentData)
 {
     private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
     {
@@ -23,8 +21,6 @@ internal sealed class IntentDataProvider(
         serializerOptions.Converters.Add(new JsonStringEnumConverter());
         return serializerOptions;
     });
-
-    public readonly CleanCodeGenerationOptionsProvider FallbackOptions = fallbackOptions;
 
     private readonly string? _serializedIntentData = serializedIntentData;
 

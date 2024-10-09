@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class TextDocumentState
+internal abstract partial class TextDocumentState
 {
     public bool TryGetStateChecksums([NotNullWhen(returnValue: true)] out DocumentStateChecksums? stateChecksums)
         => _lazyChecksums.TryGetValue(out stateChecksums);

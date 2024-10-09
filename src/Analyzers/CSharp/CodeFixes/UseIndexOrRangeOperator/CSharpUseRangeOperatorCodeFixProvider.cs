@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,20 +23,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 
 using static CodeFixHelpers;
-using static CSharpUseRangeOperatorDiagnosticAnalyzer;
 using static CSharpSyntaxTokens;
+using static CSharpUseRangeOperatorDiagnosticAnalyzer;
 using static Helpers;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseRangeOperator), Shared]
-internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpUseRangeOperatorCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpUseRangeOperatorCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseRangeOperatorDiagnosticId];
 
@@ -49,7 +44,7 @@ internal class CSharpUseRangeOperatorCodeFixProvider : SyntaxEditorBasedCodeFixP
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var invocationNodes = diagnostics.Select(d => GetInvocationExpression(d, cancellationToken))
                                          .OrderByDescending(i => i.SpanStart)

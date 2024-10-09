@@ -206,6 +206,10 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         _sessionId = default;
     }
 
+    // access to internal API:
+    public static Solution WithProjectInfo(Solution solution, ProjectInfo info)
+        => solution.WithProjectInfo(info);
+
     internal TestAccessor GetTestAccessor()
         => new(this);
 

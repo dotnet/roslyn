@@ -17,19 +17,15 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddDocCommentNodes), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-internal class CSharpAddDocCommentNodesCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpAddDocCommentNodesCodeFixProvider()
     : AbstractAddDocCommentNodesCodeFixProvider<XmlElementSyntax, XmlNameAttributeSyntax, XmlTextSyntax, MemberDeclarationSyntax>
 {
     /// <summary>
     /// Parameter has no matching param tag in XML comment
     /// </summary>
     private const string CS1573 = nameof(CS1573);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpAddDocCommentNodesCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1573];
 

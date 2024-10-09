@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,19 +19,23 @@ internal interface IQueueItem<TRequestContext>
     /// <summary>
     /// Executes the work specified by this queue item.
     /// </summary>
-    /// <param name="requestContext">the context created by <see cref="CreateRequestContextAsync(IMethodHandler, CancellationToken)"/></param>
+    /// <param name="request">The request parameters.</param>
+    /// <param name="context">The context created by <see cref="CreateRequestContextAsync{TRequest}(IMethodHandler, RequestHandlerMetadata, AbstractLanguageServer{TRequestContext}, CancellationToken)"/>.</param>
     /// <param name="handler">The handler to use to execute the request.</param>
+    /// <param name="language">The language for the request.</param>
     /// <param name="cancellationToken" />
     /// <returns>A <see cref="Task "/> which completes when the request has finished.</returns>
-    Task StartRequestAsync(TRequestContext requestContext, IMethodHandler handler, CancellationToken cancellationToken);
+    Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, string language, CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates the context that is sent to the handler for this queue item.
     /// Note - this method is always called serially inside the queue before
-    /// running the actual request in <see cref="StartRequestAsync(TRequestContext, IMethodHandler, CancellationToken)"/>
+    /// running the actual request in <see cref="StartRequestAsync{TRequest, TResponse}(TRequest, TRequestContext?, IMethodHandler, string, CancellationToken)"/>
     /// Throwing in this method will cause the server to shutdown.
+    /// 
+    /// If there was a recoverable failure in creating the request, this will return null and the caller should stop processing the request.
     /// </summary>
-    Task<TRequestContext> CreateRequestContextAsync(IMethodHandler handler, CancellationToken cancellationToken);
+    Task<(TRequestContext, TRequest)?> CreateRequestContextAsync<TRequest>(IMethodHandler handler, RequestHandlerMetadata requestHandlerMetadata, AbstractLanguageServer<TRequestContext> languageServer, CancellationToken cancellationToken);
 
     /// <summary>
     /// Provides access to LSP services.
@@ -44,18 +47,5 @@ internal interface IQueueItem<TRequestContext>
     /// </summary>
     string MethodName { get; }
 
-    /// <summary>
-    /// The language of the request. The default is <see cref="LanguageServerConstants.DefaultLanguageName"/>
-    /// </summary>
-    string Language { get; }
-
-    /// <summary>
-    /// The type of the request.
-    /// </summary>
-    Type? RequestType { get; }
-
-    /// <summary>
-    /// The type of the response.
-    /// </summary>
-    Type? ResponseType { get; }
+    object? SerializedRequest { get; }
 }

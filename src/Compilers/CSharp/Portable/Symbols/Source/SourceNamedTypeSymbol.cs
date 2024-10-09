@@ -1882,7 +1882,7 @@ next:;
 
                     if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier)
                     {
-                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType(ignoreSpanLikeTypes: true))
                         {
                             diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
                         }

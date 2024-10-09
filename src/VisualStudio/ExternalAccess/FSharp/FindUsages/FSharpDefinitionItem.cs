@@ -12,15 +12,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
 {
     internal class FSharpDefinitionItem
     {
-        private readonly DefinitionItem _roslynDefinitionItem;
-
         private FSharpDefinitionItem(DefinitionItem roslynDefinitionItem)
         {
-            _roslynDefinitionItem = roslynDefinitionItem;
+            RoslynDefinitionItem = roslynDefinitionItem;
         }
 
-        internal DefinitionItem RoslynDefinitionItem
-            => _roslynDefinitionItem;
+        internal DefinitionItem RoslynDefinitionItem { get; }
 
         public static FSharpDefinitionItem Create(ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts, FSharpDocumentSpan sourceSpan)
             => new(

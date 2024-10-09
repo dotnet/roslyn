@@ -13,6 +13,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -57,6 +59,8 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsHostAssembly(Assembly assembly)
         {
+            CheckIfDisposed();
+
             var alc = AssemblyLoadContext.GetLoadContext(assembly);
             return alc == _compilerLoadContext || alc == AssemblyLoadContext.Default;
         }
@@ -83,25 +87,37 @@ namespace Microsoft.CodeAnalysis
 
         internal DirectoryLoadContext[] GetDirectoryLoadContextsSnapshot()
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 return _loadContextByDirectory.Values.OrderBy(v => v.Directory).ToArray();
             }
         }
 
-        internal void UnloadAll()
+        private partial void DisposeWorker()
         {
-            List<DirectoryLoadContext> contexts;
+            var contexts = ArrayBuilder<DirectoryLoadContext>.GetInstance();
             lock (_guard)
             {
-                contexts = _loadContextByDirectory.Values.ToList();
+                foreach (var (_, context) in _loadContextByDirectory)
+                    contexts.Add(context);
+
                 _loadContextByDirectory.Clear();
             }
 
             foreach (var context in contexts)
             {
-                context.Unload();
+                try
+                {
+                    context.Unload();
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+                {
+                }
             }
+
+            contexts.Free();
         }
 
         internal sealed class DirectoryLoadContext : AssemblyLoadContext

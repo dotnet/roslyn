@@ -2447,7 +2447,7 @@ class Program
 }
 ";
             // Use a compilation profile that supports Task<T>.
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
@@ -2512,7 +2512,7 @@ class Program
 }
 ";
             // Use a compilation profile that supports Task<T>.
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
@@ -2572,7 +2572,7 @@ class Program
 }
 ";
             // Use a compilation profile that supports Task<T>.
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case 1: 1
@@ -2628,7 +2628,7 @@ class Program
 }
 ";
             // Use a compilation profile that supports Task<T>.
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation, expectedOutput:
 @"case: 3
@@ -2665,7 +2665,7 @@ class Test
 }
 ";
             // Use a compilation profile that supports Task<T>.
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics(
                 // (12,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     public static async Task<string> SendMessageAsync<T>(object response)
@@ -3207,7 +3207,7 @@ static class Ex
 }
 ";
             // Use a compilation profile that supports Task<T>.
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 source, options: TestOptions.ReleaseDll.WithOptimizationLevel(OptimizationLevel.Release), references: new[] { SystemCoreRef, CSharpRef });
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation);

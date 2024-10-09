@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 if (value is NamingStylePreferences namingStylePreferences)
                 {
-                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, optionKey.Language!, analyzerConfig);
+                    namingStylePreferences.AppendToEditorConfig(optionKey.Language!, analyzerConfig);
                     continue;
                 }
 

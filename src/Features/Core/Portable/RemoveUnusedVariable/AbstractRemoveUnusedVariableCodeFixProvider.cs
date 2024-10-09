@@ -57,7 +57,7 @@ internal abstract class AbstractRemoveUnusedVariableCodeFixProvider<TLocalDeclar
         }
     }
 
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor syntaxEditor, CancellationToken cancellationToken)
     {
         var nodesToRemove = new HashSet<SyntaxNode>();
 

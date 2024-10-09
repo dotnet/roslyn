@@ -1520,7 +1520,7 @@ public class WorkspaceTests_EditorFeatures : TestBase
         primaryWorkspace.GlobalOptions.RemoveOptionChangedHandler(this, OptionService_OptionChanged);
         return;
 
-        void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
+        void OptionService_OptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
             // CurrentSolution has been updated when the event fires.
 

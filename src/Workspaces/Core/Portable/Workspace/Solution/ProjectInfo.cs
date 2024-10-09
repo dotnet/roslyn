@@ -230,7 +230,7 @@ public sealed class ProjectInfo
                 name ?? throw new ArgumentNullException(nameof(name)),
                 assemblyName ?? throw new ArgumentNullException(nameof(assemblyName)),
                 language ?? throw new ArgumentNullException(nameof(language)),
-                compilationOutputFilePaths: default,
+                compilationOutputInfo: default,
                 checksumAlgorithm: SourceHashAlgorithm.Sha1,
                 defaultNamespace: null,
                 filePath: filePath,
@@ -401,7 +401,7 @@ public sealed class ProjectInfo
         string name,
         string assemblyName,
         string language,
-        CompilationOutputInfo compilationOutputFilePaths,
+        CompilationOutputInfo compilationOutputInfo,
         SourceHashAlgorithm checksumAlgorithm,
         string? defaultNamespace = null,
         string? filePath = null,
@@ -460,7 +460,7 @@ public sealed class ProjectInfo
         /// <summary>
         /// Paths to the compiler output files.
         /// </summary>
-        public CompilationOutputInfo CompilationOutputInfo { get; } = compilationOutputFilePaths;
+        public CompilationOutputInfo CompilationOutputInfo { get; } = compilationOutputInfo;
 
         /// <summary>
         /// The default namespace of the project.

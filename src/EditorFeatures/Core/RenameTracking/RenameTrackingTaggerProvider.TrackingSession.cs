@@ -45,14 +45,11 @@ internal sealed partial class RenameTrackingTaggerProvider
 
         private Task<bool> _newIdentifierBindsTask = SpecializedTasks.False;
 
-        private readonly string _originalName;
-        public string OriginalName => _originalName;
+        public string OriginalName { get; }
 
-        private readonly ITrackingSpan _trackingSpan;
-        public ITrackingSpan TrackingSpan => _trackingSpan;
+        public ITrackingSpan TrackingSpan { get; }
 
-        private bool _forceRenameOverloads;
-        public bool ForceRenameOverloads => _forceRenameOverloads;
+        public bool ForceRenameOverloads { get; private set; }
 
         public TrackingSession(
             StateMachine stateMachine,
@@ -61,7 +58,7 @@ internal sealed partial class RenameTrackingTaggerProvider
         {
             _threadingContext = stateMachine.ThreadingContext;
             _asyncListener = asyncListener;
-            _trackingSpan = snapshotSpan.Snapshot.CreateTrackingSpan(snapshotSpan.Span, SpanTrackingMode.EdgeInclusive);
+            TrackingSpan = snapshotSpan.Snapshot.CreateTrackingSpan(snapshotSpan.Span, SpanTrackingMode.EdgeInclusive);
             _cancellationToken = _cancellationTokenSource.Token;
 
             if (snapshotSpan.Length > 0)
@@ -71,7 +68,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                 // renameable identifier. If it is, alert the state machine so it can trigger
                 // tagging.
 
-                _originalName = snapshotSpan.GetText();
+                OriginalName = snapshotSpan.GetText();
                 _isRenamableIdentifierTask = Task.Factory.SafeStartNewFromAsync(
                     () => DetermineIfRenamableIdentifierAsync(snapshotSpan, initialCheck: true),
                     _cancellationToken,
@@ -194,7 +191,7 @@ internal sealed partial class RenameTrackingTaggerProvider
                     if (renameSymbolInfo.IsMemberGroup)
                     {
                         // This is a reference from a nameof expression. Allow the rename but set the RenameOverloads option
-                        _forceRenameOverloads = true;
+                        ForceRenameOverloads = true;
 
                         return await DetermineIfRenamableSymbolsAsync(renameSymbolInfo.Symbols, document).ConfigureAwait(false);
                     }

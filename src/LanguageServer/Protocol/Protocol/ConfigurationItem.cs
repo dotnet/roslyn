@@ -9,8 +9,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents an configuration item.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#configurationItem">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class ConfigurationItem
     {

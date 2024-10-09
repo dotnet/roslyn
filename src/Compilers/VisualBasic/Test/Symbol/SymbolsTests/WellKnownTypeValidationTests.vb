@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -466,7 +467,7 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypeMembers()
-            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
+            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {Net461.References.mscorlib})
 
             For Each special As SpecialMember In [Enum].GetValues(GetType(SpecialMember))
                 Select Case special
@@ -496,8 +497,7 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
-                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
-                   special = SpecialMember.System_Array__Empty Then
+                   special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference Then
                     Assert.Null(symbol) ' Not available
                 Else
                     Assert.NotNull(symbol)
@@ -823,6 +823,7 @@ End Namespace
                          WellKnownMember.System_Span_T__CopyTo_Span_T,
                          WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
                         ' Not always available.
@@ -1030,6 +1031,7 @@ End Namespace
                          WellKnownMember.System_Span_T__CopyTo_Span_T,
                          WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
                         ' Not always available.

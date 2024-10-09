@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            AssertEx.EqualOrDiff("error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(value, token.ValueText);
         }
 
@@ -1168,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "\e"
                 """;
             var value = "\u001b";
-            var token = LexToken(text, TestOptions.RegularNext);
+            var token = LexToken(text, TestOptions.Regular13);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            AssertEx.EqualOrDiff("error CS8652: The feature 'string escape character' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
+            AssertEx.EqualOrDiff("error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(value, token.ValueText);
         }
 
@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\u001b";
             var text = "'\\e'";
-            var token = LexToken(text, TestOptions.RegularNext);
+            var token = LexToken(text, TestOptions.Regular13);
 
             Assert.NotEqual(default, token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());

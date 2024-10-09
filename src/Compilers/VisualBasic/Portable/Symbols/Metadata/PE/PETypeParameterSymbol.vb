@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 constraints = metadataReader.GetGenericParameter(_handle).GetConstraints()
             Catch mrEx As BadImageFormatException
                 constraints = Nothing
-                _lazyCachedBoundsUseSiteInfo.InterlockedCompareExchange(primaryDependency:=Nothing, New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
+                _lazyCachedBoundsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency:=Nothing, New UseSiteInfo(Of AssemblySymbol)(ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedType1, Me)))
             End Try
 
             If constraints.Count > 0 Then
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 diagnosticsBuilder.Free()
 
-                _lazyCachedBoundsUseSiteInfo.InterlockedCompareExchange(primaryDependency, useSiteInfo)
+                _lazyCachedBoundsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency, useSiteInfo)
                 ImmutableInterlocked.InterlockedInitialize(_lazyConstraintTypes, GetConstraintTypesOnly(constraints))
             End If
 

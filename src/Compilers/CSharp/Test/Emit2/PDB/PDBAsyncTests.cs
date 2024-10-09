@@ -67,7 +67,7 @@ class Driver
 
             void verify(string text)
             {
-                var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
+                var compilation = CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll).VerifyDiagnostics();
                 var v = CompileAndVerify(compilation);
 
                 v.VerifyIL("TestCase.<Run>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
@@ -383,7 +383,7 @@ namespace ConsoleApplication1
         }
     }
 }");
-            var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll).VerifyDiagnostics();
             compilation.VerifyPdb(@"
 <symbols>
   <files>
@@ -540,7 +540,7 @@ class TestCase
         int rez = await d;
     }
 }");
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                     text,
                     options: TestOptions.DebugDll,
                     references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef })
@@ -618,7 +618,7 @@ class C
         return 1;
     }
 }";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll));
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(text, options: TestOptions.DebugDll));
 
             v.VerifyIL("C.F", @"
 {
@@ -756,7 +756,7 @@ class C
             // TODO: Currently we don't have means necessary to pass information about the display 
             // class being pushed on evaluation stack, so that EE could find the locals.
             // Thus the locals are not available in EE.
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -844,7 +844,7 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -949,7 +949,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1036,7 +1036,7 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1152,7 +1152,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1256,7 +1256,7 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1363,7 +1363,7 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1461,7 +1461,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1547,7 +1547,7 @@ class C
     }
 }
 ");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1655,7 +1655,7 @@ class C
             //     Console.WriteLine(x);
             // }
 
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1691,7 +1691,7 @@ class C
         return x;
     }
 }");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1945,7 +1945,7 @@ class C
     static int H(ref int a, int b, ref int c, int d) => 1;
     static int F(int a) => a;
 }");
-            var v = CompileAndVerify(CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
+            var v = CompileAndVerify(CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -2014,7 +2014,7 @@ public partial class C
     partial void M();
     async partial void M() {}
 }";
-            var compilation = CreateCompilationWithMscorlib45(src, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(src, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             var v = CompileAndVerify(compilation);
             v.VerifyPdb("C.M", @"
 <symbols>

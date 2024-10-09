@@ -153,6 +153,8 @@ internal class WorkspaceProject : IWorkspaceProject
         var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
         await using var _ = disposableBatchScope.ConfigureAwait(false);
 
+        string? fileDirectory = null;
+
         foreach (var (name, value) in properties)
         {
             var valueOrNull = string.IsNullOrEmpty(value) ? null : value;
@@ -160,6 +162,7 @@ internal class WorkspaceProject : IWorkspaceProject
             switch (name)
             {
                 case "AssemblyName": _project.AssemblyName = value; break;
+                case "IntermediateAssembly": _project.CompilationOutputAssemblyFilePath = GetFullyQualifiedPath(valueOrNull); break;
                 case "MaxSupportedLangVersion": _project.MaxLangVersion = value; break;
                 case "RootNamespace": _project.DefaultNamespace = valueOrNull; break;
                 case "RunAnalyzers": _project.RunAnalyzers = bool.Parse(valueOrNull ?? bool.TrueString); break;
@@ -170,15 +173,18 @@ internal class WorkspaceProject : IWorkspaceProject
             }
         }
 
-        // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1830960
-        _project.CompilationOutputAssemblyFilePath = _project.OutputFilePath;
-
         string? GetFullyQualifiedPath(string? propertyValue)
         {
             Contract.ThrowIfNull(_project.FilePath, "We don't have a project path at this point.");
 
+            // Path.Combine doesn't check if the first parameter is an absolute path to a file instead of a directory,
+            // so make sure to use the directory from the _project.FilePath. If the propertyValue is an absolute
+            // path that will still be used, but if it's a relative path it will correctly construct the full path.
+            fileDirectory ??= Path.GetDirectoryName(_project.FilePath);
+            Contract.ThrowIfNull(fileDirectory);
+
             if (propertyValue is not null)
-                return Path.Combine(_project.FilePath, propertyValue);
+                return Path.Combine(fileDirectory, propertyValue);
             else
                 return null;
         }

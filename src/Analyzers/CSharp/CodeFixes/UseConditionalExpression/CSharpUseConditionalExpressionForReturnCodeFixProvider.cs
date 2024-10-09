@@ -17,15 +17,11 @@ using Microsoft.CodeAnalysis.UseConditionalExpression;
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseConditionalExpressionForReturn), Shared]
-internal partial class CSharpUseConditionalExpressionForReturnCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpUseConditionalExpressionForReturnCodeFixProvider()
     : AbstractUseConditionalExpressionForReturnCodeFixProvider<StatementSyntax, IfStatementSyntax, ExpressionSyntax, ConditionalExpressionSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUseConditionalExpressionForReturnCodeFixProvider()
-    {
-    }
-
     protected override ISyntaxFacts SyntaxFacts
         => CSharpSyntaxFacts.Instance;
 
@@ -64,6 +60,6 @@ internal partial class CSharpUseConditionalExpressionForReturnCodeFixProvider
     protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
         => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
 
-    protected override ISyntaxFormatting GetSyntaxFormatting()
+    protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
 }

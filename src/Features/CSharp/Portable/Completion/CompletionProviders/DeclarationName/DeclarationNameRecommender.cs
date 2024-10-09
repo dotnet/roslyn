@@ -56,7 +56,7 @@ internal sealed partial class DeclarationNameRecommender : IDeclarationNameRecom
 
         if (!names.IsDefaultOrEmpty)
         {
-            var namingStyleOptions = await document.GetNamingStylePreferencesAsync(completionContext.CompletionOptions.NamingStyleFallbackOptions, cancellationToken).ConfigureAwait(false);
+            var namingStyleOptions = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
             GetRecommendedNames(names, nameInfo, context, result, namingStyleOptions, cancellationToken);
         }
 

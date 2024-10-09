@@ -210,7 +210,8 @@ internal sealed class SolutionStateChecksums(
     ProjectId? projectConeId,
     Checksum attributes,
     ProjectChecksumsAndIds projects,
-    ChecksumCollection analyzerReferences)
+    ChecksumCollection analyzerReferences,
+    Checksum fallbackAnalyzerOptionsChecksum)
 {
     private ProjectCone? _projectCone;
 
@@ -220,12 +221,14 @@ internal sealed class SolutionStateChecksums(
         attributes,
         projects.Checksum,
         analyzerReferences.Checksum,
+        fallbackAnalyzerOptionsChecksum,
     });
 
     public ProjectId? ProjectConeId { get; } = projectConeId;
     public Checksum Attributes { get; } = attributes;
     public ProjectChecksumsAndIds Projects { get; } = projects;
     public ChecksumCollection AnalyzerReferences { get; } = analyzerReferences;
+    public Checksum FallbackAnalyzerOptions => fallbackAnalyzerOptionsChecksum;
 
     // Acceptably not threadsafe.  ProjectCone is a class, and the runtime guarantees anyone will see this field fully
     // initialized.  It's acceptable to have multiple instances of this in a race condition as the data will be same
@@ -241,6 +244,7 @@ internal sealed class SolutionStateChecksums(
         checksums.AddIfNotNullChecksum(this.Attributes);
         this.Projects.Checksums.AddAllTo(checksums);
         this.AnalyzerReferences.AddAllTo(checksums);
+        checksums.AddIfNotNullChecksum(this.FallbackAnalyzerOptions);
     }
 
     public void Serialize(ObjectWriter writer)
@@ -253,6 +257,7 @@ internal sealed class SolutionStateChecksums(
         this.Attributes.WriteTo(writer);
         this.Projects.WriteTo(writer);
         this.AnalyzerReferences.WriteTo(writer);
+        this.FallbackAnalyzerOptions.WriteTo(writer);
     }
 
     public static SolutionStateChecksums Deserialize(ObjectReader reader)
@@ -263,7 +268,8 @@ internal sealed class SolutionStateChecksums(
             projectConeId: reader.ReadBoolean() ? ProjectId.ReadFrom(reader) : null,
             attributes: Checksum.ReadFrom(reader),
             projects: ProjectChecksumsAndIds.ReadFrom(reader),
-            analyzerReferences: ChecksumCollection.ReadFrom(reader));
+            analyzerReferences: ChecksumCollection.ReadFrom(reader),
+            fallbackAnalyzerOptionsChecksum: Checksum.ReadFrom(reader));
         Contract.ThrowIfFalse(result.Checksum == checksum);
         return result;
     }
@@ -291,6 +297,9 @@ internal sealed class SolutionStateChecksums(
 
             if (assetPath.IncludeSolutionAnalyzerReferences)
                 ChecksumCollection.Find(solution.AnalyzerReferences, AnalyzerReferences, searchingChecksumsLeft, onAssetFound, arg, cancellationToken);
+
+            if (assetPath.IncludeSolutionFallbackAnalyzerOptions && searchingChecksumsLeft.Remove(FallbackAnalyzerOptions))
+                onAssetFound(FallbackAnalyzerOptions, solution.FallbackAnalyzerOptions, arg);
         }
 
         if (searchingChecksumsLeft.Count == 0)

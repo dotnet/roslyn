@@ -28,14 +28,12 @@ internal class ExtractClassWithDialogCodeAction(
     IExtractClassOptionsService service,
     INamedTypeSymbol selectedType,
     SyntaxNode selectedTypeDeclarationNode,
-    CleanCodeGenerationOptionsProvider fallbackOptions,
     ImmutableArray<ISymbol> selectedMembers) : CodeActionWithOptions
 {
     private readonly Document _document = document;
     private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
     private readonly INamedTypeSymbol _selectedType = selectedType;
     private readonly SyntaxNode _selectedTypeDeclarationNode = selectedTypeDeclarationNode;
-    private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
     private readonly IExtractClassOptionsService _service = service;
 
     // If the user brought up the lightbulb on a class itself, it's more likely that they want to extract a base
@@ -98,7 +96,6 @@ internal class ExtractClassWithDialogCodeAction(
                 symbolMapping.AnnotatedSolution.GetRequiredDocument(_document.Id),
                 newType,
                 symbolMapping,
-                _fallbackOptions,
                 cancellationToken).ConfigureAwait(false)
             : await ExtractTypeHelpers.AddTypeToNewFileAsync(
                 symbolMapping.AnnotatedSolution,
@@ -108,7 +105,6 @@ internal class ExtractClassWithDialogCodeAction(
                 _document.Folders,
                 newType,
                 _document,
-                _fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
         // Update the original type to have the new base
@@ -207,7 +203,7 @@ internal class ExtractClassWithDialogCodeAction(
         var pullMemberUpOptions = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(newType, pullMembersBuilder.ToImmutable());
         var updatedOriginalDocument = solution.GetRequiredDocument(_document.Id);
 
-        return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+        return await MembersPuller.PullMembersUpAsync(updatedOriginalDocument, pullMemberUpOptions, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<INamedTypeSymbol> GetNewTypeSymbolAsync(Document document, SyntaxAnnotation typeAnnotation, CancellationToken cancellationToken)

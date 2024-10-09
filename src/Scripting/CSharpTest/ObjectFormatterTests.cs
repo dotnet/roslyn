@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         [Fact]
         public void DebuggerProxy_ArrayBuilder()
         {
-            var obj = new ArrayBuilder<int>();
+            var obj = ArrayBuilder<int>.GetInstance();
             obj.AddRange(new[] { 1, 2, 3, 4, 5 });
 
             var str = s_formatter.FormatObject(obj, SingleLineOptions);
@@ -875,6 +875,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
                  "4",
                  "5"
             );
+
+            obj.Free();
         }
 
         [Fact, WorkItem(8542, "https://github.com/dotnet/roslyn/issues/8452")]

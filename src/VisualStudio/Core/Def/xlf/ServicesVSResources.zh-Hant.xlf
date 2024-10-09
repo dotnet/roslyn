@@ -1037,6 +1037,11 @@
         <target state="translated">建議在 'GetHashCode' 中使用 'System.HashCode'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_Threading_Lock">
+        <source>Prefer 'System.Threading.Lock'</source>
+        <target state="new">Prefer 'System.Threading.Lock'</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
         <target state="translated">偏好 UTF-8 字串常值</target>
@@ -1230,11 +1235,6 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">檢閱變更</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Roslyn_save_command_handler">
-        <source>Roslyn save command handler</source>
-        <target state="translated">Roslyn 儲存命令處理常式</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">

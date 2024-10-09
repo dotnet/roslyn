@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
@@ -120,6 +122,9 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
     {
         return args.SubjectBuffer.TryGetWorkspace(out var workspace) &&
             workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+            args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges() is Document document &&
+            document.GetLanguageService<IEditorInlineRenameService>() is IEditorInlineRenameService inlineRenameService &&
+            inlineRenameService.IsEnabled &&
             args.SubjectBuffer.SupportsRename() && !args.SubjectBuffer.IsInLspEditorContext();
     }
 

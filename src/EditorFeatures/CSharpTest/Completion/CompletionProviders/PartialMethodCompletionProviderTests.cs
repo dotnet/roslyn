@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -883,9 +884,10 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
         var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
-        workspace.GlobalOptions.SetGlobalOption(
-            CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-            new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));
+        workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent) }
+        });
 
         var text = """
             using System;
@@ -894,8 +896,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                 partial void Foo();
                 partial $$
             }
-            """
-;
+            """;
 
         var expected = """
             using System;
@@ -904,8 +905,7 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
                 partial void Foo();
                 partial void Foo() => throw new NotImplementedException();$$
             }
-            """
-;
+            """;
 
         await VerifyCustomCommitProviderAsync(text, "Foo()", expected);
     }
@@ -916,9 +916,10 @@ public class PartialMethodCompletionProviderTests : AbstractCSharpCompletionProv
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
         var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
-        workspace.GlobalOptions.SetGlobalOption(
-            CSharpCodeStyleOptions.PreferExpressionBodiedMethods,
-            new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent));
+        workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, new CodeStyleOption2<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption2.Silent) }
+        });
 
         var text = """
             using System;

@@ -27,28 +27,31 @@ internal sealed class VisualBasicCodeStyleOptions
     public static readonly Option2<CodeStyleOption2<string>> PreferredModifierOrder = CreateOption(
         CodeStyleOptionGroups.Modifier,
         "visual_basic_preferred_modifier_order",
-        VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder);
+        defaultValue: new CodeStyleOption2<string>(
+            "Partial,Default,Private,Protected,Public,Friend,NotOverridable,Overridable,MustOverride," +
+            "Overloads,Overrides,MustInherit,NotInheritable,Static,Shared,Shadows,ReadOnly,WriteOnly," +
+            "Dim,Const,WithEvents,Widening,Narrowing,Custom,Async,Iterator", NotificationOption2.Silent));
 
     public static readonly Option2<CodeStyleOption2<bool>> PreferIsNotExpression = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
         "visual_basic_style_prefer_isnot_expression",
-        VisualBasicIdeCodeStyleOptions.Default.PreferIsNotExpression);
+        defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
 
     public static readonly Option2<CodeStyleOption2<bool>> PreferSimplifiedObjectCreation = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
         "visual_basic_style_prefer_simplified_object_creation",
-        VisualBasicIdeCodeStyleOptions.Default.PreferSimplifiedObjectCreation);
+        defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
 
     public static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueExpressionStatement = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
         "visual_basic_style_unused_value_expression_statement_preference",
-        VisualBasicIdeCodeStyleOptions.Default.UnusedValueExpressionStatement,
+        defaultValue: new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Silent),
         CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
     public static readonly Option2<CodeStyleOption2<UnusedValuePreference>> UnusedValueAssignment = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences,
         "visual_basic_style_unused_value_assignment_preference",
-        VisualBasicIdeCodeStyleOptions.Default.UnusedValueAssignment,
+        defaultValue: new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.UnusedLocalVariable, NotificationOption2.Suggestion),
         CodeStyleHelpers.GetUnusedValuePreferenceSerializer);
 
     public static ImmutableArray<IOption2> EditorConfigOptions => s_allOptionsBuilder.ToImmutable();

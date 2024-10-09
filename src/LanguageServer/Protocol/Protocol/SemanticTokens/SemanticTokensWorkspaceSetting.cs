@@ -8,9 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Capabilities specific to the semantic token requests scoped to the workspace.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensWorkspaceClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class SemanticTokensWorkspaceSetting
     {
         /// <summary>
@@ -19,7 +21,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         /// <remarks>
         /// Note that this event is global and will force the client to refresh all
-        /// semantic tokens currently shown.It should be used with absolute care
+        /// semantic tokens currently shown. It should be used with absolute care
         /// and is useful for situation where a server for example detect a project
         /// wide change that requires such a calculation.
         /// </remarks>

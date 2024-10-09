@@ -2924,7 +2924,7 @@ public class C
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
                 // (18,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref d.Length;
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(18, 20)
@@ -2964,7 +2964,7 @@ public class C
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
 
             var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
 
@@ -3077,7 +3077,7 @@ public class C
     }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
 
             var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "2");
         }
@@ -3113,7 +3113,7 @@ public class C
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
                 // (17,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref d[0];
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d[0]").WithLocation(17, 20)
@@ -3149,7 +3149,7 @@ public class C
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
                 // (14,26): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref G(ref d.Length);
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "d.Length").WithLocation(14, 26),
@@ -3179,7 +3179,7 @@ delegate ref Func<T> RefFunc3f<out T>();
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
                 // (6,10): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'RefFunc3<T>.Invoke()'. 'T' is covariant.
                 // delegate ref T RefFunc3<out T>();
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref T").WithArguments("RefFunc3<T>.Invoke()", "T", "covariant", "invariantly").WithLocation(6, 10),
@@ -3222,7 +3222,7 @@ interface IM3f<out T> { ref Func<T> RefMethod(); }
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
                 // (6,24): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IM3<T>.RefMethod()'. 'T' is covariant.
                 // interface IM3<out T> { ref T RefMethod(); }
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref T").WithArguments("IM3<T>.RefMethod()", "T", "covariant", "invariantly").WithLocation(6, 24),
@@ -3265,7 +3265,7 @@ interface IP3f<out T> { ref Func<T> RefProp{get;} }
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
                 // (5,23): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IP2<T>.RefProp'. 'T' is contravariant.
                 // interface IP2<in T> { ref T RefProp{get;} }
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref T").WithArguments("IP2<T>.RefProp", "T", "contravariant", "invariantly").WithLocation(5, 23),
@@ -3308,7 +3308,7 @@ interface IP3f<out T> { ref Func<T> this[int i]{get;} }
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
                 // (6,24): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'IP3<T>.this[int]'. 'T' is covariant.
                 // interface IP3<out T> { ref T this[int i]{get;} }
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref T").WithArguments("IP3<T>.this[int]", "T", "covariant", "invariantly").WithLocation(6, 24),
@@ -3355,7 +3355,7 @@ class Program
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
                 // (10,30): error CS0407: 'string Program.M1()' has the wrong return type
                 //         RefFunc1<object> f = M1;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string"),
@@ -3363,7 +3363,7 @@ class Program
                 //         f = new RefFunc1<object>(M1);
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(13, 34)
             );
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
                 // (10,30): error CS0407: 'string Program.M1()' has the wrong return type
                 //         RefFunc1<object> f = M1;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(10, 30),
@@ -3407,12 +3407,12 @@ class Program
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
                 // (22,38): error CS0407: 'Derived1 Program.M1(Derived1)' has the wrong return type
                 //         RefFunc1<Derived2, Base> f = M1;
                 Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1(Derived1)", "Derived1").WithLocation(22, 38)
             );
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
             );
         }
 
@@ -3495,7 +3495,7 @@ class Program
 
 ";
 
-            CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyEmitDiagnostics(
                 // (25,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Test(Program.RefFunc1<Derived2, Base>)' and 'Program.Test(Program.RefFunc1<Derived2, Derived1>)'
                 //         Test(M1);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(25, 9),
@@ -3503,7 +3503,7 @@ class Program
                 //         Test(M3);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Test").WithArguments("Program.Test(Program.RefFunc1<Derived2, Base>)", "Program.Test(Program.RefFunc1<Derived2, Derived1>)").WithLocation(26, 9)
             );
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyEmitDiagnostics(
             );
         }
 
