@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 foreach (var referencedAssembly in compilation.GetBoundReferenceManager().GetReferencedAssemblies())
                 {
                     var path = (referencedAssembly.Key as PortableExecutableReference)?.FilePath;
-                    if (path != null)
+                    if (PathUtilities.IsAbsolute(path))
                     {
                         // TODO: Should the #r resolver return contract metadata and runtime assembly path -
                         // Contract assembly used in the compiler, RT assembly path here.
