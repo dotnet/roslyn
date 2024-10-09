@@ -759,27 +759,24 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(
-            // (4,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
-            // Expression<D> e1 = (ref readonly int p) => C.M(in p);
-            Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "p").WithLocation(4, 38),
-            // (5,52): error CS8329: Cannot use variable 'p' as a ref or out value because it is a readonly variable
-            // Expression<D> e2 = (ref readonly int p) => C.M(ref p);
-            Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(5, 52),
-            // (6,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
-            // Expression<D> e3 = (ref readonly int p) => C.M(p);
-            Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "p").WithLocation(6, 38),
-            // (6,48): warning CS9195: Argument 1 should be passed with the 'in' keyword
-            // Expression<D> e3 = (ref readonly int p) => C.M(p);
-            Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(6, 48),
-            // (7,25): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
-            // Expression<D> e4 = (int p) => C.M(in p);
-            Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(7, 25),
-            // (7,28): error CS1661: Cannot convert lambda expression to type 'Expression<D>' because the parameter types do not match the delegate parameter types
-            // Expression<D> e4 = (int p) => C.M(in p);
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "System.Linq.Expressions.Expression<D>").WithLocation(7, 28),
-            // (8,49): error CS1615: Argument 1 may not be passed with the 'out' keyword
-            // Expression<Action<int>> e5 = (int p) => C.M(out p);
-            Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49));
+                // (4,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                // Expression<D> e1 = (ref readonly int p) => C.M(in p);
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "p").WithLocation(4, 38),
+                // (5,52): error CS8329: Cannot use variable 'p' as a ref or out value because it is a readonly variable
+                // Expression<D> e2 = (ref readonly int p) => C.M(ref p);
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "p").WithArguments("variable", "p").WithLocation(5, 52),
+                // (6,38): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                // Expression<D> e3 = (ref readonly int p) => C.M(p);
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "p").WithLocation(6, 38),
+                // (6,48): warning CS9195: Argument 1 should be passed with the 'in' keyword
+                // Expression<D> e3 = (ref readonly int p) => C.M(p);
+                Diagnostic(ErrorCode.WRN_ArgExpectedIn, "p").WithArguments("1").WithLocation(6, 48),
+                // (7,25): error CS1676: Parameter 1 must be declared with the 'ref readonly' keyword
+                // Expression<D> e4 = (int p) => C.M(in p);
+                Diagnostic(ErrorCode.ERR_BadParamRef, "p").WithArguments("1", "ref readonly").WithLocation(7, 25),
+                // (8,49): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                // Expression<Action<int>> e5 = (int p) => C.M(out p);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "p").WithArguments("1", "out").WithLocation(8, 49));
     }
 
     [Fact]
@@ -8665,9 +8662,6 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
         CreateCompilation(source).VerifyDiagnostics(
             // (7,22): error CS1676: Parameter 1 must be declared with the 'in' keyword
             //         d = (ref int x) => { x = 42; }; // should be an error
-            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "in").WithLocation(7, 22),
-            // (7,25): error CS1661: Cannot convert lambda expression to type '<anonymous delegate>' because the parameter types do not match the delegate parameter types
-            //         d = (ref int x) => { x = 42; }; // should be an error
-            Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "=>").WithArguments("lambda expression", "<anonymous delegate>").WithLocation(7, 25));
+            Diagnostic(ErrorCode.ERR_BadParamRef, "x").WithArguments("1", "in").WithLocation(7, 22));
     }
 }
