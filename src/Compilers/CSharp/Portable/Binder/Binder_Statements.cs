@@ -2116,7 +2116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If any parameter type of the lambda is an error type then suppress
             // further errors. We've already reported errors on the bad type.
-            if (anonymousFunction.HasExplicitlyTypedParameterList)
+            var hasExplicitlyTypedParameterList = anonymousFunction.HasExplicitlyTypedParameterList;
+            if (hasExplicitlyTypedParameterList)
             {
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
@@ -2133,16 +2134,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The simplest possible case is (x, y, z)=>whatever where the target type has a ref or out parameter.
 
             var delegateParameters = delegateType.DelegateParameters();
-            if (reason == LambdaConversionResult.RefInImplicitlyTypedLambda)
+            if (reason == LambdaConversionResult.MismatchedParameterRefKind)
             {
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
                     var delegateRefKind = delegateParameters[i].RefKind;
-                    if (delegateRefKind != RefKind.None)
+                    var lambdaRefKind = anonymousFunction.RefKind(i);
+
+                    if (lambdaRefKind != delegateRefKind)
                     {
-                        // Parameter {0} must be declared with the '{1}' keyword
-                        Error(diagnostics, ErrorCode.ERR_BadParamRef, anonymousFunction.ParameterLocation(i),
-                            i + 1, delegateRefKind.ToParameterDisplayString());
+                        var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
+                        if (delegateRefKind == RefKind.None)
+                        {
+                            // Parameter {0} should not be declared with the '{1}' keyword
+                            Error(diagnostics, ErrorCode.ERR_BadParamExtraRef, lambdaParameterLocation, i + 1, lambdaRefKind.ToParameterDisplayString());
+                        }
+                        else
+                        {
+                            // Parameter {0} must be declared with the '{1}' keyword
+                            Error(diagnostics, ErrorCode.ERR_BadParamRef, lambdaParameterLocation, i + 1, delegateRefKind.ToParameterDisplayString());
+                        }
                     }
                 }
                 return;
@@ -2166,16 +2177,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.MismatchedParameterType)
             {
+                // This is checked in the code that returns LambdaConversionResult.MismatchedParameterType
+                Debug.Assert(anonymousFunction.HasExplicitlyTypedParameterList);
+
                 // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
+                //
+                // Or: There is a ref-kind mismatch.
+
                 conversionError(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, id, targetType);
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
                     var lambdaParameterType = anonymousFunction.ParameterType(i);
-                    if (lambdaParameterType.IsErrorType())
-                    {
-                        continue;
-                    }
+
+                    // Can't be an error type.  This was already checked in a loop above this one.
+                    Debug.Assert(!lambdaParameterType.IsErrorType());
 
                     var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
                     var lambdaRefKind = anonymousFunction.RefKind(i);
@@ -2189,19 +2205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Parameter {0} is declared as type '{1}{2}' but should be '{3}{4}'
                         Error(diagnostics, ErrorCode.ERR_BadParamType, lambdaParameterLocation,
                             i + 1, lambdaRefKind.ToParameterPrefix(), distinguisher.First, delegateRefKind.ToParameterPrefix(), distinguisher.Second);
-                    }
-                    else if (lambdaRefKind != delegateRefKind)
-                    {
-                        if (delegateRefKind == RefKind.None)
-                        {
-                            // Parameter {0} should not be declared with the '{1}' keyword
-                            Error(diagnostics, ErrorCode.ERR_BadParamExtraRef, lambdaParameterLocation, i + 1, lambdaRefKind.ToParameterDisplayString());
-                        }
-                        else
-                        {
-                            // Parameter {0} must be declared with the '{1}' keyword
-                            Error(diagnostics, ErrorCode.ERR_BadParamRef, lambdaParameterLocation, i + 1, delegateRefKind.ToParameterDisplayString());
-                        }
                     }
                 }
                 return;

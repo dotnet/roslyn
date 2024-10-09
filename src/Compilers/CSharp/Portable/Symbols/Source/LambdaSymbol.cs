@@ -365,8 +365,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (p < numDelegateParameters)
                 {
                     type = parameterTypes[p];
-                    refKind = RefKind.None;
-                    scope = ScopedKind.None;
+                    refKind = unboundLambda.RefKind(p);
+                    scope = unboundLambda.DeclaredScope(p);
                 }
                 else
                 {

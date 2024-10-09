@@ -233,10 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void LambdaAttribute_05()
         {
             string source = "[A] (ref x) => x";
-            UsingExpression(source, TestOptions.RegularPreview,
-                // (1,11): error CS1001: Identifier expected
-                // [A] (ref x) => x
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 11));
+            UsingExpression(source, TestOptions.RegularPreview);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -258,11 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "x");
-                        }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "x");
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
