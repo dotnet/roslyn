@@ -35,6 +35,17 @@ namespace Build
             argsBuilder.Append(' ');
             argsBuilder.Append(args);
 
+            if (settings.BuildConfiguration == BuildConfiguration.Public)
+            {
+                if (settings.BuildNumber == null)
+                {
+                    context.Console.WriteError("Build number must be specified when building a public configuration.");
+                    return false;
+                }
+                
+                argsBuilder.Append(CultureInfo.InvariantCulture, $" -officialBuildId {settings.BuildNumber}");
+            }
+
             // The DOTNET_ROOT_X64 environment variable is used by Arcade.
             var toolOptions = new ToolInvocationOptions()
             {
