@@ -434,6 +434,7 @@ class X
                         case ErrorCode.INF_TooManyBoundLambdas:
                         case ErrorCode.WRN_FieldIsAmbiguous:
                         case ErrorCode.WRN_UninitializedNonNullableBackingField:
+                        case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
