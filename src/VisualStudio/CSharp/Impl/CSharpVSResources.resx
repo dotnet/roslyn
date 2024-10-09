@@ -652,4 +652,7 @@
   <data name="CancelQueryCommandToolTip" xml:space="preserve">
     <value>Cancel (Escape)</value>
   </data>
+  <data name="CSharpAndVisualBasic" xml:space="preserve">
+    <value>C# and Visual Basic</value>
+  </data>
 </root>
