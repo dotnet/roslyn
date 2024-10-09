@@ -1783,12 +1783,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE: Temporary approach. We really shouldn't be binding anything here.
                     // We should have checked this when we created the BoundAssignmentOperators
                     // in RewriteConstructor.
-                    foreach (var statement in initializersBody.Statements)
+                    validateFieldAssignments(bodyBinder, initializersBody.Statements, diagnostics);
+
+                    static void validateFieldAssignments(Binder bodyBinder, ImmutableArray<BoundStatement> statements, BindingDiagnosticBag diagnostics)
                     {
-                        if (statement is BoundExpressionStatement { Expression: BoundAssignmentOperator assignment })
+                        foreach (var statement in statements)
                         {
-                            // PROTOTYPE: We shouldn't be binding anything.
-                            _ = bodyBinder.BindAssignment(assignment.Syntax, assignment.Left, assignment.Right, assignment.IsRef, verifyEscapeSafety: true, diagnostics);
+                            if (statement is BoundExpressionStatement { Expression: BoundAssignmentOperator assignment })
+                            {
+                                bodyBinder.ValidateAssignment(assignment.Syntax, assignment.Left, assignment.Right, assignment.IsRef, diagnostics);
+                            }
+                            else if (statement is BoundStatementList statementList)
+                            {
+                                validateFieldAssignments(bodyBinder, statementList.Statements, diagnostics);
+                            }
                         }
                     }
 

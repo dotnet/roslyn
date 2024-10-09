@@ -1557,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
         }
 
-        private void ValidateAssignment(
+        internal void ValidateAssignment(
             SyntaxNode node,
             BoundExpression op1,
             BoundExpression op2,
