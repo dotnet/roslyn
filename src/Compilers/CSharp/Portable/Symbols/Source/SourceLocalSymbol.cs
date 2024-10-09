@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null)
             {
-                if (this.IsConst && inProgress == this)
+                if (this.IsConst && (inProgress == this || this.ForbiddenZone?.Contains(node) == true))
                 {
                     if (diagnostics != null)
                     {

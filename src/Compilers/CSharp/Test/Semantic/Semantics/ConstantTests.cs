@@ -3246,6 +3246,156 @@ enum E{0}
                 Diagnostic(ErrorCode.ERR_CircConstValue, "A").WithArguments("E8.A"));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstCycle_SwitchExpression()
+        {
+            var source = """
+                const int x =
+                    x switch
+                    {
+                        _ => 0,
+                    };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,5): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                //     x switch
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(2, 5),
+                // (2,5): error CS0133: The expression being assigned to 'x' must be constant
+                //     x switch
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"x switch
+    {
+        _ => 0,
+    }").WithArguments("x").WithLocation(2, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstCycle_SwitchExpression_MutuallyReferencing()
+        {
+            var source = """
+                const int y = x switch { };
+                const int x = y switch { };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,15): error CS0841: Cannot use local variable 'x' before it is declared
+                // const int y = x switch { };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 15),
+                // (1,15): error CS0133: The expression being assigned to 'y' must be constant
+                // const int y = x switch { };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "x switch { }").WithArguments("y").WithLocation(1, 15),
+                // (1,17): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // const int y = x switch { };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(1, 17),
+                // (2,15): error CS0133: The expression being assigned to 'x' must be constant
+                // const int x = y switch { };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "y switch { }").WithArguments("x").WithLocation(2, 15),
+                // (2,17): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // const int x = y switch { };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(2, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstCycle_SwitchExpression_MutuallyReferencing_InClass()
+        {
+            var source = """
+                class C
+                {
+                    const int y = x switch { };
+                    const int x = y switch { };
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,15): error CS0110: The evaluation of the constant value for 'C.y' involves a circular definition
+                //     const int y = x switch { };
+                Diagnostic(ErrorCode.ERR_CircConstValue, "y").WithArguments("C.y").WithLocation(3, 15),
+                // (3,19): error CS0133: The expression being assigned to 'C.y' must be constant
+                //     const int y = x switch { };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "x switch { }").WithArguments("C.y").WithLocation(3, 19),
+                // (3,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //     const int y = x switch { };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(3, 21),
+                // (4,19): error CS0133: The expression being assigned to 'C.x' must be constant
+                //     const int x = y switch { };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "y switch { }").WithArguments("C.x").WithLocation(4, 19),
+                // (4,21): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //     const int x = y switch { };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(4, 21));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstCycle_SwitchArmResult()
+        {
+            var source = """
+                const int x = 1 switch
+                {
+                    _ => x,
+                };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,15): error CS0133: The expression being assigned to 'x' must be constant
+                // const int x = 1 switch
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"1 switch
+{
+    _ => x,
+}").WithArguments("x").WithLocation(1, 15),
+                // (3,10): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                //     _ => x,
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(3, 10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstCycle_SwitchWhenClause()
+        {
+            var source = """
+                const int x = 1 switch
+                {
+                    var y when y == x => 0,
+                };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,15): error CS0133: The expression being assigned to 'x' must be constant
+                // const int x = 1 switch
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"1 switch
+{
+    var y when y == x => 0,
+}").WithArguments("x").WithLocation(1, 15),
+                // (1,17): warning CS8846: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered. However, a pattern with a 'when' clause might successfully match this value.
+                // const int x = 1 switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen, "switch").WithArguments("_").WithLocation(1, 17),
+                // (3,21): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                //     var y when y == x => 0,
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(3, 21));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstCycle_Checked()
+        {
+            var source = """
+                const int x =
+                    checked(x);
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,13): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                //     checked(x);
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(2, 13));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstCycle_InterconnectedLambdas()
+        {
+            var source = """
+                using System;
+                const Func<int, int> x = (i) =>
+                {
+                    const Func<int, int> y = (i) => x(i);
+                    return y(i);
+                };
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,37): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                //     const Func<int, int> y = (i) => x(i);
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(4, 37));
+        }
+
         [Fact, WorkItem(544941, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544941")]
         public static void ConstantNullNotObject()
         {
@@ -3309,6 +3459,9 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
+    // (6,51): error CS0110: The evaluation of the constant value for 'a' involves a circular definition
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_CircConstValue, "a").WithArguments("a").WithLocation(6, 51),
     // (6,51): error CS0133: The expression being assigned to 'b' must be constant
     //         const Func<int> a = () => { const int b = a(); return 1; };
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
@@ -3437,9 +3590,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { LinqAssemblyRef });
             comp.VerifyDiagnostics(
-                // (9,9): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.IEnumerable<<anonymous type: int E>>' to 'int'
+                // (9,33): error CS0110: The evaluation of the constant value for 'F' involves a circular definition
                 //         c.Select(o => new { E = F });
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.Select(o => new { E = F })").WithArguments("System.Collections.Generic.IEnumerable<<anonymous type: int E>>", "int").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_CircConstValue, "F").WithArguments("F").WithLocation(9, 33)
                 );
         }
 

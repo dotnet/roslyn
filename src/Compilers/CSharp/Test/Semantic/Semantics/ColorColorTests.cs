@@ -2114,7 +2114,7 @@ class M
                     "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                     "mscorlib");
 
-            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
+            main.VerifyEmitDiagnostics(unifyReferenceWarning, unifyReferenceWarning, unifyReferenceWarning);
         }
 
         [Fact, WorkItem(61284, "https://github.com/dotnet/roslyn/issues/61284")]
@@ -2182,7 +2182,7 @@ class M
                 // warning CS0612: 'Color.Red' is obsolete
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Color.Red").WithArguments("Color.Red").WithLocation(11, 29);
 
-            compilation.VerifyEmitDiagnostics(obsoleteWarning, obsoleteWarning);
+            compilation.VerifyEmitDiagnostics(obsoleteWarning);
         }
 
         [WorkItem(718761, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/718761")]
