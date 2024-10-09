@@ -4,6 +4,13 @@
 // See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more details
 {
   "properties": {
+    //
+    // Text Editor -> C# -> Advanced
+    //
+
+    //
+    // Text Editor -> C# -> Intellisense
+    //
     // CompletionOptionsStorage.TriggerOnTypingLetters
     "textEditor.csharp.intellisense.triggerCompletionOnTypingLetters": {
       "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
