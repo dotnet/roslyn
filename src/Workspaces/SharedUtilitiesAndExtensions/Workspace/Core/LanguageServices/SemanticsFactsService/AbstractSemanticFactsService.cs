@@ -131,9 +131,9 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
                 if (currentType
                     .GetMembers(nameof(IAsyncDisposable.DisposeAsync))
                     .FirstOrDefault(m => m is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, ReturnType: var returnType, Parameters.Length: 0 } &&
-                                         SymbolEqualityComparer.Default.Equals(returnType, valueTaskType)) is { } disposeMethodFromPattern)
+                                         SymbolEqualityComparer.Default.Equals(returnType, valueTaskType)) is IMethodSymbol disposeMethodFromPattern)
                 {
-                    return (IMethodSymbol)disposeMethodFromPattern;
+                    return disposeMethodFromPattern;
                 }
 
                 currentType = currentType.BaseType;
