@@ -66,9 +66,9 @@ internal class PerformanceTrackerService : IPerformanceTrackerService
         {
             const int PerformAnalysisTelemetryDelay = 250;
 
-            var delay = (int)perfInfo.TimeSpan.TotalMilliseconds;
+            var delay = (long)perfInfo.TimeSpan.TotalMilliseconds;
 
-            TelemetryLogging.LogAggregated(FunctionId.PerformAnalysis_Summary, $"IndividualTimes", delay);
+            TelemetryLogging.LogAggregatedHistogram(FunctionId.PerformAnalysis_Summary, $"IndividualTimes", delay);
 
             if (delay > PerformAnalysisTelemetryDelay)
             {

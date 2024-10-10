@@ -132,6 +132,8 @@ internal sealed class VSCodeTelemetryLogger : ITelemetryReporter
 
     public void Dispose()
     {
+        // Ensure that we flush any pending telemetry *before* we dispose of the telemetry session.
+        TelemetryLogging.Flush();
         _telemetrySession?.Dispose();
         _telemetrySession = null;
     }

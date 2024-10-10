@@ -44,7 +44,7 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
         // Complete RPC right away so the client can start reading from the stream.
         // The fire-and forget task starts writing to the output stream and the client will read it until it reads all expected data.
 
-        using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.PerformAnalysis_Summary, $"Total"))
+        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.PerformAnalysis_Summary, $"Total"))
         using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
         {
             return await RunWithSolutionAsync(

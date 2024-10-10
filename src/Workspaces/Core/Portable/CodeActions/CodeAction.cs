@@ -260,7 +260,7 @@ public abstract partial class CodeAction
     internal async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(
         Solution originalSolution, CancellationToken cancellationToken)
     {
-        using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.SuggestedAction_Preview_Summary, $"Total");
+        using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.SuggestedAction_Preview_Summary, $"Total");
 
         var operations = await this.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
 

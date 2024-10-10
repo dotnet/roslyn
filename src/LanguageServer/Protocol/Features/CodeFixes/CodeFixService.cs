@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async Task<CodeFixCollection?> GetMostSevereFixAsync(
             TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CancellationToken cancellationToken)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
             ImmutableArray<DiagnosticData> allDiagnostics;
 
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 allDiagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ICodeActionRequestPriorityProvider priorityProvider,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}");
 
             // We only need to compute suppression/configuration fixes when request priority is
             // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // user-invoked diagnostic requests, for example, user invoked Ctrl + Dot operation for lightbulb.
             ImmutableArray<DiagnosticData> diagnostics;
 
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
@@ -286,10 +286,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
+            using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}");
             ImmutableArray<DiagnosticData> diagnostics;
 
-            using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
+            using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeFix_Summary, $"{nameof(GetDocumentFixAllForIdInSpanAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
                 diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, diagnosticId, includeSuppressedDiagnostics: false, priorityProvider: new DefaultCodeActionRequestPriorityProvider(),
