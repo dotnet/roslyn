@@ -13,6 +13,11 @@ sealed class NetSdkDownloader : IDisposable
 
     public SemanticVersion SdkVersion { get; }
 
+    static NetSdkDownloader()
+    {
+        s_httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("PostSharp.Engineering");
+    }
+
     private NetSdkDownloader(ZipArchive archive, SemanticVersion sdkVersion)
     {
         this._archive = archive;
@@ -21,7 +26,29 @@ sealed class NetSdkDownloader : IDisposable
 
     public static async Task<NetSdkDownloader> CreateAsync(string url, SemanticVersion sdkVersion)
     {
-        var stream = await s_httpClient.GetSeekableStreamAsync(url);
+        Stream? stream = null;
+        var retries = 0;
+        var maxRetries = 3;
+        var delay = TimeSpan.FromSeconds(5);
+
+        while (stream == null)
+        {
+            try
+            {
+                stream = await s_httpClient.GetSeekableStreamAsync(url);
+            }
+            catch (Exception)
+            {
+                if (retries > maxRetries)
+                {
+                    throw;
+                }
+
+                await Task.Delay(delay);
+                retries++;
+                delay *= 2;
+            }
+        }
 
         var archive = new ZipArchive(stream);
 
