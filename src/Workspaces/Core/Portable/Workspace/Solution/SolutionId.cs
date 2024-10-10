@@ -25,13 +25,10 @@ public sealed class SolutionId : IEquatable<SolutionId>
     [DataMember(Order = 0)]
     public Guid Id { get; }
 
-    [DataMember(Order = 1)]
-    private readonly string _debugName;
-
     private SolutionId(Guid id, string debugName)
     {
         this.Id = id;
-        _debugName = debugName;
+        DebugName = debugName;
     }
 
     /// <summary>
@@ -53,10 +50,11 @@ public sealed class SolutionId : IEquatable<SolutionId>
         return new SolutionId(id, debugName);
     }
 
-    internal string DebugName => _debugName;
+    [field: DataMember(Order = 1)]
+    internal string DebugName { get; }
 
     private string GetDebuggerDisplay()
-        => string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, _debugName);
+        => string.Format("({0}, #{1} - {2})", GetType().Name, this.Id, DebugName);
 
     public override bool Equals(object obj)
         => this.Equals(obj as SolutionId);

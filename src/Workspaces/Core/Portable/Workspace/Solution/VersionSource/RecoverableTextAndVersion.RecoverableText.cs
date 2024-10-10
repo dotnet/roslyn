@@ -31,11 +31,6 @@ internal sealed partial class RecoverableTextAndVersion
                 CancellationToken.None);
 
         /// <summary>
-        /// Lazily created. Access via the <see cref="Gate"/> property.
-        /// </summary>
-        private SemaphoreSlim? _lazyGate;
-
-        /// <summary>
         /// Whether or not we've saved our value to secondary storage.  Used so we only do that once.
         /// </summary>
         private bool _saved;
@@ -52,7 +47,7 @@ internal sealed partial class RecoverableTextAndVersion
         /// </summary>
         private WeakReference<SourceText>? _weakReference;
 
-        private SemaphoreSlim Gate => InterlockedOperations.Initialize(ref _lazyGate, SemaphoreSlimFactory.Instance);
+        private SemaphoreSlim Gate { get => InterlockedOperations.Initialize(ref field, SemaphoreSlimFactory.Instance); set; }
 
         /// <summary>
         /// Attempts to get the value, but only through the weak reference.  This will only succeed *after* the value

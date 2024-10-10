@@ -157,9 +157,9 @@
     -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
+  <!--  <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(CodeStyleAnalyzerVersion)" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
+   --> <PackageVersion Include="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="$(MicrosoftCodeAnalysisAnalyzerUtilitiesVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="3.3.4-beta1.22504.1" />
 
     <!--
