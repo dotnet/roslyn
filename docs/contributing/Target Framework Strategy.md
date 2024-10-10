@@ -113,6 +113,7 @@ When the .NET SDK RTMs and Roslyn adopts it all occurrences of `$(NetRoslynNext)
 ## Checklist for updating TFMs (once a year)
 
 - Update `TargetFrameworks.props`.
+- Might need updating `MicrosoftNetCompilersToolsetVersion` in `eng\Versions.props` to consume latest compiler features.
 - Change `$(NetRoslynNext)` references to `$(NetRoslyn)` in project files.
 - Update TFMs in:
   - `.vscode\launch.json`
