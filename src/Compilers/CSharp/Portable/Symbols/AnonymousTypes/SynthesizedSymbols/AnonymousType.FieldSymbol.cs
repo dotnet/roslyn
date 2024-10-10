@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class AnonymousTypeFieldSymbol : FieldSymbol
         {
             private readonly PropertySymbol _property;
+            private string _lazyName;
 
             public AnonymousTypeFieldSymbol(PropertySymbol property)
             {
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override string Name
             {
-                get { return GeneratedNames.MakeAnonymousTypeBackingFieldName(_property.Name); }
+                get { return _lazyName ??= GeneratedNames.MakeAnonymousTypeBackingFieldName(_property.Name); }
             }
 
             public override FlowAnalysisAnnotations FlowAnalysisAnnotations

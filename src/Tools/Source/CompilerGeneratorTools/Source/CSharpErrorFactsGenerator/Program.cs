@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             string outputPath = args[1];
 
             var outputText = new StringBuilder();
+            outputText.AppendLine("using Roslyn.Utilities;");
             outputText.AppendLine("namespace Microsoft.CodeAnalysis.CSharp");
             outputText.AppendLine("{");
             outputText.AppendLine("    internal static partial class ErrorFacts");
@@ -39,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             var fatalCodeNames = new List<string>();
             var infoCodeNames = new List<string>();
             var hiddenCodeNames = new List<string>();
+            var otherCodeNames = new List<string>();
             foreach (var line in File.ReadAllLines(inputPath).Select(l => l.Trim()))
             {
                 if (line.StartsWith("WRN_", StringComparison.OrdinalIgnoreCase))
@@ -56,6 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
                 else if (line.StartsWith("HDN_", StringComparison.OrdinalIgnoreCase))
                 {
                     hiddenCodeNames.Add(line.Substring(0, line.IndexOf(' ')));
+                }
+                else if (line.Contains('=') && !line.StartsWith("//", StringComparison.OrdinalIgnoreCase))
+                {
+                    otherCodeNames.Add(line.Substring(0, line.IndexOf(' ')));
                 }
             }
 
@@ -126,6 +132,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Internal.CSharpErrorFactsGenerator
             outputText.AppendLine("                    return true;");
             outputText.AppendLine("                default:");
             outputText.AppendLine("                    return false;");
+            outputText.AppendLine("            }");
+            outputText.AppendLine("        }");
+
+            string[] allCodes = [.. warningCodeNames, .. fatalCodeNames, .. infoCodeNames, .. hiddenCodeNames, .. otherCodeNames];
+            outputText.AppendLine("        public static string ToString(ErrorCode code)");
+            outputText.AppendLine("        {");
+            outputText.AppendLine("            switch (code)");
+            outputText.AppendLine("            {");
+            foreach (var name in allCodes)
+            {
+                outputText.AppendLine($@"                case ErrorCode.{name}: return ""{name}"";");
+            }
+            outputText.AppendLine("                default: throw ExceptionUtilities.UnexpectedValue(code);");
+            outputText.AppendLine("            }");
+            outputText.AppendLine("        }");
+
+            outputText.AppendLine("        public static string ToStringWithTitle(ErrorCode code)");
+            outputText.AppendLine("        {");
+            outputText.AppendLine("            switch (code)");
+            outputText.AppendLine("            {");
+            foreach (var name in allCodes)
+            {
+                outputText.AppendLine($@"                case ErrorCode.{name}: return ""{name}_Title"";");
+            }
+            outputText.AppendLine("                default: throw ExceptionUtilities.UnexpectedValue(code);");
+            outputText.AppendLine("            }");
+            outputText.AppendLine("        }");
+
+            outputText.AppendLine("        public static string ToStringWithDescription(ErrorCode code)");
+            outputText.AppendLine("        {");
+            outputText.AppendLine("            switch (code)");
+            outputText.AppendLine("            {");
+            foreach (var name in allCodes)
+            {
+                outputText.AppendLine($@"                case ErrorCode.{name}: return ""{name}_Description"";");
+            }
+            outputText.AppendLine("                default: throw ExceptionUtilities.UnexpectedValue(code);");
             outputText.AppendLine("            }");
             outputText.AppendLine("        }");
 

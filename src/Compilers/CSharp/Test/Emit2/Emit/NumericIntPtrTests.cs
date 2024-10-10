@@ -8129,7 +8129,7 @@ $@"class Program
 
                 if (expectedDiagnostics.Length == 0)
                 {
-                    CompileAndVerify(comp, verify: Verification.FailsPEVerify);
+                    CompileAndVerify(comp, verify: Verification.FailsPEVerify, emitOptions: EmitOptions.Default);
                 }
 
                 static bool useUnsafe(string type) => type == "void*";
