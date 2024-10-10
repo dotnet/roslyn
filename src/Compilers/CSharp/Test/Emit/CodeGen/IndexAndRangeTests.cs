@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -3708,42 +3707,223 @@ Get GetIdx3 GetIdx2 Length Slice 1, 2
 ");
         }
 
-        [Fact, WorkItem(57745, "https://github.com/dotnet/roslyn/issues/57745")]
-        public void ObsoleteRangeType()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/57745")]
+        [InlineData("", (int)ErrorCode.WRN_DeprecatedSymbol)]
+        [InlineData("\"\"", (int)ErrorCode.WRN_DeprecatedSymbolStr)]
+        [InlineData("\"\", error: false", (int)ErrorCode.WRN_DeprecatedSymbolStr)]
+        [InlineData("\"\", error: true", (int)ErrorCode.ERR_DeprecatedSymbolStr)]
+        public void ObsoleteIndexTypeAndItsMembers(string obsoleteAttributeConstructorArgs, int errorCodeNum)
         {
-            var source = @"
-_ = new C()[..];
+            var source = $$"""
+                _ = new C()[^1];
 
-class C
-{
-    public int Length => 0;
-    public int this[int i] => 0;
-    public int Slice(int i, int j) => 0;
-}
+                class C
+                {
+                    public int Length => 0;
+                    public int this[int i] => 0;
+                }
 
-namespace System
-{
-    [Obsolete]
-    public readonly struct Range
-    {
-        public Index Start { get; }
+                namespace System
+                {
+                    [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                    public readonly struct Index
+                    {
+                        [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                        public Index(int value, bool fromEnd = false) => throw null;
 
-        public Index End { get; }
+                        [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                        public int GetOffset(int length) => throw null;
+                    }
+                }
+                """;
 
-        public Range(Index start, Index end) => throw null;
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,5): warning CS0612: 'Index.GetOffset(int)' is obsolete
+                // _ = new C()[^1];
+                // (1,5): warning CS0618: 'Index.GetOffset(int)' is obsolete: ''
+                // _ = new C()[^1];
+                // (1,5): error CS0619: 'Index.GetOffset(int)' is obsolete: ''
+                // _ = new C()[^1];
+                Diagnostic((ErrorCode)errorCodeNum, "new C()[^1]").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Index.GetOffset(int)"] : ["System.Index.GetOffset(int)", ""]).WithLocation(1, 5),
+                // (1,13): warning CS0612: 'Index' is obsolete
+                // _ = new C()[^1];
+                // (1,13): warning CS0618: 'Index' is obsolete: ''
+                // _ = new C()[^1];
+                // (1,13): error CS0619: 'Index' is obsolete: ''
+                // _ = new C()[^1];
+                Diagnostic((ErrorCode)errorCodeNum, "^1").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Index"] : ["System.Index", ""]).WithLocation(1, 13),
+                // (1,13): warning CS0612: 'Index.Index(int, bool)' is obsolete
+                // _ = new C()[^1];
+                // (1,13): warning CS0618: 'Index.Index(int, bool)' is obsolete: ''
+                // _ = new C()[^1];
+                // (1,13): error CS0619: 'Index.Index(int, bool)' is obsolete: ''
+                // _ = new C()[^1];
+                Diagnostic((ErrorCode)errorCodeNum, "^1").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Index.Index(int, bool)"] : ["System.Index.Index(int, bool)", ""]).WithLocation(1, 13));
+        }
 
-        public static Range StartAt(Index start) => throw null;
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/57745")]
+        [InlineData("", (int)ErrorCode.WRN_DeprecatedSymbol)]
+        [InlineData("\"\"", (int)ErrorCode.WRN_DeprecatedSymbolStr)]
+        [InlineData("\"\", error: false", (int)ErrorCode.WRN_DeprecatedSymbolStr)]
+        [InlineData("\"\", error: true", (int)ErrorCode.ERR_DeprecatedSymbolStr)]
+        public void ObsoleteRangeTypeAndItsMembers1(string obsoleteAttributeConstructorArgs, int errorCodeNum)
+        {
+            var source = $$"""
+                _ = new C()[..];
 
-        public static Range EndAt(Index end) => throw null;
+                class C
+                {
+                    public int Length => 0;
+                    public int this[int i] => 0;
+                    public int Slice(int i, int j) => 0;
+                }
 
-        public static Range All => throw null;
-    }
-}
-";
-            // Note: we currently don't report Obsolete diagnostic on either Index or Range
-            // Tracked by https://github.com/dotnet/roslyn/issues/57745
-            var comp = CreateCompilation(new[] { source, TestSources.Index });
-            comp.VerifyDiagnostics();
+                namespace System
+                {
+                    [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                    public readonly struct Range
+                    {
+                        [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                        public Index Start { [Obsolete({{obsoleteAttributeConstructorArgs}})] get; }
+                
+                        [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                        public Index End { [Obsolete({{obsoleteAttributeConstructorArgs}})] get; }
+
+                        public Range(Index start, Index end) => throw null;
+
+                        public static Range StartAt(Index start) => throw null;
+
+                        public static Range EndAt(Index end) => throw null;
+
+                        public static Range All => throw null;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, TestSources.Index]);
+            comp.VerifyDiagnostics(
+                // (1,13): warning CS0612: 'Range' is obsolete
+                // _ = new C()[..];
+                // (1,13): warning CS0618: 'Range' is obsolete: ''
+                // _ = new C()[..];
+                // (1,13): error CS0619: 'Range' is obsolete: ''
+                // _ = new C()[..];
+                Diagnostic((ErrorCode)errorCodeNum, "..").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range"] : ["System.Range", ""]).WithLocation(1, 13),
+                // (1,5): warning CS0612: 'Range.Start' is obsolete
+                // _ = new C()[..];
+                // (1,5): warning CS0618: 'Range.Start' is obsolete: ''
+                // _ = new C()[..];
+                // (1,5): error CS0619: 'Range.Start' is obsolete: ''
+                // _ = new C()[..];
+                Diagnostic((ErrorCode)errorCodeNum, "new C()[..]").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.Start"] : ["System.Range.Start", ""]).WithLocation(1, 5),
+                // (1,5): warning CS0612: 'Range.Start.get' is obsolete
+                // _ = new C()[..];
+                // (1,5): warning CS0618: 'Range.Start.get' is obsolete: ''
+                // _ = new C()[..];
+                // (1,5): error CS0619: 'Range.Start.get' is obsolete: ''
+                // _ = new C()[..];
+                Diagnostic((ErrorCode)errorCodeNum, "new C()[..]").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.Start.get"] : ["System.Range.Start.get", ""]).WithLocation(1, 5),
+                // (1,5): warning CS0612: 'Range.End' is obsolete
+                // _ = new C()[..];
+                // (1,5): warning CS0618: 'Range.End' is obsolete: ''
+                // _ = new C()[..];
+                // (1,5): error CS0619: 'Range.End' is obsolete: ''
+                // _ = new C()[..];
+                Diagnostic((ErrorCode)errorCodeNum, "new C()[..]").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.End"] : ["System.Range.End", ""]).WithLocation(1, 5),
+                // (1,5): warning CS0612: 'Range.End.get' is obsolete
+                // _ = new C()[..];
+                // (1,5): warning CS0618: 'Range.End.get' is obsolete: ''
+                // _ = new C()[..];
+                // (1,5): error CS0619: 'Range.End.get' is obsolete: ''
+                // _ = new C()[..];
+                Diagnostic((ErrorCode)errorCodeNum, "new C()[..]").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.End.get"] : ["System.Range.End.get", ""]).WithLocation(1, 5));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/57745")]
+        [InlineData("", (int)ErrorCode.WRN_DeprecatedSymbol)]
+        [InlineData("\"\"", (int)ErrorCode.WRN_DeprecatedSymbolStr)]
+        [InlineData("\"\", error: false", (int)ErrorCode.WRN_DeprecatedSymbolStr)]
+        [InlineData("\"\", error: true", (int)ErrorCode.ERR_DeprecatedSymbolStr)]
+        public void ObsoleteRangeTypeAndItsMembers2(string obsoleteAttributeConstructorArgs, int errorCodeNum)
+        {
+            var source = $$"""
+                _ = new C()[..];
+                _ = new C()[1..];
+                _ = new C()[..1];
+                _ = new C()[1..1];
+
+                class C
+                {
+                    public int Length => 0;
+                    public int this[int i] => 0;
+                    public int Slice(int i, int j) => 0;
+                }
+
+                namespace System
+                {
+                    public readonly struct Range
+                    {
+                        public Index Start { get; }
+
+                        public Index End { get; }
+
+                        [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                        public Range(Index start, Index end) => throw null;
+
+                        [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                        public static Range StartAt(Index start) => throw null;
+
+                        [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                        public static Range EndAt(Index end) => throw null;
+
+                        [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                        public static Range All
+                        {
+                            [Obsolete({{obsoleteAttributeConstructorArgs}})]
+                            get => throw null;
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, TestSources.Index]);
+            comp.VerifyDiagnostics(
+                // (1,13): warning CS0612: 'Range.All' is obsolete
+                // _ = new C()[..];
+                // (1,13): warning CS0618: 'Range.All' is obsolete: ''
+                // _ = new C()[..];
+                // (1,13): error CS0619: 'Range.All' is obsolete: ''
+                // _ = new C()[..];
+                Diagnostic((ErrorCode)errorCodeNum, "..").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.All"] : ["System.Range.All", ""]).WithLocation(1, 13),
+                // (1,13): warning CS0612: 'Range.All.get' is obsolete
+                // _ = new C()[..];
+                // (1,13): warning CS0618: 'Range.All.get' is obsolete: ''
+                // _ = new C()[..];
+                // (1,13): error CS0619: 'Range.All.get' is obsolete: ''
+                // _ = new C()[..];
+                Diagnostic((ErrorCode)errorCodeNum, "..").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.All.get"] : ["System.Range.All.get", ""]).WithLocation(1, 13),
+                // (2,13): warning CS0612: 'Range.StartAt(Index)' is obsolete
+                // _ = new C()[1..];
+                // (2,13): warning CS0618: 'Range.StartAt(Index)' is obsolete: ''
+                // _ = new C()[1..];
+                // (2,13): error CS0619: 'Range.StartAt(Index)' is obsolete: ''
+                // _ = new C()[1..];
+                Diagnostic((ErrorCode)errorCodeNum, "1..").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.StartAt(System.Index)"] : ["System.Range.StartAt(System.Index)", ""]).WithLocation(2, 13),
+                // (3,13): warning CS0612: 'Range.EndAt(Index)' is obsolete
+                // _ = new C()[..1];
+                // (3,13): warning CS0618: 'Range.EndAt(Index)' is obsolete: ''
+                // _ = new C()[..1];
+                // (3,13): error CS0619: 'Range.EndAt(Index)' is obsolete: ''
+                // _ = new C()[..1];
+                Diagnostic((ErrorCode)errorCodeNum, "..1").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.EndAt(System.Index)"] : ["System.Range.EndAt(System.Index)", ""]).WithLocation(3, 13),
+                // (4,13): warning CS0612: 'Range.Range(Index, Index)' is obsolete
+                // _ = new C()[1..1];
+                // (4,13): warning CS0618: 'Range.Range(Index, Index)' is obsolete: ''
+                // _ = new C()[1..1];
+                // (4,13): error CS0619: 'Range.Range(Index, Index)' is obsolete: ''
+                // _ = new C()[1..1];
+                Diagnostic((ErrorCode)errorCodeNum, "1..1").WithArguments(errorCodeNum == (int)ErrorCode.WRN_DeprecatedSymbol ? ["System.Range.Range(System.Index, System.Index)"] : ["System.Range.Range(System.Index, System.Index)", ""]).WithLocation(4, 13));
         }
 
         [Fact]
