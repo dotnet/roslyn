@@ -21,14 +21,6 @@ internal class VSCodeRequestTelemetryLogger() : RequestTelemetryLogger(WellKnown
     /// </summary>
     private static bool s_initialProjectLoadCompleted = false;
 
-    /// <summary>
-    /// Store which workspace a document came from for each request.  This is tracked separately before and after initial project load:
-    ///   1.  Before initial load, almost all requests should resolve to the misc files workspace.
-    ///   2.  After initial load, almost all requests should resolve to the host workspace.
-    /// A large amount of misc files requests in 2 could indicate either a bug or feature improvements in order to load what the user is expecting.
-    /// </summary>
-    private readonly ConcurrentDictionary<bool, CountLogAggregator<string>> _findDocumentCounters = new();
-
     public static void ReportProjectInitializationComplete()
     {
         s_initialProjectLoadCompleted = true;
@@ -40,30 +32,17 @@ internal class VSCodeRequestTelemetryLogger() : RequestTelemetryLogger(WellKnown
         Logger.Log(FunctionId.VSCode_Project_Load_Started, logLevel: LogLevel.Information);
     }
 
-    protected override void IncreaseFindDocumentCount(string workspaceInfo)
+    protected override void IncreaseFindDocumentCount(string workspaceCountMetricName)
     {
-        _findDocumentCounters.GetOrAdd(s_initialProjectLoadCompleted, (_) => new CountLogAggregator<string>()).IncreaseCount(workspaceInfo);
-    }
-
-    protected override void ReportFindDocumentCounter()
-    {
-        foreach (var (isInitialLoadComplete, counter) in _findDocumentCounters)
+        TelemetryLogging.LogAggregatedCounter(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(m =>
         {
-            if (!counter.IsEmpty)
-            {
-                TelemetryLogging.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
-                {
-                    m["server"] = ServerTypeName;
-                    m["projectsLoaded"] = isInitialLoadComplete;
-                    foreach (var kvp in counter)
-                    {
-                        var info = kvp.Key.ToString()!;
-                        m[info] = kvp.Value.GetCount();
-                    }
-                }));
-            }
-        }
-        _findDocumentCounters.Clear();
+            var projectsLoaded = s_initialProjectLoadCompleted;
+            m[TelemetryLogging.KeyName] = ServerTypeName + "." + workspaceCountMetricName + "." + projectsLoaded;
+            m[TelemetryLogging.KeyValue] = 1L;
+            m[TelemetryLogging.KeyMetricName] = workspaceCountMetricName;
+            m["server"] = ServerTypeName;
+            m["workspace"] = workspaceCountMetricName;
+            m["projectsLoaded"] = projectsLoaded;
+        }));
     }
-
 }

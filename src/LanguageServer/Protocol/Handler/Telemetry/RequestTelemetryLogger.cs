@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -18,46 +20,43 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
 {
     protected readonly string ServerTypeName;
 
-    /// <summary>
-    /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
-    /// run alongside other non-mutating requests.
-    /// </summary>
-    private readonly ConcurrentDictionary<(string Method, string? Language), Counter> _requestCounters;
-
-    private readonly CountLogAggregator<string> _findDocumentResults;
-
-    private readonly CountLogAggregator<bool> _usedForkedSolutionCounter;
-
-    private int _disposed;
-
     public RequestTelemetryLogger(string serverTypeName)
     {
         ServerTypeName = serverTypeName;
-        _requestCounters = new();
-        _findDocumentResults = new();
-        _usedForkedSolutionCounter = new();
-
-        TelemetryLogging.Flushed += OnFlushed;
     }
 
     public void UpdateFindDocumentTelemetryData(bool success, string? workspaceKind)
     {
         var workspaceKindTelemetryProperty = success ? workspaceKind : "Failed";
-
         if (workspaceKindTelemetryProperty != null)
         {
             IncreaseFindDocumentCount(workspaceKindTelemetryProperty);
         }
     }
 
-    protected virtual void IncreaseFindDocumentCount(string workspaceInfo)
+    protected virtual void IncreaseFindDocumentCount(string workspaceCounterMetricName)
     {
-        _findDocumentResults.IncreaseCount(workspaceInfo);
+        TelemetryLogging.LogAggregatedCounter(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(m =>
+        {
+            m[TelemetryLogging.KeyName] = ServerTypeName + "." + workspaceCounterMetricName;
+            m[TelemetryLogging.KeyValue] = 1L;
+            m[TelemetryLogging.KeyMetricName] = workspaceCounterMetricName;
+            m["server"] = ServerTypeName;
+            m["workspace"] = workspaceCounterMetricName;
+        }));
     }
 
     public void UpdateUsedForkedSolutionCounter(bool usedForkedSolution)
     {
-        _usedForkedSolutionCounter.IncreaseCount(usedForkedSolution);
+        var metricName = usedForkedSolution ? "ForkedCount" : "NonForkedCount";
+        TelemetryLogging.LogAggregatedCounter(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(m =>
+        {
+            m[TelemetryLogging.KeyName] = ServerTypeName + "." + metricName;
+            m[TelemetryLogging.KeyValue] = 1L;
+            m[TelemetryLogging.KeyMetricName] = metricName;
+            m["server"] = ServerTypeName;
+            m["usedForkedSolution"] = usedForkedSolution;
+        }));
     }
 
     public void UpdateTelemetryData(
@@ -68,122 +67,50 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         Result result)
     {
         // Store the request time metrics per LSP method.
-        TelemetryLogging.LogAggregated(FunctionId.LSP_TimeInQueue, KeyValueLogMessage.Create(m =>
+        TelemetryLogging.LogAggregatedHistogram(FunctionId.LSP_TimeInQueue, KeyValueLogMessage.Create(m =>
         {
             m[TelemetryLogging.KeyName] = ServerTypeName;
-            m[TelemetryLogging.KeyValue] = (int)queuedDuration.TotalMilliseconds;
+            m[TelemetryLogging.KeyValue] = (long)queuedDuration.TotalMilliseconds;
             m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
             m["server"] = ServerTypeName;
             m["method"] = methodName;
             m["language"] = language;
         }));
 
-        TelemetryLogging.LogAggregated(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
+        TelemetryLogging.LogAggregatedHistogram(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
         {
-            m[TelemetryLogging.KeyName] = ServerTypeName + "." + methodName;
-            m[TelemetryLogging.KeyValue] = (int)requestDuration.TotalMilliseconds;
+            m[TelemetryLogging.KeyName] = ServerTypeName + "." + methodName + "." + language;
+            m[TelemetryLogging.KeyValue] = (long)requestDuration.TotalMilliseconds;
             m[TelemetryLogging.KeyMetricName] = "RequestDuration";
             m["server"] = ServerTypeName;
             m["method"] = methodName;
             m["language"] = language;
         }));
 
-        _requestCounters.GetOrAdd((methodName, language), (_) => new Counter()).IncrementCount(result);
+        var metricName = result switch
+        {
+            Result.Succeeded => "SucceededCount",
+            Result.Failed => "FailedCount",
+            Result.Cancelled => "CancelledCount",
+            _ => throw ExceptionUtilities.UnexpectedValue(result)
+        };
+
+        TelemetryLogging.LogAggregatedCounter(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(m =>
+        {
+            m[TelemetryLogging.KeyName] = ServerTypeName + "." + methodName + "." + language + "." + metricName;
+            m[TelemetryLogging.KeyValue] = 1L;
+            m[TelemetryLogging.KeyMetricName] = metricName;
+            m["server"] = ServerTypeName;
+            m["method"] = methodName;
+            m["language"] = language;
+        }));
     }
 
-    /// <summary>
-    /// Only output aggregate telemetry to the vs logger when the server instance is disposed
-    /// to avoid spamming the telemetry output with thousands of events
-    /// </summary>
     public void Dispose()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
-        {
-            return;
-        }
-
-        // Flush all telemetry logged through TelemetryLogging
+        // Ensure that telemetry logged for this server instance is flushed before potentially creating a new instance.
+        // This is also called on disposal of the telemetry session, but will no-op if already flushed.
         TelemetryLogging.Flush();
-
-        TelemetryLogging.Flushed -= OnFlushed;
-    }
-
-    protected virtual void ReportFindDocumentCounter()
-    {
-        if (!_findDocumentResults.IsEmpty)
-        {
-            TelemetryLogging.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
-            {
-                m["server"] = ServerTypeName;
-                foreach (var kvp in _findDocumentResults)
-                {
-                    var info = kvp.Key.ToString()!;
-                    m[info] = kvp.Value.GetCount();
-                }
-            }));
-        }
-        _findDocumentResults.Clear();
-    }
-
-    private void OnFlushed(object? sender, EventArgs e)
-    {
-        foreach (var kvp in _requestCounters)
-        {
-            TelemetryLogging.Log(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(LogType.Trace, m =>
-            {
-                m["server"] = ServerTypeName;
-                m["method"] = kvp.Key.Method;
-                m["language"] = kvp.Key.Language;
-                m["successful"] = kvp.Value.SucceededCount;
-                m["failed"] = kvp.Value.FailedCount;
-                m["cancelled"] = kvp.Value.CancelledCount;
-            }));
-        }
-
-        ReportFindDocumentCounter();
-
-        if (!_usedForkedSolutionCounter.IsEmpty)
-        {
-            TelemetryLogging.Log(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(LogType.Trace, m =>
-            {
-                m["server"] = ServerTypeName;
-                foreach (var kvp in _usedForkedSolutionCounter)
-                {
-                    var info = kvp.Key.ToString()!;
-                    m[info] = kvp.Value.GetCount();
-                }
-            }));
-        }
-
-        _requestCounters.Clear();
-        _usedForkedSolutionCounter.Clear();
-    }
-
-    private class Counter
-    {
-        private int _succeededCount;
-        private int _failedCount;
-        private int _cancelledCount;
-
-        public int SucceededCount => _succeededCount;
-        public int FailedCount => _failedCount;
-        public int CancelledCount => _cancelledCount;
-
-        public void IncrementCount(Result result)
-        {
-            switch (result)
-            {
-                case Result.Succeeded:
-                    Interlocked.Increment(ref _succeededCount);
-                    break;
-                case Result.Failed:
-                    Interlocked.Increment(ref _failedCount);
-                    break;
-                case Result.Cancelled:
-                    Interlocked.Increment(ref _cancelledCount);
-                    break;
-            }
-        }
     }
 
     internal enum Result
