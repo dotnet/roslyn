@@ -9593,5 +9593,18 @@ public class C
 }
 """");
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting_ValidateTaskYield()
+        {
+            var src = """
+using System.Threading.Tasks;
+
+var task = Task.Yield();
+System.Console.Write(task.GetAwaiter().IsCompleted);
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(comp, expectedOutput: "False").VerifyDiagnostics();
+        }
     }
 }
