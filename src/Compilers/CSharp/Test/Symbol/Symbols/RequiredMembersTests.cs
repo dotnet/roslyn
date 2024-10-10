@@ -1364,7 +1364,7 @@ class C
     public void RefFields()
     {
         var source = """
-            #pragma warning disable 649
+            #pragma warning disable 9265
             internal ref struct R1<T>
             {
                 internal required ref T F1;

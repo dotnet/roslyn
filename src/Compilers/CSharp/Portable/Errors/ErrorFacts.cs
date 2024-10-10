@@ -210,6 +210,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
+                case ErrorCode.WRN_UnassignedInternalRefField:
+                    // Warning level 10 is exclusively for warnings introduced in the compiler
+                    // shipped with dotnet 10 (C# 14) and that can be reported for pre-existing code.
+                    return 10;
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
@@ -2459,6 +2463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
                 or ErrorCode.ERR_PartialPropertyDuplicateInitializer
                 or ErrorCode.WRN_UninitializedNonNullableBackingField
+                or ErrorCode.WRN_UnassignedInternalRefField
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

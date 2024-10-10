@@ -1916,6 +1916,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="WRN_UnassignedInternalField_Title" xml:space="preserve">
     <value>Field is never assigned to, and will always have its default value</value>
   </data>
+  <data name="WRN_UnassignedInternalRefField" xml:space="preserve">
+    <value>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</value>
+  </data>
+  <data name="WRN_UnassignedInternalRefField_Title" xml:space="preserve">
+    <value>Field is never ref-assigned to, and will always have its default value (null reference)</value>
+  </data>
   <data name="ERR_CStyleArray" xml:space="preserve">
     <value>Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.</value>
   </data>

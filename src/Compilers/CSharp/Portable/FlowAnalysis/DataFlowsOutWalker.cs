@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.EnterRegion();
         }
 
-        protected override void NoteWrite(Symbol variable, BoundExpression value, bool read)
+        protected override void NoteWrite(Symbol variable, BoundExpression value, bool read, bool isRef)
         {
             // any reachable assignment to a ref or out parameter can be visible to the caller in the face of exceptions.
             if (this.State.Reachable && IsInside)
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             }
 
-            base.NoteWrite(variable, value, read);
+            base.NoteWrite(variable, value, read: read, isRef: isRef);
         }
 
 #if DEBUG
