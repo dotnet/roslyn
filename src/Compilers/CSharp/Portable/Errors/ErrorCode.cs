@@ -2345,6 +2345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CannotApplyOverloadResolutionPriorityToMember = 9262,
         ERR_PartialPropertyDuplicateInitializer = 9263,
 
+        ERR_NestedUnboundTypeNotAllowedInNameofExpression = 9270,
+
         WRN_UninitializedNonNullableBackingField = 9264,
 
         // Note: you will need to do the following after adding errors:
