@@ -105,19 +105,64 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
         if (type is null)
             return null;
 
-        var methodToLookFor = isAsync
-            ? GetDisposeMethod(typeof(IAsyncDisposable).FullName!, nameof(IAsyncDisposable.DisposeAsync))
-            : GetDisposeMethod(typeof(IDisposable).FullName!, nameof(IDisposable.Dispose));
-        if (methodToLookFor is null)
+        var (iDisposableInterfaceType, disposeMethodToLookFor) = isAsync
+            ? GetIDisposableInterfaceAndDisposeMethod(typeof(IAsyncDisposable).FullName!, nameof(IAsyncDisposable.DisposeAsync))
+            : GetIDisposableInterfaceAndDisposeMethod(typeof(IDisposable).FullName!, nameof(IDisposable.Dispose));
+        if (disposeMethodToLookFor is null)
             return null;
 
-        var impl = type.FindImplementationForInterfaceMember(methodToLookFor) ?? methodToLookFor;
-        return impl as IMethodSymbol;
+        var impl = type.FindImplementationForInterfaceMember(disposeMethodToLookFor);
+        if (impl is IMethodSymbol implMethod)
+        {
+            return implMethod;
+        }
 
-        IMethodSymbol? GetDisposeMethod(string typeName, string methodName)
+        // If we didn't find implementation for the method
+        // look for the method with the right signature.
+        // This will help with error recovery and produce correct result
+        // for the case with a pattern-based using statement on `ref struct`s
+        if (isAsync)
+        {
+            var valueTaskType = compilation.ValueTaskType();
+
+            var currentType = type;
+            while (currentType is not null)
+            {
+                if (currentType
+                    .GetMembers(nameof(IAsyncDisposable.DisposeAsync))
+                    .FirstOrDefault(m => m is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, ReturnType: var returnType, Parameters.Length: 0 } &&
+                                         SymbolEqualityComparer.Default.Equals(returnType, valueTaskType)) is IMethodSymbol disposeMethodFromPattern)
+                {
+                    return disposeMethodFromPattern;
+                }
+
+                currentType = currentType.BaseType;
+            }
+        }
+        else
+        {
+            var currentType = type;
+            while (currentType is not null)
+            {
+                if (currentType
+                    .GetMembers(nameof(IDisposable.Dispose))
+                    .FirstOrDefault(m => m is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, ReturnsVoid: true, Parameters.Length: 0 }) is IMethodSymbol disposeMethodFromPattern)
+                {
+                    return disposeMethodFromPattern;
+                }
+
+                currentType = currentType.BaseType;
+            }
+        }
+
+        // If type doesn't implement disposable interface and doesn't have dispose method with right shape
+        // return null rather than completely unrelated dispose method for that type
+        return type.Implements(iDisposableInterfaceType!) ? disposeMethodToLookFor : null;
+
+        (INamedTypeSymbol?, IMethodSymbol?) GetIDisposableInterfaceAndDisposeMethod(string typeName, string methodName)
         {
             var disposableType = compilation.GetBestTypeByMetadataName(typeName);
-            return disposableType?.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Parameters.Length == 0 && m.Name == methodName);
+            return (disposableType, disposableType?.GetMembers().OfType<IMethodSymbol>().FirstOrDefault(m => m.Parameters.Length == 0 && m.Name == methodName));
         }
     }
 
