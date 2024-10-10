@@ -19,7 +19,7 @@
           },
           "map": [
             {
-              "result": "VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics",
+              "result": "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics",
               "match": 0
             },
             {
@@ -27,12 +27,46 @@
               "match": 1
             },
             {
-              "result": "FullSolution",
+              "result": "fullSolution",
               "match": 2
             },
             {
-              "result": "None",
+              "result": "none",
               "match": 3
+            }
+          ]
+        }
+      }
+    },
+    "textEditor.csharp.advanced.analysis.compilerDiagnosticsScope": {
+      "title": "@Show_compiler_errors_and_warnings_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "none", "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics", "openFiles", "fullSolution" ],
+      "enumItemLabels": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "default": "openFiles",
+      "order": 1,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.CompilerDiagnosticsScopeOption"
+          },
+          "map": [
+            {
+              "result": "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics",
+              "match": 1
+            },
+            {
+              "result": "openFiles",
+              "match": 2
+            },
+            {
+              "result": "fullSolution",
+              "match": 3
+            },
+            {
+              "result": "none",
+              "match": 0
             }
           ]
         }
