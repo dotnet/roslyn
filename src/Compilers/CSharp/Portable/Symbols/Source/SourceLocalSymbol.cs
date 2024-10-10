@@ -536,10 +536,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(initializer != null);
 
                 _initializer = initializer;
-                _initializerBinder = initializerBinder.GetBinder(initializer);
+                _initializerBinder = initializerBinder;
                 if (this.IsConst)
                 {
-                    _initializerBinder ??= new LocalInProgressBinder(_initializer, initializerBinder); // for error scenarios
+                    _initializerBinder = _initializerBinder.GetBinder(initializer) ?? new LocalInProgressBinder(_initializer, initializerBinder); // for error scenarios
                     recordConstInBinderChain();
                 }
 
