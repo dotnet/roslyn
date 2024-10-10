@@ -110,3 +110,21 @@ When the .NET SDK RTMs and Roslyn adopts it all occurrences of `$(NetRoslynNext)
 
 **DO NOT** include both `$(NetRoslyn)` and `$(NetRoslynNext)` in the same project unless there is a very specific reason that both tests are adding value. The most common case is that the runtime has changed behavior and we simply need to update our baselines to match it. Adding extra TFMs for this just increases test time for very little gain.
 
+## Checklist for updating TFMs (once a year)
+
+- Update `TargetFrameworks.props`.
+- Change `$(NetRoslynNext)` references to `$(NetRoslyn)` in project files.
+- Update TFMs in:
+  - `.vscode\launch.json`
+  - `.vscode\tasks.json`
+  - `eng\build.ps1`
+  - `eng\build.sh`
+  - `eng\generate-compiler-code.ps1`
+  - `eng\prepare-tests.ps1`
+  - `eng\prepare-tests.sh`
+  - `eng\test-rebuild.ps1`
+  - `eng\pipelines\test-integration-helix.yml`
+  - `eng\pipelines\test-unix-job.yml`
+  - `eng\pipelines\test-windows-job.yml`
+  - `src\Tools\BuildBoss\CompilerNuGetCheckerUtil.cs`
+  - `src\Tools\Replay\README.md`
