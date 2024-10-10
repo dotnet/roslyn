@@ -951,6 +951,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <param name="isRef">
+        /// Whether this write represents a ref-assignment.
+        /// </param>
         private void NoteWrite(BoundExpression n, BoundExpression value, bool read, bool isRef)
         {
             while (n != null)
