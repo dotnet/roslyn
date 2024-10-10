@@ -333,8 +333,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
+#nullable enable
+        protected virtual BoundStatement? MakeAwaitPreamble() { return null; }
+#nullable disable
+
         private BoundBlock VisitAwaitExpression(BoundAwaitExpression node, BoundExpression resultPlace)
         {
+            BoundStatement preamble = MakeAwaitPreamble();
+
             var expression = (BoundExpression)Visit(node.Expression);
             var awaitablePlaceholder = node.AwaitableInfo.AwaitableInstancePlaceholder;
 
@@ -386,10 +392,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Assignment(resultPlace, getResultCall) :
                 F.ExpressionStatement(getResultCall);
 
-            return F.Block(
-                ImmutableArray.Create(awaiterTemp),
-                awaitIfIncomplete,
-                getResultStatement);
+            var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(preamble is null ? 2 : 3);
+            if (preamble is not null)
+            {
+                statementsBuilder.Add(preamble);
+            }
+            statementsBuilder.Add(awaitIfIncomplete);
+            statementsBuilder.Add(getResultStatement);
+
+            return F.Block([awaiterTemp], statementsBuilder.ToImmutableAndFree());
         }
 
         public override BoundNode VisitAwaitableValuePlaceholder(BoundAwaitableValuePlaceholder node)
