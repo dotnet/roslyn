@@ -3309,9 +3309,28 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-    // (6,51): error CS0133: The expression being assigned to 'b' must be constant
-    //         const Func<int> a = () => { const int b = a(); return 1; };
-    Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
+                // (6,51): error CS0133: The expression being assigned to 'b' must be constant
+                //         const Func<int> a = () => { const int b = a(); return 1; };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
+                );
+        }
+
+        [Fact]
+        public static void DoubleRecursiveConst_NotInvoked()
+        {
+            var source =
+@"using System;
+class C
+{
+    public static void Main()
+    {
+        const Func<int> a = () => { const Func<int> b = a; return 1; };
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,57): error CS0134: 'b' is of type 'Func<int>'. A const field of a reference type other than string can only be initialized with null.
+                //         const Func<int> a = () => { const Func<int> b = a; return 1; };
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, "a").WithArguments("b", "System.Func<int>").WithLocation(6, 57)
                 );
         }
 
@@ -4040,6 +4059,162 @@ public class C
 
             Assert.Equal("bad", badConst.ToString(null, CultureInfo.InvariantCulture));
             Assert.Equal("null", nullConst.ToString(null, CultureInfo.InvariantCulture));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_SwitchOperand()
+        {
+            var source = """
+const string x = x switch { _ => "" };
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,18): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                // const string x = x switch { _ => "" };
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(1, 18),
+                // (1,18): error CS0133: The expression being assigned to 'x' must be constant
+                // const string x = x switch { _ => "" };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, @"x switch { _ => """" }").WithArguments("x").WithLocation(1, 18));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var xDeclarator = GetSyntax<VariableDeclaratorSyntax>(tree, """x = x switch { _ => "" }""");
+            Assert.Equal("System.String x", model.GetDeclaredSymbol(xDeclarator).ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_SwitchOperand_Var()
+        {
+            var source = """
+const var x = x switch { _ => "" };
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0822: Implicitly-typed variables cannot be constant
+                // const var x = x switch { _ => "" };
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableCannotBeConst, @"var x = x switch { _ => """" }").WithLocation(1, 7),
+                // (1,15): error CS0841: Cannot use local variable 'x' before it is declared
+                // const var x = x switch { _ => "" };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(1, 15));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var xDeclarator = GetSyntax<VariableDeclaratorSyntax>(tree, """x = x switch { _ => "" }""");
+            Assert.Equal("System.String x", model.GetDeclaredSymbol(xDeclarator).ToTestDisplayString(includeNonNullable: false));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_SwitchArm()
+        {
+            var source = """
+const string x = 42 switch { _ => x };
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,18): error CS0133: The expression being assigned to 'x' must be constant
+                // const string x = 42 switch { _ => x };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "42 switch { _ => x }").WithArguments("x").WithLocation(1, 18),
+                // (1,35): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                // const string x = 42 switch { _ => x };
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(1, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_Nameof()
+        {
+            var source = """
+const string x = nameof(x);
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_Checked()
+        {
+            var source = """
+const int x = checked(x);
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,23): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                // const int x = checked(x);
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(1, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_Checked_TwoConstDeclarations()
+        {
+            var source = """
+const int x = checked(y);
+const int y = checked(x);
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,23): error CS0841: Cannot use local variable 'y' before it is declared
+                // const int x = checked(y);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(1, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_Checked_TwoConstDeclarators()
+        {
+            var source = """
+const int x = y switch { _ => 42 }, y = x switch { _ => 42 };
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,15): error CS0841: Cannot use local variable 'y' before it is declared
+                // const int x = y switch { _ => 42 }, y = x switch { _ => 42 };
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y").WithArguments("y").WithLocation(1, 15),
+                // (1,41): error CS0133: The expression being assigned to 'y' must be constant
+                // const int x = y switch { _ => 42 }, y = x switch { _ => 42 };
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "x switch { _ => 42 }").WithArguments("y").WithLocation(1, 41));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_CollectionExpression_IEnumerable_Struct()
+        {
+            var source = """
+const S x = [x];
+
+public struct S : System.Collections.Generic.IEnumerable<S>
+{
+    public S() => throw null;
+    public void Add(S s) => throw null;
+    System.Collections.Generic.IEnumerator<S> System.Collections.Generic.IEnumerable<S>.GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,7): error CS0283: The type 'S' cannot be declared const
+                // const S x = [x];
+                Diagnostic(ErrorCode.ERR_BadConstType, "S").WithArguments("S").WithLocation(1, 7));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75353")]
+        public void ConstLocalCircularity_CollectionExpression_IEnumerable_Class()
+        {
+            var source = """
+const S x = [x];
+
+public class S : System.Collections.Generic.IEnumerable<S>
+{
+    public S() => throw null;
+    public void Add(S s) => throw null;
+    System.Collections.Generic.IEnumerator<S> System.Collections.Generic.IEnumerable<S>.GetEnumerator() => throw null;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null;
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (1,13): error CS0133: The expression being assigned to 'x' must be constant
+                // const S x = [x];
+                Diagnostic(ErrorCode.ERR_NotConstantExpression, "[x]").WithArguments("x").WithLocation(1, 13),
+                // (1,14): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
+                // const S x = [x];
+                Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(1, 14));
         }
     }
 
