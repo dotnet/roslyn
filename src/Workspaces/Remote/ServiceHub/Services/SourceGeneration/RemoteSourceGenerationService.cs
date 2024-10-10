@@ -10,9 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Roslyn.Utilities;
@@ -104,6 +102,9 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         var workspace = GetWorkspace();
         var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
 
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksums);
+        checksums.AddRange(analyzerReferenceChecksums);
+
         // Fetch the analyzer references specified by the host.  Note: this will only serialize this information over
         // the first time needed. After that, it will be cached in the WorkspaceManager.SolutionAssetCache on the remote
         // side, so it will be a no-op to fetch them in the future.
@@ -113,20 +114,16 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         // those will almost always be the same, we'll just fetch the precomputed values on our end, return them, and
         // the host will cache it.  We'll only actually fetch something new and compute something new when an actual new
         // analyzer reference is added.
-
-        var checksumCollection = new ChecksumCollection(analyzerReferenceChecksums);
-
-        // Make sure the analyzer references are loaded into an isolated ALC so that we can properly load them if
-        // they're a new version of some analyzer reference we've already loaded.
-        var isolatedReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
-            useAsync: true,
-            checksumCollection,
-            workspace.Services.SolutionServices,
-            () => assetProvider.GetAssetsArrayAsync<AnalyzerReference>(projectId, checksumCollection, cancellationToken),
+        using var _2 = ArrayBuilder<AnalyzerReference>.GetInstance(checksums.Count, out var analyzerReferences);
+        await assetProvider.GetAssetHelper<AnalyzerReference>().GetAssetsAsync(
+            projectId,
+            checksums,
+            static (_, analyzerReference, analyzerReferences) => analyzerReferences.Add(analyzerReference),
+            analyzerReferences,
             cancellationToken).ConfigureAwait(false);
 
         var (analyzerReferenceMap, callback) = s_languageToAnalyzerReferenceMap[language];
-        foreach (var analyzerReference in isolatedReferences)
+        foreach (var analyzerReference in analyzerReferences)
         {
             var hasGenerators = analyzerReferenceMap.GetValue(analyzerReference, callback);
             if (hasGenerators.Value)

@@ -13,7 +13,7 @@ namespace AnalyzerRunner
     [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
     internal sealed class AnalyzerRunnerWorkspaceConfigurationService : IWorkspaceConfigurationService
     {
-        public WorkspaceConfigurationOptions Options { get; set; } = WorkspaceConfigurationOptions.Default;
+        public WorkspaceConfigurationOptions Options { get; set; }
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
