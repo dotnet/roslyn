@@ -686,6 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int nArgumentsVisited,
             ImmutableArray<BoundExpression> arguments)
         {
+            Debug.Assert(interpolationData.ReceiverPlaceholder is not null);
             placeholders.Add((interpolationData.ReceiverPlaceholder, _localScopeDepth));
 
             foreach (var placeholder in interpolationData.ArgumentPlaceholders)

@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Logging;
 
@@ -59,20 +60,28 @@ internal sealed class LspLogMessageLogger : ILogger
         if (message != null && logLevel != LogLevel.None)
         {
             message = $"[{_categoryName}] {message}";
-            var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
+            try
             {
-                Message = message,
-                MessageType = logLevel switch
+                var _ = server.GetRequiredLspService<IClientLanguageServerManager>().SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
                 {
-                    LogLevel.Trace => MessageType.Log,
-                    LogLevel.Debug => MessageType.Log,
-                    LogLevel.Information => MessageType.Info,
-                    LogLevel.Warning => MessageType.Warning,
-                    LogLevel.Error => MessageType.Error,
-                    LogLevel.Critical => MessageType.Error,
-                    _ => throw new InvalidOperationException($"Unexpected logLevel argument {logLevel}"),
-                }
-            }, CancellationToken.None);
+                    Message = message,
+                    MessageType = logLevel switch
+                    {
+                        LogLevel.Trace => MessageType.Log,
+                        LogLevel.Debug => MessageType.Log,
+                        LogLevel.Information => MessageType.Info,
+                        LogLevel.Warning => MessageType.Warning,
+                        LogLevel.Error => MessageType.Error,
+                        LogLevel.Critical => MessageType.Error,
+                        _ => throw new InvalidOperationException($"Unexpected logLevel argument {logLevel}"),
+                    }
+                }, CancellationToken.None);
+            }
+            catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
+            {
+                // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a log notification
+                // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
+            }
         }
     }
 }

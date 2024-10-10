@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class PackageReference(
+    private sealed partial class PackageReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SearchResult searchResult,
         string source,

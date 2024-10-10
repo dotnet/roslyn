@@ -1031,7 +1031,7 @@ class C
         await using var testLspServer = await CreateTestLspServerAsync(["class C {}"], mutatingLspWorkspace,
             GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, enableDiagnosticsInSourceGeneratedFiles: enableDiagnosticsInSourceGeneratedFiles));
 
-        var generator = new TestSourceGenerator()
+        var generator = new Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator()
         {
             ExecuteImpl = context => throw new InvalidOperationException("Source generator failed")
         };

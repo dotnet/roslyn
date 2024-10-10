@@ -101,7 +101,7 @@ internal sealed class RegexClassifier : IEmbeddedLanguageClassifier
         }
     }
 
-    private class Visitor : IRegexNodeVisitor
+    private sealed class Visitor : IRegexNodeVisitor
     {
         public EmbeddedLanguageClassificationContext Context;
 

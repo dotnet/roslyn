@@ -337,6 +337,23 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_ParamCollectionAttribute,
 
+        System_Linq_Expressions_BinaryExpression,
+        System_Linq_Expressions_MethodCallExpression,
+        System_Linq_Expressions_ConstantExpression,
+        System_Linq_Expressions_UnaryExpression,
+        System_Linq_Expressions_NewExpression,
+        System_Linq_Expressions_MemberExpression,
+        System_Linq_Expressions_MemberMemberBinding,
+        System_Linq_Expressions_MemberAssignment,
+        System_Linq_Expressions_MemberListBinding,
+        System_Linq_Expressions_ListInitExpression,
+        System_Linq_Expressions_MemberInitExpression,
+        System_Linq_Expressions_LambdaExpression,
+        System_Linq_Expressions_TypeBinaryExpression,
+        System_Linq_Expressions_ConditionalExpression,
+        System_Linq_Expressions_InvocationExpression,
+        System_Linq_Expressions_NewArrayExpression,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -659,6 +676,23 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.Unsafe",
 
             "System.Runtime.CompilerServices.ParamCollectionAttribute",
+
+            "System.Linq.Expressions.BinaryExpression",
+            "System.Linq.Expressions.MethodCallExpression",
+            "System.Linq.Expressions.ConstantExpression",
+            "System.Linq.Expressions.UnaryExpression",
+            "System.Linq.Expressions.NewExpression",
+            "System.Linq.Expressions.MemberExpression",
+            "System.Linq.Expressions.MemberMemberBinding",
+            "System.Linq.Expressions.MemberAssignment",
+            "System.Linq.Expressions.MemberListBinding",
+            "System.Linq.Expressions.ListInitExpression",
+            "System.Linq.Expressions.MemberInitExpression",
+            "System.Linq.Expressions.LambdaExpression",
+            "System.Linq.Expressions.TypeBinaryExpression",
+            "System.Linq.Expressions.ConditionalExpression",
+            "System.Linq.Expressions.InvocationExpression",
+            "System.Linq.Expressions.NewArrayExpression",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -717,6 +751,10 @@ namespace Microsoft.CodeAnalysis
 #if DEBUG
             // Some compile time asserts
             {
+                // We should not add new types to CSharp7 set
+                _ = new int[(int)WellKnownType.CSharp7Sentinel - 252];
+                _ = new int[252 - (int)WellKnownType.CSharp7Sentinel];
+
                 // The WellKnownType.ExtSentinel value must be 255
                 _ = new int[(int)WellKnownType.ExtSentinel - 255];
                 _ = new int[255 - (int)WellKnownType.ExtSentinel];

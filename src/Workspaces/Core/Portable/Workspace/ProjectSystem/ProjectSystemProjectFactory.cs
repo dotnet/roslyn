@@ -44,7 +44,7 @@ internal sealed partial class ProjectSystemProjectFactory
     public IFileChangeWatcher FileChangeWatcher { get; }
 
     public FileWatchedReferenceFactory<PortableExecutableReference> FileWatchedPortableExecutableReferenceFactory { get; }
-    public FileWatchedReferenceFactory<AnalyzerFileReference> FileWatchedAnalyzerReferenceFactory { get; }
+    public FileWatchedReferenceFactory<AnalyzerReference> FileWatchedAnalyzerReferenceFactory { get; }
 
     public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
@@ -835,27 +835,18 @@ internal sealed partial class ProjectSystemProjectFactory
         => StartRefreshingReferencesForFileAsync(
             fullFilePath,
             getReferences: static project => project.AnalyzerReferences.Select(r => r.FullPath!),
-            getFilePath: static fullPath => fullPath,
-            createNewReference: static (_, fullPath) => fullPath,
-            update: static (solution, projectId, projectUpdateState, oldReferenceFullPath, newReferenceFullPath) =>
+            getFilePath: static filePath => filePath,
+            createNewReference: static (_, filePath) => filePath,
+            update: static (solution, projectId, projectUpdateState, oldAnalyzerFilePath, newAnalyzerFilePath) =>
             {
-                // it's expected that the old and new paths are the same here.  The idea is that we changed a file on
-                // disk, so of course the path will be the same.
-                Contract.ThrowIfTrue(oldReferenceFullPath != newReferenceFullPath);
+                // Note: we're passing in the same path for the analyzers to remove/add.  That's exactly the intent
+                // here.  We're updating an existing analyzer in place. The call to UpdateProjectAnalyzerReferences will
+                // preserve all the other analyzers (with a different path), remove the one with this path, make a new
+                // analyzer for this path, and then created an isolated ALC to load them all in.
+                Contract.ThrowIfTrue(oldAnalyzerFilePath != newAnalyzerFilePath);
 
-                var assemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
-                var project = solution.GetRequiredProject(projectId);
-                var oldAnalyzerReference = project.AnalyzerReferences.First(r => r.FullPath == oldReferenceFullPath);
-                var newAnalyzerReference = new AnalyzerFileReference(oldReferenceFullPath, assemblyLoaderProvider.SharedShadowCopyLoader);
-
-                var newSolution = solution
-                    .RemoveAnalyzerReference(projectId, oldAnalyzerReference)
-                    .AddAnalyzerReference(projectId, newAnalyzerReference);
-                var newProjectUpdateState = projectUpdateState
-                    .WithIncrementalAnalyzerReferenceRemoved(oldReferenceFullPath)
-                    .WithIncrementalAnalyzerReferenceAdded(newReferenceFullPath);
-
+                var (newSolution, newProjectUpdateState) = ProjectSystemProject.UpdateProjectAnalyzerReferences(
+                    solution, projectId, projectUpdateState, [oldAnalyzerFilePath], [newAnalyzerFilePath]);
                 return (newSolution, newProjectUpdateState);
             },
             cancellationToken);
@@ -890,10 +881,9 @@ internal sealed partial class ProjectSystemProjectFactory
 
                     if (fullFilePath.Equals(getFilePath(oldReference), StringComparison.OrdinalIgnoreCase))
                     {
-                        var newReference = createNewReference(solutionServices, oldReference);
-
                         var newSolution = solutionChanges.Solution;
-                        (newSolution, projectUpdateState) = update(newSolution, project.Id, projectUpdateState, oldReference, newReference);
+                        (newSolution, projectUpdateState) = update(
+                            newSolution, project.Id, projectUpdateState, oldReference, createNewReference(solutionServices, oldReference));
 
                         solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
                     }

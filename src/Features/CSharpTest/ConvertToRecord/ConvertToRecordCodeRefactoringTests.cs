@@ -4515,7 +4515,9 @@ public class ConvertToRecordCodeRefactoringTests
         }.RunAsync();
     }
 
+#pragma warning disable RS1042 // Do not implement
     private sealed class ConvertToRecordTestGenerator : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
     {
         public void Initialize(GeneratorInitializationContext context) { }
 

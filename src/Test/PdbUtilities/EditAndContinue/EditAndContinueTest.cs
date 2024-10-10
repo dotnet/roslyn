@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
         private TSelf This => (TSelf)this;
 
-        internal TSelf AddBaseline(string source, Action<GenerationVerifier>? validator = null)
+        internal TSelf AddBaseline(string source, Action<GenerationVerifier>? validator = null, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation>? debugInformationProvider = null)
         {
             _hasVerified = false;
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var md = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
             _disposables.Add(md);
 
-            var baseline = EditAndContinueTestUtilities.CreateInitialBaseline(compilation, md, verifier.CreateSymReader().GetEncMethodDebugInfo);
+            var baseline = EditAndContinueTestUtilities.CreateInitialBaseline(compilation, md, debugInformationProvider ?? verifier.CreateSymReader().GetEncMethodDebugInfo);
 
             _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator ?? new(x => { })));
             _sources.Add(markedSource);

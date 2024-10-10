@@ -1621,6 +1621,35 @@ static class C
                 );
         }
 
+        [Fact]
+        public void VoidReturningFactory()
+        {
+            var text =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public static class FormattableStringFactory
+    {
+        public static void Create(string format, params object[] arguments)
+        {
+        }
+    }
+}
+
+static class C
+{
+    static void Main()
+    {
+        System.IFormattable i = $""{""""}"";
+    }
+}";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,33): error CS0029: Cannot implicitly convert type 'void' to 'IFormattable'
+                //         System.IFormattable i = $"{""}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("void", "System.IFormattable").WithLocation(16, 33)
+                );
+        }
+
         [Theory, WorkItem(54702, "https://github.com/dotnet/roslyn/issues/54702")]
         [InlineData(@"$""{s1}{s2}""", @"$""{s1}{s2}{s3}""", @"$""{s1}{s2}{s3}{s4}""", @"$""{s1}{s2}{s3}{s4}{s5}""")]
         [InlineData(@"$""{s1}"" + $""{s2}""", @"$""{s1}"" + $""{s2}"" + $""{s3}""", @"$""{s1}"" + $""{s2}"" + $""{s3}"" + $""{s4}""", @"$""{s1}"" + $""{s2}"" + $""{s3}"" + $""{s4}"" + $""{s5}""")]

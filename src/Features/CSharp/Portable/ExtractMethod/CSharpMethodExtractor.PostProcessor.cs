@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
 using static SyntaxFactory;
 
-internal partial class CSharpMethodExtractor
+internal sealed partial class CSharpMethodExtractor
 {
-    private class PostProcessor
+    private sealed class PostProcessor
     {
         private readonly SemanticModel _semanticModel;
         private readonly int _contextPosition;
