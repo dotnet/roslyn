@@ -1,6 +1,6 @@
 # This document lists known breaking changes in Roslyn after .NET 9 all the way to .NET 10.
 
-## Diagnostics now reported for improper use of pattern-based disposal method in `foreach`
+## Diagnostics now reported for pattern-based disposal method in `foreach`
 
 ***Introduced in Visual Studio 2022 version 17.13***
 
@@ -26,21 +26,3 @@ class C
 }
 ```
 
-Similarly, an `[UnmanagedCallersOnly]` `Dispose` method is now reported in `foreach` with a `ref struct` enumerator.
-```csharp
-public struct S
-{
-    public static void M2(S s)
-    {
-        foreach (var i in s) { } // 'SEnumerator.Dispose()' is attributed with 'UnmanagedCallersOnly' and cannot be called directly.
-    }
-    public static SEnumerator GetEnumerator() => throw null;
-}
-public ref struct SEnumerator
-{
-    public bool MoveNext() => throw null;
-    public int Current => throw null;
-    [UnmanagedCallersOnly]
-    public void Dispose() => throw null;
-}
-```

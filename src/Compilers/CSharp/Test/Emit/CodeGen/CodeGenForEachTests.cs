@@ -5721,5 +5721,67 @@ class C
 }
 """);
         }
+
+        [Fact]
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator()
+        {
+            string source = """
+foreach (var i in new C())
+{
+}
+
+class C
+{
+    public MyEnumerator GetEnumerator()
+    {
+        throw null;
+    }
+
+    public ref struct MyEnumerator
+    {
+        public int Current { get => throw null; }
+        public bool MoveNext() => throw null;
+
+        [System.Obsolete("error", true)]
+        public void Dispose() => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): error CS0619: 'C.MyEnumerator.Dispose()' is obsolete: 'error'
+                // foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "foreach").WithArguments("C.MyEnumerator.Dispose()", "error").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator_CollectionExpression()
+        {
+            string source = """
+int[] a = [42, ..new C()];
+
+class C
+{
+    public MyEnumerator GetEnumerator()
+    {
+        throw null;
+    }
+
+    public ref struct MyEnumerator
+    {
+        public int Current { get => throw null; }
+        public bool MoveNext() => throw null;
+
+        [System.Obsolete("error", true)]
+        public void Dispose() => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,16): error CS0619: 'C.MyEnumerator.Dispose()' is obsolete: 'error'
+                // int[] a = [42, ..new C()];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..new C()").WithArguments("C.MyEnumerator.Dispose()", "error").WithLocation(1, 16));
+        }
     }
 }
