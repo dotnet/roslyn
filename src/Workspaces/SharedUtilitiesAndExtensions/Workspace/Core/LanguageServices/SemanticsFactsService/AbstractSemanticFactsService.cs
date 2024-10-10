@@ -146,7 +146,7 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
             {
                 if (currentType
                     .GetMembers(nameof(IDisposable.Dispose))
-                    .FirstOrDefault(m => m is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, ReturnsVoid: true, Parameters.Length: 0 }) is { } disposeMethodFromPattern)
+                    .FirstOrDefault(m => m is IMethodSymbol { DeclaredAccessibility: Accessibility.Public, ReturnsVoid: true, Parameters.Length: 0 }) is IMethodSymbol disposeMethodFromPattern)
                 {
                     return (IMethodSymbol)disposeMethodFromPattern;
                 }
