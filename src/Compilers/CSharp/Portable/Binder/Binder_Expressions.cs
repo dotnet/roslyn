@@ -4,12 +4,6 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +12,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -2561,6 +2561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundOperand = BindValue(node.Operand, diagnostics, BindValueKind.RValue);
             TypeSymbol intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
             TypeSymbol indexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
+            ReportDiagnosticsIfObsolete(diagnostics, indexType, node, hasBaseReceiver: false);
 
             if ((object)boundOperand.Type != null && boundOperand.Type.IsNullableType())
             {
@@ -2588,6 +2589,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
             MethodSymbol symbolOpt = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
+            if (symbolOpt is not null)
+            {
+                ReportDiagnosticsIfObsolete(diagnostics, symbolOpt, node, hasBaseReceiver: false);
+            }
 
             return new BoundFromEndIndexExpression(node, boundConversion, symbolOpt, indexType);
         }
@@ -2597,6 +2602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckFeatureAvailability(node, MessageID.IDS_FeatureRangeOperator, diagnostics);
 
             TypeSymbol rangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
+            ReportDiagnosticsIfObsolete(diagnostics, rangeType, node, hasBaseReceiver: false);
             MethodSymbol symbolOpt = null;
 
             if (!rangeType.IsErrorType())
@@ -2635,6 +2641,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMember.System_Range__ctor,
                         diagnostics,
                         syntax: node);
+                }
+
+                if (symbolOpt is not null)
+                {
+                    if (symbolOpt.AssociatedSymbol is { } associatedSymbol)
+                    {
+                        ReportDiagnosticsIfObsolete(diagnostics, associatedSymbol, node, hasBaseReceiver: false);
+                    }
+
+                    ReportDiagnosticsIfObsolete(diagnostics, symbolOpt, node, hasBaseReceiver: false);
                 }
             }
 
@@ -9957,7 +9973,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Check required well-known member. They may not be needed
                 // during lowering, but it's simpler to always require them to prevent
                 // the user from getting surprising errors when optimizations fail
-                _ = GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
+                var memberSymbol = (MethodSymbol?)GetWellKnownTypeMember(member, diagnostics, syntax: syntax);
+                if (memberSymbol is not null)
+                {
+                    if (memberSymbol.AssociatedSymbol is { } associatedSymbol)
+                    {
+                        ReportDiagnosticsIfObsolete(diagnostics, associatedSymbol, syntax, hasBaseReceiver: false);
+                    }
+
+                    ReportDiagnosticsIfObsolete(diagnostics, memberSymbol, syntax, hasBaseReceiver: false);
+                }
             }
         }
 
