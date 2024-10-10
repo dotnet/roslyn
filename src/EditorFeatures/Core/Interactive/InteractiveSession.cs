@@ -369,7 +369,7 @@ internal sealed class InteractiveSession : IDisposable
             baseDirectory,
             gacFileResolver: platformInfo.HasGlobalAssemblyCache ? new GacFileResolver(preferredCulture: CultureInfo.CurrentCulture) : null,
             platformAssemblyPaths: platformInfo.PlatformAssemblyPaths,
-            fileReferenceProvider: (path, properties) => metadataService.GetReference(path, properties));
+            createFromFileFunc: metadataService.GetReference);
     }
 
     private static SourceReferenceResolver CreateSourceReferenceResolver(ImmutableArray<string> searchPaths, string baseDirectory)
