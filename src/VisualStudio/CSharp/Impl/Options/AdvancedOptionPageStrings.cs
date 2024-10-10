@@ -81,8 +81,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_analyze_source_generated_files
             => ServicesVSResources.Analyze_source_generated_files;
 
-        public static string Option_Inline_Hints
-            => ServicesVSResources.Inline_Hints;
+        public static string Option_Inlay_Hints
+            => ServicesVSResources.Inlay_Hints;
 
         public static string Option_Display_all_hints_while_pressing_Alt_F1
             => ServicesVSResources.Display_all_hints_while_pressing_Alt_F1;
@@ -90,8 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Color_hints
             => ServicesVSResources.Color_hints;
 
-        public static string Option_Display_inline_parameter_name_hints
-            => ServicesVSResources.Display_inline_parameter_name_hints;
+        public static string Option_Display_inlay_parameter_name_hints
+            => ServicesVSResources.Display_inlay_parameter_name_hints;
 
         public static string Option_Show_hints_for_literals
             => ServicesVSResources.Show_hints_for_literals;
@@ -114,8 +114,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Suppress_hints_when_argument_matches_parameter_name
             => ServicesVSResources.Suppress_hints_when_argument_matches_parameter_name;
 
-        public static string Option_Display_inline_type_hints
-            => ServicesVSResources.Display_inline_type_hints;
+        public static string Option_Display_inlay_type_hints
+            => ServicesVSResources.Display_inlay_type_hints;
 
         public static string Option_Show_hints_for_variables_with_inferred_types
             => ServicesVSResources.Show_hints_for_variables_with_inferred_types;
