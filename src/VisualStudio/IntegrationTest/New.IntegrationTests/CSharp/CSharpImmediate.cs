@@ -12,6 +12,8 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
+// Avoid initializing a test class that contains only skipped tests (Skip = "https://github.com/dotnet/roslyn/issues/75456").
+#if false
 public class CSharpImmediate : AbstractEditorTest
 {
     protected override string LanguageName => LanguageNames.CSharp;
@@ -54,3 +56,4 @@ class Program
         Assert.Contains("?n1Var\r\n42", await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken));
     }
 }
+#endif
