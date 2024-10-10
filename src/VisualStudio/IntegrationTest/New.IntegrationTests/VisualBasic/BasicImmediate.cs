@@ -12,8 +12,6 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
-// Avoid initializing a test class that contains only skipped tests (Skip = "https://github.com/dotnet/roslyn/issues/75456").
-#if false
 public class BasicImmediate : AbstractEditorTest
 {
     protected override string LanguageName => LanguageNames.VisualBasic;
@@ -31,7 +29,7 @@ public class BasicImmediate : AbstractEditorTest
         await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
+    [IdeFact]
     public async Task DumpLocalVariableValue()
     {
         await TestServices.Editor.SetTextAsync(@"
@@ -43,6 +41,9 @@ Module Module1
 End Module
 ", HangMitigatingCancellationToken);
 
+        // Skip the EE part of the test (see https://github.com/dotnet/roslyn/issues/75456), without
+        // skipping the test completely (see https://github.com/dotnet/roslyn/issues/75478).
+#if false
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, "Module1.vb", "End Sub", HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -52,6 +53,6 @@ End Module
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["n1", VirtualKeyCode.TAB, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
         Assert.Contains("?n1Var\r\n42", await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken));
+#endif
     }
 }
-#endif
