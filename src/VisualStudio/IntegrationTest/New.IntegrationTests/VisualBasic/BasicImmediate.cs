@@ -12,6 +12,8 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
+// Avoid initializing a test class that contains only skipped tests (Skip = "https://github.com/dotnet/roslyn/issues/75456").
+#if false
 public class BasicImmediate : AbstractEditorTest
 {
     protected override string LanguageName => LanguageNames.VisualBasic;
@@ -29,7 +31,7 @@ public class BasicImmediate : AbstractEditorTest
         await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task DumpLocalVariableValue()
     {
         await TestServices.Editor.SetTextAsync(@"
@@ -52,3 +54,4 @@ End Module
         Assert.Contains("?n1Var\r\n42", await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken));
     }
 }
+#endif
