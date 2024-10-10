@@ -2492,39 +2492,27 @@ record R(int X);
             Assert.Equal("System.Int32 R.X { get; init; }", symbol.ToTestDisplayString());
         }
 
-        [Fact, WorkItem(46465, "https://github.com/dotnet/roslyn/issues/46465")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44688")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46465")]
         public void WithExpr29_DisallowedAsExpressionStatement()
         {
-            var src = @"
-record R(int X)
-{
-    void M()
-    {
-        var r = new R(1);
-        r with { X = 2 };
-    }
-}
-";
-            // Note: we didn't parse the `with` as a `with` expression, but as a broken local declaration
-            // Tracked by https://github.com/dotnet/roslyn/issues/46465
+            var src = """
+                record R(int X)
+                {
+                    void M()
+                    {
+                        var r = new R(1);
+                        r with { X = 2 };
+                    }
+                }
+                """;
+
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS0118: 'r' is a variable but is used like a type
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         r with { X = 2 };
-                Diagnostic(ErrorCode.ERR_BadSKknown, "r").WithArguments("r", "variable", "type").WithLocation(7, 9),
-                // (7,11): warning CS0168: The variable 'with' is declared but never used
-                //         r with { X = 2 };
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "with").WithArguments("with").WithLocation(7, 11),
-                // (7,16): error CS1002: ; expected
-                //         r with { X = 2 };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(7, 16),
-                // (7,18): error CS8852: Init-only property or indexer 'R.X' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.
-                //         r with { X = 2 };
-                Diagnostic(ErrorCode.ERR_AssignmentInitOnly, "X").WithArguments("R.X").WithLocation(7, 18),
-                // (7,24): error CS1002: ; expected
-                //         r with { X = 2 };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(7, 24)
-                );
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "r with { X = 2 }").WithLocation(6, 9));
         }
 
         [Fact]
