@@ -64,7 +64,7 @@ internal sealed class RemoteDiagnosticAnalyzerService : BrokeredServiceBase, IRe
                     var result = await DiagnosticComputer.GetDiagnosticsAsync(
                         document, project, solutionChecksum,
                         documentSpan,
-                        arguments.AnalyzerIds, documentAnalysisKind,
+                        arguments.ProjectAnalyzerIds, arguments.HostAnalyzerIds, documentAnalysisKind,
                         _analyzerInfoCache, hostWorkspaceServices,
                         isExplicit: arguments.IsExplicit,
                         reportSuppressedDiagnostics: arguments.ReportSuppressedDiagnostics,
