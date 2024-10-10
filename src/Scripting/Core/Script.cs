@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <remarks>
         /// This API exists as the default for reading <see cref="MetadataReference"/> from files. It is handy 
         /// to have this separate method when trying to track down unit tests that aren't going through the 
-        /// proper heplers in ScriptTestBase to hook loading from file. Can set a breakpoint here, debug the 
+        /// proper helpers in ScriptTestBase to hook loading from file. Can set a breakpoint here, debug the 
         /// tests and fix any hits.
         /// </remarks>
         internal static MetadataImageReference CreateFromFile(
