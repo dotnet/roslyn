@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out var getSyntax,
                 out var setSyntax);
 
+            Debug.Assert(!usesFieldKeyword ||
+                ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword));
+
             bool accessorsHaveImplementation = hasGetAccessorImplementation || hasSetAccessorImplementation;
 
             var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
@@ -264,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
 
-                    usesFieldKeyword = usesFieldKeyword || containsFieldKeywordInAccessor(accessor);
+                    usesFieldKeyword = usesFieldKeyword || containsFieldExpressionInAccessor(accessor);
                 }
             }
             else
@@ -272,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var body = GetArrowExpression(syntax);
                 hasGetAccessorImplementation = body is object;
                 hasSetAccessorImplementation = false;
-                usesFieldKeyword = body is { } && containsFieldKeywordInGreenNode(body.Green);
+                usesFieldKeyword = body is { } && containsFieldExpressionInGreenNode(body.Green);
                 Debug.Assert(hasGetAccessorImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
             }
 
@@ -282,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return body != null;
             }
 
-            static bool containsFieldKeywordInAccessor(AccessorDeclarationSyntax syntax)
+            static bool containsFieldExpressionInAccessor(AccessorDeclarationSyntax syntax)
             {
                 var accessorDeclaration = (Syntax.InternalSyntax.AccessorDeclarationSyntax)syntax.Green;
                 foreach (var attributeList in accessorDeclaration.AttributeLists)
@@ -290,23 +293,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var attributes = attributeList.Attributes;
                     for (int i = 0; i < attributes.Count; i++)
                     {
-                        if (containsFieldKeywordInGreenNode(attributes[i]))
+                        if (containsFieldExpressionInGreenNode(attributes[i]))
                         {
                             return true;
                         }
                     }
                 }
-                return containsFieldKeywordInGreenNode(accessorDeclaration.Body) ||
-                    containsFieldKeywordInGreenNode(accessorDeclaration.ExpressionBody);
+                return containsFieldExpressionInGreenNode(accessorDeclaration.Body) ||
+                    containsFieldExpressionInGreenNode(accessorDeclaration.ExpressionBody);
             }
 
-            static bool containsFieldKeywordInGreenNode(GreenNode? green)
+            static bool containsFieldExpressionInGreenNode(GreenNode? green)
             {
                 if (green is { })
                 {
                     foreach (var node in green.EnumerateNodes())
                     {
-                        if (node.RawKind == (int)SyntaxKind.FieldKeyword)
+                        if (node.RawKind == (int)SyntaxKind.FieldExpression)
                         {
                             return true;
                         }
