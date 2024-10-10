@@ -21,13 +21,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class SimplifyTypeNamesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public SimplifyTypeNamesTests(ITestOutputHelper logger)
-        : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
 
@@ -7324,6 +7320,20 @@ namespace N
                 {
                     [|Derived|].Method();
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public async Task TestPrimaryConstructorWithReferenceToNestedType()
+    {
+        await TestMissingAsync(
+            """
+            public abstract class Base<TOther>();
+
+            public sealed class Concrete() : Base<[|Concrete.Impl|]>()
+            {
+                public class Impl;
             }
             """);
     }
