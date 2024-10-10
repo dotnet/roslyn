@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
 
-                    usesFieldKeyword = usesFieldKeyword || containsFieldKeyword(accessor);
+                    usesFieldKeyword = usesFieldKeyword || containsFieldKeywordInAccessor(accessor);
                 }
             }
             else
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var body = GetArrowExpression(syntax);
                 hasGetAccessorImplementation = body is object;
                 hasSetAccessorImplementation = false;
-                usesFieldKeyword = body is { } && containsFieldKeyword(body);
+                usesFieldKeyword = body is { } && containsFieldKeywordInGreenNode(body.Green);
                 Debug.Assert(hasGetAccessorImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
             }
 
@@ -282,13 +282,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return body != null;
             }
 
-            static bool containsFieldKeyword(SyntaxNode syntax)
+            static bool containsFieldKeywordInAccessor(AccessorDeclarationSyntax syntax)
             {
-                foreach (var node in syntax.Green.EnumerateNodes())
+                var accessorDeclaration = (Syntax.InternalSyntax.AccessorDeclarationSyntax)syntax.Green;
+                foreach (var attributeList in accessorDeclaration.AttributeLists)
                 {
-                    if (node.RawKind == (int)SyntaxKind.FieldKeyword)
+                    var attributes = attributeList.Attributes;
+                    for (int i = 0; i < attributes.Count; i++)
                     {
-                        return true;
+                        if (containsFieldKeywordInGreenNode(attributes[i]))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return containsFieldKeywordInGreenNode(accessorDeclaration.Body) ||
+                    containsFieldKeywordInGreenNode(accessorDeclaration.ExpressionBody);
+            }
+
+            static bool containsFieldKeywordInGreenNode(GreenNode? green)
+            {
+                if (green is { })
+                {
+                    foreach (var node in green.EnumerateNodes())
+                    {
+                        if (node.RawKind == (int)SyntaxKind.FieldKeyword)
+                        {
+                            return true;
+                        }
                     }
                 }
                 return false;
