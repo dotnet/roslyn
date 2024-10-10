@@ -58,13 +58,24 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             foreach (var logItem in log)
             {
-                Report(DiagnosticReportingMode.Log, GetMSBuildFailedMessage(logItem.ProjectFilePath, logItem.ToString()));
+                var diagnosticKind = logItem.Kind is DiagnosticLogItemKind.Warning ? WorkspaceDiagnosticKind.Warning : WorkspaceDiagnosticKind.Failure;
+
+                Report(new WorkspaceDiagnostic(diagnosticKind, GetMSBuildFailedMessage(logItem.ProjectFilePath, logItem.ToString(), diagnosticKind)));
             }
         }
 
-        private static string GetMSBuildFailedMessage(string projectFilePath, string message)
+        private static string GetMSBuildFailedMessage(string projectFilePath, string message, WorkspaceDiagnosticKind diagnosticKind)
             => RoslynString.IsNullOrWhiteSpace(message)
-                ? string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0, projectFilePath)
-                : string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
+                ? string.Format(
+                    diagnosticKind == WorkspaceDiagnosticKind.Warning
+                        ? WorkspaceMSBuildResources.Msbuild_warning_when_processing_the_file_0
+                        : WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0,
+                    projectFilePath)
+                : string.Format(
+                    diagnosticKind == WorkspaceDiagnosticKind.Warning
+                        ? WorkspaceMSBuildResources.Msbuild_warning_when_processing_the_file_0_with_message_1
+                        : WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1,
+                    projectFilePath,
+                    message);
     }
 }
