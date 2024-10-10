@@ -1927,7 +1927,7 @@
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Contents" Type="ImmutableArray(Of BoundNode)"/>
-    <Field Name="Binder" Type="Binder" Null="disallow" />
+    <Field Name="ConstructionOpt" Type="BoundExpression" Null="allow" SkipInVisitor="true"/>
   </Node>
   
   <!-- There is no BoundInterpolatedStringText because we use BoundLiteral of type string for this purpose. -->
