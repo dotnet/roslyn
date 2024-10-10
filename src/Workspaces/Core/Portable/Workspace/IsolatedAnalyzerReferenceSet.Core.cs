@@ -304,7 +304,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
                 // Can ignore all other analyzer reference types.  This is only about analyzer references changing on disk.
                 var analyzerReference = GetUnderlyingAnalyzerReference(initialReference);
                 if (analyzerReference is AnalyzerFileReference analyzerFileReference)
-                    pathToMvidMap[analyzerFileReference.FullPath] = TryGetAnalyzerFileReferenceMvid(analyzerFileReference);
+                    pathToMvidMap[analyzerFileReference.FullPath] = TryGetFileReferenceMvid(analyzerFileReference.FullPath);
             }
         }
     }
