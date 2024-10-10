@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Primitives;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.Utilities;
@@ -35,15 +37,31 @@ namespace Build
             argsBuilder.Append(' ');
             argsBuilder.Append(args);
 
-            if (settings.BuildConfiguration == BuildConfiguration.Public)
+            if (settings.BuildConfiguration != BuildConfiguration.Debug)
             {
-                if (settings.BuildNumber == null)
+                var revisionNumber = settings.BuildNumber ?? 1;
+
+                // The official build ID is assumed to have format "20yymmdd.r", where R is the revision number of the day.
+                // Metalama.Compiler uses the build nuber as the revision number regardless of the actual date.
+                // (See .packages\microsoft.dotnet.arcade.sdk\9.0.0-beta.24416.2\tools\Version.BeforeCommonTargets.targets.)
+                var officialBuildId = $"{DateTime.UtcNow:yyyyMMdd}.{revisionNumber}";
+                
+                var releaseBranch = context.Product.DependencyDefinition.ReleaseBranch;
+                
+                if (releaseBranch == null)
                 {
-                    context.Console.WriteError("Build number must be specified when building a public configuration.");
+                    context.Console.WriteError("Release branch must be specified when building a public configuration.");
                     return false;
                 }
+
+                // This parameter is not used by Metalama.Compiler, but it is required by the build script.
+                var officialVisualStudioDropAccessToken = "N/A";
                 
-                argsBuilder.Append(CultureInfo.InvariantCulture, $" -officialBuildId {settings.BuildNumber}");
+                argsBuilder.Append(CultureInfo.InvariantCulture, $" -officialBuildId {officialBuildId}");
+                argsBuilder.Append(" -officialSkipTests true");
+                argsBuilder.Append(" -officialSkipApplyOptimizationData true");
+                argsBuilder.Append($" -officialSourceBranchName {releaseBranch}");
+                argsBuilder.Append($" -officialVisualStudioDropAccessToken {officialVisualStudioDropAccessToken}");
             }
 
             // The DOTNET_ROOT_X64 environment variable is used by Arcade.
