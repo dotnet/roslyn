@@ -172,6 +172,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [Theory, CombinatorialData]
+        public async Task NonMutatingHandlerExceptionNFWIsNotReportedForLocalRpcException(bool mutatingLspWorkspace)
+        {
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
+            });
+
+            var didReport = false;
+            FatalError.OverwriteHandler((exception, severity, dumps) =>
+            {
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException.Message == nameof(HandlerTests))
+                {
+                    didReport = true;
+                }
+            });
+
+            var response = Task.FromException<TestConfigurableResponse>(new StreamJsonRpc.LocalRpcException(nameof(HandlerTests)) { ErrorCode = LspErrorCodes.ContentModified });
+            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
+
+            await Assert.ThrowsAnyAsync<Exception>(async ()
+                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+            var provider = server.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            await provider.WaitAllDispatcherOperationAndTasksAsync(
+                server.TestWorkspace,
+                FeatureAttribute.LanguageServer);
+
+            Assert.False(didReport);
+        }
+
+        [Theory, CombinatorialData]
         public async Task MutatingHandlerExceptionNFWIsReported(bool mutatingLspWorkspace)
         {
             var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);

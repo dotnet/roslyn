@@ -815,7 +815,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var projectContext = new LSP.VSProjectContext
             {
                 Id = ProjectIdToProjectContextId(project.Id),
-                Label = project.Name
+                Label = project.Name,
+                IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles,
             };
 
             if (project.Language == LanguageNames.CSharp)
