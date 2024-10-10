@@ -395,4 +395,9 @@ internal partial class CSharpTriviaFormatter : AbstractTriviaFormatter
     {
         throw ExceptionUtilities.Unreachable();
     }
+
+    protected override bool IsComment(SyntaxTrivia trivia)
+    {
+        return trivia.IsRegularComment();
+    }
 }
