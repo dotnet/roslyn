@@ -807,7 +807,11 @@ $@"        if (F({i}))
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [generator],
+                parseOptions: parseOptions,
+                driverOptions: TestOptions.GeneratorDriverOptions);
+
             driver = driver.RunGenerators(compilation);
             var runResult = driver.GetRunResult().Results[0];
 

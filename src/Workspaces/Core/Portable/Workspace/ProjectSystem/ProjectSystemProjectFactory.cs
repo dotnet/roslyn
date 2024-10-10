@@ -125,8 +125,10 @@ internal sealed partial class ProjectSystemProjectFactory
                 name: projectSystemName,
                 assemblyName,
                 language,
-                compilationOutputInfo: new(creationInfo.CompilationOutputAssemblyFilePath),
+                // generatedFilesOutputDirectory to be updated when initializing project from command line:
+                compilationOutputInfo: new(creationInfo.CompilationOutputAssemblyFilePath, generatedFilesOutputDirectory: null),
                 SourceHashAlgorithms.Default, // will be updated when command line is set
+                outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
                 filePath: creationInfo.FilePath,
                 telemetryId: creationInfo.TelemetryId),
             compilationOptions: creationInfo.CompilationOptions,
