@@ -749,7 +749,7 @@ lSelect:
 
         ' Emit a New node to a specific type with a helper constructor and one argument
         Private Function [New](helper As SpecialMember, argument As BoundExpression) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("New", _factory.ConstructorInfo(helper), argument)
+            Return ConvertRuntimeHelperToExpressionTree("New!", _factory.ConstructorInfo(helper), argument)
         End Function
 
         ' Emit a negate node
