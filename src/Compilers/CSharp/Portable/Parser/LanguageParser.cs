@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -8110,7 +8109,8 @@ done:
             {
                 return this.ParseYieldStatement(attributes);
             }
-            else if (this.IsPossibleAwaitExpressionStatement())
+            else if (this.IsPossibleAwaitExpressionStatement() ||
+                     this.IsPossibleWithExpressionStatement())
             {
                 return this.ParseExpressionStatement(attributes);
             }
@@ -10862,6 +10862,12 @@ done:
         private bool IsPossibleAwaitExpressionStatement()
         {
             return (this.IsScript || this.IsInAsync) && this.CurrentToken.ContextualKind == SyntaxKind.AwaitKeyword;
+        }
+
+        private bool IsPossibleWithExpressionStatement()
+        {
+            Debug.Assert(CurrentToken.Kind == SyntaxKind.IdentifierToken);
+            return PeekToken(1).ContextualKind == SyntaxKind.WithKeyword && PeekToken(2).Kind == SyntaxKind.OpenBraceToken;
         }
 
         private bool IsAwaitExpression()

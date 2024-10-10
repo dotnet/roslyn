@@ -1236,12 +1236,9 @@ class C
                 // (4,10): error CS1519: Invalid token '{' in class, record, struct, or interface member declaration
                 //     with { };
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(4, 10),
-                // (5,15): error CS1597: Semicolon after method or accessor block is not valid
+                // (5,5): error CS8803: Top-level statements must precede namespace and type declarations.
                 //     x with { };
-                Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(5, 15),
-                // (6,5): error CS8803: Top-level statements must precede namespace and type declarations.
-                //     int x = with { };
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "int x = with { ").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "x with { };").WithLocation(5, 5),
                 // (6,18): error CS1003: Syntax error, ',' expected
                 //     int x = with { };
                 Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(6, 18),
@@ -1253,8 +1250,7 @@ class C
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 20),
                 // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1)
-            );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1273,19 +1269,25 @@ class C
                     N(SyntaxKind.CloseBraceToken);
                     N(SyntaxKind.SemicolonToken);
                 }
-                N(SyntaxKind.PropertyDeclaration);
+                N(SyntaxKind.GlobalStatement);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.WithExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                            N(SyntaxKind.WithKeyword);
+                            N(SyntaxKind.WithInitializerExpression);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
-                    N(SyntaxKind.IdentifierToken, "with");
-                    N(SyntaxKind.AccessorList);
-                    {
-                        N(SyntaxKind.OpenBraceToken);
-                        N(SyntaxKind.CloseBraceToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.GlobalStatement);
                 {
@@ -1919,28 +1921,39 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44688")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/46465")]
         public void WithParsing16()
         {
             var text = @"x with { X = ""2"" };";
-            // https://github.com/dotnet/roslyn/issues/44688
-            // The parser doesn't see this as an invalid expression
-            // statement, but as a broken declaration, e.g.
-            //      x with <missing ,> { X = ""2 "" <missing ;> };
-            UsingStatement(text,
-                // (1,8): error CS1003: Syntax error, ',' expected
-                // x with { X = "2" };
-                Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments(",").WithLocation(1, 8));
-            N(SyntaxKind.LocalDeclarationStatement);
+
+            UsingStatement(text);
+
+            N(SyntaxKind.ExpressionStatement);
             {
-                N(SyntaxKind.VariableDeclaration);
+                N(SyntaxKind.WithExpression);
                 {
                     N(SyntaxKind.IdentifierName);
                     {
                         N(SyntaxKind.IdentifierToken, "x");
                     }
-                    N(SyntaxKind.VariableDeclarator);
+                    N(SyntaxKind.WithKeyword);
+                    N(SyntaxKind.WithInitializerExpression);
                     {
-                        N(SyntaxKind.IdentifierToken, "with");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.StringLiteralExpression);
+                            {
+                                N(SyntaxKind.StringLiteralToken, "\"2\"");
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 N(SyntaxKind.SemicolonToken);
