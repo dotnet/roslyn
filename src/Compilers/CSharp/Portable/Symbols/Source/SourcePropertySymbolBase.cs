@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsExpressionBodied = 1 << 0,
             HasAutoPropertyGet = 1 << 1,
             HasAutoPropertySet = 1 << 2,
-            GetterUsesFieldKeyword = 1 << 4,
-            SetterUsesFieldKeyword = 1 << 5,
-            IsExplicitInterfaceImplementation = 1 << 6,
-            HasInitializer = 1 << 7,
-            AccessorsHaveImplementation = 1 << 8,
-            HasExplicitAccessModifier = 1 << 9,
-            RequiresBackingField = 1 << 10,
+            GetterUsesFieldKeyword = 1 << 3,
+            SetterUsesFieldKeyword = 1 << 4,
+            IsExplicitInterfaceImplementation = 1 << 5,
+            HasInitializer = 1 << 6,
+            AccessorsHaveImplementation = 1 << 7,
+            HasExplicitAccessModifier = 1 << 8,
+            RequiresBackingField = 1 << 9,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.

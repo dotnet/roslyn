@@ -2396,7 +2396,7 @@ public class Test
                 // (6,21): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //     public int P { [field: A] get => throw null; set => throw null; }
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(6, 21),
-                // (6,50): warning CS9265: The 'set' accessor of property 'Test.P' should use the backing 'field' because the other accessor is using it.
+                // (6,50): warning CS9265: The 'set' accessor of property 'Test.P' should use 'field' because the other accessor is using it.
                 //     public int P { [field: A] get => throw null; set => throw null; }
                 Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "Test.P").WithLocation(6, 50),
                 // (7,22): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.

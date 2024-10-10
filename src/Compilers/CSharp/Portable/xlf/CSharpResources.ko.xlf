@@ -2658,13 +2658,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField">
-        <source>The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</source>
-        <target state="new">The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</target>
+        <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
+        <target state="new">The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
-        <source>Property accessor should use the backing 'field' because the other accessor is using it.</source>
-        <target state="new">Property accessor should use the backing 'field' because the other accessor is using it.</target>
+        <source>Property accessor should use 'field' because the other accessor is using it.</source>
+        <target state="new">Property accessor should use 'field' because the other accessor is using it.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
