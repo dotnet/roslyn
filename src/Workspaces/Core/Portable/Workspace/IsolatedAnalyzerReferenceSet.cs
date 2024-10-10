@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     /// that the analyzers and generators from it can be safely loaded side-by-side with prior versions of the same
     /// references that may already be loaded.
     /// </summary>
-    public static partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static partial ValueTask<IReadOnlyList<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ImmutableArray<AnalyzerReference> references,
         SolutionServices solutionServices,
@@ -32,20 +33,20 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     /// then creates and caches an isolated set on the OOP side to hold onto them, passing out that isolated set of
     /// references to be used by the caller (normally to be stored in a solution snapshot).
     /// </summary>
-    public static partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static partial ValueTask<IReadOnlyList<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ChecksumCollection analyzerChecksums,
         SolutionServices solutionServices,
         Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync,
         CancellationToken cancellationToken);
 
-    private static ValueTask<ImmutableArray<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
+    private static ValueTask<IReadOnlyList<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
         ImmutableArray<AnalyzerReference> references)
     {
-        return ValueTaskFactory.FromResult(references);
+        return ValueTaskFactory.FromResult<IReadOnlyList<AnalyzerReference>>(references);
     }
 
-    private static async ValueTask<ImmutableArray<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
+    private static async ValueTask<IReadOnlyList<AnalyzerReference>> DefaultCreateIsolatedAnalyzerReferencesAsync(
         Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync)
     {
         return await getReferencesAsync().ConfigureAwait(false);

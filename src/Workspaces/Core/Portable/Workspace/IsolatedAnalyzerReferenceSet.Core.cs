@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,8 +83,12 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     /// </summary>
     /// <remarks>Guarded by <see cref="s_gate"/>.  Note that while the gate is static, this is instance data on the <see
     /// cref="s_lastCreatedAnalyzerReferenceSet"/>.  And we only want to mutate that instance data from one thread at a
-    /// time.</remarks>
-    private readonly Dictionary<Checksum, ImmutableArray<AnalyzerReference>> _analyzerReferences = [];
+    /// time.
+    /// 
+    /// Stored as an <see cref="IReadOnlyList{T}"/> so this can safely be used as a key in caches that map from a list
+    /// of items to some value (for example in an <see cref="ConditionalWeakTable{TKey, TValue}"/>.
+    /// </remarks>
+    private readonly Dictionary<Checksum, IReadOnlyList<AnalyzerReference>> _analyzerReferences = [];
 
     private IsolatedAnalyzerReferenceSet(
         IAnalyzerAssemblyLoaderProvider provider)
@@ -131,7 +136,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
             s_checksumToReferenceSet.Remove(checksum);
     }
 
-    private ImmutableArray<AnalyzerReference> GetAnalyzerReferences(Checksum checksum)
+    private IReadOnlyList<AnalyzerReference> GetAnalyzerReferences(Checksum checksum)
         => _analyzerReferences[checksum];
 
     private static AnalyzerReference GetUnderlyingAnalyzerReference(AnalyzerReference initialReference)
@@ -189,7 +194,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     private bool HasConflict(string filePath, Guid mvid)
         => _analyzerFileReferencePathToMvid.TryGetValue(filePath, out var existingMvid) && existingMvid != mvid;
 
-    public static async partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static async partial ValueTask<IReadOnlyList<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ImmutableArray<AnalyzerReference> references,
         SolutionServices solutionServices,
@@ -214,7 +219,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
             cancellationToken).ConfigureAwait(false);
     }
 
-    public static async partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static async partial ValueTask<IReadOnlyList<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ChecksumCollection analyzerChecksums,
         SolutionServices solutionServices,
