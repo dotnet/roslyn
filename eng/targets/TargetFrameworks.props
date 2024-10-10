@@ -3,7 +3,7 @@
 
   <!-- 
     This props file manages the target framework properties for Roslyn. The strategy for these properties
-    is convered in "docs/contributing/Target Framework Strategy.md". Please see that for documentation
+    is covered in "docs/contributing/Target Framework Strategy.md". Please see that for documentation
     on what these values mean.
 
     Requirements: 
@@ -12,11 +12,11 @@
       - NetRoslynAll must include all .NET Core TFMS in any property below
   -->
   <PropertyGroup>
-    <NetRoslyn>net8.0</NetRoslyn>
-    <NetRoslynAll>net7.0;net8.0</NetRoslynAll>
+    <NetRoslyn>net9.0</NetRoslyn>
+    <NetRoslynAll>net8.0;net9.0</NetRoslynAll>
     <NetVS>net8.0</NetVS>
     <NetVSCode>net8.0</NetVSCode>
-    <NetVSShared>net7.0;net8.0</NetVSShared>
+    <NetVSShared>net8.0</NetVSShared>
     <NetRoslynBuildHostNetCoreVersion>net6.0</NetRoslynBuildHostNetCoreVersion>
     <NetRoslynNext>net9.0</NetRoslynNext>
   </PropertyGroup>
@@ -67,8 +67,7 @@
     -->
     <Otherwise>
       <PropertyGroup>
-        <NetRoslyn>net8.0</NetRoslyn>
-        <NetRoslynSourceBuild>net7.0;net8.0</NetRoslynSourceBuild>
+        <NetRoslynSourceBuild>$(NetRoslynAll)</NetRoslynSourceBuild>
       </PropertyGroup>
     </Otherwise>
   </Choose>

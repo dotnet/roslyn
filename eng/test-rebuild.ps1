@@ -56,7 +56,7 @@ try {
 # Rebuilds with missing references
 # Rebuilds with other issues
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" +
-  " --exclude net8.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
+  " --exclude net9.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude netstandard2.0\Microsoft.CodeAnalysis.Debugging.Package.dll" +
@@ -67,7 +67,7 @@ try {
 
   # Semantic Search reference assemblies can't be reconstructed from source.
   # The assemblies are not marked with ReferenceAssemblyAttribute attribute.
-  " --exclude net8.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
+  " --exclude net9.0\GeneratedRefAssemblies\Microsoft.CodeAnalysis.dll" +
 
   " --debugPath `"$ArtifactsDir/BuildValidator`"" +
   " --sourcePath `"$RepoRoot/`"" +

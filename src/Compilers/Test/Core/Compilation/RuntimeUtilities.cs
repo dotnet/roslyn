@@ -40,10 +40,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static bool IsCoreClr9OrHigherRuntime
             => CoreClrRuntimeVersion is { } v && v >= 9;
 
-#if NET9_0_OR_GREATER
-#error Make the above check be an #if NET9_OR_GREATER when we add net8 support to build
-#endif
-
         internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
             tempDirectory ??= Path.GetTempPath();
