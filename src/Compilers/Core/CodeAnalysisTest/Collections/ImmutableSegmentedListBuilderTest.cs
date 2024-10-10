@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var builder = new ImmutableSegmentedList<int>.Builder(list);
 
             ref readonly var safeRef = ref builder.ItemRef(1);
-            ref var unsafeRef = ref Unsafe.AsRef(safeRef);
+            ref var unsafeRef = ref Unsafe.AsRef(in safeRef);
 
             Assert.Equal(2, builder.ItemRef(1));
 

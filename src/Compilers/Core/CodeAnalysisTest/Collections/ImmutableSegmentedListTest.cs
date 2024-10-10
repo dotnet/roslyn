@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var list = new[] { 1, 2, 3 }.ToImmutableSegmentedList();
 
             ref readonly var safeRef = ref list.ItemRef(1);
-            ref var unsafeRef = ref Unsafe.AsRef(safeRef);
+            ref var unsafeRef = ref Unsafe.AsRef(in safeRef);
 
             Assert.Equal(2, list.ItemRef(1));
 
