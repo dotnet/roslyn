@@ -1314,7 +1314,7 @@ class E
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [new IncrementalGeneratorWrapper(testGenerator)],
                 parseOptions: parseOptions,
-                driverOptions: new GeneratorDriverOptions(TempRoot.Root, IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: false));
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: false));
 
             driver = driver.RunGenerators(compilation);
 

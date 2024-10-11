@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 optionsProvider As AnalyzerConfigOptionsProvider,
                 additionalTexts As ImmutableArray(Of AdditionalText),
                 generatedFilesBaseDirectory As String) As GeneratorDriver Implements ICompilationFactoryService.CreateGeneratorDriver
-            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider, New GeneratorDriverOptions(generatedFilesBaseDirectory))
+            Return VisualBasicGeneratorDriver.Create(generators, additionalTexts, DirectCast(parseOptions, VisualBasicParseOptions), optionsProvider, New GeneratorDriverOptions(baseDirectory:=generatedFilesBaseDirectory))
         End Function
     End Class
 End Namespace

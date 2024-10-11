@@ -2495,7 +2495,7 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [generator],
                 parseOptions: parseOptions,
-                driverOptions: new GeneratorDriverOptions(TempRoot.Root, disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+                driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
 
             driver = driver.RunGenerators(compilation);
             GeneratorRunResult runResult = driver.GetRunResult().Results[0];
@@ -2565,7 +2565,7 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [generator],
                 parseOptions: parseOptions,
-                driverOptions: new GeneratorDriverOptions(TempRoot.Root, disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+                driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
 
             driver = driver.RunGenerators(compilation);
             Assert.True(driver.GetRunResult().Diagnostics.IsEmpty);
@@ -3090,7 +3090,7 @@ class C { }
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 generators: [generator.AsSourceGenerator()],
-                driverOptions: new GeneratorDriverOptions(TempRoot.Root, disabledOutput),
+                driverOptions: new GeneratorDriverOptions(disabledOutput),
                 parseOptions: parseOptions);
 
             driver = driver.RunGenerators(compilation);
@@ -4145,6 +4145,7 @@ class C { }
             var generator = new IncrementalGeneratorWrapper(new InterceptorGenerator1());
 
             var parseOptions = TestOptions.RegularPreview.WithFeature("InterceptorsNamespaces", "global");
+            var projectDir = TempRoot.Root;
 
             var source1 = ("""
                 public class Program
@@ -4162,14 +4163,14 @@ class C { }
                 {
                     public class InterceptsLocationAttribute : Attribute { public InterceptsLocationAttribute(int version, string data) { } }
                 }
-                """, PlatformInformation.IsWindows ? @"C:\project\src\Program.cs" : "/project/src/Program.cs");
+                """, Path.Combine(projectDir, "src", "Program.cs"));
 
             Compilation compilation = CreateCompilation([source1], options: TestOptions.DebugExe, parseOptions: parseOptions);
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [generator],
                 parseOptions: parseOptions,
-                driverOptions: new GeneratorDriverOptions(baseDirectory: PlatformInformation.IsWindows ? @"C:\project\obj\" : "/project/obj"));
+                driverOptions: new GeneratorDriverOptions(baseDirectory: Path.Combine(projectDir, "obj")));
 
             verify(ref driver, compilation);
 
@@ -4535,7 +4536,7 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [generator.AsSourceGenerator()],
                 parseOptions: parseOptions,
-                driverOptions: new GeneratorDriverOptions(TempRoot.Root, IncrementalGeneratorOutputKind.Host));
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.Host));
 
             driver = driver.RunGenerators(compilation);
             var runResult = driver.GetRunResult();

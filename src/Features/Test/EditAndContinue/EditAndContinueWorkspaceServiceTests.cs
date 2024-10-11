@@ -231,7 +231,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     {
         using var _ = CreateWorkspace(out var solution, out var service, [typeof(NoCompilationLanguageService)]);
         var project = solution.AddProject("dummy_proj", "dummy_proj", NoCompilationConstants.LanguageName);
-        var document = project.AddDocument("test", CreateText("dummy1"));
+        var document = project.AddDocument("test", "dummy1");
         solution = document.Project.Solution;
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -257,6 +257,46 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var document2 = solution.GetDocument(document1.Id);
         diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
         Assert.Empty(diagnostics);
+    }
+
+    [Fact]
+    public async Task ProjectWithoutEffectiveGeneratedFilesOutputDirectory()
+    {
+        var sourceV1 = @"
+/* GENERATE: class G { int F(int x) => 1; } */
+
+class C { int Y => 1; }
+";
+        var sourceV2 = @"
+/* GENERATE: class G { int F() => 1; } */
+
+class C { int Y => 2; }
+";
+
+        var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+        (solution, var document) = AddDefaultTestProject(solution, sourceV1, generator: generator);
+        solution = solution.WithProjectCompilationOutputInfo(document.Project.Id, new CompilationOutputInfo(assemblyPath: null, generatedFilesOutputDirectory: null));
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        EnterBreakState(debuggingSession);
+
+        // change the source:
+        var document1 = solution.Projects.Single().Documents.Single();
+        solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
+
+        var generatedDocument = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).Single();
+
+        var diagnostics1 = await service.GetDocumentDiagnosticsAsync(generatedDocument, s_noActiveSpans, CancellationToken.None);
+        Assert.Empty(diagnostics1);
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Equal(ModuleUpdateStatus.None, updates.Status);
+        Assert.Empty(updates.Updates);
+        Assert.Empty(emitDiagnostics);
+
+        EndDebuggingSession(debuggingSession);
     }
 
     [Fact]
@@ -354,14 +394,12 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         // [added == false] a version of the source that's not updated with the output of single file generator (or design-time build):
         // [added == true] without the output of single file generator (design-time build has not completed)
 
-        var projectId = ProjectId.CreateNewId();
-        var documentId = DocumentId.CreateNewId(projectId);
-        var designTimeOnlyDocumentId = DocumentId.CreateNewId(projectId);
-
         solution = solution.
-            AddProject(projectId, "test", "test", language).
-            AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
-            AddDocument(documentId, sourceFileName, CreateText(source), filePath: sourceFilePath);
+            AddTestProject("test", language, out var projectId).
+            AddMetadataReferences(TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40)).
+            AddTestDocument(source, path: sourceFilePath, out var documentId).Project.Solution;
+
+        var designTimeOnlyDocumentId = DocumentId.CreateNewId(projectId);
 
         if (!designTimeOnlyAddedAfterSessionStarts)
         {
@@ -655,9 +693,9 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         }
 
         // add a source file:
-        var documentB = project.AddDocument("file2.cs", CreateText(sourceB), filePath: sourceFileB.Path);
+        var documentB = project.AddTestDocument(sourceB, path: sourceFileB.Path);
         solution = documentB.Project.Solution;
-        documentB = solution.GetDocument(documentB.Id);
+        documentB = solution.GetRequiredDocument(documentB.Id);
 
         var diagnostics2 = await service.GetDocumentDiagnosticsAsync(documentB, s_noActiveSpans, CancellationToken.None);
         Assert.Empty(diagnostics2);
@@ -734,7 +772,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         sourceFile.WriteAllText(source1, Encoding.UTF8);
 
         // source0 is loaded to workspace before session starts:
-        var document0 = project.AddDocument("a.cs", CreateText(source0), filePath: sourceFile.Path);
+        var document0 = project.AddTestDocument(source0, path: sourceFile.Path);
         solution = document0.Project.Solution;
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
@@ -1108,7 +1146,7 @@ class C { int Y => 2; }
         sourceFile.WriteAllText(source1, Encoding.UTF8);
 
         // source1 is reflected in workspace before session starts:
-        var document1 = project.AddDocument("a.cs", CreateText(source1), filePath: sourceFile.Path);
+        var document1 = project.AddTestDocument(source1, path: sourceFile.Path);
         solution = document1.Project.Solution;
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution, initialState: CommittedSolution.DocumentState.None);
@@ -1421,7 +1459,7 @@ class C { int Y => 2; }
         // add a project:
 
         oldSolution = solution;
-        var projectD = solution.AddProject("D", "D", "C#");
+        var projectD = solution.AddTestProject("D");
         solution = projectD.Solution;
 
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1432,7 +1470,7 @@ class C { int Y => 2; }
         // add a project that doesn't support EnC:
 
         oldSolution = solution;
-        var projectE = solution.AddProject("E", "E", NoCompilationConstants.LanguageName);
+        var projectE = solution.AddTestProject("E", language: NoCompilationConstants.LanguageName);
         solution = projectE.Solution;
 
         Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1486,11 +1524,8 @@ class C { int Y => 2; }
         };
 
         var project = solution
-            .AddProject("A", "A", "C#")
-            .WithCompilationOutputInfo(new CompilationOutputInfo(
-                assemblyPath: Path.Combine(TempRoot.Root, "proj"),
-                generatedFilesOutputDirectory: null))
-            .AddDocument("A.cs", "", filePath: pathA)
+            .AddTestProject("A")
+            .AddTestDocument(source: "", path: pathA)
             .Project;
 
         var projectId = project.Id;
@@ -1645,10 +1680,7 @@ class C { int Y => 2; }
         };
 
         var project = solution
-            .AddProject("A", "A", "C#")
-            .WithCompilationOutputInfo(new CompilationOutputInfo(
-                assemblyPath: Path.Combine(TempRoot.Root, "proj"),
-                generatedFilesOutputDirectory: null))
+            .AddTestProject("A")
             .AddAdditionalDocument("A.txt", "text", filePath: pathA)
             .Project;
 
@@ -1748,8 +1780,8 @@ class C { int Y => 2; }
         // add project that matches assembly B and update the document:
 
         var documentB2 = solution.
-            AddProject("B", "B", LanguageNames.CSharp).
-            AddDocument("b.cs", CreateText(sourceB2), filePath: sourceFileB.Path);
+            AddTestProject("B").
+            AddTestDocument(sourceB2, path: sourceFileB.Path);
 
         solution = documentB2.Project.Solution;
 
@@ -3457,7 +3489,7 @@ class C { int Y => 1; }
 
         DocumentId AddProjectAndLinkDocument(string projectName, Document doc, SourceText text)
         {
-            var p = solution.AddProject(projectName, projectName, "C#");
+            var p = solution.AddTestProject(projectName);
             var linkedDocId = DocumentId.CreateNewId(p.Id, projectName + "->" + doc.Name);
             solution = p.Solution.AddDocument(linkedDocId, doc.Name, text, filePath: doc.FilePath);
             return linkedDocId;
@@ -3503,7 +3535,7 @@ class C { int Y => 1; }
         Assert.Equal(0x06000001, s.InstructionId.Method.Token);
         Assert.Equal(module1, s.InstructionId.Method.Module);
 
-        var spans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(doc1.Id, doc2.Id, docId3, docId4, docId5), CancellationToken.None);
+        var spans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, [doc1.Id, doc2.Id, docId3, docId4, docId5], CancellationToken.None);
 
         AssertEx.Equal(
         [

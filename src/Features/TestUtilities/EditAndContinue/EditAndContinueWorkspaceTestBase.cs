@@ -271,7 +271,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
                 additionalTexts,
                 parseOptions,
                 optionsProvider,
-                driverOptions: new GeneratorDriverOptions(generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory()!));
+                driverOptions: new GeneratorDriverOptions(baseDirectory: generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory()!));
 
             generatorDriver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
             generatorDiagnostics.Verify();

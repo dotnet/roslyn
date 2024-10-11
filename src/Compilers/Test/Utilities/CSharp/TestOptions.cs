@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static readonly EmitOptions NativePdbEmit = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb);
 
-        public static readonly GeneratorDriverOptions GeneratorDriverOptions = new GeneratorDriverOptions(TempRoot.Root, trackIncrementalGeneratorSteps: true);
+        public static readonly GeneratorDriverOptions GeneratorDriverOptions = new GeneratorDriverOptions(trackIncrementalGeneratorSteps: true, baseDirectory: TempRoot.Root);
 
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {

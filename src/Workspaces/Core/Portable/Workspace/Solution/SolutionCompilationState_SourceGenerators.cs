@@ -110,9 +110,6 @@ internal sealed partial class SolutionCompilationState
         if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
             return false;
 
-        if (!projectState.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
-            return false;
-
         var analyzerReferenceMap = s_languageToAnalyzerReferenceMap[projectState.Language];
         if (!analyzerReferenceMap.TryGetValue(projectState.AnalyzerReferences, out var lazy))
         {

@@ -39,7 +39,7 @@ Public Class TestOptions
     Public Shared ReadOnly SigningDebugExe As VisualBasicCompilationOptions = DebugExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
     Public Shared ReadOnly SigningReleaseModule As VisualBasicCompilationOptions = ReleaseModule.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
 
-    Public Shared ReadOnly GeneratorDriverOptions As GeneratorDriverOptions = New GeneratorDriverOptions(TempRoot.Root, trackIncrementalGeneratorSteps:=True)
+    Public Shared ReadOnly GeneratorDriverOptions As GeneratorDriverOptions = New GeneratorDriverOptions(trackIncrementalGeneratorSteps:=True, baseDirectory:=TempRoot.Root)
 End Class
 
 Friend Module TestOptionExtensions

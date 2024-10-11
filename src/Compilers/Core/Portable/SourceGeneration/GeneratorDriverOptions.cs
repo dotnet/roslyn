@@ -22,13 +22,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string? BaseDirectory { get; }
 
-        [Obsolete("Use other overload")]
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs)
             : this(disabledOutputs, false)
         {
         }
 
-        [Obsolete("Use other overload")]
         public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs, bool trackIncrementalGeneratorSteps)
         {
             DisabledOutputs = disabledOutputs;
@@ -38,13 +36,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates <see cref="GeneratorDriverOptions"/>.
         /// </summary>
-        /// <param name="baseDirectory">Absolute path to the base directory used for file paths of generated files.</param>
         /// <param name="disabledOutputs"></param>
         /// <param name="trackIncrementalGeneratorSteps"></param>
+        /// <param name="baseDirectory">Absolute path to the base directory used for file paths of generated files.</param>
         /// <exception cref="ArgumentException"><paramref name="baseDirectory"/> is not an absolute path.</exception>
-        public GeneratorDriverOptions(string baseDirectory, IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false)
+        public GeneratorDriverOptions(IncrementalGeneratorOutputKind disabledOutputs = IncrementalGeneratorOutputKind.None, bool trackIncrementalGeneratorSteps = false, string? baseDirectory = null)
         {
-            if (!PathUtilities.IsAbsolute(baseDirectory))
+            if (baseDirectory != null && !PathUtilities.IsAbsolute(baseDirectory))
             {
                 throw new ArgumentException(nameof(baseDirectory), CodeAnalysisResources.AbsolutePathExpected);
             }

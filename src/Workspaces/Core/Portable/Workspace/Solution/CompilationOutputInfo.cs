@@ -49,9 +49,8 @@ public readonly struct CompilationOutputInfo : IEquatable<CompilationOutputInfo>
     /// <summary>
     /// True if the project has an absolute generated source file output path.
     /// 
-    /// Required in order for generators to be activated.
-    /// Otherwise, the compiler and IDE wouldn't agree on the file paths of source-generated files,
-    /// which might cause different metadata to be emitted for file-scoped classes during EnC and compilation.
+    /// Must be true for any workspace that supports EnC. If false, the compiler and IDE wouldn't agree on the file paths of source-generated files,
+    /// which might cause different metadata to be emitted for file-scoped classes between compilation and EnC.
     /// </summary>
     internal bool HasEffectiveGeneratedFilesOutputDirectory
         => PathUtilities.IsAbsolute(GeneratedFilesOutputDirectory ?? AssemblyPath);
