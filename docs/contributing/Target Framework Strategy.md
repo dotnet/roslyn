@@ -113,19 +113,9 @@ When the .NET SDK RTMs and Roslyn adopts it all occurrences of `$(NetRoslynNext)
 ## Checklist for updating TFMs (once a year)
 
 - Update `TargetFrameworks.props`.
+  - Ensure we have the correct TFM for VS / VSCode (usually not the latest TFM).
 - Might need updating `MicrosoftNetCompilersToolsetVersion` in `eng\Versions.props` to consume latest compiler features.
 - Change `$(NetRoslynNext)` references to `$(NetRoslyn)` in project files.
-- Update TFMs in:
-  - `.vscode\launch.json`
-  - `.vscode\tasks.json`
-  - `eng\build.ps1`
-  - `eng\build.sh`
-  - `eng\generate-compiler-code.ps1`
-  - `eng\prepare-tests.ps1`
-  - `eng\prepare-tests.sh`
-  - `eng\test-rebuild.ps1`
-  - `eng\pipelines\test-integration-helix.yml`
-  - `eng\pipelines\test-unix-job.yml`
-  - `eng\pipelines\test-windows-job.yml`
-  - `src\Tools\BuildBoss\CompilerNuGetCheckerUtil.cs`
-  - `src\Tools\Replay\README.md`
+- Update TFMs in code/scripts/pipelines (search for the old `netX.0` and replace with the new `netY.0`).
+- Check that the same number of tests still run in CI (they are not unintentionally filtered out by TFM).
+- Try an official build, a VS insertion.
