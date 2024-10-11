@@ -113,6 +113,20 @@
         }
       }
     },
+    "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst": {
+      "title": "@Using_Directives;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.PlaceSystemNamespaceFirst"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
