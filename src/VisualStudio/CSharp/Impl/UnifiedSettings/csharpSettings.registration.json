@@ -463,6 +463,18 @@
     "textEditor.csharp.advanced": {
       "title": "@102;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "legacyOptionPageId": "8FD0B177-B244-4A97-8E37-6FB7B27DE3AF"
+    },
+    "textEditor.csharp.advanced.analysis": {
+      "title": "@Analysis;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 0
+    },
+    "textEditor.csharp.advanced.usingDirectives": {
+      "title": "@Using_Directives;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "order": 10
+    },
+    "textEditor.csharp.advanced.highlighting": {
+      "title": "@Highlighting;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "order": 20
     }
   }
 }
