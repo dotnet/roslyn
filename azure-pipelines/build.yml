@@ -273,6 +273,15 @@ jobs:
       - macOS
     pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
     condition: succeededOrFailed()
+    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+      templateContext:
+        outputParentDirectory: $(Build.ArtifactStagingDirectory)
+        outputs:
+          - output: pipelineArtifact
+            displayName: 📢 Publish symbols-legacy
+            targetPath: $(Build.ArtifactStagingDirectory)/symbols-legacy
+            artifactName: symbols-legacy
+            condition: succeededOrFailed()
     steps:
     - checkout: self
       fetchDepth: 0 # avoid shallow clone so nbgv can do its work.
