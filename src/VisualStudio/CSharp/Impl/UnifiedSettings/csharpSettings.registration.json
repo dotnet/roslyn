@@ -114,7 +114,7 @@
       }
     },
     "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst": {
-      "title": "@Using_Directives;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "title": "@Place_System_directives_first_when_sorting_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
       "order": 30,
@@ -123,6 +123,20 @@
           "input": {
             "store": "SettingsManager",
             "path": "TextEditor.CSharp.Specific.PlaceSystemNamespaceFirst"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups": {
+      "title": "@Separate_using_directive_groups;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 40,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SeparateImportDirectiveGroups"
           }
         }
       }
