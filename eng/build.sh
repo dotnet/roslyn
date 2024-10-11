@@ -21,6 +21,7 @@ usage()
   echo "  --rebuild                  Rebuild all projects"
   echo "  --pack                     Build nuget packages"
   echo "  --publish                  Publish build artifacts"
+  echo "  --sign                     Sign build artifacts"
   echo "  --help                     Print help and exit"
   echo ""
   echo "Test actions:"
