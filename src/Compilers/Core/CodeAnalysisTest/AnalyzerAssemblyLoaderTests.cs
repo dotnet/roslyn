@@ -485,11 +485,8 @@ Delta: Gamma: Beta: Test B
             IEnumerable<Assembly> loadedAssemblies;
 
 #if NET
-            // This verify only works where there is a single load context.
             var alcs = loader.GetDirectoryLoadContextsSnapshot();
-            Assert.Equal(1, alcs.Length);
-
-            loadedAssemblies = alcs[0].Assemblies;
+            loadedAssemblies = alcs.SelectMany(x => x.Assemblies);
 #else
 
             // The assemblies in the LoadFrom context are the assemblies loaded from 
@@ -656,7 +653,7 @@ Delta: Gamma: Beta: Test B
                 VerifyDependencyAssemblies(
                     loader,
                     copyCount: copyCount,
-                    deltaFile);
+                    assemblyPaths: [deltaFile]);
             });
         }
 
@@ -1325,8 +1322,7 @@ Delta: Epsilon: Test E
                         TestOptions.DebugDll.WithPublicSign(true).WithCryptoPublicKey(SigningTestHelpers.PublicKey));
 
                     var array = compilation.EmitToArray(EmitOptions.Default);
-                    var assemblyFilePath = temp.CreateFile(assemblyName + ".dll").WriteAllBytes(array).Path;
-
+                    var assemblyFilePath = dir.CreateFile(assemblyName + ".dll").WriteAllBytes(array).Path;
                     loader.AddDependencyLocation(deltaNewFilePath);
                     analyzerFilePaths.Add(deltaNewFilePath);
                     loader.AddDependencyLocation(assemblyFilePath);
