@@ -4912,6 +4912,35 @@ class C
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30257")]
+        public void TestWithPatternAndObsolete_WithExplicitInterfaceImplementation()
+        {
+            string source = @"
+using System.Threading.Tasks;
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await foreach (var i in new C())
+        {
+        }
+    }
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+    {
+        throw null;
+    }
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current { get => throw null; }
+        public Task<bool> MoveNextAsync() => throw null;
+        [System.Obsolete]
+        ValueTask System.IAsyncDisposable.DisposeAsync() => throw null;
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Fact]
         public void TestWithUnassignedCollection()
         {
