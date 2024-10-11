@@ -58,6 +58,7 @@ restore=false
 build=false
 rebuild=false
 pack=false
+sign=false
 publish=false
 test_core_clr=false
 test_mono=false
@@ -123,6 +124,9 @@ while [[ $# > 0 ]]; do
       ;;
     --publish)
       publish=true
+      ;;
+    --sign)
+      sign=true
       ;;
     --testcoreclr|--test|-t)
       test_core_clr=true
@@ -300,6 +304,7 @@ function BuildSolution {
     /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
+    /p:Sign=$sign \
     /p:RunAnalyzersDuringBuild=$run_analyzers \
     /p:RestoreUseStaticGraphEvaluation=$restoreUseStaticGraphEvaluation \
     /p:BootstrapBuildPath="$bootstrap_dir" \
