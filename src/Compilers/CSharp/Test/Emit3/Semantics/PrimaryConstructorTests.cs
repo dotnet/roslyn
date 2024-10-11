@@ -7117,10 +7117,7 @@ struct Example()
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
-                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
         public static IEnumerable<object[]> ParameterScope_MemberData()

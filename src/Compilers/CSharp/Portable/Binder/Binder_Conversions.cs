@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -479,7 +480,228 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     CheckInlineArrayTypeIsSupported(syntax, source.Type, elementField.Type, diagnostics);
                 }
+                else if (conversion.IsSpan)
+                {
+                    Debug.Assert(source.Type is not null);
+                    Debug.Assert(destination.IsSpan() || destination.IsReadOnlySpan());
+
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureFirstClassSpan, diagnostics);
+
+                    // NOTE: We cannot use well-known members because per the spec
+                    // the Span types involved in the Span conversions can be any that match the type name.
+
+                    // Span<T>.op_Implicit(T[]) or ReadOnlySpan<T>.op_Implicit(T[])
+                    if (source.Type is ArrayTypeSymbol)
+                    {
+                        reportUseSiteOrMissing(
+                            TryFindImplicitOperatorFromArray(destination.OriginalDefinition),
+                            destination.OriginalDefinition,
+                            WellKnownMemberNames.ImplicitConversionName,
+                            syntax,
+                            diagnostics);
+                    }
+
+                    // ReadOnlySpan<T> Span<T>.op_Implicit(Span<T>)
+                    if (source.Type.IsSpan())
+                    {
+                        Debug.Assert(destination.IsReadOnlySpan());
+                        reportUseSiteOrMissing(
+                            TryFindImplicitOperatorFromSpan(source.Type.OriginalDefinition, destination.OriginalDefinition),
+                            source.Type.OriginalDefinition,
+                            WellKnownMemberNames.ImplicitConversionName,
+                            syntax,
+                            diagnostics);
+                    }
+
+                    // ReadOnlySpan<T> ReadOnlySpan<T>.CastUp<TDerived>(ReadOnlySpan<TDerived>)
+                    if (source.Type.IsSpan() || source.Type.IsReadOnlySpan())
+                    {
+                        Debug.Assert(destination.IsReadOnlySpan());
+                        if (NeedsSpanCastUp(source.Type, destination))
+                        {
+                            // If converting Span<TDerived> -> ROS<TDerived> -> ROS<T>,
+                            // the source of the CastUp is the return type of the op_Implicit (i.e., the ROS<TDerived>)
+                            // which has the same original definition as the destination ROS<T>.
+                            TypeSymbol sourceForCastUp = source.Type.IsSpan()
+                                ? destination.OriginalDefinition
+                                : source.Type.OriginalDefinition;
+
+                            MethodSymbol? castUpMethod = TryFindCastUpMethod(sourceForCastUp, destination.OriginalDefinition);
+                            reportUseSiteOrMissing(
+                                castUpMethod,
+                                destination.OriginalDefinition,
+                                WellKnownMemberNames.CastUpMethodName,
+                                syntax,
+                                diagnostics);
+                            castUpMethod?
+                                .AsMember((NamedTypeSymbol)destination)
+                                .Construct([((NamedTypeSymbol)source.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]])
+                                .CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(Compilation, Conversions, includeNullability: false, syntax.Location, diagnostics));
+                        }
+                    }
+
+                    // ReadOnlySpan<char> MemoryExtensions.AsSpan(string)
+                    if (source.Type.IsStringType())
+                    {
+                        reportUseSiteOrMissing(
+                            TryFindAsSpanCharMethod(Compilation, destination),
+                            WellKnownMemberNames.MemoryExtensionsTypeFullName,
+                            WellKnownMemberNames.AsSpanMethodName,
+                            syntax,
+                            diagnostics);
+                    }
+                }
             }
+
+            static void reportUseSiteOrMissing(MethodSymbol? method, object containingType, string methodName, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
+            {
+                if (method is not null)
+                {
+                    diagnostics.ReportUseSite(method, syntax);
+                }
+                else
+                {
+                    Error(diagnostics,
+                        ErrorCode.ERR_MissingPredefinedMember,
+                        syntax,
+                        containingType,
+                        methodName);
+                }
+            }
+        }
+
+        // {type}.op_Implicit(T[])
+        internal static MethodSymbol? TryFindImplicitOperatorFromArray(TypeSymbol type)
+        {
+            Debug.Assert(type.IsSpan() || type.IsReadOnlySpan());
+            Debug.Assert(type.IsDefinition);
+
+            return TryFindImplicitOperator(type, 0, static (_, method) =>
+                method.Parameters[0].Type is ArrayTypeSymbol { IsSZArray: true, ElementType: TypeParameterSymbol });
+        }
+
+        // ReadOnlySpan<T> Span<T>.op_Implicit(Span<T>)
+        internal static MethodSymbol? TryFindImplicitOperatorFromSpan(TypeSymbol spanType, TypeSymbol readonlySpanType)
+        {
+            Debug.Assert(spanType.IsSpan() && readonlySpanType.IsReadOnlySpan());
+            Debug.Assert(spanType.IsDefinition && readonlySpanType.IsDefinition);
+
+            return TryFindImplicitOperator(spanType, readonlySpanType,
+                static (readonlySpanType, method) => method.Parameters[0].Type.IsSpan() &&
+                    readonlySpanType.Equals(method.ReturnType.OriginalDefinition, TypeCompareKind.ConsiderEverything));
+        }
+
+        private static MethodSymbol? TryFindImplicitOperator<TArg>(TypeSymbol type, TArg arg,
+            Func<TArg, MethodSymbol, bool> predicate)
+        {
+            return TryFindSingleMethod(type, WellKnownMemberNames.ImplicitConversionName, (predicate, arg),
+                static (arg, method) => method is
+                {
+                    ParameterCount: 1,
+                    Arity: 0,
+                    IsStatic: true,
+                    DeclaredAccessibility: Accessibility.Public,
+                } && arg.predicate(arg.arg, method));
+        }
+
+        internal static bool NeedsSpanCastUp(TypeSymbol source, TypeSymbol destination)
+        {
+            Debug.Assert(source.IsSpan() || source.IsReadOnlySpan());
+            Debug.Assert(destination.IsReadOnlySpan());
+            Debug.Assert(!source.IsDefinition && !destination.IsDefinition);
+
+            var sourceElementType = ((NamedTypeSymbol)source).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+            var destinationElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
+
+            var sameElementTypes = sourceElementType.Equals(destinationElementType, TypeCompareKind.AllIgnoreOptions);
+
+            Debug.Assert(!source.IsReadOnlySpan() || !sameElementTypes);
+
+            return !sameElementTypes;
+        }
+
+        // ReadOnlySpan<T> ReadOnlySpan<T>.CastUp<TDerived>(ReadOnlySpan<TDerived>) where TDerived : class
+        internal static MethodSymbol? TryFindCastUpMethod(TypeSymbol source, TypeSymbol destination)
+        {
+            Debug.Assert(source.IsReadOnlySpan() && destination.IsReadOnlySpan());
+            Debug.Assert(source.IsDefinition && destination.IsDefinition);
+
+            return TryFindSingleMethod(destination, WellKnownMemberNames.CastUpMethodName, (source, destination),
+                static (arg, method) => method is
+                {
+                    ParameterCount: 1,
+                    Arity: 1,
+                    IsStatic: true,
+                    DeclaredAccessibility: Accessibility.Public,
+                    Parameters: [{ } parameter],
+                    TypeArgumentsWithAnnotations: [{ } typeArgument],
+                } &&
+                    // parameter type is the source ReadOnlySpan<>
+                    arg.source.Equals(parameter.Type.OriginalDefinition, TypeCompareKind.ConsiderEverything) &&
+                    // return type is the destination ReadOnlySpan<>
+                    arg.destination.Equals(method.ReturnType.OriginalDefinition, TypeCompareKind.ConsiderEverything) &&
+                    // TDerived : class
+                    typeArgument.Type.IsReferenceType &&
+                    // parameter type argument is TDerived
+                    ((NamedTypeSymbol)parameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type.Equals(typeArgument.Type, TypeCompareKind.ConsiderEverything) &&
+                    // return type argument is T
+                    ((NamedTypeSymbol)method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type.Equals(((NamedTypeSymbol)arg.destination).TypeParameters[0], TypeCompareKind.ConsiderEverything));
+        }
+
+        // ReadOnlySpan<char> MemoryExtensions.AsSpan(string)
+        internal static MethodSymbol? TryFindAsSpanCharMethod(CSharpCompilation compilation, TypeSymbol readOnlySpanType)
+        {
+            Debug.Assert(readOnlySpanType.IsReadOnlySpan());
+            Debug.Assert(!readOnlySpanType.IsDefinition);
+            Debug.Assert(((NamedTypeSymbol)readOnlySpanType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].SpecialType is SpecialType.System_Char);
+
+            MethodSymbol? result = null;
+            foreach (var memoryExtensionsType in compilation.GetTypesByMetadataName(WellKnownMemberNames.MemoryExtensionsTypeFullName))
+            {
+                if (memoryExtensionsType.DeclaredAccessibility == Accessibility.Public &&
+                    TryFindSingleMethod(memoryExtensionsType.GetSymbol<NamedTypeSymbol>(), WellKnownMemberNames.AsSpanMethodName, 0,
+                    static (_, method) => method is
+                    {
+                        ParameterCount: 1,
+                        Arity: 0,
+                        IsStatic: true,
+                        DeclaredAccessibility: Accessibility.Public,
+                        Parameters: [{ Type.SpecialType: SpecialType.System_String }]
+                    }) is { } method &&
+                    method.ReturnType.Equals(readOnlySpanType, TypeCompareKind.ConsiderEverything))
+                {
+                    if (result is not null)
+                    {
+                        // Ambiguous member found.
+                        return null;
+                    }
+
+                    result = method;
+                }
+            }
+
+            return result;
+        }
+
+        private static MethodSymbol? TryFindSingleMethod<TArg>(TypeSymbol type, string name, TArg arg, Func<TArg, MethodSymbol, bool> predicate)
+        {
+            var members = type.GetMembers(name);
+            MethodSymbol? result = null;
+            foreach (var member in members)
+            {
+                if (member is MethodSymbol method && predicate(arg, method))
+                {
+                    if (result is not null)
+                    {
+                        // Ambiguous member found.
+                        return null;
+                    }
+
+                    result = method;
+                }
+            }
+
+            return result;
         }
 
         private BoundExpression BindUnconvertedInterpolatedExpressionToFormattableStringFactory(BoundUnconvertedInterpolatedString unconvertedSource, TypeSymbol destination, BindingDiagnosticBag diagnostics)
@@ -1284,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(constructed is not null);
                                 var conversions = constructed.ContainingAssembly.CorLibrary.TypeConversions;
-                                var conversion = conversions.ConvertExtensionMethodThisArg(constructed.Parameters[0].Type, receiverType, ref useSiteInfo);
+                                var conversion = conversions.ConvertExtensionMethodThisArg(constructed.Parameters[0].Type, receiverType, ref useSiteInfo, isMethodGroupConversion: false);
                                 if (!conversion.Exists)
                                 {
                                     continue; // Conversion to 'this' parameter failed
@@ -2596,7 +2818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
             Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt!.Type, ref useSiteInfo).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
+                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
             useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
 
