@@ -1460,7 +1460,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 info,
                 defaultThrows: false);
 
-
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, info));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), info));
         }
