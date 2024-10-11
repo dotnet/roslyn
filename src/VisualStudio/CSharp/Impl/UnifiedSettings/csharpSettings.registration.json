@@ -145,11 +145,68 @@
       "title": "@Suggest_usings_for_types_in_dotnet_framework_assemblies;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "defaultValue": true,
+      "order": 50,
       "migration": {
         "pass": {
           "input": {
             "store": "SettingsManager",
             "path": "TextEditor.CSharp.Specific.SuggestForTypesInReferenceAssemblies"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.usingDirectives.unsupportedSearchNugetPackages": {
+      "title": "@Suggest_usings_for_types_in_NuGet_packages;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 60,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SuggestForTypesInNuGetPackages"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.usingDirectives.addImportsOnPaste": {
+      "title": "@Add_missing_using_directives_on_paste;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 70,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.AddImportsOnPaste2"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.highlighting.highlightReferences": {
+      "title": "@Highlight_references_to_symbol_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 80,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Reference Highlighting"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.highlighting.highlightKeywords": {
+      "title": "@Highlight_related_keywords_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 90,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Keyword Highlighting"
           }
         }
       }
