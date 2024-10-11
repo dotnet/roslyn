@@ -195,7 +195,7 @@ internal partial class SerializerService
         using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             WritePortableExecutableReferencePropertiesTo(reference, writer);
-            if (!string.IsNullOrEmpty(reference.FilePath))
+            if (Path.IsPathRooted(reference.FilePath))
             {
                 // For a reference on disk, it's cheaper and easier to just grab it's mvid directly.  This also exactly
                 // matches what we do with analyzer file references.
