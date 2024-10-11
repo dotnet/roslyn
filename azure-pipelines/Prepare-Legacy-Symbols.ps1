@@ -33,5 +33,3 @@ Get-ChildItem "$ArtifactStagingFolder\*.pdb" -Recurse |% {
         Move-Item $legacyPdbPath $_ -Force
     }
 }
-
-Write-Host "##vso[artifact.upload containerfolder=symbols-legacy;artifactname=symbols-legacy;]$ArtifactStagingFolder"
