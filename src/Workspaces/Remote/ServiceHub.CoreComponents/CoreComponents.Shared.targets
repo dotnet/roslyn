@@ -88,6 +88,7 @@
     <PropertyGroup>
       <CrossgenWorkDir>$(PublishDir)CrossGen\</CrossgenWorkDir>
       <OriginalAssemblyDir>$(CrossgenWorkDir)OriginalAssemblies\</OriginalAssemblyDir>
+      <PdbWorkDir>$(CrossgenWorkDir)Symbols\</PdbWorkDir>
     </PropertyGroup>   
   </Target>
 
@@ -104,7 +105,21 @@
     </ItemGroup>
   </Target>
 
+  <!--
+    Compiles all R2R images and packages the symbol files (*.ni.pdb)
+  -->
   <Target Name="CompileReadyToRun"
+          DependsOnTargets="CompileReadyToRunImage"
+          Condition="'$(GenerateReadyToRun)' == 'true'">
+    
+    <MakeDir Directories="$(ArtifactsNonShippingPackagesDir)" />
+    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).symbols.nupkg" />
+  </Target>
+
+  <!--
+    Compiles each image specified in _CrossgenTargetPaths items.
+  -->
+  <Target Name="CompileReadyToRunImage"
           DependsOnTargets="PrepareCrossgenTargets"
           Condition="'$(GenerateReadyToRun)' == 'true'"
           Inputs="%(_CrossgenTargetPaths.FullPath)"
@@ -118,6 +133,8 @@
     <ItemGroup>
       <_RspFileLines Include="$(_R2ROptimizeAssemblyPath)" />
       <_RspFileLines Include="--out:$(_R2ROptimizeAssemblyOutputPath)" />
+      <_RspFileLines Include="--pdb" />
+      <_RspFileLines Include="--pdb-path:$(PdbWorkDir)" />
       <_RspFileLines Include="--targetarch:$(TargetArch)" />
       <_RspFileLines Include="--optimize" />
       <_RspFileLines Include="--opt-cross-module:*" />
@@ -128,6 +145,8 @@
 
     <WriteLinesToFile File="$(_RspFilePath)" Lines="" Overwrite="true" />
     <WriteLinesToFile File="$(_RspFilePath)" Lines="@(_RspFileLines)" />
+    
+    <MakeDir Directories="$(PdbWorkDir)" />
   
     <Exec Command='"$(_Crossgen2ExePath)" @"$(_RspFilePath)"' ConsoleToMSBuild="true" IgnoreExitCode="true">
       <Output TaskParameter="ConsoleOutput" PropertyName="_Crossgen2Output" />
