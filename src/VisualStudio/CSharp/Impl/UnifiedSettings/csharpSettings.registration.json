@@ -397,6 +397,48 @@
         }
       }
     },
+    "textEditor.csharp.advanced.BlockStructureGuides.showBlockStructureGuidesForDeclarationLevelConstructs": {
+      "title": "@Show_guides_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowBlockStructureGuidesForDeclarationLevelConstructs"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.BlockStructureGuides.showBlockStructureGuidesForCodeLevelConstructs": {
+      "title": "@Show_guides_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowBlockStructureGuidesForCodeLevelConstructs"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.BlockStructureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions": {
+      "title": "@Show_guides_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
@@ -669,6 +711,10 @@
     "textEditor.csharp.advanced.fading": {
       "title": "@Fading;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 40
+    },
+    "textEditor.csharp.advanced.BlockStructureGuides": {
+      "title": "@Block_Structure_Guides;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 50
     }
   }
 }
