@@ -10,7 +10,7 @@
       "enum": [ "none", "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics", "openFiles", "fullSolution" ],
       "enumItemLabels": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
       "default": "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics",
-      "order": 1,
+      "order": 0,
       "migration": {
         "enumIntegerToString": {
           "input": {
@@ -117,7 +117,7 @@
       "title": "@Place_System_directives_first_when_sorting_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
-      "order": 30,
+      "order": 0,
       "migration": {
         "pass": {
           "input": {
@@ -131,7 +131,7 @@
       "title": "@Separate_using_directive_groups;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": false,
-      "order": 40,
+      "order": 10,
       "migration": {
         "pass": {
           "input": {
@@ -145,7 +145,7 @@
       "title": "@Suggest_usings_for_types_in_dotnet_framework_assemblies;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "defaultValue": true,
-      "order": 50,
+      "order": 20,
       "migration": {
         "pass": {
           "input": {
@@ -159,7 +159,7 @@
       "title": "@Suggest_usings_for_types_in_NuGet_packages;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "defaultValue": true,
-      "order": 60,
+      "order": 30,
       "migration": {
         "pass": {
           "input": {
@@ -173,7 +173,7 @@
       "title": "@Add_missing_using_directives_on_paste;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "defaultValue": true,
-      "order": 70,
+      "order": 40,
       "migration": {
         "pass": {
           "input": {
@@ -187,7 +187,7 @@
       "title": "@Highlight_references_to_symbol_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "defaultValue": true,
-      "order": 80,
+      "order": 0,
       "migration": {
         "pass": {
           "input": {
@@ -201,12 +201,170 @@
       "title": "@Highlight_related_keywords_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "defaultValue": true,
-      "order": 90,
+      "order": 10,
       "migration": {
         "pass": {
           "input": {
             "store": "SettingsManager",
             "path": "TextEditor.CSharp.Specific.Keyword Highlighting"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen": {
+      "title": "@Enter_outlining_mode_when_files_open;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Outlining"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.collapseRegionsWhenFirstOpened": {
+      "title": "@Collapse_regions_on_file_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 1,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.CollapseRegionsWhenFirstOpened"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.collapseImportsWhenFirstOpened": {
+      "title": "@Collapse_usings_on_file_open;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 2,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.CollapseImportsWhenFirstOpened"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.collapseMetadataImplementationsWhenFirstOpened": {
+      "title": "@Collapse_sourcelink_embedded_decompiled_files_on_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 3,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.CollapseMetadataImplementationsWhenFirstOpened"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.collapseEmptyMetadataImplementationsWhenFirstOpened": {
+      "title": "@Collapse_metadata_signature_files_on_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 4,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.displayLineSeparators": {
+      "title": "@Show_procedure_line_separators;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Line Separator"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.showOutliningForDeclarationLevelConstructs": {
+      "title": "@Show_outlining_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowOutliningForDeclarationLevelConstructs"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.showOutliningForCodeLevelConstructs": {
+      "title": "@Show_outlining_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 30,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowOutliningForCodeLevelConstructs"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.showOutliningForCommentsAndPreprocessorRegions": {
+      "title": "@Show_outlining_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 40,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowOutliningForCommentsAndPreprocessorRegions"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.collapseRegionsWhenCollapsingToDefinitions": {
+      "title": "@Collapse_regions_when_collapsing_to_definitions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 50,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.CollapseRegionsWhenCollapsingToDefinitions"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.outlining.collapseLocalFunctionsWhenCollapsingToDefinitions": {
+      "title": "@Collapse_local_functions_when_collapsing_to_definitions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 60,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.CollapseLocalFunctionsWhenCollapsingToDefinitions"
           }
         }
       }
@@ -475,6 +633,10 @@
     "textEditor.csharp.advanced.highlighting": {
       "title": "@Highlighting;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "order": 20
+    },
+    "textEditor.csharp.advanced.outlining": {
+      "title": "@Outlining;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 30
     }
   }
 }
