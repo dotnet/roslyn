@@ -1216,6 +1216,8 @@ Delta: Epsilon: Test E
                     [CSharpSyntaxTree.ParseText(SourceText.From(testCode, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default))],
                     NetStandard20.References.All);
 
+                // Test loading the analyzers in different orders. That makes sure we verify the loading handles
+                // the higher version of delta being loaded first or second.
                 ImmutableArray<DiagnosticAnalyzer> analyzers = state is true
                     ? [loadAnalyzer1(), loadAnalyzer2()]
                     : [loadAnalyzer2(), loadAnalyzer1()];
