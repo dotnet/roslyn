@@ -369,6 +369,34 @@
         }
       }
     },
+    "textEditor.csharp.advanced.fading.fadeOutUnusedImports": {
+      "title": "@Fade_out_unused_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.FadeOutUnusedImports"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.fading.fadeOutUnreachableCode": {
+      "title": "@Fade_out_unreachable_code;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.FadeOutUnreachableCode"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
@@ -637,6 +665,10 @@
     "textEditor.csharp.advanced.outlining": {
       "title": "@Outlining;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 30
+    },
+    "textEditor.csharp.advanced.fading": {
+      "title": "@Fading;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 40
     }
   }
 }
