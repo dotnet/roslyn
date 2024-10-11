@@ -582,6 +582,11 @@
         <target state="translated">Satır İçi İpuçları</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_diagnostics_location">
+        <source>Inline diagnostics location</source>
+        <target state="new">Inline diagnostics location</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="translated">Çağırma yeri değeri '{0}' ekleniyor</target>

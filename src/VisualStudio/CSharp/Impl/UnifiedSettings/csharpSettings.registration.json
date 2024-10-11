@@ -44,7 +44,7 @@
       "enum": [ "none", "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics", "openFiles", "fullSolution" ],
       "enumItemLabels": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
       "default": "openFiles",
-      "order": 1,
+      "order": 10,
       "migration": {
         "enumIntegerToString": {
           "input": {
@@ -67,6 +67,47 @@
             {
               "result": "none",
               "match": 0
+            }
+          ]
+        }
+      }
+    },
+    "textEditor.csharp.advanced.analysis.enableInlineDiagnostics": {
+      "title": "@Display_diagnostics_inline_experimental;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineDiagnostics"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.analysis.inlineDiagnosticsLocation": {
+      "title": "@Inline_diagnostics_location;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "placedAtEndOfCode", "placedAtEndOfEditor" ],
+      "enumItemLabels": [ "@at_the_end_of_the_line_of_code;..\\Microsoft.VisualStudio.LanguageServices.dll", "@on_the_right_edge_of_the_editor_window;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "default": "placedAtEndOfCode",
+      "enableWhen": "${config:textEditor.csharp.advanced.analysis.enableInlineDiagnostics}=='true'",
+      "order": 21,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineDiagnostics.LocationOption"
+          },
+          "map": [
+            {
+              "result": "placedAtEndOfCode",
+              "match": 0
+            },
+            {
+              "result": "placedAtEndOfEditor",
+              "match": 1
             }
           ]
         }

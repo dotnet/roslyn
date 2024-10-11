@@ -582,6 +582,11 @@
         <target state="translated">内联提示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_diagnostics_location">
+        <source>Inline diagnostics location</source>
+        <target state="new">Inline diagnostics location</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="translated">正在插入调用站点值 "{0}"</target>
