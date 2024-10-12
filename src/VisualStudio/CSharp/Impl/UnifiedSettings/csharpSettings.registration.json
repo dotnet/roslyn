@@ -848,6 +848,80 @@
         }
       }
     },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes": {
+      "title": "@Display_inline_type_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 90,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineTypeHints"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForImplicitVariableTypes": {
+      "title": "@Show_hints_for_variables_with_inferred_types;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 100,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineTypeHints.ForImplicitVariableTypes"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForLambdaParameterTypes": {
+      "title": "@Show_hints_for_lambda_parameter_types;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 110,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineTypeHints.ForLambdaParameterTypes"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForImplicitObjectCreation": {
+      "title": "@Show_hints_for_implicit_object_creation;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 110,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineTypeHints.ForImplicitObjectCreation"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForCollectionExpressions": {
+      "title": "@Show_hints_for_collection_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 120,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineTypeHints.ForCollectionExpressions"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
