@@ -7976,7 +7976,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useExpression ? sourceExpression : null,
                     sourceType,
                     destinationType,
-                    ref discardedUseSiteInfo);
+                    ref discardedUseSiteInfo,
+                    isMethodGroupConversion: false);
             }
             return useExpression ?
                 (fromExplicitCast ?
@@ -8952,6 +8953,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
                         canConvertNestedNullability = conversion.Exists;
+                    }
+                    break;
+
+                case ConversionKind.ImplicitSpan:
+                case ConversionKind.ExplicitSpan:
+                    if (checkConversion)
+                    {
+                        var previousKind = conversion.Kind;
+                        conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
+                        // We do not want user-defined conversions to relax nullability, so we consider only span conversions.
+                        canConvertNestedNullability = conversion.Exists && conversion.IsSpan;
                     }
                     break;
 

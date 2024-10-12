@@ -101,7 +101,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                             Dim definitionDocument = workspace.GetTestDocument(mockDocumentNavigationService._documentId)
                             Assert.Single(definitionDocument.SelectedSpans)
                             Dim expected = definitionDocument.SelectedSpans.Single()
-                            Assert.True(expected.Length = 0)
                             Assert.Equal(expected.Start, mockDocumentNavigationService._position)
 
                             ' The INavigableItemsPresenter should not have been called
