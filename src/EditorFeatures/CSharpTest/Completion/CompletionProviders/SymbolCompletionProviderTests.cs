@@ -346,8 +346,11 @@ class CL {}";
     [Fact]
     public async Task TypeParamAttribute()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<[A$$]T> {}"), @"AttributeUsage");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL<[A$$]T> {}"), @"System");
+        var code = AddUsingDirectives("using System;", @"class CL<[A$$]T> {}");
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Exists("AttributeUsage"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -357,8 +360,11 @@ class CL {}";
     [$$]
     void Method() {}
 }";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"AttributeUsage");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var code = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Exists("AttributeUsage"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -367,8 +373,11 @@ class CL {}";
         var content = @"class CL{
     void Method<[A$$]T> () {}
 }";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"AttributeUsage");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var code = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Exists("AttributeUsage"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -377,8 +386,11 @@ class CL {}";
         var content = @"class CL{
     void Method ([$$]int i) {}
 }";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"AttributeUsage");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var code = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Exists("AttributeUsage"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -408,8 +420,12 @@ namespace System
 
 namespace $$";
 
-        await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "String", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Exists("System"),
+                CompletionTestExpectedResult.Absent("String")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -419,8 +435,12 @@ namespace $$";
 
 namespace $$;";
 
-        await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "String", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Exists("System"),
+                CompletionTestExpectedResult.Absent("String")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -457,8 +477,12 @@ namespace A
     namespace $$
 }";
 
-        await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Absent("A"),
+                CompletionTestExpectedResult.Exists("B")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -481,8 +505,12 @@ namespace A
     }
 }";
 
-        await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Absent("A"),
+                CompletionTestExpectedResult.Absent("B")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -499,8 +527,12 @@ namespace A
     }
 }";
 
-        await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Absent("A"),
+                CompletionTestExpectedResult.Exists("B")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -508,8 +540,12 @@ namespace A
     {
         var source = @"namespace Sys$$tem { }";
 
-        await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Exists("System"),
+                CompletionTestExpectedResult.Absent("Runtime")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -591,9 +627,13 @@ namespace A
     namespace B.$$
 }";
 
-        await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemExistsAsync(source, "C", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Absent("A"),
+                CompletionTestExpectedResult.Absent("B"),
+                CompletionTestExpectedResult.Exists("C")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -606,8 +646,12 @@ namespace A.$$
 }
 ";
 
-        await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Absent("A"),
+                CompletionTestExpectedResult.Absent("B")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -622,8 +666,12 @@ namespace A.$$
 }
 ";
 
-        await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Absent("A"),
+                CompletionTestExpectedResult.Exists("B")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -631,8 +679,12 @@ namespace A.$$
     {
         var source = @"namespace Sys$$tem.Runtime { }";
 
-        await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Exists("System"),
+                CompletionTestExpectedResult.Absent("Runtime")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -652,8 +704,12 @@ namespace System
     name$$space Runtime { }
 }";
 
-        await VerifyItemIsAbsentAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Absent("System"),
+                CompletionTestExpectedResult.Absent("Runtime")
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -698,19 +754,23 @@ namespace A.B.C.D3 { }";
     [Fact]
     public async Task UnderNamespace()
     {
-        await VerifyItemIsAbsentAsync(@"namespace NS { $$", @"String");
-        await VerifyItemIsAbsentAsync(@"namespace NS { $$", @"System");
+        var source = @"namespace NS { $$";
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task OutsideOfType1()
     {
-        await VerifyItemIsAbsentAsync(@"namespace NS {
+        var source = @"namespace NS {
 class CL {}
-$$", @"String");
-        await VerifyItemIsAbsentAsync(@"namespace NS {
-class CL {}
-$$", @"System");
+$$";
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
@@ -719,14 +779,17 @@ $$", @"System");
         var content = @"namespace NS {
 class CL {}
 $$";
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task CompletionInsideProperty()
     {
-        var content = @"class C
+        var source = @"class C
 {
     private string name;
     public string Name
@@ -734,22 +797,30 @@ $$";
         set
         {
             name = $$";
-        await VerifyItemExistsAsync(content, @"value");
-        await VerifyItemExistsAsync(content, @"C");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("value"),
+            CompletionTestExpectedResult.Exists("C")
+        ]);
     }
 
     [Fact]
     public async Task AfterDot()
     {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"[assembly: A.$$"), @"String");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"[assembly: A.$$"), @"System");
+        var source = AddUsingDirectives("using System;", @"[assembly: A.$$");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task UsingAlias()
     {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"using MyType = $$"), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"using MyType = $$"), @"System");
+        var source = AddUsingDirectives("using System;", @"using MyType = $$");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -758,8 +829,11 @@ $$";
         var content = @"class CL {
     $$
 ";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -768,106 +842,151 @@ $$";
         var content = @"class CL {
     public $$
 ";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task BadStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = $$)c")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = $$)c")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = $$)c"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task TypeTypeParameter()
     {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<$$"), @"String");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<$$"), @"System");
+        var source = AddUsingDirectives("using System;", @"class CL<$$");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task TypeTypeParameterList()
     {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T, $$"), @"String");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"class CL<T, $$"), @"System");
+        var source = AddUsingDirectives("using System;", @"class CL<T, $$");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task CastExpressionTypePart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = ($$)c")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = ($$)c")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = ($$)c"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ObjectCreationExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ArrayCreationExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$ [")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$ [")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$ ["));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task StackAllocArrayCreationExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = stackalloc $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = stackalloc $$")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = stackalloc $$"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task FromClauseTypeOptPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from $$ c")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from $$ c")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = from $$ c"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task JoinClause()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join $$ j")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join $$ j")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join $$ j"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task DeclarationStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ i =")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ i =")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"$$ i ="));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task VariableDeclaration()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"fixed($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"fixed($$")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"fixed($$"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ForEachStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach($$")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"foreach($$"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ForEachStatementNoToken()
     {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach $$")), @"String");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach $$")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"foreach $$"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task CatchDeclaration()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"try {} catch($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"try {} catch($$")), @"System");
+        var source = AddUsingDirectives("using System;", AddInsideMethod(@"try {} catch($$"));
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -875,8 +994,11 @@ $$";
     {
         var content = @"class CL {
     $$ i";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -884,8 +1006,11 @@ $$";
     {
         var content = @"class CL {
     event $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -893,8 +1018,11 @@ $$";
     {
         var content = @"class CL {
     explicit operator $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -902,8 +1030,11 @@ $$";
     {
         var content = @"class CL {
     explicit $$";
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
@@ -911,8 +1042,11 @@ $$";
     {
         var content = @"class CL {
     $$ Prop {";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -920,8 +1054,11 @@ $$";
     {
         var content = @"class CL {
     event $$ Event {";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -929,8 +1066,11 @@ $$";
     {
         var content = @"class CL {
     $$ this";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -938,8 +1078,11 @@ $$";
     {
         var content = @"class CL {
     void Method($$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -947,8 +1090,11 @@ $$";
     {
         var content = @"class CL {
     $$ [";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -956,8 +1102,11 @@ $$";
     {
         var content = @"class CL {
     $$ *";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -965,8 +1114,11 @@ $$";
     {
         var content = @"class CL {
     $$ ?";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -974,8 +1126,11 @@ $$";
     {
         var content = @"class CL {
     delegate $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -983,8 +1138,11 @@ $$";
     {
         var content = @"class CL {
     $$ M(";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -992,359 +1150,550 @@ $$";
     {
         var content = @"class CL {
     $$ operator";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ParenthesizedExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"($$")), @"System");
+        var content = @"($$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task InvocationExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$(")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$(")), @"System");
+        var content = @"$$(";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ElementAccessExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$[")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$[")), @"System");
+        var content = @"$$[";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task Argument()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"i[$$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"i[$$")), @"System");
+        var content = @"i[$$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task CastExpressionExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"(c)$$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"(c)$$")), @"System");
+        var content = @"(c)$$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task FromClauseInPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in $$")), @"System");
+        var content = @"var t = from c in $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task LetClauseExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C let n = $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C let n = $$")), @"System");
+        var content = @"var t = from c in C let n = $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task OrderingExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C orderby $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C orderby $$")), @"System");
+        var content = @"var t = from c in C orderby $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task SelectClauseExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C select $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C select $$")), @"System");
+        var content = @"var t = from c in C select $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ExpressionStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$")), @"System");
+        var content = @"$$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ReturnStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"return $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"return $$")), @"System");
+        var content = @"return $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ThrowStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"throw $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"throw $$")), @"System");
+        var content = @"throw $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760097")]
     public async Task YieldReturnStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"yield return $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"yield return $$")), @"System");
+        var content = @"yield return $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ForEachStatementExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach(T t in $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"foreach(T t in $$")), @"System");
+        var content = @"foreach(T t in $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task UsingStatementExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"using($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"using($$")), @"System");
+        var content = @"using($$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task LockStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"lock($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"lock($$")), @"System");
+        var content = @"lock($$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task EqualsValueClause()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var i = $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var i = $$")), @"System");
+        var content = @"var i = $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ForStatementInitializersPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for($$")), @"System");
+        var content = @"for($$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ForStatementConditionOptPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for(i=0;$$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for(i=0;$$")), @"System");
+        var content = @"for(i=0;$$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ForStatementIncrementorsPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for(i=0;i>10;$$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"for(i=0;i>10;$$")), @"System");
+        var content = @"for(i=0;i>10;$$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task DoStatementConditionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"do {} while($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"do {} while($$")), @"System");
+        var content = @"do {} while($$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task WhileStatementConditionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"while($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"while($$")), @"System");
+        var content = @"while($$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ArrayRankSpecifierSizesPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"int [$$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"int [$$")), @"System");
+        var content = @"int [$$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task PrefixUnaryExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"+$$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"+$$")), @"System");
+        var content = @"+$$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task PostfixUnaryExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$++")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$++")), @"System");
+        var content = @"$$++";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task BinaryExpressionLeftPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ + 1")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ + 1")), @"System");
+        var content = @"$$ + 1";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task BinaryExpressionRightPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"1 + $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"1 + $$")), @"System");
+        var content = @"1 + $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task AssignmentExpressionLeftPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ = 1")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$ = 1")), @"System");
+        var content = @"$$ = 1";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task AssignmentExpressionRightPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"1 = $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"1 = $$")), @"System");
+        var content = @"1 = $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ConditionalExpressionConditionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$? 1:")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"$$? 1:")), @"System");
+        var content = @"$$? 1:";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ConditionalExpressionWhenTruePart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"true? $$:")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"true? $$:")), @"System");
+        var content = @"true? $$:";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task ConditionalExpressionWhenFalsePart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"true? 1:$$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"true? 1:$$")), @"System");
+        var content = @"true? 1:$$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task JoinClauseInExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in $$")), @"System");
+        var content = @"var t = from c in C join p in $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task JoinClauseLeftExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in P on $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in P on $$")), @"System");
+        var content = @"var t = from c in C join p in P on $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task JoinClauseRightExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in P on id equals $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join p in P on id equals $$")), @"System");
+        var content = @"var t = from c in C join p in P on id equals $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task WhereClauseConditionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C where $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C where $$")), @"System");
+        var content = @"var t = from c in C where $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task GroupClauseGroupExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C group $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C group $$")), @"System");
+        var content = @"var t = from c in C group $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task GroupClauseByExpressionPart()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C group g by $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C group g by $$")), @"System");
+        var content = @"var t = from c in C group g by $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task IfStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"if ($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"if ($$")), @"System");
+        var content = @"if ($$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task SwitchStatement()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"switch($$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"switch($$")), @"System");
+        var content = @"switch($$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task SwitchLabelCase()
     {
         var content = @"switch(i) { case $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task SwitchPatternLabelCase()
     {
         var content = @"switch(i) { case $$ when";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33915")]
     public async Task SwitchExpressionFirstBranch()
     {
         var content = @"i switch { $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33915")]
     public async Task SwitchExpressionSecondBranch()
     {
         var content = @"i switch { 1 => true, $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33915")]
     public async Task PositionalPatternFirstPosition()
     {
         var content = @"i is ($$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33915")]
     public async Task PositionalPatternSecondPosition()
     {
         var content = @"i is (1, $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33915")]
     public async Task PropertyPatternFirstPosition()
     {
         var content = @"i is { P: $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33915")]
     public async Task PropertyPatternSecondPosition()
     {
         var content = @"i is { P1: 1, P2: $$";
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task InitializerExpression()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new [] { $$")), @"String");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new [] { $$")), @"System");
+        var content = @"var t = new [] { $$";
+        var source = AddUsingDirectives("using System;", content);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30784")]
