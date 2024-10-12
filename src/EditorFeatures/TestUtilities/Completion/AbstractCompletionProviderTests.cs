@@ -160,9 +160,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 InlineDescription: inlineDescription,
                 IsComplexTextEdit: isComplexTextEdit);
 
-            var expectedResultArray = new[] { expectedResult };
             await CheckResultsAsync(document, position, usePreviousCharAsTrigger, deletedCharTrigger,
-                hasSuggestionModeItem, expectedResultArray, matchingFilters, flags, options);
+                hasSuggestionModeItem, [expectedResult], matchingFilters, flags, options);
         }
 
         private protected async Task CheckResultsAsync(
@@ -198,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 Assert.Equal(hasSuggestionModeItem.Value, completionList.SuggestionModeItem != null);
             }
 
-            if (expectedResults.Length is 0)
+            if (expectedResults.Length == 0)
             {
                 Assert.Equal(items.Count, 0);
             }
@@ -316,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
-            IReadOnlyList<SourceCodeKind> evaluatedSourceCodeKinds = sourceCodeKind.HasValue ? [sourceCodeKind.Value] : [SourceCodeKind.Regular, SourceCodeKind.Script];
+            SourceCodeKind[] evaluatedSourceCodeKinds = sourceCodeKind.HasValue ? [sourceCodeKind.Value] : [SourceCodeKind.Regular, SourceCodeKind.Script];
             foreach (var sourceKind in evaluatedSourceCodeKinds)
             {
                 using var workspaceFixture = GetOrCreateWorkspaceFixture();
@@ -342,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             CompletionTestExpectedResult[] results, bool? hasSuggestionModeItem,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
-            IReadOnlyList<SourceCodeKind> evaluatedSourceCodeKinds = sourceCodeKind.HasValue ? [sourceCodeKind.Value] : [SourceCodeKind.Regular, SourceCodeKind.Script];
+            SourceCodeKind[] evaluatedSourceCodeKinds = sourceCodeKind.HasValue ? [sourceCodeKind.Value] : [SourceCodeKind.Regular, SourceCodeKind.Script];
             foreach (var sourceKind in evaluatedSourceCodeKinds)
             {
                 using var workspaceFixture = GetOrCreateWorkspaceFixture();
@@ -524,11 +523,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 InlineDescription: inlineDescription,
                 IsComplexTextEdit: isComplexTextEdit);
 
-            var expectedResultArray = new[] { expectedResult };
-
             await VerifyWorkerCoreAsync(
                 code, position, usePreviousCharAsTrigger, deletedCharTrigger,
-                hasSuggestionModeItem, sourceCodeKind, expectedResultArray,
+                hasSuggestionModeItem, sourceCodeKind, [expectedResult],
                 matchingFilters, flags, options, skipSpeculation);
         }
 

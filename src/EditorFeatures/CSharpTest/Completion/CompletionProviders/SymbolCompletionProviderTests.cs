@@ -263,7 +263,7 @@ class C {
     [Fact]
     public async Task OpenStringLiteralInDirective()
     {
-        var code = "#r \"$$\"";
+        var code = "#r \"$$";
         await VerifyExpectedItemsAsync(
             code, [
                 CompletionTestExpectedResult.Absent("String"),
@@ -318,9 +318,10 @@ class C {
     public async Task AssemblyAttribute2()
     {
         var code = @"[assembly: $$]";
-        await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Exists("System")
+        var source = AddUsingDirectives("using System;", code);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("System"),
+            CompletionTestExpectedResult.Exists("AttributeUsage")
         ]);
     }
 
