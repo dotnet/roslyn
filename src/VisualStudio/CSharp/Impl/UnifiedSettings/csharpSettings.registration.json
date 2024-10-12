@@ -663,6 +663,58 @@
         }
       }
     },
+    "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.memberInsertionLocation": {
+      "title": "@When_inserting_properties_events_and_methods_place_them;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "withOtherMembersOfTheSameKind", "atTheEnd" ],
+      "enumItemLabels": [ "@with_other_members_of_the_same_kind;..\\Microsoft.VisualStudio.LanguageServices.dll", "@at_the_end;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "defaultValue": "withOtherMembersOfTheSameKind",
+      "order": 0,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.ImplementTypeOptions.InsertionBehavior"
+          },
+          "map": [
+            {
+              "result": "withOtherMembersOfTheSameKind",
+              "match": 0
+            },
+            {
+              "result": "atTheEnd",
+              "match": 1
+            }
+          ]
+        }
+      }
+    },
+    "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.propertyGenerationBehavior": {
+      "title": "@When_generating_properties;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "enum": [ "preferThrowingProperties", "preferAutoProperties" ],
+      "enumItemLabels": [ "@prefer_throwing_properties;..\\Microsoft.VisualStudio.LanguageServices.dll", "@codegen_prefer_auto_properties;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
+      "defaultValue": "preferThrowingProperties",
+      "order": 10,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.ImplementTypeOptions.PropertyGenerationBehavior"
+          },
+          "map": [
+            {
+              "result": "preferThrowingProperties",
+              "match": 0
+            },
+            {
+              "result": "preferAutoProperties",
+              "match": 1
+            }
+          ]
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
@@ -955,6 +1007,10 @@
     "textEditor.csharp.advanced.jsonStrings": {
       "title": "@JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 90
+    },
+    "textEditor.csharp.advanced.implementInterfaceOrAbstractClass": {
+      "title": "@Implement_Interface_or_Abstract_Class;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 100
     }
   }
 }
