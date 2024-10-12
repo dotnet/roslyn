@@ -715,6 +715,139 @@
         }
       }
     },
+    "textEditor.csharp.advanced.inlayHints.colorizeInlineHints": {
+      "title": "@Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ColorHints"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters": {
+      "title": "@Display_inline_parameter_name_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineParameterNameHints"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForLiteralParameters": {
+      "title": "@Show_hints_for_literals;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineParameterNameHints.ForLiteralParameters"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForObjectCreationParameters": {
+      "title": "@Show_hints_for_new_expressions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 30,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineParameterNameHints.ForObjectCreationParameters"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForOtherParameters": {
+      "title": "@Show_hints_for_everything_else;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 40,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineParameterNameHints.ForOtherParameters"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.enableInlayHintsForIndexerParameters": {
+      "title": "@Show_hints_for_indexers;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 50,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineParameterNameHints.ForArrayIndexers"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatMatchMethodIntent": {
+      "title": "@Suppress_hints_when_parameter_name_matches_the_method_s_intent;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 60,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatDifferOnlyBySuffix": {
+      "title": "@Suppress_hints_when_parameter_names_differ_only_by_suffix;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 70,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineParameterNameHints.SuppressForParametersThatDifferOnlyBySuffix"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatMatchArgumentName": {
+      "title": "@Suppress_hints_when_argument_matches_parameter_name;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 80,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InlineParameterNameHints.SuppressForParametersThatMatchArgumentName"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
@@ -1011,6 +1144,10 @@
     "textEditor.csharp.advanced.implementInterfaceOrAbstractClass": {
       "title": "@Implement_Interface_or_Abstract_Class;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 100
+    },
+    "textEditor.csharp.advanced.inlayHints": {
+      "title": "@Inline_Hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 110
     }
   }
 }
