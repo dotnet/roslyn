@@ -621,6 +621,48 @@
         }
       }
     },
+    "textEditor.csharp.advanced.jsonStrings.colorizeJsonPatterns": {
+      "title": "@Colorize_JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ColorizeJsonPatterns"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.jsonStrings.unsupportedReportInvalidJsonPatterns": {
+      "title": "@Report_invalid_JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ReportInvalidJsonPatterns"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.jsonStrings.highlightRelatedJsonComponents": {
+      "title": "@Highlight_related_components_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.HighlightRelatedJsonComponentsUnderCursor"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
@@ -909,6 +951,10 @@
     "textEditor.csharp.advanced.regularExpression": {
       "title": "@Regular_Expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 80
+    },
+    "textEditor.csharp.advanced.jsonStrings": {
+      "title": "@JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 90
     }
   }
 }
