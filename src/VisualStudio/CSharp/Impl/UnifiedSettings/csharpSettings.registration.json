@@ -397,7 +397,7 @@
         }
       }
     },
-    "textEditor.csharp.advanced.BlockStructureGuides.showBlockStructureGuidesForDeclarationLevelConstructs": {
+    "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForDeclarationLevelConstructs": {
       "title": "@Show_guides_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "defaultValue": true,
@@ -411,7 +411,7 @@
         }
       }
     },
-    "textEditor.csharp.advanced.BlockStructureGuides.showBlockStructureGuidesForCodeLevelConstructs": {
+    "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForCodeLevelConstructs": {
       "title": "@Show_guides_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "defaultValue": true,
@@ -425,7 +425,7 @@
         }
       }
     },
-    "textEditor.csharp.advanced.BlockStructureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions": {
+    "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions": {
       "title": "@Show_guides_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "defaultValue": false,
@@ -435,6 +435,48 @@
           "input": {
             "store": "SettingsManager",
             "path": "TextEditor.CSharp.Specific.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.comments.autoXmlDocCommentGeneration": {
+      "title": "@Generate_XML_documentation_comments_for;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Automatic XML Doc Comment Generation"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.comments.splitComments": {
+      "title": "@Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SplitComments"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.comments.insertBlockCommentStartString": {
+      "title": "@Insert_at_the_start_of_new_lines_when_writing_comments;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Insert Block Comment Start String"
           }
         }
       }
@@ -712,9 +754,13 @@
       "title": "@Fading;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 40
     },
-    "textEditor.csharp.advanced.BlockStructureGuides": {
+    "textEditor.csharp.advanced.blockStructureGuides": {
       "title": "@Block_Structure_Guides;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 50
+    },
+    "textEditor.csharp.advanced.comments": {
+      "title": "@Comments;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 60
     }
   }
 }
