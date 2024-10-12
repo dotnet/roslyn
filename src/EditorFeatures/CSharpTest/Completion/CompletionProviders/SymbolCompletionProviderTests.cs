@@ -253,50 +253,75 @@ class C {
     [Fact]
     public async Task OpenStringLiteral()
     {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$")), @"String");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$")), @"System");
+        var code = AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$"));
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task OpenStringLiteralInDirective()
     {
-        await VerifyItemIsAbsentAsync("#r \"$$", "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        await VerifyItemIsAbsentAsync("#r \"$$", "System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+        var code = "#r \"$$\"";
+        await VerifyExpectedItemsAsync(
+            code, [
+                CompletionTestExpectedResult.Absent("String"),
+                CompletionTestExpectedResult.Absent("System")
+            ],
+            sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact]
     public async Task StringLiteral()
     {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$\";")), @"System");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$\";")), @"String");
+        var code = AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$\";"));
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task StringLiteralInDirective()
     {
-        await VerifyItemIsAbsentAsync("#r \"$$\"", "String", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        await VerifyItemIsAbsentAsync("#r \"$$\"", "System", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+        var code = "#r \"$$\"";
+        await VerifyExpectedItemsAsync(
+            code, [
+                CompletionTestExpectedResult.Absent("String"),
+                CompletionTestExpectedResult.Absent("System")
+            ],
+            sourceCodeKind: SourceCodeKind.Script);
     }
 
     [Fact]
     public async Task OpenCharLiteral()
     {
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("char c = '$$")), @"System");
-        await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", AddInsideMethod("char c = '$$")), @"String");
+        var code = AddUsingDirectives("using System;", AddInsideMethod("char c = '$$"));
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("System")
+        ]);
     }
 
     [Fact]
     public async Task AssemblyAttribute1()
     {
-        await VerifyItemExistsAsync(@"[assembly: $$]", @"System");
-        await VerifyItemIsAbsentAsync(@"[assembly: $$]", @"String");
+        var code = @"[assembly: $$]";
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
     public async Task AssemblyAttribute2()
     {
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"[assembly: $$]"), @"System");
-        await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"[assembly: $$]"), @"AttributeUsage");
+        var code = @"[assembly: $$]";
+        await VerifyExpectedItemsAsync(code, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Exists("System")
+        ]);
     }
 
     [Fact]
@@ -496,32 +521,33 @@ namespace A
     namespace B
     {
         namespace $$
-
         namespace C1 { }
     }
-
     namespace B.C2 { }
 }
 
 namespace A.B.C3 { }";
 
-        // Ideally, all the C* namespaces would be recommended but, because of how the parser
-        // recovers from the missing braces, they end up with the following qualified names...
-        //
-        //     C1 => A.B.?.C1
-        //     C2 => A.B.B.C2
-        //     C3 => A.A.B.C3
-        //
-        // ...none of which are found by the current algorithm.
-        await VerifyItemIsAbsentAsync(source, "C1", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "C2", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "C3", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(
+            source, [
+                // Ideally, all the C* namespaces would be recommended but, because of how the parser
+                // recovers from the missing braces, they end up with the following qualified names...
+                //
+                //     C1 => A.B.?.C1
+                //     C2 => A.B.B.C2
+                //     C3 => A.A.B.C3
+                //
+                // ...none of which are found by the current algorithm.
+                CompletionTestExpectedResult.Absent("C1"),
+                CompletionTestExpectedResult.Absent("C2"),
+                CompletionTestExpectedResult.Absent("C3"),
+                CompletionTestExpectedResult.Absent("A"),
 
-        await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
-
-        // Because of the above, B does end up in the completion list
-        // since A.B.B appears to be a peer of the new declaration
-        await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+                // Because of the above, B does end up in the completion list
+                // since A.B.B appears to be a peer of the new declaration
+                CompletionTestExpectedResult.Exists("B")
+            ],
+            SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7213")]
@@ -648,21 +674,25 @@ namespace A
 
 namespace A.B.C.D3 { }";
 
-        await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "C", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(
+            source, [
+                CompletionTestExpectedResult.Absent("A"),
+                CompletionTestExpectedResult.Absent("B"),
+                CompletionTestExpectedResult.Absent("C"),
 
-        // Ideally, all the D* namespaces would be recommended but, because of how the parser
-        // recovers from the missing braces, they end up with the following qualified names...
-        //
-        //     D1 => A.B.C.C.?.D1
-        //     D2 => A.B.B.C.D2
-        //     D3 => A.A.B.C.D3
-        //
-        // ...none of which are found by the current algorithm.
-        await VerifyItemIsAbsentAsync(source, "D1", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "D2", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(source, "D3", sourceCodeKind: SourceCodeKind.Regular);
+                // Ideally, all the D* namespaces would be recommended but, because of how the parser
+                // recovers from the missing braces, they end up with the following qualified names...
+                //
+                //     D1 => A.B.C.C.?.D1
+                //     D2 => A.B.B.C.D2
+                //     D3 => A.A.B.C.D3
+                //
+                // ...none of which are found by the current algorithm.
+                CompletionTestExpectedResult.Absent("D1"),
+                CompletionTestExpectedResult.Absent("D2"),
+                CompletionTestExpectedResult.Absent("D3")
+            ],
+            SourceCodeKind.Regular);
     }
 
     [Fact]
@@ -2336,10 +2366,12 @@ class C
     }
 }
 ";
-        await VerifyItemExistsAsync(markup, "ToString");
-        await VerifyItemIsAbsentAsync(markup, "GetType");
-        await VerifyItemIsAbsentAsync(markup, "Equals");
-        await VerifyItemIsAbsentAsync(markup, "GetHashCode");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("ToString"),
+            CompletionTestExpectedResult.Absent("GetType"),
+            CompletionTestExpectedResult.Absent("Equals"),
+            CompletionTestExpectedResult.Absent("GetHashCode")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35178")]
@@ -2356,10 +2388,12 @@ class C
     }
 }
 ";
-        await VerifyItemExistsAsync(markup, "ToString");
-        await VerifyItemExistsAsync(markup, "GetType");
-        await VerifyItemExistsAsync(markup, "Equals");
-        await VerifyItemExistsAsync(markup, "GetHashCode");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("ToString"),
+            CompletionTestExpectedResult.Exists("GetType"),
+            CompletionTestExpectedResult.Exists("Equals"),
+            CompletionTestExpectedResult.Exists("GetHashCode")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
@@ -2375,8 +2409,10 @@ class C
     }
 }
 ";
-        await VerifyItemExistsAsync(markup, "String");
-        await VerifyItemIsAbsentAsync(markup, "parameter");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Absent("parameter")
+        ]);
     }
 
     [Theory]
@@ -2401,8 +2437,10 @@ class C
     }}
 }}
 ";
-        await VerifyItemExistsAsync(markup, "String");
-        await VerifyItemIsAbsentAsync(markup, "parameter");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Absent("parameter")
+        ]);
     }
 
     [Theory]
@@ -2425,8 +2463,10 @@ class C
     }}
 }}
 ";
-        await VerifyItemIsAbsentAsync(markup, "String");
-        await VerifyItemIsAbsentAsync(markup, "parameter");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("parameter")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
@@ -2442,8 +2482,10 @@ class C
     }
 }
 ";
-        await VerifyItemIsAbsentAsync(markup, "String");
-        await VerifyItemIsAbsentAsync(markup, "parameter");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("parameter")
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/53585")]
@@ -2466,8 +2508,10 @@ class C
     }}
 }}
 ";
-        await VerifyItemIsAbsentAsync(markup, "String");
-        await VerifyItemIsAbsentAsync(markup, "parameter");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Absent("String"),
+            CompletionTestExpectedResult.Absent("parameter")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
@@ -2481,8 +2525,10 @@ class C
     ref $$
 }
 ";
-        await VerifyItemExistsAsync(markup, "String");
-        await VerifyItemIsAbsentAsync(markup, "field");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Absent("field")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25569")]
@@ -2496,8 +2542,10 @@ class C
     ref readonly $$
 }
 ";
-        await VerifyItemExistsAsync(markup, "String");
-        await VerifyItemIsAbsentAsync(markup, "field");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("String"),
+            CompletionTestExpectedResult.Absent("field")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
@@ -2513,8 +2561,10 @@ class Q
     }
 }
 ";
-        await VerifyItemExistsAsync(markup, "Q");
-        await VerifyItemExistsAsync(markup, "R");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("Q"),
+            CompletionTestExpectedResult.Exists("R")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
@@ -2529,8 +2579,10 @@ class Q
     }
 }
 ";
-        await VerifyItemExistsAsync(markup, "Q");
-        await VerifyItemExistsAsync(markup, "R");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("Q"),
+            CompletionTestExpectedResult.Exists("R")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
@@ -2545,8 +2597,10 @@ class Q
     $$
 }
 ";
-        await VerifyItemExistsAsync(markup, "Q");
-        await VerifyItemExistsAsync(markup, "R");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("Q"),
+            CompletionTestExpectedResult.Exists("R")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
@@ -2596,8 +2650,10 @@ class Q
     {
     }
     $$"; // At EOF
-        await VerifyItemExistsAsync(markup, "Q");
-        await VerifyItemExistsAsync(markup, "R");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("Q"),
+            CompletionTestExpectedResult.Exists("R")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
@@ -2609,8 +2665,10 @@ class Q
     class R
     {
         $$"; // At EOF
-        await VerifyItemExistsAsync(markup, "Q");
-        await VerifyItemExistsAsync(markup, "R");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("Q"),
+            CompletionTestExpectedResult.Exists("R")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540574")]
@@ -2740,8 +2798,10 @@ public class C
 }
 ";
 
-        await VerifyItemExistsAsync(markup, "ToString");
-        await VerifyItemExistsAsync(markup, "Invoke");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("ToString"),
+            CompletionTestExpectedResult.Exists("Invoke")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541216")]
@@ -2865,8 +2925,10 @@ class Program
 using System;
 [$$";
 
-        await VerifyItemExistsAsync(markup, "CLSCompliant");
-        await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("CLSCompliant"),
+            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
@@ -2877,8 +2939,10 @@ using System;
 [assembly:$$
 ";
 
-        await VerifyItemExistsAsync(markup, "CLSCompliant");
-        await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("CLSCompliant"),
+            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
@@ -2888,8 +2952,10 @@ using System;
 using System;
 [CLSCompliant, $$";
 
-        await VerifyItemExistsAsync(markup, "CLSCompliant");
-        await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("CLSCompliant"),
+            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
@@ -2900,8 +2966,10 @@ using System;
 [$$
 class C { }";
 
-        await VerifyItemExistsAsync(markup, "CLSCompliant");
-        await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("CLSCompliant"),
+            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
@@ -2912,8 +2980,10 @@ using System;
 [assembly:$$
 class C { }";
 
-        await VerifyItemExistsAsync(markup, "CLSCompliant");
-        await VerifyItemIsAbsentAsync(markup, "CLSCompliantAttribute");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("CLSCompliant"),
+            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
@@ -2924,8 +2994,10 @@ using System;
 [CLSCompliant($$
 class C { }";
 
-        await VerifyItemExistsAsync(markup, "CLSCompliantAttribute");
-        await VerifyItemIsAbsentAsync(markup, "CLSCompliant");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("CLSCompliantAttribute"),
+            CompletionTestExpectedResult.Absent("CLSCompliant")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542225")]
@@ -2935,8 +3007,10 @@ class C { }";
 using System;
 class C { $$ }";
 
-        await VerifyItemExistsAsync(markup, "CLSCompliantAttribute");
-        await VerifyItemIsAbsentAsync(markup, "CLSCompliant");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("CLSCompliantAttribute"),
+            CompletionTestExpectedResult.Absent("CLSCompliant")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542954")]
@@ -2989,8 +3063,10 @@ namespace Test
     [Test.$$
     class Program { }
 }";
-        await VerifyItemExistsAsync(markup, "My");
-        await VerifyItemIsAbsentAsync(markup, "MyAttribute");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("My"),
+            CompletionTestExpectedResult.Absent("MyAttribute")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
@@ -3006,8 +3082,10 @@ namespace Test
         class Program { }
     }
 }";
-        await VerifyItemExistsAsync(markup, "My");
-        await VerifyItemIsAbsentAsync(markup, "MyAttribute");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("My"),
+            CompletionTestExpectedResult.Absent("MyAttribute")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
@@ -3020,9 +3098,11 @@ namespace Test
     [$$
     class Program { }
 }";
-        await VerifyItemExistsAsync(markup, "namespaceAttribute");
-        await VerifyItemIsAbsentAsync(markup, "namespace");
-        await VerifyItemIsAbsentAsync(markup, "@namespace");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("namespaceAttribute"),
+            CompletionTestExpectedResult.Absent("namespace"),
+            CompletionTestExpectedResult.Absent("@namespace")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
@@ -3035,9 +3115,11 @@ namespace Test
     [Test.$$
     class Program { }
 }";
-        await VerifyItemExistsAsync(markup, "namespaceAttribute");
-        await VerifyItemIsAbsentAsync(markup, "namespace");
-        await VerifyItemIsAbsentAsync(markup, "@namespace");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("namespaceAttribute"),
+            CompletionTestExpectedResult.Absent("namespace"),
+            CompletionTestExpectedResult.Absent("@namespace")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
@@ -3055,17 +3137,19 @@ class C
     }
 }";
 
-        // preprocessor keyword
-        await VerifyItemExistsAsync(markup, "error");
-        await VerifyItemIsAbsentAsync(markup, "@error");
+        await VerifyExpectedItemsAsync(markup, [
+            // preprocessor keyword
+            CompletionTestExpectedResult.Exists("error"),
+            CompletionTestExpectedResult.Absent("@error"),
 
-        // contextual keyword
-        await VerifyItemExistsAsync(markup, "method");
-        await VerifyItemIsAbsentAsync(markup, "@method");
+            // contextual keyword
+            CompletionTestExpectedResult.Exists("method"),
+            CompletionTestExpectedResult.Absent("@method"),
 
-        // full keyword
-        await VerifyItemExistsAsync(markup, "@int");
-        await VerifyItemIsAbsentAsync(markup, "int");
+            // full keyword
+            CompletionTestExpectedResult.Exists("@int"),
+            CompletionTestExpectedResult.Absent("int")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
@@ -3081,8 +3165,10 @@ class C
     }
 }";
 
-        await VerifyItemExistsAsync(markup, "@from");
-        await VerifyItemIsAbsentAsync(markup, "from");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("@from"),
+            CompletionTestExpectedResult.Absent("from")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
@@ -3100,10 +3186,12 @@ class C
     }
 }";
 
-        await VerifyItemExistsAsync(markup, "@from");
-        await VerifyItemIsAbsentAsync(markup, "from");
-        await VerifyItemExistsAsync(markup, "@where");
-        await VerifyItemIsAbsentAsync(markup, "where");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("@from"),
+            CompletionTestExpectedResult.Absent("from"),
+            CompletionTestExpectedResult.Exists("@where"),
+            CompletionTestExpectedResult.Absent("where")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545348")]
@@ -3121,10 +3209,12 @@ class C
     }
 }";
 
-        await VerifyItemExistsAsync(markup, "@from");
-        await VerifyItemIsAbsentAsync(markup, "from");
-        await VerifyItemExistsAsync(markup, "@where");
-        await VerifyItemIsAbsentAsync(markup, "where");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("@from"),
+            CompletionTestExpectedResult.Absent("from"),
+            CompletionTestExpectedResult.Exists("@where"),
+            CompletionTestExpectedResult.Absent("where")
+        ]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
@@ -3134,8 +3224,12 @@ class C
 class MyAttribute : System.Attribute { }
 [global::$$
 class Program { }";
-        await VerifyItemExistsAsync(markup, "My", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(markup, "MyAttribute", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(
+            markup, [
+                CompletionTestExpectedResult.Exists("My"),
+                CompletionTestExpectedResult.Absent("MyAttribute")
+            ],
+            SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545121")]
@@ -3145,9 +3239,13 @@ class Program { }";
 class namespaceAttribute : System.Attribute { }
 [global::$$
 class Program { }";
-        await VerifyItemExistsAsync(markup, "namespaceAttribute", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(markup, "namespace", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemIsAbsentAsync(markup, "@namespace", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(
+            markup, [
+                CompletionTestExpectedResult.Exists("namespaceAttribute"),
+                CompletionTestExpectedResult.Absent("namespace"),
+                CompletionTestExpectedResult.Absent("@namespace")
+            ],
+            SourceCodeKind.Regular);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25589")]
@@ -9831,25 +9929,27 @@ class C
     }
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
 
-        await VerifyItemExistsAsync(markup, "Alice");
-        await VerifyItemExistsAsync(markup, "Bob");
-        await VerifyItemExistsAsync(markup, "CompareTo");
-        await VerifyItemExistsAsync(markup, "Equals");
-        await VerifyItemExistsAsync(markup, "GetHashCode");
-        await VerifyItemExistsAsync(markup, "GetType");
-        await VerifyItemExistsAsync(markup, "Item2");
-        await VerifyItemExistsAsync(markup, "ITEM3");
-        for (var i = 4; i <= 8; i++)
-        {
-            await VerifyItemExistsAsync(markup, "Item" + i);
-        }
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("Alice"),
+            CompletionTestExpectedResult.Exists("Bob"),
+            CompletionTestExpectedResult.Exists("CompareTo"),
+            CompletionTestExpectedResult.Exists("Equals"),
+            CompletionTestExpectedResult.Exists("GetHashCode"),
+            CompletionTestExpectedResult.Exists("GetType"),
+            CompletionTestExpectedResult.Exists("Item2"),
+            CompletionTestExpectedResult.Exists("ITEM3"),
+            CompletionTestExpectedResult.Exists("Item4"),
+            CompletionTestExpectedResult.Exists("Item5"),
+            CompletionTestExpectedResult.Exists("Item6"),
+            CompletionTestExpectedResult.Exists("Item7"),
+            CompletionTestExpectedResult.Exists("Item8"),
+            CompletionTestExpectedResult.Exists("ToString"),
 
-        await VerifyItemExistsAsync(markup, "ToString");
-
-        await VerifyItemIsAbsentAsync(markup, "Item1");
-        await VerifyItemIsAbsentAsync(markup, "Item9");
-        await VerifyItemIsAbsentAsync(markup, "Rest");
-        await VerifyItemIsAbsentAsync(markup, "Item3");
+            CompletionTestExpectedResult.Absent("Item1"),
+            CompletionTestExpectedResult.Absent("Item9"),
+            CompletionTestExpectedResult.Absent("Rest"),
+            CompletionTestExpectedResult.Absent("Item3")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14546")]
@@ -10728,11 +10828,13 @@ class Builder
     public int Something { get; set; }
 }";
 
-        await VerifyItemExistsAsync(markup, "Something");
-        await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
-        await VerifyItemIsAbsentAsync(markup, "Clone");
-        await VerifyItemIsAbsentAsync(markup, "Method");
-        await VerifyItemIsAbsentAsync(markup, "Target");
+        await VerifyExpectedItemsAsync(markup, [
+            CompletionTestExpectedResult.Exists("Something"),
+            CompletionTestExpectedResult.Absent("BeginInvoke"),
+            CompletionTestExpectedResult.Absent("Clone"),
+            CompletionTestExpectedResult.Absent("Method"),
+            CompletionTestExpectedResult.Absent("Target")
+        ]);
     }
 
     [Fact]
@@ -10755,19 +10857,21 @@ class Program
     }
 }";
 
-        // Guid
-        await VerifyItemExistsAsync(markup, "ToByteArray");
+        await VerifyExpectedItemsAsync(markup, [
+            // Guid
+            CompletionTestExpectedResult.Exists("ToByteArray"),
 
-        // Uri
-        await VerifyItemExistsAsync(markup, "AbsoluteUri");
-        await VerifyItemExistsAsync(markup, "Fragment");
-        await VerifyItemExistsAsync(markup, "Query");
+            // Uri
+            CompletionTestExpectedResult.Exists("AbsoluteUri"),
+            CompletionTestExpectedResult.Exists("Fragment"),
+            CompletionTestExpectedResult.Exists("Query"),
 
-        // Should not appear for Delegate
-        await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
-        await VerifyItemIsAbsentAsync(markup, "Clone");
-        await VerifyItemIsAbsentAsync(markup, "Method");
-        await VerifyItemIsAbsentAsync(markup, "Target");
+            // Should not appear for Delegate
+            CompletionTestExpectedResult.Absent("BeginInvoke"),
+            CompletionTestExpectedResult.Absent("Clone"),
+            CompletionTestExpectedResult.Absent("Method"),
+            CompletionTestExpectedResult.Absent("Target")
+        ]);
     }
 
     [Fact]
@@ -10789,20 +10893,21 @@ class Program
         M(d => d.$$)
     }
 }";
+        await VerifyExpectedItemsAsync(markup, [
+            // Guid
+            CompletionTestExpectedResult.Exists("ToByteArray"),
 
-        // Guid
-        await VerifyItemExistsAsync(markup, "ToByteArray");
+            // Should not appear for Uri
+            CompletionTestExpectedResult.Absent("AbsoluteUri"),
+            CompletionTestExpectedResult.Absent("Fragment"),
+            CompletionTestExpectedResult.Absent("Query"),
 
-        // Should not appear for  Uri
-        await VerifyItemIsAbsentAsync(markup, "AbsoluteUri");
-        await VerifyItemIsAbsentAsync(markup, "Fragment");
-        await VerifyItemIsAbsentAsync(markup, "Query");
-
-        // Should not appear for Delegate
-        await VerifyItemIsAbsentAsync(markup, "BeginInvoke");
-        await VerifyItemIsAbsentAsync(markup, "Clone");
-        await VerifyItemIsAbsentAsync(markup, "Method");
-        await VerifyItemIsAbsentAsync(markup, "Target");
+            // Should not appear for Delegate
+            CompletionTestExpectedResult.Absent("BeginInvoke"),
+            CompletionTestExpectedResult.Absent("Clone"),
+            CompletionTestExpectedResult.Absent("Method"),
+            CompletionTestExpectedResult.Absent("Target")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36029")]
@@ -11550,12 +11655,15 @@ class Test
     }
 }
 ";
-        await VerifyItemIsAbsentAsync(source, "M0");
-        await VerifyItemExistsAsync(source, "M1");
-        await VerifyItemExistsAsync(source, "M2");
-        await VerifyItemExistsAsync(source, "M3");
-        await VerifyItemExistsAsync(source, "P1");
-        await VerifyItemExistsAsync(source, "E1");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("M0"),
+
+            CompletionTestExpectedResult.Exists("M1"),
+            CompletionTestExpectedResult.Exists("M2"),
+            CompletionTestExpectedResult.Exists("M3"),
+            CompletionTestExpectedResult.Exists("P1"),
+            CompletionTestExpectedResult.Exists("E1")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11577,10 +11685,12 @@ unsafe class Test
     }
 }
 ";
-        await VerifyItemExistsAsync(source, "X");
-        await VerifyItemExistsAsync(source, "Y");
-        await VerifyItemExistsAsync(source, "Method");
-        await VerifyItemExistsAsync(source, "ToString");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("X"),
+            CompletionTestExpectedResult.Exists("Y"),
+            CompletionTestExpectedResult.Exists("Method"),
+            CompletionTestExpectedResult.Exists("ToString")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11602,10 +11712,12 @@ unsafe class Test
     }
 }
 ";
-        await VerifyItemExistsAsync(source, "X");
-        await VerifyItemExistsAsync(source, "Y");
-        await VerifyItemExistsAsync(source, "Method");
-        await VerifyItemExistsAsync(source, "ToString");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("X"),
+            CompletionTestExpectedResult.Exists("Y"),
+            CompletionTestExpectedResult.Exists("Method"),
+            CompletionTestExpectedResult.Exists("ToString")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11629,10 +11741,12 @@ unsafe class Test
     }
 }
 ";
-        await VerifyItemExistsAsync(source, "X");
-        await VerifyItemExistsAsync(source, "Y");
-        await VerifyItemExistsAsync(source, "Method");
-        await VerifyItemExistsAsync(source, "ToString");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("X"),
+            CompletionTestExpectedResult.Exists("Y"),
+            CompletionTestExpectedResult.Exists("Method"),
+            CompletionTestExpectedResult.Exists("ToString")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11667,8 +11781,10 @@ unsafe class Test
         => Overloaded(a => a->$$);
 }
 ";
-        await VerifyItemExistsAsync(source, "X");
-        await VerifyItemExistsAsync(source, "Y");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("X"),
+            CompletionTestExpectedResult.Exists("Y")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11703,8 +11819,10 @@ unsafe class Test
         => Overloaded((TestStruct1* a) => a->$$);
 }
 ";
-        await VerifyItemExistsAsync(source, "X");
-        await VerifyItemIsAbsentAsync(source, "Y");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("X"),
+            CompletionTestExpectedResult.Absent("Y")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11761,8 +11879,10 @@ unsafe class Test
         => Overloaded(a => a.$$);
 }
 ";
-        await VerifyItemIsAbsentAsync(source, "X");
-        await VerifyItemIsAbsentAsync(source, "Y");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("X"),
+            CompletionTestExpectedResult.Absent("Y")
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58081")]
@@ -11797,8 +11917,10 @@ unsafe class Test
         => Overloaded((TestStruct1* a) => a.$$);
 }
 ";
-        await VerifyItemIsAbsentAsync(source, "X");
-        await VerifyItemIsAbsentAsync(source, "Y");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("X"),
+            CompletionTestExpectedResult.Absent("Y")
+        ]);
     }
 
     [InlineData("m.MyObject?.$$MyValue!!()")]
@@ -12146,13 +12268,16 @@ public static class Extension
             enum E : $$
             """;
 
-        await VerifyItemExistsAsync(source, "System");
-        await VerifyItemExistsAsync(source, underlyingType);
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("System"),
 
-        // Verify that other things from `System` namespace are not present
-        await VerifyItemIsAbsentAsync(source, "Console");
-        await VerifyItemIsAbsentAsync(source, "Action");
-        await VerifyItemIsAbsentAsync(source, "DateTime");
+            CompletionTestExpectedResult.Exists(underlyingType),
+
+            // Verify that other things from `System` namespace are not present
+            CompletionTestExpectedResult.Absent("Console"),
+            CompletionTestExpectedResult.Absent("Action"),
+            CompletionTestExpectedResult.Absent("DateTime")
+        ]);
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
@@ -12166,13 +12291,15 @@ public static class Extension
             enum E : global::$$
             """;
 
-        await VerifyItemIsAbsentAsync(source, "E");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("E"),
 
-        await VerifyItemExistsAsync(source, "System");
-        await VerifyItemIsAbsentAsync(source, "MyNamespace");
+            CompletionTestExpectedResult.Exists("System"),
+            CompletionTestExpectedResult.Absent("MyNamespace"),
 
-        // Not accessible in the given context
-        await VerifyItemIsAbsentAsync(source, underlyingType);
+            // Not accessible in the given context
+            CompletionTestExpectedResult.Absent(underlyingType)
+        ]);
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
@@ -12180,14 +12307,16 @@ public static class Extension
     {
         var source = "enum E : System.$$";
 
-        await VerifyItemIsAbsentAsync(source, "System");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("System"),
 
-        await VerifyItemExistsAsync(source, underlyingType);
+            CompletionTestExpectedResult.Exists(underlyingType),
 
-        // Verify that other things from `System` namespace are not present
-        await VerifyItemIsAbsentAsync(source, "Console");
-        await VerifyItemIsAbsentAsync(source, "Action");
-        await VerifyItemIsAbsentAsync(source, "DateTime");
+            // Verify that other things from `System` namespace are not present
+            CompletionTestExpectedResult.Absent("Console"),
+            CompletionTestExpectedResult.Absent("Action"),
+            CompletionTestExpectedResult.Absent("DateTime")
+        ]);
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
@@ -12195,14 +12324,16 @@ public static class Extension
     {
         var source = "enum E : global::System.$$";
 
-        await VerifyItemIsAbsentAsync(source, "System");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("System"),
 
-        await VerifyItemExistsAsync(source, underlyingType);
+            CompletionTestExpectedResult.Exists(underlyingType),
 
-        // Verify that other things from `System` namespace are not present
-        await VerifyItemIsAbsentAsync(source, "Console");
-        await VerifyItemIsAbsentAsync(source, "Action");
-        await VerifyItemIsAbsentAsync(source, "DateTime");
+            // Verify that other things from `System` namespace are not present
+            CompletionTestExpectedResult.Absent("Console"),
+            CompletionTestExpectedResult.Absent("Action"),
+            CompletionTestExpectedResult.Absent("DateTime")
+        ]);
     }
 
     [Fact]
@@ -12269,15 +12400,17 @@ public static class Extension
             enum E : MySystem.$$
             """;
 
-        await VerifyItemIsAbsentAsync(source, "System");
-        await VerifyItemIsAbsentAsync(source, "MySystem");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Absent("System"),
+            CompletionTestExpectedResult.Absent("MySystem"),
 
-        await VerifyItemExistsAsync(source, underlyingType);
+            CompletionTestExpectedResult.Exists(underlyingType),
 
-        // Verify that other things from `System` namespace are not present
-        await VerifyItemIsAbsentAsync(source, "Console");
-        await VerifyItemIsAbsentAsync(source, "Action");
-        await VerifyItemIsAbsentAsync(source, "DateTime");
+            // Verify that other things from `System` namespace are not present
+            CompletionTestExpectedResult.Absent("Console"),
+            CompletionTestExpectedResult.Absent("Action"),
+            CompletionTestExpectedResult.Absent("DateTime")
+        ]);
     }
 
     [Fact]
