@@ -147,10 +147,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(InsertAsteriskAtTheStartOfNewLinesWhenWritingBlockComments, BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, LanguageNames.CSharp);
 
             // Editor Help
-            BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.CSharp);
-            BindToOption(RenameTrackingPreview, RenameTrackingOptionsStorage.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptionsStorage.Enabled);
             BindToOption(Fix_text_pasted_into_string_literals_experimental, StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
+            BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.CSharp);
+            BindToOption(RenameTrackingPreview, RenameTrackingOptionsStorage.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
             BindToOption(Strike_out_obsolete_symbols, ClassificationOptionsStorage.ClassifyObsoleteSymbols, LanguageNames.CSharp);

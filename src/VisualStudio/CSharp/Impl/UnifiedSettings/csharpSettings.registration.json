@@ -481,6 +481,146 @@
         }
       }
     },
+    "textEditor.csharp.advanced.editorHelp.fixStringContentsOnPaste": {
+      "title": "@Fix_text_pasted_into_string_literals_experimental;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.AutomaticallyFixStringContentsOnPaste"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.editorHelp.showRemarksInQuickInfo": {
+      "title": "@Show_remarks_in_Quick_Info;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowRemarks"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.editorHelp.showPreviewForRenameTracking": {
+      "title": "@Show_preview_for_rename_tracking;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Rename Tracking Preview"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.editorHelp.dotnetUnsupportedReportInvalidPlaceholdersInStringDotFormatCalls": {
+      "title": "@Report_invalid_placeholders_in_string_dot_format_calls;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 30,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.WarnOnInvalidStringDotFormatCalls"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.editorHelp.classifyReassignedVariables": {
+      "title": "@Underline_reassigned_variables;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": false,
+      "order": 40,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ClassificationOptions.ClassifyReassignedVariables"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.editorHelp.classifyObsoleteSymbols": {
+      "title": "@Strike_out_obsolete_symbols;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 50,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ClassificationOptions.ClassifyObsoleteSymbols"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.regularExpression.colorizeRegexPatterns": {
+      "title": "@Colorize_regular_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ColorizeRegexPatterns"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.regularExpression.unsupportedReportInvalidRegexPatterns": {
+      "title": "@Report_invalid_regular_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ReportInvalidRegexPatterns"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.regularExpression.highlightRelatedRegexComponents": {
+      "title": "@Highlight_related_components_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.HighlightRelatedRegexComponentsUnderCursor"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.regularExpression.provideRegexCompletions": {
+      "title": "@Show_completion_list;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 30,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ProvideRegexCompletions"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
@@ -761,6 +901,14 @@
     "textEditor.csharp.advanced.comments": {
       "title": "@Comments;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 60
+    },
+    "textEditor.csharp.advanced.editorHelp": {
+      "title": "@Editor_Help;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "order": 70
+    },
+    "textEditor.csharp.advanced.regularExpression": {
+      "title": "@Regular_Expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 80
     }
   }
 }
