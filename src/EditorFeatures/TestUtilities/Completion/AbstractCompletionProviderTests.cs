@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 NonCompletionOptions?.SetGlobalOptions(workspace.GlobalOptions);
 
                 await VerifyWorkerAsync(
-                    code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionModeItem, 
+                    code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionModeItem,
                     sourceKind, results, matchingFilters, flags, options, skipSpeculation);
             }
         }
