@@ -255,8 +255,8 @@ class C {
     {
         var code = AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$"));
         await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -266,8 +266,8 @@ class C {
         var code = "#r \"$$";
         await VerifyExpectedItemsAsync(
             code, [
-                CompletionTestExpectedResult.Absent("String"),
-                CompletionTestExpectedResult.Absent("System")
+                ItemExpectation.Absent("String"),
+                ItemExpectation.Absent("System")
             ],
             sourceCodeKind: SourceCodeKind.Script);
     }
@@ -277,8 +277,8 @@ class C {
     {
         var code = AddUsingDirectives("using System;", AddInsideMethod("string s = \"$$\";"));
         await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -288,8 +288,8 @@ class C {
         var code = "#r \"$$\"";
         await VerifyExpectedItemsAsync(
             code, [
-                CompletionTestExpectedResult.Absent("String"),
-                CompletionTestExpectedResult.Absent("System")
+                ItemExpectation.Absent("String"),
+                ItemExpectation.Absent("System")
             ],
             sourceCodeKind: SourceCodeKind.Script);
     }
@@ -299,8 +299,8 @@ class C {
     {
         var code = AddUsingDirectives("using System;", AddInsideMethod("char c = '$$"));
         await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -309,8 +309,8 @@ class C {
     {
         var code = @"[assembly: $$]";
         await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -320,8 +320,8 @@ class C {
         var code = @"[assembly: $$]";
         var source = AddUsingDirectives("using System;", code);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("System"),
-            CompletionTestExpectedResult.Exists("AttributeUsage")
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Exists("AttributeUsage")
         ]);
     }
 
@@ -349,8 +349,8 @@ class CL {}";
     {
         var code = AddUsingDirectives("using System;", @"class CL<[A$$]T> {}");
         await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Exists("AttributeUsage"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("AttributeUsage"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -363,8 +363,8 @@ class CL {}";
 }";
         var code = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Exists("AttributeUsage"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("AttributeUsage"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -376,8 +376,8 @@ class CL {}";
 }";
         var code = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Exists("AttributeUsage"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("AttributeUsage"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -389,8 +389,8 @@ class CL {}";
 }";
         var code = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(code, [
-            CompletionTestExpectedResult.Exists("AttributeUsage"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("AttributeUsage"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -423,8 +423,8 @@ namespace $$";
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Exists("System"),
-                CompletionTestExpectedResult.Absent("String")
+                ItemExpectation.Exists("System"),
+                ItemExpectation.Absent("String")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -438,8 +438,8 @@ namespace $$;";
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Exists("System"),
-                CompletionTestExpectedResult.Absent("String")
+                ItemExpectation.Exists("System"),
+                ItemExpectation.Absent("String")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -480,8 +480,8 @@ namespace A
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Absent("A"),
-                CompletionTestExpectedResult.Exists("B")
+                ItemExpectation.Absent("A"),
+                ItemExpectation.Exists("B")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -508,8 +508,8 @@ namespace A
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Absent("A"),
-                CompletionTestExpectedResult.Absent("B")
+                ItemExpectation.Absent("A"),
+                ItemExpectation.Absent("B")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -530,8 +530,8 @@ namespace A
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Absent("A"),
-                CompletionTestExpectedResult.Exists("B")
+                ItemExpectation.Absent("A"),
+                ItemExpectation.Exists("B")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -543,8 +543,8 @@ namespace A
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Exists("System"),
-                CompletionTestExpectedResult.Absent("Runtime")
+                ItemExpectation.Exists("System"),
+                ItemExpectation.Absent("Runtime")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -575,14 +575,14 @@ namespace A.B.C3 { }";
                 //     C3 => A.A.B.C3
                 //
                 // ...none of which are found by the current algorithm.
-                CompletionTestExpectedResult.Absent("C1"),
-                CompletionTestExpectedResult.Absent("C2"),
-                CompletionTestExpectedResult.Absent("C3"),
-                CompletionTestExpectedResult.Absent("A"),
+                ItemExpectation.Absent("C1"),
+                ItemExpectation.Absent("C2"),
+                ItemExpectation.Absent("C3"),
+                ItemExpectation.Absent("A"),
 
                 // Because of the above, B does end up in the completion list
                 // since A.B.B appears to be a peer of the new declaration
-                CompletionTestExpectedResult.Exists("B")
+                ItemExpectation.Exists("B")
             ],
             SourceCodeKind.Regular);
     }
@@ -630,9 +630,9 @@ namespace A
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Absent("A"),
-                CompletionTestExpectedResult.Absent("B"),
-                CompletionTestExpectedResult.Exists("C")
+                ItemExpectation.Absent("A"),
+                ItemExpectation.Absent("B"),
+                ItemExpectation.Exists("C")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -649,8 +649,8 @@ namespace A.$$
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Absent("A"),
-                CompletionTestExpectedResult.Absent("B")
+                ItemExpectation.Absent("A"),
+                ItemExpectation.Absent("B")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -669,8 +669,8 @@ namespace A.$$
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Absent("A"),
-                CompletionTestExpectedResult.Exists("B")
+                ItemExpectation.Absent("A"),
+                ItemExpectation.Exists("B")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -682,8 +682,8 @@ namespace A.$$
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Exists("System"),
-                CompletionTestExpectedResult.Absent("Runtime")
+                ItemExpectation.Exists("System"),
+                ItemExpectation.Absent("Runtime")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -707,8 +707,8 @@ namespace System
 
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Absent("System"),
-                CompletionTestExpectedResult.Absent("Runtime")
+                ItemExpectation.Absent("System"),
+                ItemExpectation.Absent("Runtime")
             ],
             sourceCodeKind: SourceCodeKind.Regular);
     }
@@ -733,9 +733,9 @@ namespace A.B.C.D3 { }";
 
         await VerifyExpectedItemsAsync(
             source, [
-                CompletionTestExpectedResult.Absent("A"),
-                CompletionTestExpectedResult.Absent("B"),
-                CompletionTestExpectedResult.Absent("C"),
+                ItemExpectation.Absent("A"),
+                ItemExpectation.Absent("B"),
+                ItemExpectation.Absent("C"),
 
                 // Ideally, all the D* namespaces would be recommended but, because of how the parser
                 // recovers from the missing braces, they end up with the following qualified names...
@@ -745,9 +745,9 @@ namespace A.B.C.D3 { }";
                 //     D3 => A.A.B.C.D3
                 //
                 // ...none of which are found by the current algorithm.
-                CompletionTestExpectedResult.Absent("D1"),
-                CompletionTestExpectedResult.Absent("D2"),
-                CompletionTestExpectedResult.Absent("D3")
+                ItemExpectation.Absent("D1"),
+                ItemExpectation.Absent("D2"),
+                ItemExpectation.Absent("D3")
             ],
             SourceCodeKind.Regular);
     }
@@ -757,8 +757,8 @@ namespace A.B.C.D3 { }";
     {
         var source = @"namespace NS { $$";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -769,8 +769,8 @@ namespace A.B.C.D3 { }";
 class CL {}
 $$";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -782,8 +782,8 @@ class CL {}
 $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -799,8 +799,8 @@ $$";
         {
             name = $$";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("value"),
-            CompletionTestExpectedResult.Exists("C")
+            ItemExpectation.Exists("value"),
+            ItemExpectation.Exists("C")
         ]);
     }
 
@@ -809,8 +809,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", @"[assembly: A.$$");
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -819,8 +819,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", @"using MyType = $$");
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -832,8 +832,8 @@ $$";
 ";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -845,8 +845,8 @@ $$";
 ";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -855,8 +855,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = $$)c"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -865,8 +865,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", @"class CL<$$");
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -875,8 +875,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", @"class CL<T, $$");
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -885,8 +885,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = ($$)c"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -895,8 +895,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -905,8 +905,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = new $$ ["));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -915,8 +915,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = stackalloc $$"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -925,8 +925,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = from $$ c"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -935,8 +935,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"var t = from c in C join $$ j"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -945,8 +945,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"$$ i ="));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -955,8 +955,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"fixed($$"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -965,8 +965,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"foreach($$"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -975,8 +975,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"foreach $$"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -985,8 +985,8 @@ $$";
     {
         var source = AddUsingDirectives("using System;", AddInsideMethod(@"try {} catch($$"));
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -997,8 +997,8 @@ $$";
     $$ i";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1009,8 +1009,8 @@ $$";
     event $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1021,8 +1021,8 @@ $$";
     explicit operator $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1033,8 +1033,8 @@ $$";
     explicit $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -1045,8 +1045,8 @@ $$";
     $$ Prop {";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1057,8 +1057,8 @@ $$";
     event $$ Event {";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1069,8 +1069,8 @@ $$";
     $$ this";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1081,8 +1081,8 @@ $$";
     void Method($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1093,8 +1093,8 @@ $$";
     $$ [";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1105,8 +1105,8 @@ $$";
     $$ *";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1117,8 +1117,8 @@ $$";
     $$ ?";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1129,8 +1129,8 @@ $$";
     delegate $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1141,8 +1141,8 @@ $$";
     $$ M(";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1153,8 +1153,8 @@ $$";
     $$ operator";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1164,8 +1164,8 @@ $$";
         var content = @"($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1175,8 +1175,8 @@ $$";
         var content = @"$$(";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1186,8 +1186,8 @@ $$";
         var content = @"$$[";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1197,8 +1197,8 @@ $$";
         var content = @"i[$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1208,8 +1208,8 @@ $$";
         var content = @"(c)$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1219,8 +1219,8 @@ $$";
         var content = @"var t = from c in $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1230,8 +1230,8 @@ $$";
         var content = @"var t = from c in C let n = $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1241,8 +1241,8 @@ $$";
         var content = @"var t = from c in C orderby $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1252,8 +1252,8 @@ $$";
         var content = @"var t = from c in C select $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1263,8 +1263,8 @@ $$";
         var content = @"$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1274,8 +1274,8 @@ $$";
         var content = @"return $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1285,8 +1285,8 @@ $$";
         var content = @"throw $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1296,8 +1296,8 @@ $$";
         var content = @"yield return $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1307,8 +1307,8 @@ $$";
         var content = @"foreach(T t in $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1318,8 +1318,8 @@ $$";
         var content = @"using($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1329,8 +1329,8 @@ $$";
         var content = @"lock($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1340,8 +1340,8 @@ $$";
         var content = @"var i = $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1351,8 +1351,8 @@ $$";
         var content = @"for($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1362,8 +1362,8 @@ $$";
         var content = @"for(i=0;$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1373,8 +1373,8 @@ $$";
         var content = @"for(i=0;i>10;$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1384,8 +1384,8 @@ $$";
         var content = @"do {} while($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1395,8 +1395,8 @@ $$";
         var content = @"while($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1406,8 +1406,8 @@ $$";
         var content = @"int [$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1417,8 +1417,8 @@ $$";
         var content = @"+$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1428,8 +1428,8 @@ $$";
         var content = @"$$++";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1439,8 +1439,8 @@ $$";
         var content = @"$$ + 1";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1450,8 +1450,8 @@ $$";
         var content = @"1 + $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1461,8 +1461,8 @@ $$";
         var content = @"$$ = 1";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1472,8 +1472,8 @@ $$";
         var content = @"1 = $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1483,8 +1483,8 @@ $$";
         var content = @"$$? 1:";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1494,8 +1494,8 @@ $$";
         var content = @"true? $$:";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1505,8 +1505,8 @@ $$";
         var content = @"true? 1:$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1516,8 +1516,8 @@ $$";
         var content = @"var t = from c in C join p in $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1527,8 +1527,8 @@ $$";
         var content = @"var t = from c in C join p in P on $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1538,8 +1538,8 @@ $$";
         var content = @"var t = from c in C join p in P on id equals $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1549,8 +1549,8 @@ $$";
         var content = @"var t = from c in C where $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1560,8 +1560,8 @@ $$";
         var content = @"var t = from c in C group $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1571,8 +1571,8 @@ $$";
         var content = @"var t = from c in C group g by $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1582,8 +1582,8 @@ $$";
         var content = @"if ($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1593,8 +1593,8 @@ $$";
         var content = @"switch($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1604,8 +1604,8 @@ $$";
         var content = @"switch(i) { case $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1615,8 +1615,8 @@ $$";
         var content = @"switch(i) { case $$ when";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1626,8 +1626,8 @@ $$";
         var content = @"i switch { $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1637,8 +1637,8 @@ $$";
         var content = @"i switch { 1 => true, $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1648,8 +1648,8 @@ $$";
         var content = @"i is ($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1659,8 +1659,8 @@ $$";
         var content = @"i is (1, $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1670,8 +1670,8 @@ $$";
         var content = @"i is { P: $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1681,8 +1681,8 @@ $$";
         var content = @"i is { P1: 1, P2: $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1692,8 +1692,8 @@ $$";
         var content = @"var t = new [] { $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1745,8 +1745,8 @@ class CL<T> where T : $$", @"Test");
         var content = @"class CL<T> where T : IList<$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1798,8 +1798,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"class CL<T> where T : A, IList<$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1809,8 +1809,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"class CL<T> where T : A where$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -1842,8 +1842,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"class CL : $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1853,8 +1853,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"class CL : B, $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1864,8 +1864,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"class CL<T> : B where$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -1875,8 +1875,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"global::$$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1894,8 +1894,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"class C { C() : $$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("System")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("System")
         ]);
     }
 
@@ -1905,8 +1905,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"typeof($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1920,8 +1920,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"sizeof($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -1935,8 +1935,8 @@ class CL<T> where T : A, $$", @"Test");
         var content = @"default($$";
         var source = AddUsingDirectives("using System;", content);
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("System")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("System")
         ]);
     }
 
@@ -2167,8 +2167,8 @@ class B : A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Hidden"),
-            CompletionTestExpectedResult.Exists("Goo")
+            ItemExpectation.Absent("Hidden"),
+            ItemExpectation.Exists("Goo")
         ]);
     }
 
@@ -2190,8 +2190,8 @@ class B : A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Hidden"),
-            CompletionTestExpectedResult.Exists("Goo")
+            ItemExpectation.Absent("Hidden"),
+            ItemExpectation.Exists("Goo")
         ]);
     }
 
@@ -2213,9 +2213,9 @@ class B : A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Hidden"),
-            CompletionTestExpectedResult.Exists("Goo"),
-            CompletionTestExpectedResult.Absent("Bar"),
+            ItemExpectation.Absent("Hidden"),
+            ItemExpectation.Exists("Goo"),
+            ItemExpectation.Absent("Bar"),
         ]);
     }
 
@@ -2237,8 +2237,8 @@ class B : A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Hidden"),
-            CompletionTestExpectedResult.Exists("Goo")
+            ItemExpectation.Absent("Hidden"),
+            ItemExpectation.Exists("Goo")
         ]);
     }
 
@@ -2260,8 +2260,8 @@ class B : A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Hidden"),
-            CompletionTestExpectedResult.Exists("Goo")
+            ItemExpectation.Absent("Hidden"),
+            ItemExpectation.Exists("Goo")
         ]);
     }
 
@@ -2283,8 +2283,8 @@ class B : A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Hidden"),
-            CompletionTestExpectedResult.Exists("Goo")
+            ItemExpectation.Absent("Hidden"),
+            ItemExpectation.Exists("Goo")
         ]);
     }
 
@@ -2309,10 +2309,10 @@ class B : A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("HiddenStatic"),
-            CompletionTestExpectedResult.Exists("GooStatic"),
-            CompletionTestExpectedResult.Absent("HiddenInstance"),
-            CompletionTestExpectedResult.Exists("GooInstance")
+            ItemExpectation.Absent("HiddenStatic"),
+            ItemExpectation.Exists("GooStatic"),
+            ItemExpectation.Absent("HiddenInstance"),
+            ItemExpectation.Exists("GooInstance")
         ]);
     }
 
@@ -2482,8 +2482,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2501,8 +2501,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2520,8 +2520,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2539,8 +2539,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("field")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("field")
         ]);
     }
 
@@ -2558,8 +2558,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("field")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("field")
         ]);
     }
 
@@ -2577,8 +2577,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("field")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("field")
         ]);
     }
 
@@ -2596,8 +2596,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("parameter")
         ]);
     }
 
@@ -2615,8 +2615,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("parameter")
         ]);
     }
 
@@ -2634,8 +2634,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("parameter")
         ]);
     }
 
@@ -2653,8 +2653,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Exists("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Exists("parameter")
         ]);
     }
 
@@ -2672,8 +2672,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2691,8 +2691,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2710,8 +2710,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2729,8 +2729,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2748,8 +2748,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2767,8 +2767,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2807,10 +2807,10 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("ToString"),
-            CompletionTestExpectedResult.Absent("GetType"),
-            CompletionTestExpectedResult.Absent("Equals"),
-            CompletionTestExpectedResult.Absent("GetHashCode")
+            ItemExpectation.Exists("ToString"),
+            ItemExpectation.Absent("GetType"),
+            ItemExpectation.Absent("Equals"),
+            ItemExpectation.Absent("GetHashCode")
         ]);
     }
 
@@ -2829,10 +2829,10 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("ToString"),
-            CompletionTestExpectedResult.Exists("GetType"),
-            CompletionTestExpectedResult.Exists("Equals"),
-            CompletionTestExpectedResult.Exists("GetHashCode")
+            ItemExpectation.Exists("ToString"),
+            ItemExpectation.Exists("GetType"),
+            ItemExpectation.Exists("Equals"),
+            ItemExpectation.Exists("GetHashCode")
         ]);
     }
 
@@ -2850,8 +2850,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2878,8 +2878,8 @@ class C
 }}
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2904,8 +2904,8 @@ class C
 }}
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2923,8 +2923,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2949,8 +2949,8 @@ class C
 }}
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("String"),
-            CompletionTestExpectedResult.Absent("parameter")
+            ItemExpectation.Absent("String"),
+            ItemExpectation.Absent("parameter")
         ]);
     }
 
@@ -2966,8 +2966,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("field")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("field")
         ]);
     }
 
@@ -2983,8 +2983,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("String"),
-            CompletionTestExpectedResult.Absent("field")
+            ItemExpectation.Exists("String"),
+            ItemExpectation.Absent("field")
         ]);
     }
 
@@ -3002,8 +3002,8 @@ class Q
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Q"),
-            CompletionTestExpectedResult.Exists("R")
+            ItemExpectation.Exists("Q"),
+            ItemExpectation.Exists("R")
         ]);
     }
 
@@ -3020,8 +3020,8 @@ class Q
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Q"),
-            CompletionTestExpectedResult.Exists("R")
+            ItemExpectation.Exists("Q"),
+            ItemExpectation.Exists("R")
         ]);
     }
 
@@ -3038,8 +3038,8 @@ class Q
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Q"),
-            CompletionTestExpectedResult.Exists("R")
+            ItemExpectation.Exists("Q"),
+            ItemExpectation.Exists("R")
         ]);
     }
 
@@ -3091,8 +3091,8 @@ class Q
     }
     $$"; // At EOF
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Q"),
-            CompletionTestExpectedResult.Exists("R")
+            ItemExpectation.Exists("Q"),
+            ItemExpectation.Exists("R")
         ]);
     }
 
@@ -3106,8 +3106,8 @@ class Q
     {
         $$"; // At EOF
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Q"),
-            CompletionTestExpectedResult.Exists("R")
+            ItemExpectation.Exists("Q"),
+            ItemExpectation.Exists("R")
         ]);
     }
 
@@ -3239,8 +3239,8 @@ public class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("ToString"),
-            CompletionTestExpectedResult.Exists("Invoke")
+            ItemExpectation.Exists("ToString"),
+            ItemExpectation.Exists("Invoke")
         ]);
     }
 
@@ -3366,8 +3366,8 @@ using System;
 [$$";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("CLSCompliant"),
-            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
     }
 
@@ -3380,8 +3380,8 @@ using System;
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("CLSCompliant"),
-            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
     }
 
@@ -3393,8 +3393,8 @@ using System;
 [CLSCompliant, $$";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("CLSCompliant"),
-            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
     }
 
@@ -3407,8 +3407,8 @@ using System;
 class C { }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("CLSCompliant"),
-            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
     }
 
@@ -3421,8 +3421,8 @@ using System;
 class C { }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("CLSCompliant"),
-            CompletionTestExpectedResult.Absent("CLSCompliantAttribute")
+            ItemExpectation.Exists("CLSCompliant"),
+            ItemExpectation.Absent("CLSCompliantAttribute")
         ]);
     }
 
@@ -3435,8 +3435,8 @@ using System;
 class C { }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("CLSCompliantAttribute"),
-            CompletionTestExpectedResult.Absent("CLSCompliant")
+            ItemExpectation.Exists("CLSCompliantAttribute"),
+            ItemExpectation.Absent("CLSCompliant")
         ]);
     }
 
@@ -3448,8 +3448,8 @@ using System;
 class C { $$ }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("CLSCompliantAttribute"),
-            CompletionTestExpectedResult.Absent("CLSCompliant")
+            ItemExpectation.Exists("CLSCompliantAttribute"),
+            ItemExpectation.Absent("CLSCompliant")
         ]);
     }
 
@@ -3504,8 +3504,8 @@ namespace Test
     class Program { }
 }";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("My"),
-            CompletionTestExpectedResult.Absent("MyAttribute")
+            ItemExpectation.Exists("My"),
+            ItemExpectation.Absent("MyAttribute")
         ]);
     }
 
@@ -3523,8 +3523,8 @@ namespace Test
     }
 }";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("My"),
-            CompletionTestExpectedResult.Absent("MyAttribute")
+            ItemExpectation.Exists("My"),
+            ItemExpectation.Absent("MyAttribute")
         ]);
     }
 
@@ -3539,9 +3539,9 @@ namespace Test
     class Program { }
 }";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("namespaceAttribute"),
-            CompletionTestExpectedResult.Absent("namespace"),
-            CompletionTestExpectedResult.Absent("@namespace")
+            ItemExpectation.Exists("namespaceAttribute"),
+            ItemExpectation.Absent("namespace"),
+            ItemExpectation.Absent("@namespace")
         ]);
     }
 
@@ -3556,9 +3556,9 @@ namespace Test
     class Program { }
 }";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("namespaceAttribute"),
-            CompletionTestExpectedResult.Absent("namespace"),
-            CompletionTestExpectedResult.Absent("@namespace")
+            ItemExpectation.Exists("namespaceAttribute"),
+            ItemExpectation.Absent("namespace"),
+            ItemExpectation.Absent("@namespace")
         ]);
     }
 
@@ -3579,16 +3579,16 @@ class C
 
         await VerifyExpectedItemsAsync(markup, [
             // preprocessor keyword
-            CompletionTestExpectedResult.Exists("error"),
-            CompletionTestExpectedResult.Absent("@error"),
+            ItemExpectation.Exists("error"),
+            ItemExpectation.Absent("@error"),
 
             // contextual keyword
-            CompletionTestExpectedResult.Exists("method"),
-            CompletionTestExpectedResult.Absent("@method"),
+            ItemExpectation.Exists("method"),
+            ItemExpectation.Absent("@method"),
 
             // full keyword
-            CompletionTestExpectedResult.Exists("@int"),
-            CompletionTestExpectedResult.Absent("int")
+            ItemExpectation.Exists("@int"),
+            ItemExpectation.Absent("int")
         ]);
     }
 
@@ -3606,8 +3606,8 @@ class C
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("@from"),
-            CompletionTestExpectedResult.Absent("from")
+            ItemExpectation.Exists("@from"),
+            ItemExpectation.Absent("from")
         ]);
     }
 
@@ -3627,10 +3627,10 @@ class C
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("@from"),
-            CompletionTestExpectedResult.Absent("from"),
-            CompletionTestExpectedResult.Exists("@where"),
-            CompletionTestExpectedResult.Absent("where")
+            ItemExpectation.Exists("@from"),
+            ItemExpectation.Absent("from"),
+            ItemExpectation.Exists("@where"),
+            ItemExpectation.Absent("where")
         ]);
     }
 
@@ -3650,10 +3650,10 @@ class C
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("@from"),
-            CompletionTestExpectedResult.Absent("from"),
-            CompletionTestExpectedResult.Exists("@where"),
-            CompletionTestExpectedResult.Absent("where")
+            ItemExpectation.Exists("@from"),
+            ItemExpectation.Absent("from"),
+            ItemExpectation.Exists("@where"),
+            ItemExpectation.Absent("where")
         ]);
     }
 
@@ -3666,8 +3666,8 @@ class MyAttribute : System.Attribute { }
 class Program { }";
         await VerifyExpectedItemsAsync(
             markup, [
-                CompletionTestExpectedResult.Exists("My"),
-                CompletionTestExpectedResult.Absent("MyAttribute")
+                ItemExpectation.Exists("My"),
+                ItemExpectation.Absent("MyAttribute")
             ],
             SourceCodeKind.Regular);
     }
@@ -3681,9 +3681,9 @@ class namespaceAttribute : System.Attribute { }
 class Program { }";
         await VerifyExpectedItemsAsync(
             markup, [
-                CompletionTestExpectedResult.Exists("namespaceAttribute"),
-                CompletionTestExpectedResult.Absent("namespace"),
-                CompletionTestExpectedResult.Absent("@namespace")
+                ItemExpectation.Exists("namespaceAttribute"),
+                ItemExpectation.Absent("namespace"),
+                ItemExpectation.Absent("@namespace")
             ],
             SourceCodeKind.Regular);
     }
@@ -3714,8 +3714,8 @@ namespace Namespace1
 
 [Namespace1.$$]";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Namespace2"),
-            CompletionTestExpectedResult.Exists("Namespace3"),
+            ItemExpectation.Absent("Namespace2"),
+            ItemExpectation.Exists("Namespace3"),
         ]);
     }
 
@@ -3764,10 +3764,10 @@ namespace Namespace1
 
 [$$]";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Namespace1Alias"),
-            CompletionTestExpectedResult.Absent("Namespace2Alias"),
-            CompletionTestExpectedResult.Exists("Namespace3Alias"),
-            CompletionTestExpectedResult.Exists("Namespace4Alias"),
+            ItemExpectation.Exists("Namespace1Alias"),
+            ItemExpectation.Absent("Namespace2Alias"),
+            ItemExpectation.Exists("Namespace3Alias"),
+            ItemExpectation.Exists("Namespace4Alias"),
         ]);
     }
 
@@ -4235,10 +4235,10 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("a"),
-            CompletionTestExpectedResult.Exists("b"),
-            CompletionTestExpectedResult.Exists("c"),
-            CompletionTestExpectedResult.Absent("Equals"),
+            ItemExpectation.Exists("a"),
+            ItemExpectation.Exists("b"),
+            ItemExpectation.Exists("c"),
+            ItemExpectation.Absent("Equals"),
         ]);
     }
 
@@ -4258,10 +4258,10 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("a"),
-            CompletionTestExpectedResult.Absent("b"),
-            CompletionTestExpectedResult.Absent("c"),
-            CompletionTestExpectedResult.Exists("Equals"),
+            ItemExpectation.Absent("a"),
+            ItemExpectation.Absent("b"),
+            ItemExpectation.Absent("c"),
+            ItemExpectation.Exists("Equals"),
         ]);
     }
 
@@ -7576,8 +7576,8 @@ class A
     }
 }";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Goo"),
-            CompletionTestExpectedResult.Exists("Bar"),
+            ItemExpectation.Exists("Goo"),
+            ItemExpectation.Exists("Bar"),
         ]);
     }
 
@@ -7763,8 +7763,8 @@ class Program
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Task"),
-            CompletionTestExpectedResult.Absent("Console"),
+            ItemExpectation.Exists("Task"),
+            ItemExpectation.Absent("Console"),
         ]);
     }
 
@@ -7781,8 +7781,8 @@ class Program
 class Test {}";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Task"),
-            CompletionTestExpectedResult.Absent("Test"),
+            ItemExpectation.Exists("Task"),
+            ItemExpectation.Absent("Test"),
         ]);
     }
 
@@ -7923,8 +7923,8 @@ namespace N
 }";
         // Nothing should be found: no awaiter for request.
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Result"),
-            CompletionTestExpectedResult.Absent("ReadAsStreamAsync"),
+            ItemExpectation.Absent("Result"),
+            ItemExpectation.Absent("ReadAsStreamAsync"),
         ]);
     }
 
@@ -7953,8 +7953,8 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Result"),
-            CompletionTestExpectedResult.Exists("ReadAsStreamAsync"),
+            ItemExpectation.Absent("Result"),
+            ItemExpectation.Exists("ReadAsStreamAsync"),
         ]);
     }
 
@@ -8772,8 +8772,8 @@ class A
     }
 }";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("AA"),
-            CompletionTestExpectedResult.Exists("AB"),
+            ItemExpectation.Exists("AA"),
+            ItemExpectation.Exists("AB"),
         ]);
     }
 
@@ -8797,8 +8797,8 @@ class A
     }
 }";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("i"),
-            CompletionTestExpectedResult.Absent("Value"),
+            ItemExpectation.Exists("i"),
+            ItemExpectation.Absent("Value"),
         ]);
     }
 
@@ -8821,8 +8821,8 @@ class A
     }
 }";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("i"),
-            CompletionTestExpectedResult.Absent("Value"),
+            ItemExpectation.Exists("i"),
+            ItemExpectation.Absent("Value"),
         ]);
     }
 
@@ -8839,8 +8839,8 @@ class A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Day"),
-            CompletionTestExpectedResult.Absent("Value"),
+            ItemExpectation.Exists("Day"),
+            ItemExpectation.Absent("Value"),
         ]);
     }
 
@@ -8857,8 +8857,8 @@ class A
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Value"),
-            CompletionTestExpectedResult.Absent("Day"),
+            ItemExpectation.Exists("Value"),
+            ItemExpectation.Absent("Day"),
         ]);
     }
 
@@ -9273,8 +9273,8 @@ class C
 }
 ";
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("x"),
-            CompletionTestExpectedResult.Exists("y"),
+            ItemExpectation.Exists("x"),
+            ItemExpectation.Exists("y"),
         ]);
     }
 
@@ -9506,9 +9506,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("A"),
-            CompletionTestExpectedResult.Absent("B"),
-            CompletionTestExpectedResult.Exists("N"),
+            ItemExpectation.Absent("A"),
+            ItemExpectation.Absent("B"),
+            ItemExpectation.Exists("N"),
         ]);
     }
 
@@ -9530,9 +9530,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("C"),
-            CompletionTestExpectedResult.Absent("D"),
-            CompletionTestExpectedResult.Exists("M"),
+            ItemExpectation.Absent("C"),
+            ItemExpectation.Absent("D"),
+            ItemExpectation.Exists("M"),
         ]);
     }
 
@@ -9554,9 +9554,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("N"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("N"),
         ]);
     }
 
@@ -9578,9 +9578,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Exists("D"),
-            CompletionTestExpectedResult.Exists("M"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Exists("D"),
+            ItemExpectation.Exists("M"),
         ]);
     }
 
@@ -9602,9 +9602,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("N"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("N"),
         ]);
     }
 
@@ -9626,9 +9626,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Exists("D"),
-            CompletionTestExpectedResult.Exists("M"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Exists("D"),
+            ItemExpectation.Exists("M"),
         ]);
     }
 
@@ -9650,9 +9650,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("N"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("N"),
         ]);
     }
 
@@ -9674,9 +9674,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Absent("B"),
-            CompletionTestExpectedResult.Exists("N"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Absent("B"),
+            ItemExpectation.Exists("N"),
         ]);
     }
 
@@ -9698,9 +9698,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Absent("D"),
-            CompletionTestExpectedResult.Exists("M"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Absent("D"),
+            ItemExpectation.Exists("M"),
         ]);
     }
 
@@ -9722,9 +9722,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Absent("B"),
-            CompletionTestExpectedResult.Exists("N"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Absent("B"),
+            ItemExpectation.Exists("N"),
         ]);
     }
 
@@ -9747,9 +9747,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Exists("I"),
-            CompletionTestExpectedResult.Exists("M"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Exists("I"),
+            ItemExpectation.Exists("M"),
         ]);
     }
 
@@ -9772,9 +9772,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("I"),
-            CompletionTestExpectedResult.Exists("N"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("I"),
+            ItemExpectation.Exists("N"),
         ]);
     }
 
@@ -9797,9 +9797,9 @@ namespace N
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("I"),
-            CompletionTestExpectedResult.Exists("N"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("I"),
+            ItemExpectation.Exists("N"),
         ]);
     }
 
@@ -9830,8 +9830,8 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Goo"),
-            CompletionTestExpectedResult.Absent("Bar"),
+            ItemExpectation.Absent("Goo"),
+            ItemExpectation.Absent("Bar"),
         ]);
     }
 
@@ -9864,8 +9864,8 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Goo"),
-            CompletionTestExpectedResult.Absent("Bar"),
+            ItemExpectation.Absent("Goo"),
+            ItemExpectation.Absent("Bar"),
         ]);
     }
 
@@ -9899,8 +9899,8 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Goo"),
-            CompletionTestExpectedResult.Exists("Bar"),
+            ItemExpectation.Exists("Goo"),
+            ItemExpectation.Exists("Bar"),
         ]);
     }
 
@@ -9935,8 +9935,8 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Goo"),
-            CompletionTestExpectedResult.Exists("Bar"),
+            ItemExpectation.Exists("Goo"),
+            ItemExpectation.Exists("Bar"),
         ]);
     }
 
@@ -9970,8 +9970,8 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Goo"),
-            CompletionTestExpectedResult.Absent("Bar"),
+            ItemExpectation.Exists("Goo"),
+            ItemExpectation.Absent("Bar"),
         ]);
     }
 
@@ -10005,8 +10005,8 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Goo"),
-            CompletionTestExpectedResult.Exists("Bar"),
+            ItemExpectation.Absent("Goo"),
+            ItemExpectation.Exists("Bar"),
         ]);
     }
 
@@ -10041,8 +10041,8 @@ class C
 ";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Goo"),
-            CompletionTestExpectedResult.Exists("Bar"),
+            ItemExpectation.Exists("Goo"),
+            ItemExpectation.Exists("Bar"),
         ]);
     }
 
@@ -10439,25 +10439,25 @@ class C
 }" + TestResources.NetFX.ValueTuple.tuplelib_cs;
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Alice"),
-            CompletionTestExpectedResult.Exists("Bob"),
-            CompletionTestExpectedResult.Exists("CompareTo"),
-            CompletionTestExpectedResult.Exists("Equals"),
-            CompletionTestExpectedResult.Exists("GetHashCode"),
-            CompletionTestExpectedResult.Exists("GetType"),
-            CompletionTestExpectedResult.Exists("Item2"),
-            CompletionTestExpectedResult.Exists("ITEM3"),
-            CompletionTestExpectedResult.Exists("Item4"),
-            CompletionTestExpectedResult.Exists("Item5"),
-            CompletionTestExpectedResult.Exists("Item6"),
-            CompletionTestExpectedResult.Exists("Item7"),
-            CompletionTestExpectedResult.Exists("Item8"),
-            CompletionTestExpectedResult.Exists("ToString"),
+            ItemExpectation.Exists("Alice"),
+            ItemExpectation.Exists("Bob"),
+            ItemExpectation.Exists("CompareTo"),
+            ItemExpectation.Exists("Equals"),
+            ItemExpectation.Exists("GetHashCode"),
+            ItemExpectation.Exists("GetType"),
+            ItemExpectation.Exists("Item2"),
+            ItemExpectation.Exists("ITEM3"),
+            ItemExpectation.Exists("Item4"),
+            ItemExpectation.Exists("Item5"),
+            ItemExpectation.Exists("Item6"),
+            ItemExpectation.Exists("Item7"),
+            ItemExpectation.Exists("Item8"),
+            ItemExpectation.Exists("ToString"),
 
-            CompletionTestExpectedResult.Absent("Item1"),
-            CompletionTestExpectedResult.Absent("Item9"),
-            CompletionTestExpectedResult.Absent("Rest"),
-            CompletionTestExpectedResult.Absent("Item3")
+            ItemExpectation.Absent("Item1"),
+            ItemExpectation.Absent("Item9"),
+            ItemExpectation.Absent("Rest"),
+            ItemExpectation.Absent("Item3")
         ]);
     }
 
@@ -11022,9 +11022,9 @@ namespace ClassLibrary1
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Substring"),
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
+            ItemExpectation.Absent("Substring"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
         ]);
     }
 
@@ -11135,8 +11135,8 @@ class Product1 { public void MyProperty1() { } }
 class Product2 { public void MyProperty2() { } }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("MyProperty1"),
-            CompletionTestExpectedResult.Exists("MyProperty2"),
+            ItemExpectation.Exists("MyProperty1"),
+            ItemExpectation.Exists("MyProperty2"),
         ]);
     }
 
@@ -11164,9 +11164,9 @@ class Product2 { public void MyProperty2() { } }
 class Product3 { public void MyProperty3() { } }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("MyProperty1"),
-            CompletionTestExpectedResult.Exists("MyProperty2"),
-            CompletionTestExpectedResult.Exists("MyProperty3")
+            ItemExpectation.Exists("MyProperty1"),
+            ItemExpectation.Exists("MyProperty2"),
+            ItemExpectation.Exists("MyProperty3")
         ]);
     }
 
@@ -11344,11 +11344,11 @@ class Builder
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("Something"),
-            CompletionTestExpectedResult.Absent("BeginInvoke"),
-            CompletionTestExpectedResult.Absent("Clone"),
-            CompletionTestExpectedResult.Absent("Method"),
-            CompletionTestExpectedResult.Absent("Target")
+            ItemExpectation.Exists("Something"),
+            ItemExpectation.Absent("BeginInvoke"),
+            ItemExpectation.Absent("Clone"),
+            ItemExpectation.Absent("Method"),
+            ItemExpectation.Absent("Target")
         ]);
     }
 
@@ -11374,18 +11374,18 @@ class Program
 
         await VerifyExpectedItemsAsync(markup, [
             // Guid
-            CompletionTestExpectedResult.Exists("ToByteArray"),
+            ItemExpectation.Exists("ToByteArray"),
 
             // Uri
-            CompletionTestExpectedResult.Exists("AbsoluteUri"),
-            CompletionTestExpectedResult.Exists("Fragment"),
-            CompletionTestExpectedResult.Exists("Query"),
+            ItemExpectation.Exists("AbsoluteUri"),
+            ItemExpectation.Exists("Fragment"),
+            ItemExpectation.Exists("Query"),
 
             // Should not appear for Delegate
-            CompletionTestExpectedResult.Absent("BeginInvoke"),
-            CompletionTestExpectedResult.Absent("Clone"),
-            CompletionTestExpectedResult.Absent("Method"),
-            CompletionTestExpectedResult.Absent("Target")
+            ItemExpectation.Absent("BeginInvoke"),
+            ItemExpectation.Absent("Clone"),
+            ItemExpectation.Absent("Method"),
+            ItemExpectation.Absent("Target")
         ]);
     }
 
@@ -11410,18 +11410,18 @@ class Program
 }";
         await VerifyExpectedItemsAsync(markup, [
             // Guid
-            CompletionTestExpectedResult.Exists("ToByteArray"),
+            ItemExpectation.Exists("ToByteArray"),
 
             // Should not appear for Uri
-            CompletionTestExpectedResult.Absent("AbsoluteUri"),
-            CompletionTestExpectedResult.Absent("Fragment"),
-            CompletionTestExpectedResult.Absent("Query"),
+            ItemExpectation.Absent("AbsoluteUri"),
+            ItemExpectation.Absent("Fragment"),
+            ItemExpectation.Absent("Query"),
 
             // Should not appear for Delegate
-            CompletionTestExpectedResult.Absent("BeginInvoke"),
-            CompletionTestExpectedResult.Absent("Clone"),
-            CompletionTestExpectedResult.Absent("Method"),
-            CompletionTestExpectedResult.Absent("Target")
+            ItemExpectation.Absent("BeginInvoke"),
+            ItemExpectation.Absent("Clone"),
+            ItemExpectation.Absent("Method"),
+            ItemExpectation.Absent("Target")
         ]);
     }
 
@@ -11455,9 +11455,9 @@ class AnotherBuilder
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("AnotherSomething"),
-            CompletionTestExpectedResult.Absent("FirstOrDefault"),
-            CompletionTestExpectedResult.Exists("Something")
+            ItemExpectation.Absent("AnotherSomething"),
+            ItemExpectation.Absent("FirstOrDefault"),
+            ItemExpectation.Exists("Something")
         ]);
     }
 
@@ -11488,9 +11488,9 @@ class AnotherBuilder
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Absent("Something"),
-            CompletionTestExpectedResult.Absent("FirstOrDefault"),
-            CompletionTestExpectedResult.Exists("AnotherSomething")
+            ItemExpectation.Absent("Something"),
+            ItemExpectation.Absent("FirstOrDefault"),
+            ItemExpectation.Exists("AnotherSomething")
         ]);
     }
 
@@ -11596,9 +11596,9 @@ public class C
 }";
 
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("M"),
-            CompletionTestExpectedResult.Exists("Equals"),
-            CompletionTestExpectedResult.Absent("DoSomething") with
+            ItemExpectation.Exists("M"),
+            ItemExpectation.Exists("Equals"),
+            ItemExpectation.Absent("DoSomething") with
             {
                 DisplayTextSuffix = "<>"
             },
@@ -11880,9 +11880,9 @@ namespace Bar1
 }";
         // VerifyItemExistsAsync also tests with the item typed.
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("BillyJoel"),
-            CompletionTestExpectedResult.Exists("EveryoneElse"),
-            CompletionTestExpectedResult.Absent("Equals"),
+            ItemExpectation.Exists("BillyJoel"),
+            ItemExpectation.Exists("EveryoneElse"),
+            ItemExpectation.Absent("Equals"),
         ]);
     }
 
@@ -11910,9 +11910,9 @@ namespace Bar1
 }";
         // VerifyItemExistsAsync also tests with the item typed.
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("BillyJoel"),
-            CompletionTestExpectedResult.Exists("EveryoneElse"),
-            CompletionTestExpectedResult.Absent("Equals"),
+            ItemExpectation.Exists("BillyJoel"),
+            ItemExpectation.Exists("EveryoneElse"),
+            ItemExpectation.Absent("Equals"),
         ]);
     }
 
@@ -11940,9 +11940,9 @@ namespace Bar1
 }";
         // VerifyItemExistsAsync also tests with the item typed.
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("BillyJoel"),
-            CompletionTestExpectedResult.Exists("EveryoneElse"),
-            CompletionTestExpectedResult.Absent("Equals"),
+            ItemExpectation.Exists("BillyJoel"),
+            ItemExpectation.Exists("EveryoneElse"),
+            ItemExpectation.Absent("Equals"),
         ]);
     }
 
@@ -11989,9 +11989,9 @@ namespace Bar1
 }";
         // VerifyItemExistsAsync also tests with the item typed.
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("BillyJoel"),
-            CompletionTestExpectedResult.Exists("EveryoneElse"),
-            CompletionTestExpectedResult.Absent("Equals"),
+            ItemExpectation.Exists("BillyJoel"),
+            ItemExpectation.Exists("EveryoneElse"),
+            ItemExpectation.Absent("Equals"),
         ]);
     }
 
@@ -12019,9 +12019,9 @@ namespace Bar1
 }";
         // VerifyItemExistsAsync also tests with the item typed.
         await VerifyExpectedItemsAsync(markup, [
-            CompletionTestExpectedResult.Exists("BillyJoel"),
-            CompletionTestExpectedResult.Exists("EveryoneElse"),
-            CompletionTestExpectedResult.Absent("Equals"),
+            ItemExpectation.Exists("BillyJoel"),
+            ItemExpectation.Exists("EveryoneElse"),
+            ItemExpectation.Absent("Equals"),
         ]);
     }
 
@@ -12190,13 +12190,13 @@ class Test
 }
 ";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("M0"),
+            ItemExpectation.Absent("M0"),
 
-            CompletionTestExpectedResult.Exists("M1"),
-            CompletionTestExpectedResult.Exists("M2"),
-            CompletionTestExpectedResult.Exists("M3"),
-            CompletionTestExpectedResult.Exists("P1"),
-            CompletionTestExpectedResult.Exists("E1")
+            ItemExpectation.Exists("M1"),
+            ItemExpectation.Exists("M2"),
+            ItemExpectation.Exists("M3"),
+            ItemExpectation.Exists("P1"),
+            ItemExpectation.Exists("E1")
         ]);
     }
 
@@ -12220,10 +12220,10 @@ unsafe class Test
 }
 ";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("X"),
-            CompletionTestExpectedResult.Exists("Y"),
-            CompletionTestExpectedResult.Exists("Method"),
-            CompletionTestExpectedResult.Exists("ToString")
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+            ItemExpectation.Exists("Method"),
+            ItemExpectation.Exists("ToString")
         ]);
     }
 
@@ -12247,10 +12247,10 @@ unsafe class Test
 }
 ";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("X"),
-            CompletionTestExpectedResult.Exists("Y"),
-            CompletionTestExpectedResult.Exists("Method"),
-            CompletionTestExpectedResult.Exists("ToString")
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+            ItemExpectation.Exists("Method"),
+            ItemExpectation.Exists("ToString")
         ]);
     }
 
@@ -12276,10 +12276,10 @@ unsafe class Test
 }
 ";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("X"),
-            CompletionTestExpectedResult.Exists("Y"),
-            CompletionTestExpectedResult.Exists("Method"),
-            CompletionTestExpectedResult.Exists("ToString")
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y"),
+            ItemExpectation.Exists("Method"),
+            ItemExpectation.Exists("ToString")
         ]);
     }
 
@@ -12316,8 +12316,8 @@ unsafe class Test
 }
 ";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("X"),
-            CompletionTestExpectedResult.Exists("Y")
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Exists("Y")
         ]);
     }
 
@@ -12354,8 +12354,8 @@ unsafe class Test
 }
 ";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("X"),
-            CompletionTestExpectedResult.Absent("Y")
+            ItemExpectation.Exists("X"),
+            ItemExpectation.Absent("Y")
         ]);
     }
 
@@ -12414,8 +12414,8 @@ unsafe class Test
 }
 ";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("X"),
-            CompletionTestExpectedResult.Absent("Y")
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Absent("Y")
         ]);
     }
 
@@ -12452,8 +12452,8 @@ unsafe class Test
 }
 ";
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("X"),
-            CompletionTestExpectedResult.Absent("Y")
+            ItemExpectation.Absent("X"),
+            ItemExpectation.Absent("Y")
         ]);
     }
 
@@ -12770,10 +12770,10 @@ public static class Extension
         var source = "enum E : $$";
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("System"),
+            ItemExpectation.Exists("System"),
 
             // Not accessible in the given context
-            CompletionTestExpectedResult.Absent(underlyingType),
+            ItemExpectation.Absent(underlyingType),
         ]);
     }
 
@@ -12805,14 +12805,14 @@ public static class Extension
             """;
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("System"),
+            ItemExpectation.Exists("System"),
 
-            CompletionTestExpectedResult.Exists(underlyingType),
+            ItemExpectation.Exists(underlyingType),
 
             // Verify that other things from `System` namespace are not present
-            CompletionTestExpectedResult.Absent("Console"),
-            CompletionTestExpectedResult.Absent("Action"),
-            CompletionTestExpectedResult.Absent("DateTime")
+            ItemExpectation.Absent("Console"),
+            ItemExpectation.Absent("Action"),
+            ItemExpectation.Absent("DateTime")
         ]);
     }
 
@@ -12828,13 +12828,13 @@ public static class Extension
             """;
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("E"),
+            ItemExpectation.Absent("E"),
 
-            CompletionTestExpectedResult.Exists("System"),
-            CompletionTestExpectedResult.Absent("MyNamespace"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("MyNamespace"),
 
             // Not accessible in the given context
-            CompletionTestExpectedResult.Absent(underlyingType)
+            ItemExpectation.Absent(underlyingType)
         ]);
     }
 
@@ -12844,14 +12844,14 @@ public static class Extension
         var source = "enum E : System.$$";
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("System"),
+            ItemExpectation.Absent("System"),
 
-            CompletionTestExpectedResult.Exists(underlyingType),
+            ItemExpectation.Exists(underlyingType),
 
             // Verify that other things from `System` namespace are not present
-            CompletionTestExpectedResult.Absent("Console"),
-            CompletionTestExpectedResult.Absent("Action"),
-            CompletionTestExpectedResult.Absent("DateTime")
+            ItemExpectation.Absent("Console"),
+            ItemExpectation.Absent("Action"),
+            ItemExpectation.Absent("DateTime")
         ]);
     }
 
@@ -12861,14 +12861,14 @@ public static class Extension
         var source = "enum E : global::System.$$";
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("System"),
+            ItemExpectation.Absent("System"),
 
-            CompletionTestExpectedResult.Exists(underlyingType),
+            ItemExpectation.Exists(underlyingType),
 
             // Verify that other things from `System` namespace are not present
-            CompletionTestExpectedResult.Absent("Console"),
-            CompletionTestExpectedResult.Absent("Action"),
-            CompletionTestExpectedResult.Absent("DateTime")
+            ItemExpectation.Absent("Console"),
+            ItemExpectation.Absent("Action"),
+            ItemExpectation.Absent("DateTime")
         ]);
     }
 
@@ -12937,15 +12937,15 @@ public static class Extension
             """;
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Absent("System"),
-            CompletionTestExpectedResult.Absent("MySystem"),
+            ItemExpectation.Absent("System"),
+            ItemExpectation.Absent("MySystem"),
 
-            CompletionTestExpectedResult.Exists(underlyingType),
+            ItemExpectation.Exists(underlyingType),
 
             // Verify that other things from `System` namespace are not present
-            CompletionTestExpectedResult.Absent("Console"),
-            CompletionTestExpectedResult.Absent("Action"),
-            CompletionTestExpectedResult.Absent("DateTime")
+            ItemExpectation.Absent("Console"),
+            ItemExpectation.Absent("Action"),
+            ItemExpectation.Absent("DateTime")
         ]);
     }
 
@@ -13028,9 +13028,9 @@ public static class Extension
             """;
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("endIndex"),
-            CompletionTestExpectedResult.Exists("Test"),
-            CompletionTestExpectedResult.Exists("C"),
+            ItemExpectation.Exists("endIndex"),
+            ItemExpectation.Exists("Test"),
+            ItemExpectation.Exists("C"),
         ]);
     }
 
@@ -13051,9 +13051,9 @@ public static class Extension
             """;
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("endIndex"),
-            CompletionTestExpectedResult.Exists("Test"),
-            CompletionTestExpectedResult.Exists("C"),
+            ItemExpectation.Exists("endIndex"),
+            ItemExpectation.Exists("Test"),
+            ItemExpectation.Exists("C"),
         ]);
     }
 
@@ -13078,10 +13078,10 @@ public static class Extension
             """;
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("foo"),
-            CompletionTestExpectedResult.Exists("M"),
-            CompletionTestExpectedResult.Exists("System"),
-            CompletionTestExpectedResult.Absent("Int32"),
+            ItemExpectation.Exists("foo"),
+            ItemExpectation.Exists("M"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Absent("Int32"),
         ]);
     }
 
@@ -13104,9 +13104,9 @@ public static class Extension
             """;
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("System"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Absent("other"),
+            ItemExpectation.Exists("System"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Absent("other"),
         ]);
     }
 
@@ -13141,12 +13141,12 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Absent("D"),
-            CompletionTestExpectedResult.Absent("M"),
-            CompletionTestExpectedResult.Exists("R"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Absent("D"),
+            ItemExpectation.Absent("M"),
+            ItemExpectation.Exists("R"),
         ]);
     }
 
@@ -13158,12 +13158,12 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Absent("C"),
-            CompletionTestExpectedResult.Absent("D"),
-            CompletionTestExpectedResult.Absent("M"),
-            CompletionTestExpectedResult.Absent("R"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Absent("C"),
+            ItemExpectation.Absent("D"),
+            ItemExpectation.Absent("M"),
+            ItemExpectation.Absent("R"),
         ]);
     }
 
@@ -13175,9 +13175,9 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Exists("Constants"),
-            CompletionTestExpectedResult.Exists("System"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Exists("Constants"),
+            ItemExpectation.Exists("System"),
         ]);
     }
 
@@ -13191,8 +13191,8 @@ public static class Extension
         // In scripts, we also get a Script class containing our defined types
         await VerifyExpectedItemsAsync(source,
             [
-                CompletionTestExpectedResult.Exists("C"),
-                CompletionTestExpectedResult.Exists("Constants"),
+                ItemExpectation.Exists("C"),
+                ItemExpectation.Exists("Constants"),
             ],
             sourceCodeKind: SourceCodeKind.Regular);
         await VerifyItemExistsAsync(source, "System");
@@ -13205,10 +13205,10 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("input"),
-            CompletionTestExpectedResult.Exists("Constants"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Exists("M"),
+            ItemExpectation.Exists("input"),
+            ItemExpectation.Exists("Constants"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Exists("M"),
         ]);
     }
 
@@ -13220,12 +13220,12 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Absent("D"),
-            CompletionTestExpectedResult.Absent("M"),
-            CompletionTestExpectedResult.Exists("R"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Absent("D"),
+            ItemExpectation.Absent("M"),
+            ItemExpectation.Exists("R"),
         ]);
     }
 
@@ -13237,12 +13237,12 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Exists("D"),
-            CompletionTestExpectedResult.Absent("M"),
-            CompletionTestExpectedResult.Absent("R"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Exists("D"),
+            ItemExpectation.Absent("M"),
+            ItemExpectation.Absent("R"),
         ]);
     }
 
@@ -13254,14 +13254,14 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Exists("D"),
-            CompletionTestExpectedResult.Exists("E"),
-            CompletionTestExpectedResult.Exists("M"),
-            CompletionTestExpectedResult.Exists("R"),
-            CompletionTestExpectedResult.Exists("ToString"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Exists("D"),
+            ItemExpectation.Exists("E"),
+            ItemExpectation.Exists("M"),
+            ItemExpectation.Exists("R"),
+            ItemExpectation.Exists("ToString"),
         ]);
     }
 
@@ -13273,11 +13273,11 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("D"),
-            CompletionTestExpectedResult.Exists("E"),
-            CompletionTestExpectedResult.Exists("M"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("D"),
+            ItemExpectation.Exists("E"),
+            ItemExpectation.Exists("M"),
         ]);
     }
 
@@ -13289,13 +13289,13 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Exists("D"),
-            CompletionTestExpectedResult.Exists("E"),
-            CompletionTestExpectedResult.Exists("M"),
-            CompletionTestExpectedResult.Exists("R"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Exists("D"),
+            ItemExpectation.Exists("E"),
+            ItemExpectation.Exists("M"),
+            ItemExpectation.Exists("R"),
         ]);
     }
 
@@ -13307,12 +13307,12 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Absent("D"),
-            CompletionTestExpectedResult.Absent("M"),
-            CompletionTestExpectedResult.Exists("R"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Absent("D"),
+            ItemExpectation.Absent("M"),
+            ItemExpectation.Exists("R"),
         ]);
     }
 
@@ -13324,12 +13324,12 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("A"),
-            CompletionTestExpectedResult.Exists("B"),
-            CompletionTestExpectedResult.Exists("C"),
-            CompletionTestExpectedResult.Absent("D"),
-            CompletionTestExpectedResult.Absent("M"),
-            CompletionTestExpectedResult.Exists("R"),
+            ItemExpectation.Exists("A"),
+            ItemExpectation.Exists("B"),
+            ItemExpectation.Exists("C"),
+            ItemExpectation.Absent("D"),
+            ItemExpectation.Absent("M"),
+            ItemExpectation.Exists("R"),
         ]);
     }
 
@@ -13341,8 +13341,8 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Length"),
-            CompletionTestExpectedResult.Absent("Constants"),
+            ItemExpectation.Exists("Length"),
+            ItemExpectation.Absent("Constants"),
         ]);
     }
 
@@ -13354,9 +13354,9 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Constants"),
-            CompletionTestExpectedResult.Absent("InstanceProperty"),
-            CompletionTestExpectedResult.Absent("P"),
+            ItemExpectation.Exists("Constants"),
+            ItemExpectation.Absent("InstanceProperty"),
+            ItemExpectation.Absent("P"),
         ]);
     }
 
@@ -13602,8 +13602,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Undisclosed"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("Undisclosed"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13634,8 +13634,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Undisclosed"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("Undisclosed"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13668,8 +13668,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("StatusEn"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("StatusEn"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13702,8 +13702,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Undisclosed"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("Undisclosed"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13737,8 +13737,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Undisclosed"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("Undisclosed"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13767,8 +13767,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Undisclosed"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("Undisclosed"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13797,8 +13797,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Undisclosed"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("Undisclosed"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13829,8 +13829,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("StatusEn"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("StatusEn"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13861,8 +13861,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Undisclosed"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("Undisclosed"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 
@@ -13894,8 +13894,8 @@ public static class Extension
             }
             """;
         await VerifyExpectedItemsAsync(source, [
-            CompletionTestExpectedResult.Exists("Undisclosed"),
-            CompletionTestExpectedResult.Absent("ToString"),
+            ItemExpectation.Exists("Undisclosed"),
+            ItemExpectation.Absent("ToString"),
         ]);
     }
 

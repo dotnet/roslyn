@@ -64,7 +64,7 @@ public abstract class AbstractCSharpCompletionProviderTests<TWorkspaceFixture> :
 
     private protected override Task BaseVerifyWorkerAsync(
         string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-            SourceCodeKind sourceCodeKind, CompletionTestExpectedResult[] expectedResults,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
         List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
     {
         return base.VerifyWorkerAsync(

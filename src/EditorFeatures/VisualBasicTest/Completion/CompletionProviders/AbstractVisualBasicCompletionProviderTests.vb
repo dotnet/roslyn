@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
         Private Protected Overrides Function BaseVerifyWorkerAsync(
             code As String, position As Integer, usePreviousCharAsTrigger As Boolean, deletedCharTrigger As Char?,
-            hasSuggestionItem As Boolean?, sourceCodeKind As SourceCodeKind, expectedResults() As CompletionTestExpectedResult,
+            hasSuggestionItem As Boolean?, sourceCodeKind As SourceCodeKind, expectedResults() As ItemExpectation,
             matchingFilters As List(Of CompletionFilter), flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
             Return MyBase.VerifyWorkerAsync(
                 code, position, usePreviousCharAsTrigger, deletedCharTrigger, hasSuggestionItem, sourceCodeKind,
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Private Protected Overrides Async Function VerifyWorkerAsync(
             code As String, position As Integer, usePreviousCharAsTrigger As Boolean, deletedCharTrigger As Char?,
             hasSuggestionModeItem As Boolean?, sourceCodeKind As SourceCodeKind,
-            expectedResults() As CompletionTestExpectedResult, matchingFilters As List(Of CompletionFilter),
+            expectedResults() As ItemExpectation, matchingFilters As List(Of CompletionFilter),
             flags As CompletionItemFlags?, options As CompletionOptions, Optional skipSpeculation As Boolean = False) As Task
 
             ' Script/interactive support removed for now.

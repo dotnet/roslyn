@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private protected abstract Task BaseVerifyWorkerAsync(
             string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-            SourceCodeKind sourceCodeKind, CompletionTestExpectedResult[] expectedResults,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false);
 
         internal Task<CompletionList> GetCompletionListAsync(
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             CompletionItemFlags? flags,
             CompletionOptions options)
         {
-            var expectedResult = new CompletionTestExpectedResult(
+            var expectedResult = new ItemExpectation(
                 Name: expectedItemOrNull,
                 IsAbsent: checkForAbsence,
                 ExpectedDescription: expectedDescriptionOrNull,
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private protected async Task CheckResultsAsync(
             Document document, int position, bool usePreviousCharAsTrigger,
             char? deletedCharTrigger, bool? hasSuggestionModeItem,
-            CompletionTestExpectedResult[] expectedResults,
+            ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters,
             CompletionItemFlags? flags,
             CompletionOptions options)
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private protected record CompletionTestExpectedResult(
+        private protected record ItemExpectation(
             string Name,
             bool IsAbsent,
             string ExpectedDescription = null,
@@ -281,21 +281,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             bool? IsComplexTextEdit = null,
             SourceCodeKind? SourceCodeKind = null)
         {
-            public static CompletionTestExpectedResult[] None = CreateGeneralMatchingArray(true);
-            public static CompletionTestExpectedResult[] Any = CreateGeneralMatchingArray(false);
+            public static ItemExpectation[] None = CreateGeneralMatchingArray(true);
+            public static ItemExpectation[] Any = CreateGeneralMatchingArray(false);
 
-            private static CompletionTestExpectedResult[] CreateGeneralMatchingArray(bool absent)
+            private static ItemExpectation[] CreateGeneralMatchingArray(bool absent)
             {
-                return [new CompletionTestExpectedResult(Name: null, IsAbsent: absent)];
+                return [new ItemExpectation(Name: null, IsAbsent: absent)];
             }
 
-            public static CompletionTestExpectedResult Exists(string name)
+            public static ItemExpectation Exists(string name)
             {
-                return new CompletionTestExpectedResult(name, false);
+                return new ItemExpectation(name, false);
             }
-            public static CompletionTestExpectedResult Absent(string name)
+            public static ItemExpectation Absent(string name)
             {
-                return new CompletionTestExpectedResult(name, true);
+                return new ItemExpectation(name, true);
             }
         }
 
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private async Task VerifyAsync(
             string markup, SourceCodeKind? sourceCodeKind, char? deletedCharTrigger, bool usePreviousCharAsTrigger,
-            CompletionTestExpectedResult[] results, bool? hasSuggestionModeItem,
+            ItemExpectation[] results, bool? hasSuggestionModeItem,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
             SourceCodeKind[] evaluatedSourceCodeKinds = sourceCodeKind.HasValue ? [sourceCodeKind.Value] : [SourceCodeKind.Regular, SourceCodeKind.Script];
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             bool? hasSuggestionModeItem = null, CompletionOptions options = null)
         {
             await VerifyExpectedItemsAsync(
-                markup, results: CompletionTestExpectedResult.Any, sourceCodeKind, usePreviousCharAsTrigger: usePreviousCharAsTrigger,
+                markup, results: ItemExpectation.Any, sourceCodeKind, usePreviousCharAsTrigger: usePreviousCharAsTrigger,
                 hasSuggestionModeItem: hasSuggestionModeItem, options: options);
         }
 
@@ -473,12 +473,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             CompletionOptions options = null)
         {
             await VerifyExpectedItemsAsync(
-                markup, results: CompletionTestExpectedResult.None, sourceCodeKind, usePreviousCharAsTrigger: usePreviousCharAsTrigger,
+                markup, results: ItemExpectation.None, sourceCodeKind, usePreviousCharAsTrigger: usePreviousCharAsTrigger,
                 hasSuggestionModeItem: hasSuggestionModeItem, options: options);
         }
 
         private protected async Task VerifyExpectedItemsAsync(
-            string markup, CompletionTestExpectedResult[] results,
+            string markup, ItemExpectation[] results,
             SourceCodeKind? sourceCodeKind = null,
             char? deletedCharTrigger = null,
             bool usePreviousCharAsTrigger = false,
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             CompletionOptions options,
             bool skipSpeculation = false)
         {
-            var expectedResult = new CompletionTestExpectedResult(
+            var expectedResult = new ItemExpectation(
                 Name: expectedItemOrNull,
                 IsAbsent: checkForAbsence,
                 ExpectedDescription: expectedDescriptionOrNull,
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private protected async Task VerifyWorkerCoreAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             char? deletedCharTrigger, bool? hasSuggestionModeItem, SourceCodeKind sourceCodeKind,
-            CompletionTestExpectedResult[] expectedResults,
+            ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters,
             CompletionItemFlags? flags,
             CompletionOptions options,
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         private protected virtual Task VerifyWorkerAsync(
             string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
             bool? hasSuggestionModeItem, SourceCodeKind sourceCodeKind,
-            CompletionTestExpectedResult[] expectedResults,
+            ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters,
             CompletionItemFlags? flags,
             CompletionOptions options,
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private protected async Task VerifyAtPositionAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem, SourceCodeKind sourceCodeKind,
-            CompletionTestExpectedResult[] expectedResults,
+            ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
             code = code[..position] + insertText + code[position..];
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private protected async Task VerifyAtPositionAsync(
             string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-            SourceCodeKind sourceCodeKind, CompletionTestExpectedResult[] expectedResults,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
             await VerifyAtPositionAsync(code, position, string.Empty, usePreviousCharAsTrigger,
@@ -1083,7 +1083,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private protected async Task VerifyAtPosition_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-            SourceCodeKind sourceCodeKind, CompletionTestExpectedResult[] expectedResults, string partialItem,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults, string partialItem,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
             await VerifyAtPositionAsync(code, position, ItemPartiallyWritten(partialItem),
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private protected async Task VerifyAtEndOfFileAsync(
             string code, int position, string insertText, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-            SourceCodeKind sourceCodeKind, CompletionTestExpectedResult[] expectedResults,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
             // only do this if the placeholder was at the end of the text.
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private protected async Task VerifyAtEndOfFileAsync(
             string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-            SourceCodeKind sourceCodeKind, CompletionTestExpectedResult[] expectedResults,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options, bool skipSpeculation = false)
         {
             await VerifyAtEndOfFileAsync(code, position, string.Empty,
@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private protected async Task VerifyAtEndOfFileAsync(
             string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-            SourceCodeKind sourceCodeKind, CompletionTestExpectedResult[] expectedResults,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options)
         {
             await VerifyAtEndOfFileAsync(code, position, string.Empty,
@@ -1222,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         private protected async Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool? hasSuggestionItem,
-            SourceCodeKind sourceCodeKind, CompletionTestExpectedResult[] expectedResults, string partialItem,
+            SourceCodeKind sourceCodeKind, ItemExpectation[] expectedResults, string partialItem,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags, CompletionOptions options)
         {
             await VerifyAtEndOfFileAsync(
