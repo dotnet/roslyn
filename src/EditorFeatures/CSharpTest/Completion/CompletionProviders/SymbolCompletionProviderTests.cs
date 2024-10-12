@@ -12584,10 +12584,12 @@ public static class Extension
     {
         var source = "enum E : $$";
 
-        await VerifyItemExistsAsync(source, "System");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("System"),
 
-        // Not accessible in the given context
-        await VerifyItemIsAbsentAsync(source, underlyingType);
+            // Not accessible in the given context
+            CompletionTestExpectedResult.Absent(underlyingType),
+        ]);
     }
 
     [Theory, MemberData(nameof(ValidEnumUnderlyingTypeNames))]
@@ -12840,9 +12842,11 @@ public static class Extension
             }
             """;
 
-        await VerifyItemExistsAsync(source, "endIndex");
-        await VerifyItemExistsAsync(source, "Test");
-        await VerifyItemExistsAsync(source, "C");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("endIndex"),
+            CompletionTestExpectedResult.Exists("Test"),
+            CompletionTestExpectedResult.Exists("C"),
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66903")]
@@ -12861,9 +12865,11 @@ public static class Extension
             }
             """;
 
-        await VerifyItemExistsAsync(source, "endIndex");
-        await VerifyItemExistsAsync(source, "Test");
-        await VerifyItemExistsAsync(source, "C");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("endIndex"),
+            CompletionTestExpectedResult.Exists("Test"),
+            CompletionTestExpectedResult.Exists("C"),
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
@@ -12886,10 +12892,12 @@ public static class Extension
             }
             """;
 
-        await VerifyItemExistsAsync(source, "foo");
-        await VerifyItemExistsAsync(source, "M");
-        await VerifyItemExistsAsync(source, "System");
-        await VerifyItemIsAbsentAsync(source, "Int32");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("foo"),
+            CompletionTestExpectedResult.Exists("M"),
+            CompletionTestExpectedResult.Exists("System"),
+            CompletionTestExpectedResult.Absent("Int32"),
+        ]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25572")]
@@ -12910,9 +12918,11 @@ public static class Extension
             }
             """;
 
-        await VerifyItemExistsAsync(source, "System");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemIsAbsentAsync(source, "other");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("System"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Absent("other"),
+        ]);
     }
 
     public static readonly IEnumerable<object[]> PatternMatchingPrecedingPatterns = new object[][]
@@ -12945,12 +12955,14 @@ public static class Extension
         var expression = $"return input {precedingPattern} Constants.$$";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemIsAbsentAsync(source, "D");
-        await VerifyItemIsAbsentAsync(source, "M");
-        await VerifyItemExistsAsync(source, "R");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Absent("D"),
+            CompletionTestExpectedResult.Absent("M"),
+            CompletionTestExpectedResult.Exists("R"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -12960,12 +12972,14 @@ public static class Extension
         var expression = $"return input {precedingPattern} Constants.R.$$";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemIsAbsentAsync(source, "C");
-        await VerifyItemIsAbsentAsync(source, "D");
-        await VerifyItemIsAbsentAsync(source, "M");
-        await VerifyItemIsAbsentAsync(source, "R");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Absent("C"),
+            CompletionTestExpectedResult.Absent("D"),
+            CompletionTestExpectedResult.Absent("M"),
+            CompletionTestExpectedResult.Absent("R"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -12975,9 +12989,11 @@ public static class Extension
         var expression = $"return input {precedingPattern} $$";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemExistsAsync(source, "Constants");
-        await VerifyItemExistsAsync(source, "System");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Exists("Constants"),
+            CompletionTestExpectedResult.Exists("System"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -12988,8 +13004,12 @@ public static class Extension
         var source = WrapPatternMatchingSource(expression);
 
         // In scripts, we also get a Script class containing our defined types
-        await VerifyItemExistsAsync(source, "C", sourceCodeKind: SourceCodeKind.Regular);
-        await VerifyItemExistsAsync(source, "Constants", sourceCodeKind: SourceCodeKind.Regular);
+        await VerifyExpectedItemsAsync(source,
+            [
+                CompletionTestExpectedResult.Exists("C"),
+                CompletionTestExpectedResult.Exists("Constants"),
+            ],
+            sourceCodeKind: SourceCodeKind.Regular);
         await VerifyItemExistsAsync(source, "System");
     }
 
@@ -12999,10 +13019,12 @@ public static class Extension
         var expression = $"return $$ is Constants.A";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "input");
-        await VerifyItemExistsAsync(source, "Constants");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemExistsAsync(source, "M");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("input"),
+            CompletionTestExpectedResult.Exists("Constants"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Exists("M"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13012,12 +13034,14 @@ public static class Extension
         var expression = $"return input {precedingPattern} Constants.$$.A";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemIsAbsentAsync(source, "D");
-        await VerifyItemIsAbsentAsync(source, "M");
-        await VerifyItemExistsAsync(source, "R");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Absent("D"),
+            CompletionTestExpectedResult.Absent("M"),
+            CompletionTestExpectedResult.Exists("R"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13027,12 +13051,14 @@ public static class Extension
         var expression = $"return input {precedingPattern} Enum.$$";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemExistsAsync(source, "D");
-        await VerifyItemIsAbsentAsync(source, "M");
-        await VerifyItemIsAbsentAsync(source, "R");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Exists("D"),
+            CompletionTestExpectedResult.Absent("M"),
+            CompletionTestExpectedResult.Absent("R"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13042,14 +13068,16 @@ public static class Extension
         var expression = $"return input {precedingPattern} nameof(Constants.$$";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemExistsAsync(source, "D");
-        await VerifyItemExistsAsync(source, "E");
-        await VerifyItemExistsAsync(source, "M");
-        await VerifyItemExistsAsync(source, "R");
-        await VerifyItemExistsAsync(source, "ToString");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Exists("D"),
+            CompletionTestExpectedResult.Exists("E"),
+            CompletionTestExpectedResult.Exists("M"),
+            CompletionTestExpectedResult.Exists("R"),
+            CompletionTestExpectedResult.Exists("ToString"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13059,11 +13087,13 @@ public static class Extension
         var expression = $"return input {precedingPattern} nameof(Constants.R.$$";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemExistsAsync(source, "D");
-        await VerifyItemExistsAsync(source, "E");
-        await VerifyItemExistsAsync(source, "M");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Exists("D"),
+            CompletionTestExpectedResult.Exists("E"),
+            CompletionTestExpectedResult.Exists("M"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13073,13 +13103,15 @@ public static class Extension
         var expression = $"return input {precedingPattern} nameof(Constants.$$.A";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemExistsAsync(source, "D");
-        await VerifyItemExistsAsync(source, "E");
-        await VerifyItemExistsAsync(source, "M");
-        await VerifyItemExistsAsync(source, "R");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Exists("D"),
+            CompletionTestExpectedResult.Exists("E"),
+            CompletionTestExpectedResult.Exists("M"),
+            CompletionTestExpectedResult.Exists("R"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13089,12 +13121,14 @@ public static class Extension
         var expression = $"return input {precedingPattern} [Constants.R(Constants.$$, nameof(Constants.R))]";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemIsAbsentAsync(source, "D");
-        await VerifyItemIsAbsentAsync(source, "M");
-        await VerifyItemExistsAsync(source, "R");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Absent("D"),
+            CompletionTestExpectedResult.Absent("M"),
+            CompletionTestExpectedResult.Exists("R"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13104,12 +13138,14 @@ public static class Extension
         var expression = $"return input {precedingPattern} [Constants.R(Constants.$$), nameof(Constants.R)]";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "A");
-        await VerifyItemExistsAsync(source, "B");
-        await VerifyItemExistsAsync(source, "C");
-        await VerifyItemIsAbsentAsync(source, "D");
-        await VerifyItemIsAbsentAsync(source, "M");
-        await VerifyItemExistsAsync(source, "R");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("A"),
+            CompletionTestExpectedResult.Exists("B"),
+            CompletionTestExpectedResult.Exists("C"),
+            CompletionTestExpectedResult.Absent("D"),
+            CompletionTestExpectedResult.Absent("M"),
+            CompletionTestExpectedResult.Exists("R"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13119,8 +13155,10 @@ public static class Extension
         var expression = $"return input {precedingPattern} [Constants.R(Constants.A) {{ P.$$: Constants.A, InstanceProperty: 153 }}, nameof(Constants.R)]";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemExistsAsync(source, "Length");
-        await VerifyItemIsAbsentAsync(source, "Constants");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("Length"),
+            CompletionTestExpectedResult.Absent("Constants"),
+        ]);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70226")]
@@ -13130,9 +13168,11 @@ public static class Extension
         var expression = $"return input {precedingPattern} [Constants.R(Constants.A) {{ P: $$ }}, nameof(Constants.R)]";
         var source = WrapPatternMatchingSource(expression);
 
-        await VerifyItemIsAbsentAsync(source, "InstanceProperty");
-        await VerifyItemIsAbsentAsync(source, "P");
-        await VerifyItemExistsAsync(source, "Constants");
+        await VerifyExpectedItemsAsync(source, [
+            CompletionTestExpectedResult.Exists("Constants"),
+            CompletionTestExpectedResult.Absent("InstanceProperty"),
+            CompletionTestExpectedResult.Absent("P"),
+        ]);
     }
 
     private static string WrapPatternMatchingSource(string returnedExpression)
