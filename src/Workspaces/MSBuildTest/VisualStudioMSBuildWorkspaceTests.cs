@@ -2893,14 +2893,13 @@ class C { }";
             Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
             Assert.Equal(fileContent, text.ToString());
 
-            // update root blindly again, after observing encoding, see that now encoding is known
+            // update root blindly again, after observing encoding, see that encoding is overridden to null
             var doc3 = document.WithSyntaxRoot(gen.CompilationUnit()); // empty CU
             var doc3text = await doc3.GetTextAsync();
-            Assert.NotNull(doc3text.Encoding);
-            Assert.Equal(encoding.EncodingName, doc3text.Encoding.EncodingName);
+            Assert.Null(doc3text.Encoding);
             var doc3tree = await doc3.GetSyntaxTreeAsync();
-            Assert.Equal(doc3text.Encoding, doc3tree.GetText().Encoding);
-            Assert.Equal(doc3text.Encoding, doc3tree.Encoding);
+            Assert.Null(doc3tree.Encoding);
+            Assert.Null(doc3tree.GetText().Encoding);
 
             // change doc to have no encoding, still succeeds at writing to disk with old encoding
             var root = await document.GetSyntaxRootAsync();
