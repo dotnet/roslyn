@@ -267,7 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
             BoundExpression iterationErrorExpression = null;
-            uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
+            uint collectionEscape = GetForEachCollectionEscape(ref builder, collectionExpr);
+
             switch (_syntax.Kind())
             {
                 case SyntaxKind.ForEachStatement:
@@ -624,6 +625,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     partial class Binder
     {
+        internal uint GetForEachCollectionEscape(ref ForEachEnumeratorInfo.Builder builder, BoundExpression collectionExpr)
+        {
+            if (builder is { InlineArraySpanType: not WellKnownType.Unknown and var spanType, InlineArrayUsedAsValue: false })
+            {
+                ImmutableArray<BoundExpression> arguments;
+                ImmutableArray<RefKind> refKinds;
+
+                SignatureOnlyMethodSymbol equivalentSignatureMethod = GetInlineArrayConversionEquivalentSignatureMethod(
+                    // Strip identity conversion added by compiler on top of inline array.
+                    inlineArray: collectionExpr is not BoundConversion { Conversion.IsIdentity: true, ExplicitCastInCode: false, Operand: BoundExpression operand } ? collectionExpr : operand,
+                    resultType: builder.GetEnumeratorInfo.Method.ContainingType,
+                    out arguments, out refKinds);
+
+                return GetInvocationEscapeScope(
+                    MethodInfo.Create(equivalentSignatureMethod),
+                    receiver: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
+                    equivalentSignatureMethod.Parameters,
+                    arguments,
+                    refKinds,
+                    argsToParamsOpt: default,
+                    LocalScopeDepth,
+                    isRefEscape: false);
+            }
+            else
+            {
+                return GetValEscape(collectionExpr, this.LocalScopeDepth);
+            }
+        }
+
         protected BoundExpression ConvertForEachCollection(
             BoundExpression collectionExpr,
             Conversion collectionConversionClassification,
