@@ -87,7 +87,7 @@
   -->
   <Target Name="DeployNetFrameworkBuildHost" BeforeTargets="_GetPackageFiles;AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true'">
     <!-- If we're not doing source build, we will include a net472 version for the broadest compatibility -->
-    <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+    <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
       <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
         <TargetFramework>net472</TargetFramework>
         <ContentFolderName>BuildHost-net472</ContentFolderName>

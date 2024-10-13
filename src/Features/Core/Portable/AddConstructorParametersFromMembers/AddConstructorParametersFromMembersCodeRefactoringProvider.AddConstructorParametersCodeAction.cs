@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
-internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
+internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
 {
     private sealed class AddConstructorParametersCodeAction(
         Document document,

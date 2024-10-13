@@ -208,7 +208,7 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "NonExistingSymbol").ConfigureAwait(false);
-        Assert.Empty(results);
+        AssertEx.Empty(results);
     }
 
     [Theory, CombinatorialData]

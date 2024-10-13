@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Highlighting;
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
 [ExcludeFromCodeCoverage]
-internal class ExportHighlighterAttribute(string language) : ExportAttribute(typeof(IHighlighter))
+internal sealed class ExportHighlighterAttribute(string language) : ExportAttribute(typeof(IHighlighter))
 {
     public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
 }

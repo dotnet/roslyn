@@ -106,6 +106,7 @@ namespace Roslyn.Test.Utilities
                         // signing implementation.
                         Array.Reverse(reversedSignature);
 
+                        // CodeQL [SM02196] ECMA-335 requires us to support SHA-1 and this is testing that support
                         if (!rsa.VerifyHash(hash, reversedSignature, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1))
                         {
                             return false;
@@ -145,6 +146,7 @@ namespace Roslyn.Test.Utilities
                 buffer[authenticodeOffset + i] = 0;
             }
 
+            // CodeQL [SM02196] ECMA-335 requires us to support SHA-1 and this is testing that support
             using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
             {
                 // First hash the DOS header and PE headers

@@ -382,9 +382,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (AdaptedNamedTypeSymbol is SourceMemberContainerTypeSymbol container)
             {
+                var interfaces = container.GetInterfacesToEmit();
+
                 foreach ((MethodSymbol body, MethodSymbol implemented) in container.GetSynthesizedExplicitImplementations(cancellationToken: default).MethodImpls)
                 {
                     Debug.Assert(body.ContainingType == (object)container);
+
+                    // Avoid emitting duplicate methodimpl entries (e.g., when the class implements the same interface twice with different nullability).
+                    if (!interfaces.Contains(implemented.ContainingType, SymbolEqualityComparer.ConsiderEverything))
+                    {
+                        continue;
+                    }
+
                     yield return new Microsoft.Cci.MethodImplementation(body.GetCciAdapter(), moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics));
                 }
             }

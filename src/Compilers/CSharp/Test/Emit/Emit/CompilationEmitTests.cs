@@ -25,7 +25,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -4042,7 +4041,12 @@ public class Test
             var extension = ".netmodule";
             var outputName = "b";
 
-            var compilation = CreateCompilation("class A { }", options: TestOptions.ReleaseModule.WithModuleName(name + extension), assemblyName: null);
+            var compilation = CSharpCompilation.Create(
+                assemblyName: null,
+                syntaxTrees: [SyntaxFactory.ParseSyntaxTree("class A { }")],
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                options: TestOptions.ReleaseModule.WithModuleName(name + extension));
+
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;

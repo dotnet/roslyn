@@ -16,13 +16,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference;
 
-internal partial class AbstractMoveDeclarationNearReferenceService<
+internal abstract partial class AbstractMoveDeclarationNearReferenceService<
     TService,
     TStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax>
 {
-    private class State
+    private sealed class State
     {
         public TLocalDeclarationStatementSyntax DeclarationStatement { get; private set; }
         public TVariableDeclaratorSyntax VariableDeclarator { get; private set; }

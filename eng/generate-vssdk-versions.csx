@@ -73,7 +73,7 @@ foreach (var (id, version) in properties)
     else if (!seenMsbuild)
     {
         Console.WriteLine($$"""
-            <ItemGroup Condition="'$(DotnetBuildFromSource)' != 'true' and '$(TargetFramework)' == 'net472'">
+            <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true' and '$(TargetFramework)' == 'net472'">
               <PackageVersion Include="Microsoft.Build" Version="{{version}}" />
               <PackageVersion Include="Microsoft.Build.Framework" Version="{{version}}" />
               <PackageVersion Include="Microsoft.Build.Tasks.Core" Version="{{version}}" />

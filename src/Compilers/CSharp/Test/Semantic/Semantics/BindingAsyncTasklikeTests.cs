@@ -197,7 +197,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         }
 
         [Fact]
-        public bool TasklikeA3() => VerifyTaskOverloads("f(async () => 3)",
+        public void TasklikeA3() => VerifyTaskOverloads("f(async () => 3)",
                                                         "f(Func<ValueTask<int>> lambda)",
                                                         null);
 

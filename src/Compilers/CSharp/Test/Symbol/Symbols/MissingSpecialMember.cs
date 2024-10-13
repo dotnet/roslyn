@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -656,6 +655,7 @@ namespace System
                     case WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute:
                     case WellKnownType.System_Runtime_InteropServices_CollectionsMarshal:
                     case WellKnownType.System_Runtime_InteropServices_ImmutableCollectionsMarshal:
+                    case WellKnownType.System_Runtime_CompilerServices_HotReloadException:
                         // Not always available.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -1075,6 +1075,7 @@ namespace System
                     case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty:
                     case WellKnownMember.System_Span_T__ctor_ref_T:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32:
                         // Not always available.
                         continue;
                 }

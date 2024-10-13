@@ -27,6 +27,8 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     /// <param name="compilation">Current compilation instance</param>
     protected abstract bool IsValidAccessingType(ITypeSymbol type, Compilation compilation);
 
+    protected abstract bool CanInsertStatementAfterToken(SyntaxToken token);
+
     /// <summary>
     /// Generate statement node
     /// </summary>
@@ -75,14 +77,39 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
         return closestNode.FirstAncestorOrSelf<TStatementSyntax>();
     }
 
-    private static bool TryGetInlineExpressionInfo(SyntaxToken targetToken, ISyntaxFactsService syntaxFacts, SemanticModel semanticModel, [NotNullWhen(true)] out InlineExpressionInfo? expressionInfo, CancellationToken cancellationToken)
+    private bool CanInsertStatementBeforeToken(SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+        if (previousToken == default)
+        {
+            // Token is the first token in the file
+            return true;
+        }
+
+        return CanInsertStatementAfterToken(previousToken);
+    }
+
+    private bool TryGetInlineExpressionInfo(
+        SyntaxToken targetToken,
+        ISyntaxFactsService syntaxFacts,
+        SemanticModel semanticModel,
+        [NotNullWhen(true)] out InlineExpressionInfo? expressionInfo,
+        CancellationToken cancellationToken)
     {
         var parentNode = targetToken.Parent;
 
         if (syntaxFacts.IsMemberAccessExpression(parentNode) &&
-            syntaxFacts.IsExpressionStatement(parentNode?.Parent))
+            CanInsertStatementBeforeToken(parentNode.GetFirstToken()))
         {
-            var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(parentNode)!;
+            syntaxFacts.GetPartsOfMemberAccessExpression(parentNode, out var expression, out var dotToken, out var name);
+            var sourceText = parentNode.SyntaxTree.GetText(cancellationToken);
+
+            if (sourceText.AreOnSameLine(dotToken, name.GetFirstToken()))
+            {
+                expressionInfo = null;
+                return false;
+            }
+
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
             // Forbid a case when we are dotting of a type, e.g. `string.$$`.
@@ -105,9 +132,17 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
         // var a = 0;
         // ...
         // Here `flag.var` is parsed as a qualified name, so this case requires its own handling
-        if (syntaxFacts.IsQualifiedName(parentNode))
+        if (syntaxFacts.IsQualifiedName(parentNode) && CanInsertStatementBeforeToken(parentNode.GetFirstToken()))
         {
-            syntaxFacts.GetPartsOfQualifiedName(parentNode, out var expression, out _, out _);
+            syntaxFacts.GetPartsOfQualifiedName(parentNode, out var expression, out var dotToken, out var right);
+            var sourceText = parentNode.SyntaxTree.GetText(cancellationToken);
+
+            if (sourceText.AreOnSameLine(dotToken, right.GetFirstToken()))
+            {
+                expressionInfo = null;
+                return false;
+            }
+
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
 
             // Forbid a case when we are dotting of a type, e.g. `string.$$`.
