@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -265,7 +266,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             sourceSpans: [firstLine, "\r\n", span], registryService: _contentTypeRegistryService);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateNewDifferenceViewerAsync(null, workspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+        return await CreateNewDifferenceViewerAsync(null, workspace, originalBuffer, changedBuffer, [newBuffer], zoomLevel, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
     }
 
@@ -337,7 +338,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             sourceSpans: [firstLine, "\r\n"], registryService: _contentTypeRegistryService);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateNewDifferenceViewerAsync(workspace, null, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+        return await CreateNewDifferenceViewerAsync(workspace, null, originalBuffer, changedBuffer, [oldBuffer], zoomLevel, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
     }
 
@@ -607,7 +608,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             [.. changedSpans]);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
-        return await CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, zoomLevel, cancellationToken);
+        return await CreateNewDifferenceViewerAsync(leftWorkspace, rightWorkspace, originalBuffer, changedBuffer, [oldBuffer, newBuffer], zoomLevel, cancellationToken);
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
     }
 
@@ -669,6 +670,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
     private async ValueTask<IDifferenceViewerPreview<TDifferenceViewer>> CreateNewDifferenceViewerAsync(
         ReferenceCountedDisposable<PreviewWorkspace>? leftWorkspace, ReferenceCountedDisposable<PreviewWorkspace>? rightWorkspace,
         IProjectionBuffer originalBuffer, IProjectionBuffer changedBuffer,
+        ImmutableArray<ITextBuffer> buffersToClose,
         double zoomLevel, CancellationToken cancellationToken)
     {
         // IWpfDifferenceViewerFactoryService is a Visual Studio API which is not documented as free-threaded
@@ -709,6 +711,15 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
             rightWorkspace?.Dispose();
             rightWorkspace = null;
+
+            var inertContentType = _contentTypeRegistryService.GetContentType(StandardContentTypeNames.Inert);
+            buffersToClose = buffersToClose
+                .Add(originalBuffer)
+                .Add(changedBuffer);
+            foreach (var buffer in buffersToClose)
+            {
+                buffer.ChangeContentType(inertContentType, null);
+            }
         };
 
         return CreateDifferenceViewerPreview(diffViewer);
