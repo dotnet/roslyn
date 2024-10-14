@@ -48,6 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out var getSyntax,
                 out var setSyntax);
 
+            Debug.Assert(!(getterUsesFieldKeyword || setterUsesFieldKeyword) ||
+                ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword));
+
             bool accessorsHaveImplementation = hasGetAccessorImplementation || hasSetAccessorImplementation;
 
             var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
@@ -240,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 getSyntax = accessor;
                                 hasGetAccessorImplementation = hasImplementation(accessor);
-                                getterUsesFieldKeyword = containsFieldKeyword(accessor);
+                                getterUsesFieldKeyword = containsFieldExpressionInAccessor(accessor);
                             }
                             else
                             {
@@ -253,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 setSyntax = accessor;
                                 hasSetAccessorImplementation = hasImplementation(accessor);
-                                setterUsesFieldKeyword = containsFieldKeyword(accessor);
+                                setterUsesFieldKeyword = containsFieldExpressionInAccessor(accessor);
                             }
                             else
                             {
@@ -278,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var body = GetArrowExpression(syntax);
                 hasGetAccessorImplementation = body is object;
                 hasSetAccessorImplementation = false;
-                getterUsesFieldKeyword = body is { } && containsFieldKeyword(body);
+                getterUsesFieldKeyword = body is { } && containsFieldExpressionInGreenNode(body.Green);
                 setterUsesFieldKeyword = false;
                 Debug.Assert(hasGetAccessorImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
             }
@@ -289,13 +292,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return body != null;
             }
 
-            static bool containsFieldKeyword(SyntaxNode syntax)
+            static bool containsFieldExpressionInAccessor(AccessorDeclarationSyntax syntax)
             {
-                foreach (var node in syntax.Green.EnumerateNodes())
+                var accessorDeclaration = (Syntax.InternalSyntax.AccessorDeclarationSyntax)syntax.Green;
+                foreach (var attributeList in accessorDeclaration.AttributeLists)
                 {
-                    if (node.RawKind == (int)SyntaxKind.FieldKeyword)
+                    var attributes = attributeList.Attributes;
+                    for (int i = 0; i < attributes.Count; i++)
                     {
-                        return true;
+                        if (containsFieldExpressionInGreenNode(attributes[i]))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return containsFieldExpressionInGreenNode(accessorDeclaration.Body) ||
+                    containsFieldExpressionInGreenNode(accessorDeclaration.ExpressionBody);
+            }
+
+            static bool containsFieldExpressionInGreenNode(GreenNode? green)
+            {
+                if (green is { })
+                {
+                    foreach (var node in green.EnumerateNodes())
+                    {
+                        if (node.RawKind == (int)SyntaxKind.FieldExpression)
+                        {
+                            return true;
+                        }
                     }
                 }
                 return false;
