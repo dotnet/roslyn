@@ -113,7 +113,7 @@
           Condition="'$(GenerateReadyToRun)' == 'true'">
     
     <MakeDir Directories="$(ArtifactsNonShippingPackagesDir)" />
-    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).symbols.nupkg" />
+    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).Symbols.nupkg" />
   </Target>
 
   <!--
