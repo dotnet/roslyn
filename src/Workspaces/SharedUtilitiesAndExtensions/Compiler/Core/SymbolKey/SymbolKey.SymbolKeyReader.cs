@@ -513,6 +513,7 @@ internal partial struct SymbolKey
                 SymbolKeyType.ErrorType => ErrorTypeSymbolKey.Instance.Resolve(this, out failureReason),
                 SymbolKeyType.Field => FieldSymbolKey.Instance.Resolve(this, out failureReason),
                 SymbolKeyType.FunctionPointer => FunctionPointerTypeSymbolKey.Instance.Resolve(this, out failureReason),
+                SymbolKeyType.SpecialType => SpecialTypeSymbolKey.Instance.Resolve(this, out failureReason),
                 SymbolKeyType.DynamicType => DynamicTypeSymbolKey.Instance.Resolve(this, out failureReason),
                 SymbolKeyType.BuiltinOperator => BuiltinOperatorSymbolKey.Instance.Resolve(this, out failureReason),
                 SymbolKeyType.Method => MethodSymbolKey.Instance.Resolve(this, out failureReason),
