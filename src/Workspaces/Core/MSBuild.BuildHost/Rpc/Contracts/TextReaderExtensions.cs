@@ -19,7 +19,7 @@ internal static class TextReaderExtensions
         // If we're on .NET Core 7.0 the implementation is easy, but on older versions we don't have the helper and since we also don't have
         // Microsoft.VisualStudio.Threading's WithCancellation helper we have to inline the same approach.
 
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
 
         try
         {
