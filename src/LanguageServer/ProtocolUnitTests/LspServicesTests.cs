@@ -69,6 +69,21 @@ public class LspServicesTests(ITestOutputHelper testOutputHelper) : AbstractLang
         await Assert.ThrowsAnyAsync<Exception>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition));
     }
 
+    [Theory, CombinatorialData]
+    public async Task ReturnsLspServiceForMatchingServer(bool mutatingLspWorkspace)
+    {
+        var composition = base.Composition.AddParts(typeof(CSharpLspService), typeof(AlwaysActiveCSharpLspService));
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
+
+        var lspService = server.GetRequiredLspService<TestLspService>();
+        Assert.True(lspService is CSharpLspService);
+
+        await using var server2 = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer }, composition);
+
+        var lspService2 = server2.GetRequiredLspService<TestLspService>();
+        Assert.True(lspService2 is AlwaysActiveCSharpLspService);
+    }
+
     internal class TestLspService : ILspService { }
 
     internal record class TestLspServiceFromFactory(string FactoryName) : ILspService { }
@@ -117,4 +132,9 @@ public class LspServicesTests(ITestOutputHelper testOutputHelper) : AbstractLang
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal class DuplicateAnyLspServiceFactory() : CSharpLspServiceFactory { }
+
+    [ExportStatelessLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class AlwaysActiveCSharpLspService() : TestLspService { }
 }
