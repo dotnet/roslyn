@@ -34,7 +34,7 @@ internal abstract partial class AbstractDefinitionLocationService(
         var service = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
         return service.GetLocationForPositionAsync(
-            workspace, document.Id, position, virtualSpace: 0, cancellationToken);
+            workspace, document.Id, position, cancellationToken);
     }
 
     public async Task<DefinitionLocation?> GetDefinitionLocationAsync(Document document, int position, CancellationToken cancellationToken)

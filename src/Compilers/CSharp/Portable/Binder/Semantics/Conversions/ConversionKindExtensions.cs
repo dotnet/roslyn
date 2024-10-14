@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ObjectCreation:
                 case InlineArray:
                 case CollectionExpression:
+                case ImplicitSpan:
                     return true;
 
                 case ExplicitNumeric:
@@ -68,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ExplicitPointerToInteger:
                 case ExplicitIntegerToPointer:
                 case IntPtr:
+                case ExplicitSpan:
                     return false;
 
                 default:

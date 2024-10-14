@@ -3439,6 +3439,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (conversionKind)
             {
+                case ConversionKind.ImplicitSpan:
+                case ConversionKind.ExplicitSpan:
                 case ConversionKind.NoConversion:
                     // Oddly enough, "x is T" can be true even if there is no conversion from x to T!
                     //

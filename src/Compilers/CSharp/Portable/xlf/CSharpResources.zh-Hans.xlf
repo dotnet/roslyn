@@ -2417,6 +2417,11 @@
         <target state="translated">文件类型</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFirstClassSpan">
+        <source>first-class Span types</source>
+        <target state="new">first-class Span types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">通用属性</target>
@@ -5211,6 +5216,16 @@
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
         <target state="translated">类型参数与外部方法中的类型参数有相同的类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField">
+        <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="new">Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField_Title">
+        <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="new">Field is never ref-assigned to, and will always have its default value (null reference)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
