@@ -313,42 +313,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        private void CheckFieldKeywordUsage(BindingDiagnosticBag diagnostics)
+        private static void CheckFieldKeywordUsage(SourcePropertySymbolBase property, BindingDiagnosticBag diagnostics)
         {
-            if (!this.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword))
+            Debug.Assert(property.PartialImplementationPart is null);
+            if (!property.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword))
             {
                 return;
             }
 
-            check((SourcePropertySymbolBase?)PartialImplementationPart ?? this, diagnostics);
-
-            static void check(SourcePropertySymbolBase @this, BindingDiagnosticBag diagnostics)
+            SourcePropertyAccessorSymbol? accessorToBlame = null;
+            var propertyFlags = property._propertyFlags;
+            var getterUsesFieldKeyword = (propertyFlags & Flags.GetterUsesFieldKeyword) != 0;
+            var setterUsesFieldKeyword = (propertyFlags & Flags.SetterUsesFieldKeyword) != 0;
+            if (property._setMethod is { IsAutoPropertyAccessor: false } setMethod
+                && !setterUsesFieldKeyword
+                && !property.IsSetOnEitherPart(Flags.HasInitializer)
+                && (property.HasAutoPropertyGet || getterUsesFieldKeyword))
             {
-                SourcePropertyAccessorSymbol? accessorToBlame = null;
-                var propertyFlags = @this._propertyFlags;
-                var getterUsesFieldKeyword = (propertyFlags & Flags.GetterUsesFieldKeyword) != 0;
-                var setterUsesFieldKeyword = (propertyFlags & Flags.SetterUsesFieldKeyword) != 0;
-                if (@this._setMethod is { IsAutoPropertyAccessor: false } setMethod && !setterUsesFieldKeyword && !@this.IsSetOnEitherPart(Flags.HasInitializer) && (@this.HasAutoPropertyGet || getterUsesFieldKeyword))
-                {
-                    accessorToBlame = setMethod;
-                }
-                else if (@this._getMethod is { IsAutoPropertyAccessor: false } getMethod && !getterUsesFieldKeyword && (@this.HasAutoPropertySet || setterUsesFieldKeyword))
-                {
-                    accessorToBlame = getMethod;
-                }
+                accessorToBlame = setMethod;
+            }
+            else if (property._getMethod is { IsAutoPropertyAccessor: false } getMethod
+                && !getterUsesFieldKeyword
+                && (property.HasAutoPropertySet || setterUsesFieldKeyword))
+            {
+                accessorToBlame = getMethod;
+            }
 
-                if (accessorToBlame is not null)
+            if (accessorToBlame is not null)
+            {
+                var accessorName = accessorToBlame switch
                 {
-                    var accessorName = accessorToBlame switch
-                    {
-                        { MethodKind: MethodKind.PropertyGet, IsInitOnly: false } => SyntaxFacts.GetText(SyntaxKind.GetKeyword),
-                        { MethodKind: MethodKind.PropertySet, IsInitOnly: false } => SyntaxFacts.GetText(SyntaxKind.SetKeyword),
-                        { MethodKind: MethodKind.PropertySet, IsInitOnly: true } => SyntaxFacts.GetText(SyntaxKind.InitKeyword),
-                        _ => throw ExceptionUtilities.UnexpectedValue(accessorToBlame)
-                    };
+                    { MethodKind: MethodKind.PropertyGet, IsInitOnly: false } => SyntaxFacts.GetText(SyntaxKind.GetKeyword),
+                    { MethodKind: MethodKind.PropertySet, IsInitOnly: false } => SyntaxFacts.GetText(SyntaxKind.SetKeyword),
+                    { MethodKind: MethodKind.PropertySet, IsInitOnly: true } => SyntaxFacts.GetText(SyntaxKind.InitKeyword),
+                    _ => throw ExceptionUtilities.UnexpectedValue(accessorToBlame)
+                };
 
-                    diagnostics.Add(ErrorCode.WRN_AccessorDoesNotUseBackingField, accessorToBlame.GetFirstLocation(), accessorName, @this);
-                }
+                diagnostics.Add(ErrorCode.WRN_AccessorDoesNotUseBackingField, accessorToBlame.GetFirstLocation(), accessorName, property);
             }
         }
 #nullable disable
@@ -859,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckModifiers(isExplicitInterfaceImplementation, Location, IsIndexer, diagnostics);
 
             CheckInitializerIfNeeded(diagnostics);
-            CheckFieldKeywordUsage(diagnostics);
+            CheckFieldKeywordUsage((SourcePropertySymbolBase?)PartialImplementationPart ?? this, diagnostics);
 
             if (RefKind != RefKind.None && IsRequired)
             {
