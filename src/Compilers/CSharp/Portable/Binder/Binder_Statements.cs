@@ -1572,7 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(op1.Type is { });
 
                 bool hasErrors = false;
-                if (isRef)
+                if (isRef) // PROTOTYPE: Are we testing ref assignment for field and property initializers?
                 {
                     // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#rules-ref-reassignment
                     // For a ref reassignment in the form `e1 = ref e2` both of the following must be true:

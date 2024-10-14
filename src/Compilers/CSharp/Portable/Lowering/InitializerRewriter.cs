@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -16,14 +14,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class InitializerRewriter
     {
-        internal static BoundTypeOrInstanceInitializers RewriteConstructor(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol method)
+        internal static BoundTypeOrInstanceInitializers RewriteConstructor(ImmutableArray<BoundInitializer> boundInitializers, MethodSymbol method, ArrayBuilder<BoundAssignmentOperator>? assignmentsBuilder = null)
+#nullable disable
         {
             Debug.Assert(!boundInitializers.IsDefault);
             Debug.Assert((method.MethodKind == MethodKind.Constructor) || (method.MethodKind == MethodKind.StaticConstructor));
 
             var sourceMethod = method as SourceMemberMethodSymbol;
             var syntax = ((object)sourceMethod != null) ? sourceMethod.SyntaxNode : method.GetNonNullSyntaxNode();
-            return new BoundTypeOrInstanceInitializers(syntax, boundInitializers.SelectAsArray(RewriteInitializersAsStatements));
+            return new BoundTypeOrInstanceInitializers(
+                syntax,
+                boundInitializers.SelectAsArray(static (initializer, assignmentsBuilder) => RewriteInitializersAsStatements(initializer, assignmentsBuilder), assignmentsBuilder));
         }
 
         internal static BoundTypeOrInstanceInitializers RewriteScriptInitializer(ImmutableArray<BoundInitializer> boundInitializers, SynthesizedInteractiveInitializerMethod method, out bool hasTrailingExpression)
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                boundStatements.Add(RewriteInitializersAsStatements(initializer));
+                boundStatements.Add(RewriteInitializersAsStatements(initializer, assignmentsBuilder: null));
             }
 
             if (hasSubmissionResultType && (trailingExpression != null))
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 null;
         }
 
-        private static BoundStatement RewriteFieldInitializer(BoundFieldEqualsValue fieldInit)
+        private static BoundStatement RewriteFieldInitializer(BoundFieldEqualsValue fieldInit, ArrayBuilder<BoundAssignmentOperator> assignmentsBuilder)
         {
             var field = fieldInit.Field;
             SyntaxNode syntax = fieldInit.Syntax;
@@ -94,18 +95,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundReceiver = field.IsStatic ? null :
                                         new BoundThisReference(syntax, field.ContainingType);
 
+            BoundAssignmentOperator boundAssignment =
+                new BoundAssignmentOperator(syntax,
+                    new BoundFieldAccess(syntax,
+                        boundReceiver,
+                        field,
+                        constantValueOpt: null),
+                    fieldInit.Value,
+                    field.Type,
+                    isRef: field.RefKind != RefKind.None)
+                { WasCompilerGenerated = true };
             BoundStatement boundStatement =
                 new BoundExpressionStatement(syntax,
-                    new BoundAssignmentOperator(syntax,
-                        new BoundFieldAccess(syntax,
-                            boundReceiver,
-                            field,
-                            constantValueOpt: null),
-                        fieldInit.Value,
-                        field.Type,
-                        isRef: field.RefKind != RefKind.None)
-                    { WasCompilerGenerated = true })
+                    boundAssignment)
                 { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
+
+            if (assignmentsBuilder != null)
+            {
+                assignmentsBuilder.Add(boundAssignment);
+            }
 
             if (!fieldInit.Locals.IsEmpty)
             {
@@ -116,12 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return boundStatement;
         }
 
-        private static BoundStatement RewriteInitializersAsStatements(BoundInitializer initializer)
+        private static BoundStatement RewriteInitializersAsStatements(BoundInitializer initializer, ArrayBuilder<BoundAssignmentOperator> assignmentsBuilder)
         {
             switch (initializer.Kind)
             {
                 case BoundKind.FieldEqualsValue:
-                    return RewriteFieldInitializer((BoundFieldEqualsValue)initializer);
+                    return RewriteFieldInitializer((BoundFieldEqualsValue)initializer, assignmentsBuilder);
                 case BoundKind.GlobalStatementInitializer:
                     return ((BoundGlobalStatementInitializer)initializer).Statement;
                 default:

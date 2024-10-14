@@ -994,10 +994,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var includeInitializersInBody = methodSymbol.IncludeFieldInitializersInBody();
                     // Do not emit initializers if we are invoking another constructor of this class.
                     includeNonEmptyInitializersInBody = includeInitializersInBody && !processedInitializers.BoundInitializers.IsDefaultOrEmpty;
+                    ArrayBuilder<BoundAssignmentOperator> initializerAssignments = null;
 
                     if (includeNonEmptyInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
-                        analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
+                        initializerAssignments = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
+                        analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol, initializerAssignments);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
                     }
 
@@ -1007,11 +1009,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagsForCurrentMethod,
                         includeInitializersInBody,
                         analyzedInitializers,
+                        initializerAssignments,
                         ReportNullableDiagnostics,
                         out importChain,
                         out originalBodyNested,
                         out bool prependedDefaultValueTypeConstructorInitializer,
                         out forSemanticModel);
+
+                    initializerAssignments?.Free();
 
                     Debug.Assert(!prependedDefaultValueTypeConstructorInitializer || originalBodyNested);
                     Debug.Assert(!prependedDefaultValueTypeConstructorInitializer || methodSymbol.ContainingType.IsStructType());
@@ -1718,6 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 includeInitializersInBody: false,
                 initializersBody: null,
+                initializerAssignments: null,
                 reportNullableDiagnostics: true,
                 importChain: out _,
                 originalBodyNested: out _,
@@ -1732,6 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             bool includeInitializersInBody,
             BoundStatementList? initializersBody,
+            ArrayBuilder<BoundAssignmentOperator>? initializerAssignments,
             bool reportNullableDiagnostics,
             out ImportChain? importChain,
             out bool originalBodyNested,
@@ -1780,23 +1787,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     buildIdentifierMapOfBindIdentifierTargets(syntaxNode, bodyBinder, out inMethodBinder, out identifierMap);
 #endif
 
-                    // PROTOTYPE: Temporary approach. We really shouldn't be binding anything here.
-                    // We should have checked this when we created the BoundAssignmentOperators
-                    // in RewriteConstructor.
-                    validateFieldAssignments(bodyBinder, initializersBody.Statements, diagnostics);
-
-                    static void validateFieldAssignments(Binder bodyBinder, ImmutableArray<BoundStatement> statements, BindingDiagnosticBag diagnostics)
+                    if (initializerAssignments is { })
                     {
-                        foreach (var statement in statements)
+                        foreach (var initializerAssignment in initializerAssignments)
                         {
-                            if (statement is BoundExpressionStatement { Expression: BoundAssignmentOperator assignment })
-                            {
-                                bodyBinder.ValidateAssignment(assignment.Syntax, assignment.Left, assignment.Right, assignment.IsRef, diagnostics);
-                            }
-                            else if (statement is BoundStatementList statementList)
-                            {
-                                validateFieldAssignments(bodyBinder, statementList.Statements, diagnostics);
-                            }
+                            bodyBinder.ValidateAssignment(initializerAssignment.Syntax, initializerAssignment.Left, initializerAssignment.Right, initializerAssignment.IsRef, diagnostics);
                         }
                     }
 
@@ -1923,6 +1918,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ctor.GenerateMethodBodyStatements(factory, stmts, diagnostics);
                 body = BoundBlock.SynthesizedNoLocals(node, stmts.ToImmutableAndFree());
                 nullableInitialState = getInitializerState(body);
+
+                if (initializerAssignments is { Count: > 0 })
+                {
+                    foreach (var initializerAssignment in initializerAssignments)
+                    {
+                        var binderFactory = compilationState.Compilation.GetBinderFactory(initializerAssignment.Syntax.SyntaxTree);
+                        var bodyBinder = binderFactory.GetBinder(initializerAssignment.Syntax);
+                        // PROTOTYPE: The binder doesn't seem correct since it applies to the initializer value
+                        // only, not the field. Should we avoid the need for a BoundExpression for the field
+                        // and have ValidateAssignment() take a FieldSymbol directly? Then the ValidateAssignment
+                        // call can be moved back to BindRegularCSharpFieldInitializers where it was previously.
+                        var fieldSymbol = ((BoundFieldAccess)initializerAssignment.Left).FieldSymbol;
+                        bodyBinder = bodyBinder.GetFieldInitializerBinder(fieldSymbol);
+                        bodyBinder.ValidateAssignment(initializerAssignment.Syntax, initializerAssignment.Left, initializerAssignment.Right, initializerAssignment.IsRef, diagnostics);
+                    }
+                }
             }
             else
             {
