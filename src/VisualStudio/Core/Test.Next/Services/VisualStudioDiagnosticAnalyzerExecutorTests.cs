@@ -137,7 +137,7 @@ End Class";
             var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
 
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
             workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
 

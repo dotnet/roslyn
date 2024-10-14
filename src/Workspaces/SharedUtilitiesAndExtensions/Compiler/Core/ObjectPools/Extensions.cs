@@ -79,6 +79,14 @@ internal static class SharedPoolExtensions
         return pooledObject;
     }
 
+    public static PooledObject<ConcurrentSet<T>> GetPooledObject<T>(this ObjectPool<ConcurrentSet<T>> pool, out ConcurrentSet<T> set)
+        where T : notnull
+    {
+        var pooledObject = PooledObject<ConcurrentSet<T>>.Create(pool);
+        set = pooledObject.Object;
+        return pooledObject;
+    }
+
     public static PooledObject<T> GetPooledObject<T>(this ObjectPool<T> pool) where T : class
         => new(pool, p => p.Allocate(), (p, o) => p.Free(o));
 
@@ -107,6 +115,14 @@ internal static class SharedPoolExtensions
     }
 
     public static HashSet<T> AllocateAndClear<T>(this ObjectPool<HashSet<T>> pool)
+    {
+        var set = pool.Allocate();
+        set.Clear();
+
+        return set;
+    }
+
+    public static ConcurrentSet<T> AllocateAndClear<T>(this ObjectPool<ConcurrentSet<T>> pool) where T : notnull
     {
         var set = pool.Allocate();
         set.Clear();

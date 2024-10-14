@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void AddStateDebugInfo(SyntaxNode node, AwaitDebugId awaitId, StateMachineState state)
         {
-            Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
+            RoslynDebug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
             _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, awaitId, state));

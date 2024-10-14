@@ -311,7 +311,7 @@ internal sealed partial class ObjectWriter : IDisposable
     {
         WriteArrayLength(span.Length);
 
-#if NETCOREAPP
+#if NET
         _writer.Write(span);
 #else
         // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write

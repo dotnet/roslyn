@@ -15,7 +15,6 @@ Imports Xunit
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Emit
 Imports System.Collections.Immutable
-Imports Roslyn.Test.Utilities.TestMetadata
 Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests

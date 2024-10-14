@@ -653,7 +653,7 @@ internal partial class SymbolSearchUpdateEngine
             using (var inStream = new MemoryStream(compressedBytes))
             using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
             {
-#if NETCOREAPP
+#if NET
                 await deflateStream.CopyToAsync(outStream, cancellationToken).ConfigureAwait(false);
 #else
                 await deflateStream.CopyToAsync(outStream).ConfigureAwait(false);

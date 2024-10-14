@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis
                     return SHA512.Create();
 
                 case AssemblyHashAlgorithm.MD5:
+                    // CodeQL [SM02196] This is supported by the underlying ECMA-335 APIs (System.Reflection.Metadata) and as consumers we must also support it.
                     return MD5.Create();
 
                 default:

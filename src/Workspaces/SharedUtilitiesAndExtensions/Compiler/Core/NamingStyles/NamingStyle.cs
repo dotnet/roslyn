@@ -391,7 +391,7 @@ internal readonly partial record struct NamingStyle
 
         if (!string.IsNullOrEmpty(WordSeparator))
         {
-            words = name.Split(new[] { WordSeparator }, StringSplitOptions.RemoveEmptyEntries);
+            words = name.Split([WordSeparator], StringSplitOptions.RemoveEmptyEntries);
 
             // Edge case: the only character(s) in the name is(are) the WordSeparator
             if (!words.Any())

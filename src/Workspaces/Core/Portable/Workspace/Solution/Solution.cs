@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -626,16 +627,23 @@ public partial class Solution
     /// <exception cref="ArgumentException">The solution does not contain <paramref name="projectId"/>.</exception>
     public Solution RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
     {
-        if (projectReference == null)
-            throw new ArgumentNullException(nameof(projectReference));
+        try
+        {
+            if (projectReference == null)
+                throw new ArgumentNullException(nameof(projectReference));
 
-        CheckContainsProject(projectId);
+            CheckContainsProject(projectId);
 
-        var oldProject = GetRequiredProjectState(projectId);
-        if (!oldProject.ProjectReferences.Contains(projectReference))
-            throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
+            var oldProject = GetRequiredProjectState(projectId);
+            if (!oldProject.ProjectReferences.Contains(projectReference))
+                throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
 
-        return WithCompilationState(CompilationState.RemoveProjectReference(projectId, projectReference));
+            return WithCompilationState(CompilationState.RemoveProjectReference(projectId, projectReference));
+        }
+        catch (Exception ex) when (FatalError.ReportAndPropagate(ex))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 
     /// <summary>

@@ -1148,7 +1148,7 @@ Public Class C
     End Sub
 End Class
     </file>
-</compilation>, {MscorlibRefPortable})
+</compilation>, {SystemRuntimePP7Ref})
 
             comp.VerifyDiagnostics()
 
@@ -1188,7 +1188,7 @@ Public Class C
     End Sub
 End Class
     </file>
-</compilation>, {MscorlibRefPortable})
+</compilation>, {SystemRuntimePP7Ref})
 
             comp.VerifyDiagnostics()
 
