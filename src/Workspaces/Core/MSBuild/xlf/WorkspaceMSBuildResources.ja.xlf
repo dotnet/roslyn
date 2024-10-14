@@ -17,24 +17,19 @@
         <target state="translated">無効な {0} が指定されました: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
-        <source>MSBuild failed when processing the file '{0}'</source>
-        <target state="needs-review-translation">ファイル '{0}' の処理中に MSBuild が失敗しました</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>MSBuild failed when processing the file '{0}' with message: {1}</source>
         <target state="needs-review-translation">ファイル '{0}' の処理中に MSBuild が次のメッセージで失敗しました: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Msbuild_warning_when_processing_the_file_0">
-        <source>MSBuild warning when processing the file '{0}'</source>
-        <target state="new">MSBuild warning when processing the file '{0}'</target>
+      <trans-unit id="Msbuild_warned_when_processing_the_file_0_with_message_1">
+        <source>MSBuild warned when processing the file '{0}' with message: {1}</source>
+        <target state="new">MSBuild warned when processing the file '{0}' with message: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Msbuild_warning_when_processing_the_file_0_with_message_1">
-        <source>MSBuild warning when processing the file '{0}' with message: {1}</source>
-        <target state="new">MSBuild warning when processing the file '{0}' with message: {1}</target>
+      <trans-unit id="No_message">
+        <source>No message</source>
+        <target state="new">No message</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_additional_document_0_was_null">

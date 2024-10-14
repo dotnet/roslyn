@@ -65,17 +65,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         private static string GetMSBuildFailedMessage(string projectFilePath, string message, WorkspaceDiagnosticKind diagnosticKind)
-            => RoslynString.IsNullOrWhiteSpace(message)
-                ? string.Format(
-                    diagnosticKind == WorkspaceDiagnosticKind.Warning
-                        ? WorkspaceMSBuildResources.Msbuild_warning_when_processing_the_file_0
-                        : WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0,
-                    projectFilePath)
-                : string.Format(
-                    diagnosticKind == WorkspaceDiagnosticKind.Warning
-                        ? WorkspaceMSBuildResources.Msbuild_warning_when_processing_the_file_0_with_message_1
-                        : WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1,
-                    projectFilePath,
-                    message);
+        {
+            if (RoslynString.IsNullOrWhiteSpace(message))
+            {
+                message = WorkspaceMSBuildResources.No_message;
+            }
+
+            return string.Format(
+                diagnosticKind == WorkspaceDiagnosticKind.Warning
+                    ? WorkspaceMSBuildResources.Msbuild_warned_when_processing_the_file_0_with_message_1
+                    : WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1,
+                projectFilePath,
+                message);
+        }
     }
 }
