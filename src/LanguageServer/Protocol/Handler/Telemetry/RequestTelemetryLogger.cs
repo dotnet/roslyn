@@ -73,8 +73,6 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
             m[TelemetryLogging.KeyValue] = (long)queuedDuration.TotalMilliseconds;
             m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
             m["server"] = ServerTypeName;
-            m["method"] = methodName;
-            m["language"] = language;
         }));
 
         TelemetryLogging.LogAggregatedHistogram(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
