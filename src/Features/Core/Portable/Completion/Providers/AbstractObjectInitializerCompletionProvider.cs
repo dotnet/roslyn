@@ -137,6 +137,7 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
             // it has no effects and is thus a needless recommendation
             case SpecialType.System_Enum:
             case SpecialType.System_String:
+            case SpecialType.System_Array:
             case SpecialType.System_Object:
             case SpecialType.System_Delegate:
             case SpecialType.System_MulticastDelegate:

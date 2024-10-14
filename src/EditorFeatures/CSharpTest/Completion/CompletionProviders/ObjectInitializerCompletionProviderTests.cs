@@ -1035,6 +1035,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                 public double DoubleProp { get; }
                 public string StringProp { get; } = "some name";
                 public System.Enum EnumProp { get; }
+                public System.Array ArrayProp { get; }
                 public void* PointerProp { get; }
                 public delegate*<void> FunctionPointerProp { get; }
                 public IEnumerable EnumerableProp { get; }
@@ -1064,16 +1065,17 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
 
             internal class Example
             {
-                public readonly object ObjectProp;
-                public readonly double DoubleProp;
-                public readonly string StringProp = "some name";
-                public readonly System.Enum EnumProp;
-                public readonly void* PointerProp;
-                public readonly delegate*<void> FunctionPointerProp;
-                public readonly IEnumerable EnumerableProp;
-                public readonly IEnumerable<string> StringEnumerableProp;
-                public readonly IEnumerator EnumeratorProp;
-                public readonly IEnumerator<string> StringEnumeratorProp;
+                public readonly object ObjectField;
+                public readonly double DoubleField;
+                public readonly string StringField = "some name";
+                public readonly System.Enum EnumField;
+                public System.Array ArrayField { get; }
+                public readonly void* PointerField;
+                public readonly delegate*<void> FunctionPointerField;
+                public readonly IEnumerable EnumerableField;
+                public readonly IEnumerable<string> StringEnumerableField;
+                public readonly IEnumerator EnumeratorField;
+                public readonly IEnumerator<string> StringEnumeratorField;
 
                 public static Example Create()
                 {
