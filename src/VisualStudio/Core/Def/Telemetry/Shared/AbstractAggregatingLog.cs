@@ -57,7 +57,7 @@ internal abstract class AbstractAggregatingLog<TAggregator, TValue> : ITelemetry
         if (!IsEnabled)
             return;
 
-        // Name is the key for this message in our histogram dictionary. It is also used as the metric name
+        // Name is the key for this message in our aggregation dictionary. It is also used as the metric name
         // if the MetricName property isn't specified.
         if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string name)
             throw ExceptionUtilities.Unreachable();
@@ -112,7 +112,7 @@ internal abstract class AbstractAggregatingLog<TAggregator, TValue> : ITelemetry
         {
             foreach (var (aggregator, telemetryEvent, aggregatorLock) in _aggregations.Values)
             {
-                // This fine-grained lock ensures that the histogram isn't modified (via a Record call)
+                // This fine-grained lock ensures that the aggregation isn't modified (via a Record call)
                 //  during the creation of the TelemetryMetricEvent or the PostMetricEvent
                 //  call that operates on it.
                 lock (aggregatorLock)
