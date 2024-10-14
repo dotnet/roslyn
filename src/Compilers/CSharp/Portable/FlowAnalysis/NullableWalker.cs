@@ -7015,7 +7015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.MethodKind == MethodKind.LocalFunction
                 && GetTopLevelMethod(method) is { ThisParameter: { } thisParameter })
             {
-                Debug.Assert(receiverSlot == -1);
+                Debug.Assert(receiverSlot is 0 or -1);
                 receiverSlot = GetOrCreateSlot(thisParameter);
             }
 

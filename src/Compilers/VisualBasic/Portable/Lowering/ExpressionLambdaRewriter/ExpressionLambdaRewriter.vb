@@ -447,7 +447,7 @@ lSelect:
             Debug.Assert(node.MethodGroupOpt Is Nothing)
 
             Dim delegateType As NamedTypeSymbol = DirectCast(node.Type, NamedTypeSymbol)
-            Debug.Assert(delegateType.TypeKind = TYPEKIND.Delegate)
+            Debug.Assert(delegateType.TypeKind = TypeKind.Delegate)
 
             Dim method As MethodSymbol = node.Method
             Dim receiverOpt As BoundExpression = node.ReceiverOpt
