@@ -92,7 +92,7 @@
     <!--
       Subset of Microsoft.VisualStudio.Sdk meta-package (run `csi generate-vssdk-versions.csx` to update based on VSSDK meta-package).
     -->
-    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.5.31" />
+    <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.5.35" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="17.10.37" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="17.10.37" />
     <PackageVersion Include="Microsoft.VisualStudio.CoreUtility" Version="17.10.191" />
@@ -104,7 +104,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Language.StandardClassification" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="17.10.124" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
-    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.21" />
+    <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.11.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.40170" />
     <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.11.8" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.10.191" />
@@ -121,7 +121,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.12.0-beta.24403.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.12.2-dev" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
 

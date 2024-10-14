@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
@@ -309,7 +311,7 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(string[] runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
@@ -321,6 +323,10 @@ internal sealed class EditAndContinueLanguageService(
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
         var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
+        var projectsToRestart = new HashSet<Project>();
+        var projectsToRebuild = new HashSet<Project>();
+        result.GetProjectsToRebuildAndRestart(solution, (project) => runningProjects.Contains(project.FilePath), projectsToRestart, projectsToRebuild);
+
         // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
         if (result.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
         {
@@ -329,6 +335,9 @@ internal sealed class EditAndContinueLanguageService(
 
         UpdateApplyChangesDiagnostics(result.Diagnostics);
 
-        return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), result.GetAllDiagnostics().FromContract());
+        var projectsToRestartString = projectsToRestart.Select(p => p.AssemblyName).AsImmutable();
+        var projectsToReBuildArray = projectsToRebuild.Select(p => p.AssemblyName).AsImmutable();
+
+        return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), result.GetAllDiagnostics().FromContract(), projectsToReBuildArray, projectsToRestartString);
     }
 }
