@@ -12,7 +12,6 @@ using Roslyn.Test.Utilities;
 using System;
 using System.Linq;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {

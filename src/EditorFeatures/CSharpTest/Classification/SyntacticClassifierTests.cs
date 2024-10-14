@@ -2857,7 +2857,7 @@ namespace MyNamespace
 }
 #endregion TaoRegion",
             testHost,
-            new[] { new CSharpParseOptions(LanguageVersion.CSharp8) },
+            [new CSharpParseOptions(LanguageVersion.CSharp8)],
             Keyword("using"),
             Identifier("System"),
             Punctuation.Semicolon,
@@ -5673,9 +5673,9 @@ class C
         using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
         var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-        var classifications = await GetSyntacticClassificationsAsync(document, ImmutableArray.Create(new TextSpan(0, source.Length)));
-        Assert.Equal(new[]
-        {
+        var classifications = await GetSyntacticClassificationsAsync(document, [new TextSpan(0, source.Length)]);
+        AssertEx.Equal(
+        [
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(0, 3)),
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentText, new TextSpan(3, 1)),
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(4, 1)),
@@ -5689,7 +5689,7 @@ class C
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(24, 2)),
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentName, new TextSpan(26, 5)),
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(31, 1))
-        }, classifications);
+        ], classifications);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48094")]
@@ -5701,9 +5701,9 @@ class C
         using var workspace = CreateWorkspace(source, options: null, TestHost.InProcess);
         var document = workspace.CurrentSolution.Projects.First().Documents.First();
 
-        var classifications = await GetSyntacticClassificationsAsync(document, ImmutableArray.Create(new TextSpan(0, source.Length)));
-        Assert.Equal(new[]
-        {
+        var classifications = await GetSyntacticClassificationsAsync(document, [new TextSpan(0, source.Length)]);
+        AssertEx.Equal(
+        [
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(2, 3)),
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentText, new TextSpan(5, 1)),
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(6, 1)),
@@ -5718,7 +5718,7 @@ class C
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(31, 2)),
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentName, new TextSpan(33, 5)),
             new ClassifiedSpan(ClassificationTypeNames.XmlDocCommentDelimiter, new TextSpan(38, 1))
-        }, classifications);
+        ], classifications);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/52290")]

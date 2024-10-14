@@ -117,6 +117,11 @@
         <target state="translated">プロジェクト テレメトリ コレクション</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_RelatedDocuments">
+        <source>Related documents</source>
+        <target state="new">Related documents</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
         <target state="translated">名前の変更</target>

@@ -153,6 +153,7 @@
          ErrorLog="$(ErrorLog)"
          ErrorReport="$(ErrorReport)"
          Features="$(Features)"
+         InterceptorsNamespaces="$(InterceptorsNamespaces)"
          InterceptorsPreviewNamespaces="$(InterceptorsPreviewNamespaces)"
          FileAlignment="$(FileAlignment)"
          GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"

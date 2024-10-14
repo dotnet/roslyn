@@ -39,12 +39,11 @@ internal partial class CodeStyleSettingsViewModel : SettingsViewModelBase<
         };
 
     protected override string[] GetFixedColumns()
-        => new[]
-        {
+        => [
             ColumnDefinitions.CodeStyle.Category,
             ColumnDefinitions.CodeStyle.Description,
             ColumnDefinitions.CodeStyle.Value,
             ColumnDefinitions.CodeStyle.Severity,
             ColumnDefinitions.CodeStyle.Location
-        };
+        ];
 }

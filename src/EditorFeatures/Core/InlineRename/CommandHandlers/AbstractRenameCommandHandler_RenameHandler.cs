@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -43,11 +44,11 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         }
 
         var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-        _ = ExecuteCommandAsync(args).CompletesAsyncOperation(token);
+        _ = ExecuteCommandAsync(args, context.OperationContext).CompletesAsyncOperation(token);
         return true;
     }
 
-    private async Task ExecuteCommandAsync(RenameCommandArgs args)
+    private async Task ExecuteCommandAsync(RenameCommandArgs args, IUIThreadOperationContext editorOperationContext)
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
@@ -63,12 +64,6 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             return;
         }
 
-        var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-        using var context = backgroundWorkIndicatorFactory.Create(
-            args.TextView,
-            args.TextView.GetTextElementSpan(caretPoint.Value),
-            EditorFeaturesResources.Finding_token_to_rename);
-
         // If there is already an active session, commit it first
         if (_renameService.ActiveSession != null)
         {
@@ -82,9 +77,15 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             else
             {
                 // Otherwise, commit the existing session and start a new one.
-                _renameService.ActiveSession.Commit();
+                Commit(editorOperationContext);
             }
         }
+
+        var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+        using var context = backgroundWorkIndicatorFactory.Create(
+            args.TextView,
+            args.TextView.GetTextElementSpan(caretPoint.Value),
+            EditorFeaturesResources.Finding_token_to_rename);
 
         var cancellationToken = context.UserCancellationToken;
 

@@ -3011,6 +3011,19 @@ public class Program
 
         [Fact]
         [Trait("Feature", "Xml Documentation Comments")]
+        public void TestXmlSeeAlsoElementWithLink()
+        {
+            var docComment = SyntaxFactory.DocumentationComment(
+                SyntaxFactory.XmlSeeAlsoElement(new Uri("https://dotnet.microsoft.com/"),
+                SyntaxFactory.List(new XmlNodeSyntax[] { SyntaxFactory.XmlText(".NET") })));
+
+            Assert.Equal(
+                "/// <seealso href=\"https://dotnet.microsoft.com/\">.NET</seealso>",
+                 docComment.ToFullString());
+        }
+
+        [Fact]
+        [Trait("Feature", "Xml Documentation Comments")]
         public void TestXmlNewLineElement()
         {
             var expected =

@@ -14,6 +14,8 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" />
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
     <Compile Include="..\..\Compilers\Shared\BuildServerConnection.cs" />
     <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Compilers\Shared\RuntimeHostInfo.cs" />
