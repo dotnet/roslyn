@@ -3383,7 +3383,7 @@ class Test1 : I1
                     break;
                 case (true, false):
                     compilation1.VerifyDiagnostics(
-                        // (6,9): warning CS9265: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
                         //         get
                         Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
                     break;
@@ -3403,7 +3403,7 @@ class Test1 : I1
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9),
-                        // (6,9): warning CS9265: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
                         //         get
                         Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
                     break;
@@ -3472,7 +3472,7 @@ class Test1 : I1
             else
             {
                 compilation1.VerifyDiagnostics(
-                    // (6,9): warning CS9265: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                    // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
                     //         get
                     Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
             }
@@ -3538,7 +3538,7 @@ class Test1 : I1
                     break;
                 case (true, false):
                     compilation1.VerifyDiagnostics(
-                        // (7,9): warning CS9265: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
                         //         set => System.Console.WriteLine("set P1");
                         Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
                     break;
@@ -3558,7 +3558,7 @@ class Test1 : I1
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
                         Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9),
-                        // (7,9): warning CS9265: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
                         //         set => System.Console.WriteLine("set P1");
                         Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
                     break;
@@ -3623,7 +3623,7 @@ class Test1 : I1
             else
             {
                 compilation1.VerifyDiagnostics(
-                    // (7,9): warning CS9265: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                    // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
                     //         set => System.Console.WriteLine("set P1");
                     Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
             }
