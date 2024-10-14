@@ -42555,6 +42555,117 @@ class Program
         }
 
         [Fact]
+        public void RefCollection_01()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                ref struct Ref<T>
+                {
+                    public Ref(ref T t) { R = ref t; }
+                    public readonly ref T R;
+                }
+                ref struct RefCollection<T> : IEnumerable
+                {
+                    private Ref<T> _0;
+                    private Ref<T> _1;
+                    private int _length;
+                    public int Length => _length;
+                    public void Add(Ref<T> r)
+                    {
+                        switch (_length)
+                        {
+                        case 0:
+                            _0 = r;
+                            break;
+                        case 1:
+                            _1 = r;
+                            break;
+                        default:
+                            throw new InvalidOperationException();
+                        }
+                        _length++;
+                    }
+                    public Ref<T> this[int index]
+                    {
+                        get
+                        {
+                            if (index < _length)
+                            {
+                                switch (index)
+                                {
+                                case 0:
+                                    return _0;
+                                case 1:
+                                    return _1;
+                                }
+                            }
+                            throw new InvalidOperationException();
+                        }
+                    }
+                    public RefEnumerator GetEnumerator() => new(this);
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public ref struct RefEnumerator
+                    {
+                        private RefCollection<T> _collection;
+                        private int _index = -1;
+                        public RefEnumerator(RefCollection<T> collection) { _collection = collection; }
+                        public bool MoveNext()
+                        {
+                            if (_index < _collection.Length) _index++;
+                            return _index < _collection.Length;
+                        }
+                        public Ref<T> Current => _collection[_index];
+                    }
+                }
+                """;
+
+            string sourceB1 = """
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        int a = 1;
+                        int b = 2;
+                        RefCollection<int> x = [new Ref<int>(ref a)];
+                        RefCollection<int> y = [..x, new Ref<int>(ref b)];
+                        foreach (var i in y)
+                            Console.Write("{0}, ", i.R);
+                    }
+                }
+                """;
+            CompileAndVerify(new[] { sourceA, sourceB1 }, targetFramework: TargetFramework.Net90, verify: Verification.FailsILVerify, expectedOutput: "1, 2, ");
+
+            string sourceB2 = """
+                using System;
+                class Program
+                {
+                    static RefCollection<int> F1()
+                    {
+                        int a = 1;
+                        return [new Ref<int>(ref a)];
+                    }
+                    static RefCollection<int> F2()
+                    {
+                        int b = 2;
+                        RefCollection<int> x = [new Ref<int>(ref b)];
+                        return [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(new[] { sourceA, sourceB2 }, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // 1.cs(7,16): error CS9203: A collection expression of type 'RefCollection<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [new Ref<int>(ref a)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[new Ref<int>(ref a)]").WithArguments("RefCollection<int>").WithLocation(7, 16),
+                // 1.cs(13,16): error CS9203: A collection expression of type 'RefCollection<int>' cannot be used in this context because it may be exposed outside of the current scope.
+                //         return [..x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionEscape, "[..x]").WithArguments("RefCollection<int>").WithLocation(13, 16));
+        }
+
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/70708")]
         public void InlineArraySpread_01()
         {
