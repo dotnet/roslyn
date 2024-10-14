@@ -3073,7 +3073,7 @@ class C { }";
             var proj = await workspace.OpenProjectAsync(projectFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
-            Assert.StartsWith("MSBuild warning", diagnostic.Message);
+            Assert.StartsWith("MSBuild warned", diagnostic.Message);
             Assert.Equal(WorkspaceDiagnosticKind.Warning, diagnostic.Kind);
         }
 
