@@ -95,6 +95,7 @@ extends:
   parameters:
     featureFlags:
       autoBaseline: true
+      useArtifactDropTaskV1: true
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
@@ -109,6 +110,10 @@ extends:
       tsa:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'
+      binskim:
+        # BinSkim from 1ES analyzes only uploaded outputs by default,
+        # but our outputs are nupkg/zip files and BinSkim cannot process those.
+        analyzeTargetGlob: '$(Build.SourcesDirectory)/artifacts/**.dll'
     pool:
       name: NetCore1ESPool-Svc-Internal
       image: windows.vs2022preview.amd64
@@ -135,27 +140,49 @@ extends:
         displayName: Official Build
         timeoutInMinutes: 360
         templateContext:
+          # This ensures that the SDL analysis runs only once and not for each output separately.
+          # https://eng.ms/docs/cloud-ai-platform/devdiv/one-engineering-system-1es/1es-docs/1es-pipeline-templates/features/outputs#multiple-outputs
+          outputParentDirectory: '$(Build.SourcesDirectory)/artifacts'
+
           outputs:
+
+          - output: pipelineArtifact
+            displayName: Publish SBOM manifest
+            continueOnError: true
+            targetPath: '$(Build.SourcesDirectory)/artifacts/sbom'
+            artifactName: $(ARTIFACT_NAME)
+
+          # Publish OptProf configuration files to the artifact service
+          # This uses the ArtifactServices.Drop.PAT build variable which is required to enable cross account access using PAT (dnceng -> devdiv)
+          - output: artifactsDrop
+            displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+            condition: succeeded()
+            dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
+            buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
+            sourcePath: '$(Build.SourcesDirectory)/artifacts/OptProf/$(BuildConfiguration)/Data'
+            toLowerCase: false
+            usePat: false
+            retentionDays: 90
 
           # Publish OptProf generated JSON files as a pipeline artifact. This allows for easy inspection from
           # a build execution.
           - output: pipelineArtifact
             displayName: 'Publish OptProf Data Files'
             condition: succeeded()
-            targetPath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+            targetPath: '$(Build.SourcesDirectory)/artifacts\OptProf\$(BuildConfiguration)\Data'
             artifactName: 'OptProf Data Files'
 
           - output: pipelineArtifact
             displayName: 'Publish Logs'
             condition: succeededOrFailed()
-            targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)'
+            targetPath: '$(Build.SourcesDirectory)/artifacts\log\$(BuildConfiguration)'
             artifactName: 'Build Diagnostic Files'
             publishLocation: Container
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
             condition: succeeded()
-            targetPath: '$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)\ngen'
+            targetPath: '$(Build.SourcesDirectory)/artifacts\log\$(BuildConfiguration)\ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
 
@@ -164,7 +191,7 @@ extends:
           - output: microBuildVstsDrop
             displayName: Upload VSTS Drop
             condition: succeeded()
-            dropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
+            dropFolder: '$(Build.SourcesDirectory)/artifacts\VSSetup\$(BuildConfiguration)\Insertion'
             dropName: $(VisualStudio.DropName)
             accessToken: $(_DevDivDropAccessToken)
             dropRetentionDays: 90
@@ -173,8 +200,8 @@ extends:
           - output: nuget
             displayName: 'Publish CoreXT Packages'
             condition: succeeded()
-            packageParentPath: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages'
-            packagesToPush: '$(Build.SourcesDirectory)\artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
+            packageParentPath: '$(Build.SourcesDirectory)/artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages'
+            packagesToPush: '$(Build.SourcesDirectory)/artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
             allowPackageConflicts: true
             nuGetFeedType: external
             publishFeedCredentials: 'DevDiv - VS package feed'
@@ -183,7 +210,7 @@ extends:
           - output: pipelineArtifact
             displayName: 'Publish Artifact VSSetup'
             condition: succeeded()
-            targetPath: 'artifacts\VSSetup\$(BuildConfiguration)'
+            targetPath: '$(Build.SourcesDirectory)/artifacts\VSSetup\$(BuildConfiguration)'
             artifactName: 'VSSetup'
 
           # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the
@@ -191,7 +218,7 @@ extends:
           - output: buildArtifacts
             displayName: 'Publish Artifact Packages'
             condition: succeeded()
-            PathtoPublish: 'artifacts\packages\$(BuildConfiguration)'
+            PathtoPublish: '$(Build.SourcesDirectory)/artifacts\packages\$(BuildConfiguration)'
             ArtifactName: 'PackageArtifacts'
 
           # Publish Asset Manifests for Build Asset Registry job
@@ -311,6 +338,9 @@ extends:
           condition: succeeded()
 
         - template: /eng/common/templates-official/steps/generate-sbom.yml@self
+          parameters:
+            ManifestDirPath: '$(Build.SourcesDirectory)/artifacts/sbom'
+            publishArtifacts: false
 
         - task: PowerShell@2
           displayName: Publish Assets
@@ -319,24 +349,11 @@ extends:
             arguments: '-configuration $(BuildConfiguration) -branchName "$(SourceBranchName)"'
           condition: succeeded()
 
-        # Publish OptProf configuration files to the artifact service
-        # This uses the ArtifactServices.Drop.PAT build variable which is required to enable cross account access using PAT (dnceng -> devdiv)
-        - task: 1ES.PublishArtifactsDrop@1
-          inputs:
-            dropServiceURI: 'https://devdiv.artifacts.visualstudio.com'
-            buildNumber: 'ProfilingInputs/$(System.TeamProject)/$(Build.Repository.Name)/$(SourceBranchName)/$(Build.BuildNumber)'
-            sourcePath: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
-            toLowerCase: false
-            usePat: false
-            retentionDays: 90
-          displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
-          condition: succeeded()
-
         - task: PublishTestResults@2
           displayName: Publish xUnit Test Results
           inputs:
             testRunner: XUnit
-            testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
+            testResultsFiles: '$(Build.SourcesDirectory)/artifacts\TestResults\$(BuildConfiguration)\*.xml'
             mergeTestResults: true
             testRunTitle: 'Unit Tests'
           condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
