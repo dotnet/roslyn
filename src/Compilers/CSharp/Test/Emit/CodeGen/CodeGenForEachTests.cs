@@ -5755,7 +5755,7 @@ class C
         }
 
         [Fact]
-        public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator_CollectionExpression()
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator_Spread()
         {
             string source = """
 int[] a = [42, ..new C()];
@@ -5782,6 +5782,40 @@ class C
                 // (1,16): error CS0619: 'C.MyEnumerator.Dispose()' is obsolete: 'error'
                 // int[] a = [42, ..new C()];
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..new C()").WithArguments("C.MyEnumerator.Dispose()", "error").WithLocation(1, 16));
+        }
+
+        [Fact]
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator_CollectionType()
+        {
+            // TODO2
+            string source = """
+C c = [42];
+
+[System.Runtime.CompilerServices.CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public class C
+{
+    public MyEnumerator GetEnumerator()
+    {
+        throw null;
+    }
+
+    public ref struct MyEnumerator
+    {
+        public int Current { get => throw null; }
+        public bool MoveNext() => throw null;
+
+        [System.Obsolete("error", true)]
+        public void Dispose() => throw null;
+    }
+}
+
+public class MyCollectionBuilder
+{
+    public static C Create(System.ReadOnlySpan<int> items) => throw null;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }
