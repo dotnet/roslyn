@@ -42636,7 +42636,11 @@ class Program
                     }
                 }
                 """;
-            CompileAndVerify(new[] { sourceA, sourceB1 }, targetFramework: TargetFramework.Net90, verify: Verification.FailsILVerify, expectedOutput: "1, 2, ");
+            CompileAndVerify(
+                new[] { sourceA, sourceB1 },
+                targetFramework: TargetFramework.Net90,
+                verify: Verification.FailsILVerify,
+                expectedOutput: IncludeExpectedOutput("1, 2, "));
 
             string sourceB2 = """
                 using System;

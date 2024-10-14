@@ -1114,7 +1114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
                         localSymbol.RefEscapeScope >= GetRefEscape(initializerOpt, LocalScopeDepth));
 
-                    if (declTypeOpt.Type.IsRefLikeType)
+                    // PROTOTYPE: We need to check all uses of IsRefLikeType. Which were changed to IsRefLikeOrAllowsRefLikeType?
+                    if (declTypeOpt.Type.IsRefLikeOrAllowsRefLikeType())
                     {
                         initializerOpt = ValidateEscape(initializerOpt, localSymbol.ValEscapeScope, isByRef: false, diagnostics);
                     }
