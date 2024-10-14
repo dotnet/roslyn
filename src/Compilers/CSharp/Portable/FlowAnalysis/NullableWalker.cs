@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        static MethodSymbol? GetTopLevelMethod(MethodSymbol? method)
+        private static MethodSymbol? GetTopLevelMethod(MethodSymbol? method)
         {
             while (method is object)
             {
@@ -7015,6 +7015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.MethodKind == MethodKind.LocalFunction
                 && GetTopLevelMethod(method) is { ThisParameter: { } thisParameter })
             {
+                Debug.Assert(receiverSlot == -1);
                 receiverSlot = GetOrCreateSlot(thisParameter);
             }
 
