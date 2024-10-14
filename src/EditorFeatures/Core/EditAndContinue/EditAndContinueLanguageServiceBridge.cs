@@ -30,8 +30,8 @@ internal sealed partial class ManagedEditAndContinueLanguageServiceBridge(EditAn
     public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
         => service.OnCapabilitiesChangedAsync(cancellationToken);
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => (await service.GetUpdatesAsync(cancellationToken).ConfigureAwait(false));
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(string[] projects, CancellationToken cancellationToken)
+        => (await service.GetUpdatesAsync(projects, cancellationToken).ConfigureAwait(false));
 
     public ValueTask CommitUpdatesAsync(CancellationToken cancellationToken)
         => service.CommitUpdatesAsync(cancellationToken);
