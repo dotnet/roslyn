@@ -5218,6 +5218,16 @@
         <target state="translated">형식 매개 변수가 외부 메서드의 형식 매개 변수와 형식이 같습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField">
+        <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="new">Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField_Title">
+        <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="new">Field is never ref-assigned to, and will always have its default value (null reference)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
         <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
         <target state="translated">자동 구현 속성 '{0}'이(가) 명시적으로 할당되기 전에 제어가 호출자에게 반환되어 'default'의 선행 암시적 할당이 발생합니다.</target>
