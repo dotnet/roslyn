@@ -998,7 +998,7 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
             }
             """;
 
-        await VerifyItemExistsAsync(markup, "Target");
+        await VerifyItemIsAbsentAsync(markup, "Target");
         await VerifyItemExistsAsync(markup, "Method");
     }
 
@@ -1012,6 +1012,72 @@ public class ObjectInitializerCompletionProviderTests : AbstractCSharpCompletion
                     where T : unmanaged
                 {
                     return new T
+                    {
+                        $$
+                    };
+                }
+            }
+            """;
+
+        await VerifyNoItemsExistAsync(markup);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74331")]
+    public async Task ObjectInitializerOnVariousMembers_01()
+    {
+        var markup = """
+            using System.Collections;
+            using System.Collections.Generic;
+
+            internal class Example
+            {
+                public object ObjectProp { get; }
+                public double DoubleProp { get; }
+                public string StringProp { get; } = "some name";
+                public System.Enum EnumProp { get; }
+                public void* PointerProp { get; }
+                public delegate*<void> FunctionPointerProp { get; }
+                public IEnumerable EnumerableProp { get; }
+                public IEnumerable<string> StringEnumerableProp { get; }
+                public IEnumerator EnumeratorProp { get; }
+                public IEnumerator<string> StringEnumeratorProp { get; }
+
+                public static Example Create()
+                {
+                    return new()
+                    {
+                        $$
+                    };
+                }
+            }
+            """;
+
+        await VerifyNoItemsExistAsync(markup);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74331")]
+    public async Task ObjectInitializerOnVariousMembers_02()
+    {
+        var markup = """
+            using System.Collections;
+            using System.Collections.Generic;
+
+            internal class Example
+            {
+                public readonly object ObjectProp;
+                public readonly double DoubleProp;
+                public readonly string StringProp = "some name";
+                public readonly System.Enum EnumProp;
+                public readonly void* PointerProp;
+                public readonly delegate*<void> FunctionPointerProp;
+                public readonly IEnumerable EnumerableProp;
+                public readonly IEnumerable<string> StringEnumerableProp;
+                public readonly IEnumerator EnumeratorProp;
+                public readonly IEnumerator<string> StringEnumeratorProp;
+
+                public static Example Create()
+                {
+                    return new()
                     {
                         $$
                     };

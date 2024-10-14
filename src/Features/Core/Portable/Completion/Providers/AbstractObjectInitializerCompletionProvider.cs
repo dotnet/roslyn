@@ -119,13 +119,46 @@ internal abstract class AbstractObjectInitializerCompletionProvider : LSPComplet
 
         if (symbol is IFieldSymbol fieldSymbol)
         {
-            return !fieldSymbol.Type.IsStructType();
+            return MemberTypeCanSupportObjectInitializer(fieldSymbol.Type);
         }
         else if (symbol is IPropertySymbol propertySymbol)
         {
-            return !propertySymbol.Type.IsStructType();
+            return MemberTypeCanSupportObjectInitializer(propertySymbol.Type);
         }
 
         throw ExceptionUtilities.Unreachable();
+    }
+
+    private static bool MemberTypeCanSupportObjectInitializer(ITypeSymbol type)
+    {
+        switch (type.SpecialType)
+        {
+            // While it is perfectly legal to assign instances of all these types to `{}`,
+            // it has no effects and is thus a needless recommendation
+            case SpecialType.System_Enum:
+            case SpecialType.System_String:
+            case SpecialType.System_Object:
+            case SpecialType.System_Delegate:
+            case SpecialType.System_MulticastDelegate:
+            case SpecialType.System_Collections_IEnumerable:
+            case SpecialType.System_Collections_IEnumerator:
+                return false;
+        }
+
+        if (type is INamedTypeSymbol { IsGenericType: true } named)
+        {
+            var definition = named.OriginalDefinition;
+            switch (definition.SpecialType)
+            {
+                case SpecialType.System_Collections_Generic_IEnumerable_T:
+                case SpecialType.System_Collections_Generic_IEnumerator_T:
+                    return false;
+            }
+        }
+
+        return !type.IsDelegateType()
+            && !type.IsStructType()
+            && !type.IsFunctionPointerType()
+            && type.TypeKind != TypeKind.Pointer;
     }
 }
