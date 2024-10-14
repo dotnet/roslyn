@@ -4494,6 +4494,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.AwaitableValuePlaceholder:
                     return ((BoundAwaitableValuePlaceholder)expr).ValEscape;
 
+                case BoundKind.ValuePlaceholder:
+                    // BindCollectionExpressionSpreadElement uses this as a placeholder for
+                    // each item in the spread being added to the containing collection.
+                    return scopeOfTheContainingExpression;
+
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
