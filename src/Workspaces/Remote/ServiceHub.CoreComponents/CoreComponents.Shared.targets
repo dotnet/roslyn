@@ -116,7 +116,7 @@
       <_SymbolPackageId>$(ProjectName).Symbols</_SymbolPackageId>
       <_NuspecFilePath>$(PdbWorkDir)\$(_SymbolPackageId).nuspec</_NuspecFilePath>
       <_NuspecFileContent>
-          <![CDATA[{<?xml version="1.0" encoding="utf-8"?>
+          <![CDATA[<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>$(_SymbolPackageId)</id>
