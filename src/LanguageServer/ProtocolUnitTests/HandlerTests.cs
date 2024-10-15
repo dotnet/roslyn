@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 Uri = looseFileUri
             });
 
-            await Assert.ThrowsAnyAsync<Exception>(async() => await testLspServer.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None)).ConfigureAwait(false);
+            await Assert.ThrowsAnyAsync<Exception>(async () => await testLspServer.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None)).ConfigureAwait(false);
             await testLspServer.AssertServerShuttingDownAsync();
         }
 
