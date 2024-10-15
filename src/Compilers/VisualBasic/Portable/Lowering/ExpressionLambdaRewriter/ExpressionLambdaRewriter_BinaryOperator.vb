@@ -40,8 +40,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      BinaryOperatorKind.AndAlso
                     Return ConvertShortCircuitedBooleanOperator(node)
 
-                Case BinaryOperatorKind.Like
-                    ' Like operator should already be rewritten by this time
+                Case BinaryOperatorKind.Like,
+                     BinaryOperatorKind.Concatenate
+                    ' Should already be rewritten by this time
                     Throw ExceptionUtilities.UnexpectedValue(node.OperatorKind)
 
                 Case Else

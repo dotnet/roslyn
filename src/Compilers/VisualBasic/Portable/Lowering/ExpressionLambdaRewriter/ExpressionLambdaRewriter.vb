@@ -761,29 +761,23 @@ lSelect:
 
         ' Emit a call node
         Private Function [Call](receiver As BoundExpression, method As MethodSymbol, ParamArray params As BoundExpression()) As BoundExpression
-            Return _factory.Convert(
-                _expressionType,
-                    ConvertRuntimeHelperToExpressionTree(
-                        WellKnownMember.System_Linq_Expressions_Expression__Call,
-                        receiver,
-                        _factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)),
-                        _factory.Array(_expressionType, params)))
+            Return ConvertRuntimeHelperToExpressionTree(
+                    WellKnownMember.System_Linq_Expressions_Expression__Call,
+                    receiver,
+                    _factory.MethodInfo(method, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo)),
+                    _factory.Array(_expressionType, params))
         End Function
 
         ' Emit a Default node for a specific type
         Private Function [Default](type As TypeSymbol) As BoundExpression
-            Return _factory.Convert(
-                _expressionType,
-                ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Default, _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type))))
+            Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Default, _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         ' Emit a New node to a specific type with a helper constructor and one argument
         Private Function [New](helper As SpecialMember, argument As BoundExpression) As BoundExpression
-            Return _factory.Convert(
-                _expressionType,
-                ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions,
-                                                     _factory.ConstructorInfo(helper),
-                                                     _factory.Array(_expressionType, argument)))
+            Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions,
+                                                        _factory.ConstructorInfo(helper),
+                                                        _factory.Array(_expressionType, argument))
         End Function
 
         ' Emit a negate node

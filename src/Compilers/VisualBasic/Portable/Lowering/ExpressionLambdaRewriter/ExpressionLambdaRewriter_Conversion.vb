@@ -399,12 +399,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateTypeAs(expr As BoundExpression, type As TypeSymbol) As BoundExpression
-            Return _factory.Convert(
-                _expressionType,
-                ConvertRuntimeHelperToExpressionTree(
-                    WellKnownMember.System_Linq_Expressions_Expression__TypeAs,
-                    expr,
-                    _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type))))
+            Return ConvertRuntimeHelperToExpressionTree(
+                       WellKnownMember.System_Linq_Expressions_Expression__TypeAs,
+                       expr,
+                       _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         Private Function CreateTypeAsIfNeeded(operand As BoundExpression, oldType As TypeSymbol, newType As TypeSymbol) As BoundExpression
