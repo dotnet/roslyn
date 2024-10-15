@@ -363,14 +363,14 @@ End Module";
     public async Task LambdaShouldBeCollapsed()
     {
         var code = """
-public class MyClass
-{
-    public void MyMethod() => System.Linq.Enumerable.Range(10, 100).Any(x =>
-    {
-        return x == 10;
-    });
-}
-""";
+            public class MyClass
+            {
+                public void MyMethod() => System.Linq.Enumerable.Range(10, 100).Any(x =>
+                {
+                    return x == 10;
+                });
+            }
+            """;
 
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
         var tags = await GetTagsFromWorkspaceAsync(workspace);
