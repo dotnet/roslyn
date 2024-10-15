@@ -380,8 +380,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var builder = new ImmutableSegmentedList<int>.Builder(list);
 
             ref readonly var safeRef = ref builder.ItemRef(1);
+#pragma warning disable CS9195
             ref var unsafeRef = ref Unsafe.AsRef(safeRef);
-
+#pragma warning restore CS9195
             Assert.Equal(2, builder.ItemRef(1));
 
             unsafeRef = 4;
