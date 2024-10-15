@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var projectVersions = await _lazyCodeLensCallbackService.Value.InvokeAsync<ImmutableDictionary<Guid, string>>(
                     this,
                     nameof(ICodeLensContext.GetProjectVersionsAsync),
-                    new object[] { keys },
+                    [keys],
                     _cancellationTokenSource.Token).ConfigureAwait(false);
 
                 lock (_dataPoints)
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var referenceCountOpt = await _callbackService.InvokeAsync<ReferenceCount?>(
                     _owner,
                     nameof(ICodeLensContext.GetReferenceCountAsync),
-                    new object?[] { Descriptor, descriptorContext, _calculatedReferenceCount },
+                    [Descriptor, descriptorContext, _calculatedReferenceCount],
                     cancellationToken).ConfigureAwait(false);
 
                 if (!referenceCountOpt.HasValue)
@@ -244,7 +244,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 var referenceLocationDescriptors = await _callbackService.InvokeAsync<(string projectVersion, ImmutableArray<ReferenceLocationDescriptor> references)?>(
                     _owner,
                     nameof(ICodeLensContext.FindReferenceLocationsAsync),
-                    new object[] { Descriptor, descriptorContext },
+                    [Descriptor, descriptorContext],
                     cancellationToken).ConfigureAwait(false);
 
                 // Keep track of the exact reference count

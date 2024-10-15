@@ -12,12 +12,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -78,7 +76,7 @@ class C
   </runtime>
 </configuration>").Path;
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(Silverlight.System).Path;
             var net4_0dll = Temp.CreateFile().WriteAllBytes(Net461.Resources.System).Path;
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);

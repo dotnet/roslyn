@@ -33,10 +33,14 @@ internal static class UseCollectionExpressionHelpers
         distinguishRefFromOut: true,
         // Not relevant.  We are not comparing method signatures.
         objectAndDynamicCompareEqually: false,
+        // Not relevant.  We are not comparing method signatures.
+        arrayAndReadOnlySpanCompareEqually: false,
         // The value we're tweaking.
         tupleNamesMustMatch: false,
         // We do not want to ignore this.  `ImmutableArray<string?>` should not be convertible to `ImmutableArray<string>`
         ignoreNullableAnnotations: false);
+
+    private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEquallyComparer = s_tupleNamesCanDifferComparer.With(arrayAndReadOnlySpanCompareEqually: true);
 
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
@@ -147,9 +151,17 @@ internal static class UseCollectionExpressionHelpers
 
         // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
         // converting this to some different collection type unintentionally.
+        //
+        // Note: it's acceptable to be originally converting to an array, and now converting to a ROS.  This occurs with
+        // APIs that started out just taking an array, but which now have an overload that takes a span.  APIs should
+        // only do this when the new api has the same semantics (outside of perf), and the language and runtime strongly
+        // want code to call the new api.  So it's desirable to change here.
         var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
-        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
+        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType) &&
+            !s_arrayAndReadOnlySpanCompareEquallyComparer.Equals(originalTypeInfo.ConvertedType, replacedTypeInfo.ConvertedType))
+        {
             return false;
+        }
 
         return true;
 
@@ -805,6 +817,7 @@ internal static class UseCollectionExpressionHelpers
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
+        CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
         bool allowSemanticsChange,
@@ -914,7 +927,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+                semanticModel, expression, replacementExpression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
@@ -1222,4 +1235,7 @@ internal static class UseCollectionExpressionHelpers
             : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
                 nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
     }
+
+    public static CollectionExpressionSyntax CreateReplacementCollectionExpressionForAnalysis(InitializerExpressionSyntax? initializer)
+        => initializer is null ? s_emptyCollectionExpression : CollectionExpression([.. initializer.Expressions.Select(ExpressionElement)]);
 }

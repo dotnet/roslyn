@@ -151,7 +151,7 @@ internal partial class SerializerService
         {
             case nameof(AnalyzerFileReference):
                 var fullPath = reader.ReadRequiredString();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetShadowCopyLoader());
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.SharedShadowCopyLoader);
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();

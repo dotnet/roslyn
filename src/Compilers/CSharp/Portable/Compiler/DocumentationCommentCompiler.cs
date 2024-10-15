@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string GetAndEndTemporaryString()
         {
             TemporaryStringBuilder t = _temporaryStringBuilders.Pop();
-            Debug.Assert(_indentDepth == t.InitialIndentDepth, $"Temporary strings should be indent-neutral (was {t.InitialIndentDepth}, is {_indentDepth})");
+            RoslynDebug.Assert(_indentDepth == t.InitialIndentDepth, $"Temporary strings should be indent-neutral (was {t.InitialIndentDepth}, is {_indentDepth})");
             _indentDepth = t.InitialIndentDepth;
             return t.Pooled.ToStringAndFree();
         }

@@ -627,6 +627,18 @@ End Module
 
     <Fact>
     <Trait("Feature", "Xml Documentation Comments")>
+    Public Sub TestXmlSeeAlsoElementWithLink()
+        Dim docComment = SyntaxFactory.DocumentationComment(
+            SyntaxFactory.XmlSeeAlsoElement(New Uri("https://dotnet.microsoft.com/"),
+            SyntaxFactory.List(New XmlNodeSyntax() {SyntaxFactory.XmlText(".NET")})))
+
+        Assert.Equal(
+            "''' <seealso href=""https://dotnet.microsoft.com/"">.NET</seealso>",
+            docComment.ToFullString())
+    End Sub
+
+    <Fact>
+    <Trait("Feature", "Xml Documentation Comments")>
     Public Sub TestXmlNewLineElement()
         Dim expected =
             "''' <summary>\r\n" &

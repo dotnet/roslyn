@@ -2356,10 +2356,10 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     // They only affect custom attributes or metadata flags emitted on the members - all runtimes are expected to accept
     // these updates in metadata deltas, even if they do not have any observable effect.
     private static readonly SymbolEquivalenceComparer s_runtimeSymbolEqualityComparer = new(
-        AssemblyEqualityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+        AssemblyEqualityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
 
     private static readonly SymbolEquivalenceComparer s_exactSymbolEqualityComparer = new(
-        AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false);
+        AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false);
 
     protected static bool SymbolsEquivalent(ISymbol oldSymbol, ISymbol newSymbol)
         => s_exactSymbolEqualityComparer.Equals(oldSymbol, newSymbol);

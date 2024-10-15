@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            Debug.Assert(isTrivial, "this conversion needs additional data: " + kind);
+            RoslynDebug.Assert(isTrivial, $"this conversion needs additional data: {kind}");
         }
 
         internal static Conversion GetTrivialConversion(ConversionKind kind)

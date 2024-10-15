@@ -82,11 +82,7 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
                 .GetMembers(IdentifierToken.ValueText)
                 .OfType<IMethodSymbol>();
 
-#if CODE_STYLE
             var destinationProvider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
-#else
-            var destinationProvider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
-#endif
 
             var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
             var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();

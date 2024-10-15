@@ -54,7 +54,7 @@ public class ActiveStatementTrackingServiceTests
 
         var testDocument1 = new EditorTestHostDocument(text: source1, displayName: "1.cs", exportProvider: workspace.ExportProvider, filePath: "1.cs");
         var testDocument2 = new EditorTestHostDocument(text: source2, displayName: "2.cs", exportProvider: workspace.ExportProvider, filePath: "2.cs");
-        workspace.AddTestProject(new EditorTestHostProject(workspace, documents: new[] { testDocument1, testDocument2 }));
+        workspace.AddTestProject(new EditorTestHostProject(workspace, documents: [testDocument1, testDocument2]));
 
         // opens the documents
         var textBuffer1 = testDocument1.GetTextBuffer();
@@ -76,25 +76,25 @@ public class ActiveStatementTrackingServiceTests
             await trackingSession.TrackActiveSpansAsync(solution);
 
             var spans1 = trackingSession.Test_GetTrackingSpans();
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"V0 →←@[10..15): NonLeafFrame",
                 $"V0 →←@[20..25): LeafFrame"
-            }, spans1[document1.FilePath].Select(s => $"{s.Span}: {s.Flags}"));
+            ], spans1[document1.FilePath].Select(s => $"{s.Span}: {s.Flags}"));
 
             var spans2 = await trackingSession.GetSpansAsync(solution, document1.Id, document1.FilePath, CancellationToken.None);
-            AssertEx.Equal(new[] { "(0,10)-(0,15)", "(0,20)-(0,25)" }, spans2.Select(s => s.LineSpan.ToString()));
+            AssertEx.Equal(["(0,10)-(0,15)", "(0,20)-(0,25)"], spans2.Select(s => s.LineSpan.ToString()));
 
             var spans3 = await trackingSession.GetSpansAsync(solution, document2.Id, document2.FilePath, CancellationToken.None);
             Assert.Empty(spans3);
         }
 
         var spans4 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None);
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"V0 →←@[11..16): NonLeafFrame",
             $"V0 →←@[21..26): LeafFrame"
-        }, spans4.Select(s => $"{s.Span}: {s.Flags}"));
+        ], spans4.Select(s => $"{s.Span}: {s.Flags}"));
 
         AssertEx.Empty(await trackingSession.GetAdjustedTrackingSpansAsync(document2, snapshot2, CancellationToken.None));
 
@@ -103,21 +103,21 @@ public class ActiveStatementTrackingServiceTests
             await trackingSession.TrackActiveSpansAsync(solution);
 
             var spans5 = trackingSession.Test_GetTrackingSpans();
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"V0 →←@[11..16): NonLeafFrame",
                 $"V0 →←@[21..26): LeafFrame"
-            }, spans5[document1.FilePath].Select(s => $"{s.Span}: {s.Flags}"));
+            ], spans5[document1.FilePath].Select(s => $"{s.Span}: {s.Flags}"));
         }
 
         // we are not able to determine active statements in a document:
         spanProvider.GetAdjustedActiveStatementSpansImpl = (_, _) => ImmutableArray<ActiveStatementSpan>.Empty;
 
         var spans6 = await trackingSession.GetAdjustedTrackingSpansAsync(document1, snapshot1, CancellationToken.None);
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"V0 →←@[11..16): NonLeafFrame",
             $"V0 →←@[21..26): LeafFrame"
-        }, spans6.Select(s => $"{s.Span}: {s.Flags}"));
+        ], spans6.Select(s => $"{s.Span}: {s.Flags}"));
     }
 }

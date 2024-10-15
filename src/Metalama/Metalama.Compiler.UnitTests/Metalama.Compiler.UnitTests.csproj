@@ -15,6 +15,7 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Test\CommandLine\Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Emit\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Emit2\Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests.csproj" />
+    <ProjectReference Include="..\..\Compilers\CSharp\Test\Emit3\Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests.csproj" />
     <ProjectReference Include="..\..\Compilers\CSharp\Test\Semantic\Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.csproj" />
     <ProjectReference Include="..\Metalama.Compiler.UnitTests.ThirdParty\Metalama.Compiler.UnitTests.ThirdParty.csproj" />
   </ItemGroup>

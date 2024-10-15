@@ -233,7 +233,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var rewrittenArguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             var rewrittenType = this.VisitType(node.Type);
 
-            Debug.Assert(rewrittenMethodSymbol.IsMetadataVirtual() == node.Method.IsMetadataVirtual());
+#if DEBUG
+            // Calling IsMetadataVirtual with intent of getting a fully accurate result requires the symbol to be fully completed first
+            Debug.Assert(rewrittenMethodSymbol.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.ForceCompleteIfNeeded)
+                == node.Method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.ForceCompleteIfNeeded));
+#endif
 
             // If the original receiver was a base access and it was rewritten, 
             // change the method to point to the wrapper method

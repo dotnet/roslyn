@@ -648,7 +648,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
                              (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
 
-                var collectionInitializerAddMethodBinder = this.WithAdditionalFlags(BinderFlags.CollectionInitializerAddMethod);
+                if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
+                {
+                    diagnostics.Add(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, syntax, targetType);
+                    return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                }
+
+                var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
                     BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
@@ -659,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             implicitReceiver,
                             diagnostics) :
                         BindCollectionInitializerElementAddMethod(
-                            (ExpressionSyntax)element.Syntax,
+                            element.Syntax,
                             ImmutableArray.Create((BoundExpression)element),
                             hasEnumerableInitializerType: true,
                             collectionInitializerAddMethodBinder,
@@ -749,6 +755,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iteratorBody: new BoundExpressionStatement(syntax, convertElement) { WasCompilerGenerated = true },
                     lengthOrCount: element.LengthOrCount);
             }
+        }
+
+        private bool HasCollectionInitializerTypeInProgress(SyntaxNode syntax, TypeSymbol targetType)
+        {
+            Binder? current = this;
+            while (current?.Flags.Includes(BinderFlags.CollectionInitializerAddMethod) == true)
+            {
+                if (current is CollectionInitializerAddMethodBinder binder &&
+                    binder.Syntax == syntax &&
+                    binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
+                {
+                    return true;
+                }
+
+                current = current.Next;
+            }
+
+            return false;
         }
 
         internal MethodSymbol? GetAndValidateCollectionBuilderMethod(

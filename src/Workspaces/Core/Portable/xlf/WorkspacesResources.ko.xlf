@@ -152,6 +152,11 @@
         <target state="translated">고정된 문서에서 코드 정리 실행 중</target>
         <note />
       </trans-unit>
+      <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_1_workspace">
+        <source>Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</source>
+        <target state="new">Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="translated">지정된 참조가 솔루션에 포함되어 있지 않습니다.</target>
@@ -490,11 +495,6 @@
       <trans-unit id="Removing_project_references_is_not_supported">
         <source>Removing project references is not supported.</source>
         <target state="translated">프로젝트 참조 제거는 지원되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
-        <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
-        <target state="translated">'{0}' 유형의 서비스가 작업을 수행하는 데 필요하지만 작업 영역에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">

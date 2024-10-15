@@ -5209,11 +5209,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(conversion.IsValid);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
                 var convertedExpression = @this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+
                 BoundExpression? lengthOrCount;
-                if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+
+                if (enumeratorInfo is { InlineArraySpanType: not WellKnownType.Unknown })
+                {
+                    _ = expression.Type.HasInlineArrayAttribute(out int length);
+                    Debug.Assert(length > 0);
+                    lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), @this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
+                }
+                else if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
                 {
                     lengthOrCount = null;
                 }
+
                 return new BoundCollectionExpressionSpreadElement(
                     syntax,
                     expression,
