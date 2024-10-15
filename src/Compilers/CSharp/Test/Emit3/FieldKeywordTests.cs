@@ -1259,7 +1259,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyMergedProperties(actualProperties, actualFields);
         }
 
-
         [Theory]
         [CombinatorialData]
         public void Initializer_01A([CombinatorialValues("class", "struct", "ref struct", "interface")] string typeKind)
