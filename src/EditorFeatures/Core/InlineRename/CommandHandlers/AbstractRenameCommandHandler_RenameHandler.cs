@@ -71,7 +71,8 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             {
                 return;
             }
-            else if (renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
+
+            if (renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
