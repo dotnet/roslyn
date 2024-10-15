@@ -195,11 +195,13 @@ extends:
             dropRetentionDays: 90
 
           # Publish insertion packages to CoreXT store.
+          # Note: Guardian creates `gdn-*.nupkg` folders which would make this task fail because the input is not a file,
+          # hence these must be excluded from `packagesToPush`.
           - output: nuget
             displayName: 'Publish CoreXT Packages'
             condition: succeeded()
-            packageParentPath: '$(Build.SourcesDirectory)/artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages'
-            packagesToPush: '$(Build.SourcesDirectory)/artifacts\VSSetup\$(BuildConfiguration)\DevDivPackages\**\*.nupkg'
+            packageParentPath: '$(Build.SourcesDirectory)/artifacts/VSSetup/$(BuildConfiguration)/DevDivPackages'
+            packagesToPush: '$(Build.SourcesDirectory)/artifacts/VSSetup/$(BuildConfiguration)/DevDivPackages/**/*.nupkg;!$(Build.SourcesDirectory)/artifacts/VSSetup/$(BuildConfiguration)/DevDivPackages/**/gdn-*'
             allowPackageConflicts: true
             nuGetFeedType: external
             publishFeedCredentials: 'DevDiv - VS package feed'
