@@ -632,9 +632,6 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (25,9): warning CS9266: The 'set' accessor of property 'C.Goo' should use 'field' because the other accessor is using it.
-                //         set { }
-                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.Goo").WithLocation(25, 9),
                 // (12,10): warning CS0657: 'assembly' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //         [assembly: A]
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "assembly").WithArguments("assembly", "method, return").WithLocation(12, 10),
@@ -696,9 +693,6 @@ class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,9): warning CS9266: The 'get' accessor of property 'C.Goo' should use 'field' because the other accessor is using it.
-                //         get { return 0; }
-                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.Goo").WithLocation(11, 9),
                 // (14,10): warning CS0657: 'assembly' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 //         [assembly: A]
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "assembly").WithArguments("assembly", "method, param, return").WithLocation(14, 10),
