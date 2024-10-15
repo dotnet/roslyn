@@ -4863,7 +4863,8 @@ class C
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.MoveNextAsync()").WithLocation(7, 15),
                 // (7,15): warning CS0612: 'C.AsyncEnumerator.Current' is obsolete
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.Current").WithLocation(7, 15));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.AsyncEnumerator.Current").WithLocation(7, 15)
+                );
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/30257")]
