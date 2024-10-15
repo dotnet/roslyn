@@ -815,9 +815,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var list = new[] { 1, 2, 3 }.ToImmutableSegmentedList();
 
             ref readonly var safeRef = ref list.ItemRef(1);
-#pragma warning disable CS9195
+#pragma warning disable CS1620
             ref var unsafeRef = ref Unsafe.AsRef(safeRef);
-#pragma warning restore CS9195
+#pragma warning restore CS1620
             Assert.Equal(2, list.ItemRef(1));
 
             unsafeRef = 4;
