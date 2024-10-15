@@ -26,6 +26,11 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
 
+    /// <summary>
+    /// True if this queue item has actually started handling the request
+    /// by delegating to the handler.  False while the item is still being
+    /// processed by the queue.
+    /// </summary>
     private bool _requestHandlingStarted = false;
 
     /// <summary>

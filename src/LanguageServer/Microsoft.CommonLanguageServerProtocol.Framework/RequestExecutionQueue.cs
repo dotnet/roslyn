@@ -246,20 +246,26 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // notifications have been completed by the time we attempt to determine the language, so we have the up to date map of URI to language.
                     // Since didOpen notifications are marked as mutating, the queue will not advance to the next request until the server has finished processing
                     // the didOpen, ensuring that this line will only run once all prior didOpens have completed.
-                    var language = TryGetLanguageForRequest(work, out var exception);
+                    var didGetLanguage = _languageServer.TryGetLanguageForRequest(work.MethodName, work.SerializedRequest, out var language);
 
                     // Now that we know the actual language, we can deserialize the request and start creating the request context.
-                    var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language);
+                    var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);
 
-                    // We had an exception determining the language.  Generally this is very rare and only occurs
+                    // We had an issue determining the language.  Generally this is very rare and only occurs
                     // if there is a mis-behaving client that sends us requests for files where we haven't saved the languageId.
                     // We should only crash if this was a mutating method, otherwise we should just fail the single request. 
-                    if (exception != null)
+                    if (!didGetLanguage)
                     {
+                        var exception = new InvalidOperationException($"Failed to get language for {work.MethodName}");
                         if (handler.MutatesSolutionState)
+                        {
                             throw exception;
+                        }
                         else
+                        {
                             work.FailRequest(exception);
+                            return;
+                        }
                     }
 
                     // We now have the actual handler and language, so we can process the work item using the concrete types defined by the metadata.
@@ -394,21 +400,6 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         }
     }
 
-    private string TryGetLanguageForRequest(IQueueItem<TRequestContext> work,
-        out Exception? ex)
-    {
-        try
-        {
-            var language = _languageServer.GetLanguageForRequest(work.MethodName, work.SerializedRequest);
-            ex = null;
-            return language;
-        }
-        catch (Exception exception)
-        {
-            ex = exception;
-            return LanguageServerConstants.DefaultLanguageName;
-        }
-    }
     /// <summary>
     /// Allows an action to happen before the request runs, for example setting the current thread culture.
     /// </summary>
