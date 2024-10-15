@@ -42,7 +42,8 @@ static class C
 }
 ```
 
-When using C# 14 or newer and targeting .NET Framework or a .NET older than `net10.0`,
+When using C# 14 or newer and targeting a .NET older than `net10.0`
+or .NET Framework with `System.Memory` reference,
 there is a breaking change with `Enumerable.Reverse` and arrays:
 
 ```cs
