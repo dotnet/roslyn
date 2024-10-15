@@ -28,9 +28,7 @@ internal partial class RemoteWorkspace
     /// </summary>
     private readonly struct SolutionCreator(RemoteWorkspace workspace, AssetProvider assetService, Solution baseSolution)
     {
-#pragma warning disable IDE0052 // used only in DEBUG builds
         private readonly RemoteWorkspace _workspace = workspace;
-#pragma warning restore
 
         private readonly AssetProvider _assetProvider = assetService;
         private readonly Solution _baseSolution = baseSolution;
@@ -70,8 +68,14 @@ internal partial class RemoteWorkspace
 
                 if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
                 {
-                    solution = solution.WithAnalyzerReferences(await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
-                        AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
+                    // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
+                    // their own ALC that they can cleanly load (and unload) from.
+                    var deserializedAnalyzerReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
+                        AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+                    var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+                        useAsync: true, deserializedAnalyzerReferences, _workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
+
+                    solution = solution.WithAnalyzerReferences(isolatedAnalyzerReferences);
                 }
 
                 if (oldSolutionChecksums.FallbackAnalyzerOptions != newSolutionChecksums.FallbackAnalyzerOptions)
@@ -275,7 +279,8 @@ internal partial class RemoteWorkspace
                 {
                     // Now make a ProjectInfo corresponding to the new project checksums.  This should be fast due
                     // to the bulk sync we just performed above.
-                    var projectInfo = await _assetProvider.CreateProjectInfoAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
+                    var projectInfo = await _assetProvider.CreateProjectInfoAsync(
+                        newProjectChecksums, solution.Services, cancellationToken).ConfigureAwait(false);
                     projectInfos.Add(projectInfo);
                 }
             }
@@ -371,11 +376,18 @@ internal partial class RemoteWorkspace
             // changed analyzer references
             if (oldProjectChecksums.AnalyzerReferences.Checksum != newProjectChecksums.AnalyzerReferences.Checksum)
             {
-                project = project.WithAnalyzerReferences(await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
-                    assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
+                // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
+                // their own ALC that they can cleanly load (and unload) from.
+                var deserializedAnalyzerReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
+                    assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+
+                var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+                    useAsync: true, deserializedAnalyzerReferences, _workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
+
+                project = project.WithAnalyzerReferences(isolatedAnalyzerReferences);
             }
 
-            // changed analyzer references
+            // changed documents
             if (oldProjectChecksums.Documents.Checksum != newProjectChecksums.Documents.Checksum)
             {
                 project = await UpdateDocumentsAsync<DocumentState>(
@@ -606,7 +618,8 @@ internal partial class RemoteWorkspace
             if (checksumFromRequest == currentSolutionChecksum)
                 return;
 
-            var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(
+                checksumFromRequest, _workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
             var workspace = new AdhocWorkspace(_workspace.Services.HostServices);
             workspace.AddSolution(solutionInfo);
 

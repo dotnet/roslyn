@@ -15,7 +15,11 @@
   <!--
     Non-default certificates.
   -->
-  <ItemGroup>
+  <ItemGroup>    
+    <!-- Exclude two manually zipped servicehub symbol nupkgs from being signed -->
+    <ItemsToSign Remove="$(ArtifactsNonShippingPackagesDir)Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.x64.Symbols.nupkg"/>
+    <ItemsToSign Remove="$(ArtifactsNonShippingPackagesDir)Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.arm64.Symbols.nupkg"/>
+
     <ItemsToSign Include="$(ArtifactsPackagesDir)**\*.tgz" />
     <ItemsToSign Include="$(VisualStudioSetupOutputPath)**\*.zip" />
 

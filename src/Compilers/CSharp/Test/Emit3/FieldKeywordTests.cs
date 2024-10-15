@@ -1229,6 +1229,87 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """));
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75459")]
+        [Theory]
+        [CombinatorialData]
+        public void FieldAttribute_NotAutoProperty(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                using System;
+                using System.Reflection;
+
+                class A : Attribute { }
+
+                class C
+                {
+                    [field: A] object P1 { get => null; }
+                    [field: A] object P2 { {{setter}} { } }
+                    [field: A] object P3 { get => null; {{setter}} { } }
+                    object P4 { [field: A] get => null; }
+                    object P5 { [field: A] {{setter}} { } }
+                    object P6 { [field: A] get => null; {{setter}} { } }
+                    object P7 { get => null; [field: A] {{setter}} { } }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+                            Console.WriteLine("{0}", field.Name);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                targetFramework: GetTargetFramework(useInit),
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(useInit, ""));
+            verifier.VerifyDiagnostics(
+                // (8,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: A] object P1 { get => null; }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(8, 6),
+                // (9,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: A] object P2 { set { } }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(9, 6),
+                // (10,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
+                //     [field: A] object P3 { get => null; set { } }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(10, 6),
+                // (11,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //     object P4 { [field: A] get => null; }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(11, 18),
+                // (12,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                //     object P5 { [field: A] set { } }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(12, 18),
+                // (13,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //     object P6 { [field: A] get => null; set { } }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(13, 18),
+                // (14,31): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                //     object P7 { get => null; [field: A] set { } }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(14, 31));
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            AssertEx.Equal([], actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(7, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[6] is SourcePropertySymbol { Name: "P7", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
         [Fact]
         public void ObsoleteAttribute()
         {

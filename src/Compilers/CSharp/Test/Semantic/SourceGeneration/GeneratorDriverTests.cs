@@ -3206,10 +3206,12 @@ class C { }
 class C { }
 ";
             var parseOptions = TestOptions.RegularPreview;
-            var metadataRefs = new[] {
+            PortableExecutableReference[] metadataRefs =
+            [
                 MetadataReference.CreateFromAssemblyInternal(this.GetType().Assembly),
                 MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly)
-            };
+            ];
+
             Compilation compilation = CreateEmptyCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions, references: metadataRefs);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);

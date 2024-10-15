@@ -347,6 +347,7 @@ __makeref( x )
 - UTF8 String Literal (string constant value to ```byte[]```, ```Span<byte>```, or ```ReadOnlySpan<byte>``` types)
 - Inline arrays (conversions to Span and ReadOnlySpan)
 - Collection expression conversions
+- Span conversions (from array to (ReadOnly)Span, or from string or (ReadOnly)Span to ReadOnlySpan)
 
 ## Types 
 

@@ -1911,6 +1911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IncrementAssignment = 1 << 2,
             CompoundAssignment = 1 << 3,
             PredefinedOperator = 1 << 4,
+            InterpolatedString = 1 << 5,
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, ConversionForAssignmentFlags flags = ConversionForAssignmentFlags.None)
@@ -1936,7 +1937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            conversion = (flags & ConversionForAssignmentFlags.IncrementAssignment) == 0 ?
+            conversion = (flags & (ConversionForAssignmentFlags.IncrementAssignment | ConversionForAssignmentFlags.InterpolatedString)) == 0 ?
                                  this.Conversions.ClassifyConversionFromExpression(expression, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo) :
                                  this.Conversions.ClassifyConversionFromType(expression.Type, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
@@ -1964,7 +1965,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((flags & ConversionForAssignmentFlags.DefaultParameter) == 0)
                 {
-                    GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
+                    if ((flags & ConversionForAssignmentFlags.InterpolatedString) != 0)
+                    {
+                        // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
+                        diagnostics.Add(
+                            ErrorCode.ERR_NoImplicitConv,
+                            expression.Syntax,
+                            expression.Type,
+                            targetType);
+                    }
+                    else
+                    {
+                        GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
+                    }
                 }
 
                 // Suppress any additional diagnostics
