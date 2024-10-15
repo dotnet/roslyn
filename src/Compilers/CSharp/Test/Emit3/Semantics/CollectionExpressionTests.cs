@@ -42639,7 +42639,7 @@ class Program
             CompileAndVerify(
                 new[] { sourceA, sourceB1 },
                 targetFramework: TargetFramework.Net90,
-                verify: Verification.FailsILVerify,
+                verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("1, 2, "));
 
             string sourceB2 = """

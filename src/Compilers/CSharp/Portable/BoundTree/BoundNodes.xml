@@ -1821,7 +1821,7 @@
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
-    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/> <!-- PROTOTYPE: Remove. This is handled in initial binding now, not subsequent RefSafetyAnalysis. -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
@@ -2197,7 +2197,7 @@
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
-    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/> <!-- PROTOTYPE: Remove. This is handled in initial binding now, not subsequent RefSafetyAnalysis. -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="PropertySymbol" Type="PropertySymbol"/>
     <!-- The property accessor kind, set for properties with synthesized backing field only. -->
     <Field Name="AutoPropertyAccessorKind" Type="AccessorKind" />
@@ -2220,7 +2220,7 @@
 
     <Field Name="ReceiverOpt" Type="BoundExpression?"/>
     <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
-    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/> <!-- PROTOTYPE: Remove. This is handled in initial binding now, not subsequent RefSafetyAnalysis. -->
+    <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>

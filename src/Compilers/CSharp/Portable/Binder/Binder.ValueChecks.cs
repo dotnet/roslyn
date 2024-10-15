@@ -472,7 +472,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentRefKinds = refKindsBuilderOpt?.ToImmutableOrNull() ?? default;
 
                 bool hasErrors = indexerAccess.HasErrors;
-                if (!hasErrors)
+                if (!hasErrors &&
+                    !this.InParameterDefaultValue)
                 {
                     hasErrors = !CheckInvocationArgMixing(
                         indexerAccess.Syntax,
