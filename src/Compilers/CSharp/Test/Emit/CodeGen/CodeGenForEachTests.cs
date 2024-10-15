@@ -5787,7 +5787,6 @@ class C
         [Fact]
         public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator_CollectionType()
         {
-            // TODO2
             string source = """
 C c = [42];
 
