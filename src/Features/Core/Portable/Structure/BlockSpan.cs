@@ -124,6 +124,13 @@ internal readonly struct BlockSpan(
         if (other is null)
             return false;
 
+        if (this.AutoCollapse != other.Value.AutoCollapse
+            || this.IsCollapsible != other.Value.IsCollapsible
+            || this.IsDefaultCollapsed != other.Value.IsDefaultCollapsed)
+        {
+            return false;
+        }
+
         var startLine = lines.GetLinePosition(this.TextSpan.Start).Line;
         var otherStartLine = lines.GetLinePosition(other.Value.TextSpan.Start).Line;
         if (startLine != otherStartLine)
@@ -131,11 +138,6 @@ internal readonly struct BlockSpan(
 
         var endLine = lines.GetLinePosition(this.TextSpan.End).Line;
         var otherEndLine = lines.GetLinePosition(other.Value.TextSpan.End).Line;
-        if (endLine != otherEndLine)
-            return false;
-
-        return this.AutoCollapse == other.Value.AutoCollapse
-            && this.IsCollapsible == other.Value.IsCollapsible
-            && this.IsDefaultCollapsed == other.Value.IsDefaultCollapsed;
+        return endLine == otherEndLine;
     }
 }
