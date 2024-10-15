@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
 
@@ -113,7 +113,7 @@
           Condition="'$(GenerateReadyToRun)' == 'true'">
 
     <PropertyGroup>
-      <_SymbolPackageId>$(ArtifactsNonShippingPackagesDir)$(ProjectName).Symbols</_SymbolPackageId>
+      <_SymbolPackageId>$(ProjectName).Symbols</_SymbolPackageId>
       <_NuspecFilePath>$(PdbWorkDir)\$(_SymbolPackageId).nuspec</_NuspecFilePath>
       <_NuspecFileContent>
           <![CDATA[{<?xml version="1.0" encoding="utf-8"?>
@@ -138,7 +138,7 @@
     <WriteLinesToFile File="$(_NuspecFilePath)" Lines="$(_NuspecFileContent)" Overwrite="true"/>
 
     <MakeDir Directories="$(ArtifactsNonShippingPackagesDir)" />
-    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(_SymbolPackageId).$(PackageVersion).nupkg" />
+    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(_SymbolPackageId).$(PackageVersion).nupkg" />
   </Target>
 
   <!--
