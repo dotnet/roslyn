@@ -41,3 +41,23 @@ static class C
     public static void R<T>(ReadOnlySpan<T> s) => Console.Write(3);
 }
 ```
+
+When using C# 14 or newer and targeting a .NET older than `net10.0`
+or .NET Framework with `System.Memory` reference,
+there is a breaking change with `Enumerable.Reverse` and arrays:
+
+```cs
+int[] x = new[] { 1, 2, 3 };
+var y = x.Reverse(); // previously Enumerable.Reverse, now MemoryExtensions.Reverse
+```
+
+On `net10.0`, there is `Enumerable.Reverse(this T[])` which takes precedence and hence the break is avoided.
+Otherwise, `MemoryExtensions.Reverse(this Span<T>)` is resolved which has different semantics
+than `Enumerable.Reverse(this IEnumerable<T>)` (which used to be resolved in C# 13 and lower).
+Specifically, the `Span` extension does the reversal in place and returns `void`.
+As a workaround, one can define their own `Enumerable.Reverse(this T[])` or use `Enumerable.Reverse` explicitly:
+
+```cs
+int[] x = new[] { 1, 2, 3 };
+var y = Enumerable.Reverse(x); // instead of 'x.Reverse();'
+```
