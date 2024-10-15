@@ -41,9 +41,6 @@ Module Module1
 End Module
 ", HangMitigatingCancellationToken);
 
-        // Skip the EE part of the test (see https://github.com/dotnet/roslyn/issues/75456), without
-        // skipping the test completely (see https://github.com/dotnet/roslyn/issues/75478).
-#if false
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, "Module1.vb", "End Sub", HangMitigatingCancellationToken);
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
@@ -52,7 +49,8 @@ End Module
         await TestServices.Input.SendWithoutActivateAsync("?", HangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, HangMitigatingCancellationToken);
         await TestServices.Input.SendWithoutActivateAsync(["n1", VirtualKeyCode.TAB, VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
-        Assert.Contains("?n1Var\r\n42", await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken));
-#endif
+        // Skip checking the EE result "42" (see https://github.com/dotnet/roslyn/issues/75456), without
+        // skipping the test completely (see https://github.com/dotnet/roslyn/issues/75478).
+        Assert.Contains("?n1Var\r\n", await TestServices.ImmediateWindow.GetTextAsync(HangMitigatingCancellationToken));
     }
 }
