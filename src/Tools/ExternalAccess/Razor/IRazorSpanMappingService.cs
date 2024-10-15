@@ -13,5 +13,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
     internal interface IRazorSpanMappingService
     {
         Task<ImmutableArray<RazorMappedSpanResult>> MapSpansAsync(Document document, IEnumerable<TextSpan> spans, CancellationToken cancellationToken);
+        Task<ImmutableArray<RazorMappedEditoResult>> MapTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken);
     }
 }

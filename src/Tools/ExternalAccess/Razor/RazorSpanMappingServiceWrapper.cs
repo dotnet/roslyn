@@ -33,15 +33,26 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             Document newDocument,
             CancellationToken cancellationToken)
         {
-            var diffService = newDocument.Project.Solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            var mappedEdits = await _razorSpanMappingService.MapTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
 
-            // This is a hack that finds a minimal diff. It's not the ideal algorithm but should cover most scenarios. In the future,
-            // we should improve this algorithm - see https://github.com/dotnet/roslyn/issues/53346 for additional details.
-            var textChanges = await diffService.GetTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-            var mappedSpanResults = await MapSpansAsync(oldDocument, textChanges.Select(tc => tc.Span), cancellationToken).ConfigureAwait(false);
+            var changesCount = mappedEdits.Select(e => e.IsDefault ? 0 : e.TextChanges.Length).Sum();
+            var changes = new (string mappedFilePath, TextChange mappedTextChange)[changesCount];
 
-            var mappedTextChanges = MatchMappedSpansToTextChanges(textChanges, mappedSpanResults);
-            return mappedTextChanges;
+            var i = 0;
+            foreach (var mappedEdit in mappedEdits)
+            {
+                if (mappedEdit.IsDefault)
+                {
+                    continue;
+                }
+
+                foreach (var textChange in mappedEdit.TextChanges)
+                {
+                    changes[i++] = (mappedEdit.FilePath, textChange);
+                }
+            }
+
+            return changes.ToImmutableArray();
         }
 
         public override async Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(
