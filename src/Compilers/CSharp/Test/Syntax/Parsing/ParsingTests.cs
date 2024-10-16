@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyEnumeratorConsumed();
         }
 
-        private void VerifyEnumeratorConsumed()
+        protected void VerifyEnumeratorConsumed()
         {
             if (_treeEnumerator != null)
             {
