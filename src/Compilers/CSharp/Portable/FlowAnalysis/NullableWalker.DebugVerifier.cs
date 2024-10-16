@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // See NullableWalker.VisitCollectionExpression.getCollectionDetails() which
                 // does not have an element type for the ImplementsIEnumerable case.
-                var hasElementType = node.CollectionTypeKind is not (CollectionExpressionTypeKind.None or CollectionExpressionTypeKind.ImplementsIEnumerable);
+                bool hasElementType = node.CollectionTypeKind is not (CollectionExpressionTypeKind.None or CollectionExpressionTypeKind.ImplementsIEnumerable);
                 foreach (var element in node.Elements)
                 {
                     if (element is BoundCollectionExpressionSpreadElement spread)

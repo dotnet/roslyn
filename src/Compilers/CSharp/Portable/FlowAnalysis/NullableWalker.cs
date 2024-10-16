@@ -536,9 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
 #if DEBUG
             Debug.Assert(AreCloseEnough(placeholder.Type, result.RValueType.Type));
-            Debug.Assert(expression != null ||
-                placeholder.Kind == BoundKind.InterpolatedStringArgumentPlaceholder ||
-                (placeholder.Kind == BoundKind.ValuePlaceholder && placeholder.Syntax.Parent.IsKind(SyntaxKind.SpreadElement)));
+            Debug.Assert(expression != null || placeholder.Kind == BoundKind.InterpolatedStringArgumentPlaceholder);
 #endif
 
             _resultForPlaceholdersOpt ??= PooledDictionary<BoundValuePlaceholderBase, (BoundExpression? Replacement, VisitResult Result)>.GetInstance();
@@ -3668,17 +3666,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundCollectionExpressionSpreadElement spread:
                         Visit(spread);
                         if (elementType.HasType &&
-                            spread.ElementPlaceholder is { } &&
+                            spread.ElementPlaceholder is { } elementPlaceholder &&
                             spread.IteratorBody is { })
                         {
                             var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
                             var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
-                            AddPlaceholderReplacement(spread.ElementPlaceholder, expression: null, itemResult);
+                            AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
                             var completion = VisitOptionalImplicitConversion(iteratorBody, elementType,
                                 useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
                             Debug.Assert(completion is not null);
                             elementConversionCompletions.Add(completion);
-                            RemovePlaceholderReplacement(spread.ElementPlaceholder);
+                            RemovePlaceholderReplacement(elementPlaceholder);
                         }
                         break;
                     default:
