@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -356,7 +357,8 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         return modifiers.IsProperSubsetOf(validModifiers);
     }
 
-    public bool IsMemberAttributeContext(ISet<SyntaxKind> validTypeDeclarations, CancellationToken cancellationToken)
+    public bool IsMemberAttributeContext(
+        ISet<SyntaxKind> validTypeDeclarations, bool includingRecordParameters, CancellationToken cancellationToken)
     {
         // cases:
         //   class C { [ |
@@ -365,7 +367,9 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         if (token.Kind() == SyntaxKind.OpenBracketToken &&
             token.Parent.IsKind(SyntaxKind.AttributeList))
         {
-            if (token.Parent.Parent is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } })
+            if (includingRecordParameters &&
+                IsRecordParameterAttributeContext(out var record) &&
+                validTypeDeclarations.Contains(record.Kind()))
             {
                 return true;
             }
@@ -377,6 +381,22 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
             }
         }
 
+        return false;
+    }
+
+    public bool IsRecordParameterAttributeContext([NotNullWhen(true)] out RecordDeclarationSyntax? recordDeclaration)
+    {
+        var token = this.TargetToken;
+
+        if (token.Kind() == SyntaxKind.OpenBracketToken &&
+            token.Parent.IsKind(SyntaxKind.AttributeList) &&
+            token.Parent.Parent is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax record } })
+        {
+            recordDeclaration = record;
+            return true;
+        }
+
+        recordDeclaration = null;
         return false;
     }
 
