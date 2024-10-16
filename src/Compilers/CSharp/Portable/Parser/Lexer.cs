@@ -461,6 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case '.':
                     if (!this.ScanNumericLiteral(ref info))
                     {
+                        TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.DotToken;
                     }
                     break;
