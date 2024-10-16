@@ -508,7 +508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return element.WithStartTag(element.StartTag.AddAttributes(
                 XmlAttribute(
-                    XmlName(Nothing, XmlTextLiteralToken(DocumentationCommentXmlNames.CrefAttributeName, DocumentationCommentXmlNames.CrefAttributeName)),
+                    XmlName(Nothing, XmlNameToken(DocumentationCommentXmlNames.HrefAttributeName, SyntaxKind.XmlName)).WithLeadingTrivia(ElasticSpace),
                     XmlString(
                         Token(SyntaxKind.DoubleQuoteToken),
                         SyntaxTokenList.Create(

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Roslyn.Utilities;
 
-internal class EventMap
+internal sealed class EventMap
 {
     private readonly NonReentrantLock _guard = new();
 
@@ -93,7 +93,7 @@ internal class EventMap
         _eventNameToRegistries[eventName] = registries;
     }
 
-    internal class Registry<TEventHandler>(TEventHandler handler) : IEquatable<Registry<TEventHandler>?>
+    internal sealed class Registry<TEventHandler>(TEventHandler handler) : IEquatable<Registry<TEventHandler>?>
         where TEventHandler : class
     {
         private TEventHandler? _handler = handler;

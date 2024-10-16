@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 
             // verify that we emit correct optimized and unoptimized IL:
-            var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
-            var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
+            var unoptimizedCompilation = CreateCompilationWithMscorlib461(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
+            var optimizedCompilation = CreateCompilationWithMscorlib461(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
 
             var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
             var optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
@@ -7489,7 +7489,7 @@ public class Color
 Color Color;
 dynamic x = Color.F((dynamic)1);
 ";
-            var script = CreateCompilationWithMscorlib45(
+            var script = CreateCompilationWithMscorlib461(
                 new[] { Parse(sourceScript, options: TestOptions.Script) },
                 new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef });
 
@@ -7587,7 +7587,7 @@ void Goo()
     dynamic x = Color.F((dynamic)1);
 }
 ";
-            var script = CreateCompilationWithMscorlib45(
+            var script = CreateCompilationWithMscorlib461(
                 new[] { Parse(sourceScript, options: TestOptions.Script) },
                 new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef },
                 TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -15787,7 +15787,7 @@ class C
         d.F();
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 new[] { DynamicAttributeSource, source },
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             comp.VerifyEmitDiagnostics(
@@ -15809,7 +15809,7 @@ class C
         await d;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 new[] { DynamicAttributeSource, source },
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             comp.VerifyEmitDiagnostics(

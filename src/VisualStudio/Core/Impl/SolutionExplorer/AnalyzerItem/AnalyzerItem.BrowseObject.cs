@@ -7,47 +7,25 @@
 using System.ComponentModel;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal partial class AnalyzerItem
 {
-    internal partial class AnalyzerItem
+    internal sealed class BrowseObject(AnalyzerItem analyzerItem) : LocalizableProperties
     {
-        internal class BrowseObject : LocalizableProperties
-        {
-            public BrowseObject(AnalyzerItem analyzerItem)
-            {
-                AnalyzerItem = analyzerItem;
-            }
+        [Browsable(false)]
+        public AnalyzerItem AnalyzerItem { get; } = analyzerItem;
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]
-            public string Name
-            {
-                get
-                {
-                    return AnalyzerItem.AnalyzerReference.Display;
-                }
-            }
+        [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]
+        public string Name => AnalyzerItem.AnalyzerReference.Display;
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Path))]
-            public string Path
-            {
-                get
-                {
-                    return AnalyzerItem.AnalyzerReference.FullPath;
-                }
-            }
+        [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Path))]
+        public string Path => AnalyzerItem.AnalyzerReference.FullPath;
 
-            public override string GetClassName()
-            {
-                return SolutionExplorerShim.Analyzer_Properties;
-            }
+        public override string GetClassName()
+            => SolutionExplorerShim.Analyzer_Properties;
 
-            public override string GetComponentName()
-            {
-                return AnalyzerItem.Text;
-            }
-
-            [Browsable(false)]
-            public AnalyzerItem AnalyzerItem { get; }
-        }
+        public override string GetComponentName()
+            => AnalyzerItem.Text;
     }
 }

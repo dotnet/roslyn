@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 28 => 2048,
                 32 => 2048,
                 40 => 2048,
-#if NETCOREAPP3_0_OR_NEWER
+#if NETCOREAPP3_0_OR_GREATER
                 _ => InlineCalculateSegmentSize(Unsafe.SizeOf<T>()),
 #else
                 _ => FallbackSegmentHelper<T>.SegmentSize,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 28 => 11,
                 32 => 11,
                 40 => 11,
-#if NETCOREAPP3_0_OR_NEWER
+#if NETCOREAPP3_0_OR_GREATER
                 _ => InlineCalculateSegmentShift(Unsafe.SizeOf<T>()),
 #else
                 _ => FallbackSegmentHelper<T>.SegmentShift,
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 28 => 2047,
                 32 => 2047,
                 40 => 2047,
-#if NETCOREAPP3_0_OR_NEWER
+#if NETCOREAPP3_0_OR_GREATER
                 _ => InlineCalculateOffsetMask(Unsafe.SizeOf<T>()),
 #else
                 _ => FallbackSegmentHelper<T>.OffsetMask,
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
 
         // Faster inline implementation for NETCOREAPP to avoid static constructors and non-inlineable
         // generics with runtime lookups
-#if NETCOREAPP3_0_OR_NEWER
+#if NETCOREAPP3_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int InlineCalculateSegmentSize(int elementSize)
         {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
                 => SegmentedArrayHelper.CalculateOffsetMask(segmentSize);
         }
 
-#if !NETCOREAPP3_0_OR_NEWER
+#if !NETCOREAPP3_0_OR_GREATER
         private static class FallbackSegmentHelper<T>
         {
             public static readonly int SegmentSize = CalculateSegmentSize(Unsafe.SizeOf<T>());

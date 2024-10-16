@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                                     {TestResources.SymbolsTests.TypeForwarders.TypeForwarder,
                                      TestResources.SymbolsTests.TypeForwarders.TypeForwarderLib,
                                      TestResources.SymbolsTests.TypeForwarders.TypeForwarderBase,
-                                     TestMetadata.ResourcesNet40.mscorlib})
+                                     Net40.Resources.mscorlib})
 
             TestTypeForwarderHelper(assemblies)
         End Sub

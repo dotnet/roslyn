@@ -9,9 +9,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal partial class ExtensionOrderer
+internal static partial class ExtensionOrderer
 {
-    private class Node<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)
+    private sealed class Node<TExtension, TMetadata>(Lazy<TExtension, TMetadata> extension)
     {
         public readonly Lazy<TExtension, TMetadata> Extension = extension;
         public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = [];

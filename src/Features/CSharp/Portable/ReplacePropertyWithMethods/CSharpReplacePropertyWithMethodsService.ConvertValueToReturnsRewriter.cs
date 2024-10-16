@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods;
 
-internal partial class CSharpReplacePropertyWithMethodsService
+internal sealed partial class CSharpReplacePropertyWithMethodsService
 {
-    private class ConvertValueToReturnsRewriter : CSharpSyntaxRewriter
+    private sealed class ConvertValueToReturnsRewriter : CSharpSyntaxRewriter
     {
         public static readonly CSharpSyntaxRewriter Instance = new ConvertValueToReturnsRewriter();
 

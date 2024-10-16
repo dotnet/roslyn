@@ -11,7 +11,5 @@
     "projectName": "DevDiv",
     "areaPath": "DevDiv\\NET Developer Experience\\CSharp and VB IDE",
     "iterationPath": "DevDiv",
-    "tools": [
-        "APIScan"
-    ]
+    "allTools": true
 }

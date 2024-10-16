@@ -16,6 +16,7 @@ Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 Imports Xunit
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class MissingAssemblyTests
@@ -668,10 +669,10 @@ End Class"
 
         Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String,
                                                        Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic15)
-            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll,
+            Dim comp = CreateEmptyCompilation({source}, references:={Net461.References.mscorlib, Net461.References.SystemRuntime, ValueTupleLegacyRef}, options:=TestOptions.DebugDll,
                                                      parseOptions:=TestOptions.Regular.WithLanguageVersion(languageVersion))
-            Using systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance()
-                WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef},
+            Using systemRuntime = Net461.References.SystemRuntime.ToModuleInstance()
+                WithRuntimeInstance(comp, {Net461.References.mscorlib, ValueTupleLegacyRef},
                     Sub(runtime)
                         Dim methodBlocks As ImmutableArray(Of MetadataBlock) = Nothing
                         Dim moduleVersionId As Guid = Nothing

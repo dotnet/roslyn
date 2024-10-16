@@ -235,6 +235,7 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
     public override readonly string ToString()
         => _symbolKeyData;
 
+    // Note: this method may clear 'symbols' before returning.
     private static SymbolKeyResolution CreateResolution<TSymbol>(
         PooledArrayBuilder<TSymbol> symbols, string reasonIfFailed, out string? failureReason)
         where TSymbol : class, ISymbol
@@ -253,7 +254,7 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
         {
             failureReason = null;
             return new SymbolKeyResolution(
-                ImmutableArray<ISymbol>.CastUp(symbols.Builder.ToImmutable()),
+                ImmutableArray<ISymbol>.CastUp(symbols.Builder.ToImmutableAndClear()),
                 CandidateReason.Ambiguous);
         }
     }

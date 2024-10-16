@@ -2740,6 +2740,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         diagnostics.Add(ErrorCode.WRN_UnreferencedField, field.GetFirstLocationOrNone(), field);
                     }
+                    else if (field.RefKind != RefKind.None)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_UnassignedInternalRefField, field.GetFirstLocationOrNone(), field);
+                    }
                     else
                     {
                         diagnostics.Add(ErrorCode.WRN_UnassignedInternalField, field.GetFirstLocationOrNone(), field, DefaultValue(field.Type));

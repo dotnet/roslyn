@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 internal static class EditAndContinueValidation
 {
     internal static void VerifyLineEdits(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         SourceLineUpdate[] lineEdits,
         SemanticEditDescription[]? semanticEdits = null,
         RudeEditDiagnosticDescription[]? diagnostics = null,
@@ -31,7 +31,7 @@ internal static class EditAndContinueValidation
     }
 
     internal static void VerifyLineEdits(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         SequencePointUpdates[] lineEdits,
         SemanticEditDescription[]? semanticEdits = null,
         RudeEditDiagnosticDescription[]? diagnostics = null,
@@ -46,14 +46,14 @@ internal static class EditAndContinueValidation
     }
 
     internal static void VerifySemanticDiagnostics(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         params RudeEditDiagnosticDescription[] diagnostics)
     {
         VerifySemanticDiagnostics(editScript, activeStatements: null, targetFrameworks: null, capabilities: null, diagnostics);
     }
 
     internal static void VerifySemanticDiagnostics(
-         this EditScript<SyntaxNode> editScript,
+         this EditScriptDescription editScript,
          ActiveStatementsDescription activeStatements,
          params RudeEditDiagnosticDescription[] diagnostics)
     {
@@ -61,7 +61,7 @@ internal static class EditAndContinueValidation
     }
 
     internal static void VerifySemanticDiagnostics(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         RudeEditDiagnosticDescription[] diagnostics,
         EditAndContinueCapabilities? capabilities)
     {
@@ -69,7 +69,7 @@ internal static class EditAndContinueValidation
     }
 
     internal static void VerifySemanticDiagnostics(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         ActiveStatementsDescription? activeStatements = null,
         TargetFramework[]? targetFrameworks = null,
         EditAndContinueCapabilities? capabilities = null,
@@ -83,7 +83,7 @@ internal static class EditAndContinueValidation
     }
 
     internal static void VerifySemantics(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         ActiveStatementsDescription activeStatements,
         SemanticEditDescription[] semanticEdits,
         EditAndContinueCapabilities? capabilities = null)
@@ -95,7 +95,7 @@ internal static class EditAndContinueValidation
     }
 
     internal static void VerifySemantics(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         SemanticEditDescription[] semanticEdits,
         EditAndContinueCapabilities capabilities)
     {
@@ -103,14 +103,14 @@ internal static class EditAndContinueValidation
     }
 
     internal static void VerifySemantics(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         params SemanticEditDescription[] semanticEdits)
     {
         VerifySemantics(editScript, ActiveStatementsDescription.Empty, semanticEdits, capabilities: null);
     }
 
     internal static void VerifySemantics(
-        this EditScript<SyntaxNode> editScript,
+        this EditScriptDescription editScript,
         SemanticEditDescription[] semanticEdits,
         RudeEditDiagnosticDescription[] warnings,
         EditAndContinueCapabilities? capabilities = null)
@@ -122,7 +122,7 @@ internal static class EditAndContinueValidation
     }
 
     internal static void VerifySemantics(
-        EditScript<SyntaxNode>[] editScripts,
+        EditScriptDescription[] editScripts,
         DocumentAnalysisResultsDescription[] results,
         TargetFramework[]? targetFrameworks = null,
         EditAndContinueCapabilities? capabilities = null)

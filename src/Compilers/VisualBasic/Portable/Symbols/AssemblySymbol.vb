@@ -764,7 +764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IAssemblySymbol_Modules As IEnumerable(Of IModuleSymbol) Implements IAssemblySymbol.Modules
             Get
-                Return Me.Modules
+                Return ImmutableArray(Of IModuleSymbol).CastUp(Me.Modules)
             End Get
         End Property
 

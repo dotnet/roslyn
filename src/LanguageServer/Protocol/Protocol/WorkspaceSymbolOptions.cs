@@ -8,14 +8,22 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents workspace symbols capabilities.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceSymbolOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class WorkspaceSymbolOptions : IWorkDoneProgressOptions
     {
         /// <summary>
-        /// Gets or sets a value indicating whether work done progress is supported.
+        /// The server provides support to resolve additional
+        /// information for a workspace symbol.
         /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("resolveProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool ResolveProvider { get; init; }
+
+        /// <inheritdoc/>
         [JsonPropertyName("workDoneProgress")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }

@@ -272,7 +272,7 @@ internal interface IEditorInlineRenameService : ILanguageService
     /// <param name="inlineRenameLocationSet"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(
+    Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(
         IInlineRenameInfo inlineRenameInfo,
         IInlineRenameLocationSet inlineRenameLocationSet,
         CancellationToken cancellationToken);

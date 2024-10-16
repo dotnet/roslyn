@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
@@ -11,10 +9,11 @@ using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-internal partial class AnalyzerItem(
+internal sealed partial class AnalyzerItem(
     AnalyzersFolderItem analyzersFolder,
     AnalyzerReference analyzerReference,
-    IContextMenuController contextMenuController) : BaseItem(GetNameText(analyzerReference))
+    IContextMenuController contextMenuController)
+    : BaseItem(GetNameText(analyzerReference))
 {
     public AnalyzersFolderItem AnalyzersFolder { get; } = analyzersFolder;
     public AnalyzerReference AnalyzerReference { get; } = analyzerReference;
@@ -37,14 +36,7 @@ internal partial class AnalyzerItem(
         => this.AnalyzersFolder.RemoveAnalyzer(this.AnalyzerReference.FullPath);
 
     private static string GetNameText(AnalyzerReference analyzerReference)
-    {
-        if (analyzerReference is UnresolvedAnalyzerReference)
-        {
-            return analyzerReference.FullPath;
-        }
-        else
-        {
-            return analyzerReference.Display;
-        }
-    }
+        => analyzerReference is UnresolvedAnalyzerReference unresolvedAnalyzerReference
+           ? unresolvedAnalyzerReference.FullPath
+           : analyzerReference.Display;
 }

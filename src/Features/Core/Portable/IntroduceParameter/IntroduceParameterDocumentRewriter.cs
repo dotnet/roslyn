@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.IntroduceParameter;
 
 internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax>
 {
-    private class IntroduceParameterDocumentRewriter(
+    private sealed class IntroduceParameterDocumentRewriter(
         AbstractIntroduceParameterCodeRefactoringProvider<TExpressionSyntax, TInvocationExpressionSyntax, TObjectCreationExpressionSyntax, TIdentifierNameSyntax, TArgumentSyntax> service,
         Document originalDocument,
         TExpressionSyntax expression,

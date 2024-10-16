@@ -148,7 +148,7 @@ internal sealed class TextDocumentStates<TState>
         {
             using var _ = PooledHashSet<DocumentId>.GetInstance(out var set);
 
-#if NETCOREAPP
+#if NET
             set.EnsureCapacity(ids.Length);
 #endif
 

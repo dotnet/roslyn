@@ -10,18 +10,14 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing a diagnostic pull request for a specific document.
     /// </summary>
-    internal class VSInternalDocumentDiagnosticsParams : VSInternalDiagnosticParams, IPartialResultParams<VSInternalDiagnosticReport[]>
+    internal class VSInternalDocumentDiagnosticsParams : VSInternalDiagnosticParams, IPartialResultParams<VSInternalDiagnosticReport[]>, IWorkDoneProgressParams
     {
-        /// <summary>
-        /// Gets or sets an optional token that a server can use to report work done progress.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.WorkDoneTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IProgress<VSInternalDiagnosticReport[]>? WorkDoneToken { get; set; }
+        public IProgress<WorkDoneProgress> WorkDoneToken { get; set; }
 
-        /// <summary>
-        /// Gets or sets an optional token that a server can use to report partial results (e.g. streaming) to the client.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<VSInternalDiagnosticReport[]>? PartialResultToken { get; set; }

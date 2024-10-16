@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
 [ExportWorkspaceService(typeof(IStackTraceExplorerService)), Shared]
-internal class StackTraceExplorerService : IStackTraceExplorerService
+internal sealed class StackTraceExplorerService : IStackTraceExplorerService
 {
     [ImportingConstructor]
     [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

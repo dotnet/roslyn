@@ -28,7 +28,7 @@ internal interface ILegacySolutionEventsAggregationService : IWorkspaceService
 [ExportWorkspaceService(typeof(ILegacySolutionEventsAggregationService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class DefaultLegacySolutionEventsAggregationService(
+internal sealed class DefaultLegacySolutionEventsAggregationService(
     [ImportMany] IEnumerable<Lazy<ILegacySolutionEventsListener>> eventsServices) : ILegacySolutionEventsAggregationService
 {
     private readonly ImmutableArray<Lazy<ILegacySolutionEventsListener>> _eventsServices = eventsServices.ToImmutableArray();

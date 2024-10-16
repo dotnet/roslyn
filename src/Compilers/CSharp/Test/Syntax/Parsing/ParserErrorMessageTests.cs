@@ -566,7 +566,7 @@ public class MyClass {
 }
 ";
 
-            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(test).VerifyDiagnostics(
                 // (3,24): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public void MyMeth(params int[] values, int i) {}
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values").WithLocation(3, 24));

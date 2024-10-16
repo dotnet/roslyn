@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Roslyn.Utilities;
+using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -137,6 +138,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     server.Start();
 
     logger.LogInformation("Language server initialized");
+    RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
 
     try
     {

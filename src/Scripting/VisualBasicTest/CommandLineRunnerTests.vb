@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Scripting.Test
+Imports Microsoft.CodeAnalysis.Scripting.TestUtilities
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 Imports Roslyn.Test.Utilities
@@ -16,7 +17,7 @@ Imports Xunit
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
     Public Class CommandLineRunnerTests
-        Inherits TestBase
+        Inherits VisualBasicScriptTestBase
 
         Private Shared ReadOnly s_compilerVersion As String =
             CommonCompiler.GetProductVersion(GetType(VisualBasicInteractiveCompiler))
@@ -25,35 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             String.Format(VBScriptingResources.LogoLine1, s_compilerVersion) + vbNewLine + VBScriptingResources.LogoLine2 + "
 
 " + ScriptingResources.HelpPrompt
-
-        Private Shared ReadOnly s_defaultArgs As String() = {"/R:System"}
-
-        Private Shared Function CreateRunner(
-            Optional args As String() = Nothing,
-            Optional input As String = "",
-            Optional responseFile As String = Nothing,
-            Optional workingDirectory As String = Nothing
-        ) As CommandLineRunner
-            Dim io = New TestConsoleIO(input)
-
-            Dim buildPaths = New BuildPaths(
-                clientDir:=AppContext.BaseDirectory,
-                workingDir:=If(workingDirectory, AppContext.BaseDirectory),
-                sdkDir:=RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
-                tempDir:=Path.GetTempPath())
-
-            Dim compiler = New VisualBasicInteractiveCompiler(
-                responseFile,
-                buildPaths,
-                If(args, s_defaultArgs),
-                New NotImplementedAnalyzerLoader())
-
-            Return New CommandLineRunner(
-                io,
-                compiler,
-                VisualBasicScriptCompiler.Instance,
-                VisualBasicObjectFormatter.Instance)
-        End Function
 
         <Fact>
         Public Sub TestPrint()
