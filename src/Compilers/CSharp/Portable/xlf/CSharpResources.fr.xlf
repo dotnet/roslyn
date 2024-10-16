@@ -3202,6 +3202,16 @@
         <target state="translated">Les types et les alias ne doivent pas porter le nom 'record'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Effectue une attribution par référence de '{1}' vers '{0}', mais '{1}' a une portée de sortie plus limitée que '{0}'.</target>

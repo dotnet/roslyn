@@ -3202,6 +3202,16 @@
         <target state="translated">类型和别名不应命名为 "record"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">此 ref 将“{1}”分配给“{0}”，但“{1}”具有比“{0}”更窄的转义范围。</target>
