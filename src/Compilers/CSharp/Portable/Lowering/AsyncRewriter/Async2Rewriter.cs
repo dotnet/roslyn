@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCall(BoundCall node)
         {
-            var loweredCall = (BoundCall)base.VisitCall(node);
+            var loweredCall = (BoundCall)base.VisitCall(node)!;
 
             var calledMethod = loweredCall.Method.GetConstructedLeastOverriddenMethod(_factory.CurrentType, requireSameReturnType: true);
             if (calledMethod.IsAsync2)
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitAwaitExpression(BoundAwaitExpression node)
         {
-            var loweredAwait = (BoundAwaitExpression)base.VisitAwaitExpression(node);
+            var loweredAwait = (BoundAwaitExpression)base.VisitAwaitExpression(node)!;
 
             if (_factory.CurrentFunction?.IsAsync2 == true)
             {

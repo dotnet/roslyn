@@ -6189,15 +6189,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return receiverType;
             }
 
-        private void ReinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitArgumentResult? firstArgumentResult = null)
-        {
-            var method = node.Method;
-            ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-            if (!receiverType.HasNullType)
+            void reinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
             {
-                // Update method based on inferred receiver type.
-                method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
-            }
+                var method = node.Method;
+                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
+                if (!receiverType.HasNullType)
+                {
+                    // Update method based on inferred receiver type.
+                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+                }
 
                 ImmutableArray<VisitResult> results;
                 bool returnNotNull;
