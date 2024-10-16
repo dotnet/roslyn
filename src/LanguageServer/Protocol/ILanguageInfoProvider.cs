@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// It is totally possible to not find language based on the file path (e.g. a newly created file that hasn't been saved to disk).
         /// In that case, we use the language Id that the LSP client gave us.
         /// </remarks>
-        /// <exception cref="InvalidOperationException">Thrown when the language information cannot be determined.</exception>
         bool TryGetLanguageInformation(Uri uri, string? lspLanguageId, [NotNullWhen(true)] out LanguageInformation? languageInformation);
     }
 }

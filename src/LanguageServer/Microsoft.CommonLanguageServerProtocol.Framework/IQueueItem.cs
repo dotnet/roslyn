@@ -42,7 +42,7 @@ internal interface IQueueItem<TRequestContext>
     /// Handles when the queue needs to manually fail a request before the
     /// handler is invoked without shutting down the entire queue.
     /// </summary>
-    void FailRequest(Exception ex);
+    void FailRequest(string message);
 
     /// <summary>
     /// Provides access to LSP services.

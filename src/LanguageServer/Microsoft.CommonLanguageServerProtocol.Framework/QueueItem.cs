@@ -245,12 +245,15 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         await _completionSource.Task.ConfigureAwait(false);
     }
 
-    public void FailRequest(Exception exception)
+    public void FailRequest(string message)
     {
+        // This is not valid to call after StartRequestAsync starts as they both access the same state.
+        // StartRequestAsync handles any failures internally once it runs.
         if (_requestHandlingStarted)
         {
             throw new InvalidOperationException("Cannot manually fail queue item after it has started");
         }
+        var exception = new Exception(message);
         _requestTelemetryScope?.RecordException(exception);
         _logger.LogException(exception);
 

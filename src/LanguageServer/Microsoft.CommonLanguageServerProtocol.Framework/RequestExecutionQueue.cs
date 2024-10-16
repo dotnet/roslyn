@@ -256,14 +256,14 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // We should only crash if this was a mutating method, otherwise we should just fail the single request. 
                     if (!didGetLanguage)
                     {
-                        var exception = new InvalidOperationException($"Failed to get language for {work.MethodName}");
+                        var message = $"Failed to get language for {work.MethodName}";
                         if (handler.MutatesSolutionState)
                         {
-                            throw exception;
+                            throw new InvalidOperationException(message);
                         }
                         else
                         {
-                            work.FailRequest(exception);
+                            work.FailRequest(message);
                             return;
                         }
                     }
