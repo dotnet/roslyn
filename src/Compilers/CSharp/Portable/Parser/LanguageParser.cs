@@ -11085,7 +11085,43 @@ done:
                 }
 
                 // We'll "take" this operator, as precedence is tentatively OK.
-                var opToken = this.EatContextualToken(tk);
+
+                SyntaxToken opToken;
+
+                // Combine tokens into a single token if needed
+                if (tokensToCombine == 1)
+                {
+                    opToken = this.EatContextualToken(tk);
+                }
+                else if (tokensToCombine == 2)
+                {
+                    if (tk == SyntaxKind.DotToken)
+                    {
+                        opToken = this.EatDotDotToken();
+                    }
+                    else
+                    {
+                        opToken = SyntaxFactory.Token(
+                            this.EatContextualToken(tk).GetLeadingTrivia(),
+                            this.CurrentToken.Kind == SyntaxKind.GreaterThanToken
+                                ? SyntaxKind.GreaterThanGreaterThanToken
+                                : SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                            this.EatToken().GetTrailingTrivia());
+                    }
+                }
+                else if (tokensToCombine == 3)
+                {
+                    var token1 = this.EatContextualToken(tk);
+                    var opToken2 = this.EatToken();
+                    Debug.Assert(opToken2.Kind == SyntaxKind.GreaterThanToken);
+                    opToken2 = this.EatToken();
+                    var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+                    opToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(tokensToCombine);
+                }
 
                 var leftPrecedence = GetPrecedence(leftOperand.Kind);
                 if (newPrecedence > leftPrecedence)
@@ -11103,36 +11139,6 @@ done:
                     // a diagnostic.
                     ErrorCode errorCode = leftOperand.Kind == SyntaxKind.IsPatternExpression ? ErrorCode.ERR_UnexpectedToken : ErrorCode.WRN_PrecedenceInversion;
                     opToken = this.AddError(opToken, errorCode, opToken.Text);
-                }
-
-                // Combine tokens into a single token if needed
-                if (tokensToCombine == 2)
-                {
-                    if (tk == SyntaxKind.DotToken)
-                    {
-                        opToken = this.EatDotDotToken(opToken, this.EatToken());
-                    }
-                    else
-                    {
-                        opToken = SyntaxFactory.Token(
-                            opToken.GetLeadingTrivia(),
-                            this.CurrentToken.Kind == SyntaxKind.GreaterThanToken
-                                ? SyntaxKind.GreaterThanGreaterThanToken
-                                : SyntaxKind.GreaterThanGreaterThanEqualsToken,
-                            this.EatToken().GetTrailingTrivia());
-                    }
-                }
-                else if (tokensToCombine == 3)
-                {
-                    var opToken2 = this.EatToken();
-                    Debug.Assert(opToken2.Kind == SyntaxKind.GreaterThanToken);
-                    opToken2 = this.EatToken();
-                    var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
-                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
-                }
-                else if (tokensToCombine != 1)
-                {
-                    throw ExceptionUtilities.UnexpectedValue(tokensToCombine);
                 }
 
                 if (opKind == SyntaxKind.AsExpression)
@@ -11295,24 +11301,58 @@ done:
         public bool IsAtDotDotToken()
         {
             var token1 = this.CurrentToken;
+            if (token1.Kind != SyntaxKind.DotToken)
+                return false;
+
             var token2 = this.PeekToken(1);
-            return token1.Kind == SyntaxKind.DotToken && token2.Kind == SyntaxKind.DotToken && NoTriviaBetween(token1, token2);
+            if (!NoTriviaBetween(token1, token2))
+                return false;
+
+            if (token2.Kind == SyntaxKind.DotToken)
+            {
+                // ..
+                // This is definitely a dot dot token.
+                return NoTriviaBetween(token1, token2);
+            }
+
+            // ..Num
+            //
+            if (IsNumericLiteralStartingWithDot(token2))
+                return true;
+
+            return false;
         }
+
+        private static bool IsNumericLiteralStartingWithDot(SyntaxToken token)
+            => token is { Kind: SyntaxKind.NumericLiteralToken, Text: ['.', >= '0' and <= '9', ..] };
 
         /// <summary>Consume the next two tokens as a <see cref="SyntaxKind.DotDotToken"/>.  Note: if three dot tokens
         /// are in a row, an error will be placed on the <c>..</c> token to say that is illegal.</summary>
         public SyntaxToken EatDotDotToken()
         {
             Debug.Assert(IsAtDotDotToken());
-            return EatDotDotToken(this.EatToken(), this.EatToken());
-        }
+            var token1 = this.EatToken();
 
-        private SyntaxToken EatDotDotToken(SyntaxToken token1, SyntaxToken token2)
-        {
-            Debug.Assert(token1.Kind == SyntaxKind.DotToken);
-            Debug.Assert(token2.Kind == SyntaxKind.DotToken);
+            var beforeSecondTokenPosition = this.lexer.TextWindow.Position;
+            var token2 = this.EatToken();
 
-            var dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
+            SyntaxToken dotDotToken;
+            if (token2.Kind == SyntaxKind.DotToken)
+            {
+                dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
+            }
+            else if (IsNumericLiteralStartingWithDot(token2))
+            {
+                // ..Num
+
+                // Combine the `..` into one token, And reset the lexer to before 'Num' so it can lex it out.
+                dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, trailing: null);
+                this.lexer.Reset(beforeSecondTokenPosition + 1, this.lexer.Directives);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
 
             // Triple-dot: explicitly reject this, to allow triple-dot to be added to the language without a breaking
             // change. Without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2
