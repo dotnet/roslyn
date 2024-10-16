@@ -11110,13 +11110,16 @@ done:
                 {
                     if (tk == SyntaxKind.DotToken)
                     {
-                        opToken = this.EatDotDotToken();
+                        opToken = this.EatDotDotToken(opToken, this.EatToken());
                     }
                     else
                     {
-                        var opToken2 = this.EatToken();
-                        var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken;
-                        opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
+                        opToken = SyntaxFactory.Token(
+                            opToken.GetLeadingTrivia(),
+                            this.CurrentToken.Kind == SyntaxKind.GreaterThanToken
+                                ? SyntaxKind.GreaterThanGreaterThanToken
+                                : SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                            this.EatToken().GetTrailingTrivia());
                     }
                 }
                 else if (tokensToCombine == 3)
@@ -11301,8 +11304,13 @@ done:
         public SyntaxToken EatDotDotToken()
         {
             Debug.Assert(IsAtDotDotToken());
-            var token1 = this.EatToken();
-            var token2 = this.EatToken();
+            return EatDotDotToken(this.EatToken(), this.EatToken());
+        }
+
+        private SyntaxToken EatDotDotToken(SyntaxToken token1, SyntaxToken token2)
+        {
+            Debug.Assert(token1.Kind == SyntaxKind.DotToken);
+            Debug.Assert(token2.Kind == SyntaxKind.DotToken);
 
             var dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
 
@@ -11636,7 +11644,7 @@ done:
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.PointerMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                         continue;
 
-                    case SyntaxKind.DotToken:
+                    case SyntaxKind.DotToken when !IsAtDotDotToken():
                         // if we have the error situation:
                         //
                         //      expr.
