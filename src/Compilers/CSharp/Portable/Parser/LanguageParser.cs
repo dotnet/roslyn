@@ -11297,8 +11297,7 @@ done:
         }
 
         /// <summary>Consume the next two tokens as a <see cref="SyntaxKind.DotDotToken"/>.  Note: if three dot tokens
-        /// are in a row, the third will be consumed as skipped trivia to disallow any usage of <c>...</c> in the
-        /// language.</summary>
+        /// are in a row, an error will be placed on the <c>..</c> token to say that is illegal.</summary>
         public SyntaxToken EatDotDotToken()
         {
             Debug.Assert(IsAtDotDotToken());
@@ -11309,14 +11308,13 @@ done:
 
             // Triple-dot: explicitly reject this, to allow triple-dot to be added to the language without a breaking
             // change. Without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2
-            if (this.CurrentToken.Kind == SyntaxKind.DotToken &&
-                NoTriviaBetween(token2, this.CurrentToken))
+            if (this.CurrentToken.Kind != SyntaxKind.DotToken ||
+                !NoTriviaBetween(token2, this.CurrentToken))
             {
-                var trailingDot = this.AddError(this.EatToken(), ErrorCode.ERR_TripleDotNotAllowed);
-                return AddTrailingSkippedSyntax(dotDotToken, trailingDot);
+                return dotDotToken;
             }
 
-            return dotDotToken;
+            return this.AddError(dotDotToken, offset: dotDotToken.GetLeadingTriviaWidth(), length: 0, ErrorCode.ERR_TripleDotNotAllowed);
         }
 
         private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
