@@ -11339,7 +11339,7 @@ done:
             SyntaxToken dotDotToken;
             if (token2.Kind == SyntaxKind.DotToken)
             {
-                dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
+                dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, this.EatToken().GetTrailingTrivia());
             }
             else if (IsNumericLiteralStartingWithDot(token2))
             {
