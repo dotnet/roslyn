@@ -532,11 +532,6 @@
         <target state="translated">Yordam satır ayıraçlarını _göster</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
-        <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">Özel struct'a ref veya out koy_ma</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">Düzenleyici Yardımı</target>
