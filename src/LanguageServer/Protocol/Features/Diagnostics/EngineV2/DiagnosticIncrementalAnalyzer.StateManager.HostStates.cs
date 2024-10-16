@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -32,17 +33,83 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
                 var key = new HostAnalyzerStateSetKey(project.Language, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
-                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, project.Solution.SolutionState.Analyzers);
+                // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
+                // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
+                var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
+                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, (project.Solution.SolutionState.Analyzers, referenceIdsToRedirect));
                 return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
 
-                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, HostDiagnosticAnalyzers hostAnalyzers)
+                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, (HostDiagnosticAnalyzers HostAnalyzers, ImmutableHashSet<object> ReferenceIdsToRedirect) state)
                 {
                     var language = arg.Language;
-                    var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
+                    var analyzersPerReference = state.HostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateStateSetMap(language, [], analyzersPerReference.Values, includeWorkspacePlaceholderAnalyzers: true);
+                    var (hostAnalyzerCollection, projectAnalyzerCollection) = GetAnalyzerCollections(analyzersPerReference, state.ReferenceIdsToRedirect);
+                    var analyzerMap = CreateStateSetMap(language, projectAnalyzerCollection, hostAnalyzerCollection, includeWorkspacePlaceholderAnalyzers: true);
 
                     return new HostAnalyzerStateSets(analyzerMap);
+                }
+
+                static (IEnumerable<ImmutableArray<DiagnosticAnalyzer>> HostAnalyzerCollection, IEnumerable<ImmutableArray<DiagnosticAnalyzer>> ProjectAnalyzerCollection) GetAnalyzerCollections(
+                    ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersPerReference,
+                    ImmutableHashSet<object> referenceIdsToRedirectAsProjectAnalyzers)
+                {
+                    if (referenceIdsToRedirectAsProjectAnalyzers.IsEmpty)
+                    {
+                        return (analyzersPerReference.Values, []);
+                    }
+
+                    var hostAnalyzerCollection = new List<ImmutableArray<DiagnosticAnalyzer>>();
+                    var projectAnalyzerCollection = new List<ImmutableArray<DiagnosticAnalyzer>>();
+
+                    foreach (var kvp in analyzersPerReference)
+                    {
+                        if (referenceIdsToRedirectAsProjectAnalyzers.Contains(kvp.Key))
+                        {
+                            projectAnalyzerCollection.Add(kvp.Value);
+                        }
+                        else
+                        {
+                            hostAnalyzerCollection.Add(kvp.Value);
+                        }
+                    }
+
+                    return (hostAnalyzerCollection, projectAnalyzerCollection);
+                }
+            }
+
+            private static readonly ImmutableHashSet<string> FeaturesAnalyzerFileNames = [
+                "Microsoft.CodeAnalysis.Features.dll",
+                "Microsoft.CodeAnalysis.CSharp.Features.dll",
+                "Microsoft.CodeAnalysis.VisualBasic.Features.dll",
+            ];
+
+            private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(Project project)
+            {
+                if (project.State.HasSdkCodeStyleAnalyzers)
+                {
+                    // When a project uses CodeStyle analyzers added by the SDK, we remove them in favor of the
+                    // Features analyzers. We need to then treat the Features analyzers as Project analyzers so
+                    // they do not get access to the Host fallback options.
+                    return GetFeaturesAnalyzerReferenceIds(project.Solution.SolutionState.Analyzers);
+                }
+
+                return [];
+
+                static ImmutableHashSet<object> GetFeaturesAnalyzerReferenceIds(HostDiagnosticAnalyzers hostAnalyzers)
+                {
+                    var builder = ImmutableHashSet.CreateBuilder<object>();
+
+                    foreach (var analyzerReference in hostAnalyzers.HostAnalyzerReferences)
+                    {
+                        var fileName = Path.GetFileName(analyzerReference.FullPath)!;
+                        if (FeaturesAnalyzerFileNames.Contains(fileName))
+                        {
+                            builder.Add(analyzerReference.Id);
+                        }
+                    }
+
+                    return builder.ToImmutable();
                 }
             }
 
