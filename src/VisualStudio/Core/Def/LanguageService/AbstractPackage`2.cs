@@ -38,19 +38,6 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
     {
         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
-        var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
-        cancellationToken.ThrowIfCancellationRequested();
-        Assumes.Present(shell);
-        Assumes.Present(solution);
-
-        foreach (var editorFactory in CreateEditorFactories())
-        {
-            RegisterEditorFactory(editorFactory);
-        }
-
         RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
         {
             // Ensure we're on the BG when creating the language service.
@@ -63,6 +50,17 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
 
             return _languageService.ComAggregate;
         });
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var shell = (IVsShell7)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+        cancellationToken.ThrowIfCancellationRequested();
+        Assumes.Present(shell);
+
+        foreach (var editorFactory in CreateEditorFactories())
+        {
+            RegisterEditorFactory(editorFactory);
+        }
 
         await shell.LoadPackageAsync(Guids.RoslynPackageId);
 
