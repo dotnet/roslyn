@@ -584,6 +584,62 @@ class C
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
+        [Fact]
+        public void TestCollectionExpressionSpreadVsDeletingTopLevelBrace()
+        {
+            var source = """
+                namespace Example;
+
+                public sealed class Program
+                {
+                    public void M2()
+                    {
+                        const bool condition = true;
+                        int[] values = [1, 2, 3];
+                        if (condition)
+                        {
+                            {
+                                if (condition)
+                                {
+                                    values[1] = 312;
+                                }
+                            }
+                        }
+                        if (condition)
+                        {
+                            values = [.. values];
+                        }
+                    }
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            Assert.Empty(tree.GetDiagnostics());
+
+            const string valueSetterLine = "values[1] = 312;";
+            var text = tree.GetText();
+            var valueSetterLinePosition = source.IndexOf(valueSetterLine);
+            var lines = text.Lines;
+
+            int valueSetterLineIndex = lines.IndexOf(valueSetterLinePosition);
+            var openBraceLine = text.Lines[valueSetterLineIndex - 1];
+            Assert.EndsWith("{", openBraceLine.ToString());
+            text = text.WithChanges(new TextChange(openBraceLine.SpanIncludingLineBreak, ""));
+            tree = tree.WithChangedText(text);
+
+            lines = text.Lines;
+            var closeBraceLine = text.Lines[valueSetterLineIndex];
+            Assert.EndsWith("}", closeBraceLine.ToString());
+            text = text.WithChanges(new TextChange(closeBraceLine.SpanIncludingLineBreak, ""));
+            tree = tree.WithChangedText(text);
+
+            Assert.Empty(tree.GetDiagnostics());
+
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            Assert.Empty(fullTree.GetDiagnostics());
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
         #region "Regression"
 
 #if false
