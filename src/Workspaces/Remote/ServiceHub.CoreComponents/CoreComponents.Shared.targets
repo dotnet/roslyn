@@ -137,7 +137,7 @@
     <WriteLinesToFile File="$(_NuspecFilePath)" Lines="$(_NuspecFileContent)" Overwrite="true"/>
 
     <MakeDir Directories="$(ArtifactsNonShippingPackagesDir)" />
-    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(_SymbolPackageId).$(PackageVersion).nupkg" />
+    <ZipDirectory SourceDirectory="$(PdbWorkDir)" DestinationFile="$(ArtifactsNonShippingPackagesDir)$(ProjectName).$(PackageVersion).symbols.nupkg" />
   </Target>
 
   <!--

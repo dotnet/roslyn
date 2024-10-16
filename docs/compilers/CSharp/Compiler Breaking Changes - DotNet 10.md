@@ -61,3 +61,29 @@ As a workaround, one can define their own `Enumerable.Reverse(this T[])` or use 
 int[] x = new[] { 1, 2, 3 };
 var y = Enumerable.Reverse(x); // instead of 'x.Reverse();'
 ```
+
+## Diagnostics now reported for pattern-based disposal method in `foreach`
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+For instance, an obsolete `DisposeAsync` method is now reported in `await foreach`.
+```csharp
+await foreach (var i in new C()) { } // 'C.AsyncEnumerator.DisposeAsync()' is obsolete
+
+class C
+{
+    public AsyncEnumerator GetAsyncEnumerator(System.Threading.CancellationToken token = default)
+    {
+        throw null;
+    }
+
+    public sealed class AsyncEnumerator : System.IAsyncDisposable
+    {
+        public int Current { get => throw null; }
+        public Task<bool> MoveNextAsync() => throw null;
+
+        [System.Obsolete]
+        public ValueTask DisposeAsync() => throw null;
+    }
+}
+```
