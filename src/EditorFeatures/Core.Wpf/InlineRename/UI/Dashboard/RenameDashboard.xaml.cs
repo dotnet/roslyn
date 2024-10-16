@@ -321,9 +321,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void Apply_Click(object sender, RoutedEventArgs e)
             => Commit();
 
-        /// <remarks>
-        /// CommitAsync is non-throwing.
-        /// </remarks>
         private void Commit()
         {
             try

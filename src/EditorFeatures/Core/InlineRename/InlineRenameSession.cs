@@ -744,6 +744,12 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, operationContext));
     }
 
+    /// <summary>
+    /// Start to commit the rename session.
+    /// Session might be committed sync or async, depends on the value of InlineRenameUIOptionsStorage.CommitRenameAsynchronously.
+    /// If it is committed async, method will only kick off the task.
+    /// </summary>
+    /// <param name="editorOperationContext"></param>
     public void InitiateCommit(IUIThreadOperationContext editorOperationContext = null)
     {
         var token = _asyncListener.BeginAsyncOperation(nameof(InitiateCommit));
