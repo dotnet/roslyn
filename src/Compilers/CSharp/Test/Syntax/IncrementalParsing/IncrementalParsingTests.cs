@@ -584,11 +584,10 @@ class C
             WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74456")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74456")]
         public void TestCollectionExpressionSpreadVsDeletingTopLevelBrace()
         {
-            var source = """
+            var initialSource = """
                 namespace Example;
 
                 public sealed class Program
@@ -613,32 +612,40 @@ class C
                     }
                 }
                 """;
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            Assert.Empty(tree.GetDiagnostics());
+            var initialTree = SyntaxFactory.ParseSyntaxTree(initialSource);
 
+            // Initial code is fully legal and should have no parse errors.
+            Assert.Empty(initialTree.GetDiagnostics());
+
+            // Delete '{' (and end of line) before 'values[1] = 312;'
             const string valueSetterLine = "values[1] = 312;";
-            var text = tree.GetText();
-            var valueSetterLinePosition = source.IndexOf(valueSetterLine);
-            var lines = text.Lines;
+            var initialText = initialTree.GetText();
+            var valueSetterLinePosition = initialSource.IndexOf(valueSetterLine);
+            var initialLines = initialText.Lines;
 
-            int valueSetterLineIndex = lines.IndexOf(valueSetterLinePosition);
-            var openBraceLine = text.Lines[valueSetterLineIndex - 1];
+            int valueSetterLineIndex = initialLines.IndexOf(valueSetterLinePosition);
+            var openBraceLine = initialText.Lines[valueSetterLineIndex - 1];
             Assert.EndsWith("{", openBraceLine.ToString());
-            text = text.WithChanges(new TextChange(openBraceLine.SpanIncludingLineBreak, ""));
-            tree = tree.WithChangedText(text);
 
-            lines = text.Lines;
-            var closeBraceLine = text.Lines[valueSetterLineIndex];
+            var withOpenBraceDeletedText = initialText.WithChanges(new TextChange(openBraceLine.SpanIncludingLineBreak, ""));
+            var withOpenBraceDeletedTree = initialTree.WithChangedText(withOpenBraceDeletedText);
+
+            // Now delete '}' after 'values[1] = 312;'.  This should result in no diagnostics.
+            //
+            // Note: because we deleted the end of line after the '{', the line that is now on the line where `values...` was
+            // will be the line that was originally after it (the } line).
+            var withOpenBraceDeletedLines = withOpenBraceDeletedText.Lines;
+            var closeBraceLine = withOpenBraceDeletedLines[valueSetterLineIndex];
             Assert.EndsWith("}", closeBraceLine.ToString());
-            text = text.WithChanges(new TextChange(closeBraceLine.SpanIncludingLineBreak, ""));
-            tree = tree.WithChangedText(text);
+            var withCloseBraceDeletedText = withOpenBraceDeletedText.WithChanges(new TextChange(closeBraceLine.SpanIncludingLineBreak, ""));
+            var withCloseBraceDeletedTree = withOpenBraceDeletedTree.WithChangedText(withCloseBraceDeletedText);
 
-            Assert.Empty(tree.GetDiagnostics());
+            Assert.Empty(withCloseBraceDeletedTree.GetDiagnostics());
 
-            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            var fullTree = SyntaxFactory.ParseSyntaxTree(withCloseBraceDeletedText.ToString());
             Assert.Empty(fullTree.GetDiagnostics());
 
-            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+            WalkTreeAndVerify(withCloseBraceDeletedTree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
         #region "Regression"
