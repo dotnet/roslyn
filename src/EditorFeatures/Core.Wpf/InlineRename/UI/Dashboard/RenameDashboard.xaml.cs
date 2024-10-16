@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
@@ -28,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly RenameDashboardViewModel _model;
         private readonly IWpfTextView _textView;
         private readonly IAdornmentLayer _findAdornmentLayer;
-        private readonly IAsynchronousOperationListener _listener;
         private PresentationSource _presentationSource;
         private DependencyObject _rootDependencyObject;
         private IInputElement _rootInputElement;
@@ -50,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public RenameDashboard(
             RenameDashboardViewModel model,
             IEditorFormatMapService editorFormatMapService,
-            IWpfTextView textView,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IWpfTextView textView)
         {
             _model = model;
             InitializeComponent();
@@ -59,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _tabNavigableChildren = [this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton];
 
             _textView = textView;
-            _listener = listenerProvider.GetListener(FeatureAttribute.Rename);
             this.DataContext = model;
 
             _textView.GotAggregateFocus += OnTextViewGotAggregateFocus;
@@ -248,9 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
-                    var token = _listener.BeginAsyncOperation($"{nameof(OnAccessKey)}.{nameof(RenameShortcutKey.Apply)}");
-                    // CommitAsync catch & report all the exceptions.
-                    _ = this.CommitAsync().CompletesAsyncOperation(token);
+                    this.Commit();
                 }
             }
         }
@@ -325,21 +319,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)
-        {
-            var token = _listener.BeginAsyncOperation(nameof(Apply_Click));
-            // CommitAsync catch & report all the exceptions.
-            _ = CommitAsync().CompletesAsyncOperation(token);
-        }
+            => Commit();
 
         /// <remarks>
         /// CommitAsync is non-throwing.
         /// </remarks>
-        private async Task CommitAsync()
+        private void Commit()
         {
             try
             {
-                //.ConfigureAwait(true) because UI thread is need to change focus
-                await _model.Session.CommitAsync(previewChanges: false).ConfigureAwait(true);
+                _model.Session.InitiateCommit();
                 _textView.VisualElement.Focus();
             }
             catch (NotSupportedException ex)

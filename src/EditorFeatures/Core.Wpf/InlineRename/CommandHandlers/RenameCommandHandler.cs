@@ -91,12 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected override async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
+        protected override void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
         {
             try
             {
-                // ConfigureAwait(true) to show notification when error occurs.
-                await base.CommitAndSetFocusAsync(activeSession, textView, operationContext).ConfigureAwait(true);
+                base.CommitAndSetFocus(activeSession, textView, operationContext);
             }
             catch (NotSupportedException ex)
             {

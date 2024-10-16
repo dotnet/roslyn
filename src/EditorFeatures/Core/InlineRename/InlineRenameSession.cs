@@ -744,6 +744,13 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, operationContext));
     }
 
+    public void InitiateCommit(IUIThreadOperationContext editorOperationContext = null)
+    {
+        var token = _asyncListener.BeginAsyncOperation(nameof(InitiateCommit));
+        _ = CommitAsync(previewChanges: false, editorOperationContext)
+            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+    }
+
     /// <remarks>
     /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up the its own context correctly.
     /// </remarks>
