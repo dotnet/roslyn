@@ -257,7 +257,14 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         if (!bracketPair.IsValidBracketOrBracePair())
             return;
 
-        if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
+        if (node.Parent != null && node.Kind() is SyntaxKind.ListPattern)
+        {
+            AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
+            AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
+            return;
+        }
+
+        if (node.Parent != null && node.Kind() is SyntaxKind.CollectionExpression)
         {
             // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
             AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
