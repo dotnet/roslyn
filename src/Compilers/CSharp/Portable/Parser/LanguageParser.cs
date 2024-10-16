@@ -11301,7 +11301,18 @@ done:
             var token1 = this.EatToken();
             var token2 = this.EatToken();
 
-            return SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
+            var dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
+
+            // Triple-dot: explicitly reject this, to allow triple-dot to be added to the language without a breaking
+            // change. Without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2
+            if (this.CurrentToken.Kind == SyntaxKind.DotToken &&
+                NoTriviaBetween(token2, this.CurrentToken))
+            {
+                var trailingDot = this.AddError(this.EatToken(), ErrorCode.ERR_TripleDotNotAllowed);
+                return AddTrailingSkippedSyntax(dotDotToken, trailingDot);
+            }
+
+            return dotDotToken;
         }
 
         private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
