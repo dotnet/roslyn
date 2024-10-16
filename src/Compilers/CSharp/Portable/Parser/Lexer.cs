@@ -461,23 +461,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case '.':
                     if (!this.ScanNumericLiteral(ref info))
                     {
+                        // Consume the dot.
+                        //
+                        // Note: Similar to `>>` we do not consume a `..` as a single token in the lexer.  Instead it is
+                        // synthesized by the parser on demand.  This ensures in incremental scenarios as well we treat this
+                        // the combined character as something synthesized and something to be broken apart in case we want 
+                        // different treatments later on.
                         TextWindow.AdvanceChar();
-                        if (TextWindow.TryAdvance('.'))
+                        if (TextWindow.PeekChar(0) == '.' &&
+                            TextWindow.PeekChar(1) == '.')
                         {
-                            if (TextWindow.PeekChar() == '.')
-                            {
-                                // Triple-dot: explicitly reject this, to allow triple-dot
-                                // to be added to the language without a breaking change.
-                                // (without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2)
-                                this.AddError(ErrorCode.ERR_TripleDotNotAllowed);
-                            }
+                            // Triple-dot: explicitly reject this, to allow triple-dot
+                            // to be added to the language without a breaking change.
+                            // (without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2)
 
-                            info.Kind = SyntaxKind.DotDotToken;
+                            // We're at the 2nd dot in the ...    So add '1' to the position to report on the 3rd dot.
+                            this.AddError(position: TextWindow.Position + 1, width: 1, ErrorCode.ERR_TripleDotNotAllowed);
                         }
-                        else
-                        {
-                            info.Kind = SyntaxKind.DotToken;
-                        }
+
+                        info.Kind = SyntaxKind.DotToken;
                     }
                     break;
 
