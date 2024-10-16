@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {

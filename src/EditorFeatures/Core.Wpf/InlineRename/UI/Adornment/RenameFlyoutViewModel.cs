@@ -32,7 +32,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
-        private readonly IAsynchronousOperationListener _listener;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
@@ -58,7 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.CommitStateChange += CommitStateChange;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-            _listener = listenerProvider.GetListener(FeatureAttribute.Rename);
             var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(Session.TriggerSpan);
             if (smartRenameSession is not null)
             {
