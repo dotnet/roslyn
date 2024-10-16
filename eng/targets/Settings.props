@@ -183,21 +183,6 @@
     <GeneratePerformanceSensitiveAttribute>false</GeneratePerformanceSensitiveAttribute>
   </PropertyGroup>
 
-  <!-- Language-specific analyzer packages -->
-  <Choose>
-    <When Condition="'$(Language)' == 'VB'">
-      <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
-        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" PrivateAssets="all" />
-      </ItemGroup>
-    </When>
-
-    <When Condition="'$(Language)' == 'C#'">
-      <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" PrivateAssets="all" />
-      </ItemGroup>
-    </When>
-  </Choose>
-
   <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
     <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
