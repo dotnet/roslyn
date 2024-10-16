@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is not p ..",
                 // (1,13): error CS1001: Identifier expected
                 // c is not p ..
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13),
                 // (1,14): error CS1001: Identifier expected
                 // c is not p ..
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 14));
