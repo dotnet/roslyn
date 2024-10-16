@@ -11288,6 +11288,7 @@ done:
             }
         }
 
+        /// <summary>Check if we're currently at a .. sequence that can then be parsed out as a <see cref="SyntaxKind.DotDotToken"/>.</summary>
         public bool IsAtDotDotToken()
         {
             var token1 = this.CurrentToken;
@@ -11295,6 +11296,9 @@ done:
             return token1.Kind == SyntaxKind.DotToken && token2.Kind == SyntaxKind.DotToken && NoTriviaBetween(token1, token2);
         }
 
+        /// <summary>Consume the next two tokens as a <see cref="SyntaxKind.DotDotToken"/>.  Note: if three dot tokens
+        /// are in a row, the third will be consumed as skipped trivia to disallow any usage of <c>...</c> in the
+        /// language.</summary>
         public SyntaxToken EatDotDotToken()
         {
             Debug.Assert(IsAtDotDotToken());
