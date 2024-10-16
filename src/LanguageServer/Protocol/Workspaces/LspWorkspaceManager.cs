@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -532,7 +533,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// <summary>
     /// Returns a Roslyn language name for the given URI.
     /// </summary>
-    internal string GetLanguageForUri(Uri uri)
+    internal bool TryGetLanguageForUri(Uri uri, [NotNullWhen(true)] out string? language)
     {
         string? languageId = null;
         if (_trackedDocuments.TryGetValue(uri, out var trackedDocument))
@@ -540,7 +541,14 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             languageId = trackedDocument.LanguageId;
         }
 
-        return _languageInfoProvider.GetLanguageInformation(uri, languageId).LanguageName;
+        if (_languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInfo))
+        {
+            language = languageInfo.LanguageName;
+            return true;
+        }
+
+        language = null;
+        return false;
     }
 
     /// <summary>
