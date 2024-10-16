@@ -7,12 +7,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using ICSharpCode.Decompiler.TypeSystem;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
