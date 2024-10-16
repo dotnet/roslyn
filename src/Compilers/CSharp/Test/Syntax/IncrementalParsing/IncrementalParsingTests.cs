@@ -585,6 +585,7 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74456")]
         public void TestCollectionExpressionSpreadVsDeletingTopLevelBrace()
         {
             var source = """
