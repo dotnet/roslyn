@@ -26,7 +26,7 @@ The compiler is officially supported in the following configurations:
 - .NET Framework: x86, x64 and ARM64
 - .NET Core:
   - Operating Systems: Windows, macOS, Linux
-  - Arcihitectures: x86, x64, and ARM64
+  - Architectures: x86, x64, and ARM64
 - Mono Core: x86 and x64
 
 The compiler takes contributions for other platforms, such as big-endian architectures, but does not officially support the compiler there.
