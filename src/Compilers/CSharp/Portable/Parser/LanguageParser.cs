@@ -11682,7 +11682,9 @@ done:
             var nextTokenKind = this.PeekToken(1).Kind;
 
             // ?. is always the start of of a consequence expression.
-            if (nextTokenKind == SyntaxKind.DotToken)
+            //
+            // ?.. is a ternary with a range expression as it's 'whenTrue' clause.
+            if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken())
                 return true;
 
             if (nextTokenKind == SyntaxKind.OpenBracketToken)
