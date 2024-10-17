@@ -11082,14 +11082,9 @@ done:
                             if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
                                 && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
                             {
-                                if (token2.Kind == SyntaxKind.GreaterThanToken)
-                                {
-                                    opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
-                                }
-                                else
-                                {
-                                    opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
-                                }
+                                opKind = token2.Kind == SyntaxKind.GreaterThanToken
+                                    ? SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken)
+                                    : SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
 
                                 tokensToCombine = 3;
                             }
