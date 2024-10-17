@@ -530,8 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is ....",
                 // (1,6): error CS8635: Unexpected character sequence '...'
                 // c is ....
-                Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 6)
-            );
+                Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 6));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -767,9 +766,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void SlicePattern_11()
         {
             UsingExpression(@"c is [var x ..]",
-                    // (1,13): error CS1003: Syntax error, ',' expected
-                    // c is [var x ..]
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",").WithLocation(1, 13));
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // c is [var x ..]
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 13));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -837,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is [[]..]",
                 // (1,9): error CS1003: Syntax error, ',' expected
                 // c is [[]..]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "..").WithArguments(",").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 9));
 
             N(SyntaxKind.IsPatternExpression);
             {
@@ -871,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is not p ..",
                 // (1,13): error CS1001: Identifier expected
                 // c is not p ..
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(1, 13),
                 // (1,14): error CS1001: Identifier expected
                 // c is not p ..
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 14));

@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             get
             {
-                return _currentToken ?? (_currentToken = this.FetchCurrentToken());
+                return _currentToken ??= this.FetchCurrentToken();
             }
         }
 
