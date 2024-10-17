@@ -10963,6 +10963,9 @@ done:
                         this.ParseSubExpression(GetPrecedence(opKind)));
                 }
 
+                // Check *explicitly* for `..` starting an expression.  This *is* the initial term we want to parse out.
+                // If we have `expr..` though we don't do that here.  Instead, we'll parse out 'expr', and the `..`
+                // portion will be handled in ParseExpressionContinued.
                 if (tk == SyntaxKind.DotDotToken)
                 {
                     return _syntaxFactory.RangeExpression(
@@ -11353,164 +11356,262 @@ done:
         }
 
         private ExpressionSyntax ParsePrimaryExpression(Precedence precedence)
-            => this.ParsePostFixExpression(ParseTermWithoutPostfix(precedence));
-
-        private ExpressionSyntax ParseTermWithoutPostfix(Precedence precedence)
         {
-            var tk = this.CurrentToken.Kind;
-            switch (tk)
+            // Primary expressions:
+            // x.y, f(x), a[i], x?.y, x?[y], x++, x--, x!, new, typeof, checked, unchecked, default, nameof, delegate, sizeof, stackalloc, x->y
+            //
+            // Note that postfix operators (like ++) are still primary expressions, even though their prefix equivalents (`++x`) are unary.
+
+            return parsePostFixExpression(parsePrimaryExpressionWithoutPostfix(precedence));
+
+            ExpressionSyntax parsePrimaryExpressionWithoutPostfix(Precedence precedence)
             {
-                case SyntaxKind.TypeOfKeyword:
-                    return this.ParseTypeOfExpression();
-                case SyntaxKind.DefaultKeyword:
-                    return this.ParseDefaultExpression();
-                case SyntaxKind.SizeOfKeyword:
-                    return this.ParseSizeOfExpression();
-                case SyntaxKind.MakeRefKeyword:
-                    return this.ParseMakeRefExpression();
-                case SyntaxKind.RefTypeKeyword:
-                    return this.ParseRefTypeExpression();
-                case SyntaxKind.CheckedKeyword:
-                case SyntaxKind.UncheckedKeyword:
-                    return this.ParseCheckedOrUncheckedExpression();
-                case SyntaxKind.RefValueKeyword:
-                    return this.ParseRefValueExpression();
-                case SyntaxKind.ColonColonToken:
-                    // misplaced ::
-                    // Calling ParseAliasQualifiedName will cause us to create a missing identifier node that then
-                    // properly consumes the :: and the reset of the alias name afterwards.
-                    return this.ParseAliasQualifiedName(NameOptions.InExpression);
-                case SyntaxKind.EqualsGreaterThanToken:
-                    return this.ParseLambdaExpression();
-                case SyntaxKind.StaticKeyword:
-                    if (this.IsPossibleAnonymousMethodExpression())
-                    {
-                        return this.ParseAnonymousMethodExpression();
-                    }
-                    else if (this.IsPossibleLambdaExpression(precedence))
-                    {
+                var tk = this.CurrentToken.Kind;
+                switch (tk)
+                {
+                    case SyntaxKind.TypeOfKeyword:
+                        return this.ParseTypeOfExpression();
+                    case SyntaxKind.DefaultKeyword:
+                        return this.ParseDefaultExpression();
+                    case SyntaxKind.SizeOfKeyword:
+                        return this.ParseSizeOfExpression();
+                    case SyntaxKind.MakeRefKeyword:
+                        return this.ParseMakeRefExpression();
+                    case SyntaxKind.RefTypeKeyword:
+                        return this.ParseRefTypeExpression();
+                    case SyntaxKind.CheckedKeyword:
+                    case SyntaxKind.UncheckedKeyword:
+                        return this.ParseCheckedOrUncheckedExpression();
+                    case SyntaxKind.RefValueKeyword:
+                        return this.ParseRefValueExpression();
+                    case SyntaxKind.ColonColonToken:
+                        // misplaced ::
+                        // Calling ParseAliasQualifiedName will cause us to create a missing identifier node that then
+                        // properly consumes the :: and the reset of the alias name afterwards.
+                        return this.ParseAliasQualifiedName(NameOptions.InExpression);
+                    case SyntaxKind.EqualsGreaterThanToken:
                         return this.ParseLambdaExpression();
-                    }
-                    else
-                    {
-                        return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
-                    }
-                case SyntaxKind.IdentifierToken:
-                    {
-                        if (this.IsTrueIdentifier())
+                    case SyntaxKind.StaticKeyword:
+                        if (this.IsPossibleAnonymousMethodExpression())
                         {
-                            if (this.IsPossibleAnonymousMethodExpression())
-                            {
-                                return this.ParseAnonymousMethodExpression();
-                            }
-                            else if (this.IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda)
-                            {
-                                return lambda;
-                            }
-                            else if (this.IsPossibleDeconstructionLeft(precedence))
-                            {
-                                return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
-                            }
-                            else if (IsCurrentTokenFieldInKeywordContext() && PeekToken(1).Kind != SyntaxKind.ColonColonToken)
-                            {
-                                return _syntaxFactory.FieldExpression(this.EatContextualToken(SyntaxKind.FieldKeyword));
-                            }
-                            else
-                            {
-                                return this.ParseAliasQualifiedName(NameOptions.InExpression);
-                            }
+                            return this.ParseAnonymousMethodExpression();
+                        }
+                        else if (this.IsPossibleLambdaExpression(precedence))
+                        {
+                            return this.ParseLambdaExpression();
                         }
                         else
                         {
                             return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
                         }
-                    }
-                case SyntaxKind.OpenBracketToken:
-                    return this.IsPossibleLambdaExpression(precedence)
-                        ? this.ParseLambdaExpression()
-                        : this.ParseCollectionExpression();
-                case SyntaxKind.ThisKeyword:
-                    return _syntaxFactory.ThisExpression(this.EatToken());
-                case SyntaxKind.BaseKeyword:
-                    return ParseBaseExpression();
+                    case SyntaxKind.IdentifierToken:
+                        {
+                            if (this.IsTrueIdentifier())
+                            {
+                                if (this.IsPossibleAnonymousMethodExpression())
+                                {
+                                    return this.ParseAnonymousMethodExpression();
+                                }
+                                else if (this.IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda)
+                                {
+                                    return lambda;
+                                }
+                                else if (this.IsPossibleDeconstructionLeft(precedence))
+                                {
+                                    return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
+                                }
+                                else if (IsCurrentTokenFieldInKeywordContext() && PeekToken(1).Kind != SyntaxKind.ColonColonToken)
+                                {
+                                    return _syntaxFactory.FieldExpression(this.EatContextualToken(SyntaxKind.FieldKeyword));
+                                }
+                                else
+                                {
+                                    return this.ParseAliasQualifiedName(NameOptions.InExpression);
+                                }
+                            }
+                            else
+                            {
+                                return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
+                            }
+                        }
+                    case SyntaxKind.OpenBracketToken:
+                        return this.IsPossibleLambdaExpression(precedence)
+                            ? this.ParseLambdaExpression()
+                            : this.ParseCollectionExpression();
+                    case SyntaxKind.ThisKeyword:
+                        return _syntaxFactory.ThisExpression(this.EatToken());
+                    case SyntaxKind.BaseKeyword:
+                        return ParseBaseExpression();
 
-                case SyntaxKind.ArgListKeyword:
-                case SyntaxKind.FalseKeyword:
-                case SyntaxKind.TrueKeyword:
-                case SyntaxKind.NullKeyword:
-                case SyntaxKind.NumericLiteralToken:
-                case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.Utf8StringLiteralToken:
-                case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
-                case SyntaxKind.MultiLineRawStringLiteralToken:
-                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
-                case SyntaxKind.CharacterLiteralToken:
-                    return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
-                case SyntaxKind.InterpolatedStringStartToken:
-                case SyntaxKind.InterpolatedVerbatimStringStartToken:
-                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
-                case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
-                    throw new NotImplementedException(); // this should not occur because these tokens are produced and parsed immediately
-                case SyntaxKind.InterpolatedStringToken:
-                    return this.ParseInterpolatedStringToken();
-                case SyntaxKind.OpenParenToken:
-                    {
-                        return IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda
-                            ? lambda
-                            : this.ParseCastOrParenExpressionOrTuple();
-                    }
-                case SyntaxKind.NewKeyword:
-                    return this.ParseNewExpression();
-                case SyntaxKind.StackAllocKeyword:
-                    return this.ParseStackAllocExpression();
-                case SyntaxKind.DelegateKeyword:
-                    // check for lambda expression with explicit function pointer return type
-                    return this.IsPossibleLambdaExpression(precedence)
-                        ? this.ParseLambdaExpression()
-                        : this.ParseAnonymousMethodExpression();
-                case SyntaxKind.RefKeyword:
-                    // check for lambda expression with explicit ref return type: `ref int () => { ... }`
-                    if (this.IsPossibleLambdaExpression(precedence))
-                    {
-                        return this.ParseLambdaExpression();
-                    }
-                    // ref is not expected to appear in this position.
-                    var refKeyword = this.EatToken();
-                    return this.AddError(_syntaxFactory.RefExpression(refKeyword, this.ParseExpressionCore()), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
-                default:
-                    if (IsPredefinedType(tk))
-                    {
+                    case SyntaxKind.ArgListKeyword:
+                    case SyntaxKind.FalseKeyword:
+                    case SyntaxKind.TrueKeyword:
+                    case SyntaxKind.NullKeyword:
+                    case SyntaxKind.NumericLiteralToken:
+                    case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.Utf8StringLiteralToken:
+                    case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
+                    case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
+                    case SyntaxKind.CharacterLiteralToken:
+                        return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
+                    case SyntaxKind.InterpolatedStringStartToken:
+                    case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                    case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                    case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
+                        throw new NotImplementedException(); // this should not occur because these tokens are produced and parsed immediately
+                    case SyntaxKind.InterpolatedStringToken:
+                        return this.ParseInterpolatedStringToken();
+                    case SyntaxKind.OpenParenToken:
+                        {
+                            return IsPossibleLambdaExpression(precedence) && this.TryParseLambdaExpression() is { } lambda
+                                ? lambda
+                                : this.ParseCastOrParenExpressionOrTuple();
+                        }
+                    case SyntaxKind.NewKeyword:
+                        return this.ParseNewExpression();
+                    case SyntaxKind.StackAllocKeyword:
+                        return this.ParseStackAllocExpression();
+                    case SyntaxKind.DelegateKeyword:
+                        // check for lambda expression with explicit function pointer return type
+                        return this.IsPossibleLambdaExpression(precedence)
+                            ? this.ParseLambdaExpression()
+                            : this.ParseAnonymousMethodExpression();
+                    case SyntaxKind.RefKeyword:
+                        // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                         if (this.IsPossibleLambdaExpression(precedence))
                         {
                             return this.ParseLambdaExpression();
                         }
-
-                        // check for intrinsic type followed by '.'
-                        var expr = _syntaxFactory.PredefinedType(this.EatToken());
-
-                        if (this.CurrentToken.Kind != SyntaxKind.DotToken || tk == SyntaxKind.VoidKeyword)
+                        // ref is not expected to appear in this position.
+                        var refKeyword = this.EatToken();
+                        return this.AddError(_syntaxFactory.RefExpression(refKeyword, this.ParseExpressionCore()), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                    default:
+                        if (IsPredefinedType(tk))
                         {
-                            expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
-                        }
+                            if (this.IsPossibleLambdaExpression(precedence))
+                            {
+                                return this.ParseLambdaExpression();
+                            }
 
-                        return expr;
-                    }
-                    else
-                    {
-                        var expr = this.CreateMissingIdentifierName();
+                            // check for intrinsic type followed by '.'
+                            var expr = _syntaxFactory.PredefinedType(this.EatToken());
 
-                        if (tk == SyntaxKind.EndOfFileToken)
-                        {
-                            expr = this.AddError(expr, ErrorCode.ERR_ExpressionExpected);
+                            if (this.CurrentToken.Kind != SyntaxKind.DotToken || tk == SyntaxKind.VoidKeyword)
+                            {
+                                expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                            }
+
+                            return expr;
                         }
                         else
                         {
-                            expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
-                        }
+                            var expr = this.CreateMissingIdentifierName();
 
-                        return expr;
+                            if (tk == SyntaxKind.EndOfFileToken)
+                            {
+                                expr = this.AddError(expr, ErrorCode.ERR_ExpressionExpected);
+                            }
+                            else
+                            {
+                                expr = this.AddError(expr, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                            }
+
+                            return expr;
+                        }
+                }
+            }
+
+            ExpressionSyntax parsePostFixExpression(ExpressionSyntax expr)
+            {
+                Debug.Assert(expr != null);
+
+                while (true)
+                {
+                    // If the set of postfix expressions is updated here, please review ParseStatementAttributeDeclarations
+                    // to see if it may need a similar look-ahead check to determine if something is a collection expression
+                    // versus an attribute.
+
+                    switch (this.CurrentToken.Kind)
+                    {
+                        case SyntaxKind.OpenParenToken:
+                            expr = _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
+                            continue;
+
+                        case SyntaxKind.OpenBracketToken:
+                            expr = _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
+                            continue;
+
+                        case SyntaxKind.PlusPlusToken:
+                        case SyntaxKind.MinusMinusToken:
+                            expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(this.CurrentToken.Kind), expr, this.EatToken());
+                            continue;
+
+                        case SyntaxKind.ColonColonToken:
+                            if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken)
+                            {
+                                expr = _syntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    expr,
+                                    // replace :: with missing dot and annotate with skipped text "::" and error
+                                    this.ConvertToMissingWithTrailingTrivia(this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedAliasedName), SyntaxKind.DotToken),
+                                    this.ParseSimpleName(NameOptions.InExpression));
+                            }
+                            else
+                            {
+                                // just some random trailing :: ?
+                                expr = AddTrailingSkippedSyntax(expr, this.EatTokenWithPrejudice(SyntaxKind.DotToken));
+                            }
+
+                            continue;
+
+                        case SyntaxKind.MinusGreaterThanToken:
+                            expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.PointerMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
+                            continue;
+
+                        case SyntaxKind.DotToken:
+                            // if we have the error situation:
+                            //
+                            //      expr.
+                            //      X Y
+                            //
+                            // Then we don't want to parse this out as "Expr.X"
+                            //
+                            // It's far more likely the member access expression is simply incomplete and
+                            // there is a new declaration on the next line.
+                            if (this.CurrentToken.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia) &&
+                                this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
+                                this.PeekToken(2).ContextualKind == SyntaxKind.IdentifierToken)
+                            {
+                                return _syntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(),
+                                    this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected));
+                            }
+
+                            expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
+                            continue;
+
+                        case SyntaxKind.QuestionToken:
+                            if (CanStartConsequenceExpression())
+                            {
+                                expr = _syntaxFactory.ConditionalAccessExpression(
+                                    expr,
+                                    this.EatToken(),
+                                    ParseConsequenceSyntax());
+                                continue;
+                            }
+
+                            return expr;
+
+                        case SyntaxKind.ExclamationToken:
+                            expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, this.EatToken());
+                            continue;
+
+                        default:
+                            return expr;
                     }
+                }
             }
         }
 
@@ -11592,97 +11693,6 @@ done:
 
             return this.PeekToken(tokenIndex).Kind == SyntaxKind.DelegateKeyword &&
                 this.PeekToken(tokenIndex + 1).Kind != SyntaxKind.AsteriskToken;
-        }
-
-        private ExpressionSyntax ParsePostFixExpression(ExpressionSyntax expr)
-        {
-            Debug.Assert(expr != null);
-
-            while (true)
-            {
-                // If the set of postfix expressions is updated here, please review ParseStatementAttributeDeclarations
-                // to see if it may need a similar look-ahead check to determine if something is a collection expression
-                // versus an attribute.
-
-                switch (this.CurrentToken.Kind)
-                {
-                    case SyntaxKind.OpenParenToken:
-                        expr = _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
-                        continue;
-
-                    case SyntaxKind.OpenBracketToken:
-                        expr = _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
-                        continue;
-
-                    case SyntaxKind.PlusPlusToken:
-                    case SyntaxKind.MinusMinusToken:
-                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(this.CurrentToken.Kind), expr, this.EatToken());
-                        continue;
-
-                    case SyntaxKind.ColonColonToken:
-                        if (this.PeekToken(1).Kind == SyntaxKind.IdentifierToken)
-                        {
-                            expr = _syntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                expr,
-                                // replace :: with missing dot and annotate with skipped text "::" and error
-                                this.ConvertToMissingWithTrailingTrivia(this.AddError(this.EatToken(), ErrorCode.ERR_UnexpectedAliasedName), SyntaxKind.DotToken),
-                                this.ParseSimpleName(NameOptions.InExpression));
-                        }
-                        else
-                        {
-                            // just some random trailing :: ?
-                            expr = AddTrailingSkippedSyntax(expr, this.EatTokenWithPrejudice(SyntaxKind.DotToken));
-                        }
-
-                        continue;
-
-                    case SyntaxKind.MinusGreaterThanToken:
-                        expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.PointerMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
-                        continue;
-
-                    case SyntaxKind.DotToken:
-                        // if we have the error situation:
-                        //
-                        //      expr.
-                        //      X Y
-                        //
-                        // Then we don't want to parse this out as "Expr.X"
-                        //
-                        // It's far more likely the member access expression is simply incomplete and
-                        // there is a new declaration on the next line.
-                        if (this.CurrentToken.TrailingTrivia.Any((int)SyntaxKind.EndOfLineTrivia) &&
-                            this.PeekToken(1).Kind == SyntaxKind.IdentifierToken &&
-                            this.PeekToken(2).ContextualKind == SyntaxKind.IdentifierToken)
-                        {
-                            return _syntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(),
-                                this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected));
-                        }
-
-                        expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
-                        continue;
-
-                    case SyntaxKind.QuestionToken:
-                        if (CanStartConsequenceExpression())
-                        {
-                            expr = _syntaxFactory.ConditionalAccessExpression(
-                                expr,
-                                this.EatToken(),
-                                ParseConsequenceSyntax());
-                            continue;
-                        }
-
-                        return expr;
-
-                    case SyntaxKind.ExclamationToken:
-                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, this.EatToken());
-                        continue;
-
-                    default:
-                        return expr;
-                }
-            }
         }
 
         private bool CanStartConsequenceExpression()
