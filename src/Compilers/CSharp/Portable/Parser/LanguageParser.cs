@@ -10948,9 +10948,10 @@ done:
             if (IsInvalidSubExpression(tk))
                 return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
 
-            return ParseExpressionContinued(parseLeftOperand(precedence), precedence);
+            return ParseExpressionContinued(parseUnaryOrPrimaryExpression(precedence), precedence);
 
-            ExpressionSyntax parseLeftOperand(Precedence precedence)
+            // Parses out a unary expression, or something with higher precedence (cast, addressof, primary).
+            ExpressionSyntax parseUnaryOrPrimaryExpression(Precedence precedence)
             {
                 // Parse a left operand -- possibly preceded by a unary operator.
                 if (IsExpectedPrefixUnaryOperator(tk))
@@ -11005,14 +11006,20 @@ done:
                     return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
 
                 // Not a unary operator - get a primary expression.
-                return this.ParseTerm(precedence);
+                return this.ParsePrimaryExpression(precedence);
             }
         }
 
-        private ExpressionSyntax ParseExpressionContinued(ExpressionSyntax leftOperand, Precedence precedence)
+        /// <summary>
+        /// Takes in an initial unary expression or primary expression, and then consumes what follows as long as as
+        /// it's precedence is either lower than the <paramref name="precedence"/> we're parsing currently (or equal, to
+        /// that precedence if we have something right-associative <see cref="IsRightAssociative"/>.
+        /// </summary>
+        private ExpressionSyntax ParseExpressionContinued(ExpressionSyntax unaryOrPrimaryExpression, Precedence precedence)
         {
+            var expandedExpression = unaryOrPrimaryExpression;
             // Keep on expanding the left operand as long as what we see fits the precedence we're under.
-            while (tryExpandLeftOperand(ref leftOperand, precedence))
+            while (tryExpandExpression(ref expandedExpression, precedence))
                 continue;
 
             // Finally, consume a conditional expression if precedence allows it.
@@ -11027,14 +11034,16 @@ done:
             // 1. Only take the conditional part of the expression if we're at or below its precedence.
             // 2. When parsing the branches of the expression, parse at the highest precedence again ('expression').
             //    This allows for things like assignments/lambdas in the branches of the conditional.
-            if (CurrentToken.Kind != SyntaxKind.QuestionToken || precedence > Precedence.Conditional)
-                return leftOperand;
+            if (this.CurrentToken.Kind == SyntaxKind.QuestionToken && precedence <= Precedence.Conditional)
+                return consumeConditionalExpression(expandedExpression);
 
-            return consumeConditionalExpression(leftOperand);
+            return expandedExpression;
 
-            bool tryExpandLeftOperand(ref ExpressionSyntax leftOperand, Precedence precedence)
+            bool tryExpandExpression(ref ExpressionSyntax leftOperand, Precedence precedence)
             {
-                // We either have a binary or assignment operator here, or we're finished.
+                // Look for operators that can follow what we've seen so far, and which are acceptable at this
+                // precedence level.  Examples include binary operator, assignment operators, range operators `..`, as
+                // well as `switch` and `with` clauses.
                 var tk = this.CurrentToken.ContextualKind;
 
                 SyntaxKind opKind;
@@ -11043,7 +11052,31 @@ done:
                 // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
                 // an attribute.
 
-                if (IsExpectedBinaryOperator(tk))
+                // check for >>, >>=, >>> or >>>=
+                if (tk == SyntaxKind.GreaterThanToken
+                    && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token1
+                    && NoTriviaBetween(this.CurrentToken, token1)) // check to see if they really are adjacent
+                {
+                    if (token1.Kind == SyntaxKind.GreaterThanToken)
+                    {
+                        if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                            && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
+                        {
+                            opKind = token2.Kind == SyntaxKind.GreaterThanToken
+                                ? SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken)
+                                : SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
+                        }
+                        else
+                        {
+                            opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
+                        }
+                    }
+                    else
+                    {
+                        opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                    }
+                }
+                else if (IsExpectedBinaryOperator(tk))
                 {
                     opKind = SyntaxFacts.GetBinaryExpression(tk);
                 }
@@ -11070,38 +11103,6 @@ done:
                     return false;
                 }
 
-                // check for >>, >>=, >>> or >>>=
-                var tokensToCombine = 1;
-                {
-                    if (tk == SyntaxKind.GreaterThanToken
-                        && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token1
-                        && NoTriviaBetween(this.CurrentToken, token1)) // check to see if they really are adjacent
-                    {
-                        if (token1.Kind == SyntaxKind.GreaterThanToken)
-                        {
-                            if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
-                                && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
-                            {
-                                opKind = token2.Kind == SyntaxKind.GreaterThanToken
-                                    ? SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken)
-                                    : SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
-
-                                tokensToCombine = 3;
-                            }
-                            else
-                            {
-                                opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
-                                tokensToCombine = 2;
-                            }
-                        }
-                        else
-                        {
-                            opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
-                            tokensToCombine = 2;
-                        }
-                    }
-                }
-
                 var newPrecedence = GetPrecedence(opKind);
 
                 // Check the precedence to see if we should "take" this operator.  A lower precedence means what's
@@ -11116,40 +11117,9 @@ done:
 
                 // We'll "take" this operator, as precedence is tentatively OK.
 
-                // Combine tokens into a single token if needed
-                SyntaxToken operatorToken;
-                if (tokensToCombine == 1)
-                {
-                    operatorToken = this.EatContextualToken(tk);
-                }
-                else if (tokensToCombine == 2)
-                {
-                    var token1 = this.EatContextualToken(tk);
-                    var token2 = this.EatToken();
-                    operatorToken = SyntaxFactory.Token(
-                        token1.GetLeadingTrivia(),
-                        token2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken,
-                        token2.GetTrailingTrivia());
-                }
-                else if (tokensToCombine == 3)
-                {
-                    var token1 = this.EatContextualToken(tk);
-                    var token2 = this.EatToken();
-                    var token3 = this.EatToken();
+                var operatorToken = eatOperatorToken(opKind);
 
-                    Debug.Assert(token2.Kind == SyntaxKind.GreaterThanToken);
-                    operatorToken = SyntaxFactory.Token(
-                        token1.GetLeadingTrivia(),
-                        token3.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
-                        token3.GetTrailingTrivia());
-                }
-                else
-                {
-                    throw ExceptionUtilities.UnexpectedValue(tokensToCombine);
-                }
-
-                var leftPrecedence = GetPrecedence(leftOperand.Kind);
-                if (newPrecedence > leftPrecedence)
+                if (newPrecedence > GetPrecedence(leftOperand.Kind))
                 {
                     // Normally, a left operand with a looser precedence will consume all right operands that
                     // have a tighter precedence.  For example, in the expression `a + b * c`, the `* c` part
@@ -11172,16 +11142,29 @@ done:
                 {
                     leftOperand = _syntaxFactory.BinaryExpression(
                         opKind, leftOperand, operatorToken, this.ParseType(ParseTypeMode.AsExpression));
-                    return true;
                 }
-
-                if (opKind == SyntaxKind.IsExpression)
+                else if (opKind == SyntaxKind.IsExpression)
                 {
                     leftOperand = ParseIsExpression(leftOperand, operatorToken);
-                    return true;
                 }
-
-                if (SyntaxFacts.IsAssignmentExpression(opKind))
+                else if (opKind == SyntaxKind.SwitchExpression)
+                {
+                    leftOperand = ParseSwitchExpression(leftOperand, operatorToken);
+                }
+                else if (opKind == SyntaxKind.WithExpression)
+                {
+                    leftOperand = ParseWithExpression(leftOperand, operatorToken);
+                }
+                else if (opKind == SyntaxKind.RangeExpression)
+                {
+                    leftOperand = _syntaxFactory.RangeExpression(
+                        leftOperand,
+                        operatorToken,
+                        CanStartExpression()
+                            ? this.ParseSubExpression(Precedence.Range)
+                            : null);
+                }
+                else if (SyntaxFacts.IsAssignmentExpression(opKind))
                 {
                     ExpressionSyntax rhs;
 
@@ -11199,35 +11182,49 @@ done:
                     }
 
                     leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, operatorToken, rhs);
-                    return true;
                 }
-
-                if (opKind == SyntaxKind.SwitchExpression)
+                else if (IsExpectedBinaryOperator(tk))
                 {
-                    leftOperand = ParseSwitchExpression(leftOperand, operatorToken);
-                    return true;
+                    leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
                 }
-
-                if (opKind == SyntaxKind.WithExpression)
+                else
                 {
-                    leftOperand = ParseWithExpression(leftOperand, operatorToken);
-                    return true;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
-                if (opKind == SyntaxKind.RangeExpression)
-                {
-                    leftOperand = _syntaxFactory.RangeExpression(
-                        leftOperand,
-                        operatorToken,
-                        CanStartExpression()
-                            ? this.ParseSubExpression(Precedence.Range)
-                            : null);
-                    return true;
-                }
-
-                Debug.Assert(IsExpectedBinaryOperator(tk));
-                leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
                 return true;
+            }
+
+            SyntaxToken eatOperatorToken(SyntaxKind operatorKind)
+            {
+                // Combine tokens into a single token if needed
+                if (operatorKind is SyntaxKind.RightShiftExpression or SyntaxKind.RightShiftAssignmentExpression)
+                {
+                    // >>  or >>=
+                    return SyntaxFactory.Token(
+                        this.EatToken().GetLeadingTrivia(),
+                        operatorKind == SyntaxKind.RightShiftExpression ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                        this.EatToken().GetTrailingTrivia());
+
+                }
+                else if (operatorKind is SyntaxKind.UnsignedRightShiftExpression or SyntaxKind.UnsignedRightShiftAssignmentExpression)
+                {
+                    // >>>  or >>>=
+                    var leadingTrivia = this.EatToken().GetLeadingTrivia();
+
+                    // Skip middle token.
+                    _ = this.EatToken();
+
+                    return SyntaxFactory.Token(
+                        leadingTrivia,
+                        operatorKind == SyntaxKind.UnsignedRightShiftExpression ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+                        this.EatToken().GetTrailingTrivia());
+                }
+                else
+                {
+                    // Normal operator
+                    return this.EatContextualToken(this.CurrentToken.ContextualKind);
+                }
             }
 
             ConditionalExpressionSyntax consumeConditionalExpression(ExpressionSyntax leftOperand)
@@ -11354,7 +11351,7 @@ done:
             };
         }
 
-        private ExpressionSyntax ParseTerm(Precedence precedence)
+        private ExpressionSyntax ParsePrimaryExpression(Precedence precedence)
             => this.ParsePostFixExpression(ParseTermWithoutPostfix(precedence));
 
         private ExpressionSyntax ParseTermWithoutPostfix(Precedence precedence)
