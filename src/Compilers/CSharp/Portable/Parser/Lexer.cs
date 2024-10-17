@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         Delimited = 1
     }
 
-    internal partial class Lexer : AbstractLexer
+    internal sealed partial class Lexer : AbstractLexer
     {
         private const int TriviaListInitialCapacity = 8;
 
@@ -465,10 +465,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         if (atDotPosition >= 1 &&
                             atDotPosition == this.TextWindow.LexemeStartPosition)
                         {
-                            // we have something like .0 this could be a fp number *except* the case where we have `..0`
-                            // in that case, we want two dots followed by an integer (which will be treated as a range expression).
+                            // We have something like: .0
                             //
-                            // Move back one space to see what's before this dot.
+                            // This could be a fp number *except* the case where we have `..0` in that case, we want two
+                            // dots followed by an integer (which will be treated as a range expression).
+                            //
+                            // Move back one space to see what's before this dot and adjust accordingly.
 
                             this.TextWindow.Reset(atDotPosition - 1);
                             var priorCharacterIsDot = this.TextWindow.PeekChar() is '.';

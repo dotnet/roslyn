@@ -11301,7 +11301,16 @@ done:
             var token1 = this.EatToken();
             var token2 = this.EatToken();
 
-            return SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
+            var dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
+            if (this.CurrentToken is { Kind: SyntaxKind.DotToken } token3 &&
+                NoTriviaBetween(token2, token3))
+            {
+                // Give a specific error about `...` being illegal so we can reserve that syntax for the language for
+                // the future.
+                return AddError(dotDotToken, offset: dotDotToken.GetLeadingTriviaWidth(), length: 0, ErrorCode.ERR_TripleDotNotAllowed);
+            }
+
+            return dotDotToken;
         }
 
         private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
