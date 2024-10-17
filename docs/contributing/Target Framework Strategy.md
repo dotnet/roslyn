@@ -117,5 +117,6 @@ When the .NET SDK RTMs and Roslyn adopts it all occurrences of `$(NetRoslynNext)
 - Might need updating `MicrosoftNetCompilersToolsetVersion` in `eng\Versions.props` to consume latest compiler features.
 - Change `$(NetRoslynNext)` references to `$(NetRoslyn)` in project files.
 - Update TFMs in code/scripts/pipelines (search for the old `netX.0` and replace with the new `netY.0`).
+- Replace `#if NET7_0_OR_GREATER` corresponding to the no longer used TFM (`net7.0` in this example) with the lowest used TFM (e.g., `net8.0`: `#if NET8_0_OR_GREATER`) and similarly the negated variant `#if !NET7_0_OR_GREATER` with `#if !NET8_0_OR_GREATER`. See https://github.com/dotnet/roslyn/issues/75453#issuecomment-2405500584.
 - Check that the same number of tests still run in CI (they are not unintentionally filtered out by TFM).
 - Try an official build, a VS insertion.
