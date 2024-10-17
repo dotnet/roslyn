@@ -212,7 +212,7 @@ public abstract partial class CompletionService : ILanguageService
         if (provider is null)
             return CompletionDescription.Empty;
 
-        var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+        var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
         // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
         (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
@@ -243,7 +243,7 @@ public abstract partial class CompletionService : ILanguageService
         var provider = GetProvider(item, document.Project);
         if (provider != null)
         {
-            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
             // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
             (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);

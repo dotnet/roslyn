@@ -151,7 +151,7 @@ public abstract partial class CompletionService
         static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProvidersAsync(
             Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
         {
-            var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+            var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
             if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
@@ -327,7 +327,7 @@ public abstract partial class CompletionService
         SharedSyntaxContextsWithSpeculativeModel? sharedContext,
         CancellationToken cancellationToken)
     {
-        var extensionManager = document.Project.Solution.Workspace.Services.GetRequiredService<IExtensionManager>();
+        var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
 
         var context = new CompletionContext(provider, document, position, sharedContext, defaultSpan, triggerInfo, options, cancellationToken);
 
