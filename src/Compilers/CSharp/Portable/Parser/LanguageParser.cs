@@ -10948,9 +10948,9 @@ done:
             if (IsInvalidSubExpression(tk))
                 return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
 
-            return ParseExpressionContinued(parseLeftOperand(), precedence);
+            return ParseExpressionContinued(parseLeftOperand(precedence), precedence);
 
-            ExpressionSyntax parseLeftOperand()
+            ExpressionSyntax parseLeftOperand(Precedence precedence)
             {
                 // Parse a left operand -- possibly preceded by a unary operator.
                 if (IsExpectedPrefixUnaryOperator(tk))
@@ -11011,12 +11011,32 @@ done:
 
         private ExpressionSyntax ParseExpressionContinued(ExpressionSyntax leftOperand, Precedence precedence)
         {
-            while (true)
+            // Keep on expanding the left operand as long as what we see fits the precedence we're under.
+            while (tryExpandLeftOperand(ref leftOperand, precedence))
+                continue;
+
+            // Finally, consume a conditional expression if precedence allows it.
+
+            // https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/expressions.md#1115-conditional-operator:
+            //
+            // conditional_expression
+            //     : null_coalescing_expression
+            //     | null_coalescing_expression '?' expression ':' expression
+            //     ;
+            //
+            // 1. Only take the conditional part of the expression if we're at or below its precedence.
+            // 2. When parsing the branches of the expression, parse at the highest precedence again ('expression').
+            //    This allows for things like assignments/lambdas in the branches of the conditional.
+            if (CurrentToken.Kind != SyntaxKind.QuestionToken || precedence > Precedence.Conditional)
+                return leftOperand;
+
+            return consumeConditionalExpression(leftOperand);
+
+            bool tryExpandLeftOperand(ref ExpressionSyntax leftOperand, Precedence precedence)
             {
                 // We either have a binary or assignment operator here, or we're finished.
                 var tk = this.CurrentToken.ContextualKind;
 
-                bool isAssignmentOperator = false;
                 SyntaxKind opKind;
 
                 // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
@@ -11030,7 +11050,6 @@ done:
                 else if (IsExpectedAssignmentOperator(tk))
                 {
                     opKind = SyntaxFacts.GetAssignmentExpression(tk);
-                    isAssignmentOperator = true;
                 }
                 else if (tk == SyntaxKind.DotDotToken)
                 {
@@ -11046,64 +11065,93 @@ done:
                 }
                 else
                 {
-                    break;
+                    // Something that doesn't expand the current expression we're looking at.  Bail out and see if we
+                    // can end with a conditional expression.
+                    return false;
+                }
+
+                // check for >>, >>=, >>> or >>>=
+                var tokensToCombine = 1;
+                {
+                    if (tk == SyntaxKind.GreaterThanToken
+                        && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token1
+                        && NoTriviaBetween(this.CurrentToken, token1)) // check to see if they really are adjacent
+                    {
+                        if (token1.Kind == SyntaxKind.GreaterThanToken)
+                        {
+                            if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                                && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
+                            {
+                                if (token2.Kind == SyntaxKind.GreaterThanToken)
+                                {
+                                    opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                }
+                                else
+                                {
+                                    opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
+                                }
+
+                                tokensToCombine = 3;
+                            }
+                            else
+                            {
+                                opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
+                                tokensToCombine = 2;
+                            }
+                        }
+                        else
+                        {
+                            opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                            tokensToCombine = 2;
+                        }
+                    }
                 }
 
                 var newPrecedence = GetPrecedence(opKind);
 
-                // check for >>, >>=, >>> or >>>=
-                int tokensToCombine = 1;
-                if (tk == SyntaxKind.GreaterThanToken
-                    && this.PeekToken(1).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
-                    && NoTriviaBetween(this.CurrentToken, this.PeekToken(1))) // check to see if they really are adjacent
-                {
-                    if (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
-                    {
-                        if (this.PeekToken(2).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
-                            && NoTriviaBetween(this.PeekToken(1), this.PeekToken(2))) // check to see if they really are adjacent
-                        {
-                            if (this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
-                            {
-                                opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
-                            }
-                            else
-                            {
-                                opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
-                                isAssignmentOperator = true;
-                            }
-
-                            tokensToCombine = 3;
-                        }
-                        else
-                        {
-                            opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
-                            tokensToCombine = 2;
-                        }
-                    }
-                    else
-                    {
-                        opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
-                        isAssignmentOperator = true;
-                        tokensToCombine = 2;
-                    }
-
-                    newPrecedence = GetPrecedence(opKind);
-                }
-
-                // Check the precedence to see if we should "take" this operator
+                // Check the precedence to see if we should "take" this operator.  A lower precedence means what's
+                // coming isn't a child of us, but rather we will be a child of it.  So we bail out and let any higher
+                // up expression parsing consume it with us as the left side.
                 if (newPrecedence < precedence)
-                {
-                    break;
-                }
+                    return false;
 
                 // Same precedence, but not right-associative -- deal with this "later"
                 if ((newPrecedence == precedence) && !IsRightAssociative(opKind))
-                {
-                    break;
-                }
+                    return false;
 
                 // We'll "take" this operator, as precedence is tentatively OK.
-                var opToken = this.EatContextualToken(tk);
+
+                // Combine tokens into a single token if needed
+                SyntaxToken operatorToken;
+                if (tokensToCombine == 1)
+                {
+                    operatorToken = this.EatContextualToken(tk);
+                }
+                else if (tokensToCombine == 2)
+                {
+                    var token1 = this.EatContextualToken(tk);
+                    var token2 = this.EatToken();
+                    operatorToken = SyntaxFactory.Token(
+                        token1.GetLeadingTrivia(),
+                        token2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                        token2.GetTrailingTrivia());
+                }
+                else if (tokensToCombine == 3)
+                {
+                    var token1 = this.EatContextualToken(tk);
+                    var token2 = this.EatToken();
+                    var token3 = this.EatToken();
+
+                    Debug.Assert(token2.Kind == SyntaxKind.GreaterThanToken);
+                    operatorToken = SyntaxFactory.Token(
+                        token1.GetLeadingTrivia(),
+                        token3.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+                        token3.GetTrailingTrivia());
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(tokensToCombine);
+                }
 
                 var leftPrecedence = GetPrecedence(leftOperand.Kind);
                 if (newPrecedence > leftPrecedence)
@@ -11119,40 +11167,26 @@ done:
                     // with an anonymous method expression or a lambda expression with a block body.  No
                     // further parsing will find a way to fix things up, so we accept the operator but issue
                     // a diagnostic.
-                    ErrorCode errorCode = leftOperand.Kind == SyntaxKind.IsPatternExpression ? ErrorCode.ERR_UnexpectedToken : ErrorCode.WRN_PrecedenceInversion;
-                    opToken = this.AddError(opToken, errorCode, opToken.Text);
-                }
-
-                // Combine tokens into a single token if needed
-                if (tokensToCombine == 2)
-                {
-                    var opToken2 = this.EatToken();
-                    var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken;
-                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
-                }
-                else if (tokensToCombine == 3)
-                {
-                    var opToken2 = this.EatToken();
-                    Debug.Assert(opToken2.Kind == SyntaxKind.GreaterThanToken);
-                    opToken2 = this.EatToken();
-                    var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
-                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
-                }
-                else if (tokensToCombine != 1)
-                {
-                    throw ExceptionUtilities.UnexpectedValue(tokensToCombine);
+                    operatorToken = this.AddError(
+                        operatorToken,
+                        leftOperand.Kind == SyntaxKind.IsPatternExpression ? ErrorCode.ERR_UnexpectedToken : ErrorCode.WRN_PrecedenceInversion,
+                        operatorToken.Text);
                 }
 
                 if (opKind == SyntaxKind.AsExpression)
                 {
-                    var type = this.ParseType(ParseTypeMode.AsExpression);
-                    leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, type);
+                    leftOperand = _syntaxFactory.BinaryExpression(
+                        opKind, leftOperand, operatorToken, this.ParseType(ParseTypeMode.AsExpression));
+                    return true;
                 }
-                else if (opKind == SyntaxKind.IsExpression)
+
+                if (opKind == SyntaxKind.IsExpression)
                 {
-                    leftOperand = ParseIsExpression(leftOperand, opToken);
+                    leftOperand = ParseIsExpression(leftOperand, operatorToken);
+                    return true;
                 }
-                else if (isAssignmentOperator)
+
+                if (SyntaxFacts.IsAssignmentExpression(opKind))
                 {
                     ExpressionSyntax rhs;
 
@@ -11169,115 +11203,102 @@ done:
                         rhs = this.ParseSubExpression(newPrecedence);
                     }
 
-                    leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, rhs);
+                    leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, operatorToken, rhs);
+                    return true;
                 }
-                else if (opKind == SyntaxKind.SwitchExpression)
-                {
-                    leftOperand = ParseSwitchExpression(leftOperand, opToken);
-                }
-                else if (opKind == SyntaxKind.WithExpression)
-                {
-                    leftOperand = ParseWithExpression(leftOperand, opToken);
-                }
-                else if (tk == SyntaxKind.DotDotToken)
-                {
-                    // Operator ".." here can either be a binary or a postfix unary operator:
-                    Debug.Assert(opKind == SyntaxKind.RangeExpression);
 
-                    ExpressionSyntax rightOperand;
-                    if (CanStartExpression())
+                if (opKind == SyntaxKind.SwitchExpression)
+                {
+                    leftOperand = ParseSwitchExpression(leftOperand, operatorToken);
+                    return true;
+                }
+
+                if (opKind == SyntaxKind.WithExpression)
+                {
+                    leftOperand = ParseWithExpression(leftOperand, operatorToken);
+                    return true;
+                }
+
+                if (opKind == SyntaxKind.RangeExpression)
+                {
+                    leftOperand = _syntaxFactory.RangeExpression(
+                        leftOperand,
+                        operatorToken,
+                        CanStartExpression()
+                            ? this.ParseSubExpression(Precedence.Range)
+                            : null);
+                    return true;
+                }
+
+                Debug.Assert(IsExpectedBinaryOperator(tk));
+                leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
+                return true;
+            }
+
+            ConditionalExpressionSyntax consumeConditionalExpression(ExpressionSyntax leftOperand)
+            {
+                // Complex ambiguity with `?` and collection-expressions.  Specifically: b?[c]:d
+                //
+                // On its own, we want that to be a conditional expression with a collection expression in it.  However, for
+                // back compat, we need to make sure that `a ? b?[c] : d` sees the inner `b?[c]` as a
+                // conditional-access-expression.  So, if after consuming the portion after the initial `?` if we do not
+                // have the `:` we need, and we can see a `?[` in that portion of the parse, then we retry consuming the
+                // when-true portion, but this time forcing the prior way of handling `?[`.
+                var questionToken = this.EatToken();
+
+                using var afterQuestionToken = this.GetDisposableResetPoint(resetOnDispose: false);
+                var whenTrue = this.ParsePossibleRefExpression();
+
+                if (this.CurrentToken.Kind != SyntaxKind.ColonToken &&
+                    !this.ForceConditionalAccessExpression &&
+                    containsTernaryCollectionToReinterpret(whenTrue))
+                {
+                    // Keep track of where we are right now in case the new parse doesn't make things better.
+                    using var originalAfterWhenTrue = this.GetDisposableResetPoint(resetOnDispose: false);
+
+                    // Go back to right after the `?`
+                    afterQuestionToken.Reset();
+
+                    // try reparsing with `?[` as a conditional access, not a ternary+collection
+                    this.ForceConditionalAccessExpression = true;
+                    var newWhenTrue = this.ParsePossibleRefExpression();
+                    this.ForceConditionalAccessExpression = false;
+
+                    if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                     {
-                        newPrecedence = GetPrecedence(opKind);
-                        rightOperand = this.ParseSubExpression(newPrecedence);
+                        // if we now are at a colon, this was preferred parse.  
+                        whenTrue = newWhenTrue;
                     }
                     else
                     {
-                        rightOperand = null;
+                        // retrying the parse didn't help.  Use the original interpretation.
+                        originalAfterWhenTrue.Reset();
                     }
+                }
 
-                    leftOperand = _syntaxFactory.RangeExpression(leftOperand, opToken, rightOperand);
+                if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken && this.lexer.InterpolationFollowedByColon)
+                {
+                    // We have an interpolated string with an interpolation that contains a conditional expression.
+                    // Unfortunately, the precedence demands that the colon is considered to signal the start of the
+                    // format string. Without this code, the compiler would complain about a missing colon, and point
+                    // to the colon that is present, which would be confusing. We aim to give a better error message.
+                    var conditionalExpression = _syntaxFactory.ConditionalExpression(
+                        leftOperand,
+                        questionToken,
+                        whenTrue,
+                        SyntaxFactory.MissingToken(SyntaxKind.ColonToken),
+                        _syntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)));
+                    return this.AddError(conditionalExpression, ErrorCode.ERR_ConditionalInInterpolation);
                 }
                 else
                 {
-                    Debug.Assert(IsExpectedBinaryOperator(tk));
-                    leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
+                    return _syntaxFactory.ConditionalExpression(
+                        leftOperand,
+                        questionToken,
+                        whenTrue,
+                        this.EatToken(SyntaxKind.ColonToken),
+                        this.ParsePossibleRefExpression());
                 }
-            }
-
-            // https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/expressions.md#1115-conditional-operator:
-            //
-            // conditional_expression
-            //     : null_coalescing_expression
-            //     | null_coalescing_expression '?' expression ':' expression
-            //     ;
-            //
-            // 1. Only take the conditional part of the expression if we're at or below its precedence.
-            // 2. When parsing the branches of the expression, parse at the highest precedence again ('expression').
-            //    This allows for things like assignments/lambdas in the branches of the conditional.
-            if (CurrentToken.Kind != SyntaxKind.QuestionToken || precedence > Precedence.Conditional)
-                return leftOperand;
-
-            // Complex ambiguity with `?` and collection-expressions.  Specifically: b?[c]:d
-            //
-            // On its own, we want that to be a conditional expression with a collection expression in it.  However, for
-            // back compat, we need to make sure that `a ? b?[c] : d` sees the inner `b?[c]` as a
-            // conditional-access-expression.  So, if after consuming the portion after the initial `?` if we do not
-            // have the `:` we need, and we can see a `?[` in that portion of the parse, then we retry consuming the
-            // when-true portion, but this time forcing the prior way of handling `?[`.
-            var questionToken = this.EatToken();
-
-            using var afterQuestionToken = this.GetDisposableResetPoint(resetOnDispose: false);
-            var whenTrue = this.ParsePossibleRefExpression();
-
-            if (this.CurrentToken.Kind != SyntaxKind.ColonToken &&
-                !this.ForceConditionalAccessExpression &&
-                containsTernaryCollectionToReinterpret(whenTrue))
-            {
-                // Keep track of where we are right now in case the new parse doesn't make things better.
-                using var originalAfterWhenTrue = this.GetDisposableResetPoint(resetOnDispose: false);
-
-                // Go back to right after the `?`
-                afterQuestionToken.Reset();
-
-                // try reparsing with `?[` as a conditional access, not a ternary+collection
-                this.ForceConditionalAccessExpression = true;
-                var newWhenTrue = this.ParsePossibleRefExpression();
-                this.ForceConditionalAccessExpression = false;
-
-                if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                {
-                    // if we now are at a colon, this was preferred parse.  
-                    whenTrue = newWhenTrue;
-                }
-                else
-                {
-                    // retrying the parse didn't help.  Use the original interpretation.
-                    originalAfterWhenTrue.Reset();
-                }
-            }
-
-            if (this.CurrentToken.Kind == SyntaxKind.EndOfFileToken && this.lexer.InterpolationFollowedByColon)
-            {
-                // We have an interpolated string with an interpolation that contains a conditional expression.
-                // Unfortunately, the precedence demands that the colon is considered to signal the start of the
-                // format string. Without this code, the compiler would complain about a missing colon, and point
-                // to the colon that is present, which would be confusing. We aim to give a better error message.
-                leftOperand = _syntaxFactory.ConditionalExpression(
-                    leftOperand,
-                    questionToken,
-                    whenTrue,
-                    SyntaxFactory.MissingToken(SyntaxKind.ColonToken),
-                    _syntaxFactory.IdentifierName(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken)));
-                return this.AddError(leftOperand, ErrorCode.ERR_ConditionalInInterpolation);
-            }
-            else
-            {
-                return _syntaxFactory.ConditionalExpression(
-                    leftOperand,
-                    questionToken,
-                    whenTrue,
-                    this.EatToken(SyntaxKind.ColonToken),
-                    this.ParsePossibleRefExpression());
             }
 
             static bool containsTernaryCollectionToReinterpret(ExpressionSyntax expression)
