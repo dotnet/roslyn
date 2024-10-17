@@ -111,11 +111,12 @@ namespace Microsoft.CodeAnalysis
             {
                 try
                 {
-                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory);
                     context.Unload();
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContext(context.Directory);
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
+                    CodeAnalysisEventSource.Log.DisposeAssemblyLoadContextException(context.Directory, ex.ToString());
                 }
             }
 
