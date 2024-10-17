@@ -4,6 +4,7 @@
 
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 Imports Roslyn.Test.Utilities
 
@@ -37,6 +38,8 @@ Public Class TestOptions
     Public Shared ReadOnly SigningDebugDll As VisualBasicCompilationOptions = DebugDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
     Public Shared ReadOnly SigningDebugExe As VisualBasicCompilationOptions = DebugExe.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
     Public Shared ReadOnly SigningReleaseModule As VisualBasicCompilationOptions = ReleaseModule.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+
+    Public Shared ReadOnly GeneratorDriverOptions As GeneratorDriverOptions = New GeneratorDriverOptions(trackIncrementalGeneratorSteps:=True, baseDirectory:=TempRoot.Root)
 End Class
 
 Friend Module TestOptionExtensions

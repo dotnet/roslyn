@@ -6,12 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -62,6 +64,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return solution.AddProject(info).GetRequiredProject(id = info.Id);
         }
 
+        public static Document AddTestDocument(this Project project, string source, string path)
+            => project.AddTestDocument(source, path, out _);
+
+        public static Document AddTestDocument(this Project project, string source, string path, out DocumentId id)
+            => project.Solution.AddTestDocument(project.Id, source, path, out id);
+
+        public static Document AddTestDocument(this Solution solution, ProjectId projectId, string source, string path, out DocumentId id)
+            => solution.AddDocument(
+                id = DocumentId.CreateNewId(projectId),
+                name: PathUtilities.GetFileName(path),
+                SourceText.From(source, Encoding.UTF8, SourceHashAlgorithms.Default),
+                filePath: path).GetRequiredDocument(id);
+
         public static Guid CreateProjectTelemetryId(string projectName)
         {
             Assert.True(Encoding.UTF8.GetByteCount(projectName) <= 20, "Use shorter project names in tests");
@@ -89,6 +104,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     NoCompilationConstants.LanguageName => ".noproj",
                     _ => throw ExceptionUtilities.UnexpectedValue(language)
                 })
+                .WithCompilationOutputInfo(new CompilationOutputInfo(
+                    assemblyPath: Path.Combine(TempRoot.Root, projectName + ".dll"),
+                    generatedFilesOutputDirectory: null))
                 .WithTelemetryId(CreateProjectTelemetryId(projectName));
 
     }

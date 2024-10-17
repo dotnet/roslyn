@@ -36,9 +36,13 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         // This test is just the sanity test to make sure generators work at all. There's not a special scenario being
         // tested.
 
+        var generatedFilesOutputDir = Path.Combine(TempRoot.Root, "gendir");
+        var assemblyPath = Path.Combine(TempRoot.Root, "assemblyDir", "assembly.dll");
+
         using var workspace = CreateWorkspace(testHost: testHost);
         var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
         var project = AddEmptyProject(workspace.CurrentSolution)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath, generatedFilesOutputDir))
             .AddAnalyzerReference(analyzerReference);
 
         // Optionally fetch the compilation first, which validates that we handle both running the generator
@@ -58,7 +62,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
         var generatorType = typeof(GenerateFileForEachAdditionalFileWithContentsCommented);
 
-        Assert.Equal($"{generatorType.Assembly.GetName().Name}\\{generatorType.FullName}\\Test.generated.cs", generatedTree.FilePath);
+        Assert.Equal(Path.Combine(generatedFilesOutputDir, generatorType.Assembly.GetName().Name!, generatorType.FullName!, "Test.generated.cs"), generatedTree.FilePath);
 
         var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
         Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
@@ -386,6 +390,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         static Solution AddProjectWithReference(Solution solution, TestGeneratorReference analyzerReference)
         {
             var project = AddEmptyProject(solution);
+
             project = project.AddAnalyzerReference(analyzerReference);
             project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 

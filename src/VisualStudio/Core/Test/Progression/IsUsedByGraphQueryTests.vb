@@ -49,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=C Member=X)" Target="(@2 StartLineNumber=6 StartCharacterOffset=49 EndLineNumber=6 EndCharacterOffset=50)" Category="CodeSchema_SourceReferences"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/Project.cs"/>
                         </IdentifierAliases>
                     </DirectedGraph>)

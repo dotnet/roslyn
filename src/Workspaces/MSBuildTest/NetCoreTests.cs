@@ -72,11 +72,16 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             CreateFiles(GetNetCoreAppFiles());
 
             var projectFilePath = GetSolutionFileName("Project.csproj");
+            var projectDir = Path.GetDirectoryName(projectFilePath);
 
             DotNetRestore("Project.csproj");
 
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(projectFilePath);
+
+            Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), project.OutputFilePath);
+            Assert.Equal(Path.Combine(projectDir, "obj", "Debug", "netcoreapp3.1", "Project.dll"), project.CompilationOutputInfo.AssemblyPath);
+            Assert.Null(project.CompilationOutputInfo.GeneratedFilesOutputDirectory);
 
             // Assert that there is a single project loaded.
             Assert.Single(workspace.CurrentSolution.ProjectIds);

@@ -81,8 +81,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal void OnProjectFilePathChanged(string filePath)
             => FilePath = filePath;
 
-        public string OutputFilePath { get; }
-
         public string DefaultNamespace
         {
             get { return _defaultNamespace; }
@@ -120,7 +118,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             HostObjectType = hostObjectType;
             Version = VersionStamp.Create();
             FilePath = filePath;
-            OutputFilePath = GetTestOutputFilePath(filePath);
             _defaultNamespace = defaultNamespace;
         }
 
@@ -156,7 +153,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             _assemblyName = assemblyName ?? "TestProject";
             Version = VersionStamp.Create();
-            OutputFilePath = GetTestOutputFilePath(FilePath);
             _defaultNamespace = defaultNamespace;
 
             if (documents != null)
@@ -251,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public ProjectInfo ToProjectInfo()
         {
-            return ProjectInfo.Create(
+            var info = ProjectInfo.Create(
                 new ProjectInfo.ProjectAttributes(
                     Id,
                     Version,
@@ -262,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     checksumAlgorithm: Text.SourceHashAlgorithms.Default,
                     defaultNamespace: DefaultNamespace,
                     filePath: FilePath,
-                    outputFilePath: OutputFilePath,
+                    outputFilePath: GetTestOutputFilePath(FilePath, "bin"),
                     isSubmission: IsSubmission),
                 CompilationOptions,
                 ParseOptions,
@@ -273,6 +269,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 additionalDocuments: AdditionalDocuments.Select(d => d.ToDocumentInfo()),
                 analyzerConfigDocuments: AnalyzerConfigDocuments.Select(d => d.ToDocumentInfo()),
                 HostObjectType);
+
+            if (CompilationOptions != null)
+            {
+                info = info.WithCompilationOutputInfo(new CompilationOutputInfo(
+                    assemblyPath: GetTestOutputFilePath(FilePath, "obj"),
+                    generatedFilesOutputDirectory: null));
+            }
+
+            return info;
         }
 
         // It is identical with the internal extension method 'GetDefaultExtension' defined in OutputKind.cs.
@@ -301,24 +306,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private string GetTestOutputFilePath(string filepath)
+        private string GetTestOutputFilePath(string projectFilePath, string subdir)
         {
-            var outputFilePath = @"Z:\";
-
-            try
-            {
-                outputFilePath = Path.GetDirectoryName(filepath);
-            }
-            catch (ArgumentException)
-            {
-            }
-
-            if (string.IsNullOrEmpty(outputFilePath))
-            {
-                outputFilePath = @"Z:\";
-            }
-
-            return this.CompilationOptions == null ? "" : Path.Combine(outputFilePath, this.AssemblyName + GetDefaultExtension(this.CompilationOptions.OutputKind));
+            return CompilationOptions == null ? "" : Path.Combine(GetTestOutputDirectory(projectFilePath), subdir, AssemblyName + GetDefaultExtension(CompilationOptions.OutputKind));
         }
     }
 }

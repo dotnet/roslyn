@@ -81,7 +81,7 @@ end namespace
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -122,7 +122,7 @@ end namespace
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -165,7 +165,7 @@ end namespace
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -193,7 +193,7 @@ Imports System
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -222,7 +222,7 @@ Imports System
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -248,7 +248,7 @@ Imports System
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -279,7 +279,7 @@ End Class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -308,7 +308,7 @@ End Class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -337,7 +337,7 @@ End Class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -366,7 +366,7 @@ End Class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -397,7 +397,7 @@ End Class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -440,7 +440,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -481,7 +481,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -521,7 +521,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -560,7 +560,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -599,7 +599,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -639,7 +639,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -675,7 +675,7 @@ end class
                                                     End Sub)
                 End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -712,7 +712,7 @@ end class
                                                     End Sub)
                 End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -749,7 +749,7 @@ end class
                                                     End Sub)
                 End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -786,7 +786,7 @@ end class
                                                     End Sub)
                 End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -823,7 +823,7 @@ end class
                                                     End Sub)
                 End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -860,7 +860,7 @@ end class
                                                     End Sub)
                 End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -896,7 +896,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -943,7 +943,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -990,7 +990,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -1033,7 +1033,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -1082,7 +1082,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -1135,7 +1135,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -1193,7 +1193,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 
@@ -1247,7 +1247,7 @@ end class
                                                                                                                               End Sub)
                                                                                           End Sub))
 
-            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=New GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps:=True))
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(Of ISourceGenerator)(generator), parseOptions:=parseOptions, driverOptions:=TestOptions.GeneratorDriverOptions)
             driver = driver.RunGenerators(compilation)
             Dim runResult = driver.GetRunResult().Results(0)
 

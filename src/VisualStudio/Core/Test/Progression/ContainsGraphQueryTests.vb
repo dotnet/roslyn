@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -104,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -158,7 +158,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.vb"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -200,7 +200,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.csx"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -233,7 +233,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=C)" Target="(@1 Type=C Member=M)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -264,7 +264,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=(Name=D ParentType=C))" Target="(@1 Type=(Name=E ParentType=(Name=D ParentType=C)))" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -295,7 +295,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=E)" Target="(@1 Type=E Member=M)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -383,7 +383,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
