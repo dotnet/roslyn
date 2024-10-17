@@ -7008,9 +7008,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             int receiverSlot =
+                method.MethodKind == MethodKind.LocalFunction ? getReceiverSlotForLocalFunction(method) :
                 method.IsStatic ? 0 :
-                receiverOpt is null ? -1 :
-                MakeSlot(receiverOpt);
+                receiverOpt is not null ? MakeSlot(receiverOpt) :
+                -1;
 
             if (receiverSlot < 0)
             {
@@ -7018,6 +7019,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ApplyMemberPostConditions(receiverSlot, method);
+
+            int getReceiverSlotForLocalFunction(MethodSymbol method)
+            {
+                bool localFunctionIsStatic = method.IsStatic;
+
+                MethodSymbol? current = method;
+                while (current is object)
+                {
+                    if (current.IsStatic != localFunctionIsStatic)
+                    {
+                        // If an instance local function is a static method or vice versa, 
+                        // we cannot apply the member post-conditions
+                        return -1;
+                    }
+
+                    var container = current.ContainingSymbol;
+                    if (container.Kind == SymbolKind.NamedType)
+                    {
+                        if (localFunctionIsStatic)
+                        {
+                            return 0;
+                        }
+
+                        if (current.ThisParameter is { } thisParameter)
+                        {
+                            return GetOrCreateSlot(thisParameter);
+                        }
+
+                        // The ContainingSymbol on a substituted local function is incorrect (returns the containing type instead of the containing method)
+                        // so we can't find the proper `this` receiver to apply the member post-conditions to.
+                        // Tracked by https://github.com/dotnet/roslyn/issues/75543
+                        return -1;
+                    }
+
+                    current = container as MethodSymbol;
+                }
+
+                return -1;
+            }
         }
 
         private void ApplyMemberPostConditions(int receiverSlot, MethodSymbol method)
