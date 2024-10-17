@@ -459,11 +459,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '.':
+                    if (this.TextWindow.PeekChar(1) is >= '0' and <= '9')
+                    {
+                        var atDotPosition = this.TextWindow.Position;
+                        if (atDotPosition >= 1 &&
+                            atDotPosition == this.TextWindow.LexemeStartPosition)
+                        {
+                            // we have something like .0 this could be a fp number *except* the case where we have `..0`
+                            // in that case, we want two dots followed by an integer (which will be treated as a range expression).
+                            //
+                            // Move back one space to see what's before this dot.
+
+                            this.TextWindow.Reset(atDotPosition - 1);
+                            var priorCharacterIsDot = this.TextWindow.PeekChar() is '.';
+                            this.TextWindow.Reset(atDotPosition);
+
+                            if (priorCharacterIsDot)
+                            {
+                                // We have two dots in a row.  Treat the second dot as a dot, not the start of a number literal.
+                                TextWindow.AdvanceChar();
+                                info.Kind = SyntaxKind.DotToken;
+                                break;
+                            }
+
+                            // Fall through naturally and scan the number out as a floating point number.
+                        }
+                    }
+
                     if (!this.ScanNumericLiteral(ref info))
                     {
                         TextWindow.AdvanceChar();
                         info.Kind = SyntaxKind.DotToken;
                     }
+
                     break;
 
                 case ',':
