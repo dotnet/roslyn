@@ -294,6 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_OverloadResolutionPriority = MessageBase + 12848,
 
         IDS_FeatureFirstClassSpan = MessageBase + 12849,
+
+        IDS_FeatureNullConditionalAssignment = MessageBase + 12900, // TODO2 pack
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -476,6 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# preview features.
                 case MessageID.IDS_FeatureFieldKeyword:
                 case MessageID.IDS_FeatureFirstClassSpan:
+                case MessageID.IDS_FeatureNullConditionalAssignment:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.

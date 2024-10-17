@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -70,24 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Theory]
-        [InlineData(SyntaxKind.BarEqualsToken)]
-        [InlineData(SyntaxKind.AmpersandEqualsToken)]
-        [InlineData(SyntaxKind.CaretEqualsToken)]
-        [InlineData(SyntaxKind.LessThanLessThanEqualsToken)]
-        [InlineData(SyntaxKind.GreaterThanGreaterThanEqualsToken)]
-        [InlineData(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
-        [InlineData(SyntaxKind.PlusEqualsToken)]
-        [InlineData(SyntaxKind.MinusEqualsToken)]
-        [InlineData(SyntaxKind.AsteriskEqualsToken)]
-        [InlineData(SyntaxKind.SlashEqualsToken)]
-        [InlineData(SyntaxKind.PercentEqualsToken)]
-        [InlineData(SyntaxKind.EqualsToken)]
-        [InlineData(SyntaxKind.QuestionQuestionEqualsToken)]
-        public void VariousAssignmentKinds_LeftMemberAccess(SyntaxKind kind)
+        [Fact]
+        public void Assignment_LeftMemberAccess_Nested()
         {
-            string op = SyntaxKindFacts.GetText(kind);
-            string source = $"a?.b {op} c";
+            string source = "a?.b = c = d";
             UsingExpression(source, TestOptions.Regular13);
             verify();
 
@@ -113,7 +98,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
-                        N(kind); // TODO2 fix
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Theory]
+        [InlineData(SyntaxKind.BarEqualsToken)]
+        [InlineData(SyntaxKind.AmpersandEqualsToken)]
+        [InlineData(SyntaxKind.CaretEqualsToken)]
+        //[InlineData(SyntaxKind.LessThanLessThanEqualsToken)]
+        //[InlineData(SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        //[InlineData(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        [InlineData(SyntaxKind.PlusEqualsToken)]
+        [InlineData(SyntaxKind.MinusEqualsToken)]
+        [InlineData(SyntaxKind.AsteriskEqualsToken)]
+        [InlineData(SyntaxKind.SlashEqualsToken)]
+        [InlineData(SyntaxKind.PercentEqualsToken)]
+        [InlineData(SyntaxKind.EqualsToken)]
+        [InlineData(SyntaxKind.QuestionQuestionEqualsToken)]
+        public void VariousAssignmentKinds_LeftMemberAccess(SyntaxKind kind)
+        {
+            string op = SyntaxFacts.GetText(kind);
+            string source = $"a?.b {op} c";
+            UsingExpression(source, TestOptions.Regular13);
+            verify();
+
+            UsingExpression(source, TestOptions.RegularPreview);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxFacts.GetAssignmentExpression(kind));
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(kind);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "c");

@@ -2497,6 +2497,11 @@
         <target state="translated">보간에서 줄 바꿈</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureNullConditionalAssignment">
+        <source>null-conditional assignment</source>
+        <target state="new">null-conditional assignment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">매개 변수 없는 구조체 생성자</target>

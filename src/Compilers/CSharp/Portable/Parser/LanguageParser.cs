@@ -11755,7 +11755,8 @@ done:
                     case var kind when IsExpectedAssignmentOperator(kind):
                         // Note that LangVersion diagnostics are issued in binding.
                         // TODO2: error recovery for 'ref' expressions here?
-                        expr = _syntaxFactory.AssignmentExpression(SyntaxFacts.GetAssignmentExpression(kind), expr, this.EatToken(), this.ParseSubExpression(Precedence.Conditional));
+                        // TODO2: shift-operators need to be combined
+                        expr = _syntaxFactory.AssignmentExpression(SyntaxFacts.GetAssignmentExpression(kind), expr, this.EatToken(), this.ParseSubExpression(Precedence.Assignment));
                         break;
 
                     // a?.b?
