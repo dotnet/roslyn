@@ -159,7 +159,7 @@ namespace Roslyn.Test.Utilities
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
         public static bool IsMono => MonoHelpers.IsRunningOnMono();
-        public static bool IsMonoCore=> Type.GetType("Mono.RuntimeStructs") != null;
+        public static bool IsMonoCore => Type.GetType("Mono.RuntimeStructs") != null;
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
         public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
