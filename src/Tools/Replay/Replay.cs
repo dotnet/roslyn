@@ -30,13 +30,15 @@ static ReplayOptions ParseOptions(string[] args)
     string? binlogPath = null;
     int maxParallel = 6;
     bool wait = false;
+    int iterations = 1;
 
     var options = new Mono.Options.OptionSet()
     {
-        { "b|binlogPath=", "The binary log to relpay", v => binlogPath = v },
+        { "b|binlogPath=", "The binary log to replay", v => binlogPath = v },
         { "o|outputDirectory=", "The directory to output the build results", v => outputDirectory = v },
         { "m|maxParallel=", "The maximum number of parallel builds", (int v) => maxParallel = v },
         { "w|wait", "Wait for a key press after starting the server", o => wait = o is object },
+        { "i|iterations=", "Perform the compilation multiple times", (int v) => iterations = v },
     };
 
     var rest = options.Parse(args);
@@ -60,12 +62,13 @@ static ReplayOptions ParseOptions(string[] args)
     }
 
     return new ReplayOptions(
-        pipeName: Guid.NewGuid().ToString(),
-        clientDirectory: AppDomain.CurrentDomain.BaseDirectory!,
-        outputDirectory: outputDirectory,
-        binlogPath: binlogPath,
-        maxParallel: maxParallel,
-        wait: wait);
+        PipeName: Guid.NewGuid().ToString(),
+        ClientDirectory: AppDomain.CurrentDomain.BaseDirectory!,
+        OutputDirectory: outputDirectory,
+        BinlogPath: binlogPath,
+        MaxParallel: maxParallel,
+        Wait: wait,
+        Iterations: iterations);
 }
 
 static async Task<int> RunAsync(ReplayOptions options)
@@ -75,6 +78,7 @@ static async Task<int> RunAsync(ReplayOptions options)
     Console.WriteLine($"Output Directory: {options.OutputDirectory}");
     Console.WriteLine($"Pipe Name: {options.PipeName}");
     Console.WriteLine($"Parallel: {options.MaxParallel}");
+    Console.WriteLine($"Iterations: {options.Iterations}");
     Console.WriteLine();
     Console.WriteLine("Starting server");
 
@@ -95,19 +99,24 @@ static async Task<int> RunAsync(ReplayOptions options)
 
     try
     {
-        var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
-
-        await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
+        for (var i = 0; i < options.Iterations; i++)
         {
-            Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
-        }
+            Console.WriteLine();
+            Console.WriteLine($"Iteration: {i + 1}");
+            var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-        stopwatch.Stop();
-        Console.WriteLine($"Pipe Name: {options.PipeName}");
-        Console.WriteLine($"Compilation Events: {compilerCalls.Count}");
-        Console.WriteLine($"Time: {stopwatch.Elapsed:mm\\:ss}");
+            await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
+            {
+                Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine($"Pipe Name: {options.PipeName}");
+            Console.WriteLine($"Compilation Events: {compilerCalls.Count}");
+            Console.WriteLine($"Time: {stopwatch.Elapsed:mm\\:ss}");
+        }
 
         return 0;
     }
@@ -263,25 +272,9 @@ static void RewriteOutputPaths(string outputDirectory, string[] args)
     }
 }
 
-internal sealed class ReplayOptions(
-    string pipeName,
-    string clientDirectory,
-    string outputDirectory,
-    string binlogPath,
-    int maxParallel,
-    bool wait)
+internal sealed record ReplayOptions(string PipeName, string ClientDirectory, string OutputDirectory, string BinlogPath, int MaxParallel, bool Wait, int Iterations)
 {
-    internal string PipeName { get; } = pipeName;
-    internal string ClientDirectory { get; } = clientDirectory;
-    internal string OutputDirectory { get; } = outputDirectory;
-    internal string BinlogPath { get; } = binlogPath;
-    internal int MaxParallel { get; } = maxParallel;
-    internal string TempDirectory { get; } = Path.Combine(outputDirectory, "temp");
-    internal bool Wait { get; } = wait;
+    internal string TempDirectory { get; } = Path.Combine(OutputDirectory, "temp");
 }
 
-internal readonly struct BuildData(CompilerCall compilerCall, BuildResponse response)
-{
-    internal CompilerCall CompilerCall { get; } = compilerCall;
-    internal BuildResponse BuildResponse { get; } = response;
-}
+internal readonly record struct BuildData(CompilerCall CompilerCall, BuildResponse BuildResponse);
