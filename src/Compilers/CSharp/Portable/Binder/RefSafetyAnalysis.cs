@@ -594,6 +594,63 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitRecursivePattern(BoundRecursivePattern node)
         {
             SetPatternLocalScopes(node);
+
+            if (node.DeconstructMethod is { } deconstructMethod)
+            {
+                using (new PatternInput(this, _localScopeDepth))
+                {
+                    base.VisitRecursivePattern(node);
+                }
+
+                var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
+
+                var receiver = new BoundDeconstructValuePlaceholder(
+                    node.Syntax,
+                    variableSymbol: null,
+                    isDiscardExpression: false,
+                    node.InputType);
+                placeholders.Add((receiver, _localScopeDepth));
+
+                ImmutableArray<BoundExpression> arguments = node.Deconstruction.SelectAsArray(static (x, placeholders) =>
+                {
+                    if (x.Pattern is BoundObjectPattern { VariableAccess: { } variableAccess })
+                    {
+                        return variableAccess;
+                    }
+
+                    var placeholder = new BoundDeconstructValuePlaceholder(
+                        x.Syntax,
+                        variableSymbol: null,
+                        isDiscardExpression: true,
+                        x.Pattern.NarrowedType);
+                    placeholders.Add((placeholder, CallingMethodScope));
+                    return placeholder;
+                }, placeholders);
+
+                if (!deconstructMethod.RequiresInstanceReceiver)
+                {
+                    arguments = arguments.Insert(0, receiver);
+                    receiver = null;
+                }
+
+                using (new PlaceholderRegion(this, placeholders))
+                {
+                    CheckInvocationArgMixing(
+                        node.Syntax,
+                        MethodInfo.Create(deconstructMethod),
+                        receiver,
+                        receiverIsSubjectToCloning: ThreeState.False,
+                        deconstructMethod.Parameters,
+                        arguments,
+                        deconstructMethod.ParameterRefKinds,
+                        argsToParamsOpt: default,
+                        _localScopeDepth,
+                        _diagnostics);
+                }
+
+                return null;
+            }
+
             return base.VisitRecursivePattern(node);
         }
 
