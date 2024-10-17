@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using System;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Formatting
 {
@@ -1823,6 +1824,44 @@ class F
             await AssertNoFormattingChangesAsync(@"class Program { }
 
 /// Test");
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72966")]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task InlineComment(bool useTabs)
+        {
+            var content = @"enum E
+{
+    a, //a
+    //b,
+    c,
+
+    d, //d
+    //e,
+    //f,
+
+    g, /*g*/
+    //h,
+}
+
+class C
+{
+    public void M()
+    {
+        int x = 1; //x
+        //int y = 2;
+    }
+}";
+
+            if (useTabs)
+            {
+                content = content.Replace("    ", "\t");
+            }
+
+            var optionSet = useTabs ? new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.UseTabs, true } } : null;
+
+            await AssertNoFormattingChangesAsync(content, changedOptionSet: optionSet);
         }
     }
 }
