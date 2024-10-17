@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     public static class MonoHelpers
     {
         public static bool IsRunningOnMono() => Roslyn.Test.Utilities.ExecutionConditionUtil.IsMonoDesktop;
-        public static bool IsUsingMonoRuntime() => Roslyn.Test.Utilities.ExecutionConditionUtil.IsMonoRuntime;
+        public static bool IsRunningOnMonoCore() => Roslyn.Test.Utilities.ExecutionConditionUtil.IsMonoCore;
     }
 }
