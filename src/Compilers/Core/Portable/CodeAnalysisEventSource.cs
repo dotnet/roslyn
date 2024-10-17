@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
         [Event(10, Message = "ALC for directory '{0}' disposed", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
         internal void DisposeAssemblyLoadContext(string directory) => WriteEvent(10, directory);
 
-        [Event(11, Message = "ALC for directory '{0}' disposal failed with exception '{1}'", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
+        [Event(11, Message = "ALC for directory '{0}' disposal failed with exception '{1}'", Keywords = Keywords.Performance, Level = EventLevel.Error, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
         internal void DisposeAssemblyLoadContextException(string directory, string errorMessage) => WriteEvent(11, directory, errorMessage);
 
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
