@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Shared]
-[Export(typeof(IManagedHotReloadLanguageService))]
+[Export(typeof(IManagedHotReloadLanguageService2))]
 [Export(typeof(IEditAndContinueSolutionProvider))]
 [Export(typeof(EditAndContinueLanguageService))]
 [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
@@ -311,7 +311,7 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(string[] runningProjects, CancellationToken cancellationToken)
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
@@ -335,9 +335,12 @@ internal sealed class EditAndContinueLanguageService(
 
         UpdateApplyChangesDiagnostics(result.Diagnostics);
 
-        var projectsToRestartString = projectsToRestart.Select(p => p.AssemblyName).AsImmutable();
-        var projectsToReBuildArray = projectsToRebuild.Select(p => p.AssemblyName).AsImmutable();
+        var projectsToRestartString = projectsToRestart.Select(p => p.FilePath!).AsImmutable();
+        var projectsToReBuildArray = projectsToRebuild.Select(p => p.FilePath!).AsImmutable();
 
         return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), result.GetAllDiagnostics().FromContract(), projectsToReBuildArray, projectsToRestartString);
     }
+
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => GetUpdatesAsync([], cancellationToken);
 }
