@@ -1445,6 +1445,26 @@ class CL<T> where T : A, $$", @"Test");
     }
 
     [Fact]
+    public async Task TypeSymbolOfTypeParameterConstraintClause4()
+    {
+        //lang=c#-test
+        const string source = "class CL<T1> { void M<T2, T3>() where T2 : class where $$";
+        await VerifyItemIsAbsentAsync(source, @"T1");
+        await VerifyItemIsAbsentAsync(source, @"T2");
+        await VerifyItemExistsAsync(source, @"T3");
+    }
+
+    [Fact]
+    public async Task TypeSymbolOfTypeParameterConstraintClause5()
+    {
+        //lang=c#-test
+        const string source = "class CL<T1> { void M<T2, T3>() where T2 : class where T3 : class where $$";
+        await VerifyItemIsAbsentAsync(source, @"T1");
+        await VerifyItemIsAbsentAsync(source, @"T2");
+        await VerifyItemIsAbsentAsync(source, @"T3");
+    }
+
+    [Fact]
     public async Task BaseList1()
     {
         await VerifyItemExistsAsync(AddUsingDirectives("using System;", @"class CL : $$"), @"String");
