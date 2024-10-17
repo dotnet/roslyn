@@ -3840,9 +3840,10 @@ parse_member_name:;
                 }
                 else
                 {
-                    //Consume whatever follows the operator keyword as the operator token.  If it is not
-                    //we'll add an error below (when we can guess the arity).
-                    opToken = EatToken();
+                    // Consume whatever follows the operator keyword as the operator token.  If it is not we'll add an
+                    // error below (when we can guess the arity). Handle .. as well so we can give the user a good
+                    // message if they do `operator ..`
+                    opToken = IsAtDotDotToken() ? EatDotDotToken() : EatToken();
                     Debug.Assert(!opToken.IsMissing);
                     opTokenErrorOffset = opToken.GetLeadingTriviaWidth();
                     opTokenErrorWidth = opToken.Width;
