@@ -658,7 +658,7 @@ class C
                     Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(15, 15),
                     // (15,18): error CS1001: Identifier expected
                     //             y = [.. z];
-                    Diagnostic(ErrorCode.ERR_IdentifierExpected, "..").WithLocation(15, 18),
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(15, 18),
                     // (15,19): error CS1001: Identifier expected
                     //             y = [.. z];
                     Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(15, 19),
