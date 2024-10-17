@@ -9,24 +9,11 @@ using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-#if NET
-using Microsoft.CodeAnalysis.Diagnostics;
-using System.Runtime.Loader;
-#endif
-
 namespace Microsoft.CodeAnalysis.Host;
 
 internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
     IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; }
-
-#if NET
-    /// <summary>
-    /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
-    /// cref="ISourceGenerator"/>s in a fresh <see cref="AssemblyLoadContext"/>.
-    /// </summary>
-    IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader();
-#endif
 }
 
 /// <summary>
@@ -41,13 +28,13 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     {
         _externalResolvers = externalResolvers.ToImmutableArray();
-        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
+        _shadowCopyLoader = new(CreateShadowCopyLoader);
     }
 
     public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
         => _shadowCopyLoader.Value;
 
-    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+    private IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader()
         => this.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
                 _externalResolvers));
