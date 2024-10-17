@@ -712,13 +712,15 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             rightWorkspace?.Dispose();
             rightWorkspace = null;
 
+            // We're closing - change the content type of the buffers we created to inert
+            // as a signal for the editor / LSP client to unhook from them.
             var inertContentType = _contentTypeRegistryService.GetContentType(StandardContentTypeNames.Inert);
             buffersToClose = buffersToClose
                 .Add(originalBuffer)
                 .Add(changedBuffer);
             foreach (var buffer in buffersToClose)
             {
-                buffer.ChangeContentType(inertContentType, null);
+                buffer.ChangeContentType(inertContentType, editTag: null);
             }
         };
 
