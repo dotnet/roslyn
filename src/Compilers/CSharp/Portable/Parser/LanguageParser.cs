@@ -11736,18 +11736,29 @@ done:
 
                 switch (this.CurrentToken.Kind)
                 {
+                    // a?.b()
                     case SyntaxKind.OpenParenToken:
                         expr = _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
                         continue;
 
+                    // a?.b[]
                     case SyntaxKind.OpenBracketToken:
                         expr = _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
                         continue;
 
+                    // a?.b.
                     case SyntaxKind.DotToken:
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                         continue;
 
+                    // a?.b =
+                    case var kind when IsExpectedAssignmentOperator(kind):
+                        // Note that LangVersion diagnostics are issued in binding.
+                        // TODO2: error recovery for 'ref' expressions here?
+                        expr = _syntaxFactory.AssignmentExpression(SyntaxFacts.GetAssignmentExpression(kind), expr, this.EatToken(), this.ParseSubExpression(Precedence.Conditional));
+                        break;
+
+                    // a?.b?
                     case SyntaxKind.QuestionToken:
                         return !CanStartConsequenceExpression()
                             ? expr
