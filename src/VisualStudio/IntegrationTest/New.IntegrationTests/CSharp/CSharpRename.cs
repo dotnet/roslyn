@@ -43,6 +43,7 @@ public class CSharpRename : AbstractEditorTest
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, false);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, true);
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, false);
+        globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, false);
     }
 
     [IdeFact]
