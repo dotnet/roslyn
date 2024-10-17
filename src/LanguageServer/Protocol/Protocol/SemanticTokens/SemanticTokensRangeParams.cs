@@ -4,19 +4,40 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Parameters for the semantic tokens Range request.
-    ///
+    /// Parameters for 'textDocument/semanticTokens/range' request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensRangeParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class SemanticTokensRangeParams : SemanticTokensParams
+    /// <remarks>Since LSP 3.16</remarks>
+    internal class SemanticTokensRangeParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SemanticTokensPartialResult>
     {
+        /// <summary>
+        /// Gets or sets an identifier for the document to fetch semantic tokens from.
+        /// </summary>
+        [JsonPropertyName("textDocument")]
+        [JsonRequired]
+        public TextDocumentIdentifier TextDocument { get; set; }
+
         /// <summary>
         /// Gets or sets the range within the document to fetch semantic tokens for.
         /// </summary>
         [JsonPropertyName("range")]
+        [JsonRequired]
         public Range Range { get; set; }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.PartialResultTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<SemanticTokensPartialResult>? PartialResultToken { get; set; }
     }
 }

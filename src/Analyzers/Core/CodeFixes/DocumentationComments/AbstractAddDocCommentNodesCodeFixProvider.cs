@@ -94,7 +94,7 @@ internal abstract class AbstractAddDocCommentNodesCodeFixProvider
                 nodeBeforeNewParamNode ??= summaryNode;
 
                 newDocComment = newDocComment.InsertNodesAfter(nodeBeforeNewParamNode!,
-                    new[] { GetNewNode(parameterName, isFirstNodeInComment: false) });
+                    [GetNewNode(parameterName, isFirstNodeInComment: false)]);
 
                 continue;
             }

@@ -1481,7 +1481,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithDoNotCreateCreationPolicy(cancellationToken);
+            var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
             if (oldTracker == newTracker)
                 continue;
 

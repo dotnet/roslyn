@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal static partial class ExtensionMethodImportCompletionHelper
 {
-    private class SymbolComputer
+    private sealed class SymbolComputer
     {
         private readonly int _position;
         private readonly Document _originatingDocument;

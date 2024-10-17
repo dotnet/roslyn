@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
@@ -43,12 +44,13 @@ internal sealed class InlineRenameSessionInfo
 internal interface IInlineRenameSession
 {
     /// <summary>
-    /// Cancels the rename session, and undoes any edits that had been performed by the session.
+    /// Cancels the rename session, and undoes any edits that had been performed by the session.  Must be called on the
+    /// UI thread.
     /// </summary>
     void Cancel();
 
     /// <summary>
     /// Dismisses the rename session, completing the rename operation across all files.
     /// </summary>
-    Task CommitAsync(bool previewChanges, CancellationToken cancellationToken);
+    Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null);
 }

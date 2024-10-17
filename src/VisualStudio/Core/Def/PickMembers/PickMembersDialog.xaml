@@ -155,12 +155,11 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <CheckBox IsChecked="{Binding IsChecked}"
-                                      VerticalAlignment="Center"
-                                      VerticalContentAlignment="Center"
-                                      Margin="8,0,0,5">
-                                <TextBlock Text="{Binding Title}"
-                                           TextWrapping="Wrap" />
-                            </CheckBox>
+                                VerticalAlignment="Center"
+                                VerticalContentAlignment="Center"
+                                Margin="8,0,0,5" 
+                                AutomationProperties.LabeledBy="{Binding ElementName=OptionsLabel}"
+                                Content="{Binding Title}"/>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>

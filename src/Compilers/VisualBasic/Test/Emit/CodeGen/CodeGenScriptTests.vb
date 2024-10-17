@@ -69,7 +69,7 @@ Return 1
 </text>.Value
 
             Dim tree = VisualBasicSyntaxTree.ParseText(source, options:=TestOptions.Script)
-            Dim c = CreateCompilationWithMscorlib45({tree})
+            Dim c = CreateCompilationWithMscorlib461({tree})
 
             c.VerifyDiagnostics()
         End Sub

@@ -152,7 +152,7 @@ internal sealed class CodeRefactoringService(
         CodeActionRequestPriority? priority,
         CancellationToken cancellationToken)
     {
-        using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
+        using (TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
         using (Logger.LogBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, cancellationToken))
         {
             using var _ = PooledDictionary<CodeRefactoringProvider, int>.GetInstance(out var providerToIndex);
@@ -250,7 +250,7 @@ internal sealed class CodeRefactoringService(
             }, defaultValue: null, cancellationToken);
     }
 
-    private class ProjectCodeRefactoringProvider
+    private sealed class ProjectCodeRefactoringProvider
         : AbstractProjectExtensionProvider<ProjectCodeRefactoringProvider, CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
     {
         protected override ImmutableArray<string> GetLanguages(ExportCodeRefactoringProviderAttribute exportAttribute)

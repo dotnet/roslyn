@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // aggregate.
                 if (nodeActionsByKind.TryGetValue(getKind(node), out var actionsForKind))
                 {
-                    Debug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(nodeActionsByKind)}");
+                    RoslynDebug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(nodeActionsByKind)}");
                     if (ShouldExecuteNode(node, analyzer, cancellationToken))
                     {
                         // If analyzer hasn't registered any CodeBlockStart or SymbolStart actions, then update the filter span
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // expensive in aggregate.
                 if (operationActionsByKind.TryGetValue(operation.Kind, out var actionsForKind))
                 {
-                    Debug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(operationActionsByKind)}");
+                    RoslynDebug.Assert(!actionsForKind.IsEmpty, $"Unexpected empty action collection in {nameof(operationActionsByKind)}");
                     if (ShouldExecuteOperation(operation, analyzer, cancellationToken))
                     {
                         // If analyzer hasn't registered any OperationBlockStart or SymbolStart actions, then update

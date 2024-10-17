@@ -19,8 +19,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an invalid operation with one or more child operations.
     /// <para>
     /// Current usage:
-    ///  (1) C# invalid expression or invalid statement.
-    ///  (2) VB invalid expression or invalid statement.
+    /// <list type="number">
+    ///   <item><description>C# invalid expression or invalid statement</description></item>
+    ///   <item><description>VB invalid expression or invalid statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -38,8 +40,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a block containing a sequence of operations and local declarations.
     /// <para>
     /// Current usage:
-    ///  (1) C# "{ ... }" block statement.
-    ///  (2) VB implicit block statement for method bodies and other block scoped statements.
+    /// <list type="number">
+    ///   <item><description>C# "{ ... }" block statement</description></item>
+    ///   <item><description>VB implicit block statement for method bodies and other block scoped statements</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -63,16 +67,18 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a variable declaration statement.
-    /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) C# local declaration statement
-    ///   (2) C# fixed statement
-    ///   (3) C# using statement
-    ///   (4) C# using declaration
-    ///   (5) VB Dim statement
-    ///   (6) VB Using statement
+    /// <list type="number">
+    ///   <item><description>C# local declaration statement</description></item>
+    ///   <item><description>C# fixed statement</description></item>
+    ///   <item><description>C# using statement</description></item>
+    ///   <item><description>C# using declaration</description></item>
+    ///   <item><description>VB Dim statement</description></item>
+    ///   <item><description>VB Using statement</description></item>
+    /// </list>
     /// </para>
+    /// </summary>
     /// <remarks>
     /// <para>This node is associated with the following operation kinds:</para>
     /// <list type="bullet">
@@ -95,8 +101,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a switch operation with a value to be switched upon and switch cases.
     /// <para>
     /// Current usage:
-    ///  (1) C# switch statement.
-    ///  (2) VB Select Case statement.
+    /// <list type="number">
+    ///   <item><description>C# switch statement</description></item>
+    ///   <item><description>VB Select Case statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -130,8 +138,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a loop operation.
     /// <para>
     /// Current usage:
-    ///   (1) C# 'while', 'for', 'foreach' and 'do' loop statements
-    ///   (2) VB 'While', 'ForTo', 'ForEach', 'Do While' and 'Do Until' loop statements
+    /// <list type="number">
+    ///   <item><description>C# 'while', 'for', 'foreach' and 'do' loop statements</description></item>
+    ///   <item><description>VB 'While', 'ForTo', 'ForEach', 'Do While' and 'Do Until' loop statements</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -165,8 +175,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a for each loop.
     /// <para>
     /// Current usage:
-    ///  (1) C# 'foreach' loop statement
-    ///  (2) VB 'For Each' loop statement
+    /// <list type="number">
+    ///   <item><description>C# 'foreach' loop statement</description></item>
+    ///   <item><description>VB 'For Each' loop statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -198,7 +210,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a for loop.
     /// <para>
     /// Current usage:
-    ///  (1) C# 'for' loop statement
+    /// <list type="number">
+    ///   <item><description>C# 'for' loop statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -230,7 +244,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a for to loop with loop control variable and initial, limit and step values for the control variable.
     /// <para>
     /// Current usage:
-    ///  (1) VB 'For ... To ... Step' loop statement
+    /// <list type="number">
+    ///   <item><description>VB 'For ... To ... Step' loop statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -269,8 +285,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a while or do while loop.
     /// <para>
     /// Current usage:
-    ///  (1) C# 'while' and 'do while' loop statements.
-    ///  (2) VB 'While', 'Do While' and 'Do Until' loop statements.
+    /// <list type="number">
+    ///   <item><description>C# 'while' and 'do while' loop statements</description></item>
+    ///   <item><description>VB 'While', 'Do While' and 'Do Until' loop statements</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -304,8 +322,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation with a label.
     /// <para>
     /// Current usage:
-    ///  (1) C# labeled statement.
-    ///  (2) VB label statement.
+    /// <list type="number">
+    ///   <item><description>C# labeled statement</description></item>
+    ///   <item><description>VB label statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -331,8 +351,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a branch operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# goto, break, or continue statement.
-    ///  (2) VB GoTo, Exit ***, or Continue *** statement.
+    /// <list type="number">
+    ///   <item><description>C# goto, break, or continue statement</description></item>
+    ///   <item><description>VB GoTo, Exit ***, or Continue *** statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -358,7 +380,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an empty or no-op operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# empty statement.
+    /// <list type="number">
+    ///   <item><description>C# empty statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -376,8 +400,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a return from the method with an optional return value.
     /// <para>
     /// Current usage:
-    ///  (1) C# return statement and yield statement.
-    ///  (2) VB Return statement.
+    /// <list type="number">
+    ///   <item><description>C# return statement and yield statement</description></item>
+    ///   <item><description>VB Return statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -401,8 +427,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a <see cref="Body" /> of operations that are executed while holding a lock onto the <see cref="LockedValue" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# lock statement.
-    ///  (2) VB SyncLock statement.
+    /// <list type="number">
+    ///   <item><description>C# lock statement</description></item>
+    ///   <item><description>VB SyncLock statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -428,8 +456,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a try operation for exception handling code with a body, catch clauses and a finally handler.
     /// <para>
     /// Current usage:
-    ///  (1) C# try statement.
-    ///  (2) VB Try statement.
+    /// <list type="number">
+    ///   <item><description>C# try statement</description></item>
+    ///   <item><description>VB Try statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -463,8 +493,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a <see cref="Body" /> of operations that are executed while using disposable <see cref="Resources" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# using statement.
-    ///  (2) VB Using statement.
+    /// <list type="number">
+    ///   <item><description>C# using statement</description></item>
+    ///   <item><description>VB Using statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -499,8 +531,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that drops the resulting value and the type of the underlying wrapped <see cref="Operation" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# expression statement.
-    ///  (2) VB expression statement.
+    /// <list type="number">
+    ///   <item><description>C# expression statement</description></item>
+    ///   <item><description>VB expression statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -522,7 +556,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a local function defined within a method.
     /// <para>
     /// Current usage:
-    ///  (1) C# local function statement.
+    /// <list type="number">
+    ///   <item><description>C# local function statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -558,7 +594,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation to stop or suspend execution of code.
     /// <para>
     /// Current usage:
-    ///  (1) VB Stop statement.
+    /// <list type="number">
+    ///   <item><description>VB Stop statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -576,7 +614,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that stops the execution of code abruptly.
     /// <para>
     /// Current usage:
-    ///  (1) VB End Statement.
+    /// <list type="number">
+    ///   <item><description>VB End Statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -594,7 +634,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation for raising an event.
     /// <para>
     /// Current usage:
-    ///  (1) VB raise event statement.
+    /// <list type="number">
+    ///   <item><description>VB raise event statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -624,8 +666,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a textual literal numeric, string, etc.
     /// <para>
     /// Current usage:
-    ///  (1) C# literal expression.
-    ///  (2) VB literal expression.
+    /// <list type="number">
+    ///   <item><description>C# literal expression</description></item>
+    ///   <item><description>VB literal expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -643,8 +687,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a type conversion.
     /// <para>
     /// Current usage:
-    ///  (1) C# conversion expression.
-    ///  (2) VB conversion expression.
+    /// <list type="number">
+    ///   <item><description>C# conversion expression</description></item>
+    ///   <item><description>VB conversion expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -693,15 +739,25 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an invocation of a method.
     /// <para>
     /// Current usage:
-    ///  (1) C# method invocation expression.
-    ///  (2) C# collection element initializer.
-    ///      For example, in the following collection initializer: <c>new C() { 1, 2, 3 }</c>, we will have
-    ///      3 <see cref="IInvocationOperation" /> nodes, each of which will be a call to the corresponding Add method
-    ///      with either 1, 2, 3 as the argument.
-    ///  (3) VB method invocation expression.
-    ///  (4) VB collection element initializer.
-    ///      Similar to the C# example, <c>New C() From {1, 2, 3}</c> will have 3 <see cref="IInvocationOperation" />
-    ///      nodes with 1, 2, and 3 as their arguments, respectively.
+    /// <list type="number">
+    ///   <item><description>C# method invocation expression</description></item>
+    ///   <item>
+    ///     <description>
+    ///       C# collection element initializer.
+    ///       For example, in the following collection initializer: <c>new C() { 1, 2, 3 }</c>, we will have
+    ///       3 <see cref="IInvocationOperation" /> nodes, each of which will be a call to the corresponding <c>Add</c> method
+    ///       with either 1, 2, 3 as the argument
+    ///     </description>
+    ///   </item>
+    ///   <item><description>VB method invocation expression</description></item>
+    ///   <item>
+    ///     <description>
+    ///       VB collection element initializer.
+    ///       Similar to the C# example, <c>New C() From {1, 2, 3}</c> will have 3 <see cref="IInvocationOperation" />
+    ///       nodes with 1, 2, and 3 as their arguments, respectively
+    ///     </description>
+    ///   </item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -744,8 +800,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to an array element.
     /// <para>
     /// Current usage:
-    ///  (1) C# array element reference expression.
-    ///  (2) VB array element reference expression.
+    /// <list type="number">
+    ///   <item><description>C# array element reference expression</description></item>
+    ///   <item><description>VB array element reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -771,8 +829,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a declared local variable.
     /// <para>
     /// Current usage:
-    ///  (1) C# local reference expression.
-    ///  (2) VB local reference expression.
+    /// <list type="number">
+    ///   <item><description>C# local reference expression</description></item>
+    ///   <item><description>VB local reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -799,8 +859,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a parameter.
     /// <para>
     /// Current usage:
-    ///  (1) C# parameter reference expression.
-    ///  (2) VB parameter reference expression.
+    /// <list type="number">
+    ///   <item><description>C# parameter reference expression</description></item>
+    ///   <item><description>VB parameter reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -822,8 +884,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a member of a class, struct, or interface.
     /// <para>
     /// Current usage:
-    ///  (1) C# member reference expression.
-    ///  (2) VB member reference expression.
+    /// <list type="number">
+    ///   <item><description>C# member reference expression</description></item>
+    ///   <item><description>VB member reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -850,8 +914,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a field.
     /// <para>
     /// Current usage:
-    ///  (1) C# field reference expression.
-    ///  (2) VB field reference expression.
+    /// <list type="number">
+    ///   <item><description>C# field reference expression</description></item>
+    ///   <item><description>VB field reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -881,8 +947,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a method other than as the target of an invocation.
     /// <para>
     /// Current usage:
-    ///  (1) C# method reference expression.
-    ///  (2) VB method reference expression.
+    /// <list type="number">
+    ///   <item><description>C# method reference expression</description></item>
+    ///   <item><description>VB method reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -908,8 +976,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a property.
     /// <para>
     /// Current usage:
-    ///  (1) C# property reference expression.
-    ///  (2) VB property reference expression.
+    /// <list type="number">
+    ///   <item><description>C# property reference expression</description></item>
+    ///   <item><description>VB property reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -939,8 +1009,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to an event.
     /// <para>
     /// Current usage:
-    ///  (1) C# event reference expression.
-    ///  (2) VB event reference expression.
+    /// <list type="number">
+    ///   <item><description>C# event reference expression</description></item>
+    ///   <item><description>VB event reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -962,8 +1034,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation with one operand and a unary operator.
     /// <para>
     /// Current usage:
-    ///  (1) C# unary operation expression.
-    ///  (2) VB unary operation expression.
+    /// <list type="number">
+    ///   <item><description>C# unary operation expression</description></item>
+    ///   <item><description>VB unary operation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1010,8 +1084,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation with two operands and a binary operator that produces a result with a non-null type.
     /// <para>
     /// Current usage:
-    ///  (1) C# binary operator expression.
-    ///  (2) VB binary operator expression.
+    /// <list type="number">
+    ///   <item><description>C# binary operator expression</description></item>
+    ///   <item><description>VB binary operator expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1065,13 +1141,17 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a conditional operation with:
-    /// (1) <see cref="Condition" /> to be tested,
-    /// (2) <see cref="WhenTrue" /> operation to be executed when <see cref="Condition" /> is true and
-    /// (3) <see cref="WhenFalse" /> operation to be executed when the <see cref="Condition" /> is false.
+    /// <list type="number">
+    ///   <item><description><see cref="Condition" /> to be tested</description></item>
+    ///   <item><description><see cref="WhenTrue" /> operation to be executed when <see cref="Condition" /> is true and</description></item>
+    ///   <item><description><see cref="WhenFalse" /> operation to be executed when the <see cref="Condition" /> is false</description></item>
+    /// </list>
     /// <para>
     /// Current usage:
-    ///  (1) C# ternary expression "a ? b : c" and if statement.
-    ///  (2) VB ternary expression "If(a, b, c)" and If Else statement.
+    /// <list type="number">
+    ///   <item><description>C# ternary expression <c>a ? b : c</c> and if statement</description></item>
+    ///   <item><description>VB ternary expression <c>If(a, b, c)</c> and If Else statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1103,12 +1183,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a coalesce operation with two operands:
-    /// (1) <see cref="Value" />, which is the first operand that is unconditionally evaluated and is the result of the operation if non null.
-    /// (2) <see cref="WhenNull" />, which is the second operand that is conditionally evaluated and is the result of the operation if <see cref="Value" /> is null.
+    /// <list type="number">
+    ///   <item><description><see cref="Value" />, which is the first operand that is unconditionally evaluated and is the result of the operation if non null</description></item>
+    ///   <item><description><see cref="WhenNull" />, which is the second operand that is conditionally evaluated and is the result of the operation if <see cref="Value" /> is null</description></item>
+    /// </list>
     /// <para>
     /// Current usage:
-    ///  (1) C# null-coalescing expression "Value ?? WhenNull".
-    ///  (2) VB binary conditional expression "If(Value, WhenNull)".
+    /// <list type="number">
+    ///   <item><description>C# null-coalescing expression <c>Value ?? WhenNull</c></description></item>
+    ///   <item><description>VB binary conditional expression <c>If(Value, WhenNull)</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1141,8 +1225,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an anonymous function operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# lambda expression.
-    ///  (2) VB anonymous delegate expression.
+    /// <list type="number">
+    ///   <item><description>C# lambda expression</description></item>
+    ///   <item><description>VB anonymous delegate expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1168,8 +1254,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents creation of an object instance.
     /// <para>
     /// Current usage:
-    ///  (1) C# new expression.
-    ///  (2) VB New expression.
+    /// <list type="number">
+    ///   <item><description>C# new expression</description></item>
+    ///   <item><description>VB New expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1203,8 +1291,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a creation of a type parameter object, i.e. new T(), where T is a type parameter with new constraint.
     /// <para>
     /// Current usage:
-    ///  (1) C# type parameter object creation expression.
-    ///  (2) VB type parameter object creation expression.
+    /// <list type="number">
+    ///   <item><description>C# type parameter object creation expression</description></item>
+    ///   <item><description>VB type parameter object creation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1226,8 +1316,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents the creation of an array instance.
     /// <para>
     /// Current usage:
-    ///  (1) C# array creation expression.
-    ///  (2) VB array creation expression.
+    /// <list type="number">
+    ///   <item><description>C# array creation expression</description></item>
+    ///   <item><description>VB array creation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1253,10 +1345,12 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an implicit/explicit reference to an instance.
     /// <para>
     /// Current usage:
-    ///  (1) C# this or base expression.
-    ///  (2) VB Me, MyClass, or MyBase expression.
-    ///  (3) C# object or collection or 'with' expression initializers.
-    ///  (4) VB With statements, object or collection initializers.
+    /// <list type="number">
+    ///   <item><description>C# this or base expression</description></item>
+    ///   <item><description>VB Me, MyClass, or MyBase expression</description></item>
+    ///   <item><description>C# object or collection or 'with' expression initializers</description></item>
+    ///   <item><description>VB With statements, object or collection initializers</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1278,8 +1372,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that tests if a value is of a specific type.
     /// <para>
     /// Current usage:
-    ///  (1) C# "is" operator expression.
-    ///  (2) VB "TypeOf" and "TypeOf IsNot" expression.
+    /// <list type="number">
+    ///   <item><description>C# "is" operator expression</description></item>
+    ///   <item><description>VB "TypeOf" and "TypeOf IsNot" expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1311,8 +1407,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an await operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# await expression.
-    ///  (2) VB await expression.
+    /// <list type="number">
+    ///   <item><description>C# await expression</description></item>
+    ///   <item><description>VB await expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1334,8 +1432,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a base interface for assignments.
     /// <para>
     /// Current usage:
-    ///  (1) C# simple, compound and deconstruction assignment expressions.
-    ///  (2) VB simple and compound assignment expressions.
+    /// <list type="number">
+    ///   <item><description>C# simple, compound and deconstruction assignment expressions</description></item>
+    ///   <item><description>VB simple and compound assignment expressions</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1357,8 +1457,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a simple assignment operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# simple assignment expression.
-    ///  (2) VB simple assignment expression.
+    /// <list type="number">
+    ///   <item><description>C# simple assignment expression</description></item>
+    ///   <item><description>VB simple assignment expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1380,8 +1482,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a compound assignment that mutates the target with the result of a binary operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# compound assignment expression.
-    ///  (2) VB compound assignment expression.
+    /// <list type="number">
+    ///   <item><description>C# compound assignment expression</description></item>
+    ///   <item><description>VB compound assignment expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1429,7 +1533,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a parenthesized operation.
     /// <para>
     /// Current usage:
-    ///  (1) VB parenthesized expression.
+    /// <list type="number">
+    ///   <item><description>VB parenthesized expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1451,8 +1557,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a binding of an event.
     /// <para>
     /// Current usage:
-    ///  (1) C# event assignment expression.
-    ///  (2) VB Add/Remove handler statement.
+    /// <list type="number">
+    ///   <item><description>C# event assignment expression</description></item>
+    ///   <item><description>VB Add/Remove handler statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1483,8 +1591,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// of <see cref="Operation" /> within <see cref="WhenNotNull" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# conditional access expression (? or ?. operator).
-    ///  (2) VB conditional access expression (? or ?. operator).
+    /// <list type="number">
+    ///   <item><description>C# conditional access expression (<c>?</c> or <c>?.</c> operator)</description></item>
+    ///   <item><description>VB conditional access expression (<c>?</c> or <c>?.</c> operator)</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1512,8 +1622,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// See https://github.com/dotnet/roslyn/issues/21279#issuecomment-323153041 for more details.
     /// <para>
     /// Current usage:
-    ///  (1) C# conditional access instance expression.
-    ///  (2) VB conditional access instance expression.
+    /// <list type="number">
+    ///   <item><description>C# conditional access instance expression</description></item>
+    ///   <item><description>VB conditional access instance expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1554,8 +1666,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a creation of anonymous object.
     /// <para>
     /// Current usage:
-    ///  (1) C# "new { ... }" expression
-    ///  (2) VB "New With { ... }" expression
+    /// <list type="number">
+    ///   <item><description>C# <c>new { ... }</c> expression</description></item>
+    ///   <item><description>VB <c>New With { ... }</c> expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1579,10 +1693,16 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization for an object or collection creation.
     /// <para>
     /// Current usage:
-    ///  (1) C# object or collection initializer expression.
-    ///  (2) VB object or collection initializer expression.
-    /// For example, object initializer "{ X = x }" within object creation "new Class() { X = x }" and
-    /// collection initializer "{ x, y, 3 }" within collection creation "new MyList() { x, y, 3 }".
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       C# object or collection initializer expression.
+    ///       For example, object initializer <c>{ X = x }</c> within object creation <c>new Class() { X = x }</c> and
+    ///       collection initializer <c>{ x, y, 3 }</c> within collection creation <c>new MyList() { x, y, 3 }</c>
+    ///     </description>
+    ///   </item>
+    ///   <item><description>VB object or collection initializer expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1604,9 +1724,16 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of member within an object initializer with a nested object or collection initializer.
     /// <para>
     /// Current usage:
-    ///  (1) C# nested member initializer expression.
-    ///   For example, given an object creation with initializer "new Class() { X = x, Y = { x, y, 3 }, Z = { X = z } }",
-    ///   member initializers for Y and Z, i.e. "Y = { x, y, 3 }", and "Z = { X = z }" are nested member initializers represented by this operation.
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       C# nested member initializer expression.
+    ///       For example, given an object creation with initializer <c>new Class() { X = x, Y = { x, y, 3 }, Z = { X = z } }</c>,
+    ///       member initializers for Y and Z, i.e. <c>Y = { x, y, 3 }</c>, and <c>Z = { X = z }</c> are nested member initializers represented by this operation
+    ///     </description>
+    ///   </item>
+    ///   <item><description>VB object or collection initializer expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1655,8 +1782,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that gets a string value for the <see cref="Argument" /> name.
     /// <para>
     /// Current usage:
-    ///  (1) C# nameof expression.
-    ///  (2) VB NameOf expression.
+    /// <list type="number">
+    ///   <item><description>C# nameof expression</description></item>
+    ///   <item><description>VB NameOf expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1678,8 +1807,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a tuple with one or more elements.
     /// <para>
     /// Current usage:
-    ///  (1) C# tuple expression.
-    ///  (2) VB tuple expression.
+    /// <list type="number">
+    ///   <item><description>C# tuple expression</description></item>
+    ///   <item><description>VB tuple expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1707,8 +1838,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an object creation with a dynamically bound constructor.
     /// <para>
     /// Current usage:
-    ///  (1) C# "new" expression with dynamic argument(s).
-    ///  (2) VB late bound "New" expression.
+    /// <list type="number">
+    ///   <item><description>C# <c>new</c> expression with dynamic argument(s)</description></item>
+    ///   <item><description>VB late bound <c>New</c> expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1734,8 +1867,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a member of a class, struct, or module that is dynamically bound.
     /// <para>
     /// Current usage:
-    ///  (1) C# dynamic member reference expression.
-    ///  (2) VB late bound member reference expression.
+    /// <list type="number">
+    ///   <item><description>C# dynamic member reference expression</description></item>
+    ///   <item><description>VB late bound member reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1769,15 +1904,25 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a invocation that is dynamically bound.
     /// <para>
     /// Current usage:
-    ///  (1) C# dynamic invocation expression.
-    ///  (2) C# dynamic collection element initializer.
-    ///      For example, in the following collection initializer: <c>new C() { do1, do2, do3 }</c> where
-    ///      the doX objects are of type dynamic, we'll have 3 <see cref="IDynamicInvocationOperation" /> with do1, do2, and
-    ///      do3 as their arguments.
-    ///  (3) VB late bound invocation expression.
-    ///  (4) VB dynamic collection element initializer.
-    ///      Similar to the C# example, <c>New C() From {do1, do2, do3}</c> will generate 3 <see cref="IDynamicInvocationOperation" />
-    ///      nodes with do1, do2, and do3 as their arguments, respectively.
+    /// <list type="number">
+    ///   <item><description>C# dynamic invocation expression</description></item>
+    ///   <item>
+    ///     <description>
+    ///       C# dynamic collection element initializer.
+    ///       For example, in the following collection initializer: <c>new C() { do1, do2, do3 }</c> where
+    ///       the doX objects are of type dynamic, we'll have 3 <see cref="IDynamicInvocationOperation" /> with do1, do2, and
+    ///       do3 as their arguments
+    ///     </description>
+    ///   </item>
+    ///   <item><description>VB late bound invocation expression</description></item>
+    ///   <item>
+    ///     <description>
+    ///       VB dynamic collection element initializer.
+    ///       Similar to the C# example, <c>New C() From {do1, do2, do3}</c> will generate 3 <see cref="IDynamicInvocationOperation" />
+    ///       nodes with do1, do2, and do3 as their arguments, respectively
+    ///     </description>
+    ///   </item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1803,7 +1948,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an indexer access that is dynamically bound.
     /// <para>
     /// Current usage:
-    ///  (1) C# dynamic indexer access expression.
+    /// <list type="number">
+    ///   <item><description>C# dynamic indexer access expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1834,8 +1981,10 @@ namespace Microsoft.CodeAnalysis.Operations
     ///         IInvocationExpression ('From' invocation for "from x in set")
     /// <para>
     /// Current usage:
-    ///  (1) C# query expression.
-    ///  (2) VB query expression.
+    /// <list type="number">
+    ///   <item><description>C# query expression</description></item>
+    ///   <item><description>VB query expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1857,8 +2006,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a delegate creation. This is created whenever a new delegate is created.
     /// <para>
     /// Current usage:
-    ///  (1) C# delegate creation expression.
-    ///  (2) VB delegate creation expression.
+    /// <list type="number">
+    ///   <item><description>C# delegate creation expression</description></item>
+    ///   <item><description>VB delegate creation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1880,7 +2031,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a default value operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# default value expression.
+    /// <list type="number">
+    ///   <item><description>C# default value expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1898,8 +2051,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that gets <see cref="System.Type" /> for the given <see cref="TypeOperand" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# typeof expression.
-    ///  (2) VB GetType expression.
+    /// <list type="number">
+    ///   <item><description>C# typeof expression</description></item>
+    ///   <item><description>VB GetType expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1921,7 +2076,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation to compute the size of a given type.
     /// <para>
     /// Current usage:
-    ///  (1) C# sizeof expression.
+    /// <list type="number">
+    ///   <item><description>C# sizeof expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1943,7 +2100,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that creates a pointer value by taking the address of a reference.
     /// <para>
     /// Current usage:
-    ///  (1) C# address of expression
+    /// <list type="number">
+    ///   <item><description>C# address of expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1965,7 +2124,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that tests if a value matches a specific pattern.
     /// <para>
     /// Current usage:
-    ///  (1) C# is pattern expression. For example, "x is int i".
+    /// <list type="number">
+    ///   <item><description>C# is pattern expression. For example, <c>x is int i</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1993,7 +2154,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// while unary operator expression does not mutate it's operand.
     /// <para>
     /// Current usage:
-    ///  (1) C# increment expression or decrement expression.
+    /// <list type="number">
+    ///   <item><description>C# increment expression or decrement expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2040,9 +2203,11 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation to throw an exception.
     /// <para>
     /// Current usage:
-    ///  (1) C# throw expression.
-    ///  (2) C# throw statement.
-    ///  (2) VB Throw statement.
+    /// <list type="number">
+    ///   <item><description>C# throw expression</description></item>
+    ///   <item><description>C# throw statement</description></item>
+    ///   <item><description>VB Throw statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2064,7 +2229,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a assignment with a deconstruction.
     /// <para>
     /// Current usage:
-    ///  (1) C# deconstruction assignment expression.
+    /// <list type="number">
+    ///   <item><description>C# deconstruction assignment expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2082,10 +2249,18 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a declaration expression operation. Unlike a regular variable declaration <see cref="IVariableDeclaratorOperation" /> and <see cref="IVariableDeclarationOperation" />, this operation represents an "expression" declaring a variable.
     /// <para>
     /// Current usage:
-    ///  (1) C# declaration expression. For example,
-    ///  (a) "var (x, y)" is a deconstruction declaration expression with variables x and y.
-    ///  (b) "(var x, var y)" is a tuple expression with two declaration expressions.
-    ///  (c) "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       C# deconstruction assignment expression. For example:
+    ///       <list type="bullet">
+    ///         <item><description><c>var (x, y)</c> is a deconstruction declaration expression with variables <c>x</c> and <c>y</c></description></item>
+    ///         <item><description><c>(var x, var y)</c> is a tuple expression with two declaration expressions</description></item>
+    ///         <item><description><c>M(out var x);</c> is an invocation expression with an out <c>var x</c> declaration expression</description></item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2107,7 +2282,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an argument value that has been omitted in an invocation.
     /// <para>
     /// Current usage:
-    ///  (1) VB omitted argument in an invocation expression.
+    /// <list type="number">
+    ///   <item><description>VB omitted argument in an invocation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2125,8 +2302,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initializer for a field, property, parameter or a local variable declaration.
     /// <para>
     /// Current usage:
-    ///  (1) C# field, property, parameter or local variable initializer.
-    ///  (2) VB field(s), property, parameter or local variable initializer.
+    /// <list type="number">
+    ///   <item><description>C# field, property, parameter or local variable initializer</description></item>
+    ///   <item><description>VB field(s), property, parameter or local variable initializer</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2148,8 +2327,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of a field.
     /// <para>
     /// Current usage:
-    ///  (1) C# field initializer with equals value clause.
-    ///  (2) VB field(s) initializer with equals value clause or AsNew clause. Multiple fields can be initialized with AsNew clause in VB.
+    /// <list type="number">
+    ///   <item><description>C# field initializer with equals value clause</description></item>
+    ///   <item><description>VB field(s) initializer with equals value clause or AsNew clause. Multiple fields can be initialized with AsNew clause in VB</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2171,8 +2352,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of a local variable.
     /// <para>
     /// Current usage:
-    ///  (1) C# local variable initializer with equals value clause.
-    ///  (2) VB local variable initializer with equals value clause or AsNew clause.
+    /// <list type="number">
+    ///   <item><description>C# local variable initializer with equals value clause</description></item>
+    ///   <item><description>VB local variable initializer with equals value clause or AsNew clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2190,8 +2373,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of a property.
     /// <para>
     /// Current usage:
-    ///  (1) C# property initializer with equals value clause.
-    ///  (2) VB property initializer with equals value clause or AsNew clause. Multiple properties can be initialized with 'WithEvents' declaration with AsNew clause in VB.
+    /// <list type="number">
+    ///   <item><description>C# property initializer with equals value clause</description></item>
+    ///   <item><description>VB property initializer with equals value clause or AsNew clause. Multiple properties can be initialized with 'WithEvents' declaration with AsNew clause in VB</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2213,8 +2398,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of a parameter at the point of declaration.
     /// <para>
     /// Current usage:
-    ///  (1) C# parameter initializer with equals value clause.
-    ///  (2) VB parameter initializer with equals value clause.
+    /// <list type="number">
+    ///   <item><description>C# parameter initializer with equals value clause</description></item>
+    ///   <item><description>VB parameter initializer with equals value clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2236,8 +2423,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents the initialization of an array instance.
     /// <para>
     /// Current usage:
-    ///  (1) C# array initializer.
-    ///  (2) VB array initializer.
+    /// <list type="number">
+    ///   <item><description>C# array initializer</description></item>
+    ///   <item><description>VB array initializer</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2257,14 +2446,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a single variable declarator and initializer.
-    /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) C# variable declarator
-    ///   (2) C# catch variable declaration
-    ///   (3) VB single variable declaration
-    ///   (4) VB catch variable declaration
+    /// <list type="number">
+    ///   <item><description>C# variable declarator</description></item>
+    ///   <item><description>C# catch variable declaration</description></item>
+    ///   <item><description>VB single variable declaration</description></item>
+    ///   <item><description>VB catch variable declaration</description></item>
+    /// </list>
     /// </para>
+    /// </summary>
     /// <remarks>
     /// In VB, the initializer for this node is only ever used for explicit array bounds initializers. This node corresponds to
     /// the VariableDeclaratorSyntax in C# and the ModifiedIdentifierSyntax in VB.
@@ -2298,14 +2489,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a declarator that declares multiple individual variables.
-    /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) C# VariableDeclaration
-    ///   (2) C# fixed declarations
-    ///   (3) VB Dim statement declaration groups
-    ///   (4) VB Using statement variable declarations
+    /// <list type="number">
+    ///   <item><description>C# VariableDeclaration</description></item>
+    ///   <item><description>C# fixed declarations</description></item>
+    ///   <item><description>VB Dim statement declaration groups</description></item>
+    ///   <item><description>VB Using statement variable declarations</description></item>
+    /// </list>
     /// </para>
+    /// </summary>
     /// <remarks>
     /// The initializer of this node is applied to all individual declarations in <see cref="Declarators" />. There cannot
     /// be initializers in both locations except in invalid code scenarios.
@@ -2345,8 +2538,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an argument to a method invocation.
     /// <para>
     /// Current usage:
-    ///  (1) C# argument to an invocation expression, object creation expression, etc.
-    ///  (2) VB argument to an invocation expression, object creation expression, etc.
+    /// <list type="number">
+    ///   <item><description>C# argument to an invocation expression, object creation expression, etc.</description></item>
+    ///   <item><description>VB argument to an invocation expression, object creation expression, etc.</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2384,8 +2579,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a catch clause.
     /// <para>
     /// Current usage:
-    ///  (1) C# catch clause.
-    ///  (2) VB Catch clause.
+    /// <list type="number">
+    ///   <item><description>C# catch clause</description></item>
+    ///   <item><description>VB Catch clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2427,8 +2624,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a switch case section with one or more case clauses to match and one or more operations to execute within the section.
     /// <para>
     /// Current usage:
-    ///  (1) C# switch section for one or more case clause and set of statements to execute.
-    ///  (2) VB case block with a case statement for one or more case clause and set of statements to execute.
+    /// <list type="number">
+    ///   <item><description>C# switch section for one or more case clause and set of statements to execute</description></item>
+    ///   <item><description>VB case block with a case statement for one or more case clause and set of statements to execute</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2458,8 +2657,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a case clause.
     /// <para>
     /// Current usage:
-    ///  (1) C# case clause.
-    ///  (2) VB Case clause.
+    /// <list type="number">
+    ///   <item><description>C# case clause</description></item>
+    ///   <item><description>VB Case clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2481,8 +2682,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a default case clause.
     /// <para>
     /// Current usage:
-    ///  (1) C# default clause.
-    ///  (2) VB Case Else clause.
+    /// <list type="number">
+    ///   <item><description>C# default clause</description></item>
+    ///   <item><description>VB Case Else clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2522,7 +2725,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a case clause with range of values for comparison.
     /// <para>
     /// Current usage:
-    ///  (1) VB range case clause of the form "Case x To y".
+    /// <list type="number">
+    ///   <item><description>VB range case clause of the form <c>Case x To y</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2544,7 +2749,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a case clause with custom relational operator for comparison.
     /// <para>
     /// Current usage:
-    ///  (1) VB relational case clause of the form "Case Is op x".
+    /// <list type="number">
+    ///   <item><description>VB relational case clause of the form <c>Case Is op x</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2566,8 +2773,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a case clause with a single value for comparison.
     /// <para>
     /// Current usage:
-    ///  (1) C# case clause of the form "case x"
-    ///  (2) VB case clause of the form "Case x".
+    /// <list type="number">
+    ///   <item><description>C# case clause of the form <c>case x</c></description></item>
+    ///   <item><description>VB case clause of the form <c>Case x</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2585,8 +2794,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constituent part of an interpolated string.
     /// <para>
     /// Current usage:
-    ///  (1) C# interpolated string content.
-    ///  (2) VB interpolated string content.
+    /// <list type="number">
+    ///   <item><description>C# interpolated string content</description></item>
+    ///   <item><description>VB interpolated string content</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2600,8 +2811,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constituent string literal part of an interpolated string operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# interpolated string text.
-    ///  (2) VB interpolated string text.
+    /// <list type="number">
+    ///   <item><description>C# interpolated string text</description></item>
+    ///   <item><description>VB interpolated string text</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2623,8 +2836,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constituent interpolation part of an interpolated string operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# interpolation part.
-    ///  (2) VB interpolation part.
+    /// <list type="number">
+    ///   <item><description>C# interpolation part</description></item>
+    ///   <item><description>VB interpolation part</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2654,7 +2869,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a pattern matching operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# pattern.
+    /// <list type="number">
+    ///   <item><description>C# pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2676,7 +2893,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a pattern with a constant value.
     /// <para>
     /// Current usage:
-    ///  (1) C# constant pattern.
+    /// <list type="number">
+    ///   <item><description>C# constant pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2698,7 +2917,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a pattern that declares a symbol.
     /// <para>
     /// Current usage:
-    ///  (1) C# declaration pattern.
+    /// <list type="number">
+    ///   <item><description>C# declaration pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2730,7 +2951,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a comparison of two operands that returns a bool type.
     /// <para>
     /// Current usage:
-    ///  (1) C# tuple binary operator expression.
+    /// <list type="number">
+    ///   <item><description>C# tuple binary operator expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2761,7 +2984,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# method body
+    /// <list type="number">
+    ///   <item><description>C# method body</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2783,7 +3008,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# method body for non-constructor
+    /// <list type="number">
+    ///   <item><description>C# method body for non-constructor</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2802,7 +3029,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constructor method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# method body for constructor declaration
+    /// <list type="number">
+    ///   <item><description>C# method body for constructor declaration</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2828,7 +3057,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a discard operation.
     /// <para>
-    /// Current usage: C# discard expressions
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# discard expressions</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2848,12 +3080,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a coalesce assignment operation with a target and a conditionally-evaluated value:
-    /// (1) <see cref="IAssignmentOperation.Target" /> is evaluated for null. If it is null, <see cref="IAssignmentOperation.Value" /> is evaluated and assigned to target.
-    /// (2) <see cref="IAssignmentOperation.Value" /> is conditionally evaluated if <see cref="IAssignmentOperation.Target" /> is null, and the result is assigned into <see cref="IAssignmentOperation.Target" />.
-    /// The result of the entire expression is<see cref="IAssignmentOperation.Target" />, which is only evaluated once.
+    /// <list type="number">
+    ///   <item><description><see cref="IAssignmentOperation.Target" /> is evaluated for null. If it is null, <see cref="IAssignmentOperation.Value" /> is evaluated and assigned to target</description></item>
+    ///   <item><description><see cref="IAssignmentOperation.Value" /> is conditionally evaluated if <see cref="IAssignmentOperation.Target" /> is null, and the result is assigned into <see cref="IAssignmentOperation.Target" /></description></item>
+    /// </list>
+    /// The result of the entire expression is <see cref="IAssignmentOperation.Target" />, which is only evaluated once.
     /// <para>
     /// Current usage:
-    ///  (1) C# null-coalescing assignment operation <c>Target ??= Value</c>.
+    /// <list type="number">
+    ///   <item><description>C# null-coalescing assignment operation <c>Target ??= Value</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2871,7 +3107,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a range operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# range expressions
+    /// <list type="number">
+    ///   <item><description>C# range expressions</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2909,7 +3147,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents the ReDim operation to re-allocate storage space for array variables.
     /// <para>
     /// Current usage:
-    ///  (1) VB ReDim statement.
+    /// <list type="number">
+    ///   <item><description>VB ReDim statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2935,7 +3175,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an individual clause of an <see cref="IReDimOperation" /> to re-allocate storage space for a single array variable.
     /// <para>
     /// Current usage:
-    ///  (1) VB ReDim clause.
+    /// <list type="number">
+    ///   <item><description>VB ReDim clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2996,7 +3238,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a discard pattern.
     /// <para>
-    /// Current usage: C# discard pattern
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# discard pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3014,7 +3259,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a switch expression.
     /// <para>
     /// Current usage:
-    ///  (1) C# switch expression.
+    /// <list type="number">
+    ///   <item><description>C# switch expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3132,8 +3379,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
     /// <para>
     /// Current usage:
-    ///  (1) C# NoPia interface instance creation expression.
-    ///  (2) VB NoPia interface instance creation expression.
+    /// <list type="number">
+    ///   <item><description>C# NoPia interface instance creation expression</description></item>
+    ///   <item><description>VB NoPia interface instance creation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3163,7 +3412,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference through a pointer.
     /// <para>
     /// Current usage:
-    ///  (1) C# pointer indirection reference expression.
+    /// <list type="number">
+    ///   <item><description>C# pointer indirection reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3181,7 +3432,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a <see cref="Body" /> of operations that are executed with implicit reference to the <see cref="Value" /> for member references.
     /// <para>
     /// Current usage:
-    ///  (1) VB With statement.
+    /// <list type="number">
+    ///   <item><description>VB With statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3203,8 +3456,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents using variable declaration, with scope spanning across the parent <see cref="IBlockOperation" />.
     /// <para>
     /// Current Usage:
-    ///  (1) C# using declaration
-    ///  (1) C# asynchronous using declaration
+    /// <list type="number">
+    ///   <item><description>C# using declaration</description></item>
+    ///   <item><description>C# asynchronous using declaration</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3229,8 +3484,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a negated pattern.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# negated pattern.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# negated pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3251,8 +3508,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a binary ("and" or "or") pattern.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# "and" and "or" patterns.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# "and" and "or" patterns</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3281,8 +3540,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a pattern comparing the input with a given type.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# type pattern.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# type pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3304,7 +3565,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a pattern comparing the input with a constant value using a relational operator.
     /// <para>
     /// Current usage:
-    ///  (1) C# relational pattern.
+    /// <list type="number">
+    ///   <item><description>C# relational pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3329,8 +3592,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents cloning of an object instance.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# with expression.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# with expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3544,8 +3809,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a reference to an implicit System.Index or System.Range indexer over a non-array type.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# implicit System.Index or System.Range indexer reference expression.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# implicit System.Index or System.Range indexer reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3578,8 +3845,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a UTF-8 encoded byte representation of a string.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# UTF-8 string literal expression.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# UTF-8 string literal expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3600,9 +3869,11 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents the application of an attribute.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# attribute application.
-    ///   (2) VB attribute application.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# attribute application</description></item>
+    ///   <item><description>VB attribute application</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3623,8 +3894,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents an element reference or a slice operation over an inline array type.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# inline array access.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# inline array access</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3649,8 +3922,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a collection expression.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# collection expression.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# collection expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3685,8 +3960,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a collection expression spread element.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# spread element.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# spread element</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>

@@ -4,33 +4,35 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent from the client to the server for a textDocument/inlayHint request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class InlayHintParams : ITextDocumentParams
+    /// <remarks>Since LSP 3.17</remarks>
+    internal class InlayHintParams : ITextDocumentParams, IWorkDoneProgressParams
     {
         /// <summary>
         /// Gets or sets the document identifier to fetch inlay hints results for.
         /// </summary>
         [JsonPropertyName("textDocument")]
-        public TextDocumentIdentifier TextDocument
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public TextDocumentIdentifier TextDocument { get; set; }
 
         /// <summary>
         /// Gets or sets the range to fetch inlay hints results for.
         /// </summary>
         [JsonPropertyName("range")]
-        public Range Range
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public Range Range { get; set; }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
     }
 }

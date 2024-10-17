@@ -214,12 +214,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void FeaturesInterceptors()
+        {
+            var csc = new Csc();
+            csc.InterceptorsNamespaces = "NS1.NS2;NS3.NS4";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void FeaturesInterceptorsPreview()
         {
             var csc = new Csc();
             csc.InterceptorsPreviewNamespaces = "NS1.NS2;NS3.NS4";
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            AssertEx.Equal("""/features:"InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreviewBoth()
+        {
+            var csc = new Csc();
+            csc.InterceptorsNamespaces = "NS1.NS2;NS3.NS4";
+            csc.InterceptorsPreviewNamespaces = "NS5.NS6;NS7.NS8";
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            AssertEx.Equal("""/features:"InterceptorsNamespaces=NS1.NS2;NS3.NS4;NS5.NS6;NS7.NS8" /out:test.exe test.cs""", csc.GenerateResponseFileContents());
         }
 
         [Fact]

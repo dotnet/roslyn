@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
@@ -198,13 +196,19 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact]
     public async Task TestInField4()
     {
-        await TestMissingInRegularAndScriptAsync(
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
 
             class C
             {
-                List<int> c = new List<int>(new[] { 1, 2, 3 });
+                List<int> c = [|new|] List<int>(new[] { 1, 2, 3 });
+            }
+            """, """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [.. new[] { 1, 2, 3 }];
             }
             """);
     }
@@ -2361,8 +2365,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
     public async Task TestWhenReferencedInInitializer_LocalVar2()
     {
-        await TestMissingInRegularAndScriptAsync(
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2370,7 +2373,19 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> t = new List<int>(new int[] { 1, 2, 3 });
+                    List<int> t = [|new|] List<int>(new int[] { 1, 2, 3 });
+                    t.Add(t.Min() - 1);
+                }
+            }
+            """, """
+            using System.Collections.Generic;
+            using System.Linq;
+            
+            class C
+            {
+                void M()
+                {
+                    List<int> t = [.. new int[] { 1, 2, 3 }];
                     t.Add(t.Min() - 1);
                 }
             }
@@ -2416,7 +2431,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
     public async Task TestWhenReferencedInInitializer_Assignment2()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -2426,7 +2441,21 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> t = null;
-                    t = new List<int>(new int[] { 1, 2, 3 });
+                    t = [|new|] List<int>(new int[] { 1, 2, 3 });
+                    t.Add(t.Min() - 1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            
+            class C
+            {
+                void M()
+                {
+                    List<int> t = null;
+                    t = [.. new int[] { 1, 2, 3 }];
                     t.Add(t.Min() - 1);
                 }
             }
@@ -4936,7 +4965,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>(x);
                     [|c.Add(|]0);
-                    c.AddRange(y);
+                    [|c.AddRange(|]y);
                 }
             }
             """,
@@ -4947,11 +4976,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, int[] y)
                 {
-                    List<int> c = new List<int>(x)
-                    {
-                        0
-                    };
-                    c.AddRange(y);
+                    List<int> c = [.. x, 0, .. y];
                 }
             }
             """);
@@ -5713,6 +5738,128 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         ObservableCollection<string> strings = [];
                     }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(values);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [.. values];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
+    public async Task TestObjectCreationArgument2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [|new|] List<int>(values) { 1, 2, 3 };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    void M(int[] values)
+                    {
+                        List<int> list = [.. values, 1, 2, 3];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73362")]
+    public async Task TestWithOverloadResolution1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test(Class1 param1, Class1 param2)
+                    {
+                        MethodTakingEnumerable([|new|] List<Class1> { param1, param2 });
+                    }
+
+                    public void MethodTakingEnumerable(IEnumerable<Class1> param)
+                    {
+                    }
+
+                    public void MethodTakingEnumerable(IEnumerable<Class2> param)
+                    {
+                    }
+
+                    public class Class1 { }
+                    public class Class2 { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test(Class1 param1, Class1 param2)
+                    {
+                        MethodTakingEnumerable([param1, param2]);
+                    }
+                
+                    public void MethodTakingEnumerable(IEnumerable<Class1> param)
+                    {
+                    }
+                
+                    public void MethodTakingEnumerable(IEnumerable<Class2> param)
+                    {
+                    }
+                
+                    public class Class1 { }
+                    public class Class2 { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,

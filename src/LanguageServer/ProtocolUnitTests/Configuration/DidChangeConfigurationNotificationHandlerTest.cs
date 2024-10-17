@@ -40,7 +40,7 @@ public class B { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = false
                 }
             };
@@ -69,7 +69,7 @@ public class A { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = true
                 }
             };
@@ -117,6 +117,7 @@ public class A { }";
                 "completion.dotnet_show_name_completion_suggestions",
                 "completion.dotnet_provide_regex_completions",
                 "completion.dotnet_show_completion_items_from_unimported_namespaces",
+                "completion.dotnet_trigger_completion_in_argument_lists",
                 "quick_info.dotnet_show_remarks_in_quick_info",
                 "navigation.dotnet_navigate_to_decompiled_sources",
                 "highlighting.dotnet_highlight_related_json_components",
@@ -144,7 +145,8 @@ public class A { }";
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
                 "projects.dotnet_binary_log_path",
-                "projects.dotnet_enable_automatic_restore"
+                "projects.dotnet_enable_automatic_restore",
+                "navigation.dotnet_navigate_to_source_link_and_embedded_sources"
             };
 
             AssertEx.SetEqual(expectedNames, actualNames);

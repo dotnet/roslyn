@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExpressionBody), Shared]
-internal partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+internal sealed partial class UseExpressionBodyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; }
 

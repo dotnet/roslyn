@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -69,6 +70,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static BufferedProgress<T> Create<T>(IProgress<T>? progress)
             => new BufferedProgress<T>(progress);
 
+        public static BufferedProgress<TIn> Create<TIn, TOut>(IProgress<TOut>? progress, Func<TIn, TOut> transform)
+            => Create(progress?.Transform(transform));
+
+        static IProgress<TIn> Transform<TIn, TOut>(this IProgress<TOut> progress, Func<TIn, TOut> transform)
+            => new ProgressTransformer<TIn, TOut>(progress, transform);
+
         public static void Report<T>(this BufferedProgress<T[]> progress, T item)
         {
             progress.Report([item]);
@@ -77,6 +84,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public static T[]? GetFlattenedValues<T>(this BufferedProgress<T[]> progress)
         {
             return progress.GetValues()?.Flatten().ToArray();
+        }
+
+        class ProgressTransformer<TIn, TOut>(IProgress<TOut> inner, Func<TIn, TOut> transform) : IProgress<TIn>
+        {
+            public void Report(TIn value) => inner.Report(transform(value));
         }
     }
 }

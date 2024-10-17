@@ -1522,7 +1522,7 @@ class Module1
             Assert.Same(compilation1.SourceModule.CorLibrary(), test.Parameters.First().Type.OriginalDefinition.ContainingAssembly);
             Assert.Same(compilation1.SourceModule.CorLibrary(), ((CSharpCustomModifier)((NamedTypeSymbol)test.Parameters.First().Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].CustomModifiers.First()).ModifierSymbol.ContainingAssembly);
 
-            var compilation2 = CreateCompilationWithMscorlib45(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
+            var compilation2 = CreateCompilationWithMscorlib461(new SyntaxTree[] { }, references: new[] { new CSharpCompilationReference(compilation1) });
 
             test = compilation2.GetTypeByMetadataName("Module1").GetMember<MethodSymbol>("Test");
             Assert.Equal("void Module1.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsLong)? x)", test.ToTestDisplayString());

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return rewrittenCondition;
         }
 
-        public virtual BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
+        public virtual BoundStatement InstrumentIfStatementConditionalGoto(BoundIfStatement original, BoundStatement rewritten)
         {
             Debug.Assert(original.Syntax.Kind() == SyntaxKind.IfStatement);
             return InstrumentStatement(original, rewritten);

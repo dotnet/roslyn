@@ -25,7 +25,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InlineTemporary), Shared]
-internal partial class CSharpInlineTemporaryCodeRefactoringProvider
+internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
     : AbstractInlineTemporaryCodeRefactoringProvider<IdentifierNameSyntax, VariableDeclaratorSyntax>
 {
     private static readonly SyntaxAnnotation DefinitionAnnotation = new();

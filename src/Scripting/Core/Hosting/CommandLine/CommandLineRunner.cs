@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
@@ -13,6 +11,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -24,8 +24,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private readonly ScriptCompiler _scriptCompiler;
         private readonly ObjectFormatter _objectFormatter;
+        private readonly Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> _createFromFileFunc;
 
-        internal CommandLineRunner(ConsoleIO console, CommonCompiler compiler, ScriptCompiler scriptCompiler, ObjectFormatter objectFormatter)
+        internal CommandLineRunner(
+            ConsoleIO console,
+            CommonCompiler compiler,
+            ScriptCompiler scriptCompiler,
+            ObjectFormatter objectFormatter,
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
         {
             Debug.Assert(console != null);
             Debug.Assert(compiler != null);
@@ -36,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             Compiler = compiler;
             _scriptCompiler = scriptCompiler;
             _objectFormatter = objectFormatter;
+            _createFromFileFunc = createFromFileFunc ?? Script.CreateFromFile;
         }
 
         // for testing:
@@ -47,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal int RunInteractive()
         {
-            SarifErrorLogger errorLogger = null;
+            SarifErrorLogger? errorLogger = null;
             if (Compiler.Arguments.ErrorLogOptions?.Path != null)
             {
                 errorLogger = Compiler.GetErrorLogger(Console.Error);
@@ -66,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <summary>
         /// csi.exe and vbi.exe entry point.
         /// </summary>
-        private int RunInteractiveCore(ErrorLogger errorLogger)
+        private int RunInteractiveCore(ErrorLogger? errorLogger)
         {
             Debug.Assert(Compiler.Arguments.IsScriptRunner);
 
@@ -100,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return 0;
             }
 
-            SourceText code = null;
+            SourceText? code = null;
 
             var diagnosticsInfos = new List<DiagnosticInfo>();
 
@@ -130,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             var cancellationToken = new CancellationToken();
 
+            Debug.Assert(scriptOptions is not null);
             if (Compiler.Arguments.InteractiveMode)
             {
                 RunInteractiveLoop(scriptOptions, code?.ToString(), cancellationToken);
@@ -141,11 +149,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation)
+        private ScriptOptions? GetScriptOptions(CommandLineArguments arguments, string? scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation)
         {
             var touchedFilesLoggerOpt = (arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
-            var metadataResolver = GetMetadataReferenceResolver(arguments, touchedFilesLoggerOpt);
+            var metadataResolver = GetMetadataReferenceResolver(arguments, touchedFilesLoggerOpt, _createFromFileFunc);
             var sourceResolver = GetSourceReferenceResolver(arguments, touchedFilesLoggerOpt);
 
             var resolvedReferences = new List<MetadataReference>();
@@ -167,27 +175,31 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 allowUnsafe: true,
                 checkOverflow: false,
                 warningLevel: 4,
-                parseOptions: arguments.ParseOptions);
+                parseOptions: arguments.ParseOptions,
+                createFromFileFunc: _createFromFileFunc);
         }
 
-        internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
+        internal static MetadataReferenceResolver GetMetadataReferenceResolver(
+            CommandLineArguments arguments,
+            TouchedFileLogger? loggerOpt,
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> createFromFileFunc)
         {
             return RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
                 arguments.ReferencePaths,
                 arguments.BaseDirectory,
-                fileReferenceProvider: (path, properties) =>
+                createFromFileFunc: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
-                    return MetadataReference.CreateFromFile(path, properties);
+                    return createFromFileFunc(path, PEStreamOptions.PrefetchEntireImage, properties);
                 });
         }
 
-        internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
+        internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger? loggerOpt)
         {
             return new CommonCompiler.LoggingSourceFileResolver(arguments.SourcePaths, arguments.BaseDirectory, ImmutableArray<KeyValuePair<string, string>>.Empty, loggerOpt);
         }
 
-        private int RunScript(ScriptOptions options, SourceText code, ErrorLogger errorLogger, CancellationToken cancellationToken)
+        private int RunScript(ScriptOptions? options, SourceText? code, ErrorLogger? errorLogger, CancellationToken cancellationToken)
         {
             var globals = new CommandLineScriptGlobals(Console.Out, _objectFormatter);
             globals.Args.AddRange(Compiler.Arguments.ScriptArguments);
@@ -209,12 +221,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private void RunInteractiveLoop(ScriptOptions options, string initialScriptCodeOpt, CancellationToken cancellationToken)
+        private void RunInteractiveLoop(ScriptOptions options, string? initialScriptCodeOpt, CancellationToken cancellationToken)
         {
             var globals = new InteractiveScriptGlobals(Console.Out, _objectFormatter);
             globals.Args.AddRange(Compiler.Arguments.ScriptArguments);
 
-            ScriptState<object> state = null;
+            ScriptState<object>? state = null;
 
             if (initialScriptCodeOpt != null)
             {
@@ -226,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 Console.Out.Write("> ");
                 var input = new StringBuilder();
-                string line;
+                string? line;
                 bool cancelSubmission = false;
 
                 while (true)
@@ -281,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private void BuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object> state, ref ScriptOptions options, bool displayResult, CancellationToken cancellationToken)
+        private void BuildAndRun(Script<object> newScript, InteractiveScriptGlobals globals, ref ScriptState<object>? state, ref ScriptOptions options, bool displayResult, CancellationToken cancellationToken)
         {
             var diagnostics = newScript.Compile(cancellationToken);
             DisplayDiagnostics(diagnostics);

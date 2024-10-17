@@ -8,9 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing additional information about the context in which a signature help request is triggered.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpContext">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.15</remarks>
     internal class SignatureHelpContext
     {
         /// <summary>
@@ -25,7 +27,10 @@ namespace Roslyn.LanguageServer.Protocol
 
         /// <summary>
         /// Gets or sets the character that caused signature help to be triggered.
-        /// This value is null when triggerKind is not TriggerCharacter.
+        /// <para>
+        /// This is defined when <see cref="TriggerCharacter"/> when is not
+        /// <see cref="SignatureHelpTriggerKind.TriggerCharacter"/>.
+        /// </para>
         /// </summary>
         [JsonPropertyName("triggerCharacter")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -37,6 +42,11 @@ namespace Roslyn.LanguageServer.Protocol
 
         /// <summary>
         /// Gets or sets a value indicating whether signature help was already showing when it was triggered.
+        /// <para>
+        /// Retriggers occur when the signature help is already active and can be 
+        /// caused by actions such as typing a trigger character, a cursor move, or 
+        /// document content changes.
+        /// </para>
         /// </summary>
         [JsonPropertyName("isRetrigger")]
         public bool IsRetrigger
@@ -46,7 +56,11 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the currently active <see cref="SignatureHelp"/>.
+        /// The currently active <see cref="SignatureHelp"/>.
+        /// <para>
+        /// The <see cref="ActiveSignatureHelp"/> has its <see cref="SignatureHelp.ActiveSignature"/>
+        /// updated based on the user navigating through available signatures.
+        /// </para>
         /// </summary>
         [JsonPropertyName("activeSignatureHelp")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

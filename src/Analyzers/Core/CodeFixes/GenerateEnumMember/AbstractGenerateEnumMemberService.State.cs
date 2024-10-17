@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember;
 
 internal abstract partial class AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private partial class State
+    private sealed partial class State
     {
         // public TypeDeclarationSyntax ContainingTypeDeclaration { get; private set; }
         public INamedTypeSymbol TypeToGenerateIn { get; private set; } = null!;

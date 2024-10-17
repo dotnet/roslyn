@@ -862,7 +862,7 @@ class DeclaringClass2 : NonDeclaringClass2, Interface
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    TestMetadata.Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL,
                 });
 

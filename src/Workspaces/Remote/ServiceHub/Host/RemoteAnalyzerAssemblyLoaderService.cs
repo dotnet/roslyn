@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -20,11 +19,4 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RemoteAnalyzerAssemblyLoaderService(
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : IAnalyzerAssemblyLoaderProvider
-{
-    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader =
-        new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), externalResolvers.ToImmutableArray());
-
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader()
-        => _shadowCopyLoader;
-}
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray());

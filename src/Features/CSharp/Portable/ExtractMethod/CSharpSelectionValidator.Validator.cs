@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpSelectionValidator
+internal sealed partial class CSharpSelectionValidator
 {
     public static bool Check(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         => node switch

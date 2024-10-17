@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.Cci;
 using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.Utilities
@@ -37,7 +38,7 @@ namespace Roslyn.Test.Utilities
             throw MakeException();
         }
 
-        public override void DefineCustomMetadata(byte[] metadata)
+        public override void DefineCustomMetadata(byte[] metadata, IMethodDefinition methodDefinition)
         {
             throw MakeException();
         }

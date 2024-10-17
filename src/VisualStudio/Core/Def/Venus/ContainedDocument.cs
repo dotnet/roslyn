@@ -807,7 +807,7 @@ internal sealed partial class ContainedDocument : IContainedDocument
         var services = document.Project.Solution.Services;
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
         var changes = formatter.GetFormattingResult(
-            root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
+            root, [CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan)],
             options,
             [.. venusFormattingRules, .. Formatter.GetDefaultFormattingRules(document)],
             CancellationToken.None).GetTextChanges(CancellationToken.None);

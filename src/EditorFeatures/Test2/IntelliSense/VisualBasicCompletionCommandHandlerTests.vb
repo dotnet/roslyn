@@ -1403,7 +1403,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact()>
+        <WpfFact>
         Public Async Function CompletionUpAfterLeftCurlyBrace() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
@@ -1424,7 +1424,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact()>
+        <WpfFact>
         Public Async Function CompletionUpAfterLeftAngleBracket() As Task
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
@@ -1653,7 +1653,7 @@ End Class
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670149")>
-        <WpfFact()>
+        <WpfFact>
         Public Sub TabAfterNullableFollowedByQuestionMark()
             Using state = TestStateFactory.CreateVisualBasicTestState(
                 <Document><![CDATA[

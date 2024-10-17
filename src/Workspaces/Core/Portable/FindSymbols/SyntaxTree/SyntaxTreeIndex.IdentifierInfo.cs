@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class SyntaxTreeIndex
+internal sealed partial class SyntaxTreeIndex
 {
     private readonly struct IdentifierInfo(
         BloomFilter identifierFilter,

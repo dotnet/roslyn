@@ -22,5 +22,8 @@ internal static class SimplifierOptionsProviders
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return simplification.GetSimplifierOptions(configOptions);
     }
+
+    public static SimplifierOptions GetDefault(Host.LanguageServices languageServices)
+        => languageServices.GetRequiredService<ISimplificationService>().DefaultOptions;
 }
 

@@ -16,7 +16,9 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the capabilities to unregister.
         /// </summary>
-        [JsonPropertyName("unregistrations")]
+        // NOTE: the 'unregisterations' typo is noted in the spec but cannot be changed until LSP 4.x for compat reasons
+        [JsonPropertyName("unregisterations")]
+        [JsonRequired]
         public Unregistration[] Unregistrations
         {
             get;

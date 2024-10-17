@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using static ConvertToRawStringHelpers;
 using static SyntaxFactory;
 
-internal partial class ConvertInterpolatedStringToRawStringProvider
+internal sealed partial class ConvertInterpolatedStringToRawStringProvider
     : AbstractConvertStringProvider<InterpolatedStringExpressionSyntax>
 {
     public static readonly IConvertStringProvider Instance = new ConvertInterpolatedStringToRawStringProvider();

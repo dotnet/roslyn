@@ -200,24 +200,25 @@ public class RemoteEditAndContinueServiceTests
             var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "syntax error" });
 
             var updates = new ModuleUpdates(ModuleUpdateStatus.Ready, deltas);
-            var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
-            var documentsWithRudeEdits = ImmutableArray.Create((documentId, ImmutableArray<RudeEditDiagnostic>.Empty));
+            var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic]));
+            var documentsWithRudeEdits = ImmutableArray.Create(new ProjectDiagnostics(project.Id, []));
 
             return new()
             {
+                Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
-                RudeEdits = documentsWithRudeEdits,
+                RudeEdits = [],
                 SyntaxError = syntaxError
             };
         };
 
-        var (updates, _, _, syntaxErrorData) = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, CancellationToken.None);
-        AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(syntaxErrorData!));
+        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, CancellationToken.None);
+        AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(results.SyntaxError!));
 
-        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
 
-        var delta = updates.Updates.Single();
+        var delta = results.ModuleUpdates.Updates.Single();
         Assert.Equal(moduleId1, delta.Module);
         AssertEx.Equal(new byte[] { 1, 2 }, delta.ILDelta);
         AssertEx.Equal(new byte[] { 3, 4 }, delta.MetadataDelta);

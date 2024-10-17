@@ -46,7 +46,7 @@ public class CodeFixServiceTests
         var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
 
         var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => workspace.Services.GetRequiredService<IErrorLoggerService>()));
         var fixService = new CodeFixService(
@@ -354,7 +354,7 @@ public class CodeFixServiceTests
         }
 
         var analyzerReference = new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var diagnosticService = Assert.IsType<DiagnosticAnalyzerService>(workspace.GetService<IDiagnosticAnalyzerService>());
         var logger = SpecializedCollections.SingletonEnumerable(new Lazy<IErrorLoggerService>(() => new TestErrorLogger()));
@@ -598,7 +598,9 @@ public class CodeFixServiceTests
             }
         }
 
+#pragma warning disable RS1042 // Do not implement
         public class MockGenerator : ISourceGenerator
+#pragma warning restore RS1042 // Do not implement
         {
             private readonly DiagnosticDescriptor s_descriptor = new(MockFixer.Id, "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 

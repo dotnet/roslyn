@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 namespace Microsoft.CodeAnalysis.PdbSourceDocument;
 
 [Export(typeof(IImplementationAssemblyLookupService)), Shared]
-internal class ImplementationAssemblyLookupService : IImplementationAssemblyLookupService
+internal sealed class ImplementationAssemblyLookupService : IImplementationAssemblyLookupService
 {
     // We need to generate the namespace name in the same format that is used in metadata, which
     // is SymbolDisplayFormat.QualifiedNameOnlyFormat, which this is a copy of.
