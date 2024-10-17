@@ -10937,9 +10937,6 @@ done:
 
         private ExpressionSyntax ParseSubExpressionCore(Precedence precedence)
         {
-            ExpressionSyntax leftOperand;
-            Precedence newPrecedence = 0;
-
             // all of these are tokens that start statements and are invalid
             // to start a expression with. if we see one, then we must have
             // something like:
@@ -10949,75 +10946,67 @@ done:
             // parse out a missing name node for the expression, and keep on going
             var tk = this.CurrentToken.Kind;
             if (IsInvalidSubExpression(tk))
-            {
                 return this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
-            }
 
-            // Parse a left operand -- possibly preceded by a unary operator.
-            if (IsExpectedPrefixUnaryOperator(tk))
-            {
-                var opKind = SyntaxFacts.GetPrefixUnaryExpression(tk);
-                newPrecedence = GetPrecedence(opKind);
-                var opToken = this.EatToken();
-                var operand = this.ParseSubExpression(newPrecedence);
-                leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, operand);
-            }
-            else if (tk == SyntaxKind.DotDotToken)
-            {
-                // Operator ".." here can either be a prefix unary operator or a stand alone empty range:
-                var opToken = this.EatToken();
-                newPrecedence = GetPrecedence(SyntaxKind.RangeExpression);
+            return ParseExpressionContinued(parseLeftOperand(), precedence);
 
-                ExpressionSyntax rightOperand;
-                if (CanStartExpression())
+            ExpressionSyntax parseLeftOperand()
+            {
+                // Parse a left operand -- possibly preceded by a unary operator.
+                if (IsExpectedPrefixUnaryOperator(tk))
                 {
-                    rightOperand = this.ParseSubExpression(newPrecedence);
-                }
-                else
-                {
-                    rightOperand = null;
+                    var opKind = SyntaxFacts.GetPrefixUnaryExpression(tk);
+                    return _syntaxFactory.PrefixUnaryExpression(
+                        opKind,
+                        this.EatToken(),
+                        this.ParseSubExpression(GetPrecedence(opKind)));
                 }
 
-                leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand);
-            }
-            else if (IsAwaitExpression())
-            {
-                newPrecedence = GetPrecedence(SyntaxKind.AwaitExpression);
-                leftOperand = _syntaxFactory.AwaitExpression(
-                    this.EatContextualToken(SyntaxKind.AwaitKeyword),
-                    this.ParseSubExpression(newPrecedence));
-            }
-            else if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))
-            {
-                leftOperand = this.ParseQueryExpression(precedence);
-            }
-            else if (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword && IsInQuery)
-            {
-                // If this "from" token wasn't the start of a query then it's not really an expression.
-                // Consume it so that we don't try to parse it again as the next argument in an
-                // argument list.
-                SyntaxToken skipped = this.EatToken(); // consume but skip "from"
-                skipped = this.AddError(skipped, ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text);
-                leftOperand = AddTrailingSkippedSyntax(this.CreateMissingIdentifierName(), skipped);
-            }
-            else if (tk == SyntaxKind.ThrowKeyword)
-            {
-                var result = ParseThrowExpression();
-                // we parse a throw expression even at the wrong precedence for better recovery
-                return (precedence <= Precedence.Coalescing) ? result :
-                    this.AddError(result, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
-            }
-            else if (this.IsPossibleDeconstructionLeft(precedence))
-            {
-                leftOperand = ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
-            }
-            else
-            {
+                if (tk == SyntaxKind.DotDotToken)
+                {
+                    return _syntaxFactory.RangeExpression(
+                        leftOperand: null,
+                        this.EatToken(),
+                        CanStartExpression()
+                            ? this.ParseSubExpression(GetPrecedence(SyntaxKind.RangeExpression))
+                            : null);
+                }
+
+                if (IsAwaitExpression())
+                {
+                    return _syntaxFactory.AwaitExpression(
+                        this.EatContextualToken(SyntaxKind.AwaitKeyword),
+                        this.ParseSubExpression(GetPrecedence(SyntaxKind.AwaitExpression)));
+                }
+
+                if (this.IsQueryExpression(mayBeVariableDeclaration: false, mayBeMemberDeclaration: false))
+                    return this.ParseQueryExpression(precedence);
+
+                if (this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword && IsInQuery)
+                {
+                    // If this "from" token wasn't the start of a query then it's not really an expression.
+                    // Consume it so that we don't try to parse it again as the next argument in an
+                    // argument list.
+                    return AddTrailingSkippedSyntax(
+                        this.CreateMissingIdentifierName(),
+                        this.AddError(this.EatToken(), ErrorCode.ERR_InvalidExprTerm, this.CurrentToken.Text));
+                }
+
+                if (tk == SyntaxKind.ThrowKeyword)
+                {
+                    var result = ParseThrowExpression();
+                    // we parse a throw expression even at the wrong precedence for better recovery
+                    return precedence <= Precedence.Coalescing
+                        ? result
+                        : this.AddError(result, ErrorCode.ERR_InvalidExprTerm, SyntaxFacts.GetText(tk));
+                }
+
+                if (this.IsPossibleDeconstructionLeft(precedence))
+                    return ParseDeclarationExpression(ParseTypeMode.Normal, isScoped: false);
+
                 // Not a unary operator - get a primary expression.
-                leftOperand = this.ParseTerm(precedence);
+                return this.ParseTerm(precedence);
             }
-
-            return ParseExpressionContinued(leftOperand, precedence);
         }
 
         private ExpressionSyntax ParseExpressionContinued(ExpressionSyntax leftOperand, Precedence precedence)
