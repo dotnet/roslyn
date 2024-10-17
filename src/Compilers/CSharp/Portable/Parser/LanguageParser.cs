@@ -6717,16 +6717,6 @@ parse_member_name:;
             }
         }
 
-        //private NameSyntax RecoverFromDotDot(NameSyntax left, ref SyntaxToken separator)
-        //{
-        //    Debug.Assert(separator.Kind == SyntaxKind.DotDotToken);
-
-        //    var leftDot = SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null);
-        //    var missingName = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
-        //    separator = SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node);
-        //    return _syntaxFactory.QualifiedName(left, leftDot, missingName);
-        //}
-
         private SyntaxToken ConvertToMissingWithTrailingTrivia(SyntaxToken token, SyntaxKind expectedKind)
         {
             var newToken = SyntaxFactory.MissingToken(expectedKind);
@@ -11305,22 +11295,10 @@ done:
                 return false;
 
             var token2 = this.PeekToken(1);
-            if (!NoTriviaBetween(token1, token2))
+            if (token2.Kind != SyntaxKind.DotToken)
                 return false;
 
-            if (token2.Kind == SyntaxKind.DotToken)
-            {
-                // ..
-                // This is definitely a dot dot token.
-                return NoTriviaBetween(token1, token2);
-            }
-
-            // ..Num
-            //
-            if (IsNumericLiteralStartingWithDot(token2))
-                return true;
-
-            return false;
+            return NoTriviaBetween(token1, token2))
         }
 
         private static bool IsNumericLiteralStartingWithDot(SyntaxToken token)
@@ -11332,37 +11310,9 @@ done:
         {
             Debug.Assert(IsAtDotDotToken());
             var token1 = this.EatToken();
-
-            var beforeSecondTokenPosition = this.lexer.TextWindow.Position;
             var token2 = this.EatToken();
 
-            SyntaxToken dotDotToken;
-            if (token2.Kind == SyntaxKind.DotToken)
-            {
-                dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, this.EatToken().GetTrailingTrivia());
-            }
-            else if (IsNumericLiteralStartingWithDot(token2))
-            {
-                // ..Num
-
-                // Combine the `..` into one token, And reset the lexer to before 'Num' so it can lex it out.
-                dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, trailing: null);
-                this.lexer.Reset(beforeSecondTokenPosition + 1, this.lexer.Directives);
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
-
-            // Triple-dot: explicitly reject this, to allow triple-dot to be added to the language without a breaking
-            // change. Without this, 0...2 would parse as (0)..(.2), i.e. a range from 0 to 0.2
-            if (this.CurrentToken.Kind != SyntaxKind.DotToken ||
-                !NoTriviaBetween(token2, this.CurrentToken))
-            {
-                return dotDotToken;
-            }
-
-            return this.AddError(dotDotToken, offset: dotDotToken.GetLeadingTriviaWidth(), length: 0, ErrorCode.ERR_TripleDotNotAllowed);
+            return SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
         }
 
         private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
