@@ -2502,7 +2502,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 ReadOnlySpan<int> M(Span<int> s) => s;
             }
             """;
-        var comp2 = CreateCompilation(source2, [comp1Ref]);
+        var comp2 = CreateCompilation(source2, [comp1Ref], targetFramework: TargetFramework.NetStandard20);
 
         Assert.IsType<RetargetingNamedTypeSymbol>(comp2.GlobalNamespace.GetMember("System.Span"));
         Assert.IsType<RetargetingNamedTypeSymbol>(comp2.GlobalNamespace.GetMember("System.ReadOnlySpan"));
