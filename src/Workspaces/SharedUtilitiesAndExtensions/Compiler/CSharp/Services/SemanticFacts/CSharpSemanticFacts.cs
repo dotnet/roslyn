@@ -59,23 +59,55 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
     {
         var location = token.GetLocation();
 
-        foreach (var ancestor in token.GetAncestors<SyntaxNode>())
+        var sourceAncestor = token.Parent;
+        // Skip the tuple expression if the identifier is part of the simple identifier expression inside a tuple,
+        // but not the identifier of the field
+        // For example, we are evaluating `x` in `(x, y)`, or the expression after the colon in `(x: x, y: y)`
+        // but not the name of the field
+        // We want to handle the implicit declaration of the tuple field when finding its references, not via its name implication
+        if (sourceAncestor is IdentifierNameSyntax { Parent: ArgumentSyntax { Parent: TupleExpressionSyntax parentTuple } })
+        {
+            sourceAncestor = parentTuple.Parent;
+        }
+
+        if (sourceAncestor is null)
+            return null;
+
+        foreach (var ancestor in sourceAncestor.AncestorsAndSelf())
         {
             var symbol = semanticModel.GetDeclaredSymbol(ancestor, cancellationToken);
             if (symbol != null)
             {
-                if (symbol is IMethodSymbol { MethodKind: MethodKind.Conversion })
+                switch (symbol)
                 {
-                    // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
-                    // So check if the symbol's location encompasses the span of the token we're asking about.
-                    if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
-                        return symbol;
-                }
-                else
-                {
-                    // For any other symbols, we only care if the name directly matches the span of the token
-                    if (symbol.Locations.Contains(location))
-                        return symbol;
+                    case IMethodSymbol { MethodKind: MethodKind.Conversion }:
+                        {
+                            // The token may be part of a larger name (for example, `int` in `public static operator int[](Goo g);`.
+                            // So check if the symbol's location encompasses the span of the token we're asking about.
+                            if (symbol.Locations.Any(static (loc, location) => loc.SourceTree == location.SourceTree && loc.SourceSpan.Contains(location.SourceSpan), location))
+                                return symbol;
+                            break;
+                        }
+
+                    case IPropertySymbol { ContainingType: ITypeSymbol { IsAnonymousType: true } }:
+                        {
+                            // If the span is part of the property's assignment expression, it's not our target result
+                            // For example, we are evaluating `a.Length` in `new { a.Length }`, or in `new { Length = a.Length }`
+                            // We want to handle the implicit declaration of the property when finding its references, not via its name implication
+                            if (ancestor is AnonymousObjectMemberDeclaratorSyntax declarator &&
+                                declarator.Expression.Span.Contains(location.SourceSpan))
+                            {
+                                break;
+                            }
+
+                            return symbol;
+                        }
+
+                    default:
+                        // For any other symbols, we only care if the name directly matches the span of the token
+                        if (symbol.Locations.Contains(location))
+                            return symbol;
+                        break;
                 }
 
                 // We found some symbol, but it defined something else. We're not going to have a higher node defining _another_ symbol with this token, so we can stop now.
@@ -354,6 +386,55 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                 return semanticModel.GetSymbolInfo(baseType, cancellationToken).GetBestOrAllSymbols();
         }
 
+        // In the following cases, we want to return the tuple field or the anonymous object property too, as we imply its name
+        var impliedSymbols = ImmutableArray<ISymbol>.Empty;
+        if (node is IdentifierNameSyntax identifier)
+        {
+            var implyingNameNode = node;
+
+            if (identifier.Parent is MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) simpleMemberAccessExpression
+                && simpleMemberAccessExpression.Name == node)
+            {
+                implyingNameNode = simpleMemberAccessExpression;
+            }
+
+            var implyingNameNodeParent = implyingNameNode.Parent;
+
+            switch (implyingNameNodeParent)
+            {
+                case ArgumentSyntax { NameColon: null, Parent: TupleExpressionSyntax tuple }:
+                    {
+                        var tupleType = semanticModel.GetTypeInfo(tuple, cancellationToken).Type;
+                        if (tupleType is not null)
+                        {
+                            var field = tupleType.GetMembers().FirstOrDefault(s => s.Name == token.ValueText);
+                            if (field is IFieldSymbol)
+                            {
+                                impliedSymbols = ImmutableArray.Create(field);
+                            }
+                        }
+
+                        break;
+                    }
+
+                case AnonymousObjectMemberDeclaratorSyntax { NameEquals: null, Parent: AnonymousObjectCreationExpressionSyntax anonymousObject }:
+                    {
+                        var anonymousObjectConstructorSymbol = semanticModel.GetSymbolInfo(anonymousObject, cancellationToken).Symbol;
+                        if (anonymousObjectConstructorSymbol is IMethodSymbol anonymousObjectConstructor)
+                        {
+                            var anonymousType = anonymousObjectConstructorSymbol.ContainingType;
+                            var property = anonymousType.GetMembers().FirstOrDefault(s => s.Name == token.ValueText);
+                            if (property is IPropertySymbol)
+                            {
+                                impliedSymbols = ImmutableArray.Create(property);
+                            }
+                        }
+
+                        break;
+                    }
+            }
+        }
+
         //Only in the orderby clause a comma can bind to a symbol.
         if (token.IsKind(SyntaxKind.CommaToken))
             return [];
@@ -372,7 +453,8 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
             }
         }
 
-        return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
+        return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
+            .Concat(impliedSymbols);
     }
 
     public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
