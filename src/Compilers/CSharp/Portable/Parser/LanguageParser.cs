@@ -10969,7 +10969,7 @@ done:
                         leftOperand: null,
                         this.EatToken(),
                         CanStartExpression()
-                            ? this.ParseSubExpression(GetPrecedence(SyntaxKind.RangeExpression))
+                            ? this.ParseSubExpression(Precedence.Range)
                             : null);
                 }
 
@@ -11018,6 +11018,7 @@ done:
         private ExpressionSyntax ParseExpressionContinued(ExpressionSyntax unaryOrPrimaryExpression, Precedence precedence)
         {
             var expandedExpression = unaryOrPrimaryExpression;
+
             // Keep on expanding the left operand as long as what we see fits the precedence we're under.
             while (tryExpandExpression(ref expandedExpression, precedence))
                 continue;
