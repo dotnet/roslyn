@@ -771,8 +771,8 @@ Do you want to proceed?</value>
   <data name="external" xml:space="preserve">
     <value>(external)</value>
   </data>
-  <data name="Inline_Hints" xml:space="preserve">
-    <value>Inline Hints</value>
+  <data name="Inlay_Hints" xml:space="preserve">
+    <value>Inlay Hints</value>
   </data>
   <data name="User_Types_Records" xml:space="preserve">
     <value>User Types - Records</value>
