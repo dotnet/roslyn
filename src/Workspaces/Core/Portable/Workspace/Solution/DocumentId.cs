@@ -24,15 +24,13 @@ public sealed class DocumentId : IEquatable<DocumentId>
     public Guid Id { get; }
     [DataMember(Order = 2)]
     internal bool IsSourceGenerated { get; }
-    [DataMember(Order = 3)]
-    private readonly string? _debugName;
 
     private DocumentId(ProjectId projectId, Guid guid, bool isSourceGenerated, string? debugName)
     {
         this.ProjectId = projectId;
         this.Id = guid;
         this.IsSourceGenerated = isSourceGenerated;
-        _debugName = debugName;
+        DebugName = debugName;
     }
 
     /// <summary>
@@ -57,10 +55,11 @@ public sealed class DocumentId : IEquatable<DocumentId>
         return new DocumentId(projectId, id, isSourceGenerated, debugName);
     }
 
-    internal string? DebugName => _debugName;
+    [field: DataMember(Order = 3)]
+    internal string? DebugName { get; }
 
     internal string GetDebuggerDisplay()
-        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
+        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, DebugName);
 
     public override string ToString()
         => GetDebuggerDisplay();

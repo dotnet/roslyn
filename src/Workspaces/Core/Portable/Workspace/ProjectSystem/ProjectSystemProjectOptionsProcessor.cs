@@ -41,7 +41,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     private ITemporaryStorageStreamHandle? _commandLineStorageHandle;
 
     private CommandLineArguments _commandLineArgumentsForCommandLine;
-    private string? _explicitRuleSetFilePath;
     private IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>>? _ruleSetFile = null;
 
     public ProjectSystemProjectOptionsProcessor(
@@ -115,18 +114,18 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
 
     public string? ExplicitRuleSetFilePath
     {
-        get => _explicitRuleSetFilePath;
+        get;
 
         set
         {
             lock (_gate)
             {
-                if (_explicitRuleSetFilePath == value)
+                if (field == value)
                 {
                     return;
                 }
 
-                _explicitRuleSetFilePath = value;
+                field = value;
 
                 UpdateProjectOptions_NoLock();
             }
