@@ -11289,20 +11289,9 @@ done:
 
         /// <summary>Check if we're currently at a .. sequence that can then be parsed out as a <see cref="SyntaxKind.DotDotToken"/>.</summary>
         public bool IsAtDotDotToken()
-        {
-            var token1 = this.CurrentToken;
-            if (token1.Kind != SyntaxKind.DotToken)
-                return false;
-
-            var token2 = this.PeekToken(1);
-            if (token2.Kind != SyntaxKind.DotToken)
-                return false;
-
-            return NoTriviaBetween(token1, token2))
-        }
-
-        private static bool IsNumericLiteralStartingWithDot(SyntaxToken token)
-            => token is { Kind: SyntaxKind.NumericLiteralToken, Text: ['.', >= '0' and <= '9', ..] };
+            => this.CurrentToken is { Kind: SyntaxKind.DotToken } token1 &&
+               this.PeekToken(1) is { Kind: SyntaxKind.DotToken } token2 &&
+               NoTriviaBetween(token1, token2);
 
         /// <summary>Consume the next two tokens as a <see cref="SyntaxKind.DotDotToken"/>.  Note: if three dot tokens
         /// are in a row, an error will be placed on the <c>..</c> token to say that is illegal.</summary>
