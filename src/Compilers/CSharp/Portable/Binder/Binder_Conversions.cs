@@ -882,10 +882,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (collectionTypeKind is CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
+                if (targetType is NamedTypeSymbol namedType &&
+                    HasParamsCollectionTypeInProgress(namedType, out NamedTypeSymbol? inProgress, out MethodSymbol? inProgressConstructor))
+                {
+                    Debug.Assert(inProgressConstructor is not null);
+                    diagnostics.Add(ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls, syntax, inProgress, inProgressConstructor.OriginalDefinition);
+                    return BindCollectionExpressionForErrorRecovery(node, namedType, inConversion: true, diagnostics);
+                }
+
                 implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isNewInstance: true, targetType) { WasCompilerGenerated = true };
-                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, diagnostics);
+                collectionCreation = BindCollectionExpressionConstructor(syntax, targetType, constructor, diagnostics);
                 Debug.Assert((collectionCreation is BoundNewT && !isExpanded && constructor is null) ||
                              (collectionCreation is BoundObjectCreationExpression creation && creation.Expanded == isExpanded && creation.Constructor == constructor));
+
+                if (collectionCreation.HasErrors)
+                {
+                    return BindCollectionExpressionForErrorRecovery(node, targetType, inConversion: true, diagnostics);
+                }
 
                 if (!elements.IsDefaultOrEmpty && HasCollectionInitializerTypeInProgress(syntax, targetType))
                 {
@@ -1058,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return collectionBuilderMethod;
         }
 
-        internal BoundExpression BindCollectionExpressionConstructor(SyntaxNode syntax, TypeSymbol targetType, BindingDiagnosticBag diagnostics)
+        internal BoundExpression BindCollectionExpressionConstructor(SyntaxNode syntax, TypeSymbol targetType, MethodSymbol? constructor, BindingDiagnosticBag diagnostics)
         {
             //
             // !!! ATTENTION !!!
@@ -1071,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var analyzedArguments = AnalyzedArguments.GetInstance();
             if (targetType is NamedTypeSymbol namedType)
             {
-                var binder = WithAdditionalFlags(BinderFlags.CollectionExpressionConversionValidation);
+                var binder = new ParamsCollectionTypeInProgressBinder(namedType, this, constructor);
                 collectionCreation = binder.BindClassCreationExpression(syntax, namedType.Name, syntax, namedType, analyzedArguments, diagnostics);
                 collectionCreation.WasCompilerGenerated = true;
             }
@@ -1108,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (HasParamsCollectionTypeInProgress(namedType))
+                if (HasParamsCollectionTypeInProgress(namedType, out _, out _))
                 {
                     // We are in a cycle. Optimistically assume we have the right constructor to break the cycle
                     return true;
@@ -1197,7 +1210,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool HasParamsCollectionTypeInProgress(NamedTypeSymbol toCheck)
+        private bool HasParamsCollectionTypeInProgress(NamedTypeSymbol toCheck,
+            [NotNullWhen(returnValue: true)] out NamedTypeSymbol? inProgress,
+            out MethodSymbol? constructor)
         {
             Binder? current = this;
             while (current?.Flags.Includes(BinderFlags.CollectionExpressionConversionValidation) == true)
@@ -1205,12 +1220,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (current.ParamsCollectionTypeInProgress?.OriginalDefinition.Equals(toCheck.OriginalDefinition, TypeCompareKind.AllIgnoreOptions) == true)
                 {
                     // We are in a cycle.
+                    inProgress = current.ParamsCollectionTypeInProgress;
+                    constructor = current.ParamsCollectionConstructorInProgress;
                     return true;
                 }
 
                 current = current.Next;
             }
 
+            inProgress = null;
+            constructor = null;
             return false;
         }
 
@@ -1220,7 +1239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol? namedType = targetType as NamedTypeSymbol;
 
-            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType))
+            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _))
             {
                 // We are in a cycle. Optimistically assume we have the right Add to break the cycle
                 addMethods = [];
