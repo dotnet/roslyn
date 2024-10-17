@@ -19,9 +19,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-#pragma warning disable IDE0060 // Remove unused parameter
-            OmniSharpCodeActionOptions options,
-#pragma warning restore IDE0060 // Remove unused parameter
             CancellationToken cancellationToken)
             => new(document, span, diagnostics, registerCodeFix, cancellationToken);
 
@@ -29,9 +26,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             Document document,
             TextSpan span,
             Action<CodeAction, TextSpan?> registerRefactoring,
-#pragma warning disable IDE0060 // Remove unused parameter
-            OmniSharpCodeActionOptions options,
-#pragma warning restore IDE0060 // Remove unused parameter
             CancellationToken cancellationToken)
             => new(document, span, registerRefactoring, cancellationToken);
 
@@ -44,9 +38,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
-#pragma warning disable IDE0060 // Remove unused parameter
-            Func<string, OmniSharpCodeActionOptions> optionsProvider,
-#pragma warning restore IDE0060 // Remove unused parameter
             CancellationToken cancellationToken)
             => new(new FixAllState(
                     fixAllProvider: NoOpFixAllProvider.Instance,
