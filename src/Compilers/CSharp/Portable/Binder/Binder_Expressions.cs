@@ -840,9 +840,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        internal virtual BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, BindingDiagnosticBag diagnostics)
+        internal virtual BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, uint switchGoverningValEscape, BindingDiagnosticBag diagnostics)
         {
-            return this.NextRequired.BindSwitchExpressionArm(node, switchGoverningType, diagnostics);
+            return this.NextRequired.BindSwitchExpressionArm(node, switchGoverningType, switchGoverningValEscape, diagnostics);
         }
 #nullable disable
 
@@ -3514,7 +3514,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(argument is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
-                    coercedArgument = bindInterpolatedStringHandlerInMemberCall(argument, parameterTypeWithAnnotations.Type, argumentsForInterpolationConversion, parameters, in result, arg, receiver, diagnostics);
+                    coercedArgument = bindInterpolatedStringHandlerInMemberCall(
+                        argument,
+                        parameterTypeWithAnnotations.Type,
+                        argumentsForInterpolationConversion,
+                        parameters,
+                        in result,
+                        arg,
+                        receiver,
+                        methodResult.LeastOverriddenMember.RequiresInstanceReceiver(),
+                        diagnostics);
                 }
                 // https://github.com/dotnet/roslyn/issues/37119 : should we create an (Identity) conversion when the kind is Identity but the types differ?
                 else if (!kind.IsIdentity)
@@ -3685,6 +3694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 in MemberAnalysisResult memberAnalysisResult,
                 int interpolatedStringArgNum,
                 BoundExpression? receiver,
+                bool requiresInstanceReceiver,
                 BindingDiagnosticBag diagnostics)
             {
                 Debug.Assert(unconvertedString is BoundUnconvertedInterpolatedString or BoundBinaryOperator { IsUnconvertedInterpolatedStringAddition: true });
@@ -3848,21 +3858,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     SyntaxNode placeholderSyntax;
+                    uint valSafeToEscapeScope;
                     bool isSuppressed;
 
                     switch (argumentIndex)
                     {
                         case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                             Debug.Assert(receiver != null);
+                            valSafeToEscapeScope = requiresInstanceReceiver
+                                ? receiver.GetRefKind().IsWritableReference() == true ? GetRefEscape(receiver, LocalScopeDepth) : GetValEscape(receiver, LocalScopeDepth)
+                                : Binder.CallingMethodScope;
                             isSuppressed = receiver.IsSuppressed;
                             placeholderSyntax = receiver.Syntax;
                             break;
                         case BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter:
                             placeholderSyntax = unconvertedString.Syntax;
+                            valSafeToEscapeScope = Binder.CallingMethodScope;
                             isSuppressed = false;
                             break;
                         case >= 0:
                             placeholderSyntax = arguments[argumentIndex].Syntax;
+                            valSafeToEscapeScope = GetValEscape(arguments[argumentIndex], LocalScopeDepth);
                             isSuppressed = arguments[argumentIndex].IsSuppressed;
                             break;
                         default:
@@ -3873,6 +3889,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (BoundInterpolatedStringArgumentPlaceholder)(new BoundInterpolatedStringArgumentPlaceholder(
                             placeholderSyntax,
                             argumentIndex,
+                            valSafeToEscapeScope,
                             placeholderType,
                             hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
                         { WasCompilerGenerated = true }.WithSuppression(isSuppressed)));
@@ -5007,6 +5024,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+                var receiverIsSubjectToCloning = ReceiverIsSubjectToCloning(receiver, resultMember);
+                if (!hasErrors)
+                {
+                    hasErrors = !CheckInvocationArgMixing(
+                        nonNullSyntax,
+                        MethodInfo.Create(resultMember),
+                        receiver,
+                        receiverIsSubjectToCloning,
+                        resultMember.Parameters,
+                        arguments,
+                        refKinds,
+                        argsToParamsOpt,
+                        this.LocalScopeDepth,
+                        diagnostics);
+                }
 
                 if (resultMember.HasSetsRequiredMembers && !constructor.HasSetsRequiredMembers)
                 {
@@ -5018,7 +5050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundCall(
                     nonNullSyntax,
                     receiver,
-                    initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, resultMember),
+                    initialBindingReceiverIsSubjectToCloning: receiverIsSubjectToCloning,
                     resultMember,
                     arguments,
                     analyzedArguments.GetNames(),
@@ -5696,7 +5728,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics: diagnostics);
 
                             // Bind member initializer assignment expression
-                            return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
+                            // We don't verify escape safety of initializers against the instance because the initializers
+                            // get factored in when determining the safe-to-escape of the instance (the initializers contribute
+                            // like constructor arguments).
+                            return BindAssignment(initializer, boundLeft, boundRight, isRef, verifyEscapeSafety: false, diagnostics);
                         }
                         break;
                     }
@@ -6766,8 +6801,83 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var arguments = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+
             BoundObjectInitializerExpressionBase boundInitializerOpt;
             boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
+
+            if (!hasError)
+            {
+                hasError = !CheckInvocationArgMixing(
+                    node,
+                    MethodInfo.Create(method),
+                    null,
+                    receiverIsSubjectToCloning: ThreeState.False,
+                    method.Parameters,
+                    arguments,
+                    refKinds,
+                    argToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
+            }
+
+            // PROTOTYPE: Previously this code from RefSafetyAnalysis was used
+            // for the following cases. Only the first case is covered here.
+            // - BoundObjectCreationExpression
+            // - BoundDynamicObjectCreationExpression
+            // - BoundNewT
+            // - BoundNoPiaObjectCreationExpression
+            if (boundInitializerOpt is { })
+            {
+                // Object initializers are different than a normal constructor in that the 
+                // scope of the receiver is determined by evaluating the inputs to the constructor
+                // *and* all of the initializers. Another way of thinking about this is that
+                // every argument in an initializer that can escape to the receiver is 
+                // effectively an argument to the constructor. That means we need to do
+                // a second mixing pass here where we consider the receiver escaping 
+                // back into the ref parameters of the constructor.
+                //
+                // At the moment this is only a hypothetical problem. Because the language 
+                // doesn't support ref field of ref struct mixing like this could not actually
+                // happen in practice. At the same time we want to error on this now so that 
+                // in a future when we do have ref field to ref struct this is not a breaking 
+                // change. Customers can respond to failures like this by putting scoped on
+                // such parameters in the constructor.
+                var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
+                var escapeFrom = GetValEscape(boundInitializerOpt, LocalScopeDepth);
+                GetEscapeValues(
+                    MethodInfo.Create(method),
+                    receiver: null,
+                    receiverIsSubjectToCloning: ThreeState.Unknown,
+                    method.Parameters,
+                    arguments,
+                    refKinds,
+                    argToParams,
+                    ignoreArglistRefKinds: false,
+                    mixableArguments: null,
+                    escapeValues);
+
+                foreach (var (parameter, argument, _, isRefEscape) in escapeValues)
+                {
+                    if (!isRefEscape)
+                    {
+                        continue;
+                    }
+
+                    if (parameter?.Type?.IsRefLikeOrAllowsRefLikeType() != true ||
+                        !parameter.RefKind.IsWritableReference())
+                    {
+                        continue;
+                    }
+
+                    if (escapeFrom > GetValEscape(argument, LocalScopeDepth))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, method, parameter.Name);
+                    }
+                }
+
+                escapeValues.Free();
+            }
+
             var creation = new BoundObjectCreationExpression(
                 node,
                 method,
@@ -9368,7 +9478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(convertedArguments.Length == 1);
 
                 var int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr.Type) { WasCompilerGenerated = true };
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, GetValEscape(expr, LocalScopeDepth), isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr.Type) { WasCompilerGenerated = true };
                 var argumentPlaceholders = ImmutableArray.Create(new BoundImplicitIndexerValuePlaceholder(convertedArguments[0].Syntax, int32) { WasCompilerGenerated = true });
 
                 return new BoundImplicitIndexerAccess(
@@ -9913,7 +10023,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool argIsIndex = argIsIndexNotRange.Value();
-            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
+            var receiverValEscape = GetValEscape(receiver, LocalScopeDepth);
+            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiverValEscape, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver.Type) { WasCompilerGenerated = true };
             if (!TryBindIndexOrRangeImplicitIndexerParts(syntax, receiverPlaceholder, argIsIndex: argIsIndex,
                     out var lengthOrCountAccess, out var indexerOrSliceAccess, out var argumentPlaceholders, diagnostics))
             {

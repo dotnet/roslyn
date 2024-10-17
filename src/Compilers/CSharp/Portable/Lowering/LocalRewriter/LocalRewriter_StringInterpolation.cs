@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(data.BuilderType is not null);
             Debug.Assert(data.ReceiverPlaceholder is not null);
             Debug.Assert(parts.All(static p => p is BoundCall or BoundDynamicInvocation));
-            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, syntax);
+            var builderTempSymbol = _factory.InterpolatedStringHandlerLocal(data.BuilderType, data.ScopeOfContainingExpression, syntax);
             BoundLocal builderTemp = _factory.Local(builderTempSymbol);
 
             // var handler = new HandlerType(baseStringLength, numFormatHoles, ...InterpolatedStringHandlerArgumentAttribute parameters, <optional> out bool appendShouldProceed);
