@@ -8662,7 +8662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol? parameterOpt = null,
             bool reportTopLevelWarnings = true,
             bool reportRemainingWarnings = true,
-            bool suppressed = false,
+            bool isSuppressed = false,
             bool extensionMethodThisArgument = false,
             Optional<LocalState> stateForLambda = default,
             bool trackMembers = false,
@@ -8702,9 +8702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NullableFlowState resultState = NullableFlowState.NotNull;
             bool canConvertNestedNullability = true;
-            bool isSuppressed = false;
 
-            if (suppressed || conversionOperand.IsSuppressed)
+            if (isSuppressed || conversionOperand.IsSuppressed)
             {
                 reportTopLevelWarnings = false;
                 reportRemainingWarnings = false;
@@ -10976,7 +10975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignmentKind.ForEachIterationVariable,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,
-                                suppressed: node.Expression is BoundConversion { Operand.IsSuppressed: true },
+                                isSuppressed: node.Expression is BoundConversion { Operand.IsSuppressed: true },
                                 diagnosticLocation: variableLocation);
                         }
 
