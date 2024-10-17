@@ -117,6 +117,79 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        [Fact]
+        public void Increment_LeftMemberAccess()
+        {
+            // TODO2: support increment/decrement?
+            string source = "a?.b++";
+            UsingExpression(source, TestOptions.Regular13);
+            verify();
+
+            UsingExpression(source, TestOptions.RegularPreview);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.PostIncrementExpression);
+                {
+                    N(SyntaxKind.ConditionalAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.PlusPlusToken);
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void NullCoalescing_LeftMemberAccess()
+        {
+            string source = "a?.b = c ?? d";
+            UsingExpression(source, TestOptions.Regular13);
+            verify();
+
+            UsingExpression(source, TestOptions.RegularPreview);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.PostIncrementExpression);
+                {
+                    N(SyntaxKind.ConditionalAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.PlusPlusToken);
+                }
+                EOF();
+            }
+        }
+
         [Theory]
         [InlineData(SyntaxKind.BarEqualsToken)]
         [InlineData(SyntaxKind.AmpersandEqualsToken)]
