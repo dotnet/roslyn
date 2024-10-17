@@ -11289,8 +11289,11 @@ done:
 
         /// <summary>Check if we're currently at a .. sequence that can then be parsed out as a <see cref="SyntaxKind.DotDotToken"/>.</summary>
         public bool IsAtDotDotToken()
-            => this.CurrentToken is { Kind: SyntaxKind.DotToken } token1 &&
-               this.PeekToken(1) is { Kind: SyntaxKind.DotToken } token2 &&
+            => IsAtDotDotToken(this.CurrentToken, this.PeekToken(1));
+
+        public static bool IsAtDotDotToken(SyntaxToken token1, SyntaxToken token2)
+            => token1.Kind == SyntaxKind.DotToken &&
+               token2.Kind == SyntaxKind.DotToken &&
                NoTriviaBetween(token1, token2);
 
         /// <summary>Consume the next two tokens as a <see cref="SyntaxKind.DotDotToken"/>.  Note: if three dot tokens
@@ -11679,12 +11682,13 @@ done:
         private bool CanStartConsequenceExpression()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
-            var nextTokenKind = this.PeekToken(1).Kind;
+            var nextToken = this.PeekToken(1);
+            var nextTokenKind = nextToken.Kind;
 
-            // ?. is always the start of of a consequence expression.
+            // ?.   is always the start of of a consequence expression.
             //
-            // ?.. is a ternary with a range expression as it's 'whenTrue' clause.
-            if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken())
+            // ?..  is a ternary with a range expression as it's 'whenTrue' clause.
+            if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
                 return true;
 
             if (nextTokenKind == SyntaxKind.OpenBracketToken)
