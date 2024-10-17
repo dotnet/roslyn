@@ -2251,6 +2251,34 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public async Task SimplifyUnmentionableTypeParameter3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            public class C<T>;
+
+            public class D : C<[|D.E|]>
+            {
+                public class E;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public async Task SimplifyUnmentionableTypeParameter3_PrimaryCtor()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            public class C<T>;
+
+            public class D() : C<[|D.E|]>()
+            {
+                public class E;
+            }
+            """);
+    }
+
     [Fact]
     public async Task TestGlobalAlias()
     {
