@@ -538,6 +538,16 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithHasSdkCodeStyleAnalyzers"/>
+    internal SolutionCompilationState WithHasSdkCodeStyleAnalyzers(
+        ProjectId projectId, bool hasSdkCodeStyleAnalyzers)
+    {
+        return ForkProject(
+            this.SolutionState.WithHasSdkCodeStyleAnalyzers(projectId, hasSdkCodeStyleAnalyzers),
+            translate: null,
+            forkTracker: true);
+    }
+
     /// <inheritdoc cref="SolutionState.WithProjectDocumentsOrder"/>
     public SolutionCompilationState WithProjectDocumentsOrder(
         ProjectId projectId, ImmutableList<DocumentId> documentIds)
@@ -574,7 +584,8 @@ internal sealed partial class SolutionCompilationState
             .WithProjectDefaultNamespace(projectId, attributes.DefaultNamespace)
             .WithHasAllInformation(projectId, attributes.HasAllInformation)
             .WithRunAnalyzers(projectId, attributes.RunAnalyzers)
-            .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm);
+            .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm)
+            .WithHasSdkCodeStyleAnalyzers(projectId, attributes.HasSdkCodeStyleAnalyzers);
     }
 
     public SolutionCompilationState WithProjectInfo(ProjectInfo info)

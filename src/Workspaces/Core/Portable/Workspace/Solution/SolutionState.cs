@@ -702,6 +702,24 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified hasSdkCodeStyleAnalyzers.
+    /// </summary>
+    internal StateChange WithHasSdkCodeStyleAnalyzers(ProjectId projectId, bool hasSdkCodeStyleAnalyzers)
+    {
+        var oldProject = GetRequiredProjectState(projectId);
+        var newProject = oldProject.WithHasSdkCodeStyleAnalyzers(hasSdkCodeStyleAnalyzers);
+
+        if (oldProject == newProject)
+        {
+            return new(this, oldProject, newProject);
+        }
+
+        // fork without any change on compilation.
+        return ForkProject(oldProject, newProject);
+    }
+
+    /// <summary>
     /// Create a new solution instance with the project specified updated to include
     /// the specified project references.
     /// </summary>
