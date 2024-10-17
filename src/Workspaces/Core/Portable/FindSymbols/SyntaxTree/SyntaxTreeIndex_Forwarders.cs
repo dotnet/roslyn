@@ -38,6 +38,7 @@ internal sealed partial class SyntaxTreeIndex
     public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
     public bool ContainsCollectionInitializer => _contextInfo.ContainsCollectionInitializer;
     public bool ContainsAttribute => _contextInfo.ContainsAttribute;
+    public bool ContainsDirective => _contextInfo.ContainsDirective;
 
     /// <summary>
     /// Gets the set of global aliases that point to something with the provided name and arity.

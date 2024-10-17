@@ -31,7 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the reference location.
         /// </summary>
         [JsonPropertyName("_vs_location")]
-        public Location Location
+        public Location? Location
         {
             get;
             set;

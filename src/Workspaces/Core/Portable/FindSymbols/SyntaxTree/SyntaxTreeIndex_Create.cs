@@ -73,6 +73,7 @@ internal sealed partial class SyntaxTreeIndex
             var containsGlobalKeyword = false;
             var containsCollectionInitializer = false;
             var containsAttribute = false;
+            var containsDirective = root.ContainsDirectives;
 
             var predefinedTypes = (int)PredefinedType.None;
             var predefinedOperators = (int)PredefinedOperator.None;
@@ -196,7 +197,8 @@ internal sealed partial class SyntaxTreeIndex
                     containsConversion,
                     containsGlobalKeyword,
                     containsCollectionInitializer,
-                    containsAttribute),
+                    containsAttribute,
+                    containsDirective),
                 aliasInfo,
                 interceptsLocationInfo);
         }

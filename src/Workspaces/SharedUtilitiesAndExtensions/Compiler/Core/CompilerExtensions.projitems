@@ -475,6 +475,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.ParameterSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.PointerTypeSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.PooledArrayBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.PreprocessingSymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.PropertySymbolKey.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SymbolKey\SymbolKey.SymbolKeyReader.cs" />
