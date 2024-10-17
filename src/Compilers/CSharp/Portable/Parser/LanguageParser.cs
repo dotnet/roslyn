@@ -10985,7 +10985,7 @@ done:
                 // We either have a binary or assignment operator here, or we're finished.
                 var tk = this.CurrentToken.ContextualKind;
 
-                bool isAssignmentOperator = false;
+                var isAssignmentOperator = false;
                 SyntaxKind opKind;
 
                 // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
@@ -11025,24 +11025,19 @@ done:
                 {
                     // check for >>, >>=, >>> or >>>=
                     if (tk == SyntaxKind.GreaterThanToken
-                        && this.PeekToken(1).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
-                        && NoTriviaBetween(this.CurrentToken, this.PeekToken(1))) // check to see if they really are adjacent
+                        && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token1
+                        && NoTriviaBetween(this.CurrentToken, token1)) // check to see if they really are adjacent
                     {
-                        if (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
+                        if (token1.Kind == SyntaxKind.GreaterThanToken)
                         {
-                            if (this.PeekToken(2).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
-                                && NoTriviaBetween(this.PeekToken(1), this.PeekToken(2))) // check to see if they really are adjacent
+                            if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                                && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
                             {
-                                if (this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
-                                {
-                                    opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
-                                }
-                                else
-                                {
-                                    opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
-                                    isAssignmentOperator = true;
-                                }
+                                opKind = token2.Kind == SyntaxKind.GreaterThanToken
+                                    ? SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken)
+                                    : SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
 
+                                isAssignmentOperator = token2.Kind == SyntaxKind.GreaterThanEqualsToken;
                                 tokensToCombine = 3;
                             }
                             else
@@ -11297,7 +11292,8 @@ done:
                NoTriviaBetween(token1, token2);
 
         /// <summary>Consume the next two tokens as a <see cref="SyntaxKind.DotDotToken"/>.  Note: if three dot tokens
-        /// are in a row, an error will be placed on the <c>..</c> token to say that is illegal.</summary>
+        /// are in a row, an error will be placed on the <c>..</c> token to say that is illegal, and single DotDot token
+        /// will be returned.</summary>
         public SyntaxToken EatDotDotToken()
         {
             Debug.Assert(IsAtDotDotToken());
@@ -11308,9 +11304,25 @@ done:
             if (this.CurrentToken is { Kind: SyntaxKind.DotToken } token3 &&
                 NoTriviaBetween(token2, token3))
             {
-                // Give a specific error about `...` being illegal so we can reserve that syntax for the language for
-                // the future.
-                return AddError(dotDotToken, offset: dotDotToken.GetLeadingTriviaWidth(), length: 0, ErrorCode.ERR_TripleDotNotAllowed);
+                // At least three dots directly in a row.  Definitely mark that this is always illegal.  We do not allow
+                // `...` at all in case we want to use that syntax in the future.
+                dotDotToken = AddError(
+                    dotDotToken,
+                    offset: dotDotToken.GetLeadingTriviaWidth(),
+                    length: 0,
+                    ErrorCode.ERR_TripleDotNotAllowed);
+
+                // If we have exactly 3 dots in a row, then make the third dot into skipped trivia on the `..` as this
+                // is likely just a mistyped range/slice and we'll recover better if we don't try to process the 3rd dot
+                // as a member access or anything like that.
+                //
+                // If we have 4 dots in a row (`....`), then don't skip any of them.  We'll let the caller handle the
+                // next two dots as a range/slice/whatever.
+                if (this.PeekToken(1) is not { Kind: SyntaxKind.DotToken } token4 ||
+                    !NoTriviaBetween(token3, token4))
+                {
+                    dotDotToken = AddSkippedSyntax(dotDotToken, this.EatToken(), trailing: true);
+                }
             }
 
             return dotDotToken;

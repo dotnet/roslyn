@@ -530,8 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(@"c is ....",
                 // (1,6): error CS8635: Unexpected character sequence '...'
                 // c is ....
-                Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 6)
-            );
+                Diagnostic(ErrorCode.ERR_TripleDotNotAllowed, "").WithLocation(1, 6));
 
             N(SyntaxKind.IsPatternExpression);
             {
