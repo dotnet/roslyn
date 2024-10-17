@@ -744,12 +744,25 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, operationContext));
     }
 
+    /// <summary>
+    /// Start to commit the rename session.
+    /// Session might be committed sync or async, depends on the value of InlineRenameUIOptionsStorage.CommitRenameAsynchronously.
+    /// If it is committed async, method will only kick off the task.
+    /// </summary>
+    /// <param name="editorOperationContext"></param>
+    public void InitiateCommit(IUIThreadOperationContext editorOperationContext = null)
+    {
+        var token = _asyncListener.BeginAsyncOperation(nameof(InitiateCommit));
+        _ = CommitAsync(previewChanges: false, editorOperationContext)
+            .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+    }
+
     /// <remarks>
     /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up the its own context correctly.
     /// </remarks>
     public async Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null)
     {
-        if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+        if (this.RenameService.GlobalOptions.ShouldCommitAsynchronously())
         {
             await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, editorOperationContext).ConfigureAwait(false);
         }
@@ -779,6 +792,12 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             this.ReplacementText == _initialRenameText)
         {
             Cancel();
+            return false;
+        }
+
+        // Don't dup commit.
+        if (this.IsCommitInProgress)
+        {
             return false;
         }
 
