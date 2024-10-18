@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         public readonly bool TrackIncrementalGeneratorSteps;
 
         /// <summary>
-        /// Absolute path to directory that generated source file paths are rooted with.
+        /// Absolute path to directory that generated source file paths are rooted with, or null to use relative paths for the generated files.
         /// Usually the project's output directory unless <see cref="CommandLineArguments.GeneratedFilesOutputDirectory"/> is specified.
         /// </summary>
         public string? BaseDirectory { get; }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (baseDirectory != null && !PathUtilities.IsAbsolute(baseDirectory))
             {
-                throw new ArgumentException(nameof(baseDirectory), CodeAnalysisResources.AbsolutePathExpected);
+                throw new ArgumentException(message: CodeAnalysisResources.AbsolutePathExpected, nameof(baseDirectory));
             }
 
             DisabledOutputs = disabledOutputs;

@@ -2495,7 +2495,7 @@ class C { }
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [generator],
                 parseOptions: parseOptions,
-                driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+                driverOptions: TestOptions.GeneratorDriverOptions);
 
             driver = driver.RunGenerators(compilation);
             GeneratorRunResult runResult = driver.GetRunResult().Results[0];

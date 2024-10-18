@@ -262,16 +262,17 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
     [Fact]
     public async Task ProjectWithoutEffectiveGeneratedFilesOutputDirectory()
     {
-        var sourceV1 = @"
-/* GENERATE: class G { int F(int x) => 1; } */
+        var sourceV1 = """
+            /* GENERATE: class G { int F(int x) => 1; } */
+            
+            class C { int Y => 1; }
+            """;
 
-class C { int Y => 1; }
-";
-        var sourceV2 = @"
-/* GENERATE: class G { int F() => 1; } */
+        var sourceV2 = """
+            /* GENERATE: class G { int F() => 1; } */
 
-class C { int Y => 2; }
-";
+            class C { int Y => 2; }
+            """;
 
         var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
 
