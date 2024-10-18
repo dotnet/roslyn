@@ -3235,7 +3235,6 @@ parse_member_name:;
             {
                 case SyntaxKind.DotToken:                   // Goo.     explicit
                 case SyntaxKind.ColonColonToken:            // Goo::    explicit
-                case SyntaxKind.DotDotToken:                // Goo..    explicit
                 case SyntaxKind.LessThanToken:              // Goo<     explicit or generic method
                 case SyntaxKind.OpenBraceToken:             // Goo {    property
                 case SyntaxKind.EqualsGreaterThanToken:     // Goo =>   property
@@ -3563,12 +3562,12 @@ parse_member_name:;
                                 IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
                                 ScanNamedTypePart();
 
-                                if (IsDotOrColonColonOrDotDot() ||
+                                if (IsDotOrColonColon() ||
                                     (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken))
                                 {
                                     haveExplicitInterfaceName = true;
 
-                                    if (IsDotOrColonColonOrDotDot())
+                                    if (IsDotOrColonColon())
                                     {
                                         separatorKind = this.CurrentToken.Kind;
                                         EatToken();
@@ -3593,7 +3592,7 @@ parse_member_name:;
                     bool possibleConversion;
 
                     if (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword ||
-                        (haveExplicitInterfaceName && separatorKind is not (SyntaxKind.DotToken or SyntaxKind.DotDotToken)))
+                        (haveExplicitInterfaceName && separatorKind is not SyntaxKind.DotToken))
                     {
                         possibleConversion = false;
                     }
@@ -3718,8 +3717,8 @@ parse_member_name:;
                             int lastTokenPosition = -1;
                             IsMakingProgress(ref lastTokenPosition, assertIfFalse: true);
                             ScanNamedTypePart();
-                            isPartOfInterfaceName = IsDotOrColonColonOrDotDot() ||
-                                                    (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken);
+                            isPartOfInterfaceName = IsDotOrColonColon() ||
+                                (IsMakingProgress(ref lastTokenPosition, assertIfFalse: false) && this.CurrentToken.Kind != SyntaxKind.OpenParenToken);
                         }
                     }
 
@@ -3841,9 +3840,10 @@ parse_member_name:;
                 }
                 else
                 {
-                    //Consume whatever follows the operator keyword as the operator token.  If it is not
-                    //we'll add an error below (when we can guess the arity).
-                    opToken = EatToken();
+                    // Consume whatever follows the operator keyword as the operator token.  If it is not we'll add an
+                    // error below (when we can guess the arity). Handle .. as well so we can give the user a good
+                    // message if they do `operator ..`
+                    opToken = IsAtDotDotToken() ? EatDotDotToken() : EatToken();
                     Debug.Assert(!opToken.IsMissing);
                     opTokenErrorOffset = opToken.GetLeadingTriviaWidth();
                     opTokenErrorWidth = opToken.Width;
@@ -6425,7 +6425,7 @@ parse_member_name:;
                     using (GetDisposableResetPoint(resetOnDispose: true))
                     {
                         ScanNamedTypePart();
-                        isMemberName = !IsDotOrColonColonOrDotDot();
+                        isMemberName = !IsDotOrColonColon();
                     }
 
                     if (isMemberName)
@@ -6531,18 +6531,9 @@ parse_member_name:;
                 explicitInterfaceName = this.ParseSimpleName(NameOptions.InTypeList);
 
                 // Now, get the next separator.
-                if (this.CurrentToken.Kind == SyntaxKind.DotDotToken)
-                {
-                    // Error recovery as in ParseQualifiedNameRight. If we have `X..Y` break that into `X.<missing-id>.Y`
-                    separator = this.EatToken();
-                    explicitInterfaceName = RecoverFromDotDot(explicitInterfaceName, ref separator);
-                }
-                else
-                {
-                    separator = this.CurrentToken.Kind == SyntaxKind.ColonColonToken
-                        ? this.EatToken() // fine after the first identifier
-                        : this.EatToken(SyntaxKind.DotToken);
-                }
+                separator = this.CurrentToken.Kind == SyntaxKind.ColonColonToken
+                    ? this.EatToken() // fine after the first identifier
+                    : this.EatToken(SyntaxKind.DotToken);
             }
             else
             {
@@ -6558,12 +6549,6 @@ parse_member_name:;
                     separator = this.EatToken();
                     separator = this.AddError(separator, ErrorCode.ERR_UnexpectedAliasedName);
                     separator = this.ConvertToMissingWithTrailingTrivia(separator, SyntaxKind.DotToken);
-                }
-                else if (this.CurrentToken.Kind == SyntaxKind.DotDotToken)
-                {
-                    // Error recovery as in ParseQualifiedNameRight. If we have `X..Y` break that into `X.<missing-id>.Y`
-                    separator = this.EatToken();
-                    explicitInterfaceName = RecoverFromDotDot(explicitInterfaceName, ref separator);
                 }
                 else
                 {
@@ -6617,7 +6602,7 @@ parse_member_name:;
                         // If we have part of the interface name, but no dot before the operator token, then
                         // for the purpose of error recovery, treat this as an operator start with a
                         // missing dot token.
-                        isPartOfInterfaceName = IsDotOrColonColonOrDotDot() || IsOperatorKeyword();
+                        isPartOfInterfaceName = IsDotOrColonColon() || IsOperatorKeyword();
                     }
                 }
 
@@ -6674,7 +6659,7 @@ parse_member_name:;
             NameSyntax name = this.ParseAliasQualifiedName(options);
 
             // Handle .. tokens for error recovery purposes.
-            while (IsDotOrColonColonOrDotDot())
+            while (IsDotOrColonColon())
             {
                 if (this.PeekToken(1).Kind == SyntaxKind.ThisKeyword)
                 {
@@ -6688,26 +6673,18 @@ parse_member_name:;
             return name;
         }
 
-        private bool IsDotOrColonColonOrDotDot()
-        {
-            return this.IsDotOrColonColon() || this.CurrentToken.Kind == SyntaxKind.DotDotToken;
-        }
-
         private NameSyntax ParseQualifiedNameRight(
             NameOptions options,
             NameSyntax left,
             SyntaxToken separator)
         {
-            Debug.Assert(separator.Kind is SyntaxKind.DotToken or SyntaxKind.DotDotToken or SyntaxKind.ColonColonToken);
+            Debug.Assert(separator.Kind is SyntaxKind.DotToken or SyntaxKind.ColonColonToken);
             var right = this.ParseSimpleName(options);
 
             switch (separator.Kind)
             {
                 case SyntaxKind.DotToken:
                     return _syntaxFactory.QualifiedName(left, separator, right);
-                case SyntaxKind.DotDotToken:
-                    // Error recovery.  If we have `X..Y` break that into `X.<missing-id>.Y`
-                    return _syntaxFactory.QualifiedName(RecoverFromDotDot(left, ref separator), separator, right);
 
                 case SyntaxKind.ColonColonToken:
                     if (left.Kind != SyntaxKind.IdentifierName)
@@ -6739,16 +6716,6 @@ parse_member_name:;
                 default:
                     throw ExceptionUtilities.Unreachable();
             }
-        }
-
-        private NameSyntax RecoverFromDotDot(NameSyntax left, ref SyntaxToken separator)
-        {
-            Debug.Assert(separator.Kind == SyntaxKind.DotDotToken);
-
-            var leftDot = SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null);
-            var missingName = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
-            separator = SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node);
-            return _syntaxFactory.QualifiedName(left, leftDot, missingName);
         }
 
         private SyntaxToken ConvertToMissingWithTrailingTrivia(SyntaxToken token, SyntaxKind expectedKind)
@@ -7893,7 +7860,7 @@ done:
             isCollectionExpression = isCollectionExpression
                 || IsExpectedBinaryOperator(this.CurrentToken.Kind)
                 || IsExpectedAssignmentOperator(this.CurrentToken.Kind)
-                || this.CurrentToken.Kind is SyntaxKind.DotDotToken
+                || IsAtDotDotToken()
                 || (this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken);
 
             if (!isCollectionExpression &&
@@ -10616,9 +10583,10 @@ done:
                 case SyntaxKind.ColonColonToken: // bad aliased name
                 case SyntaxKind.ThrowKeyword:
                 case SyntaxKind.StackAllocKeyword:
-                case SyntaxKind.DotDotToken:
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OpenBracketToken: // attributes on a lambda, or a collection expression.
+                    return true;
+                case SyntaxKind.DotToken when IsAtDotDotToken():
                     return true;
                 case SyntaxKind.StaticKeyword:
                     return IsPossibleAnonymousMethodExpression() || IsPossibleLambdaExpression(Precedence.Expression);
@@ -10962,23 +10930,14 @@ done:
                 var operand = this.ParseSubExpression(newPrecedence);
                 leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, operand);
             }
-            else if (tk == SyntaxKind.DotDotToken)
+            else if (IsAtDotDotToken())
             {
-                // Operator ".." here can either be a prefix unary operator or a stand alone empty range:
-                var opToken = this.EatToken();
-                newPrecedence = GetPrecedence(SyntaxKind.RangeExpression);
-
-                ExpressionSyntax rightOperand;
-                if (CanStartExpression())
-                {
-                    rightOperand = this.ParseSubExpression(newPrecedence);
-                }
-                else
-                {
-                    rightOperand = null;
-                }
-
-                leftOperand = _syntaxFactory.RangeExpression(leftOperand: null, opToken, rightOperand);
+                leftOperand = _syntaxFactory.RangeExpression(
+                    leftOperand: null,
+                    this.EatDotDotToken(),
+                    CanStartExpression()
+                        ? this.ParseSubExpression(GetPrecedence(SyntaxKind.RangeExpression))
+                        : null);
             }
             else if (IsAwaitExpression())
             {
@@ -11027,12 +10986,14 @@ done:
                 // We either have a binary or assignment operator here, or we're finished.
                 var tk = this.CurrentToken.ContextualKind;
 
-                bool isAssignmentOperator = false;
+                var isAssignmentOperator = false;
                 SyntaxKind opKind;
 
                 // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
                 // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
                 // an attribute.
+
+                int tokensToCombine = 1;
 
                 if (IsExpectedBinaryOperator(tk))
                 {
@@ -11043,10 +11004,6 @@ done:
                     opKind = SyntaxFacts.GetAssignmentExpression(tk);
                     isAssignmentOperator = true;
                 }
-                else if (tk == SyntaxKind.DotDotToken)
-                {
-                    opKind = SyntaxKind.RangeExpression;
-                }
                 else if (tk == SyntaxKind.SwitchKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                 {
                     opKind = SyntaxKind.SwitchExpression;
@@ -11055,51 +11012,51 @@ done:
                 {
                     opKind = SyntaxKind.WithExpression;
                 }
+                // Check for ..
+                else if (IsAtDotDotToken())
+                {
+                    tokensToCombine = 2;
+                    opKind = SyntaxKind.RangeExpression;
+                }
                 else
                 {
                     break;
                 }
 
-                var newPrecedence = GetPrecedence(opKind);
-
-                // check for >>, >>=, >>> or >>>=
-                int tokensToCombine = 1;
-                if (tk == SyntaxKind.GreaterThanToken
-                    && this.PeekToken(1).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
-                    && NoTriviaBetween(this.CurrentToken, this.PeekToken(1))) // check to see if they really are adjacent
                 {
-                    if (this.PeekToken(1).Kind == SyntaxKind.GreaterThanToken)
+                    // check for >>, >>=, >>> or >>>=
+                    if (tk == SyntaxKind.GreaterThanToken
+                        && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token1
+                        && NoTriviaBetween(this.CurrentToken, token1)) // check to see if they really are adjacent
                     {
-                        if (this.PeekToken(2).Kind is SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken
-                            && NoTriviaBetween(this.PeekToken(1), this.PeekToken(2))) // check to see if they really are adjacent
+                        if (token1.Kind == SyntaxKind.GreaterThanToken)
                         {
-                            if (this.PeekToken(2).Kind == SyntaxKind.GreaterThanToken)
+                            if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                                && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
                             {
-                                opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken);
+                                opKind = token2.Kind == SyntaxKind.GreaterThanToken
+                                    ? SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken)
+                                    : SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
+
+                                isAssignmentOperator = token2.Kind == SyntaxKind.GreaterThanEqualsToken;
+                                tokensToCombine = 3;
                             }
                             else
                             {
-                                opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
-                                isAssignmentOperator = true;
+                                opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
+                                tokensToCombine = 2;
                             }
-
-                            tokensToCombine = 3;
                         }
                         else
                         {
-                            opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
+                            opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
+                            isAssignmentOperator = true;
                             tokensToCombine = 2;
                         }
                     }
-                    else
-                    {
-                        opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
-                        isAssignmentOperator = true;
-                        tokensToCombine = 2;
-                    }
-
-                    newPrecedence = GetPrecedence(opKind);
                 }
+
+                var newPrecedence = GetPrecedence(opKind);
 
                 // Check the precedence to see if we should "take" this operator
                 if (newPrecedence < precedence)
@@ -11114,7 +11071,43 @@ done:
                 }
 
                 // We'll "take" this operator, as precedence is tentatively OK.
-                var opToken = this.EatContextualToken(tk);
+
+                SyntaxToken opToken;
+
+                // Combine tokens into a single token if needed
+                if (tokensToCombine == 1)
+                {
+                    opToken = this.EatContextualToken(tk);
+                }
+                else if (tokensToCombine == 2)
+                {
+                    if (tk == SyntaxKind.DotToken)
+                    {
+                        opToken = this.EatDotDotToken();
+                    }
+                    else
+                    {
+                        opToken = SyntaxFactory.Token(
+                            this.EatContextualToken(tk).GetLeadingTrivia(),
+                            this.CurrentToken.Kind == SyntaxKind.GreaterThanToken
+                                ? SyntaxKind.GreaterThanGreaterThanToken
+                                : SyntaxKind.GreaterThanGreaterThanEqualsToken,
+                            this.EatToken().GetTrailingTrivia());
+                    }
+                }
+                else if (tokensToCombine == 3)
+                {
+                    var token1 = this.EatContextualToken(tk);
+                    var opToken2 = this.EatToken();
+                    Debug.Assert(opToken2.Kind == SyntaxKind.GreaterThanToken);
+                    opToken2 = this.EatToken();
+                    var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+                    opToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
+                }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(tokensToCombine);
+                }
 
                 var leftPrecedence = GetPrecedence(leftOperand.Kind);
                 if (newPrecedence > leftPrecedence)
@@ -11132,26 +11125,6 @@ done:
                     // a diagnostic.
                     ErrorCode errorCode = leftOperand.Kind == SyntaxKind.IsPatternExpression ? ErrorCode.ERR_UnexpectedToken : ErrorCode.WRN_PrecedenceInversion;
                     opToken = this.AddError(opToken, errorCode, opToken.Text);
-                }
-
-                // Combine tokens into a single token if needed
-                if (tokensToCombine == 2)
-                {
-                    var opToken2 = this.EatToken();
-                    var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken;
-                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
-                }
-                else if (tokensToCombine == 3)
-                {
-                    var opToken2 = this.EatToken();
-                    Debug.Assert(opToken2.Kind == SyntaxKind.GreaterThanToken);
-                    opToken2 = this.EatToken();
-                    var kind = opToken2.Kind == SyntaxKind.GreaterThanToken ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
-                    opToken = SyntaxFactory.Token(opToken.GetLeadingTrivia(), kind, opToken2.GetTrailingTrivia());
-                }
-                else if (tokensToCombine != 1)
-                {
-                    throw ExceptionUtilities.UnexpectedValue(tokensToCombine);
                 }
 
                 if (opKind == SyntaxKind.AsExpression)
@@ -11190,23 +11163,14 @@ done:
                 {
                     leftOperand = ParseWithExpression(leftOperand, opToken);
                 }
-                else if (tk == SyntaxKind.DotDotToken)
+                else if (opKind == SyntaxKind.RangeExpression)
                 {
-                    // Operator ".." here can either be a binary or a postfix unary operator:
-                    Debug.Assert(opKind == SyntaxKind.RangeExpression);
-
-                    ExpressionSyntax rightOperand;
-                    if (CanStartExpression())
-                    {
-                        newPrecedence = GetPrecedence(opKind);
-                        rightOperand = this.ParseSubExpression(newPrecedence);
-                    }
-                    else
-                    {
-                        rightOperand = null;
-                    }
-
-                    leftOperand = _syntaxFactory.RangeExpression(leftOperand, opToken, rightOperand);
+                    leftOperand = _syntaxFactory.RangeExpression(
+                        leftOperand,
+                        opToken,
+                        CanStartExpression()
+                            ? this.ParseSubExpression(Precedence.Range)
+                            : null);
                 }
                 else
                 {
@@ -11317,6 +11281,52 @@ done:
                 stack.Free();
                 return false;
             }
+        }
+
+        /// <summary>Check if we're currently at a .. sequence that can then be parsed out as a <see cref="SyntaxKind.DotDotToken"/>.</summary>
+        public bool IsAtDotDotToken()
+            => IsAtDotDotToken(this.CurrentToken, this.PeekToken(1));
+
+        public static bool IsAtDotDotToken(SyntaxToken token1, SyntaxToken token2)
+            => token1.Kind == SyntaxKind.DotToken &&
+               token2.Kind == SyntaxKind.DotToken &&
+               NoTriviaBetween(token1, token2);
+
+        /// <summary>Consume the next two tokens as a <see cref="SyntaxKind.DotDotToken"/>.  Note: if three dot tokens
+        /// are in a row, an error will be placed on the <c>..</c> token to say that is illegal, and single DotDot token
+        /// will be returned.</summary>
+        public SyntaxToken EatDotDotToken()
+        {
+            Debug.Assert(IsAtDotDotToken());
+            var token1 = this.EatToken();
+            var token2 = this.EatToken();
+
+            var dotDotToken = SyntaxFactory.Token(token1.GetLeadingTrivia(), SyntaxKind.DotDotToken, token2.GetTrailingTrivia());
+            if (this.CurrentToken is { Kind: SyntaxKind.DotToken } token3 &&
+                NoTriviaBetween(token2, token3))
+            {
+                // At least three dots directly in a row.  Definitely mark that this is always illegal.  We do not allow
+                // `...` at all in case we want to use that syntax in the future.
+                dotDotToken = AddError(
+                    dotDotToken,
+                    offset: dotDotToken.GetLeadingTriviaWidth(),
+                    length: 0,
+                    ErrorCode.ERR_TripleDotNotAllowed);
+
+                // If we have exactly 3 dots in a row, then make the third dot into skipped trivia on the `..` as this
+                // is likely just a mistyped range/slice and we'll recover better if we don't try to process the 3rd dot
+                // as a member access or anything like that.
+                //
+                // If we have 4 dots in a row (`....`), then don't skip any of them.  We'll let the caller handle the
+                // next two dots as a range/slice/whatever.
+                if (this.PeekToken(1) is not { Kind: SyntaxKind.DotToken } token4 ||
+                    !NoTriviaBetween(token3, token4))
+                {
+                    dotDotToken = AddSkippedSyntax(dotDotToken, this.EatToken(), trailing: true);
+                }
+            }
+
+            return dotDotToken;
         }
 
         private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
@@ -11638,7 +11648,7 @@ done:
                         expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.PointerMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
                         continue;
 
-                    case SyntaxKind.DotToken:
+                    case SyntaxKind.DotToken when !IsAtDotDotToken():
                         // if we have the error situation:
                         //
                         //      expr.
@@ -11685,10 +11695,13 @@ done:
         private bool CanStartConsequenceExpression()
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
-            var nextTokenKind = this.PeekToken(1).Kind;
+            var nextToken = this.PeekToken(1);
+            var nextTokenKind = nextToken.Kind;
 
-            // ?. is always the start of of a consequence expression.
-            if (nextTokenKind == SyntaxKind.DotToken)
+            // ?.   is always the start of of a consequence expression.
+            //
+            // ?..  is a ternary with a range expression as it's 'whenTrue' clause.
+            if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
                 return true;
 
             if (nextTokenKind == SyntaxKind.OpenBracketToken)
@@ -12341,8 +12354,11 @@ done:
                         SyntaxKind.PlusToken or
                         SyntaxKind.MinusToken or
                         SyntaxKind.AmpersandToken or
-                        SyntaxKind.AsteriskToken or
-                        SyntaxKind.DotDotToken
+                        SyntaxKind.AsteriskToken
+                            => true,
+
+                        // `(X)..` must be a cast of a range expression, not a member access of some arbitrary expression.
+                        SyntaxKind.DotToken when IsAtDotDotToken()
                             => true,
 
                         var tk
@@ -12595,7 +12611,6 @@ done:
                 case SyntaxKind.EndOfFileToken:
                 case SyntaxKind.SwitchKeyword:
                 case SyntaxKind.EqualsGreaterThanToken:
-                case SyntaxKind.DotDotToken:
                     return false;
                 default:
                     return true;
@@ -12657,12 +12672,9 @@ done:
 
         private CollectionElementSyntax ParseCollectionElement()
         {
-            var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
-            if (dotDotToken != null)
-                return _syntaxFactory.SpreadElement(dotDotToken, this.ParseExpressionCore());
-
-            var expression = this.ParseExpressionCore();
-            return _syntaxFactory.ExpressionElement(expression);
+            return IsAtDotDotToken()
+                ? _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore())
+                : _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
         }
 
         private bool IsAnonymousType()
