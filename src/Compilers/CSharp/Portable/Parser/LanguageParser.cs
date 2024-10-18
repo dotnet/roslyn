@@ -11013,6 +11013,8 @@ done:
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// Takes in an initial unary expression or primary expression, and then consumes what follows as long as as
         /// it's precedence is either lower than the <paramref name="precedence"/> we're parsing currently (or equal, to
@@ -11020,11 +11022,11 @@ done:
         /// </summary>
         private ExpressionSyntax ParseExpressionContinued(ExpressionSyntax unaryOrPrimaryExpression, Precedence precedence)
         {
-            var expandedExpression = unaryOrPrimaryExpression;
+            var currentExpression = unaryOrPrimaryExpression;
 
             // Keep on expanding the left operand as long as what we see fits the precedence we're under.
-            while (tryExpandExpression(ref expandedExpression, precedence))
-                continue;
+            while (tryExpandExpression(currentExpression, precedence) is ExpressionSyntax expandedExpression)
+                currentExpression = expandedExpression;
 
             // Finally, consume a conditional expression if precedence allows it.
 
@@ -11039,11 +11041,11 @@ done:
             // 2. When parsing the branches of the expression, parse at the highest precedence again ('expression').
             //    This allows for things like assignments/lambdas in the branches of the conditional.
             if (this.CurrentToken.Kind == SyntaxKind.QuestionToken && precedence <= Precedence.Conditional)
-                return consumeConditionalExpression(expandedExpression);
+                return consumeConditionalExpression(currentExpression);
 
-            return expandedExpression;
+            return currentExpression;
 
-            bool tryExpandExpression(ref ExpressionSyntax leftOperand, Precedence precedence)
+            ExpressionSyntax? tryExpandExpression(ExpressionSyntax leftOperand, Precedence precedence)
             {
                 // Look for operators that can follow what we've seen so far, and which are acceptable at this
                 // precedence level.  Examples include binary operator, assignment operators, range operators `..`, as
@@ -11052,7 +11054,7 @@ done:
                 var (operatorTokenKind, operatorExpressionKind) = getOperatorTokenAndExpressionKind();
 
                 if (operatorTokenKind == SyntaxKind.None)
-                    return false;
+                    return null;
 
                 var newPrecedence = GetPrecedence(operatorExpressionKind);
 
@@ -11060,11 +11062,11 @@ done:
                 // coming isn't a child of us, but rather we will be a child of it.  So we bail out and let any higher
                 // up expression parsing consume it with us as the left side.
                 if (newPrecedence < precedence)
-                    return false;
+                    return null;
 
                 // Same precedence, but not right-associative -- deal with this "later"
                 if ((newPrecedence == precedence) && !IsRightAssociative(operatorExpressionKind))
-                    return false;
+                    return null;
 
                 // No consume the operator (including consuming multiple tokens in the case of merged operator tokens)
 
@@ -11091,31 +11093,30 @@ done:
 
                 if (operatorExpressionKind == SyntaxKind.AsExpression)
                 {
-                    leftOperand = _syntaxFactory.BinaryExpression(
+                    return _syntaxFactory.BinaryExpression(
                         operatorExpressionKind, leftOperand, operatorToken, this.ParseType(ParseTypeMode.AsExpression));
                 }
-                else if (operatorExpressionKind == SyntaxKind.IsExpression)
+
+                if (operatorExpressionKind == SyntaxKind.IsExpression)
+                    return ParseIsExpression(leftOperand, operatorToken);
+
+                if (operatorExpressionKind == SyntaxKind.SwitchExpression)
+                    return ParseSwitchExpression(leftOperand, operatorToken);
+
+                if (operatorExpressionKind == SyntaxKind.WithExpression)
+                    return ParseWithExpression(leftOperand, operatorToken);
+
+                if (operatorExpressionKind == SyntaxKind.RangeExpression)
                 {
-                    leftOperand = ParseIsExpression(leftOperand, operatorToken);
-                }
-                else if (operatorExpressionKind == SyntaxKind.SwitchExpression)
-                {
-                    leftOperand = ParseSwitchExpression(leftOperand, operatorToken);
-                }
-                else if (operatorExpressionKind == SyntaxKind.WithExpression)
-                {
-                    leftOperand = ParseWithExpression(leftOperand, operatorToken);
-                }
-                else if (operatorExpressionKind == SyntaxKind.RangeExpression)
-                {
-                    leftOperand = _syntaxFactory.RangeExpression(
+                    return _syntaxFactory.RangeExpression(
                         leftOperand,
                         operatorToken,
                         CanStartExpression()
                             ? this.ParseSubExpression(Precedence.Range)
                             : null);
                 }
-                else if (IsExpectedAssignmentOperator(operatorToken.Kind))
+
+                if (IsExpectedAssignmentOperator(operatorToken.Kind))
                 {
                     ExpressionSyntax rhs;
 
@@ -11132,20 +11133,14 @@ done:
                         rhs = this.ParseSubExpression(newPrecedence);
                     }
 
-                    leftOperand = _syntaxFactory.AssignmentExpression(
+                    return _syntaxFactory.AssignmentExpression(
                         operatorExpressionKind, leftOperand, operatorToken, rhs);
                 }
-                else if (IsExpectedBinaryOperator(operatorToken.Kind))
-                {
-                    leftOperand = _syntaxFactory.BinaryExpression(
-                        operatorExpressionKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
-                }
-                else
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
 
-                return true;
+                if (IsExpectedBinaryOperator(operatorToken.Kind))
+                    return _syntaxFactory.BinaryExpression(operatorExpressionKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
+
+                throw ExceptionUtilities.Unreachable();
             }
 
             (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) getOperatorTokenAndExpressionKind()
@@ -11337,6 +11332,8 @@ done:
                 return false;
             }
         }
+
+#nullable restore
 
         private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
         {
