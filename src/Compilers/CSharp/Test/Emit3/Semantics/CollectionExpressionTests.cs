@@ -4529,9 +4529,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/68786: Infer nullability from collection expressions in type inference.
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (9,31): warning CS8601: Possible null reference assignment.
+                //         object[] ab = [..a, ..b]; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(9, 31),
+                // (10,26): warning CS8601: Possible null reference assignment.
+                //         object[] bb = [..b, ..b]; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(10, 26),
+                // (10,31): warning CS8601: Possible null reference assignment.
+                //         object[] bb = [..b, ..b]; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "b").WithLocation(10, 31));
         }
 
         [Fact]
@@ -4552,9 +4560,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // https://github.com/dotnet/roslyn/issues/68786: Infer nullability from collection expressions in type inference.
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (10,44): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                //         IEnumerable<object>[] ab = [..a, ..b]; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(10, 44),
+                // (11,39): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                //         IEnumerable<object>[] bb = [..b, ..b]; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 39),
+                // (11,44): warning CS8619: Nullability of reference types in value of type 'IEnumerable<string?>' doesn't match target type 'IEnumerable<object>'.
+                //         IEnumerable<object>[] bb = [..b, ..b]; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b").WithArguments("System.Collections.Generic.IEnumerable<string?>", "System.Collections.Generic.IEnumerable<object>").WithLocation(11, 44));
         }
 
         [Fact]
@@ -33373,8 +33389,10 @@ partial class Program
                 string[] y2 = [.. x2];
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/68786: We should check the spreads
-            CreateCompilation(src).VerifyEmitDiagnostics();
+            CreateCompilation(src).VerifyEmitDiagnostics(
+                // (5,19): warning CS8602: Dereference of a possibly null reference.
+                // string[] y1 = [.. x1];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(5, 19));
         }
 
         [Fact]
@@ -33398,7 +33416,6 @@ partial class Program
         [Fact]
         public void SpreadNullability_SplitExpression()
         {
-            // https://github.com/dotnet/roslyn/issues/68786: We should check the spreads without asserting in DebugVerifier
             string src = """
                 #nullable enable
                 object x = "";
@@ -42430,6 +42447,299 @@ class Program
                 //         Test([1]);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "long", "MyCollection").WithLocation(5, 14)
                 );
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74667")]
+        [Fact]
+        public void Spread_Nullable_01()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                List<int>? maybeNull = null;
+                List<int> clone = [.. maybeNull];
+                clone = [.. maybeNull];
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,23): warning CS8602: Dereference of a possibly null reference.
+                // List<int> clone = [.. maybeNull];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "maybeNull").WithLocation(4, 23));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74667")]
+        [Fact]
+        public void Spread_Nullable_02()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static U[] F1<T, U>() where T : IEnumerable<U>
+                    {
+                        var x = default(T);
+                        return [..x];
+                    }
+                    static U[] F2<T, U>() where T : class, IEnumerable<U>
+                    {
+                        var y = default(T);
+                        return [..y];
+                    }
+                    static U[] F3<T, U>() where T : struct, IEnumerable<U>
+                    {
+                        var z = default(T);
+                        return [..z];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,19): warning CS8602: Dereference of a possibly null reference.
+                //         return [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 19),
+                // (13,19): warning CS8602: Dereference of a possibly null reference.
+                //         return [..y];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(13, 19));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74667")]
+        [Fact]
+        public void Spread_Nullable_03()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections;
+                class MyCollection<T>
+                {
+                    public IEnumerator? GetEnumerator() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new MyCollection<int>();
+                        object[] y = [..x];
+                        y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,25): warning CS8602: Dereference of a possibly null reference.
+                //         object[] y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 25),
+                // (13,16): warning CS8602: Dereference of a possibly null reference.
+                //         y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 16));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74667")]
+        [Fact]
+        public void Spread_Nullable_04()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public IEnumerator<T>? GetEnumerator() => null;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = new MyCollection<int>();
+                        object[] y = [..x];
+                        y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (12,25): warning CS8602: Dereference of a possibly null reference.
+                //         object[] y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 25),
+                // (13,16): warning CS8602: Dereference of a possibly null reference.
+                //         y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 16));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74667")]
+        [Theory]
+        [CombinatorialData]
+        public void Spread_Nullable_ExtensionGetEnumerator(bool allowNullReceiver)
+        {
+            var source = $$"""
+                #nullable enable
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T>{{(allowNullReceiver ? "?" : "")}} c) => throw null!;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int>? x = null;
+                        object[] y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            if (allowNullReceiver)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (15,25): warning CS8604: Possible null reference argument for parameter 'c' in 'IEnumerator<int> Extensions.GetEnumerator<int>(MyCollection<int> c)'.
+                    //         object[] y = [..x];
+                    Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("c", "IEnumerator<int> Extensions.GetEnumerator<int>(MyCollection<int> c)").WithLocation(15, 25));
+            }
+        }
+
+        [Fact]
+        public void Spread_Nullable_05()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable<T> F<T>(T t)
+                    {
+                        return [t];
+                    }
+                    static void Main()
+                    {
+                        object x = null;
+                        var y = F(x);
+                        object[] z = [..y];
+                        z = [..y];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 20),
+                // (13,25): warning CS8601: Possible null reference assignment.
+                //         object[] z = [..y];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(13, 25),
+                // (14,16): warning CS8601: Possible null reference assignment.
+                //         z = [..y];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(14, 16));
+        }
+
+        [Fact]
+        public void Spread_Nullable_06()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<string?> x1 = [null];
+                        IEnumerable<object> y1 = [..x1];
+                        IEnumerable<string> x2 = [""];
+                        IEnumerable<object?> y2 = [..x2];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,37): warning CS8601: Possible null reference assignment.
+                //         IEnumerable<object> y1 = [..x1];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(8, 37));
+        }
+
+        [Fact]
+        public void Spread_Nullable_07()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<byte> x = [1, 2, 3];
+                        IEnumerable<int?> y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Spread_Nullable_08()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable<T?> F<T>(IEnumerable<T> x)
+                        where T : struct
+                    {
+                        return [..x];
+                    }
+                    static void Main()
+                    {
+                        F<int>([1, 2, 3]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Spread_Nullable_09()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable<T> F<T>(T x)
+                    {
+                        return [x];
+                    }
+                    static void Main()
+                    {
+                        string x = null;
+                        string? y = "";
+                        string[] z;
+                        z = [x, ..F(x)];
+                        z = [y, ..F(y)];
+                        z = [..F<string>(x)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         string x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 20),
+                // (14,14): warning CS8601: Possible null reference assignment.
+                //         z = [x, ..F(x)];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(14, 14),
+                // (14,19): warning CS8601: Possible null reference assignment.
+                //         z = [x, ..F(x)];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F(x)").WithLocation(14, 19),
+                // (16,26): warning CS8604: Possible null reference argument for parameter 'x' in 'IEnumerable<string> Program.F<string>(string x)'.
+                //         z = [..F<string>(x)];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "IEnumerable<string> Program.F<string>(string x)").WithLocation(16, 26));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
