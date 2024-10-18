@@ -95,26 +95,29 @@ internal abstract partial class AbstractRenameCommandHandler(
     private void HandleTypingOutsideEditableSpan(EditorCommandArgs args, IUIThreadOperationContext operationContext)
         => CommitOrCancel(args, operationContext);
 
-    private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+    private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool placeCaretAtTheEndOfIdentifier = true)
     {
         if (renameService.ActiveSession != null)
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
             Commit(operationContext);
-            var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
-            args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
-            args.TextView.Caret.MoveTo(translatedSelection.End);
+            if (placeCaretAtTheEndOfIdentifier)
+            {
+                var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
+                args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
+                args.TextView.Caret.MoveTo(translatedSelection.End);
+            }
         }
     }
 
-    private void CommitOrCancel(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+    private void CommitOrCancel(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool placeCaretAtTheEndOfIdentifier = true)
     {
         // When the command is invalid, in sync commit mode, we always prefer 'Commit()' to keep our legacy behavior.
         // If the commit is async, we always prefer 'Cancel()' to session.
         if (globalOptionService.ShouldCommitAsynchronously())
             renameService.ActiveSession?.Cancel();
         else
-            CommitIfActive(args, operationContext);
+            CommitIfActive(args, operationContext, placeCaretAtTheEndOfIdentifier);
     }
 
     private void Commit(IUIThreadOperationContext operationContext)
