@@ -19,14 +19,7 @@ internal abstract partial class AbstractRenameCommandHandler :
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
-    {
-        if (IsRenameCommitInProgress())
-            // When rename commit is in progress, swallow the command so it won't change the workspace
-            return true;
-
-        CommitIfActive(args, context.OperationContext);
-        return false;
-    }
+        => HandleRefactoringCommands(args, context);
 
     public CommandState GetCommandState(RemoveParametersCommandArgs args)
         => CommandState.Unspecified;
