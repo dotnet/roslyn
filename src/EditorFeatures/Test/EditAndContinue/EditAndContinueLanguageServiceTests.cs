@@ -175,7 +175,7 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
             };
         };
 
-        var updates = await localService.GetUpdatesAsync(CancellationToken.None);
+        var updates = await localService.GetUpdatesAsync([], CancellationToken.None);
 
         Assert.Equal(++observedDiagnosticVersion, diagnosticRefresher.GlobalStateVersion);
 
