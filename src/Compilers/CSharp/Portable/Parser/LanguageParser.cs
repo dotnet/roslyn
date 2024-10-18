@@ -11048,66 +11048,13 @@ done:
                 // Look for operators that can follow what we've seen so far, and which are acceptable at this
                 // precedence level.  Examples include binary operator, assignment operators, range operators `..`, as
                 // well as `switch` and `with` clauses.
-                var tk = this.CurrentToken.ContextualKind;
 
-                SyntaxKind opKind;
+                var (operatorTokenKind, operatorExpressionKind) = getOperatorTokenAndExpressionKind();
 
-                // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
-                // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
-                // an attribute.
-
-                // check for >>, >>=, >>> or >>>=
-                if (tk == SyntaxKind.GreaterThanToken
-                    && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token1
-                    && NoTriviaBetween(this.CurrentToken, token1)) // check to see if they really are adjacent
-                {
-                    if (token1.Kind == SyntaxKind.GreaterThanToken)
-                    {
-                        if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
-                            && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
-                        {
-                            opKind = token2.Kind == SyntaxKind.GreaterThanToken
-                                ? SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanToken)
-                                : SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken);
-                        }
-                        else
-                        {
-                            opKind = SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken);
-                        }
-                    }
-                    else
-                    {
-                        opKind = SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken);
-                    }
-                }
-                else if (IsExpectedBinaryOperator(tk))
-                {
-                    opKind = SyntaxFacts.GetBinaryExpression(tk);
-                }
-                else if (IsExpectedAssignmentOperator(tk))
-                {
-                    opKind = SyntaxFacts.GetAssignmentExpression(tk);
-                }
-                else if (tk == SyntaxKind.DotDotToken)
-                {
-                    opKind = SyntaxKind.RangeExpression;
-                }
-                else if (tk == SyntaxKind.SwitchKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                {
-                    opKind = SyntaxKind.SwitchExpression;
-                }
-                else if (tk == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
-                {
-                    opKind = SyntaxKind.WithExpression;
-                }
-                else
-                {
-                    // Something that doesn't expand the current expression we're looking at.  Bail out and see if we
-                    // can end with a conditional expression.
+                if (operatorTokenKind == SyntaxKind.None)
                     return false;
-                }
 
-                var newPrecedence = GetPrecedence(opKind);
+                var newPrecedence = GetPrecedence(operatorExpressionKind);
 
                 // Check the precedence to see if we should "take" this operator.  A lower precedence means what's
                 // coming isn't a child of us, but rather we will be a child of it.  So we bail out and let any higher
@@ -11116,12 +11063,12 @@ done:
                     return false;
 
                 // Same precedence, but not right-associative -- deal with this "later"
-                if ((newPrecedence == precedence) && !IsRightAssociative(opKind))
+                if ((newPrecedence == precedence) && !IsRightAssociative(operatorExpressionKind))
                     return false;
 
-                // We'll "take" this operator, as precedence is tentatively OK.
+                // No consume the operator (including consuming multiple tokens in the case of merged operator tokens)
 
-                var operatorToken = eatOperatorToken(opKind);
+                var operatorToken = eatOperatorToken(operatorTokenKind);
 
                 if (newPrecedence > GetPrecedence(leftOperand.Kind))
                 {
@@ -11142,24 +11089,24 @@ done:
                         operatorToken.Text);
                 }
 
-                if (opKind == SyntaxKind.AsExpression)
+                if (operatorExpressionKind == SyntaxKind.AsExpression)
                 {
                     leftOperand = _syntaxFactory.BinaryExpression(
-                        opKind, leftOperand, operatorToken, this.ParseType(ParseTypeMode.AsExpression));
+                        operatorExpressionKind, leftOperand, operatorToken, this.ParseType(ParseTypeMode.AsExpression));
                 }
-                else if (opKind == SyntaxKind.IsExpression)
+                else if (operatorExpressionKind == SyntaxKind.IsExpression)
                 {
                     leftOperand = ParseIsExpression(leftOperand, operatorToken);
                 }
-                else if (opKind == SyntaxKind.SwitchExpression)
+                else if (operatorExpressionKind == SyntaxKind.SwitchExpression)
                 {
                     leftOperand = ParseSwitchExpression(leftOperand, operatorToken);
                 }
-                else if (opKind == SyntaxKind.WithExpression)
+                else if (operatorExpressionKind == SyntaxKind.WithExpression)
                 {
                     leftOperand = ParseWithExpression(leftOperand, operatorToken);
                 }
-                else if (opKind == SyntaxKind.RangeExpression)
+                else if (operatorExpressionKind == SyntaxKind.RangeExpression)
                 {
                     leftOperand = _syntaxFactory.RangeExpression(
                         leftOperand,
@@ -11168,11 +11115,11 @@ done:
                             ? this.ParseSubExpression(Precedence.Range)
                             : null);
                 }
-                else if (SyntaxFacts.IsAssignmentExpression(opKind))
+                else if (IsExpectedAssignmentOperator(operatorToken.Kind))
                 {
                     ExpressionSyntax rhs;
 
-                    if (opKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword &&
+                    if (operatorExpressionKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword &&
                         // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                         !this.IsPossibleLambdaExpression(newPrecedence))
                     {
@@ -11185,11 +11132,13 @@ done:
                         rhs = this.ParseSubExpression(newPrecedence);
                     }
 
-                    leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, operatorToken, rhs);
+                    leftOperand = _syntaxFactory.AssignmentExpression(
+                        operatorExpressionKind, leftOperand, operatorToken, rhs);
                 }
-                else if (IsExpectedBinaryOperator(tk))
+                else if (IsExpectedBinaryOperator(operatorToken.Kind))
                 {
-                    leftOperand = _syntaxFactory.BinaryExpression(opKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
+                    leftOperand = _syntaxFactory.BinaryExpression(
+                        operatorExpressionKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
                 }
                 else
                 {
@@ -11199,35 +11148,107 @@ done:
                 return true;
             }
 
-            SyntaxToken eatOperatorToken(SyntaxKind operatorKind)
+            (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) getOperatorTokenAndExpressionKind()
+            {
+                // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
+                // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
+                // an attribute.
+
+                var token1 = this.CurrentToken;
+                var token1Kind = token1.Kind;
+
+                // check for >>, >>=, >>> or >>>=
+                if (token1Kind == SyntaxKind.GreaterThanToken
+                    && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
+                    && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
+                {
+                    if (token2.Kind == SyntaxKind.GreaterThanToken)
+                    {
+                        // >>  or  >>>  or  >>=
+
+                        if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token3
+                            && NoTriviaBetween(token2, token3)) // check to see if they really are adjacent
+                        {
+                            // >>>  or  >>>=
+
+                            var tokenKind = token3.Kind == SyntaxKind.GreaterThanToken
+                                ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken
+                                : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
+
+                            var operatorKind = token3.Kind == SyntaxKind.GreaterThanToken
+                                ? SyntaxFacts.GetBinaryExpression(tokenKind)
+                                : SyntaxFacts.GetAssignmentExpression(tokenKind);
+                            return (tokenKind, operatorKind);
+                        }
+                        else
+                        {
+                            // >>
+                            return (SyntaxKind.GreaterThanGreaterThanToken, SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken));
+                        }
+                    }
+                    else
+                    {
+                        // >>=
+                        return (SyntaxKind.GreaterThanGreaterThanEqualsToken, SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken));
+                    }
+
+                    // Fall through.  Just a normal `>` which will be handled by IsExpectedBinaryOperator below
+                }
+
+                if (IsExpectedBinaryOperator(token1Kind))
+                    return (token1Kind, SyntaxFacts.GetBinaryExpression(token1Kind));
+
+                if (IsExpectedAssignmentOperator(token1Kind))
+                    return (token1Kind, SyntaxFacts.GetAssignmentExpression(token1Kind));
+
+                if (token1Kind == SyntaxKind.DotDotToken)
+                    return (token1Kind, SyntaxKind.RangeExpression);
+
+                if (token1Kind == SyntaxKind.SwitchKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                    return (token1Kind, SyntaxKind.SwitchExpression);
+
+                if (token1Kind == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
+                    return (token1Kind, SyntaxKind.WithExpression);
+
+                // Something that doesn't expand the current expression we're looking at.  Bail out and see if we
+                // can end with a conditional expression.
+                return (SyntaxKind.None, SyntaxKind.None);
+            }
+
+            SyntaxToken eatOperatorToken(SyntaxKind operatorTokenKind)
             {
                 // Combine tokens into a single token if needed
-                if (operatorKind is SyntaxKind.RightShiftExpression or SyntaxKind.RightShiftAssignmentExpression)
+                if (operatorTokenKind is SyntaxKind.GreaterThanGreaterThanToken or SyntaxKind.GreaterThanGreaterThanEqualsToken)
                 {
-                    // >>  or >>=
-                    return SyntaxFactory.Token(
-                        this.EatToken().GetLeadingTrivia(),
-                        operatorKind == SyntaxKind.RightShiftExpression ? SyntaxKind.GreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanEqualsToken,
-                        this.EatToken().GetTrailingTrivia());
+                    // >> and >>=
+                    // Two tokens need to be consumed here.
 
+                    var token1 = EatToken();
+                    var token2 = EatToken();
+
+                    return SyntaxFactory.Token(
+                        token1.GetLeadingTrivia(),
+                        operatorTokenKind,
+                        token2.GetTrailingTrivia());
                 }
-                else if (operatorKind is SyntaxKind.UnsignedRightShiftExpression or SyntaxKind.UnsignedRightShiftAssignmentExpression)
+                else if (operatorTokenKind is SyntaxKind.GreaterThanGreaterThanGreaterThanToken or SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)
                 {
-                    // >>>  or >>>=
-                    var leadingTrivia = this.EatToken().GetLeadingTrivia();
+                    // >>> and >>>=
+                    // Three tokens need to be consumed here.
 
-                    // Skip middle token.
-                    _ = this.EatToken();
+                    var token1 = EatToken();
+                    _ = EatToken();
+                    var token3 = EatToken();
 
                     return SyntaxFactory.Token(
-                        leadingTrivia,
-                        operatorKind == SyntaxKind.UnsignedRightShiftExpression ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
-                        this.EatToken().GetTrailingTrivia());
+                        token1.GetLeadingTrivia(),
+                        operatorTokenKind,
+                        token3.GetTrailingTrivia());
                 }
                 else
                 {
-                    // Normal operator
-                    return this.EatContextualToken(this.CurrentToken.ContextualKind);
+                    // Normal operator.  Eat as a single token (converting cases contextual words 'with' to a keyword)
+                    return this.EatContextualToken(operatorTokenKind);
                 }
             }
 
