@@ -3646,7 +3646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the target-typing conversion is processed, the completion continuation will be given a target-type and
             // we'll be able to process the element conversions and compute the final visit result.
 
-            var (collectionKind, elementType) = getCollectionDetails(node, node.Type);
+            var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
             var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>>.GetInstance();
@@ -3665,14 +3665,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
                         Visit(spread);
-                        if (elementType.HasType &&
+                        if (targetElementType.HasType &&
                             spread.ElementPlaceholder is { } elementPlaceholder &&
                             spread.IteratorBody is { })
                         {
                             var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
                             var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
                             AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
-                            var completion = VisitOptionalImplicitConversion(iteratorBody, elementType,
+                            var completion = VisitOptionalImplicitConversion(iteratorBody, targetElementType,
                                 useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
                             Debug.Assert(completion is not null);
                             elementConversionCompletions.Add(completion);
@@ -3681,13 +3681,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     default:
                         var elementExpr = (BoundExpression)element;
-                        if (!elementType.HasType)
+                        if (!targetElementType.HasType)
                         {
                             VisitRvalueWithState(elementExpr);
                         }
                         else
                         {
-                            var completion = VisitOptionalImplicitConversion(elementExpr, elementType,
+                            var completion = VisitOptionalImplicitConversion(elementExpr, targetElementType,
                                 useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
 
                             Debug.Assert(completion is not null);
