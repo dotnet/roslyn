@@ -99,10 +99,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     return state.Analyzer switch
                     {
-                        FileContentLoadAnalyzer _ => FileContentLoadAnalyzerPriority,
-                        GeneratorDiagnosticsPlaceholderAnalyzer _ => GeneratorDiagnosticsPlaceholderAnalyzerPriority,
+                        FileContentLoadAnalyzer => FileContentLoadAnalyzerPriority,
+                        GeneratorDiagnosticsPlaceholderAnalyzer => GeneratorDiagnosticsPlaceholderAnalyzerPriority,
                         DocumentDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
-                        ProjectDiagnosticAnalyzer analyzer => Math.Max(0, analyzer.Priority),
                         _ => RegularDiagnosticAnalyzerPriority,
                     };
                 }

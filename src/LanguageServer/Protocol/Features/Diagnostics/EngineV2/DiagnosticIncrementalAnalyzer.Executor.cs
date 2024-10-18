@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 //       than what we used to create the cache.
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
-                var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is ProjectDiagnosticAnalyzer or DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
+                var ideAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => a is DocumentDiagnosticAnalyzer).ToImmutableArrayOrEmpty();
 
                 if (compilationWithAnalyzers != null && TryReduceAnalyzersToRun(compilationWithAnalyzers, version, existing, out var analyzersToRun))
                 {
@@ -251,10 +251,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                 }
                             }
 
-                            break;
-
-                        case ProjectDiagnosticAnalyzer projectAnalyzer:
-                            builder.AddCompilationDiagnostics(await DocumentAnalysisExecutor.ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(projectAnalyzer, project, compilation, cancellationToken).ConfigureAwait(false));
                             break;
                     }
 

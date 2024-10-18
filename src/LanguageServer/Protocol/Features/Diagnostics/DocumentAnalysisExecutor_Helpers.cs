@@ -265,39 +265,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return diagnostics;
         }
 
-        public static async Task<ImmutableArray<Diagnostic>> ComputeProjectDiagnosticAnalyzerDiagnosticsAsync(
-            ProjectDiagnosticAnalyzer analyzer,
-            Project project,
-            Compilation? compilation,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            ImmutableArray<Diagnostic> diagnostics;
-            try
-            {
-                diagnostics = (await analyzer.AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false)).NullToEmpty();
-#if DEBUG
-                // since all ProjectDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
-                // since it requires await. if we find any offender through NFW, we should be able to fix those since all those should
-                // from intern teams.
-                await VerifyDiagnosticLocationsAsync(diagnostics, project, cancellationToken).ConfigureAwait(false);
-#endif
-            }
-            catch (Exception e) when (!IsCanceled(e, cancellationToken))
-            {
-                diagnostics = [CreateAnalyzerExceptionDiagnostic(analyzer, e)];
-            }
-
-            // Apply filtering from compilation options (source suppressions, ruleset, etc.)
-            if (compilation != null)
-            {
-                diagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).ToImmutableArrayOrEmpty();
-            }
-
-            return diagnostics;
-        }
-
         private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
             => (ex as OperationCanceledException)?.CancellationToken == cancellationToken;
 
