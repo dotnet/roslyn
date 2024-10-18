@@ -6,6 +6,8 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 internal abstract partial class AbstractRenameCommandHandler(
     IThreadingContext threadingContext,
     InlineRenameService renameService,
+    IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener)
 {
     public string DisplayName => EditorFeaturesResources.Rename;
@@ -79,15 +82,27 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
         else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
-            // It's in a read-only area that is open, so let's commit the rename 
-            // and then let the character go through
-            CommitIfActive(args, operationContext);
+            HandleTypingOutsideEditableSpan(args, operationContext);
             nextHandler();
         }
         else
         {
             nextHandler();
             return;
+        }
+    }
+
+    private void HandleTypingOutsideEditableSpan(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+    {
+        if (globalOptionService.ShouldCommitAsynchronously())
+        {
+            renameService.ActiveSession?.Cancel();
+        }
+        else
+        {
+            // It's in a read-only area that is open, so let's commit the rename 
+            // and then let the character go through
+            CommitIfActive(args, operationContext);
         }
     }
 

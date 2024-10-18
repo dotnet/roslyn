@@ -4,6 +4,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -22,12 +23,12 @@ internal abstract partial class AbstractRenameCommandHandler :
         => GetCommandState();
 
     public bool ExecuteCommand(WordDeleteToStartCommandArgs args, CommandExecutionContext context)
-        => HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: true);
+        => HandleWordDeleteCommand(args.SubjectBuffer, context, args.TextView, deleteToStart: true);
 
     public bool ExecuteCommand(WordDeleteToEndCommandArgs args, CommandExecutionContext context)
-        => HandleWordDeleteCommand(args.SubjectBuffer, args.TextView, deleteToStart: false);
+        => HandleWordDeleteCommand(args.SubjectBuffer, context, args.TextView, deleteToStart: false);
 
-    private bool HandleWordDeleteCommand(ITextBuffer subjectBuffer, ITextView view, bool deleteToStart)
+    private bool HandleWordDeleteCommand(ITextBuffer subjectBuffer, CommandExecutionContext context, ITextView view, bool deleteToStart)
     {
         if (renameService.ActiveSession == null)
         {
@@ -68,6 +69,13 @@ internal abstract partial class AbstractRenameCommandHandler :
                     : Span.FromBounds(start, span.End));
 
                 return true;
+            }
+            else
+            {
+                if (globalOptionService.ShouldCommitAsynchronously())
+                    renameService.ActiveSession?.Cancel();
+                else
+                    Commit(context.OperationContext);
             }
         }
 

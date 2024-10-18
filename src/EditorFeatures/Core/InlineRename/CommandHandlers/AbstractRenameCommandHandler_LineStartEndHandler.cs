@@ -46,42 +46,39 @@ internal abstract partial class AbstractRenameCommandHandler :
         }
 
         var caretPoint = view.GetCaretPoint(subjectBuffer);
-        if (caretPoint.HasValue)
+        if (caretPoint.HasValue && renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var span))
         {
-            if (renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var span))
+            var newPoint = lineStart ? span.Start : span.End;
+            if (newPoint == caretPoint.Value && (view.Selection.IsEmpty || extendSelection))
             {
-                var newPoint = lineStart ? span.Start : span.End;
-                if (newPoint == caretPoint.Value && (view.Selection.IsEmpty || extendSelection))
-                {
-                    // We're already at a boundary, let the editor handle the command
-                    return false;
-                }
-
-                // The PointTrackingMode should not matter because we are not tracking between
-                // versions, and the PositionAffinity is set towards the identifier.
-                var newPointInView = view.BufferGraph.MapUpToBuffer(
-                    newPoint,
-                    PointTrackingMode.Negative,
-                    lineStart ? PositionAffinity.Successor : PositionAffinity.Predecessor,
-                    view.TextBuffer);
-
-                if (!newPointInView.HasValue)
-                {
-                    return false;
-                }
-
-                if (extendSelection)
-                {
-                    view.Selection.Select(view.Selection.AnchorPoint, new VirtualSnapshotPoint(newPointInView.Value));
-                }
-                else
-                {
-                    view.Selection.Clear();
-                }
-
-                view.Caret.MoveTo(newPointInView.Value);
-                return true;
+                // We're already at a boundary, let the editor handle the command
+                return false;
             }
+
+            // The PointTrackingMode should not matter because we are not tracking between
+            // versions, and the PositionAffinity is set towards the identifier.
+            var newPointInView = view.BufferGraph.MapUpToBuffer(
+                newPoint,
+                PointTrackingMode.Negative,
+                lineStart ? PositionAffinity.Successor : PositionAffinity.Predecessor,
+                view.TextBuffer);
+
+            if (!newPointInView.HasValue)
+            {
+                return false;
+            }
+
+            if (extendSelection)
+            {
+                view.Selection.Select(view.Selection.AnchorPoint, new VirtualSnapshotPoint(newPointInView.Value));
+            }
+            else
+            {
+                view.Selection.Clear();
+            }
+
+            view.Caret.MoveTo(newPointInView.Value);
+            return true;
         }
 
         return false;

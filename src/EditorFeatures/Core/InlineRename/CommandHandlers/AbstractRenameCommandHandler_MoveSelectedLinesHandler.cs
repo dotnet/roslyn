@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.ComponentModel;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -14,25 +17,25 @@ internal abstract partial class AbstractRenameCommandHandler :
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
-    {
-        if (IsRenameCommitInProgress())
-            // When rename commit is in progress, swallow the command so it won't change the workspace
-            return true;
-
-        CommitIfActive(args, context.OperationContext);
-        return false;
-    }
+        => HandleMoveSelectLinesUpOrDownCommand(args, context);
 
     public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
         => CommandState.Unspecified;
 
     public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
+        => HandleMoveSelectLinesUpOrDownCommand(args, context);
+
+    private bool HandleMoveSelectLinesUpOrDownCommand(EditorCommandArgs args, CommandExecutionContext context)
     {
+        // When rename commit is in progress, swallow the command so it won't change the workspace
         if (IsRenameCommitInProgress())
-            // When rename commit is in progress, swallow the command so it won't change the workspace
             return true;
 
-        CommitIfActive(args, context.OperationContext);
+        if (globalOptionService.ShouldCommitAsynchronously())
+            renameService.ActiveSession?.Cancel();
+        else
+            CommitIfActive(args, context.OperationContext);
+
         return false;
     }
 }
