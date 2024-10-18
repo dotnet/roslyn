@@ -571,13 +571,26 @@ internal static class ChecksumCache
     public static ChecksumCollection GetOrCreateChecksumCollection<TReference>(
         IReadOnlyList<TReference> references, ISerializerService serializer, CancellationToken cancellationToken) where TReference : class
     {
+        // Cache both at the list-of-references level...
         return StronglyTypedChecksumCache<IReadOnlyList<TReference>, ChecksumCollection>.GetOrCreate(
             references,
             static (references, tuple) =>
             {
+                var (serializer, cancellationToken) = tuple;
                 var checksums = new FixedSizeArrayBuilder<Checksum>(references.Count);
                 foreach (var reference in references)
-                    checksums.Add(tuple.serializer.CreateChecksum(reference, tuple.cancellationToken));
+                {
+                    // ... and cache at the individual reference level.
+                    var checksum = GetOrCreate(
+                        reference,
+                        static (reference, arg) =>
+                        {
+                            var (serializer, cancellationToken) = arg;
+                            return serializer.CreateChecksum(reference, cancellationToken);
+                        },
+                        arg: (serializer, cancellationToken));
+                    checksums.Add(checksum);
+                }
 
                 return new ChecksumCollection(checksums.MoveToImmutable());
             },
