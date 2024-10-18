@@ -33416,7 +33416,6 @@ partial class Program
         [Fact]
         public void SpreadNullability_SplitExpression()
         {
-            // https://github.com/dotnet/roslyn/issues/68786: We should check the spreads without asserting in DebugVerifier
             string src = """
                 #nullable enable
                 object x = "";
@@ -42648,16 +42647,18 @@ class Program
                 {
                     static void Main()
                     {
-                        IEnumerable<string?> x = [null];
-                        IEnumerable<object> y = [..x];
+                        IEnumerable<string?> x1 = [null];
+                        IEnumerable<object> y1 = [..x1];
+                        IEnumerable<string> x2 = [""];
+                        IEnumerable<object?> y2 = [..x2];
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,36): warning CS8601: Possible null reference assignment.
-                //         IEnumerable<object> y = [..x];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(8, 36));
+                // (8,37): warning CS8601: Possible null reference assignment.
+                //         IEnumerable<object> y1 = [..x1];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x1").WithLocation(8, 37));
         }
 
         [Fact]
@@ -42700,6 +42701,41 @@ class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Spread_Nullable_09()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable<T> F<T>(T x)
+                    {
+                        return [x];
+                    }
+                    static void Main()
+                    {
+                        string x = null;
+                        string? y = "";
+                        string[] z;
+                        z = [x, ..F(x)];
+                        z = [y, ..F(y)];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         string x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 20),
+                // (14,14): warning CS8601: Possible null reference assignment.
+                //         z = [x, ..F(x)];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(14, 14),
+                // (14,19): warning CS8601: Possible null reference assignment.
+                //         z = [x, ..F(x)];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F(x)").WithLocation(14, 19));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
