@@ -42722,6 +42722,7 @@ class Program
                         string[] z;
                         z = [x, ..F(x)];
                         z = [y, ..F(y)];
+                        z = [..F<string>(x)];
                     }
                 }
                 """;
@@ -42735,7 +42736,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(14, 14),
                 // (14,19): warning CS8601: Possible null reference assignment.
                 //         z = [x, ..F(x)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F(x)").WithLocation(14, 19));
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "F(x)").WithLocation(14, 19),
+                // (16,26): warning CS8604: Possible null reference argument for parameter 'x' in 'IEnumerable<string> Program.F<string>(string x)'.
+                //         z = [..F<string>(x)];
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("x", "IEnumerable<string> Program.F<string>(string x)").WithLocation(16, 26));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
