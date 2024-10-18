@@ -23,16 +23,20 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <!-- We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible net6.0. The version targeted is only used for build time, since
-         we use MSBuildLocator to discover the proper version at runtime. -->
-    <PackageReference Include="Microsoft.Build" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.4" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <!--
+      Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file.
+      We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
+      The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
+    -->
+    <PackageDownloadAndReference Include="Microsoft.Build" Version="17.3.4" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="17.3.4" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Tasks.Core" Version="17.3.4" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="17.3.4" Folder="ref/$(TargetFramework)" />
+    
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" VersionOverride="8.0.4" PrivateAssets="All" Condition="'$(DotNetBuildSourceOnly)' != 'true'"/>
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
@@ -94,4 +98,5 @@
   </Target>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
+  <Import Project="$(RepositoryEngineeringDir)targets\PackageDownloadAndReference.targets"/>
 </Project>
