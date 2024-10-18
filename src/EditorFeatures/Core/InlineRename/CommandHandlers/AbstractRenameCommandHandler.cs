@@ -111,7 +111,7 @@ internal abstract partial class AbstractRenameCommandHandler(
 
     private void CommitOrCancel(EditorCommandArgs args, IUIThreadOperationContext operationContext)
     {
-        // When the command is invalid, in sync commit mode, we always prefer to 'Commit()' to keep our legacy behavior.
+        // When the command is invalid, in sync commit mode, we always prefer 'Commit()' to keep our legacy behavior.
         // If the commit is async, we always prefer 'Cancel()' to session.
         if (globalOptionService.ShouldCommitAsynchronously())
             renameService.ActiveSession?.Cancel();
