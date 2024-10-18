@@ -16,7 +16,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<S
     public bool ExecuteCommand(SaveCommandArgs args, CommandExecutionContext context)
     {
         // If commit is async, just let editor save the document.
-        // because we can't make sure async commit could finish after the save command.
+        // If call async commit here, it could finish after the save command so the workspace would still be dirty.
         if (renameService.ActiveSession != null && !globalOptionService.ShouldCommitAsynchronously())
         {
             Commit(context.OperationContext);
