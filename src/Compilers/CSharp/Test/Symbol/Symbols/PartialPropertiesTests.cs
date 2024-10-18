@@ -1521,6 +1521,9 @@ public partial class C
                 // (11,17): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     partial int P1 { private get => 1; private set; }
                 Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "P1").WithLocation(11, 17),
+                // (11,30): warning CS9266: The 'get' accessor of property 'C.P1' should use 'field' because the other accessor is using it.
+                //     partial int P1 { private get => 1; private set; }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P1").WithLocation(11, 30),
                 // (11,30): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     partial int P1 { private get => 1; private set; }
                 Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "get").WithLocation(11, 30),
@@ -5033,7 +5036,13 @@ public partial class C
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (4,32): warning CS9266: The 'get' accessor of property 'C.Prop1' should use 'field' because the other accessor is using it.
+                //     public partial int Prop1 { get => 1; set; }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.Prop1").WithLocation(4, 32),
+                // (7,37): warning CS9266: The 'set' accessor of property 'C.Prop2' should use 'field' because the other accessor is using it.
+                //     public partial int Prop2 { get; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.Prop2").WithLocation(7, 37));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]

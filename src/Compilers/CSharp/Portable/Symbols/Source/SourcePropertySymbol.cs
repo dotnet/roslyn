@@ -43,11 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out bool isExpressionBodied,
                 out bool hasGetAccessorImplementation,
                 out bool hasSetAccessorImplementation,
-                out bool usesFieldKeyword,
+                out bool getterUsesFieldKeyword,
+                out bool setterUsesFieldKeyword,
                 out var getSyntax,
                 out var setSyntax);
 
-            Debug.Assert(!usesFieldKeyword ||
+            Debug.Assert(!(getterUsesFieldKeyword || setterUsesFieldKeyword) ||
                 ((CSharpParseOptions)syntax.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword));
 
             bool accessorsHaveImplementation = hasGetAccessorImplementation || hasSetAccessorImplementation;
@@ -90,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                usesFieldKeyword: usesFieldKeyword,
+                getterUsesFieldKeyword: getterUsesFieldKeyword,
+                setterUsesFieldKeyword: setterUsesFieldKeyword,
                 memberName,
                 location,
                 diagnostics);
@@ -110,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertySet,
             bool isExpressionBodied,
             bool accessorsHaveImplementation,
-            bool usesFieldKeyword,
+            bool getterUsesFieldKeyword,
+            bool setterUsesFieldKeyword,
             string memberName,
             Location location,
             BindingDiagnosticBag diagnostics)
@@ -129,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                usesFieldKeyword: usesFieldKeyword,
+                getterUsesFieldKeyword: getterUsesFieldKeyword,
+                setterUsesFieldKeyword: setterUsesFieldKeyword,
                 syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                 memberName,
                 syntax.AttributeLists,
@@ -214,7 +218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool isExpressionBodied,
             out bool hasGetAccessorImplementation,
             out bool hasSetAccessorImplementation,
-            out bool usesFieldKeyword,
+            out bool getterUsesFieldKeyword,
+            out bool setterUsesFieldKeyword,
             out AccessorDeclarationSyntax? getSyntax,
             out AccessorDeclarationSyntax? setSyntax)
         {
@@ -225,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isExpressionBodied)
             {
-                usesFieldKeyword = false;
+                getterUsesFieldKeyword = false;
+                setterUsesFieldKeyword = false;
                 hasGetAccessorImplementation = false;
                 hasSetAccessorImplementation = false;
                 foreach (var accessor in syntax.AccessorList!.Accessors)
@@ -237,6 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 getSyntax = accessor;
                                 hasGetAccessorImplementation = hasImplementation(accessor);
+                                getterUsesFieldKeyword = containsFieldExpressionInAccessor(accessor);
                             }
                             else
                             {
@@ -249,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 setSyntax = accessor;
                                 hasSetAccessorImplementation = hasImplementation(accessor);
+                                setterUsesFieldKeyword = containsFieldExpressionInAccessor(accessor);
                             }
                             else
                             {
@@ -266,8 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         default:
                             throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
-
-                    usesFieldKeyword = usesFieldKeyword || containsFieldExpressionInAccessor(accessor);
                 }
             }
             else
@@ -275,7 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var body = GetArrowExpression(syntax);
                 hasGetAccessorImplementation = body is object;
                 hasSetAccessorImplementation = false;
-                usesFieldKeyword = body is { } && containsFieldExpressionInGreenNode(body.Green);
+                getterUsesFieldKeyword = body is { } && containsFieldExpressionInGreenNode(body.Green);
+                setterUsesFieldKeyword = false;
                 Debug.Assert(hasGetAccessorImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
             }
 

@@ -31,12 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             IsExpressionBodied = 1 << 0,
             HasAutoPropertyGet = 1 << 1,
             HasAutoPropertySet = 1 << 2,
-            UsesFieldKeyword = 1 << 3,
-            IsExplicitInterfaceImplementation = 1 << 4,
-            HasInitializer = 1 << 5,
-            AccessorsHaveImplementation = 1 << 6,
-            HasExplicitAccessModifier = 1 << 7,
-            RequiresBackingField = 1 << 8,
+            GetterUsesFieldKeyword = 1 << 3,
+            SetterUsesFieldKeyword = 1 << 4,
+            IsExplicitInterfaceImplementation = 1 << 5,
+            HasInitializer = 1 << 6,
+            AccessorsHaveImplementation = 1 << 7,
+            HasExplicitAccessModifier = 1 << 8,
+            RequiresBackingField = 1 << 9,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -90,7 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertySet,
             bool isExpressionBodied,
             bool accessorsHaveImplementation,
-            bool usesFieldKeyword,
+            bool getterUsesFieldKeyword,
+            bool setterUsesFieldKeyword,
             RefKind refKind,
             string memberName,
             SyntaxList<AttributeListSyntax> indexerNameAttributeLists,
@@ -133,9 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.HasAutoPropertySet;
             }
 
-            if (usesFieldKeyword)
+            if (getterUsesFieldKeyword)
             {
-                _propertyFlags |= Flags.UsesFieldKeyword;
+                _propertyFlags |= Flags.GetterUsesFieldKeyword;
+            }
+
+            if (setterUsesFieldKeyword)
+            {
+                _propertyFlags |= Flags.SetterUsesFieldKeyword;
             }
 
             if (hasInitializer)
@@ -171,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if (usesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
+            if (getterUsesFieldKeyword || setterUsesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 _propertyFlags |= Flags.RequiresBackingField;
@@ -304,6 +311,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
         }
+
+#nullable enable
+        private static void CheckFieldKeywordUsage(SourcePropertySymbolBase property, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(property.PartialImplementationPart is null);
+            if (!property.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword))
+            {
+                return;
+            }
+
+            SourcePropertyAccessorSymbol? accessorToBlame = null;
+            var propertyFlags = property._propertyFlags;
+            var getterUsesFieldKeyword = (propertyFlags & Flags.GetterUsesFieldKeyword) != 0;
+            var setterUsesFieldKeyword = (propertyFlags & Flags.SetterUsesFieldKeyword) != 0;
+            if (property._setMethod is { IsAutoPropertyAccessor: false } setMethod
+                && !setterUsesFieldKeyword
+                && !property.IsSetOnEitherPart(Flags.HasInitializer)
+                && (property.HasAutoPropertyGet || getterUsesFieldKeyword))
+            {
+                accessorToBlame = setMethod;
+            }
+            else if (property._getMethod is { IsAutoPropertyAccessor: false } getMethod
+                && !getterUsesFieldKeyword
+                && (property.HasAutoPropertySet || setterUsesFieldKeyword))
+            {
+                accessorToBlame = getMethod;
+            }
+
+            if (accessorToBlame is not null)
+            {
+                var accessorName = accessorToBlame switch
+                {
+                    { MethodKind: MethodKind.PropertyGet, IsInitOnly: false } => SyntaxFacts.GetText(SyntaxKind.GetKeyword),
+                    { MethodKind: MethodKind.PropertySet, IsInitOnly: false } => SyntaxFacts.GetText(SyntaxKind.SetKeyword),
+                    { MethodKind: MethodKind.PropertySet, IsInitOnly: true } => SyntaxFacts.GetText(SyntaxKind.InitKeyword),
+                    _ => throw ExceptionUtilities.UnexpectedValue(accessorToBlame)
+                };
+
+                diagnostics.Add(ErrorCode.WRN_AccessorDoesNotUseBackingField, accessorToBlame.GetFirstLocation(), accessorName, property);
+            }
+        }
+#nullable disable
 
         public sealed override RefKind RefKind
         {
@@ -648,10 +697,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsAutoPropertyOrUsesFieldKeyword
-            => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet | Flags.UsesFieldKeyword);
+            => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet | Flags.GetterUsesFieldKeyword | Flags.SetterUsesFieldKeyword);
 
         internal bool UsesFieldKeyword
-            => IsSetOnEitherPart(Flags.UsesFieldKeyword);
+            => IsSetOnEitherPart(Flags.GetterUsesFieldKeyword | Flags.SetterUsesFieldKeyword);
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
@@ -811,6 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.CheckModifiers(isExplicitInterfaceImplementation, Location, IsIndexer, diagnostics);
 
             CheckInitializerIfNeeded(diagnostics);
+            CheckFieldKeywordUsage((SourcePropertySymbolBase?)PartialImplementationPart ?? this, diagnostics);
 
             if (RefKind != RefKind.None && IsRequired)
             {

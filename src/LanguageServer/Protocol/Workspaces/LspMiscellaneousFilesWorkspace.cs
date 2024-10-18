@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
-            var languageInformation = languageInfoProvider.GetLanguageInformation(uri, languageId);
-            if (languageInformation == null)
+            if (!languageInfoProvider.TryGetLanguageInformation(uri, languageId, out var languageInformation))
             {
                 // Only log here since throwing here could take down the LSP server.
                 logger.LogError($"Could not find language information for {uri} with absolute path {documentFilePath}");

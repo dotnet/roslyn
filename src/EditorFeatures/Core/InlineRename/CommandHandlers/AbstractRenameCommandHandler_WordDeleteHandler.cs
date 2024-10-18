@@ -34,6 +34,12 @@ internal abstract partial class AbstractRenameCommandHandler :
             return false;
         }
 
+        if (renameService.ActiveSession.IsCommitInProgress)
+        {
+            // When rename commit is in progress, swallow the command so it won't change the workspace
+            return true;
+        }
+
         var caretPoint = view.GetCaretPoint(subjectBuffer);
         if (caretPoint.HasValue)
         {

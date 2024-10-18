@@ -47,7 +47,7 @@ class Goo : Base, IComparable
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -92,7 +92,7 @@ class Goo : Base, IComparable
                             <Link Source="(@1 Type=Goo Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Target="(@1 Type=Base Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)

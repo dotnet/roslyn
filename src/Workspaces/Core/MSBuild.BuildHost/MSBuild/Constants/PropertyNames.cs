@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public const string TargetFrameworkVersion = nameof(TargetFrameworkVersion);
         public const string TargetPath = nameof(TargetPath);
         public const string TargetRefPath = nameof(TargetRefPath);
+        public const string CompilerGeneratedFilesOutputPath = nameof(CompilerGeneratedFilesOutputPath);
         public const string TreatWarningsAsErrors = nameof(TreatWarningsAsErrors);
         public const string VbRuntime = nameof(VbRuntime);
         public const string WarningLevel = nameof(WarningLevel);

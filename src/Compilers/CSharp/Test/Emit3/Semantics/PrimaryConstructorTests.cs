@@ -20111,7 +20111,7 @@ p1
         [Fact]
         public void IllegalCapturingDueToRefness_02()
         {
-            var source = @"#pragma warning disable CS0649 // Field 'R1.F1' is never assigned to, and will always have its default value 0
+            var source = @"#pragma warning disable CS0649, CS9265 // Field 'R1.F1' is never assigned to, and will always have its default value 0
 ref struct R1
 {
     public int F1;
