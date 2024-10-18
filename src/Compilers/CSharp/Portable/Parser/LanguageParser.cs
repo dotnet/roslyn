@@ -11155,7 +11155,7 @@ done:
                 // an attribute.
 
                 var token1 = this.CurrentToken;
-                var token1Kind = token1.Kind;
+                var token1Kind = token1.ContextualKind;
 
                 // check for >>, >>=, >>> or >>>=
                 if (token1Kind == SyntaxKind.GreaterThanToken
