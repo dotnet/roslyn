@@ -329,9 +329,9 @@ class A {
         results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: resultId);
 
-        // Result should be different, but diagnostics should be the same
-        Assert.NotEqual(resultId, results.Single().ResultId);
-        Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
+        // Diagnostics should be re-calculated, but re-use the same resultId since they are the same).
+        // TODO - need to validate that diagnostics were re-calculated.  Maybe ENC tests are enough
+        Assert.Equal(resultId, results.Single().ResultId);
     }
 
     [Theory, CombinatorialData]
