@@ -19,6 +19,7 @@ internal abstract partial class AbstractRenameCommandHandler :
     public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
     {
         if (IsRenameCommitInProgress())
+            // When rename commit is in progress, swallow the command so it won't change the workspace
             return true;
 
         CommitIfActive(args, context.OperationContext);
@@ -31,6 +32,7 @@ internal abstract partial class AbstractRenameCommandHandler :
     public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
     {
         if (IsRenameCommitInProgress())
+            // When rename commit is in progress, swallow the command so it won't change the workspace
             return true;
 
         CommitIfActive(args, context.OperationContext);
