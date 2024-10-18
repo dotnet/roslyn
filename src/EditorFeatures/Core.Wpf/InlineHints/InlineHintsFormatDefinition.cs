@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public InlineHintsFormatDefinition()
             {
-                this.DisplayName = EditorFeaturesResources.Inline_Hints;
+                this.DisplayName = EditorFeaturesResources.Inlay_Hints;
                 this.ForegroundBrush = new SolidColorBrush(Color.FromRgb(104, 104, 104));
                 this.BackgroundBrush = new SolidColorBrush(Color.FromRgb(230, 230, 230));
             }
