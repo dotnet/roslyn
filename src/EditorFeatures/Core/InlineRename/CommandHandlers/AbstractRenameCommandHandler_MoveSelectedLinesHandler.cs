@@ -31,11 +31,7 @@ internal abstract partial class AbstractRenameCommandHandler :
         if (IsRenameCommitInProgress())
             return true;
 
-        if (globalOptionService.ShouldCommitAsynchronously())
-            renameService.ActiveSession?.Cancel();
-        else
-            CommitIfActive(args, context.OperationContext);
-
+        CommitOrCancel(args, context.OperationContext);
         return false;
     }
 }

@@ -82,11 +82,8 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             }
             else
             {
-                // Otherwise, commit the existing session and start a new one.
-                if (globalOptionService.ShouldCommitAsynchronously())
-                    renameService.ActiveSession?.Cancel();
-                else
-                    Commit(editorOperationContext);
+                // Otherwise, commit or cancel the existing session and start a new one.
+                CommitOrCancel(args, editorOperationContext);
             }
         }
 

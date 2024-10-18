@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
@@ -23,13 +24,14 @@ internal abstract partial class AbstractRenameCommandHandler :
         => GetCommandState();
 
     public bool ExecuteCommand(WordDeleteToStartCommandArgs args, CommandExecutionContext context)
-        => HandleWordDeleteCommand(args.SubjectBuffer, context, args.TextView, deleteToStart: true);
+        => HandleWordDeleteCommand(args, context, args.TextView, deleteToStart: true);
 
     public bool ExecuteCommand(WordDeleteToEndCommandArgs args, CommandExecutionContext context)
-        => HandleWordDeleteCommand(args.SubjectBuffer, context, args.TextView, deleteToStart: false);
+        => HandleWordDeleteCommand(args, context, args.TextView, deleteToStart: false);
 
-    private bool HandleWordDeleteCommand(ITextBuffer subjectBuffer, CommandExecutionContext context, ITextView view, bool deleteToStart)
+    private bool HandleWordDeleteCommand(EditorCommandArgs args, CommandExecutionContext context, ITextView view, bool deleteToStart)
     {
+        var subjectBuffer = args.SubjectBuffer;
         if (renameService.ActiveSession == null)
         {
             return false;
@@ -72,10 +74,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             }
             else
             {
-                if (globalOptionService.ShouldCommitAsynchronously())
-                    renameService.ActiveSession?.Cancel();
-                else
-                    Commit(context.OperationContext);
+                CommitOrCancel(args, context.OperationContext);
             }
         }
 

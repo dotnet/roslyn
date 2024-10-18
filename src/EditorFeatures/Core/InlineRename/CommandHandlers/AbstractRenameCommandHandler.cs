@@ -93,18 +93,7 @@ internal abstract partial class AbstractRenameCommandHandler(
     }
 
     private void HandleTypingOutsideEditableSpan(EditorCommandArgs args, IUIThreadOperationContext operationContext)
-    {
-        if (globalOptionService.ShouldCommitAsynchronously())
-        {
-            renameService.ActiveSession?.Cancel();
-        }
-        else
-        {
-            // It's in a read-only area that is open, so let's commit the rename 
-            // and then let the character go through
-            CommitIfActive(args, operationContext);
-        }
-    }
+        => CommitOrCancel(args, operationContext);
 
     private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext)
     {
@@ -117,6 +106,18 @@ internal abstract partial class AbstractRenameCommandHandler(
             var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
             args.TextView.Caret.MoveTo(translatedSelection.End);
+        }
+    }
+
+    private void CommitOrCancel(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+    {
+        if (globalOptionService.ShouldCommitAsynchronously())
+        {
+            renameService.ActiveSession?.Cancel();
+        }
+        else
+        {
+            CommitIfActive(args, operationContext);
         }
     }
 
