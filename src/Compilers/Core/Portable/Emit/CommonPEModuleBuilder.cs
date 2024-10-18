@@ -1046,6 +1046,10 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract Cci.IMethodReference GetInitArrayHelper();
 
+        public abstract Cci.IMethodReference GetEncodingUtf8();
+
+        public abstract Cci.IMethodReference GetEncodingGetString();
+
         public ArrayMethods ArrayMethods
         {
             get

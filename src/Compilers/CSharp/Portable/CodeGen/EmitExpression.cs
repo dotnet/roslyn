@@ -3481,6 +3481,34 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     EmitInitObj(type, used, syntaxNode);
                 }
+                // Emit long strings into data section so they don't overflow the UserString heap.
+                // This could be configurable via a feature flag.
+                else if (constantValue.IsString &&
+                    constantValue.StringValue.Length > 100)
+                {
+                    // Create `static readonly byte[] <PrivateImplementationDetails>.field = "string"u8`.
+                    // In reality, this should live in another static class generated for the one string only.
+                    // Also if the string cannot be encoded in UTF-8, we should continue to emit it into the UserString heap.
+                    var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+                    var data = utf8.GetBytes(constantValue.StringValue).ToImmutableArray();
+                    var field = _builder.module.GetFieldForData(data, alignment: 1, syntaxNode, _diagnostics.DiagnosticBag);
+
+                    // Convert the bytes to a string. In reality, this should be done in the generated class static constructor.
+                    // Call `Encoding.get_UTF8()`.
+                    _builder.EmitOpCode(ILOpCode.Call, 1);
+                    _builder.EmitToken(_builder.module.GetEncodingUtf8(), syntaxNode, _diagnostics.DiagnosticBag);
+
+                    // Push the field's address.
+                    _builder.EmitOpCode(ILOpCode.Ldsflda);
+                    _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
+
+                    // Push the byte size.
+                    _builder.EmitIntConstant(data.Length);
+
+                    // Call `Encoding.GetString(byte*, int)`.
+                    _builder.EmitOpCode(ILOpCode.Callvirt, -2);
+                    _builder.EmitToken(_builder.module.GetEncodingGetString(), syntaxNode, _diagnostics.DiagnosticBag);
+                }
                 else
                 {
                     _builder.EmitConstantValue(constantValue);

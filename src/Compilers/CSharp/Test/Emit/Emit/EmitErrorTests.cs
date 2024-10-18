@@ -311,9 +311,10 @@ public class A
         }
 
         [Fact, WorkItem(8287, "https://github.com/dotnet/roslyn/issues/8287")]
-        public void ToManyUserStrings()
+        public void TooManyUserStrings()
         {
             var builder = new System.Text.StringBuilder();
+            var expectedOutputBuilder = new System.Text.StringBuilder();
             builder.Append(@"
 public class A
 {
@@ -324,6 +325,8 @@ public class A
             {
                 builder.Append("System.Console.WriteLine(\"");
                 builder.Append((char)('A' + i), 1000000);
+                expectedOutputBuilder.Append((char)('A' + i), 1000000);
+                expectedOutputBuilder.AppendLine();
                 builder.Append("\");");
                 builder.AppendLine();
             }
@@ -333,12 +336,9 @@ public class A
 }
 ");
 
-            var compilation = CreateCompilation(builder.ToString());
-
-            compilation.VerifyEmitDiagnostics(
-    // error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.
-    Diagnostic(ErrorCode.ERR_TooManyUserStrings).WithLocation(1, 1)
-                );
+            CompileAndVerify(builder.ToString(),
+                verify: Verification.Skipped,
+                expectedOutput: expectedOutputBuilder.ToString()).VerifyDiagnostics();
         }
 
         #endregion

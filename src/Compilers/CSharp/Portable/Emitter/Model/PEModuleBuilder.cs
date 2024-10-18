@@ -841,6 +841,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ((MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle))?.GetCciAdapter();
         }
 
+        public sealed override Cci.IMethodReference GetEncodingUtf8()
+        {
+            return ((MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__get_UTF8))?.GetCciAdapter();
+        }
+
+        public sealed override Cci.IMethodReference GetEncodingGetString()
+        {
+            return ((MethodSymbol)Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__GetString))?.GetCciAdapter();
+        }
+
         public sealed override bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType)
         {
             var namedType = typeRef.GetInternalSymbol() as NamedTypeSymbol;

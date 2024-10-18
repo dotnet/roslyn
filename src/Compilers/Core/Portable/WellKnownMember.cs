@@ -711,6 +711,9 @@ namespace Microsoft.CodeAnalysis
         System_Linq_Expressions_Expression__GreaterThanOrEqual,
         System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
 
+        System_Text_Encoding__get_UTF8,
+        System_Text_Encoding__GetString,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
