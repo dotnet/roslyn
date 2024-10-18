@@ -11158,41 +11158,33 @@ done:
                 var token1Kind = token1.ContextualKind;
 
                 // check for >>, >>=, >>> or >>>=
+                //
+                // In all those cases, update token1Kind to be the merged token kind.  It will then be handled by the code below.
                 if (token1Kind == SyntaxKind.GreaterThanToken
                     && this.PeekToken(1) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token2
                     && NoTriviaBetween(token1, token2)) // check to see if they really are adjacent
                 {
                     if (token2.Kind == SyntaxKind.GreaterThanToken)
                     {
-                        // >>  or  >>>  or  >>=
-
                         if (this.PeekToken(2) is { Kind: SyntaxKind.GreaterThanToken or SyntaxKind.GreaterThanEqualsToken } token3
                             && NoTriviaBetween(token2, token3)) // check to see if they really are adjacent
                         {
                             // >>>  or  >>>=
-
-                            var tokenKind = token3.Kind == SyntaxKind.GreaterThanToken
+                            token1Kind = token3.Kind == SyntaxKind.GreaterThanToken
                                 ? SyntaxKind.GreaterThanGreaterThanGreaterThanToken
                                 : SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
-
-                            var operatorKind = token3.Kind == SyntaxKind.GreaterThanToken
-                                ? SyntaxFacts.GetBinaryExpression(tokenKind)
-                                : SyntaxFacts.GetAssignmentExpression(tokenKind);
-                            return (tokenKind, operatorKind);
                         }
                         else
                         {
                             // >>
-                            return (SyntaxKind.GreaterThanGreaterThanToken, SyntaxFacts.GetBinaryExpression(SyntaxKind.GreaterThanGreaterThanToken));
+                            token1Kind = SyntaxKind.GreaterThanGreaterThanToken;
                         }
                     }
                     else
                     {
                         // >>=
-                        return (SyntaxKind.GreaterThanGreaterThanEqualsToken, SyntaxFacts.GetAssignmentExpression(SyntaxKind.GreaterThanGreaterThanEqualsToken));
+                        token1Kind = SyntaxKind.GreaterThanGreaterThanEqualsToken;
                     }
-
-                    // Fall through.  Just a normal `>` which will be handled by IsExpectedBinaryOperator below
                 }
 
                 if (IsExpectedBinaryOperator(token1Kind))
