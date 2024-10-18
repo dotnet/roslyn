@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -6534,8 +6533,7 @@ parse_member_name:;
                 if (this.CurrentToken.Kind == SyntaxKind.DotDotToken)
                 {
                     // Error recovery as in ParseQualifiedNameRight. If we have `X..Y` break that into `X.<missing-id>.Y`
-                    separator = this.EatToken();
-                    explicitInterfaceName = RecoverFromDotDot(explicitInterfaceName, ref separator);
+                    (explicitInterfaceName, separator) = RecoverFromDotDot(explicitInterfaceName, EatToken());
                 }
                 else
                 {
@@ -6562,8 +6560,7 @@ parse_member_name:;
                 else if (this.CurrentToken.Kind == SyntaxKind.DotDotToken)
                 {
                     // Error recovery as in ParseQualifiedNameRight. If we have `X..Y` break that into `X.<missing-id>.Y`
-                    separator = this.EatToken();
-                    explicitInterfaceName = RecoverFromDotDot(explicitInterfaceName, ref separator);
+                    (explicitInterfaceName, separator) = RecoverFromDotDot(explicitInterfaceName, EatToken());
                 }
                 else
                 {
@@ -6705,9 +6702,11 @@ parse_member_name:;
             {
                 case SyntaxKind.DotToken:
                     return _syntaxFactory.QualifiedName(left, separator, right);
+
                 case SyntaxKind.DotDotToken:
                     // Error recovery.  If we have `X..Y` break that into `X.<missing-id>.Y`
-                    return _syntaxFactory.QualifiedName(RecoverFromDotDot(left, ref separator), separator, right);
+                    (left, separator) = RecoverFromDotDot(left, separator);
+                    return _syntaxFactory.QualifiedName(left, separator, right);
 
                 case SyntaxKind.ColonColonToken:
                     if (left.Kind != SyntaxKind.IdentifierName)
@@ -6741,14 +6740,30 @@ parse_member_name:;
             }
         }
 
-        private NameSyntax RecoverFromDotDot(NameSyntax left, ref SyntaxToken separator)
+        /// <param name="separator">Passed in as the <c>..</c> token we encountered when we were consuming `name..`.</param>
+        /// <returns>The qualified name generated, and the <c>.</c> token corresponding to the second dot in the
+        /// sequence.</returns>
+        private (QualifiedNameSyntax qualifiedName, SyntaxToken separator) RecoverFromDotDot(NameSyntax name, SyntaxToken separator)
         {
             Debug.Assert(separator.Kind == SyntaxKind.DotDotToken);
 
-            var leftDot = SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null);
-            var missingName = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_IdentifierExpected);
-            separator = SyntaxFactory.Token(null, SyntaxKind.DotToken, separator.TrailingTrivia.Node);
-            return _syntaxFactory.QualifiedName(left, leftDot, missingName);
+            // Synthesize a dot token corresponding to the first dot in the `..` token passed in.  Place an error on it
+            // stating that there is a missing identifier immediately after it.  Importantly, place the error diagnostic
+            // on the dot token itself.  This will make this token not reusable in incremental scenarios.  The missing
+            // identifier is already not reusable (as it has zero length).  However, this does not taint the tokens
+            // around it.  We want that tainting so that an incremental reparse goes and resynthesizes the original `..`
+            // token.
+            var leftDot = this.AddError(
+                SyntaxFactory.Token(separator.LeadingTrivia.Node, SyntaxKind.DotToken, null),
+                offset: separator.GetLeadingTriviaWidth() + 1,
+                length: 1,
+                ErrorCode.ERR_IdentifierExpected);
+
+            // Create an `name.<missing>` name for the `name.` part of `name..`
+            return (_syntaxFactory.QualifiedName(name, leftDot, this.CreateMissingIdentifierName()),
+                    // Now, synthesize a token for the second dot in the .. token and pass that back out for the caller to
+                    // consume in its normal dot consuming loop.
+                    SyntaxFactory.Token(leading: null, SyntaxKind.DotToken, separator.TrailingTrivia.Node));
         }
 
         private SyntaxToken ConvertToMissingWithTrailingTrivia(SyntaxToken token, SyntaxKind expectedKind)
