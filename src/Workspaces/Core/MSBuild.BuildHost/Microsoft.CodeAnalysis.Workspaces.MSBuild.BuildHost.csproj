@@ -21,18 +21,27 @@
          -->
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-  <ItemGroup>
+
     <!--
-      Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file.
       We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible $(NetRoslynBuildHostNetCoreVersion).
       The version targeted is only used for build time, since we use MSBuildLocator to discover the proper version at runtime.
     -->
-    <PackageDownloadAndReference Include="Microsoft.Build" Version="17.3.4" Folder="ref/$(TargetFramework)" />
-    <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="17.3.4" Folder="ref/$(TargetFramework)" />
-    <PackageDownloadAndReference Include="Microsoft.Build.Tasks.Core" Version="17.3.4" Folder="ref/$(TargetFramework)" />
-    <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="17.3.4" Folder="ref/$(TargetFramework)" />
-    
+    <_MsbuildVersion>17.3.4</_MsbuildVersion>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
+    <PackageReference Include="Microsoft.Build" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="$(_MsbuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'false'">
+    <!-- Reference MSBuild directly to avoid redistributing its package closure and including the dependencies in deps.json file. -->
+    <PackageDownloadAndReference Include="Microsoft.Build" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Framework" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Tasks.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+    <PackageDownloadAndReference Include="Microsoft.Build.Utilities.Core" Version="$(_MsbuildVersion)" Folder="ref/$(TargetFramework)" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.Collections.Immutable" />
