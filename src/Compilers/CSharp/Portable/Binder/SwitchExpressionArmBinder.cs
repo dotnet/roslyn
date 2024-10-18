@@ -29,17 +29,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
-            TypeSymbol inputType = _switchExpressionBinder.GetInputType();
-            return BindSwitchExpressionArm(node, inputType, diagnostics);
+            (TypeSymbol inputType, uint valEscape) = _switchExpressionBinder.GetInputTypeAndValEscape();
+            return BindSwitchExpressionArm(node, inputType, valEscape, diagnostics);
         }
 
-        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, BindingDiagnosticBag diagnostics)
+        internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, TypeSymbol switchGoverningType, uint switchGoverningValEscape, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
             Binder armBinder = this.GetRequiredBinder(node);
             bool hasErrors = switchGoverningType.IsErrorType();
             ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
-            BoundPattern pattern = armBinder.BindPattern(node.Pattern, switchGoverningType, permitDesignations: true, hasErrors, diagnostics);
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, switchGoverningType, switchGoverningValEscape, permitDesignations: true, hasErrors, diagnostics);
             BoundExpression? whenClause = node.WhenClause != null
                 ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
