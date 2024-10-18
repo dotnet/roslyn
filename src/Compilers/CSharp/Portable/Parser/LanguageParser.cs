@@ -11333,7 +11333,7 @@ done:
             }
         }
 
-#nullable restore
+#nullable disable
 
         private DeclarationExpressionSyntax ParseDeclarationExpression(ParseTypeMode mode, bool isScoped)
         {
