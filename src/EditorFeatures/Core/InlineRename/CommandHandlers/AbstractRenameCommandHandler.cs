@@ -6,6 +6,8 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 internal abstract partial class AbstractRenameCommandHandler(
     IThreadingContext threadingContext,
     InlineRenameService renameService,
+    IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener)
 {
     public string DisplayName => EditorFeaturesResources.Rename;
@@ -57,6 +60,7 @@ internal abstract partial class AbstractRenameCommandHandler(
 
         if (renameService.ActiveSession.IsCommitInProgress)
         {
+            // When rename commit is in progress, swallow the command so it won't change the workspace
             return;
         }
 
@@ -78,9 +82,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
         else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
-            // It's in a read-only area that is open, so let's commit the rename 
-            // and then let the character go through
-            CommitIfActive(args, operationContext);
+            HandleTypingOutsideEditableSpan(args, operationContext);
             nextHandler();
         }
         else
@@ -89,6 +91,9 @@ internal abstract partial class AbstractRenameCommandHandler(
             return;
         }
     }
+
+    private void HandleTypingOutsideEditableSpan(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+        => CommitOrCancel(args, operationContext);
 
     private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext)
     {
@@ -102,6 +107,16 @@ internal abstract partial class AbstractRenameCommandHandler(
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
             args.TextView.Caret.MoveTo(translatedSelection.End);
         }
+    }
+
+    private void CommitOrCancel(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+    {
+        // When the command is invalid, in sync commit mode, we always prefer 'Commit()' to keep our legacy behavior.
+        // If the commit is async, we always prefer 'Cancel()' to session.
+        if (globalOptionService.ShouldCommitAsynchronously())
+            renameService.ActiveSession?.Cancel();
+        else
+            CommitIfActive(args, operationContext);
     }
 
     private void Commit(IUIThreadOperationContext operationContext)

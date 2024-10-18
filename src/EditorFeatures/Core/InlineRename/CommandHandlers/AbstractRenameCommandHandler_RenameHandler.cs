@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -81,8 +82,8 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             }
             else
             {
-                // Otherwise, commit the existing session and start a new one.
-                Commit(editorOperationContext);
+                // Otherwise, commit or cancel the existing session and start a new one.
+                CommitOrCancel(args, editorOperationContext);
             }
         }
 

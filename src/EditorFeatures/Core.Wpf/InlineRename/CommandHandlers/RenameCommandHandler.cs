@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -33,8 +34,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal partial class RenameCommandHandler(
         IThreadingContext threadingContext,
         InlineRenameService renameService,
+        IGlobalOptionService globalOptionService,
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-        : AbstractRenameCommandHandler(threadingContext, renameService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
+        : AbstractRenameCommandHandler(threadingContext, renameService, globalOptionService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
     {
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
             => GetAdornment(textView) switch
