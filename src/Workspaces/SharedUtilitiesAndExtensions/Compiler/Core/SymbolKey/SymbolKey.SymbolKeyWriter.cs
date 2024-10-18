@@ -27,6 +27,7 @@ internal partial struct SymbolKey
         Field = 'F',
         FunctionPointer = 'G',
         DynamicType = 'I',
+        Preprocessing = 'J',
         BuiltinOperator = 'L',
         Method = 'M',
         Namespace = 'N',
@@ -189,6 +190,11 @@ internal partial struct SymbolKey
                     // While we recursed, we already hit this symbol.  Use its ID as our
                     // ID.
                     id = existingId;
+                }
+                else if (symbol is IPreprocessingSymbol preprocessingSymbol)
+                {
+                    WriteType(SymbolKeyType.Preprocessing);
+                    PreprocessingSymbolKey.Instance.Create(preprocessingSymbol, this);
                 }
                 else
                 {
@@ -473,7 +479,7 @@ internal partial struct SymbolKey
         public override void VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
         {
             // If it's a reference to a method type parameter, and we're currently writing
-            // out a signture, then only write out the ordinal of type parameter.  This 
+            // out a signature, then only write out the ordinal of type parameter.  This 
             // helps prevent recursion problems in cases like "Goo<T>(T t).
             if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol, out var methodIndex))
             {

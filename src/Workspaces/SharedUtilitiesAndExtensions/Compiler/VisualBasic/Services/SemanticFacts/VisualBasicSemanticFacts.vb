@@ -258,9 +258,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFacts.GetBestOrAllSymbols
-            Return If(node Is Nothing,
-                      ImmutableArray(Of ISymbol).Empty,
-                      semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
+            If node Is Nothing Then
+                Return ImmutableArray(Of ISymbol).Empty
+            End If
+
+            Dim preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(node).Symbol
+            Return If(preprocessingSymbol IsNot Nothing,
+                ImmutableArray.Create(Of ISymbol)(preprocessingSymbol),
+                semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols())
         End Function
 
         Public Function IsInsideNameOfExpression(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsInsideNameOfExpression

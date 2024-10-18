@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis;
 ///   <item>Two <see cref="IFieldSymbol"/>s are the "same" if they have
 ///         the "same" <see cref="ISymbol.ContainingSymbol"/> and 
 ///         the "same" <see cref="ISymbol.MetadataName"/>.</item>
+///   <item>Two <see cref="IPreprocessingSymbol"/>s are the "same" if they have
+///         the "same" <see cref="ISymbol.Name"/>.</item>
 /// </list>
 /// </para>
 /// <para>

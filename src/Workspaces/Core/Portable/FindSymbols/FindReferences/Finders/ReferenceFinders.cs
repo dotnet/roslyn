@@ -26,6 +26,7 @@ internal static class ReferenceFinders
             new OperatorSymbolReferenceFinder(),
             new OrdinaryMethodReferenceFinder(),
             new ParameterSymbolReferenceFinder(),
+            new PreprocessingSymbolReferenceFinder(),
             new PropertyAccessorSymbolReferenceFinder(),
             new RangeVariableSymbolReferenceFinder(),
             new TypeParameterSymbolReferenceFinder(),

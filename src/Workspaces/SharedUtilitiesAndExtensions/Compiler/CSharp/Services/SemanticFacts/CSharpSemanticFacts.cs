@@ -372,7 +372,10 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
             }
         }
 
-        return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
+        var preprocessingSymbol = semanticModel.GetPreprocessingSymbolInfo(node).Symbol;
+        return preprocessingSymbol != null
+            ? ImmutableArray.Create<ISymbol>(preprocessingSymbol)
+            : semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
     }
 
     public bool IsInsideNameOfExpression(SemanticModel semanticModel, [NotNullWhen(true)] SyntaxNode? node, CancellationToken cancellationToken)
