@@ -336,7 +336,7 @@ namespace Roslyn.Test.Utilities
     public class NotOnMonoCore : ExecutionCondition
     {
         public override bool ShouldSkip => MonoHelpers.IsRunningOnMonoCore();
-        public override string SkipReason => "Test not supported on Mono";
+        public override string SkipReason => "Test not supported on Mono Core";
     }
 
     public class CoreClrOnly : ExecutionCondition
