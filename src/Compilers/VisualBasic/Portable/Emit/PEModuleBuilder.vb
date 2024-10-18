@@ -611,6 +611,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle), MethodSymbol)?.GetCciAdapter()
         End Function
 
+        Public NotOverridable Overrides Function GetEncodingUtf8() As Cci.IMethodReference
+            Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__get_UTF8), MethodSymbol)?.GetCciAdapter()
+        End Function
+
+        Public NotOverridable Overrides Function GetEncodingGetString() As Cci.IMethodReference
+            Return DirectCast(Compilation.GetWellKnownTypeMember(WellKnownMember.System_Text_Encoding__GetString), MethodSymbol)?.GetCciAdapter()
+        End Function
+
         Public NotOverridable Overrides Function IsPlatformType(typeRef As Cci.ITypeReference, platformType As Cci.PlatformType) As Boolean
             Dim namedType = TryCast(typeRef.GetInternalSymbol(), NamedTypeSymbol)
 
