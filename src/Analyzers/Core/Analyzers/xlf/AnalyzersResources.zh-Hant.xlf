@@ -98,7 +98,7 @@
       </trans-unit>
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <target state="translated">基底類別包含無法存取的未實作成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
@@ -153,12 +153,12 @@
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
         <source>Implement abstract class</source>
-        <target state="new">Implement abstract class</target>
+        <target state="translated">實作抽象類別</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
         <source>Implement through '{0}'</source>
-        <target state="new">Implement through '{0}'</target>
+        <target state="translated">透過 '{0}' 實作</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">

@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var result = RunDotNet($"new list --type project --language {language}", output: null);
 
-            var lines = result.Output.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = result.Output.Split(["\r", "\n"], StringSplitOptions.RemoveEmptyEntries);
 
             TheoryData<string> templateNames = [];
             var foundDivider = false;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     continue;
                 }
 
-                var columns = line.Split(new[] { "  " }, StringSplitOptions.RemoveEmptyEntries)
+                var columns = line.Split(["  "], StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Trim())
                     .ToArray();
 

@@ -4,6 +4,7 @@
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
   <Import Project="WpfTempProjectWorkarounds.targets" Condition="'$(IsWpfTempProject)' == 'true'" />
+  <Import Project="WpfWorkarounds.targets" Condition="'$(UseWpf)' == 'true'" />
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
@@ -47,6 +48,8 @@
     -->
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
+
+    <EnforceCodeStyleInBuild Condition="'$(EnforceCodeStyleInBuild)' == '' AND '$(RoslynCheckCodeStyle)' == 'true'">true</EnforceCodeStyleInBuild>
 
     <!--https://github.com/dotnet/sdk/issues/37826 -->
     <MSBuildWarningsAsMessages Condition="'$(OutputType)' == 'Library'">$(MSBuildWarningsAsMessages);NETSDK1206</MSBuildWarningsAsMessages>
@@ -149,7 +152,7 @@
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.CompareVersions" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
   <UsingTask TaskName="Microsoft.DotNet.Arcade.Sdk.SingleError" AssemblyFile="$(ArcadeSdkBuildTasksAssembly)" />
 
-  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild" Condition="'$(DotNetBuildFromSource)' != 'true'">
+  <Target Name="_CheckRequiredMSBuildVersion" BeforeTargets="BeforeBuild" Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <CompareVersions Left="$(MSBuildVersion)" Right="$(MinimumMSBuildVersion)">
       <Output TaskParameter="Result" PropertyName="_VersionComparisonResult"/>
     </CompareVersions>

@@ -268,6 +268,7 @@ namespace Microsoft.CodeAnalysis
             FactoryContextIsInAsync = 1 << 2,
             FactoryContextIsInQuery = 1 << 3,
             FactoryContextIsInIterator = FactoryContextIsInQuery,  // VB does not use "InQuery", but uses "InIterator" instead
+            FactoryContextIsInFieldKeywordContext = 1 << 4,
 
             // Flags that are inherited upwards when building parent nodes.  They should all start with "Contains" to
             // indicate that the information could be found on it or anywhere in its children.
@@ -275,15 +276,15 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// If this node, or any of its descendants has annotations attached to them.
             /// </summary>
-            ContainsAnnotations = 1 << 4,
+            ContainsAnnotations = 1 << 5,
             /// <summary>
             /// If this node, or any of its descendants has attributes attached to it.
             /// </summary>
-            ContainsAttributes = 1 << 5,
-            ContainsDiagnostics = 1 << 6,
-            ContainsDirectives = 1 << 7,
-            ContainsSkippedText = 1 << 8,
-            ContainsStructuredTrivia = 1 << 9,
+            ContainsAttributes = 1 << 6,
+            ContainsDiagnostics = 1 << 7,
+            ContainsDirectives = 1 << 8,
+            ContainsSkippedText = 1 << 9,
+            ContainsStructuredTrivia = 1 << 10,
 
             InheritMask = IsNotMissing | ContainsAnnotations | ContainsAttributes | ContainsDiagnostics | ContainsDirectives | ContainsSkippedText | ContainsStructuredTrivia,
         }
@@ -333,6 +334,14 @@ namespace Microsoft.CodeAnalysis
             get
             {
                 return (this.Flags & NodeFlags.FactoryContextIsInIterator) != 0;
+            }
+        }
+
+        internal bool ParsedInFieldKeywordContext
+        {
+            get
+            {
+                return (this.Flags & NodeFlags.FactoryContextIsInFieldKeywordContext) != 0;
             }
         }
 

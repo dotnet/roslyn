@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator;
 
 using static Helpers;
 
-internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer
+internal sealed partial class CSharpUseIndexOperatorDiagnosticAnalyzer
 {
     /// <summary>
     /// Helper type to cache information about types while analyzing the compilation.
     /// </summary>
-    private class InfoCache
+    private sealed class InfoCache
     {
         /// <summary>
         /// The <see cref="T:System.Index"/> type.  Needed so that we only fixup code if we see the type

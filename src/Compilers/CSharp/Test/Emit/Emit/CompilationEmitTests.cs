@@ -4041,7 +4041,12 @@ public class Test
             var extension = ".netmodule";
             var outputName = "b";
 
-            var compilation = CreateCompilation("class A { }", options: TestOptions.ReleaseModule.WithModuleName(name + extension), assemblyName: null);
+            var compilation = CSharpCompilation.Create(
+                assemblyName: null,
+                syntaxTrees: [SyntaxFactory.ParseSyntaxTree("class A { }")],
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                options: TestOptions.ReleaseModule.WithModuleName(name + extension));
+
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;

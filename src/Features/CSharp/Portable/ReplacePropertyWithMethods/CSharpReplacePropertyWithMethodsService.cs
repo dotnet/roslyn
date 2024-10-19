@@ -27,7 +27,7 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
-internal partial class CSharpReplacePropertyWithMethodsService :
+internal sealed partial class CSharpReplacePropertyWithMethodsService :
     AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, NameMemberCrefSyntax, StatementSyntax, PropertyDeclarationSyntax>
 {
     [ImportingConstructor]

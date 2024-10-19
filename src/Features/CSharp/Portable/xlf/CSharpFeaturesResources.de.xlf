@@ -432,6 +432,11 @@
         <target state="translated">Datensatzstruktur</target>
         <note />
       </trans-unit>
+      <trans-unit id="required_property">
+        <source>required property</source>
+        <target state="new">required property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="reversed_for_loop">
         <source>reversed for loop</source>
         <target state="translated">reversed for-Schleife</target>

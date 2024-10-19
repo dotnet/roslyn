@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -54,7 +53,9 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
-        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
+        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression,
+        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,
@@ -75,17 +76,20 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         using var analyzer = GetAnalyzer();
 
         var useCollectionExpression = properties.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true;
-        var matches = analyzer.Analyze(
+        var (preMatches, postMatches) = analyzer.Analyze(
             semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
-        if (matches.IsDefault)
+        if (preMatches.IsDefault || postMatches.IsDefault)
             return;
 
         var (oldNode, newNode) = await GetReplacementNodesAsync(
-            document, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+            document, objectCreation, useCollectionExpression, preMatches, postMatches, cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(oldNode, newNode);
-        foreach (var match in matches)
-            editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+        // We only need to remove the post-matches.  The pre-matches are the arguments in teh object creation, which
+        // itself got replaced above.
+        foreach (var match in postMatches)
+            editor.RemoveNode(match.Node, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 }

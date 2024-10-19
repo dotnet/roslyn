@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
-internal partial class MoveToNamespaceAnalysisResult
+internal sealed partial class MoveToNamespaceAnalysisResult
 {
     public enum ContainerType
     {

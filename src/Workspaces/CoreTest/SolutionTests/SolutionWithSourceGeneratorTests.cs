@@ -36,9 +36,13 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         // This test is just the sanity test to make sure generators work at all. There's not a special scenario being
         // tested.
 
+        var generatedFilesOutputDir = Path.Combine(TempRoot.Root, "gendir");
+        var assemblyPath = Path.Combine(TempRoot.Root, "assemblyDir", "assembly.dll");
+
         using var workspace = CreateWorkspace(testHost: testHost);
         var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
         var project = AddEmptyProject(workspace.CurrentSolution)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath, generatedFilesOutputDir))
             .AddAnalyzerReference(analyzerReference);
 
         // Optionally fetch the compilation first, which validates that we handle both running the generator
@@ -58,7 +62,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
         var generatorType = typeof(GenerateFileForEachAdditionalFileWithContentsCommented);
 
-        Assert.Equal($"{generatorType.Assembly.GetName().Name}\\{generatorType.FullName}\\Test.generated.cs", generatedTree.FilePath);
+        Assert.Equal(Path.Combine(generatedFilesOutputDir, generatorType.Assembly.GetName().Name!, generatorType.FullName!, "Test.generated.cs"), generatedTree.FilePath);
 
         var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
         Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
@@ -84,7 +88,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
         // Go from one analyzer reference to the other
-        project = project.WithAnalyzerReferences(new[] { analyzerReference2 });
+        project = project.WithAnalyzerReferences([analyzerReference2]);
 
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
@@ -132,12 +136,12 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
         // Go from one generator to two.
-        project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep, analyzerReferenceToAddAndRemove });
+        project = project.WithAnalyzerReferences([generatorReferenceToKeep, analyzerReferenceToAddAndRemove]);
 
         Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
 
         // And go back to one
-        project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep });
+        project = project.WithAnalyzerReferences([generatorReferenceToKeep]);
 
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
     }
@@ -154,7 +158,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         var generatorReference2 = new TestGeneratorReference(new SingleFileTestGenerator("", hintName: "DuplicateFile"), analyzerFilePath: "Z:\\B.dll");
 
         var project = AddEmptyProject(workspace.CurrentSolution)
-            .AddAnalyzerReferences(new[] { generatorReference1, generatorReference2 });
+            .AddAnalyzerReferences([generatorReference1, generatorReference2]);
 
         Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
 
@@ -386,6 +390,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         static Solution AddProjectWithReference(Solution solution, TestGeneratorReference analyzerReference)
         {
             var project = AddEmptyProject(solution);
+
             project = project.AddAnalyzerReference(analyzerReference);
             project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 

@@ -581,14 +581,15 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_ITuple
+                         WellKnownType.System_Runtime_CompilerServices_ITuple,
+                         WellKnownType.System_Runtime_CompilerServices_HotReloadException
                         ' Not always available.
                         Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
                 Assert.NotNull(symbol)
-                Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
+                Assert.True(SymbolKind.ErrorType <> symbol.Kind, $"{symbol} should not be an error type")
             Next
 
             comp = CreateEmptyCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
@@ -663,7 +664,8 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
                          WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_ITuple
+                         WellKnownType.System_Runtime_CompilerServices_ITuple,
+                         WellKnownType.System_Runtime_CompilerServices_HotReloadException
                         ' Not always available.
                         Continue For
                 End Select
@@ -825,7 +827,8 @@ End Namespace
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
-                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
+                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T,
+                         WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32
                         ' Not always available.
                         Continue For
                 End Select
@@ -1033,7 +1036,8 @@ End Namespace
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
-                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
+                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T,
+                         WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32
                         ' Not always available.
                         Continue For
                 End Select

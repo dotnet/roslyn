@@ -19,9 +19,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-internal partial class FormattingContext
+internal sealed partial class FormattingContext
 {
-    private class InitialContextFinder
+    private sealed class InitialContextFinder
     {
         private readonly TokenStream _tokenStream;
         private readonly ChainedFormattingRules _formattingRules;

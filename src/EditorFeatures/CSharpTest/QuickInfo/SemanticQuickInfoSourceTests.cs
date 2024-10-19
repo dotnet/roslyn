@@ -83,17 +83,38 @@ public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
         }
     }
 
-    private static async Task VerifyWithMscorlib45Async(string markup, Action<QuickInfoItem>[] expectedResults)
+    private static async Task VerifyWithMscorlib45Async(string markup, params Action<QuickInfoItem>[] expectedResults)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""C#"" CommonReferencesNet45=""true"">
-        <Document FilePath=""SourceDocument"">
-{0}
-        </Document>
-    </Project>
-</Workspace>", SecurityElement.Escape(markup));
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet45="true">
+                    <Document FilePath="SourceDocument">
+            {0}
+                    </Document>
+                </Project>
+            </Workspace>
+            """, SecurityElement.Escape(markup));
 
+        await VerifyWithMarkupAsync(xmlString, expectedResults);
+    }
+
+    private static async Task VerifyWithNet8Async(string markup, params Action<QuickInfoItem>[] expectedResults)
+    {
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet8="true">
+                    <Document FilePath="SourceDocument">
+            {0}
+                    </Document>
+                </Project>
+            </Workspace>
+            """, SecurityElement.Escape(markup));
+
+        await VerifyWithMarkupAsync(xmlString, expectedResults);
+    }
+
+    private static async Task VerifyWithMarkupAsync(string xmlString, Action<QuickInfoItem>[] expectedResults)
+    {
         using var workspace = EditorTestWorkspace.Create(xmlString);
         var sourceDocument = workspace.Documents.Single(d => d.Name == "SourceDocument");
         var position = sourceDocument.CursorPosition!.Value;
@@ -4950,7 +4971,7 @@ class C
 }";
         var description = $"({CSharpFeaturesResources.awaitable}) Task C.Goo()";
 
-        await VerifyWithMscorlib45Async(markup, new[] { MainDescription(description) });
+        await VerifyWithMscorlib45Async(markup, MainDescription(description));
     }
 
     [Fact]
@@ -8850,5 +8871,513 @@ $@"
 {FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{ string @string }}")
         });
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Class(bool simpleUsing, bool implementsIDisposable)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var c = new C();"
+            : "$$using (var c = new C()) { }";
+
+        // When class doesn't implement 'IDisposable' a compiler error is produced.
+        // However, we still want to show a specific 'Dispose' method for error recovery
+        // since that would be the picked method when user fixes the error
+        await TestAsync($$"""
+            using System;
+
+            class C {{(implementsIDisposable ? ": IDisposable" : "")}}
+            {
+                public void Dispose()
+                {
+                }
+
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription("void C.Dispose()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Class_DisposeMethodInBaseType(bool simpleUsing, bool implementsIDisposable)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var c = new C();"
+            : "$$using (var c = new C()) { }";
+
+        // When class doesn't implement 'IDisposable' a compiler error is produced.
+        // However, we still want to show a specific 'Dispose' method for error recovery
+        // since that would be the picked method when user fixes the error
+        await TestAsync($$"""
+            using System;
+
+            class CBase {{(implementsIDisposable ? ": IDisposable" : "")}}
+            {
+                public void Dispose()
+                {
+                }
+            }
+
+            class C : CBase
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription("void CBase.Dispose()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Class_ExplicitImplementationAndPattern(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var c = new C();"
+            : "$$using (var c = new C()) { }";
+
+        await TestAsync($$"""
+            using System;
+
+            class C : IDisposable
+            {
+                void IDisposable.Dispose()
+                {
+                }
+
+                public void Dispose()
+                {
+                }
+
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription("void C.Dispose()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Class_ImplementsIDisposableButDoesNotHaveDisposeMethod(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var c = new C();"
+            : "$$using (var c = new C()) { }";
+
+        await TestAsync($$"""
+            using System;
+
+            class C : IDisposable
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription("void IDisposable.Dispose()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Class_DoesNotImplementIDisposableAndDoesNotHaveDisposeMethod(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var c = new C();"
+            : "$$using (var c = new C()) { }";
+
+        await TestAsync($$"""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Struct(bool simpleUsing, bool isRefStruct, bool implementsIDisposable)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var s = new S();"
+            : "$$using (var s = new S()) { }";
+
+        // When non-ref struct doesn't implement 'IDisposable' a compiler error is produced.
+        // However, we still want to show a specific 'Dispose' method for error recovery
+        // since that would be the picked method when user fixes the error
+        await TestAsync($$"""
+            using System;
+
+            {{(isRefStruct ? "ref" : "")}} struct S {{(implementsIDisposable ? ": IDisposable" : "")}}
+            {
+                public void Dispose()
+                {
+                }
+
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription("void S.Dispose()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Struct_ExplicitImplementationAndPattern(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var s = new S();"
+            : "$$using (var s = new S()) { }";
+
+        await TestAsync($$"""
+            using System;
+
+            struct S : IDisposable
+            {
+                void IDisposable.Dispose()
+                {
+                }
+
+                public void Dispose()
+                {
+                }
+
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription("void S.Dispose()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Struct_ImplementsIDisposableButDoesNotHaveDisposeMethod(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var s = new S();"
+            : "$$using (var s = new S()) { }";
+
+        await TestAsync($$"""
+            using System;
+
+            struct S : IDisposable
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription("void IDisposable.Dispose()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task UsingStatement_Struct_DoesNotImplementIDisposableAndDoesNotHaveDisposeMethod(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "$$using var s = new S();"
+            : "$$using (var s = new S()) { }";
+
+        await TestAsync($$"""
+            using System;
+
+            struct S
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task UsingStatement_Interface()
+    {
+        await TestAsync("""
+            using System;
+
+            interface IMyInterface : IDisposable
+            {
+            }
+
+            class C
+            {
+                void M(IMyInterface i)
+                {
+                    $$using (i)
+                    {
+                    }
+                }
+            }
+            """,
+            MainDescription("void IDisposable.Dispose()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Class(bool simpleUsing, bool implementsIAsyncDisposable)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var c = new C();"
+            : "await $$using (var c = new C()) { }";
+
+        // When class doesn't implement 'IAsyncDisposable' a compiler error is produced.
+        // However, we still want to show a specific 'DisposeAsync' method for error recovery
+        // since that would be the picked method when user fixes the error
+        await VerifyWithNet8Async($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            class C {{(implementsIAsyncDisposable ? ": IAsyncDisposable" : "")}}
+            {
+                public ValueTask DisposeAsync()
+                {
+                }
+
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask C.DisposeAsync()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Class_DisposeMethodInBaseType(bool simpleUsing, bool implementsIAsyncDisposable)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var c = new C();"
+            : "await $$using (var c = new C()) { }";
+
+        // When class doesn't implement 'IAsyncDisposable' a compiler error is produced.
+        // However, we still want to show a specific 'DisposeAsync' method for error recovery
+        // since that would be the picked method when user fixes the error
+        await VerifyWithNet8Async($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            class CBase {{(implementsIAsyncDisposable ? ": IAsyncDisposable" : "")}}
+            {
+                public ValueTask DisposeAsync()
+                {
+                }
+            }
+
+            class C : CBase
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask CBase.DisposeAsync()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Class_ExplicitImplementationAndPattern(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var c = new C();"
+            : "await $$using (var c = new C()) { }";
+
+        await VerifyWithNet8Async($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            class C : IAsyncDisposable
+            {
+                ValueTask IAsyncDisposable.DisposeAsync()
+                {
+                }
+
+                public void DisposeAsync()
+                {
+                }
+
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask C.DisposeAsync()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Class_ImplementsIAsyncDisposableButDoesNotHaveDisposeAsyncMethod(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var c = new C();"
+            : "await $$using (var c = new C()) { }";
+
+        await VerifyWithNet8Async($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            class C : IAsyncDisposable
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask IAsyncDisposable.DisposeAsync()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Class_DoesNotImplementIAsyncDisposableAndDoesNotHaveDisposeAsyncMethod(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var c = new C();"
+            : "await $$using (var c = new C()) { }";
+
+        await VerifyWithNet8Async($$"""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Struct(bool simpleUsing, bool isRefStruct, bool implementsIAsyncDisposable)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var s = new S();"
+            : "await $$using (var s = new S()) { }";
+
+        // When non-ref struct doesn't implement 'IAsyncDisposable' a compiler error is produced.
+        // However, we still want to show a specific 'DisposeAsync' method for error recovery
+        // since that would be the picked method when user fixes the error
+        await VerifyWithNet8Async($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            {{(isRefStruct ? "ref" : "")}} struct S {{(implementsIAsyncDisposable ? ": IAsyncDisposable" : "")}}
+            {
+                public ValueTask DisposeAsync()
+                {
+                }
+
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask S.DisposeAsync()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Struct_ExplicitImplementationAndPattern(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var s = new S();"
+            : "await $$using (var s = new S()) { }";
+
+        await VerifyWithNet8Async($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            struct S : IAsyncDisposable
+            {
+                ValueTask IAsyncDisposable.DisposeAsync()
+                {
+                }
+
+                public ValueTask DisposeAsync()
+                {
+                }
+
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask S.DisposeAsync()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Struct_ImplementsIAsyncDisposableButDoesNotHaveDisposeAsyncMethod(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var s = new S();"
+            : "await $$using (var s = new S()) { }";
+
+        await VerifyWithNet8Async($$"""
+            using System;
+            using System.Threading.Tasks;
+
+            struct S : IAsyncDisposable
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """,
+            MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask IAsyncDisposable.DisposeAsync()"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task AwaitUsingStatement_Struct_DoesNotImplementIAsyncDisposableAndDoesNotHaveDisposeAsyncMethod(bool simpleUsing)
+    {
+        var usingStatement = simpleUsing
+            ? "await $$using var s = new S();"
+            : "await $$using (var s = new S()) { }";
+
+        await VerifyWithNet8Async($$"""
+            using System;
+
+            struct S
+            {
+                void M()
+                {
+                    {{usingStatement}}
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task AwaitUsingStatement_Interface()
+    {
+        await VerifyWithNet8Async("""
+            using System;
+            using System.Threading.Tasks;
+
+            interface IMyInterface : IAsyncDisposable
+            {
+            }
+
+            class C
+            {
+                void M(IMyInterface i)
+                {
+                    await $$using (i)
+                    {
+                    }
+                }
+            }
+            """,
+            MainDescription($"({CSharpFeaturesResources.awaitable}) ValueTask IAsyncDisposable.DisposeAsync()"));
     }
 }

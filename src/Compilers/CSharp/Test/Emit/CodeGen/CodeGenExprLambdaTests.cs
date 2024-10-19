@@ -5925,21 +5925,22 @@ class C : TestBase
         /// </summary>
         [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
         [Fact]
-        public void IgnoreInaccessibleExpressionMembers()
+        public void IgnoreInaccessibleExpressionMembers_01()
         {
             var source1 =
 @"namespace System.Linq.Expressions
 {
     public class Expression
     {
-        public static Expression Constant(object o, Type t) { return null; }
+        public static ConstantExpression Constant(object o, Type t) { return null; }
         protected static Expression Convert(object e, Type t) { return null; }
         public static Expression Convert(Expression e, object t) { return null; }
-        protected static void Lambda<T>(Expression e, ParameterExpression[] args) { }
+        protected static Expression<T> Lambda<T>(Expression e, ParameterExpression[] args) { return null; }
         public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
     }
     public class Expression<T> { }
     public class ParameterExpression : Expression { }
+    public class ConstantExpression : Expression { }
 }";
             var compilation1 = CreateCompilationWithMscorlib461(source1);
             compilation1.VerifyDiagnostics();
@@ -5958,7 +5959,58 @@ class C
             using (var stream = new MemoryStream())
             {
                 var result = compilation2.Emit(stream);
-                result.Diagnostics.Verify();
+                result.Diagnostics.Verify(
+                    // (5,36): error CS0656: Missing compiler required member 'System.Linq.Expressions.Expression.Convert'
+                    //     static Expression<D> E = () => 1;
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1").WithArguments("System.Linq.Expressions.Expression", "Convert").WithLocation(5, 36)
+                    );
+            }
+        }
+
+        /// <summary>
+        /// Ignore inaccessible members of System.Linq.Expressions.Expression.
+        /// </summary>
+        [WorkItem(1618, "https://github.com/dotnet/roslyn/issues/1618")]
+        [Fact]
+        public void IgnoreInaccessibleExpressionMembers_02()
+        {
+            var source1 =
+@"namespace System.Linq.Expressions
+{
+    public class Expression
+    {
+        public static ConstantExpression Constant(object o, Type t) { return null; }
+        public static UnaryExpression Convert(Expression e, Type t) { return null; }
+        protected static Expression<T> Lambda<T>(Expression e, ParameterExpression[] args) { return null; }
+        public static Expression<T> Lambda<T>(Expression e, Expression[] args) { return null; }
+    }
+    public class Expression<T> { }
+    public class ParameterExpression : Expression { }
+    public class ConstantExpression : Expression { }
+    public class UnaryExpression : Expression { }
+}";
+            var compilation1 = CreateCompilationWithMscorlib461(source1);
+            compilation1.VerifyDiagnostics();
+            var reference1 = compilation1.EmitToImageReference();
+
+            var source2 =
+@"using System.Linq.Expressions;
+delegate object D();
+class C
+{
+    static Expression<D> E = () => 1;
+}";
+            var compilation2 = CreateCompilationWithMscorlib461(source2, references: new[] { reference1 });
+            compilation2.VerifyDiagnostics();
+
+            using (var stream = new MemoryStream())
+            {
+                var result = compilation2.Emit(stream);
+                result.Diagnostics.Verify(
+                    // (5,30): error CS0656: Missing compiler required member 'System.Linq.Expressions.Expression.Lambda'
+                    //     static Expression<D> E = () => 1;
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "() => 1").WithArguments("System.Linq.Expressions.Expression", "Lambda").WithLocation(5, 30)
+                    );
             }
         }
 

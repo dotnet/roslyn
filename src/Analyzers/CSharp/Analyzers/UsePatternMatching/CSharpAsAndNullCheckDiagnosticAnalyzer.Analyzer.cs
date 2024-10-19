@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 
-internal partial class CSharpAsAndNullCheckDiagnosticAnalyzer
+internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer
 {
     private readonly struct Analyzer
     {

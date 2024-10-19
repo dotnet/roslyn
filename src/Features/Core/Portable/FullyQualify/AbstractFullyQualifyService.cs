@@ -222,7 +222,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
         var newRoot = await ReplaceNodeAsync(simpleName, containerName, originalSymbol.IsType, cancellationToken).ConfigureAwait(false);
         var newDocument = document.WithSyntaxRoot(newRoot);
         var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-            newDocument, CodeCleanupOptions.GetDefault(document.Project.Services), cancellationToken).ConfigureAwait(false);
+            newDocument, await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
         return await cleanedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
     }

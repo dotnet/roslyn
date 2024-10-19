@@ -73,9 +73,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 reference = underlyingReference;
 #endif
 
-            return reference is TestGeneratorReference generatorReference
-                ? generatorReference.Checksum
-                : base.CreateChecksum(reference);
+            return reference switch
+            {
+                TestGeneratorReference generatorReference => generatorReference.Checksum,
+                TestAnalyzerReferenceByLanguage analyzerReferenceByLanguage => analyzerReferenceByLanguage.Checksum,
+                _ => base.CreateChecksum(reference)
+            };
         }
 
         protected override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
@@ -143,11 +146,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 {
                     lock (_gate)
                     {
-                        // If we're already being assigned the same set of references as before, we're fine as that won't change anything.
-                        // Ideally, every time we created a new RemoteWorkspace we'd have a new MEF container; this would ensure that
-                        // the assignment earlier before we create the RemoteWorkspace was always the first assignment. However the
-                        // ExportProviderCache.cs in our unit tests hands out the same MEF container multpile times instead of implementing the expected
-                        // contract. See https://github.com/dotnet/roslyn/issues/25863 for further details.
+                        // If we're already being assigned the same set of references as before, we're fine as that
+                        // won't change anything. Ideally, every time we created a new RemoteWorkspace we'd have a new
+                        // MEF container; this would ensure that the assignment earlier before we create the
+                        // RemoteWorkspace was always the first assignment. However the ExportProviderCache.cs in our
+                        // unit tests hands out the same MEF container multiple times instead of implementing the
+                        // expected contract. See https://github.com/dotnet/roslyn/issues/25863 for further details.
                         Contract.ThrowIfFalse(_sharedTestGeneratorReferences == null ||
                             _sharedTestGeneratorReferences == value, "We already have a shared set of references, we shouldn't be getting another one.");
                         _sharedTestGeneratorReferences = value;

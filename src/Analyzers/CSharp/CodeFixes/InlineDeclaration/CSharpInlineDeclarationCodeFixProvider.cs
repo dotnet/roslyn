@@ -115,24 +115,21 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
             // this local statement will be moved to be above the statement containing
             // the out-var.
             var localDeclarationStatement = (LocalDeclarationStatementSyntax)declaration.Parent;
-            var block = (BlockSyntax)localDeclarationStatement.Parent;
-            var declarationIndex = block.Statements.IndexOf(localDeclarationStatement);
+            var block = CSharpInlineDeclarationDiagnosticAnalyzer.GetEnclosingPseudoBlock(localDeclarationStatement.Parent);
+            var statements = GetStatements(block);
+            var declarationIndex = statements.IndexOf(localDeclarationStatement);
 
             // Try to find a predecessor Statement on the same line that isn't going to be removed
             StatementSyntax priorStatementSyntax = null;
             var localDeclarationToken = localDeclarationStatement.GetFirstToken();
             for (var i = declarationIndex - 1; i >= 0; i--)
             {
-                var statementSyntax = block.Statements[i];
+                var statementSyntax = statements[i];
                 if (declarationsToRemove.Contains(statementSyntax))
-                {
                     continue;
-                }
 
                 if (sourceText.AreOnSameLine(statementSyntax.GetLastToken(), localDeclarationToken))
-                {
                     priorStatementSyntax = statementSyntax;
-                }
 
                 break;
             }
@@ -158,9 +155,9 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
                 // We initialize this to null here but we must see at least the statement
                 // into which the declaration is going to be inlined so this will be not null
                 StatementSyntax nextStatementSyntax = null;
-                for (var i = declarationIndex + 1; i < block.Statements.Count; i++)
+                for (var i = declarationIndex + 1; i < statements.Length; i++)
                 {
-                    var statement = block.Statements[i];
+                    var statement = statements[i];
                     if (!declarationsToRemove.Contains(statement))
                     {
                         nextStatementSyntax = statement;
@@ -175,7 +172,9 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
             }
 
             // The above code handled the moving of trivia.  So remove the node, keeping around no trivia from it.
-            editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepNoTrivia);
+            editor.RemoveNode(localDeclarationStatement.Parent is GlobalStatementSyntax globalStatement
+                ? globalStatement
+                : localDeclarationStatement, SyntaxRemoveOptions.KeepNoTrivia);
         }
         else
         {
@@ -236,6 +235,20 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
         editor.ReplaceNode(identifier, declarationExpression);
 
         return editor.GetChangedRoot();
+    }
+
+    private static ImmutableArray<StatementSyntax> GetStatements(SyntaxNode pseudoBlock)
+    {
+        if (pseudoBlock is BlockSyntax block)
+            return [.. block.Statements];
+
+        if (pseudoBlock is SwitchSectionSyntax switchSection)
+            return [.. switchSection.Statements];
+
+        if (pseudoBlock is CompilationUnitSyntax compilationUnit)
+            return compilationUnit.Members.OfType<GlobalStatementSyntax>().Select(g => g.Statement).ToImmutableArray();
+
+        return [];
     }
 
     public static TypeSyntax GenerateTypeSyntaxOrVar(
