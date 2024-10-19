@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -883,13 +883,17 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
         return result.ToImmutableAndClear();
     }
 
+    /// <summary>
+    /// Discover implied symbols, which are defined based on the requested symbol.
+    /// Implied symbols include anonymous type properties and tuple fields.
+    /// </summary>
     protected static async ValueTask DiscoverImpliedSymbolsAsync(
         TSymbol symbol, Solution solution, ArrayBuilder<ISymbol> symbolBuilder, CancellationToken cancellationToken)
     {
         var name = symbol.Name;
 
         using var _ = PooledHashSet<ISymbol>.GetInstance(out var symbolSet);
-        var documentQueue = new ConcurrentQueue<Document>();
+        var documentChannel = Channel.CreateUnbounded<Document>();
         Task? documentProcessingTask = null;
 
         foreach (var project in solution.Projects)
@@ -911,32 +915,32 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
                 if (!treeIndex.ProbablyContainsIdentifier(name))
                     continue;
 
-                AskProcessDocumentForSymbols(document);
+                await AskProcessDocumentForSymbolsAsync(document).ConfigureAwait(false);
             }
         }
+
+        documentChannel.Writer.Complete();
 
         if (documentProcessingTask is not null)
             await documentProcessingTask.ConfigureAwait(false);
 
         symbolBuilder.AddRange(symbolSet);
 
-        void AskProcessDocumentForSymbols(Document document)
+        async ValueTask AskProcessDocumentForSymbolsAsync(Document document)
         {
-            var trigger = documentQueue.IsEmpty;
-            documentQueue.Enqueue(document);
-            if (trigger)
-            {
-                documentProcessingTask = Task.Run(ProcessQueuedDocumentsAsync, cancellationToken);
-            }
+            await documentChannel.Writer.WriteAsync(document, cancellationToken).ConfigureAwait(false);
+            documentProcessingTask ??= Task.Run(ProcessQueuedDocumentsAsync, cancellationToken);
         }
 
         async ValueTask ProcessQueuedDocumentsAsync()
         {
-            while (!documentQueue.IsEmpty)
+            while (true)
             {
-                var dequeued = documentQueue.TryDequeue(out var document);
-                if (!dequeued)
+                var canRead = await documentChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
+                if (!canRead)
                     break;
+
+                var document = await documentChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                 var semanticModel = await document!.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 if (cancellationToken.IsCancellationRequested)
