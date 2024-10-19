@@ -208,6 +208,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 return true;
             }
 
+            if (symbol is IPreprocessingSymbol)
+            {
+                Debug.Fail("We should have handled that in the preprocessor directive.");
+            }
+
             text = FormatSymbol(symbol);
             return text != null;
         }
@@ -357,7 +362,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     return true;
                 }
 
-                if (token.IsKind(SyntaxKind.EndOfDirectiveToken))
+                if (directive.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia))
+                {
+                    text = token.Text;
+                    return true;
+                }
+
+                if (token.Kind() is SyntaxKind.IdentifierToken or SyntaxKind.EndOfDirectiveToken)
                 {
                     text = $"#{directive.HashToken.GetNextToken(includeDirectives: true).Text}";
                     return true;
@@ -554,10 +565,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public override string? FormatSymbol(ISymbol? symbol)
         {
             if (symbol is null)
-                return null;
-
-            // Currently consider not finding help for a preprocessing symbol
-            if (symbol is IPreprocessingSymbol)
                 return null;
 
             if (symbol is ITypeSymbol or INamespaceSymbol)

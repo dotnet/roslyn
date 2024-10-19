@@ -1634,16 +1634,6 @@ class C
 }", "discard");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
-        public async Task TestNotFound_PreprocessingSymbol()
-        {
-            await TestAsync(
-@"
-#if ANY[||]THING
-#endif
-", "vs.texteditor");
-        }
-
         [Fact]
         public async Task TestChecked_01()
         {
@@ -1984,6 +1974,16 @@ class C
 ", "#if");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
+        public async Task TestPreprocessorIf3()
+        {
+            await TestAsync(
+@"
+#if ANY[||]THING
+#endif
+", "#if");
+        }
+
         [Fact]
         public async Task TestPreprocessorEndIf()
         {
@@ -2035,6 +2035,53 @@ class C
 #el[||]if SOME
 #endif
 ", "#elif");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
+        public async Task TestPreprocessorElIf2()
+        {
+            await TestAsync(
+@"
+#if ANY
+#elif S[||]OME
+#endif
+", "#elif");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
+        public async Task TestPreprocessorPragmaWarning1()
+        {
+            await TestAsync(
+@"
+#pragma warning disable CS[||]0312
+", "CS0312");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
+        public async Task TestPreprocessorPragmaWarning2()
+        {
+            await TestAsync(
+@"
+#pragm[||]a warning disable CS0312
+", "#pragma");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
+        public async Task TestPreprocessorPragmaWarning3()
+        {
+            await TestAsync(
+@"
+#pragma warni[||]ng disable CS0312
+", "#warning");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
+        public async Task TestPreprocessorPragmaWarning4()
+        {
+            await TestAsync(
+@"
+#pragma warning dis[||]able CS0312
+", "#disable");
         }
     }
 }
