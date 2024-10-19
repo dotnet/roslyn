@@ -4,19 +4,22 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
     /// Represents programming constructs like variables, classes, interfaces etc. that appear in a document. Document symbols can be
     /// hierarchical and they have two ranges: one that encloses its definition and one that points to its most interesting range,
     /// e.g. the range of an identifier.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbol">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DocumentSymbol
     {
         /// <summary>
-        /// Gets or sets the name of this symbol.
+        /// The name of this symbol. Will be displayed in the user interface and
+        /// therefore must not be an empty string or a string consisting only of whitespace.
         /// </summary>
         [JsonPropertyName("name")]
         [JsonRequired]
@@ -27,7 +30,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets more detail for this symbol, e.g the signature of a function.
+        /// More detail for this symbol, e.g the signature of a function.
         /// </summary>
         [JsonPropertyName("detail")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -38,7 +41,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="SymbolKind" /> of this symbol.
+        /// The <see cref="SymbolKind" /> of this symbol.
         /// </summary>
         [JsonPropertyName("kind")]
         public SymbolKind Kind
@@ -48,10 +51,19 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this symbol is deprecated.
+        /// Tags for this document symbol.
+        /// </summary>
+        /// <remarks>Since 3.16</remarks>
+        [JsonPropertyName("tags")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SymbolTag[]? Tags { get; init; }
+
+        /// <summary>
+        /// Indicates whether this symbol is deprecated.
         /// </summary>
         [JsonPropertyName("deprecated")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        [Obsolete("Use Tags instead")]
         public bool Deprecated
         {
             get;
@@ -59,9 +71,9 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the range enclosing this symbol not including leading/trailing whitespace but everything else
-        /// like comments.This information is typically used to determine if the clients cursor is
-        /// inside the symbol to reveal in the symbol in the UI.
+        /// Gets or sets the range enclosing this symbol not including leading/trailing whitespace
+        /// but everything else like comments. This information is typically used to determine
+        /// if the client's cursor is inside the symbol to reveal in the symbol in the UI.
         /// </summary>
         [JsonPropertyName("range")]
         [JsonRequired]
@@ -73,7 +85,7 @@ namespace Roslyn.LanguageServer.Protocol
 
         /// <summary>
         /// Gets or sets the range that should be selected and revealed when this symbol is being picked, e.g the name of a function.
-        /// Must be contained by the `range`.
+        /// Must be contained by the <see cref="Range"/>.
         /// </summary>
         [JsonPropertyName("selectionRange")]
         [JsonRequired]

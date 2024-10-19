@@ -14,7 +14,9 @@ namespace Roslyn.LanguageServer.Protocol
     internal class ApplyWorkspaceEditParams
     {
         /// <summary>
-        /// Gets or sets the label associated with this edit.
+        /// An optional label of the workspace edit. This label is
+        /// presented in the user interface for example on an undo
+        /// stack to undo the workspace edit.
         /// </summary>
         [JsonPropertyName("label")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -25,9 +27,10 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the edit to be applied to the workspace.
+        /// The edits to apply.
         /// </summary>
         [JsonPropertyName("edit")]
+        [JsonRequired]
         public WorkspaceEdit Edit
         {
             get;

@@ -7,7 +7,6 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.NavigableSymbols
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
@@ -17,11 +16,9 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
-
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.NavigableSymbols)>
     Public Class NavigableSymbolsTest
-
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(
             GetType(MockDocumentNavigationServiceProvider),
             GetType(MockSymbolNavigationServiceProvider))
@@ -29,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
         <WpfFact>
         Public Async Function TestCharp() As Task
             Dim markup = "
-class {|target:C|}
+class {|target:|}C
 {
     {|highlighted:C|}$$ c
 }"
@@ -72,7 +69,7 @@ class {|target:C|}
         <WpfFact>
         Public Async Function TestVB() As Task
             Dim markup = "
-Class {|target:C|}
+Class {|target:|}C
     Dim c as {|highlighted:C|}$$
 End Class"
             Dim text As String = Nothing
@@ -140,7 +137,7 @@ End Class"
 
             Dim value As ImmutableArray(Of TextSpan) = Nothing
             If spans.TryGetValue("target", value) Then
-                Assert.Equal(value.First(), navigationService.ProvidedTextSpan)
+                Assert.Equal(value.First().Start, navigationService.ProvidedPosition)
             End If
         End Function
     End Class

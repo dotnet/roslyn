@@ -27,7 +27,7 @@ internal sealed class AdditionalDocumentState : TextDocumentState
         SolutionServices solutionServices,
         DocumentInfo documentInfo,
         LoadTextOptions loadTextOptions)
-        : this(solutionServices, documentInfo.DocumentServiceProvider, documentInfo.Attributes, CreateTextAndVersionSource(solutionServices, documentInfo, loadTextOptions), loadTextOptions)
+        : this(solutionServices, documentInfo.DocumentServiceProvider, documentInfo.Attributes, CreateTextAndVersionSource(solutionServices, documentInfo.TextLoader, documentInfo.FilePath, loadTextOptions), loadTextOptions)
     {
     }
 
@@ -36,6 +36,14 @@ internal sealed class AdditionalDocumentState : TextDocumentState
             SolutionServices,
             DocumentServiceProvider,
             newAttributes,
+            TextAndVersionSource,
+            LoadTextOptions);
+
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => new AdditionalDocumentState(
+            SolutionServices,
+            newProvider,
+            Attributes,
             TextAndVersionSource,
             LoadTextOptions);
 

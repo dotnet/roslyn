@@ -14,8 +14,14 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false), MetadataAttribute]
 internal sealed class ExportXamlLspServiceFactoryAttribute : ExportLspServiceFactoryAttribute
 {
-    public ExportXamlLspServiceFactoryAttribute(Type type, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.Any)
+    [Obsolete("Use the constructor that takes only a type")]
+    public ExportXamlLspServiceFactoryAttribute(Type type, WellKnownLspServerKinds serverKind)
         : base(type, ProtocolConstants.RoslynLspLanguagesContract, serverKind)
+    {
+    }
+
+    public ExportXamlLspServiceFactoryAttribute(Type type)
+        : base(type, ProtocolConstants.RoslynLspLanguagesContract)
     {
     }
 }

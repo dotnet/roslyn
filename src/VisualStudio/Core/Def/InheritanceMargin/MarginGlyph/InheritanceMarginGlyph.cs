@@ -120,7 +120,13 @@ internal class InheritanceMarginGlyph : Button
         {
             var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
 
-            ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _listener);
+            ContextMenu = new InheritanceMarginContextMenu(
+                _threadingContext,
+                _streamingFindUsagesPresenter,
+                _operationExecutor,
+                _workspace,
+                _listener,
+                viewModel.ScaleFactor);
             ContextMenu.DataContext = viewModel;
             ContextMenu.ItemsSource = viewModel.MenuItemViewModels;
             ContextMenu.Opened += ContextMenu_OnOpen;

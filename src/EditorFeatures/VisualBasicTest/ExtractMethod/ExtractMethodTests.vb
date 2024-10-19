@@ -106,8 +106,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
 
             ' extract method
             Dim extractGenerationOptions = VBOptionsFactory.CreateExtractMethodGenerationOptions(
-                CodeGenerationOptions.GetDefault(document.Project.Services),
-                CodeCleanupOptions.GetDefault(document.Project.Services))
+                Await document.GetCodeGenerationOptionsAsync(CancellationToken.None),
+                Await document.GetCodeCleanupOptionsAsync(CancellationToken.None))
 
             Dim extractor = New VisualBasicMethodExtractor(selectedCode, extractGenerationOptions)
             Dim result = extractor.ExtractMethod(status, CancellationToken.None)

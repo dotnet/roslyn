@@ -425,7 +425,7 @@ class NameofLocal
 ";
             MetadataReference[] references = new[] { SystemCoreRef, CSharpRef };
             var option = TestOptions.ReleaseExe.WithWarningLevel(0);
-            CreateCompilationWithMscorlib45(source, references, options: option).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references, options: option).VerifyDiagnostics(
                 // (104,31): error CS1501: No overload for method 'nameof' takes 1 arguments
                 //             Console.WriteLine(nameof(Class.var));
                 Diagnostic(ErrorCode.ERR_BadArgCount, "nameof").WithArguments("nameof", "1").WithLocation(104, 31),
@@ -1446,7 +1446,7 @@ public class Program
         System.Console.WriteLine(N1 + N2);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             var comp = CompileAndVerify(compilation, expectedOutput: @"N1N2");
         }
 
@@ -1460,7 +1460,7 @@ public class Program
     string s = nameof(T) // ok
   ) { }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
@@ -1502,7 +1502,7 @@ class Other {
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
@@ -1540,7 +1540,7 @@ unsafe struct Struct1
     }
   }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, null,
+            var compilation = CreateCompilationWithMscorlib461(source, null,
                 TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //     return nameof(MessageType);
@@ -1584,7 +1584,7 @@ class EntryPoint
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
         }
 
@@ -1616,7 +1616,7 @@ class EntryPoint
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
 

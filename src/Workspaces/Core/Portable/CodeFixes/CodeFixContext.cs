@@ -18,10 +18,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// </summary>
 public readonly struct CodeFixContext
 {
-    private readonly TextDocument _document;
-    private readonly TextSpan _span;
-    private readonly ImmutableArray<Diagnostic> _diagnostics;
-    private readonly CancellationToken _cancellationToken;
     private readonly Action<CodeAction, ImmutableArray<Diagnostic>> _registerCodeFix;
 
     /// <summary>
@@ -50,23 +46,23 @@ public readonly struct CodeFixContext
     /// code fixes that support non-source documents by providing a non-default value for
     /// <see cref="ExportCodeFixProviderAttribute.DocumentKinds"/>
     /// </summary>
-    public TextDocument TextDocument => _document;
+    public TextDocument TextDocument { get; }
 
     /// <summary>
     /// Text span within the <see cref="Document"/> or <see cref="TextDocument"/> to fix.
     /// </summary>
-    public TextSpan Span => _span;
+    public TextSpan Span { get; }
 
     /// <summary>
     /// Diagnostics to fix.
     /// NOTE: All the diagnostics in this collection have the same <see cref="Span"/>.
     /// </summary>
-    public ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
+    public ImmutableArray<Diagnostic> Diagnostics { get; }
 
     /// <summary>
     /// CancellationToken.
     /// </summary>
-    public CancellationToken CancellationToken => _cancellationToken;
+    public CancellationToken CancellationToken { get; }
 
     /// <summary>
     /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -126,11 +122,11 @@ public readonly struct CodeFixContext
     {
         VerifyDiagnosticsArgument(diagnostics, span);
 
-        _document = document ?? throw new ArgumentNullException(nameof(document));
-        _span = span;
-        _diagnostics = diagnostics;
+        TextDocument = document ?? throw new ArgumentNullException(nameof(document));
+        Span = span;
+        Diagnostics = diagnostics;
         _registerCodeFix = registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix));
-        _cancellationToken = cancellationToken;
+        CancellationToken = cancellationToken;
     }
 
     /// <summary>
@@ -229,7 +225,7 @@ public readonly struct CodeFixContext
             throw new ArgumentNullException(nameof(action));
         }
 
-        VerifyDiagnosticsArgument(diagnostics, _span);
+        VerifyDiagnosticsArgument(diagnostics, Span);
 
         // TODO: 
         // - Check that all diagnostics are unique (no duplicates).

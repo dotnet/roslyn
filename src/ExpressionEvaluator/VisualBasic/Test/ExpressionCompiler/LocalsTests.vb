@@ -14,6 +14,7 @@ Imports Microsoft.VisualStudio.Debugger.Evaluation
 Imports Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
     Public Class LocalsTests
@@ -2015,7 +2016,7 @@ End Module
 }
 "
 
-            Dim comp = CreateCompilationWithMscorlib40({source}, {TestMetadata.Net40.SystemCore, TestMetadata.Net40.MicrosoftVisualBasic}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {Net40.References.SystemCore, Net40.References.MicrosoftVisualBasic}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "M.VB$StateMachine_0_F.MoveNext")

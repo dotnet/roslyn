@@ -17,12 +17,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// </remarks>
 internal sealed class SimpleFileChangeWatcher : IFileChangeWatcher
 {
-    public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
-    {
-        return new FileChangeContext([.. watchedDirectories]);
-    }
+    public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
+        => new FileChangeContext(watchedDirectories);
 
-    private class FileChangeContext : IFileChangeContext
+    private sealed class FileChangeContext : IFileChangeContext
     {
         private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
 

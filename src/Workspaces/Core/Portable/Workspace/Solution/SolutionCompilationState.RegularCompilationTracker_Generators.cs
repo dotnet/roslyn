@@ -22,9 +22,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
-    private partial class RegularCompilationTracker : ICompilationTracker
+    private sealed partial class RegularCompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo nextGeneratorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
             CreationPolicy creationPolicy,
@@ -282,7 +282,7 @@ internal partial class SolutionCompilationState
             if (compilationWithStaleGeneratedTrees != null)
             {
                 var generatedTreeCount =
-                    runResult.Results.Sum(r => IsGeneratorRunResultToIgnore(r) ? 0 : r.GeneratedSources.Length);
+                    runResult.Results.Sum(r => r.GeneratedSources.IsDefaultOrEmpty ? 0 : r.GeneratedSources.Length);
 
                 if (oldGeneratedDocuments.Count != generatedTreeCount)
                     compilationWithStaleGeneratedTrees = null;
@@ -294,9 +294,6 @@ internal partial class SolutionCompilationState
             var generationDateTime = DateTime.Now;
             foreach (var generatorResult in runResult.Results)
             {
-                if (IsGeneratorRunResultToIgnore(generatorResult))
-                    continue;
-
                 var generatorAnalyzerReference = GetAnalyzerReference(this.ProjectState, generatorResult.Generator);
 
                 foreach (var generatedSource in generatorResult.GeneratedSources)
@@ -393,6 +390,7 @@ internal partial class SolutionCompilationState
 
             static GeneratorDriver CreateGeneratorDriver(ProjectState projectState)
             {
+                var generatedFilesBaseDirectory = projectState.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory();
                 var additionalTexts = projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
                 var compilationFactory = projectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
@@ -400,7 +398,8 @@ internal partial class SolutionCompilationState
                     projectState.ParseOptions!,
                     GetSourceGenerators(projectState),
                     projectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
-                    additionalTexts);
+                    additionalTexts,
+                    generatedFilesBaseDirectory);
             }
 
             [Conditional("DEBUG")]

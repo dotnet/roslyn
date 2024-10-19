@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationEventSymbol(
+internal sealed class CodeGenerationEventSymbol(
     INamedTypeSymbol? containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility declaredAccessibility,

@@ -783,7 +783,7 @@ class Client
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular7_2)
             .VerifyDiagnostics(
                 // (4,35): error CS1057: 'Extensions.SomeExtension(string)': static classes cannot contain protected members
                 //     static private protected void SomeExtension(this string s) { } // error: no pp in static class

@@ -264,9 +264,10 @@ $@"<Project>{GetTargetContents(language)}
                           <EditorConfigFiles Include="$(_GlobalAnalyzerConfigFile_MicrosoftCodeAnalysis{language}CodeStyle)" />
                         </ItemGroup>
 
-                        <!-- Pass the MSBuild property value for 'EffectiveAnalysisLevelStyle' to the analyzers via analyzer config options. -->
+                        <!-- Pass the MSBuild property values for 'EffectiveAnalysisLevelStyle' and 'EnableCodeStyleSeverity' to the analyzers via analyzer config options. -->
                         <ItemGroup>
                           <CompilerVisibleProperty Include="EffectiveAnalysisLevelStyle" />
+                          <CompilerVisibleProperty Include="EnableCodeStyleSeverity" />
                         </ItemGroup>
                       </Target>
 

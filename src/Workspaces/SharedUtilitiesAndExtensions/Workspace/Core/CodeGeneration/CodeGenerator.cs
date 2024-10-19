@@ -21,11 +21,7 @@ internal static class CodeGenerator
     public static readonly SyntaxAnnotation Annotation = new(nameof(CodeGenerator));
 
     private static ICodeGenerationService GetCodeGenerationService(HostWorkspaceServices services, string language)
-#if CODE_STYLE
         => services.GetExtendedLanguageServices(language).GetRequiredService<ICodeGenerationService>();
-#else
-        => services.GetLanguageServices(language).GetRequiredService<ICodeGenerationService>();
-#endif
 
     /// <summary>
     /// Create a new solution where the declaration of the destination symbol has an additional event of the same signature as the specified event symbol.

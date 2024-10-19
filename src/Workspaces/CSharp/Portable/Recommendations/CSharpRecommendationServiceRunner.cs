@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -140,10 +142,12 @@ internal partial class CSharpRecommendationService
                 // We are building a pattern expression, and thus we can only access either constants, types or namespaces.
                 return node switch
                 {
-                    // x is (A.
+                    // x is (A.$$
+                    // x switch { A.$$
+                    // x switch { { Property: A.$$
                     MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess
                         => GetSymbolsOffOfExpressionInConstantPattern(memberAccess.Expression),
-                    // x is A.
+                    // x is A.$$
                     QualifiedNameSyntax qualifiedName => GetSymbolsOffOfExpressionInConstantPattern(qualifiedName.Left),
                     _ => default,
                 };
@@ -526,22 +530,51 @@ internal partial class CSharpRecommendationService
             if (originalExpression is null)
                 return default;
 
-            var boundSymbol = _context.SemanticModel.GetSymbolInfo(originalExpression, _cancellationToken).Symbol;
+            var semanticModel = _context.SemanticModel;
+            var boundSymbol = semanticModel.GetSymbolInfo(originalExpression, _cancellationToken);
 
-            if (boundSymbol is not INamespaceOrTypeSymbol namespaceOrType)
+            if (boundSymbol.Symbol is not INamespaceOrTypeSymbol namespaceOrType)
+            {
+                // Likely a Color Color case, so we reinterpret the bound symbol into a type
+                if (originalExpression is IdentifierNameSyntax identifier)
+                {
+                    var reinterpretedBinding = semanticModel.GetSpeculativeSymbolInfo(identifier.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
+                    var reinterpretedSymbol = reinterpretedBinding.GetAnySymbol();
+                    var container = _context.SemanticModel.GetTypeInfo(identifier, _cancellationToken).Type;
+
+                    // The reinterpretation must be a namespace or type, since we cannot have a
+                    // constant expression out of dotting a constant value, like a x.Length
+                    // If all we can bind to is a const local or const field, we cannot offer valid suggestions
+                    if (reinterpretedSymbol is not INamespaceOrTypeSymbol)
+                        return default;
+
+                    var expression = originalExpression.WalkDownParentheses();
+
+                    return GetSymbolsOffOfBoundExpressionWorker(
+                        reinterpretedBinding,
+                        originalExpression,
+                        expression,
+                        container,
+                        unwrapNullable: false,
+                        isForDereference: false);
+                }
+
                 return default;
+            }
 
             var containingType = _context.SemanticModel.GetEnclosingNamedType(_context.Position, _cancellationToken);
             if (containingType == null)
                 return default;
 
-            // The RHS of an `is` pattern may only include qualifications to
+            // A constant pattern may only include qualifications to
             // - namespaces (from other namespaces or aliases),
             // - types (from aliases, namespaces or other types),
             // - constant fields (from types)
-            // Methods, properties, events, non-constant fields etc. are excluded since they may not be present in the RHS of an `is` pattern
-            var symbols = namespaceOrType.GetMembers()
-                .WhereAsArray(s => s is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true } && s.IsAccessibleWithin(containingType));
+            // Methods, properties, events, non-constant fields etc. are excluded since they are not constant expressions
+            var symbols = namespaceOrType
+                .GetMembers()
+                .WhereAsArray(symbol => symbol is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true }
+                    && symbol.IsAccessibleWithin(containingType));
             return new RecommendedSymbols(symbols);
         }
 
@@ -603,11 +636,11 @@ internal partial class CSharpRecommendationService
             bool isForDereference,
             bool allowColorColor)
         {
-            var result = GetSymbolsOffOfBoundExpressionWorker(leftHandBinding);
+            var result = GetSymbolsOffOfBoundExpressionWorker(leftHandBinding, originalExpression, expression, containerType, unwrapNullable, isForDereference);
             if (!allowColorColor || !CanAccessInstanceAndStaticMembersOffOf(out var reinterpretedBinding))
                 return result;
 
-            var typeMembers = GetSymbolsOffOfBoundExpressionWorker(reinterpretedBinding);
+            var typeMembers = GetSymbolsOffOfBoundExpressionWorker(reinterpretedBinding, originalExpression, expression, containerType, unwrapNullable, isForDereference);
 
             return new RecommendedSymbols(
                 result.NamedSymbols.Concat(typeMembers.NamedSymbols),
@@ -661,147 +694,147 @@ internal partial class CSharpRecommendationService
 
                 return SymbolEquivalenceComparer.Instance.Equals(instanceType, staticType);
             }
+        }
 
-            RecommendedSymbols GetSymbolsOffOfBoundExpressionWorker(SymbolInfo leftHandBinding)
+        private RecommendedSymbols GetSymbolsOffOfBoundExpressionWorker(SymbolInfo leftHandBinding, ExpressionSyntax originalExpression, ExpressionSyntax expression, ITypeSymbol? containerType, bool unwrapNullable, bool isForDereference)
+        {
+            var excludeInstance = false;
+            var excludeStatic = true;
+            var excludeBaseMethodsForRefStructs = true;
+
+            ISymbol? containerSymbol = containerType;
+
+            var symbol = leftHandBinding.GetAnySymbol();
+            if (symbol != null)
             {
-                var excludeInstance = false;
-                var excludeStatic = true;
-                var excludeBaseMethodsForRefStructs = true;
-
-                ISymbol? containerSymbol = containerType;
-
-                var symbol = leftHandBinding.GetAnySymbol();
-                if (symbol != null)
-                {
-                    // If the thing on the left is a lambda expression, we shouldn't show anything.
-                    if (symbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction })
-                        return default;
-
-                    var originalExpressionKind = originalExpression.Kind();
-
-                    // If the thing on the left is a type, namespace or alias and the original
-                    // expression was parenthesized, we shouldn't show anything in IntelliSense.
-                    if (originalExpressionKind is SyntaxKind.ParenthesizedExpression &&
-                        symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.Alias)
-                    {
-                        return default;
-                    }
-
-                    // If the thing on the left is a method name identifier, we shouldn't show anything.
-                    if (symbol.Kind is SymbolKind.Method &&
-                        originalExpressionKind is SyntaxKind.IdentifierName or SyntaxKind.GenericName)
-                    {
-                        return default;
-                    }
-
-                    // If the thing on the left is an event that can't be used as a field, we shouldn't show anything
-                    if (symbol is IEventSymbol ev &&
-                        !_context.SemanticModel.IsEventUsableAsField(originalExpression.SpanStart, ev))
-                    {
-                        return default;
-                    }
-
-                    if (symbol is IAliasSymbol alias)
-                        symbol = alias.Target;
-
-                    if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.TypeParameter)
-                    {
-                        // For named typed, namespaces, and type parameters (potentially constrained to interface with statics), we flip things around.
-                        // We only want statics and not instance members.
-                        excludeInstance = true;
-                        excludeStatic = false;
-                        containerSymbol = symbol;
-                    }
-
-                    // Special case parameters. If we have a normal (non this/base) parameter, then that's what we want to
-                    // lookup symbols off of as we have a lot of special logic for determining member symbols of lambda
-                    // parameters.
-                    //
-                    // If it is a this/base parameter and we're in a static context, we shouldn't show anything
-                    if (symbol is IParameterSymbol parameter)
-                    {
-                        if (parameter.IsThis && expression.IsInStaticContext())
-                            return default;
-
-                        containerSymbol = symbol;
-                    }
-                }
-                else if (containerType != null)
-                {
-                    // Otherwise, if it wasn't a symbol on the left, but it was something that had a type,
-                    // then include instance members for it.
-                    excludeStatic = true;
-                }
-
-                if (containerSymbol == null)
+                // If the thing on the left is a lambda expression, we shouldn't show anything.
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.AnonymousFunction })
                     return default;
 
-                // We don't provide any member from System.Void (which is valid only in the context of typeof operation).
-                // Try to bail early to avoid unnecessary work even though compiler will handle this case for us.
-                if (containerSymbol is INamedTypeSymbol typeSymbol && typeSymbol.IsSystemVoid())
-                    return default;
+                var originalExpressionKind = originalExpression.Kind();
 
-                Debug.Assert(!excludeInstance || !excludeStatic);
-
-                // nameof(X.|
-                // Show static and instance members.
-                // Show base methods for "ref struct"s
-                if (_context.IsNameOfContext)
+                // If the thing on the left is a type, namespace or alias and the original
+                // expression was parenthesized, we shouldn't show anything in IntelliSense.
+                if (originalExpressionKind is SyntaxKind.ParenthesizedExpression &&
+                    symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.Alias)
                 {
-                    excludeInstance = false;
+                    return default;
+                }
+
+                // If the thing on the left is a method name identifier, we shouldn't show anything.
+                if (symbol.Kind is SymbolKind.Method &&
+                    originalExpressionKind is SyntaxKind.IdentifierName or SyntaxKind.GenericName)
+                {
+                    return default;
+                }
+
+                // If the thing on the left is an event that can't be used as a field, we shouldn't show anything
+                if (symbol is IEventSymbol ev &&
+                    !_context.SemanticModel.IsEventUsableAsField(originalExpression.SpanStart, ev))
+                {
+                    return default;
+                }
+
+                if (symbol is IAliasSymbol alias)
+                    symbol = alias.Target;
+
+                if (symbol.Kind is SymbolKind.NamedType or SymbolKind.Namespace or SymbolKind.TypeParameter)
+                {
+                    // For named typed, namespaces, and type parameters (potentially constrained to interface with statics), we flip things around.
+                    // We only want statics and not instance members.
+                    excludeInstance = true;
                     excludeStatic = false;
-                    excludeBaseMethodsForRefStructs = false;
+                    containerSymbol = symbol;
                 }
 
-                var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
-                var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility, unwrapNullable, isForDereference);
-
-                var namedSymbols = symbols.WhereAsArray(
-                    static (s, a) => !IsUndesirable(s, a.containerType, a.excludeStatic, a.excludeInstance, a.excludeBaseMethodsForRefStructs),
-                    (containerType, excludeStatic, excludeInstance, excludeBaseMethodsForRefStructs, 3));
-
-                // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
-                // applicable to it as well.
-                var unnamedSymbols = _context.IsNameOfContext || excludeInstance
-                    ? default
-                    : GetUnnamedSymbols(originalExpression);
-
-                return new RecommendedSymbols(namedSymbols, unnamedSymbols);
-
-                static bool IsUndesirable(
-                    ISymbol symbol,
-                    ITypeSymbol? containerType,
-                    bool excludeStatic,
-                    bool excludeInstance,
-                    bool excludeBaseMethodsForRefStructs)
+                // Special case parameters. If we have a normal (non this/base) parameter, then that's what we want to
+                // lookup symbols off of as we have a lot of special logic for determining member symbols of lambda
+                // parameters.
+                //
+                // If it is a this/base parameter and we're in a static context, we shouldn't show anything
+                if (symbol is IParameterSymbol parameter)
                 {
-                    // If we're showing instance members, don't include nested types
-                    if (excludeStatic)
-                    {
-                        if (symbol.IsStatic || symbol is ITypeSymbol)
-                            return true;
-                    }
+                    if (parameter.IsThis && expression.IsInStaticContext())
+                        return default;
 
-                    // If container type is "ref struct" then we should exclude methods from object and ValueType that are not
-                    // overridden if recommendations are requested not in nameof context, because calling them produces a
-                    // compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
-                    if (excludeBaseMethodsForRefStructs &&
-                        containerType is { IsRefLikeType: true } &&
-                        symbol.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
-                    {
-                        return true;
-                    }
-
-                    // We're accessing virtual statics off of an type parameter.  We cannot access normal static this
-                    // way, so filter them out.
-                    if (excludeInstance && containerType is ITypeParameterSymbol && symbol.IsStatic)
-                    {
-                        if (!(symbol.IsVirtual || symbol.IsAbstract))
-                            return true;
-                    }
-
-                    return false;
+                    containerSymbol = symbol;
                 }
+            }
+            else if (containerType != null)
+            {
+                // Otherwise, if it wasn't a symbol on the left, but it was something that had a type,
+                // then include instance members for it.
+                excludeStatic = true;
+            }
+
+            if (containerSymbol == null)
+                return default;
+
+            // We don't provide any member from System.Void (which is valid only in the context of typeof operation).
+            // Try to bail early to avoid unnecessary work even though compiler will handle this case for us.
+            if (containerSymbol is INamedTypeSymbol typeSymbol && typeSymbol.IsSystemVoid())
+                return default;
+
+            Debug.Assert(!excludeInstance || !excludeStatic);
+
+            // nameof(X.|
+            // Show static and instance members.
+            // Show base methods for "ref struct"s
+            if (_context.IsNameOfContext)
+            {
+                excludeInstance = false;
+                excludeStatic = false;
+                excludeBaseMethodsForRefStructs = false;
+            }
+
+            var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
+            var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility, unwrapNullable, isForDereference);
+
+            var namedSymbols = symbols.WhereAsArray(
+                static (s, a) => !IsUndesirable(s, a.containerType, a.excludeStatic, a.excludeInstance, a.excludeBaseMethodsForRefStructs),
+                (containerType, excludeStatic, excludeInstance, excludeBaseMethodsForRefStructs, 3));
+
+            // if we're dotting off an instance, then add potential operators/indexers/conversions that may be
+            // applicable to it as well.
+            var unnamedSymbols = _context.IsNameOfContext || excludeInstance
+                ? default
+                : GetUnnamedSymbols(originalExpression);
+
+            return new RecommendedSymbols(namedSymbols, unnamedSymbols);
+
+            static bool IsUndesirable(
+                ISymbol symbol,
+                ITypeSymbol? containerType,
+                bool excludeStatic,
+                bool excludeInstance,
+                bool excludeBaseMethodsForRefStructs)
+            {
+                // If we're showing instance members, don't include nested types
+                if (excludeStatic)
+                {
+                    if (symbol.IsStatic || symbol is ITypeSymbol)
+                        return true;
+                }
+
+                // If container type is "ref struct" then we should exclude methods from object and ValueType that are not
+                // overridden if recommendations are requested not in nameof context, because calling them produces a
+                // compiler error due to unallowed boxing. See https://github.com/dotnet/roslyn/issues/35178
+                if (excludeBaseMethodsForRefStructs &&
+                    containerType is { IsRefLikeType: true } &&
+                    symbol.ContainingType.SpecialType is SpecialType.System_Object or SpecialType.System_ValueType)
+                {
+                    return true;
+                }
+
+                // We're accessing virtual statics off of an type parameter.  We cannot access normal static this
+                // way, so filter them out.
+                if (excludeInstance && containerType is ITypeParameterSymbol && symbol.IsStatic)
+                {
+                    if (!(symbol.IsVirtual || symbol.IsAbstract))
+                        return true;
+                }
+
+                return false;
             }
         }
 

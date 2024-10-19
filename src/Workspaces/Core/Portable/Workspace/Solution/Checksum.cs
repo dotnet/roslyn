@@ -60,7 +60,7 @@ internal readonly partial record struct Checksum(
 
     public string ToBase64String()
     {
-#if NETCOREAPP
+#if NET
         Span<byte> bytes = stackalloc byte[HashSize];
         this.WriteTo(bytes);
         return Convert.ToBase64String(bytes);

@@ -8,13 +8,21 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing the workspace diagnostic client capabilities.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticWorkspaceClientCapabilities">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#diagnosticWorkspaceClientCapabilities">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 internal class DiagnosticWorkspaceSetting
 {
     /// <summary>
-    /// Gets or sets a value indicating whether the client supports a refresh request sent from the server to the client.
+    /// Whether the client supports a refresh request sent from the server to the client.
+    /// <para>
+    /// Note that this event is global and will force the client to refresh all
+    /// pulled diagnostics currently shown. It should be used with absolute care
+    /// and is useful for situation where a server for example detects a project
+    /// wide change that requires such a calculation.
+    /// </para>
     /// </summary>
     [JsonPropertyName("refreshSupport")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

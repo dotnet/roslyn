@@ -47,20 +47,6 @@ internal sealed partial class SolutionCompilationState
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
     /// <summary>
-    /// Map from each project to the <see cref="SourceGeneratorExecutionVersion"/> it is currently at. Loosely, the
-    /// execution version allows us to have the generated documents for a project get fixed at some point in the past
-    /// when they were generated, up until events happen in the host that cause a need for them to be brought up to
-    /// date.  This is ambient, compilation-level, information about our projects, which is why it is stored at this
-    /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
-    /// to move its own generators forward when a host changes these versions.
-    /// </summary>
-    /// <remarks>
-    /// Contains information for all projects, even non-C#/VB ones.  Though this will have no meaning for those project
-    /// types.
-    /// </remarks>
-    private readonly SourceGeneratorExecutionVersionMap _sourceGeneratorExecutionVersionMap;
-
-    /// <summary>
     /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
     /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
     /// question quickly after computing for the first one.  Created on demand.
@@ -81,7 +67,7 @@ internal sealed partial class SolutionCompilationState
         SolutionState = solution;
         PartialSemanticsEnabled = partialSemanticsEnabled;
         _projectIdToTrackerMap = projectIdToTrackerMap;
-        _sourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
+        SourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
 
         // when solution state is changed, we recalculate its checksum
@@ -123,7 +109,7 @@ internal sealed partial class SolutionCompilationState
         // Solution and SG version maps must correspond to the same set of projects.
         Contract.ThrowIfFalse(this.SolutionState.ProjectStates
             .Select(kvp => kvp.Key)
-            .SetEquals(_sourceGeneratorExecutionVersionMap.Map.Keys));
+            .SetEquals(SourceGeneratorExecutionVersionMap.Map.Keys));
     }
 
     private SolutionCompilationState Branch(
@@ -134,12 +120,12 @@ internal sealed partial class SolutionCompilationState
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
-        sourceGeneratorExecutionVersionMap ??= _sourceGeneratorExecutionVersionMap;
+        sourceGeneratorExecutionVersionMap ??= SourceGeneratorExecutionVersionMap;
         var newFrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates.HasValue ? frozenSourceGeneratedDocumentStates.Value : FrozenSourceGeneratedDocumentStates;
 
         if (newSolutionState == this.SolutionState &&
             projectIdToTrackerMap == _projectIdToTrackerMap &&
-            sourceGeneratorExecutionVersionMap == _sourceGeneratorExecutionVersionMap &&
+            sourceGeneratorExecutionVersionMap == SourceGeneratorExecutionVersionMap &&
             Equals(newFrozenSourceGeneratedDocumentStates, FrozenSourceGeneratedDocumentStates))
         {
             return this;
@@ -316,7 +302,19 @@ internal sealed partial class SolutionCompilationState
         return projectIdToTrackerMapBuilder.ToImmutable();
     }
 
-    public SourceGeneratorExecutionVersionMap SourceGeneratorExecutionVersionMap => _sourceGeneratorExecutionVersionMap;
+    /// <summary>
+    /// Map from each project to the <see cref="SourceGeneratorExecutionVersion"/> it is currently at. Loosely, the
+    /// execution version allows us to have the generated documents for a project get fixed at some point in the past
+    /// when they were generated, up until events happen in the host that cause a need for them to be brought up to
+    /// date.  This is ambient, compilation-level, information about our projects, which is why it is stored at this
+    /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
+    /// to move its own generators forward when a host changes these versions.
+    /// </summary>
+    /// <remarks>
+    /// Contains information for all projects, even non-C#/VB ones.  Though this will have no meaning for those project
+    /// types.
+    /// </remarks>
+    public SourceGeneratorExecutionVersionMap SourceGeneratorExecutionVersionMap { get; }
 
     /// <inheritdoc cref="SolutionState.AddProjects(ArrayBuilder{ProjectInfo})"/>
     public SolutionCompilationState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
@@ -346,7 +344,7 @@ internal sealed partial class SolutionCompilationState
         // non-C#/VB projects.  These will have no effect in-proc as we won't have compilation-trackers for these
         // projects.  And, when communicating with the OOP process, we'll filter out these projects before sending them
         // across in SolutionCompilationState.GetFilteredSourceGenerationExecutionMap.
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        var versionMapBuilder = SourceGeneratorExecutionVersionMap.Map.ToBuilder();
         foreach (var projectInfo in projectInfos)
             versionMapBuilder.Add(projectInfo.Id, new());
 
@@ -393,7 +391,7 @@ internal sealed partial class SolutionCompilationState
             projectIds,
             skipEmptyCallback: true);
 
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        var versionMapBuilder = SourceGeneratorExecutionVersionMap.Map.ToBuilder();
         foreach (var projectId in projectIds)
             versionMapBuilder.Remove(projectId);
 
@@ -487,7 +485,7 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectCompilationOptions"/>
     public SolutionCompilationState WithProjectCompilationOptions(
-        ProjectId projectId, CompilationOptions options)
+        ProjectId projectId, CompilationOptions? options)
     {
         return ForkProject(
             this.SolutionState.WithProjectCompilationOptions(projectId, options),
@@ -497,7 +495,7 @@ internal sealed partial class SolutionCompilationState
 
     /// <inheritdoc cref="SolutionState.WithProjectParseOptions"/>
     public SolutionCompilationState WithProjectParseOptions(
-        ProjectId projectId, ParseOptions options)
+        ProjectId projectId, ParseOptions? options)
     {
         var stateChange = this.SolutionState.WithProjectParseOptions(projectId, options);
 
@@ -549,6 +547,101 @@ internal sealed partial class SolutionCompilationState
             static stateChange => new TranslationAction.ReplaceAllSyntaxTreesAction(
                 stateChange.OldProjectState, stateChange.NewProjectState, isParseOptionChange: false),
             forkTracker: true);
+    }
+
+    public SolutionCompilationState WithProjectAttributes(ProjectInfo.ProjectAttributes attributes)
+    {
+        var projectId = attributes.Id;
+        var oldProject = SolutionState.GetRequiredProjectState(projectId);
+
+        if (oldProject.ProjectInfo.Attributes.Language != attributes.Language)
+        {
+            throw new NotSupportedException(WorkspacesResources.Changing_project_language_is_not_supported);
+        }
+
+        if (oldProject.ProjectInfo.Attributes.IsSubmission != attributes.IsSubmission)
+        {
+            throw new NotSupportedException(WorkspacesResources.Changing_project_between_ordinary_and_interactive_submission_is_not_supported);
+        }
+
+        return
+             WithProjectName(projectId, attributes.Name)
+            .WithProjectAssemblyName(projectId, attributes.AssemblyName)
+            .WithProjectFilePath(projectId, attributes.FilePath)
+            .WithProjectOutputFilePath(projectId, attributes.OutputFilePath)
+            .WithProjectOutputRefFilePath(projectId, attributes.OutputRefFilePath)
+            .WithProjectCompilationOutputInfo(projectId, attributes.CompilationOutputInfo)
+            .WithProjectDefaultNamespace(projectId, attributes.DefaultNamespace)
+            .WithHasAllInformation(projectId, attributes.HasAllInformation)
+            .WithRunAnalyzers(projectId, attributes.RunAnalyzers)
+            .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm);
+    }
+
+    public SolutionCompilationState WithProjectInfo(ProjectInfo info)
+    {
+        var projectId = info.Id;
+        var newState = WithProjectAttributes(info.Attributes)
+            .WithProjectCompilationOptions(projectId, info.CompilationOptions)
+            .WithProjectParseOptions(projectId, info.ParseOptions)
+            .WithProjectReferences(projectId, info.ProjectReferences)
+            .WithProjectMetadataReferences(projectId, info.MetadataReferences)
+            .WithProjectAnalyzerReferences(projectId, info.AnalyzerReferences);
+
+        var oldProjectState = SolutionState.GetRequiredProjectState(projectId);
+
+        // Note: buffers are reused across all calls to UpdateDocuments and cleared after each:
+        using var _1 = ArrayBuilder<DocumentInfo>.GetInstance(out var addedDocumentInfos);
+        using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var removedDocumentInfos);
+
+        UpdateDocuments<DocumentState>(info.Documents);
+        UpdateDocuments<AdditionalDocumentState>(info.AdditionalDocuments);
+        UpdateDocuments<AnalyzerConfigDocumentState>(info.AnalyzerConfigDocuments);
+
+        return newState;
+
+        void UpdateDocuments<TDocumentState>(IReadOnlyList<DocumentInfo> newDocumentInfos)
+            where TDocumentState : TextDocumentState
+        {
+            Debug.Assert(addedDocumentInfos.IsEmpty);
+            Debug.Assert(removedDocumentInfos.IsEmpty);
+
+            using var _3 = ArrayBuilder<TDocumentState>.GetInstance(out var updatedDocuments);
+
+            var oldDocumentStates = oldProjectState.GetDocumentStates<TDocumentState>();
+
+            foreach (var newDocumentInfo in newDocumentInfos)
+            {
+                if (oldDocumentStates.TryGetState(newDocumentInfo.Id, out var oldDocumentState))
+                {
+                    var newDocumentState = (TDocumentState)oldDocumentState.WithDocumentInfo(newDocumentInfo);
+                    if (oldDocumentState != newDocumentState)
+                    {
+                        updatedDocuments.Add(newDocumentState);
+                    }
+                }
+                else
+                {
+                    addedDocumentInfos.Add(newDocumentInfo);
+                }
+            }
+
+            if (!oldDocumentStates.Ids.IsEmpty())
+            {
+                var newDocumentIdSet = newDocumentInfos.Select(static d => d.Id).ToSet();
+                foreach (var oldDocumentId in oldDocumentStates.Ids)
+                {
+                    if (!newDocumentIdSet.Contains(oldDocumentId))
+                    {
+                        removedDocumentInfos.Add(oldDocumentId);
+                    }
+                }
+            }
+
+            newState = newState
+                .WithDocumentStatesOfMultipleProjects<TDocumentState>([(projectId, updatedDocuments.ToImmutableAndClear())], GetUpdateDocumentsTranslationAction)
+                .AddDocumentsToMultipleProjects<TDocumentState>(addedDocumentInfos.ToImmutableAndClear())
+                .RemoveDocumentsFromSingleProject<TDocumentState>(projectId, removedDocumentInfos.ToImmutableAndClear());
+        }
     }
 
     /// <inheritdoc cref="SolutionState.AddProjectReferences"/>
@@ -1321,7 +1414,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Updates entries in our <see cref="_sourceGeneratorExecutionVersionMap"/> to the corresponding values in the
+    /// Updates entries in our <see cref="SourceGeneratorExecutionVersionMap"/> to the corresponding values in the
     /// given <paramref name="sourceGeneratorExecutionVersions"/>.  Importantly, <paramref
     /// name="sourceGeneratorExecutionVersions"/> must refer to projects in this solution.  Projects not mentioned in
     /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
@@ -1329,7 +1422,7 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions)
     {
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        var versionMapBuilder = SourceGeneratorExecutionVersionMap.Map.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
         var changed = false;
 
@@ -1388,7 +1481,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithDoNotCreateCreationPolicy(cancellationToken);
+            var newTracker = oldTracker.WithDoNotCreateCreationPolicy();
             if (oldTracker == newTracker)
                 continue;
 

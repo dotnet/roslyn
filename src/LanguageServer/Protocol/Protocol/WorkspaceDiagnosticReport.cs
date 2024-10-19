@@ -7,15 +7,18 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a workspace diagnostic report.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceDiagnosticReport">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceDiagnosticReport">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 internal class WorkspaceDiagnosticReport
 {
     /// <summary>
     /// Gets or sets the items in this diagnostic report.
     /// </summary>
     [JsonPropertyName("items")]
+    [JsonRequired]
     public SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>[] Items
     {
         get;

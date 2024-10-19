@@ -42,14 +42,11 @@ internal sealed class RenameTrackingTestState : IDisposable
     private readonly ITextUndoHistoryRegistry _historyRegistry;
     private string _notificationMessage = null;
 
-    private readonly EditorTestHostDocument _hostDocument;
-    public EditorTestHostDocument HostDocument { get { return _hostDocument; } }
+    public EditorTestHostDocument HostDocument { get; }
 
-    private readonly IEditorOperations _editorOperations;
-    public IEditorOperations EditorOperations { get { return _editorOperations; } }
+    public IEditorOperations EditorOperations { get; }
 
-    private readonly MockRefactorNotifyService _mockRefactorNotifyService;
-    public MockRefactorNotifyService RefactorNotifyService { get { return _mockRefactorNotifyService; } }
+    public MockRefactorNotifyService RefactorNotifyService { get; }
 
     private readonly RenameTrackingCodeRefactoringProvider _codeRefactoringProvider;
     private readonly RenameTrackingCancellationCommandHandler _commandHandler = new RenameTrackingCancellationCommandHandler();
@@ -82,12 +79,12 @@ internal sealed class RenameTrackingTestState : IDisposable
     {
         this.Workspace = workspace;
 
-        _hostDocument = Workspace.Documents.First();
-        _view = _hostDocument.GetTextView();
-        _view.Caret.MoveTo(new SnapshotPoint(_view.TextSnapshot, _hostDocument.CursorPosition.Value));
-        _editorOperations = Workspace.GetService<IEditorOperationsFactoryService>().GetEditorOperations(_view);
+        HostDocument = Workspace.Documents.First();
+        _view = HostDocument.GetTextView();
+        _view.Caret.MoveTo(new SnapshotPoint(_view.TextSnapshot, HostDocument.CursorPosition.Value));
+        EditorOperations = Workspace.GetService<IEditorOperationsFactoryService>().GetEditorOperations(_view);
         _historyRegistry = Workspace.ExportProvider.GetExport<ITextUndoHistoryRegistry>().Value;
-        _mockRefactorNotifyService = new MockRefactorNotifyService
+        RefactorNotifyService = new MockRefactorNotifyService
         {
             OnBeforeSymbolRenamedReturnValue = onBeforeGlobalSymbolRenamedReturnValue,
             OnAfterSymbolRenamedReturnValue = onAfterGlobalSymbolRenamedReturnValue
@@ -105,14 +102,14 @@ internal sealed class RenameTrackingTestState : IDisposable
             Workspace.GetService<IGlobalOptionService>(),
             Workspace.GetService<IAsynchronousOperationListenerProvider>());
 
-        _tagger = tracker.CreateTagger<RenameTrackingTag>(_hostDocument.GetTextBuffer());
+        _tagger = tracker.CreateTagger<RenameTrackingTag>(HostDocument.GetTextBuffer());
 
         if (languageName is LanguageNames.CSharp or
             LanguageNames.VisualBasic)
         {
             _codeRefactoringProvider = new RenameTrackingCodeRefactoringProvider(
                 _historyRegistry,
-                [_mockRefactorNotifyService]);
+                [RefactorNotifyService]);
         }
         else
         {
@@ -170,7 +167,7 @@ internal sealed class RenameTrackingTestState : IDisposable
     {
         var span = textSpan ?? new TextSpan(_view.Caret.Position.BufferPosition, 0);
 
-        var document = this.Workspace.CurrentSolution.GetDocument(_hostDocument.Id);
+        var document = this.Workspace.CurrentSolution.GetDocument(HostDocument.Id);
 
         var actions = new List<CodeAction>();
         var context = new CodeRefactoringContext(

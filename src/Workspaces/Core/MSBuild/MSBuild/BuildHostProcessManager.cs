@@ -83,13 +83,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         {
             if (!_processes.TryGetValue(buildHostKind, out var buildHostProcess))
             {
-                var processStartInfo = buildHostKind switch
-                {
-                    BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(),
-                    BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(),
-                    BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(),
-                    _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
-                };
+                var processStartInfo = CreateBuildHostStartInfo(buildHostKind);
 
                 var process = Process.Start(processStartInfo);
                 Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
@@ -109,6 +103,17 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             return buildHostProcess.BuildHost;
         }
+    }
+
+    internal ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind)
+    {
+        return buildHostKind switch
+        {
+            BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(),
+            BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(),
+            BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(),
+            _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
+        };
     }
 
     private void BuildHostProcess_Disconnected(object? sender, EventArgs e)
@@ -239,6 +244,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             AddArgument(processStartInfo, "--binlog");
             AddArgument(processStartInfo, _binaryLogPath);
         }
+
+        AddArgument(processStartInfo, "--locale");
+        AddArgument(processStartInfo, System.Globalization.CultureInfo.CurrentUICulture.Name);
 
         // MSBUILD_EXE_PATH is read by MSBuild to find related tasks and targets. We don't want this to be inherited by our build process, or otherwise
         // it might try to load targets that aren't appropriate for the build host.

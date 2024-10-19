@@ -33,7 +33,7 @@ internal sealed class AnalyzerConfigDocumentState : TextDocumentState
         SolutionServices solutionServices,
         DocumentInfo documentInfo,
         LoadTextOptions loadTextOptions)
-        : this(solutionServices, documentInfo.DocumentServiceProvider, documentInfo.Attributes, CreateTextAndVersionSource(solutionServices, documentInfo, loadTextOptions), loadTextOptions)
+        : this(solutionServices, documentInfo.DocumentServiceProvider, documentInfo.Attributes, CreateTextAndVersionSource(solutionServices, documentInfo.TextLoader, documentInfo.FilePath, loadTextOptions), loadTextOptions)
     {
     }
 
@@ -46,6 +46,16 @@ internal sealed class AnalyzerConfigDocumentState : TextDocumentState
             LoadTextOptions,
             // Reuse parsed config unless the path changed:
             Attributes.FilePath == newAttributes.FilePath ? _lazyAnalyzerConfig : null);
+
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => new AnalyzerConfigDocumentState(
+            SolutionServices,
+            DocumentServiceProvider,
+            Attributes,
+            TextAndVersionSource,
+            LoadTextOptions,
+            // Reuse parsed config:
+            _lazyAnalyzerConfig);
 
     public new AnalyzerConfigDocumentState UpdateText(TextLoader loader, PreservationMode mode)
         => (AnalyzerConfigDocumentState)base.UpdateText(loader, mode);

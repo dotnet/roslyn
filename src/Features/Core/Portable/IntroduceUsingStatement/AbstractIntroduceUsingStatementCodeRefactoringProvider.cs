@@ -129,7 +129,7 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
 
         if (tryStatement != null &&
             ShouldReplaceTryStatementWithUsing(
-                syntaxFacts, declarationStatement, variableName, tryStatement, out var tryStatements))
+                syntaxFacts, variableName, tryStatement, out var tryStatements))
         {
             var usingStatement = CreateUsingStatement(declarationStatement, tryStatements);
 
@@ -188,7 +188,6 @@ internal abstract class AbstractIntroduceUsingStatementCodeRefactoringProvider<
 
     private bool ShouldReplaceTryStatementWithUsing(
         ISyntaxFactsService syntaxFacts,
-        TLocalDeclarationSyntax declarationStatement,
         string variableName,
         TTryStatementSyntax tryStatement,
         out SyntaxList<TStatementSyntax> tryStatements)

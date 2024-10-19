@@ -45,20 +45,27 @@ internal abstract partial class TextDocumentState
         _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
     }
 
-    protected static ITextAndVersionSource CreateTextAndVersionSource(SolutionServices solutionServices, DocumentInfo info, LoadTextOptions loadTextOptions)
-        => info.TextLoader != null
-            ? CreateTextFromLoader(info.TextLoader, PreservationMode.PreserveValue, solutionServices)
-            : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath));
-
     public DocumentId Id => Attributes.Id;
     public string? FilePath => Attributes.FilePath;
     public IReadOnlyList<string> Folders => Attributes.Folders;
     public string Name => Attributes.Name;
 
+    public TextDocumentState WithDocumentInfo(DocumentInfo info)
+        => WithAttributes(info.Attributes)
+          .WithDocumentServiceProvider(info.DocumentServiceProvider)
+          .WithTextLoader(info.TextLoader, PreservationMode.PreserveValue);
+
     public TextDocumentState WithAttributes(DocumentInfo.DocumentAttributes newAttributes)
         => ReferenceEquals(newAttributes, Attributes) ? this : UpdateAttributes(newAttributes);
 
+    public TextDocumentState WithDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => ReferenceEquals(newProvider, DocumentServiceProvider) ? this : UpdateDocumentServiceProvider(newProvider);
+
+    public TextDocumentState WithTextLoader(TextLoader? loader, PreservationMode mode)
+        => ReferenceEquals(loader, TextAndVersionSource.TextLoader) ? this : UpdateText(loader, mode);
+
     protected abstract TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes);
+    protected abstract TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider);
     protected abstract TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental);
 
     private static ConstantTextAndVersionSource CreateStrongText(TextAndVersion text)
@@ -143,15 +150,20 @@ internal abstract partial class TextDocumentState
         return UpdateText(newTextAndVersion, mode);
     }
 
-    public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
+    public TextDocumentState UpdateText(TextLoader? loader, PreservationMode mode)
     {
         // don't blow up on non-text documents.
-        var newTextSource = CreateTextFromLoader(loader, mode, this.SolutionServices);
+        var newTextSource = CreateTextAndVersionSource(SolutionServices, loader, FilePath, LoadTextOptions, mode);
 
         return UpdateText(newTextSource, mode, incremental: false);
     }
 
-    private static ITextAndVersionSource CreateTextFromLoader(TextLoader loader, PreservationMode mode, SolutionServices solutionServices)
+    protected static ITextAndVersionSource CreateTextAndVersionSource(SolutionServices solutionServices, TextLoader? loader, string? filePath, LoadTextOptions loadTextOptions, PreservationMode mode = PreservationMode.PreserveValue)
+        => loader != null
+            ? CreateTextFromLoader(solutionServices, loader, mode)
+            : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, filePath));
+
+    private static ITextAndVersionSource CreateTextFromLoader(SolutionServices solutionServices, TextLoader loader, PreservationMode mode)
     {
         // If the caller is explicitly stating that identity must be preserved, then we created a source that will load
         // from the loader the first time, but then cache that result so that hte same result is *always* returned.

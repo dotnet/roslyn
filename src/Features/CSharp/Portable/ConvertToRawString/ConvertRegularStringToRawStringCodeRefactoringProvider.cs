@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 using static ConvertToRawStringHelpers;
 using static SyntaxFactory;
 
-internal partial class ConvertRegularStringToRawStringProvider
+internal sealed partial class ConvertRegularStringToRawStringProvider
     : AbstractConvertStringProvider<LiteralExpressionSyntax>
 {
     public static readonly IConvertStringProvider Instance = new ConvertRegularStringToRawStringProvider();

@@ -18,7 +18,7 @@ internal abstract partial class AbstractFormatEngine
     /// <summary>
     /// this actually applies formatting operations to trivia between two tokens
     /// </summary>
-    private class OperationApplier(FormattingContext context, ChainedFormattingRules formattingRules)
+    private sealed class OperationApplier(FormattingContext context, ChainedFormattingRules formattingRules)
     {
         public bool Apply(AdjustSpacesOperation operation, int pairIndex)
         {

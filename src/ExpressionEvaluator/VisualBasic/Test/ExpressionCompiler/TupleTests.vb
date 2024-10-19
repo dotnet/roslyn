@@ -429,8 +429,8 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
-            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleLegacyRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp, {MscorlibRef, ValueTupleLegacyRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim locals = ArrayBuilder(Of LocalAndMethod).GetInstance()
@@ -487,9 +487,9 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemRuntimeFacadeRef, ValueTupleLegacyRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
-                {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
+                {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleLegacyRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
                     Dim [alias] = New [Alias](

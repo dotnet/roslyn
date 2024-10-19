@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase;
 
 using static CSharpSyntaxTokens;
 
-internal partial class HideBaseCodeFixProvider
+internal sealed partial class HideBaseCodeFixProvider
 {
-    private class AddNewKeywordAction(Document document, SyntaxNode node) : CodeAction
+    private sealed class AddNewKeywordAction(Document document, SyntaxNode node) : CodeAction
     {
         private readonly Document _document = document;
         private readonly SyntaxNode _node = node;

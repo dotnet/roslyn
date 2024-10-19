@@ -1557,6 +1557,15 @@ namespace System
                 throw new NotImplementedException();
             }
 
+            public override IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition()
+                => throw new NotImplementedException();
+
+            public override INamedTypeSymbolInternal TryGetOrCreateSynthesizedHotReloadExceptionType()
+                => null;
+
+            public override INamedTypeSymbolInternal GetUsedSynthesizedHotReloadExceptionType()
+                => null;
+
             AssemblyIdentity IAssemblyReference.Identity => ((IAssemblyReference)_builder).Identity;
 
             Version IAssemblyReference.AssemblyVersionPattern => ((IAssemblyReference)_builder).AssemblyVersionPattern;

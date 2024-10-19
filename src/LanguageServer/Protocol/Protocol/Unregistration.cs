@@ -17,6 +17,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the id of the unregistration.
         /// </summary>
         [JsonPropertyName("id")]
+        [JsonRequired]
         public string Id
         {
             get;
@@ -27,6 +28,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the method to unregister.
         /// </summary>
         [JsonPropertyName("method")]
+        [JsonRequired]
         public string Method
         {
             get;

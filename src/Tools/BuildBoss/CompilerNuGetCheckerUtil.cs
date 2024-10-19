@@ -186,10 +186,10 @@ namespace BuildBoss
                 (@"tasks\net472", GetProjectOutputDirectory("csi", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("VBCSCompiler", "net472")),
                 (@"tasks\net472", GetProjectOutputDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net472")),
-                (@"tasks\netcore\bincore", GetProjectPublishDirectory("csc", "net8.0")),
-                (@"tasks\netcore\bincore", GetProjectPublishDirectory("vbc", "net8.0")),
-                (@"tasks\netcore\bincore", GetProjectPublishDirectory("VBCSCompiler", "net8.0")),
-                (@"tasks\netcore", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net8.0")));
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("csc", "net9.0")),
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("vbc", "net9.0")),
+                (@"tasks\netcore\bincore", GetProjectPublishDirectory("VBCSCompiler", "net9.0")),
+                (@"tasks\netcore", GetProjectPublishDirectory("Microsoft.Build.Tasks.CodeAnalysis", "net9.0")));
 
             foreach (var arch in new[] { "x86", "x64", "arm64" })
             {
@@ -330,8 +330,8 @@ namespace BuildBoss
 
         private static string GetChecksum(Stream stream)
         {
-            using var md5 = MD5.Create();
-            return BitConverter.ToString(md5.ComputeHash(stream));
+            using var hash = SHA256.Create();
+            return BitConverter.ToString(hash.ComputeHash(stream));
         }
 
         /// <summary>

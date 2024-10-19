@@ -1,2 +1,1 @@
-# Workaround for https://github.com/dotnet/sdk/issues/41791
--p:_IsDisjointMSBuildVersion=false
+# This file intentionally left blank to avoid accidental import during build.

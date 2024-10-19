@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpSelectionValidator(
+internal sealed partial class CSharpSelectionValidator(
     SemanticDocument document,
     TextSpan textSpan,
     bool localFunction) : SelectionValidator<CSharpSelectionResult, StatementSyntax>(document, textSpan)

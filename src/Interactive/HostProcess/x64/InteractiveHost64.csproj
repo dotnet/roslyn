@@ -8,7 +8,7 @@
     <TargetFrameworks>net472;$(NetVS)-windows</TargetFrameworks>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWindowsForms>true</UseWindowsForms>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- Publishing (only precompile binaries when building Release) -->
@@ -23,7 +23,7 @@
     <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
-    <Content Include="..\App.config" />
+    <Content Include="..\App.config" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
     <Compile Include="..\InteractiveHostEntryPoint.cs" />
   </ItemGroup>
   

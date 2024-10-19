@@ -150,7 +150,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
                 continue;
             }
 
-            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            var spanMapper = document.DocumentServiceProvider.GetService<ISpanMappingService>();
             if (spanMapper == null)
             {
                 // for normal document, just add one as they are
@@ -173,7 +173,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
                 continue;
             }
 
-            var excerpter = document.Services.GetService<IDocumentExcerptService>();
+            var excerpter = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
             if (excerpter == null)
             {
                 continue;

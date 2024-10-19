@@ -751,8 +751,8 @@ internal static partial class ITypeSymbolExtensions
             ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true }
         };
 
-    public static bool IsReadOnlySpan([NotNullWhen(true)] this ITypeSymbol? type)
-        => type is INamedTypeSymbol
+    public static bool IsReadOnlySpan([NotNullWhen(true)] this ISymbol? symbol)
+        => symbol is INamedTypeSymbol
         {
             Name: nameof(ReadOnlySpan<int>),
             TypeArguments.Length: 1,
