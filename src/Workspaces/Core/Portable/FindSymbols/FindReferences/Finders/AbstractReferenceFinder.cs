@@ -953,25 +953,27 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
                     continue;
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                // Instead of getting all symbols from the hash set, invoke this semantic operation in every node we encounter
 
-                var allDocumentSymbols = semanticModel.GetAllDeclaredSymbols(root, cancellationToken);
+                // Instead of getting all the declared symbols from the document, invoke this semantic operation in every node we encounter
                 foreach (var descendantNode in root.DescendantNodes())
                 {
+                    // Discover all the declared type symbols in the document
                     var documentSymbol = semanticModel.GetDeclaredSymbol(descendantNode, cancellationToken);
-                    if (documentSymbol is null)
-                        continue;
-
                     if (documentSymbol is not ITypeSymbol documentTypeSymbol)
                         continue;
 
                     if (documentTypeSymbol.IsAnonymousType)
                     {
+                        // If we encounter an anonymous type declaration, we want to match their properties' declarations that do not provide an explicit name for the property
+                        // For instance, the property declarations in 'new { Value, Length }'
                         foreach (var property in documentTypeSymbol.GetValidAnonymousTypeProperties())
                         {
                             if (symbol.Name != property.Name)
                                 continue;
 
+                            // Here we match properties declared without an explicit property name, which matches two symbols to find references for
+                            // For example, in 'new { Value }' we also want to find the 'Value' property of the anonymous type
+                            // Though in 'new { Value: Value }' we don't want to find the 'Value' property, despite being synonymous
                             var propertyDeclarationSyntax = await property.DeclaringSyntaxReferences.First()!.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                             if (!syntaxFacts.IsInferredAnonymousObjectMemberDeclarator(propertyDeclarationSyntax))
                                 continue;
@@ -980,9 +982,8 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
                             if (assignedExpression is null)
                                 continue;
 
-                            var symbolInfo = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken);
-                            var nestedSymbol = symbolInfo.Symbol;
-                            if (symbol.Equals(nestedSymbol))
+                            var assignedSymbol = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken).Symbol;
+                            if (symbol.Equals(assignedSymbol))
                             {
                                 symbolSet.Add(property);
                             }
@@ -990,11 +991,16 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
                     }
                     else if (documentTypeSymbol.IsTupleType)
                     {
+                        // If we encounter a tuple type declaration, we want to match their fields' declarations that do not provide an explicit name for the field
+                        // For instance, the declared fields in '(Value, Length)'
                         foreach (var tupleMember in documentTypeSymbol.GetMembers(symbol.Name))
                         {
                             if (tupleMember is not IFieldSymbol)
                                 continue;
 
+                            // Here we match fields declared without an explicit field name, which matches two symbols to find references for
+                            // For example, in '(Value, Length)' we also want to find the 'Value' and 'Length' fields of the tuple
+                            // Though in '(Value, Length: Length)' we don't want to find the 'Length' field, despite being synonymous
                             var tupleArgumentDeclarationSyntax = await tupleMember.DeclaringSyntaxReferences.First()!.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                             if (!syntaxFacts.IsInferredTupleMemberDeclarator(tupleArgumentDeclarationSyntax))
                                 continue;
@@ -1003,9 +1009,8 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
                             if (assignedExpression is null)
                                 continue;
 
-                            var symbolInfo = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken);
-                            var nestedSymbol = symbolInfo.Symbol;
-                            if (symbol.Equals(nestedSymbol))
+                            var assignedSymbol = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken).Symbol;
+                            if (symbol.Equals(assignedSymbol))
                             {
                                 symbolSet.Add(tupleMember);
                             }
