@@ -66,7 +66,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             isInImportsDirective As Boolean,
             isInLambda As Boolean,
             isInQuery As Boolean,
-            isInstanceContext As Boolean,
             isTaskLikeTypeContext As Boolean,
             isNameOfContext As Boolean,
             isNamespaceContext As Boolean,
@@ -99,7 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isGlobalStatementContext:=isGlobalStatementContext,
                 isInImportsDirective:=isInImportsDirective,
                 isInQuery:=isInQuery,
-                isInstanceContext:=isInstanceContext,
                 isTaskLikeTypeContext:=isTaskLikeTypeContext,
                 isNameOfContext:=isNameOfContext,
                 isNamespaceContext,
@@ -166,8 +164,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             Dim isInQuery = leftToken.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing
             Dim isStatementContext = syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken)
 
-            Dim isInstanceContext = syntaxTree.IsInstanceContext(targetToken, semanticModel, cancellationToken)
-
             Return New VisualBasicSyntaxContext(
                 document,
                 semanticModel,
@@ -185,7 +181,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=isInQuery,
-                isInstanceContext:=isInstanceContext,
                 isTaskLikeTypeContext:=ComputeIsTaskLikeTypeContext(targetToken),
                 isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
                 isNamespaceContext:=syntaxTree.IsNamespaceContext(position, targetToken, cancellationToken, semanticModel),

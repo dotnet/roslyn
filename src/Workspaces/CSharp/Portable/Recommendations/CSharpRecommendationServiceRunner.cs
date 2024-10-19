@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -390,10 +391,32 @@ internal partial class CSharpRecommendationService
                 if (filterOutOfScopeLocals && symbol.IsInaccessibleLocal(context.Position))
                     return true;
 
-                if (IsCapturedPrimaryConstructorParameter(context, enclosingNamedType, symbol, cancellationToken))
-                    return true;
+                var isPrimaryConstructor = IsPrimaryConstructorParameter(context, symbol, cancellationToken);
+
+                if (isPrimaryConstructor)
+                {
+                    if (!context.IsInstanceContext && !context.IsNameOfContext)
+                        return true;
+
+                    if (IsCapturedPrimaryConstructorParameter(context, enclosingNamedType, symbol, cancellationToken))
+                        return true;
+                }
 
                 return false;
+            }
+
+            static bool IsPrimaryConstructorParameter(
+                CSharpSyntaxContext context,
+                ISymbol symbol,
+                CancellationToken cancellationToken)
+            {
+                if (symbol is not IParameterSymbol parameterSymbol)
+                    return false;
+
+                if (!parameterSymbol.IsPrimaryConstructor(cancellationToken))
+                    return false;
+
+                return true;
             }
 
             static bool IsCapturedPrimaryConstructorParameter(
@@ -405,11 +428,11 @@ internal partial class CSharpRecommendationService
                 if (enclosingNamedType is null)
                     return false;
 
-                if (symbol is not IParameterSymbol parameterSymbol)
-                    return false;
+                Debug.Assert(symbol is IParameterSymbol);
+                var parameterSymbol = (IParameterSymbol)symbol;
 
-                if (!parameterSymbol.IsPrimaryConstructor(cancellationToken))
-                    return false;
+                // Do not allow cancelling the assertion
+                Debug.Assert(parameterSymbol.IsPrimaryConstructor(default));
 
                 // Fine to offer primary constructor parameters in field/property initializers 
                 var initializer = context.TargetToken.GetAncestors<EqualsValueClauseSyntax>().FirstOrDefault();
