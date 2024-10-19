@@ -139,17 +139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 #End Region
 
-            Friend Function GetPreprocessingSymbolInfo(conditionalSymbolName As String, node As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
-                Dim constValue = GetPreprocessorSymbolValue(conditionalSymbolName, node)
-                Return GetPreprocessingSymbolInfo(conditionalSymbolName, constValue)
-            End Function
-
             Friend Function GetPreprocessingSymbolInfo(conditionalSymbolName As String, node As IdentifierNameSyntax) As VisualBasicPreprocessingSymbolInfo
                 Dim constValue As InternalSyntax.CConst = GetPreprocessorSymbolValue(conditionalSymbolName, node)
-                Return GetPreprocessingSymbolInfo(conditionalSymbolName, constValue)
-            End Function
-
-            Private Function GetPreprocessingSymbolInfo(conditionalSymbolName As String, constValue As InternalSyntax.CConst) As VisualBasicPreprocessingSymbolInfo
                 If constValue Is Nothing Then
                     Return VisualBasicPreprocessingSymbolInfo.None
                 End If

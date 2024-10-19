@@ -564,7 +564,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         public override string? FormatSymbol(ISymbol? symbol)
         {
-            if (symbol is null)
+            if (symbol == null)
                 return null;
 
             if (symbol is ITypeSymbol or INamespaceSymbol)

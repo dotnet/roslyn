@@ -49,7 +49,7 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var targetSymbol = state.SemanticModel.GetPreprocessingSymbolInfo(token.GetRequiredParent()).Symbol;
+            var targetSymbol = state.SemanticFacts.GetPreprocessingSymbol(state.SemanticModel, token.GetRequiredParent());
             var matched = SymbolFinder.OriginalSymbolsMatch(state.Solution, symbol, targetSymbol);
 
             if (matched)

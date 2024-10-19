@@ -597,11 +597,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Function GetPreprocessingSymbolInfo(token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
-            Dim conditionalSymbolName = token.ValueText
+        Friend Function GetPreprocessingSymbolInfo(identifierNode As IdentifierNameSyntax) As VisualBasicPreprocessingSymbolInfo
+            Dim conditionalSymbolName As String = identifierNode.Identifier.ValueText
             Dim conditionalSymbols As ConditionalSymbolsMap = Me.ConditionalSymbols
 
-            Return If(conditionalSymbols Is Nothing, VisualBasicPreprocessingSymbolInfo.None, conditionalSymbols.GetPreprocessingSymbolInfo(conditionalSymbolName, token))
+            Return If(conditionalSymbols Is Nothing, VisualBasicPreprocessingSymbolInfo.None, conditionalSymbols.GetPreprocessingSymbolInfo(conditionalSymbolName, identifierNode))
         End Function
 
 #End Region

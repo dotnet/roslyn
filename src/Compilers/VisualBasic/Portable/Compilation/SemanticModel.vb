@@ -2927,32 +2927,17 @@ _Default:
             CheckSyntaxNode(node)
 
             If SyntaxFacts.IsWithinPreprocessorConditionalExpression(node) Then
-                Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node.Identifier)
-                Return RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo, node.Identifier)
+                Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node)
+
+                If symbolInfo.Symbol IsNot Nothing Then
+                    Debug.Assert(CaseInsensitiveComparison.Equals(symbolInfo.Symbol.Name, node.Identifier.ValueText))
+                    Return symbolInfo
+                End If
+
+                Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(node.Identifier.ValueText), constantValueOpt:=Nothing, isDefined:=False)
             End If
 
             Return VisualBasicPreprocessingSymbolInfo.None
-        End Function
-
-        ''' <summary>
-        ''' Gets the preprocessing symbol info for the preprocessing symbol defined in the #Const directive.
-        ''' </summary>
-        ''' <param name="node">A #Const directive trivia node.</param>
-        Public Shadows Function GetPreprocessingSymbolInfo(node As ConstDirectiveTriviaSyntax) As VisualBasicPreprocessingSymbolInfo
-            CheckSyntaxNode(node)
-            Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = node.SyntaxTree.GetPreprocessingSymbolInfo(node.Name)
-            Return RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo, node.Name)
-        End Function
-
-        Private Function RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo As VisualBasicPreprocessingSymbolInfo, token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
-
-            If symbolInfo.Symbol IsNot Nothing Then
-                Debug.Assert(CaseInsensitiveComparison.Equals(symbolInfo.Symbol.Name, token.ValueText))
-                Return symbolInfo
-            End If
-
-            Return New VisualBasicPreprocessingSymbolInfo(New PreprocessingSymbol(token.ValueText), constantValueOpt:=Nothing, isDefined:=False)
-
         End Function
 
         ''' <summary>
@@ -3219,11 +3204,6 @@ _Default:
             Dim nameSyntax = TryCast(node, IdentifierNameSyntax)
             If nameSyntax IsNot Nothing Then
                 Return GetPreprocessingSymbolInfo(nameSyntax)
-            End If
-
-            Dim constSyntax = TryCast(node, ConstDirectiveTriviaSyntax)
-            If constSyntax IsNot Nothing Then
-                Return GetPreprocessingSymbolInfo(constSyntax)
             End If
 
             Return Nothing

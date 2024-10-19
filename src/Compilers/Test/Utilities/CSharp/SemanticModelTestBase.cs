@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.IndexOf(subStrForPreprocessNameIndex, StringComparison.Ordinal);
-            var nodeToBind = tree.GetRoot().FindToken(position, findInsideTrivia: true).Parent;
+            var nameSyntaxToBind = tree.GetRoot().FindToken(position, findInsideTrivia: true).Parent as IdentifierNameSyntax;
 
-            return model.GetPreprocessingSymbolInfo(nodeToBind);
+            return model.GetPreprocessingSymbolInfo(nameSyntaxToBind);
         }
 
         internal AliasSymbol GetAliasInfoForTest(string testSrc)

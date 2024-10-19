@@ -4842,39 +4842,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(node);
 
-            if (node.Ancestors().Any(n => isPreprocessorDirectiveAcceptingPreprocessingSymbols(n.Kind())))
+            if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
             {
-                return CreatePreprocessingSymbolInfo(node.Identifier);
+                bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
+                return new PreprocessingSymbolInfo(new Symbols.PublicModel.PreprocessingSymbol(node.Identifier.ValueText), isDefined);
             }
 
             return PreprocessingSymbolInfo.None;
-
-            static bool isPreprocessorDirectiveAcceptingPreprocessingSymbols(SyntaxKind kind)
-            {
-                switch (kind)
-                {
-                    case SyntaxKind.IfDirectiveTrivia:
-                    case SyntaxKind.ElifDirectiveTrivia:
-                    case SyntaxKind.DefineDirectiveTrivia:
-                    case SyntaxKind.UndefDirectiveTrivia:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-        }
-
-        private PreprocessingSymbolInfo GetPreprocessingSymbolInfo(DirectiveTriviaSyntax node, SyntaxToken name)
-        {
-            CheckSyntaxNode(node);
-            return CreatePreprocessingSymbolInfo(name);
-        }
-
-        private PreprocessingSymbolInfo CreatePreprocessingSymbolInfo(SyntaxToken identifier)
-        {
-            bool isDefined = SyntaxTree.IsPreprocessorSymbolDefined(identifier.ValueText, identifier.SpanStart);
-            var preprocessingSymbol = new Symbols.PublicModel.PreprocessingSymbol(identifier.ValueText);
-            return new PreprocessingSymbolInfo(preprocessingSymbol, isDefined);
         }
 
         /// <summary>
@@ -5087,13 +5061,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override PreprocessingSymbolInfo GetPreprocessingSymbolInfoCore(SyntaxNode node)
         {
-            return node switch
-            {
-                IdentifierNameSyntax nameSyntax => GetPreprocessingSymbolInfo(nameSyntax),
-                DefineDirectiveTriviaSyntax defineSyntax => GetPreprocessingSymbolInfo(defineSyntax, defineSyntax.Name),
-                UndefDirectiveTriviaSyntax undefSyntax => GetPreprocessingSymbolInfo(undefSyntax, undefSyntax.Name),
-                _ => PreprocessingSymbolInfo.None
-            };
+            return node is IdentifierNameSyntax nameSyntax
+                ? GetPreprocessingSymbolInfo(nameSyntax)
+                : PreprocessingSymbolInfo.None;
         }
 
         protected sealed override ISymbol GetDeclaredSymbolCore(SyntaxNode node, CancellationToken cancellationToken)

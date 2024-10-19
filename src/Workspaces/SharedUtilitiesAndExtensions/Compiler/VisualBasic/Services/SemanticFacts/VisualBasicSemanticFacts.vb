@@ -288,6 +288,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
 
+        Public Function GetPreprocessingSymbol(model As SemanticModel, node As SyntaxNode) As IPreprocessingSymbol Implements ISemanticFacts.GetPreprocessingSymbol
+            Dim nameSyntax = TryCast(node, IdentifierNameSyntax)
+            If nameSyntax IsNot Nothing Then
+                If IsWithinPreprocessorConditionalExpression(nameSyntax) Then
+                    Return CreatePreprocessingSymbol(model, nameSyntax.Identifier)
+                End If
+            End If
+
+            Dim constSyntax = TryCast(node, ConstDirectiveTriviaSyntax)
+            If constSyntax IsNot Nothing Then
+                Return CreatePreprocessingSymbol(model, constSyntax.Name)
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Shared Function CreatePreprocessingSymbol(model As SemanticModel, token As SyntaxToken) As IPreprocessingSymbol
+            Return model.Compilation.CreatePreprocessingSymbol(token.ValueText)
+        End Function
+
+        Friend Shared Function IsWithinPreprocessorConditionalExpression(node As IdentifierNameSyntax) As Boolean
+            Debug.Assert(node IsNot Nothing)
+            Dim current As SyntaxNode = node
+            Dim parent As SyntaxNode = node.Parent
+
+            While parent IsNot Nothing
+                Select Case parent.Kind()
+                    Case SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia
+                        Return DirectCast(parent, IfDirectiveTriviaSyntax).Condition Is current
+                    Case SyntaxKind.ConstDirectiveTrivia
+                        Return DirectCast(parent, ConstDirectiveTriviaSyntax).Value Is current
+                    Case Else
+                        current = parent
+                        parent = current.Parent
+                End Select
+            End While
+
+            Return False
+        End Function
+
 #If Not CODE_STYLE Then
 
         Public Function GetInterceptorSymbolAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ISymbol) Implements ISemanticFacts.GetInterceptorSymbolAsync
