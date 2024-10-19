@@ -5388,6 +5388,87 @@ public class T
             Assert.False(symbolInfo.IsDefined, "must not be defined");
         }
 
+        [Fact, WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")]
+        public void GetPreprocessingSymbolInfoInDirectives_01()
+        {
+            string sourceCode = @"
+#if false
+#else
+    #define Z //bind
+#endif
+";
+            PreprocessingSymbolInfo symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Z //bind");
+            Assert.Equal("Z", symbolInfo.Symbol.Name);
+            Assert.True(symbolInfo.IsDefined, "must be defined");
+        }
+
+        [Fact, WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")]
+        public void GetPreprocessingSymbolInfoInDirectives_02()
+        {
+            string sourceCode = @"
+#if true
+    #pragma warning disable CS0123 //bind
+#endif
+";
+            PreprocessingSymbolInfo symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "CS0123 //bind");
+            Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Fact, WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")]
+        public void GetPreprocessingSymbolInfoInDirectives_03()
+        {
+            string sourceCode = @"
+#define Y
+
+#if X //bind
+#elif Y //bind
+#endif
+";
+            PreprocessingSymbolInfo symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "X //bind");
+            Assert.Equal("X", symbolInfo.Symbol.Name);
+            Assert.False(symbolInfo.IsDefined, "must not be defined");
+
+            symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Y //bind");
+            Assert.Equal("Y", symbolInfo.Symbol.Name);
+            Assert.True(symbolInfo.IsDefined, "must be defined");
+        }
+
+        [Fact, WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")]
+        public void GetPreprocessingSymbolInfoInDirectives_04()
+        {
+            string sourceCode = @"
+#define X
+#define Y
+
+#if X //bind
+#elif Y //bind
+#endif
+";
+            PreprocessingSymbolInfo symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "X //bind");
+            Assert.Equal("X", symbolInfo.Symbol.Name);
+            Assert.True(symbolInfo.IsDefined, "must be defined");
+
+            symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Y //bind");
+            Assert.Equal("Y", symbolInfo.Symbol.Name);
+            Assert.True(symbolInfo.IsDefined, "must be defined");
+        }
+
+        [Fact, WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")]
+        public void GetPreprocessingSymbolInfoInDirectives_05()
+        {
+            string sourceCode = @"
+#undef X //bind
+#define Y //bind
+";
+            PreprocessingSymbolInfo symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "X //bind");
+            Assert.Equal("X", symbolInfo.Symbol.Name);
+            Assert.False(symbolInfo.IsDefined, "must not be defined");
+
+            symbolInfo = GetPreprocessingSymbolInfoForTest(sourceCode, "Y //bind");
+            Assert.Equal("Y", symbolInfo.Symbol.Name);
+            Assert.True(symbolInfo.IsDefined, "must be defined");
+        }
+
         [WorkItem(835391, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835391")]
         [Fact]
         public void ConstructedErrorTypeValidation()
