@@ -888,7 +888,7 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
     {
         var name = symbol.Name;
 
-        var symbolSet = PooledHashSet<ISymbol>.GetInstance();
+        using var _ = PooledHashSet<ISymbol>.GetInstance(out var symbolSet);
         var documentQueue = new ConcurrentQueue<Document>();
         Task? documentProcessingTask = null;
 
@@ -925,7 +925,6 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
             await documentProcessingTask.ConfigureAwait(false);
 
         symbolBuilder.AddRange(symbolSet);
-        symbolSet.Free();
 
         void AskProcessDocumentForSymbols(Document document)
         {
