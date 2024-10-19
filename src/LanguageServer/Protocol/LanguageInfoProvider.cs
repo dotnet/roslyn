@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".mts", s_typeScriptLanguageInformation },
         };
 
-        public LanguageInformation GetLanguageInformation(Uri uri, string? lspLanguageId)
+        public bool TryGetLanguageInformation(Uri uri, string? lspLanguageId, [NotNullWhen(true)] out LanguageInformation? languageInformation)
         {
             // First try to get language information from the URI path.
             // We can do this for File uris and absolute uris.  We use local path to get the value without any query parameters.
@@ -51,14 +52,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             {
                 var localPath = uri.LocalPath;
                 var extension = Path.GetExtension(localPath);
-                if (s_extensionToLanguageInformation.TryGetValue(extension, out var languageInformation))
+                if (s_extensionToLanguageInformation.TryGetValue(extension, out languageInformation))
                 {
-                    return languageInformation;
+                    return true;
                 }
             }
 
             // If the URI file path mapping failed, use the languageId from the LSP client (if any).
-            return lspLanguageId switch
+            languageInformation = lspLanguageId switch
             {
                 "csharp" => s_csharpLanguageInformation,
                 "fsharp" => s_fsharpLanguageInformation,
@@ -67,8 +68,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 "xaml" => s_xamlLanguageInformation,
                 "typescript" => s_typeScriptLanguageInformation,
                 "javascript" => s_typeScriptLanguageInformation,
-                _ => throw new InvalidOperationException($"Unable to determine language for '{uri}' with LSP language id '{lspLanguageId}'")
+                _ => null,
             };
+
+            return languageInformation != null;
         }
     }
 }

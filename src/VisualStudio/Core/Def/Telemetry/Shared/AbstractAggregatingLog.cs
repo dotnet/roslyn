@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Telemetry;
@@ -13,11 +12,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Telemetry;
 
 /// <summary>
-/// Provides a wrapper around the VSTelemetry histogram APIs to support aggregated telemetry. Each instance
+/// Provides a wrapper around various VSTelemetry aggregating APIs to support aggregated telemetry. Each instance
 /// of this class corresponds to a specific FunctionId operation and can support aggregated values for each
 /// metric name logged.
 /// </summary>
-internal sealed class AggregatingTelemetryLog : ITelemetryLog
+internal abstract class AbstractAggregatingLog<TAggregator, TValue> : ITelemetryLog where TAggregator : IInstrument
 {
     // Indicates version information which vs telemetry will use for our aggregated telemetry. This can be used
     // by Kusto queries to filter against telemetry versions which have the specified version and thus desired shape.
@@ -25,21 +24,18 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
 
     private readonly IMeter _meter;
     private readonly TelemetrySession _session;
-    private readonly HistogramConfiguration? _histogramConfiguration;
     private readonly string _eventName;
     private readonly FunctionId _functionId;
     private readonly object _flushLock;
 
-    private ImmutableDictionary<string, (IHistogram<long> Histogram, TelemetryEvent TelemetryEvent, object Lock)> _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent, object)>.Empty;
+    private ImmutableDictionary<string, (TAggregator aggregator, TelemetryEvent TelemetryEvent, object Lock)> _aggregations = ImmutableDictionary<string, (TAggregator, TelemetryEvent, object)>.Empty;
 
     /// <summary>
     /// Creates a new aggregating telemetry log
     /// </summary>
     /// <param name="session">Telemetry session used to post events</param>
     /// <param name="functionId">Used to derive meter name</param>
-    /// <param name="bucketBoundaries">Optional values indicating bucket boundaries in milliseconds. If not specified, 
-    /// all histograms created will use the default histogram configuration</param>
-    public AggregatingTelemetryLog(TelemetrySession session, FunctionId functionId, double[]? bucketBoundaries)
+    public AbstractAggregatingLog(TelemetrySession session, FunctionId functionId)
     {
         var meterName = TelemetryLogger.GetPropertyName(functionId, "meter");
         var meterProvider = new VSTelemetryMeterProvider();
@@ -49,11 +45,6 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
         _eventName = TelemetryLogger.GetEventName(functionId);
         _functionId = functionId;
         _flushLock = new();
-
-        if (bucketBoundaries != null)
-        {
-            _histogramConfiguration = new HistogramConfiguration(bucketBoundaries);
-        }
     }
 
     /// <summary>
@@ -66,15 +57,15 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
         if (!IsEnabled)
             return;
 
-        // Name is the key for this message in our histogram dictionary. It is also used as the metric name
+        // Name is the key for this message in our aggregation dictionary. It is also used as the metric name
         // if the MetricName property isn't specified.
         if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string name)
             throw ExceptionUtilities.Unreachable();
 
-        if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyValue, out var valueValue) || valueValue is not int value)
+        if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyValue, out var valueValue) || valueValue is not TValue value)
             throw ExceptionUtilities.Unreachable();
 
-        (var histogram, _, var histogramLock) = ImmutableInterlocked.GetOrAdd(ref _histograms, name, name =>
+        (var aggregator, _, var aggregatorLock) = ImmutableInterlocked.GetOrAdd(ref _aggregations, name, name =>
         {
             var telemetryEvent = new TelemetryEvent(_eventName);
 
@@ -92,52 +83,46 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
                 }
             }
 
-            var histogram = _meter.CreateHistogram<long>(metricName, _histogramConfiguration);
-            var histogramLock = new object();
+            var aggregator = CreateAggregator(_meter, metricName);
+            var aggregatorLock = new object();
 
-            return (histogram, telemetryEvent, histogramLock);
+            return (aggregator, telemetryEvent, aggregatorLock);
         });
 
-        lock (histogramLock)
+        lock (aggregatorLock)
         {
-            histogram.Record(value);
+            UpdateAggregator(aggregator, value);
         }
     }
 
-    public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs)
-    {
-        if (!IsEnabled)
-            return null;
+    protected abstract TAggregator CreateAggregator(IMeter meter, string metricName);
 
-        if (!logMessage.Properties.TryGetValue(TelemetryLogging.KeyName, out var nameValue) || nameValue is not string)
-            throw ExceptionUtilities.Unreachable();
+    protected abstract void UpdateAggregator(TAggregator aggregator, TValue value);
 
-        return new TimedTelemetryLogBlock(logMessage, minThresholdMs, telemetryLog: this);
-    }
+    protected abstract TelemetryMetricEvent CreateTelemetryEvent(TelemetryEvent telemetryEvent, TAggregator aggregator);
 
-    private bool IsEnabled => _session.IsOptedIn;
+    protected bool IsEnabled => _session.IsOptedIn;
 
     public void Flush()
     {
         // This lock ensures that multiple calls to Flush cannot occur simultaneously.
         //  Without this lock, we would could potentially call PostMetricEvent multiple
-        //  times for the same histogram.
+        //  times for the same aggregation.
         lock (_flushLock)
         {
-            foreach (var (histogram, telemetryEvent, histogramLock) in _histograms.Values)
+            foreach (var (aggregator, telemetryEvent, aggregatorLock) in _aggregations.Values)
             {
-                // This fine-grained lock ensures that the histogram isn't modified (via a Record call)
-                //  during the creation of the TelemetryHistogramEvent or the PostMetricEvent
+                // This fine-grained lock ensures that the aggregation isn't modified (via a Record call)
+                //  during the creation of the TelemetryMetricEvent or the PostMetricEvent
                 //  call that operates on it.
-                lock (histogramLock)
+                lock (aggregatorLock)
                 {
-                    var histogramEvent = new TelemetryHistogramEvent<long>(telemetryEvent, histogram);
-
-                    _session.PostMetricEvent(histogramEvent);
+                    var aggregatorEvent = CreateTelemetryEvent(telemetryEvent, aggregator);
+                    _session.PostMetricEvent(aggregatorEvent);
                 }
             }
 
-            _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent, object)>.Empty;
+            _aggregations = ImmutableDictionary<string, (TAggregator, TelemetryEvent, object)>.Empty;
         }
     }
 }

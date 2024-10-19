@@ -24,7 +24,6 @@ using Microsoft.CodeAnalysis.Editor.InlineHints;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
@@ -111,7 +110,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Always_use_default_symbol_servers_for_navigation, MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers);
 
             // Rename
-            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously);
+            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, () =>
+            {
+                return optionStore.GetOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronouslyFeatureFlag);
+            });
             BindToOption(Rename_UI_setting, InlineRenameUIOptionsStorage.UseInlineAdornment, label: Rename_UI_setting_label);
 
             // Using Directives

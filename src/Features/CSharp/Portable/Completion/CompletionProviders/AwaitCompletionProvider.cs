@@ -13,24 +13,20 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-[ExportCompletionProvider(nameof(AwaitCompletionProvider), LanguageNames.CSharp)]
+[ExportCompletionProvider(nameof(AwaitCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
-[Shared]
-internal sealed class AwaitCompletionProvider : AbstractAwaitCompletionProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AwaitCompletionProvider() : AbstractAwaitCompletionProvider(CSharpSyntaxFacts.Instance)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AwaitCompletionProvider()
-        : base(CSharpSyntaxFacts.Instance)
-    {
-    }
-
     internal override string Language => LanguageNames.CSharp;
+
     public override ImmutableHashSet<char> TriggerCharacters => CompletionUtilities.CommonTriggerCharactersWithArgumentList;
 
     protected override bool IsAwaitKeywordContext(SyntaxContext syntaxContext)
@@ -55,24 +51,35 @@ internal sealed class AwaitCompletionProvider : AbstractAwaitCompletionProvider
         };
     }
 
-    protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
+    protected override SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position)
     {
         // In a case like
         //   someTask.$$
         //   await Test();
         // someTask.await Test() is parsed as a local function statement.
         // We skip this and look further up in the hierarchy.
-        var parent = token.Parent;
+        var parent = leftToken.Parent;
         if (parent == null)
             return null;
 
-        if (parent is QualifiedNameSyntax { Parent: LocalFunctionStatementSyntax localFunction } qualifiedName &&
-            localFunction.ReturnType == qualifiedName)
+        if (parent is NameSyntax { Parent: LocalFunctionStatementSyntax localFunction } name &&
+            localFunction.ReturnType == name)
         {
-            parent = localFunction;
+            parent = localFunction.GetRequiredParent();
         }
 
-        return parent.AncestorsAndSelf().FirstOrDefault(node => node.IsAsyncSupportingFunctionSyntax());
+        return parent.AncestorsAndSelf().FirstOrDefault(node =>
+        {
+            if (!node.IsAsyncSupportingFunctionSyntax())
+                return false;
+
+            // Ensure that if we were outside of the async-supporting-function that we don't return it as the thing to
+            // make async.  We want to make its parent async.
+            if (position > leftToken.FullSpan.End)
+                return node.Span.Contains(position);
+
+            return node.Span.IntersectsWith(position);
+        });
     }
 
     protected override SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

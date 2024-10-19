@@ -296,7 +296,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         static ImmutableArray<ISymbol> GetCallingConventionSymbols(SemanticModel model, FunctionPointerUnmanagedCallingConventionSyntax syntax)
         {
             var type = model.Compilation.TryGetCallingConventionSymbol(syntax.Name.ValueText);
-            return type is null ? [] : ImmutableArray.Create<ISymbol>(type);
+            return type is null ? [] : [type];
         }
     }
 
@@ -332,7 +332,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                     return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken).GetBestOrAllSymbols();
                 }
 
-                return default;
+                return [];
             case QueryClauseSyntax queryClauseSyntax:
                 var queryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
                 var hasCastInfo = queryInfo.CastInfo.Symbol != null;
