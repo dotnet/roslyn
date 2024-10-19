@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Collections
@@ -21,50 +22,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEAssemblyBuilderBase
         Implements IPEDeltaAssemblyBuilder
 
-        Private ReadOnly _previousDefinitions As VisualBasicDefinitionMap
         Private ReadOnly _changes As SymbolChanges
         Private ReadOnly _deepTranslator As VisualBasicSymbolMatcher.DeepTranslator
+        Private ReadOnly _predefinedHotReloadExceptionConstructor As MethodSymbol
+
+        ''' <summary>
+        ''' HotReloadException type. May be created even if not used. We might find out
+        ''' we need it late in the emit phase only after all types and members have been compiled.
+        ''' <see cref="_isHotReloadExceptionTypeUsed"/> indicates if the type is actually used in the delta.
+        ''' </summary>
+        Private _lazyHotReloadExceptionType As SynthesizedHotReloadExceptionSymbol
+
+        ''' <summary>
+        ''' True if usage of HotReloadException type symbol has been observed and shouldn't be changed anymore.
+        ''' </summary>
+        Private _freezeHotReloadExceptionTypeUsage As Boolean
+
+        ''' <summary>
+        ''' True if HotReloadException type is actually used in the delta.
+        ''' </summary>
+        Private _isHotReloadExceptionTypeUsed As Boolean
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
+                       changes As VisualBasicSymbolChanges,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       previousGeneration As EmitBaseline,
-                       edits As IEnumerable(Of SemanticEdit),
-                       isAddedSymbol As Func(Of ISymbol, Boolean))
+                       predefinedHotReloadExceptionConstructor As MethodSymbol)
 
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
-            Dim initialBaseline = previousGeneration.InitialBaseline
-            Dim previousSourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-
-            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
-            ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
-            Dim metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
-
-            Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
-            Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.SynthesizedTypes, sourceAssembly, metadataAssembly)
-
-            Dim previousSourceToMetadata = New VisualBasicSymbolMatcher(
-                metadataSymbols.SynthesizedTypes,
-                previousSourceAssembly,
-                metadataAssembly)
-
-            Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
-            If previousGeneration.Ordinal > 0 Then
-
-                matchToPrevious = New VisualBasicSymbolMatcher(
-                    sourceAssembly:=sourceAssembly,
-                    otherAssembly:=previousSourceAssembly,
-                    previousGeneration.SynthesizedTypes,
-                    otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers,
-                    otherDeletedMembersOpt:=previousGeneration.DeletedMembers)
-            End If
-
-            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, previousSourceToMetadata, matchToMetadata, matchToPrevious, previousGeneration)
-            _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+            _changes = changes
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
             ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -79,6 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
             ' that translates the symbol recursively.
             _deepTranslator = New VisualBasicSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object))
+
+            _predefinedHotReloadExceptionConstructor = predefinedHotReloadExceptionConstructor
         End Sub
 
         Friend Overrides Function EncTranslateLocalVariableType(type As TypeSymbol, diagnostics As DiagnosticBag) As ITypeReference
@@ -97,11 +88,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
             Get
-                Return _previousDefinitions.Baseline
+                Return _changes.DefinitionMap.Baseline
             End Get
         End Property
 
-        Private Shared Function GetOrCreateMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
+        Friend Shared Function GetOrCreateMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
             If initialBaseline.LazyMetadataSymbols IsNot Nothing Then
                 Return initialBaseline.LazyMetadataSymbols
             End If
@@ -221,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend ReadOnly Property PreviousDefinitions As VisualBasicDefinitionMap
             Get
-                Return _previousDefinitions
+                Return DirectCast(_changes.DefinitionMap, VisualBasicDefinitionMap)
             End Get
         End Property
 
@@ -239,11 +230,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
-            Return _previousDefinitions.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics)
+            Return _changes.DefinitionMap.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics)
         End Function
 
         Friend Overrides Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
-            Return _previousDefinitions.GetMethodBodyInstrumentations(method)
+            Return _changes.DefinitionMap.GetMethodBodyInstrumentations(method)
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
@@ -256,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend Overrides Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
-            Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
+            Return PreviousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
 
         Public Overrides Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
@@ -289,5 +280,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return SpecializedCollections.EmptyEnumerable(Of String)()
             End Get
         End Property
+
+        Public Overrides Function TryGetOrCreateSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+            Return If(_predefinedHotReloadExceptionConstructor Is Nothing, GetOrCreateHotReloadExceptionType(), Nothing)
+        End Function
+
+        Public Overrides Function GetOrCreateHotReloadExceptionConstructorDefinition() As IMethodSymbolInternal
+            If _predefinedHotReloadExceptionConstructor IsNot Nothing Then
+                Return _predefinedHotReloadExceptionConstructor
+            End If
+
+            If _freezeHotReloadExceptionTypeUsage Then
+                ' the type shouldn't be used after usage has been frozen.
+                Throw ExceptionUtilities.Unreachable()
+            End If
+
+            _isHotReloadExceptionTypeUsed = True
+            Return GetOrCreateHotReloadExceptionType().Constructor
+        End Function
+
+        Public Overrides Function GetUsedSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+            _freezeHotReloadExceptionTypeUsage = True
+            Return If(_isHotReloadExceptionTypeUsed, _lazyHotReloadExceptionType, Nothing)
+        End Function
+
+        Private Function GetOrCreateHotReloadExceptionType() As SynthesizedHotReloadExceptionSymbol
+            Dim symbol = _lazyHotReloadExceptionType
+            If symbol IsNot Nothing Then
+                Return symbol
+            End If
+
+            Dim exceptionType = Compilation.GetWellKnownType(WellKnownType.System_Exception)
+            Dim stringType = Compilation.GetSpecialType(SpecialType.System_String)
+            Dim intType = Compilation.GetSpecialType(SpecialType.System_Int32)
+
+            Dim containingNamespace = GetOrSynthesizeNamespace(SynthesizedHotReloadExceptionSymbol.NamespaceName)
+            symbol = New SynthesizedHotReloadExceptionSymbol(containingNamespace, exceptionType, stringType, intType)
+
+            Interlocked.CompareExchange(_lazyHotReloadExceptionType, symbol, comparand:=Nothing)
+            Return _lazyHotReloadExceptionType
+        End Function
     End Class
 End Namespace

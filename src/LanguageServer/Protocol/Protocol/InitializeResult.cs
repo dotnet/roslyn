@@ -17,10 +17,19 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the server capabilities.
         /// </summary>
         [JsonPropertyName("capabilities")]
+        [JsonRequired]
         public ServerCapabilities Capabilities
         {
             get;
             set;
         }
+
+        /// <summary>
+        /// Information about the server name and version
+        /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
+        [JsonPropertyName("serverInfo")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ServerInfo? ServerInfo { get; init; }
     }
 }

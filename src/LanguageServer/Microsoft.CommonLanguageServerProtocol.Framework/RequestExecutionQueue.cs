@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -245,10 +246,27 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     // notifications have been completed by the time we attempt to determine the language, so we have the up to date map of URI to language.
                     // Since didOpen notifications are marked as mutating, the queue will not advance to the next request until the server has finished processing
                     // the didOpen, ensuring that this line will only run once all prior didOpens have completed.
-                    var language = _languageServer.GetLanguageForRequest(work.MethodName, work.SerializedRequest);
+                    var didGetLanguage = _languageServer.TryGetLanguageForRequest(work.MethodName, work.SerializedRequest, out var language);
 
                     // Now that we know the actual language, we can deserialize the request and start creating the request context.
-                    var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language);
+                    var (metadata, handler, methodInfo) = GetHandlerForRequest(work, language ?? LanguageServerConstants.DefaultLanguageName);
+
+                    // We had an issue determining the language.  Generally this is very rare and only occurs
+                    // if there is a mis-behaving client that sends us requests for files where we haven't saved the languageId.
+                    // We should only crash if this was a mutating method, otherwise we should just fail the single request. 
+                    if (!didGetLanguage)
+                    {
+                        var message = $"Failed to get language for {work.MethodName}";
+                        if (handler.MutatesSolutionState)
+                        {
+                            throw new InvalidOperationException(message);
+                        }
+                        else
+                        {
+                            work.FailRequest(message);
+                            return;
+                        }
+                    }
 
                     // We now have the actual handler and language, so we can process the work item using the concrete types defined by the metadata.
                     await InvokeProcessCoreAsync(work, metadata, handler, methodInfo, concurrentlyExecutingTasks, currentWorkCts, cancellationToken).ConfigureAwait(false);

@@ -79,6 +79,8 @@ internal class ClientCapabilityProvider : IClientCapabilityProvider
                     return internalTextDocumentClientCapabilities.OnAutoInsert?.DynamicRegistration == true;
                 }
                 return false;
+            case LSP.Methods.TextDocumentDocumentColorName:
+                return _clientCapabilities?.TextDocument?.ColorProvider?.DynamicRegistration == true;
             default:
                 throw new InvalidOperationException($"Unsupported dynamic registration method: {methodName}");
         }

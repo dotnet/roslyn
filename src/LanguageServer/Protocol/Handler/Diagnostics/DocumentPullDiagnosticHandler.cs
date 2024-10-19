@@ -64,9 +64,6 @@ internal partial class DocumentPullDiagnosticHandler
         return null;
     }
 
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
-        => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
-
     protected override VSInternalDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalDiagnosticReport[]> progress)
     {
         return progress.GetFlattenedValues();

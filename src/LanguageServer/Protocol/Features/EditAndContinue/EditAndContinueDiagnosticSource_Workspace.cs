@@ -37,7 +37,9 @@ internal static partial class EditAndContinueDiagnosticSource
 
     public static async ValueTask<ImmutableArray<IDiagnosticSource>> CreateWorkspaceDiagnosticSourcesAsync(Solution solution, Func<Document, bool> isDocumentOpen, CancellationToken cancellationToken)
     {
-        if (solution.Services.GetRequiredService<IEditAndContinueWorkspaceService>().SessionTracker is not { IsSessionActive: true } sessionStateTracker)
+        // Do not report EnC diagnostics for a non-host workspace, or if Hot Reload/EnC session is not active.
+        if (solution.WorkspaceKind != WorkspaceKind.Host ||
+            solution.Services.GetService<IEditAndContinueWorkspaceService>()?.SessionTracker is not { IsSessionActive: true } sessionStateTracker)
         {
             return [];
         }

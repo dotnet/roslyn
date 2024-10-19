@@ -4,33 +4,33 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the parameters for the 'textDocument/prepare' request.
-    ///
+    /// Class representing the parameters for the 'textDocument/prepareRename' request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#prepareRenameParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class PrepareRenameParams : ITextDocumentPositionParams
+    /// <remarks>Since LSP 3.12</remarks>
+    internal class PrepareRenameParams : ITextDocumentPositionParams, IWorkDoneProgressParams
     {
-        /// <summary>
-        /// Gets or sets the value which identifies the document.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName("textDocument")]
-        public TextDocumentIdentifier TextDocument
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public TextDocumentIdentifier TextDocument { get; set; }
 
         /// <summary>
-        /// Gets or sets the position in which the rename is requested.
+        /// The position in which the rename is requested.
         /// </summary>
         [JsonPropertyName("position")]
-        public Position Position
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public Position Position { get; set; }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
     }
 }

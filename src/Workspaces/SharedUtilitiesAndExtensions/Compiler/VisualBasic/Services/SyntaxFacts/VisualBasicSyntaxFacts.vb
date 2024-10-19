@@ -27,6 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Public Shared ReadOnly Property Instance As New VisualBasicSyntaxFacts
 
+        ' Specifies false for trimOnFree as these objects commonly exceed the default ObjectPool threshold
+        Private Shared ReadOnly s_syntaxNodeListPool As ObjectPool(Of List(Of SyntaxNode)) = New ObjectPool(Of List(Of SyntaxNode))(Function() New List(Of SyntaxNode), trimOnFree:=False)
+
         Protected Sub New()
         End Sub
 
@@ -895,13 +898,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
-        Public Sub AddTopLevelAndMethodLevelMembers(root As SyntaxNode, list As ArrayBuilder(Of SyntaxNode)) Implements ISyntaxFacts.AddTopLevelAndMethodLevelMembers
-            AppendMembers(root, list, topLevel:=True, methodLevel:=True)
-        End Sub
+        Public Function GetTopLevelAndMethodLevelMembers(root As SyntaxNode) As PooledObject(Of List(Of SyntaxNode)) Implements ISyntaxFacts.GetTopLevelAndMethodLevelMembers
+            Dim pooledList = PooledObject(Of List(Of SyntaxNode)).Create(s_syntaxNodeListPool)
+            Dim list = pooledList.Object
 
-        Public Sub AddMethodLevelMembers(root As SyntaxNode, list As ArrayBuilder(Of SyntaxNode)) Implements ISyntaxFacts.AddMethodLevelMembers
+            AppendMembers(root, list, topLevel:=True, methodLevel:=True)
+
+            Return pooledList
+        End Function
+
+        Public Function GetMethodLevelMembers(root As SyntaxNode) As PooledObject(Of List(Of SyntaxNode)) Implements ISyntaxFacts.GetMethodLevelMembers
+            Dim pooledList = PooledObject(Of List(Of SyntaxNode)).Create(s_syntaxNodeListPool)
+            Dim list = pooledList.Object
+
             AppendMembers(root, list, topLevel:=False, methodLevel:=True)
-        End Sub
+
+            Return pooledList
+        End Function
 
         Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
@@ -1047,7 +1060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             End If
         End Sub
 
-        Private Sub AppendMembers(node As SyntaxNode, list As ArrayBuilder(Of SyntaxNode), topLevel As Boolean, methodLevel As Boolean)
+        Private Sub AppendMembers(node As SyntaxNode, list As List(Of SyntaxNode), topLevel As Boolean, methodLevel As Boolean)
             Debug.Assert(topLevel OrElse methodLevel)
 
             For Each member In node.GetMembers()

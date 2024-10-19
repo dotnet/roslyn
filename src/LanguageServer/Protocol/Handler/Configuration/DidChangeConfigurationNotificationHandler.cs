@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             RoslynDebug.Assert(configurationsFromClient.Length == SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1));
 
             // LSP ensures the order of result from client should match the order we sent from server.
-            var optionsToUpdate = new ArrayBuilder<KeyValuePair<OptionKey2, object?>>();
+            using var _ = ArrayBuilder<KeyValuePair<OptionKey2, object?>>.GetInstance(out var optionsToUpdate);
 
             for (var i = 0; i < configurationsFromClient.Length; i++)
             {
@@ -111,23 +111,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 
         private async Task<ImmutableArray<string?>> GetConfigurationsAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                var configurationParams = new ConfigurationParams() { Items = _configurationItems.AsArray() };
-                var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JsonArray>(
-                    Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
+            // Attempt to get configurations from the client.  If this throws we'll get NFW reports.
+            var configurationParams = new ConfigurationParams() { Items = _configurationItems.AsArray() };
+            var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JsonArray>(
+                Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
 
-                // Failed to get result from client.
-                Contract.ThrowIfNull(options);
-                var converted = options.SelectAsArray(token => token?.ToString());
-                return converted;
-            }
-            catch (Exception e)
-            {
-                _lspLogger.LogException(e, $"Exception occurs when make {Methods.WorkspaceConfigurationName}.");
-            }
-
-            return [];
+            // Failed to get result from client.
+            Contract.ThrowIfNull(options);
+            var converted = options.SelectAsArray(token => token?.ToString());
+            return converted;
         }
 
         private static ImmutableArray<(IOption2 option, string? langaugeName)> GenerateOptionsNeedsToRefresh()

@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.ExtractMethod;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpMethodExtractor
+internal sealed partial class CSharpMethodExtractor
 {
-    private class CSharpAnalyzer(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken) : Analyzer(selectionResult, localFunction, cancellationToken)
+    private sealed class CSharpAnalyzer(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken) : Analyzer(selectionResult, localFunction, cancellationToken)
     {
-        private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
+        private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>([(int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia]);
 
         public static AnalyzerResult Analyze(CSharpSelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
         {

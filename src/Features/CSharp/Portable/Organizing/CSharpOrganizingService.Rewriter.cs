@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.Organizing.Organizers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Organizing;
 
-internal partial class CSharpOrganizingService
+internal sealed partial class CSharpOrganizingService
 {
-    private class Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, CancellationToken cancellationToken) : CSharpSyntaxRewriter
+    private sealed class Rewriter(CSharpOrganizingService treeOrganizer, IEnumerable<ISyntaxOrganizer> organizers, SemanticModel semanticModel, CancellationToken cancellationToken) : CSharpSyntaxRewriter
     {
         private readonly Func<SyntaxNode, IEnumerable<ISyntaxOrganizer>> _nodeToOrganizersGetter = treeOrganizer.GetNodeToOrganizers(organizers.ToList());
         private readonly SemanticModel _semanticModel = semanticModel;

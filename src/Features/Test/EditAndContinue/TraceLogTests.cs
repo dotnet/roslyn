@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             log.Write("e");
             log.Write("f");
 
-            AssertEx.Equal(new[]
-            {
-               "f",
-               "b 1 x 0x000000FF",
-               "c",
-               $"d str=<null> projectId=MyProject summary=RudeEdits diagnostic=`{diagnostic}`",
-               "e"
-            }, log.GetTestAccessor().Entries.Select(e => e.GetDebuggerDisplay()));
+            AssertEx.Equal(
+            [
+                "f",
+                "b 1 x 0x000000FF",
+                "c",
+                $"d str=<null> projectId=MyProject summary=RudeEdits diagnostic=`{diagnostic}`",
+                "e"
+            ], log.GetTestAccessor().Entries.Select(e => e.GetDebuggerDisplay()));
         }
     }
 }

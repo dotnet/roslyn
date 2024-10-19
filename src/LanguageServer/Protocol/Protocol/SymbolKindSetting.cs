@@ -7,14 +7,21 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the symbol kind setting in initialization.
-    ///
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentSymbolClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// Represents the <see cref="SymbolKind"/> values that the client supports.
     /// </summary>
     internal class SymbolKindSetting
     {
         /// <summary>
-        /// Gets or sets the types of symbol kind the client supports.
+        /// The symbol kind values the client supports.
+        /// <para>
+        /// When this property exists the client also guarantees that it will handle values outside
+        /// its set gracefully and falls back to a default value when unknown.
+        /// </para>
+        /// <para>
+        /// If this property is not present the client only supports the symbol kinds
+        /// from <see cref="SymbolKind.File"/> to <see cref="SymbolKind.Array"/> as
+        /// defined in the initial version of the protocol.
+        /// </para>
         /// </summary>
         [JsonPropertyName("valueSet")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

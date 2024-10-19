@@ -10,42 +10,41 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+/// <summary>
+/// Provide document difference service specific to remote workspace's behavior.
+/// 
+/// Default <see cref="AbstractDocumentDifferenceService"/> is optimized for typing case in editor where we have events
+/// for each typing. But in remote workspace, we aggregate changes and update solution in bulk and we don't have concept
+/// of active file making default implementation unsuitable. Functionally, default one is still correct, but it often
+/// time makes us to do more than we need. Basically, it always says this project has semantic change which can cause
+/// a lot of re-analysis.
+/// </summary>
+internal class RemoteDocumentDifferenceService : IDocumentDifferenceService
 {
-    /// <summary>
-    /// Provide document difference service specific to remote workspace's behavior.
-    /// 
-    /// Default <see cref="AbstractDocumentDifferenceService"/> is optimized for typing case in editor where we have events
-    /// for each typing. But in remote workspace, we aggregate changes and update solution in bulk and we don't have concept
-    /// of active file making default implementation unsuitable. Functionally, default one is still correct, but it often
-    /// time makes us to do more than we need. Basically, it always says this project has semantic change which can cause
-    /// a lot of re-analysis.
-    /// </summary>
-    internal class RemoteDocumentDifferenceService : IDocumentDifferenceService
+    [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: ServiceLayer.Host), Shared]
+    internal sealed class CSharpDocumentDifferenceService : RemoteDocumentDifferenceService
     {
-        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.CSharp, layer: ServiceLayer.Host), Shared]
-        internal sealed class CSharpDocumentDifferenceService : RemoteDocumentDifferenceService
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpDocumentDifferenceService()
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public CSharpDocumentDifferenceService()
-            {
-            }
         }
+    }
 
-        [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: ServiceLayer.Host), Shared]
-        internal sealed class VisualBasicDocumentDifferenceService : AbstractDocumentDifferenceService
+    [ExportLanguageService(typeof(IDocumentDifferenceService), LanguageNames.VisualBasic, layer: ServiceLayer.Host), Shared]
+    internal sealed class VisualBasicDocumentDifferenceService : AbstractDocumentDifferenceService
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualBasicDocumentDifferenceService()
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public VisualBasicDocumentDifferenceService()
-            {
-            }
         }
+    }
 
-        public Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            return SpecializedTasks.Null<SyntaxNode>();
-        }
+    public Task<SyntaxNode?> GetChangedMemberAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+    {
+        return SpecializedTasks.Null<SyntaxNode>();
     }
 }

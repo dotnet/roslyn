@@ -70,13 +70,13 @@ public class C {
             var oldTree = this.ParsePreview(text);
             var newTree = oldTree.WithReplaceFirst("?", "");
             oldTree.GetDiagnostics().Verify(
-                // (4,30): error CS8989: The 'parameter null-checking' feature is not supported.
+                // (4,30): error CS1003: Syntax error, ',' expected
                 //     public void M(string? x  !!) {
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 30));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(4, 30));
             newTree.GetDiagnostics().Verify(
-                // (4,29): error CS8989: The 'parameter null-checking' feature is not supported.
+                // (4,29): error CS1003: Syntax error, ',' expected
                 //     public void M(string x  !!) {
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 29));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(4, 29));
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,

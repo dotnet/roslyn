@@ -7,6 +7,21 @@
         <target state="translated">URI を逆シリアル化できません。予期しない値が発生しました: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="FormattingOptionsEncounteredInvalidToken">
+        <source>Unable to deserialize FormattingOptions. Invalid token: {0}</source>
+        <target state="translated">FormattingOptions を逆シリアル化できません。トークンが無効です: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsEndedUnexpectedly">
+        <source>Unable to deserialize FormattingOptions as it ended unexpectedly</source>
+        <target state="translated">FormattingOptions が予期せず終了したため、逆シリアル化できません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsMissingRequiredProperty">
+        <source>Unable to deserialize FormattingOptions. Missing required property: {0}</source>
+        <target state="translated">FormattingOptions を逆シリアル化できません。必須プロパティがありません: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MarkupContentSerializationError">
         <source>Unable to deserialize MarkupContent. Unexpected value encountered: {0}</source>
         <target state="translated">MarkupContent を逆シリアル化できません。予期しない値が発生しました: {0}</target>

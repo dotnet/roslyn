@@ -39,8 +39,8 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     public static IEnumerable<object[]> SupportedKeywords => new[]
     {
         new[] { "class" },
-        new[] { "enum" },
-        new[] { "interface"}
+        ["enum"],
+        ["interface"]
     };
 
     [Fact]

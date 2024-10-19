@@ -5,17 +5,24 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using Range = Roslyn.LanguageServer.Protocol.Range;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
-    public class ProtocolConversionsTests
+    public class ProtocolConversionsTests : AbstractLanguageServerProtocolTests
     {
+        public ProtocolConversionsTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
         [Fact]
         public void CreateAbsoluteUri_LocalPaths_AllAscii()
         {
@@ -167,27 +174,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.Equal(url, ProtocolConversions.CreateAbsoluteUri(url).AbsoluteUri);
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
-        [InlineData("a\\b", "source-generated:///a/b")]
-        [InlineData("a//b", "source-generated:///a//b")]
-        [InlineData("a/b", "source-generated:///a/b")]
-        [InlineData("%25\ue25b//\u0089\uC7BD/a", "source-generated:///%2525%EE%89%9B//%C2%89%EC%9E%BD/a")]
-        [InlineData("%25\ue25b\\\u0089\uC7BD", "source-generated:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
-        public void GetUriFromSourceGeneratedFilePath_Windows(string filePath, string expectedAbsoluteUri)
-        {
-            var url = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(filePath);
-            Assert.Equal(expectedAbsoluteUri, url.AbsoluteUri);
-        }
-
-        [ConditionalTheory(typeof(UnixLikeOnly))]
-        [InlineData("a/b", "source-generated:///a/b")]
-        [InlineData("%25\ue25b/\u0089\uC7BD", "source-generated:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
-        public void GetUriFromSourceGeneratedFilePath_Unix(string filePath, string expectedAbsoluteUri)
-        {
-            var url = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(filePath);
-            Assert.Equal(expectedAbsoluteUri, url.AbsoluteUri);
-        }
-
         [Fact]
         public void CompletionItemKind_DoNotUseMethodAndFunction()
         {
@@ -296,6 +282,63 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
     var x = 5;
 }";
             return markup;
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ProjectToProjectContext_HostWorkspace(bool mutatingLspWorkspace)
+        {
+            var source = """
+                class {|caret:A|}
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+
+            // Create a server with an existing file.
+            await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+            var caret = testLspServer.GetLocations("caret").Single();
+
+            var document = await GetTextDocumentAsync(testLspServer, caret.Uri);
+            Assert.NotNull(document);
+
+            var projectContext = ProtocolConversions.ProjectToProjectContext(document.Project);
+
+            Assert.False(projectContext.IsMiscellaneous);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ProjectToProjectContext_MiscellaneousFilesWorkspace(bool mutatingLspWorkspace)
+        {
+            var source = """
+                class A
+                {
+                    void M()
+                    {
+                    }
+                }
+                """;
+
+            // Create a server that supports LSP misc files.
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+            // Open an empty loose file.
+            var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"C:\SomeFile.cs");
+            await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
+
+            var document = await GetTextDocumentAsync(testLspServer, looseFileUri);
+            Assert.NotNull(document);
+
+            var projectContext = ProtocolConversions.ProjectToProjectContext(document.Project);
+
+            Assert.True(projectContext.IsMiscellaneous);
+        }
+
+        internal static async Task<TextDocument?> GetTextDocumentAsync(TestLspServer testLspServer, Uri uri)
+        {
+            var (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { Uri = uri }, CancellationToken.None);
+            return textDocument;
         }
     }
 }

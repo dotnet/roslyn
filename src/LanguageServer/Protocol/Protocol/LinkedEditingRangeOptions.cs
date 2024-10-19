@@ -8,14 +8,14 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents linked editing range capabilities.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#linkedEditingRangeOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class LinkedEditingRangeOptions : IWorkDoneProgressOptions
     {
-        /// <summary>
-        /// Gets or sets a value indicating whether work done progress is supported.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName("workDoneProgress")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }

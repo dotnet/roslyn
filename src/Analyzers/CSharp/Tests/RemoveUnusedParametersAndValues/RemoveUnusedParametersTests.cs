@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -1919,5 +1920,142 @@ Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
                 }
             }
             """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    public async Task TestInterpolatedStringHandler_TwoIntParameters_FirstParameter()
+    {
+        await TestDiagnosticMissingAsync("""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int [|literalLength|], int formattedCount)
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    public async Task TestInterpolatedStringHandler_TwoIntParameters_SecondParameter()
+    {
+        await TestDiagnosticMissingAsync("""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int literalLength, int [|formattedCount|])
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    [MemberData(nameof(NonIntTypes))]
+    public async Task TestInterpolatedStringHandler_TwoParameters_FirstNonIntParameter(string nonIntType)
+    {
+        await TestDiagnosticsAsync($$"""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler({{nonIntType}} [|literalLength|], int formattedCount)
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    [MemberData(nameof(NonIntTypes))]
+    public async Task TestInterpolatedStringHandler_TwoParameters_SecondNonIntParameter(string nonIntType)
+    {
+        await TestDiagnosticsAsync($$"""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int literalLength, {{nonIntType}} [|formattedCount|])
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    public async Task TestInterpolatedStringHandler_OneIntParameter()
+    {
+        await TestDiagnosticMissingAsync("""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler(int [|literalLength|])
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58168")]
+    [MemberData(nameof(NonIntTypes))]
+    public async Task TestInterpolatedStringHandler_OneNonIntParameter(string nonIntType)
+    {
+        await TestDiagnosticsAsync($$"""
+            <Workspace>
+                <Project Language="C#" CommonReferencesNet6="true">
+                    <Document>using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            public struct MyInterpolatedStringHandler
+            {
+                public MyInterpolatedStringHandler({{nonIntType}} [|p|])
+                {
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId));
+    }
+
+    public static IEnumerable<object[]> NonIntTypes()
+    {
+        yield return ["byte"];
+        yield return ["long"];
+        yield return ["object"];
+        yield return ["string"];
     }
 }

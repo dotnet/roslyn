@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             // terminate the previous expression/statement
             var buffer = ProjectionBufferFactoryService.CreateProjectionBuffer(
                 projectionEditResolver: null,
-                sourceSpans: new object[] { previousTrackingSpan, this.StatementTerminator },
+                sourceSpans: [previousTrackingSpan, this.StatementTerminator],
                 options: ProjectionBufferOptions.None,
                 contentType: this.ContentType);
 

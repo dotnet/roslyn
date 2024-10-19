@@ -37,7 +37,7 @@ internal readonly struct SemanticModelReuseInfo(SemanticModel previousNonSpecula
     public readonly VersionStamp TopLevelSemanticVersion = topLevelSementicVersion;
 }
 
-internal partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
+internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
 {
     private sealed class SemanticModelReuseWorkspaceService : ISemanticModelReuseWorkspaceService
     {

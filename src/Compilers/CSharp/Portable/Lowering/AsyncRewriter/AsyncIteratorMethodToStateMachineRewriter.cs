@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var asyncDispatch = base.GenerateMissingStateDispatch();
 
-            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod);
+            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), HotReloadExceptionCode.CannotResumeSuspendedIteratorMethod);
             if (iteratorDispatch == null)
             {
                 return asyncDispatch;

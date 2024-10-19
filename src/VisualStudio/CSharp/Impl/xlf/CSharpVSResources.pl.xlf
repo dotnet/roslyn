@@ -532,11 +532,6 @@
         <target state="translated">_Pokaż separatory wierszy procedury</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
-        <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">_Nie umieszczaj parametrów ref i out w strukturze niestandardowej</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">Pomoc edytora</target>

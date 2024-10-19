@@ -73,7 +73,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         string? additionalFileText = null,
         (string key, string value)[]? analyzerConfig = null)
     {
-        solution = AddDefaultTestProject(solution, new[] { source }, generator, additionalFileText, analyzerConfig);
+        solution = AddDefaultTestProject(solution, [source], generator, additionalFileText, analyzerConfig);
         return (solution, solution.Projects.Single().Documents.Single());
     }
 
@@ -223,18 +223,19 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         _debuggerService.LoadedModules!.Add(moduleId, availability);
     }
 
-    public Guid EmitLibrary(
+    internal Guid EmitLibrary(
         string source,
         string? sourceFilePath = null,
         Encoding? encoding = null,
         SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
         string assemblyName = "",
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
-        ISourceGenerator? generator = null,
+        Project? generatorProject = null,
         string? additionalFileText = null,
         IEnumerable<(string, string)>? analyzerOptions = null)
     {
-        return EmitLibrary(new[] { (source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs")) }, encoding, checksumAlgorithm, assemblyName, pdbFormat, generator, additionalFileText, analyzerOptions);
+        var sources = new[] { (source, sourceFilePath ?? Path.Combine(TempRoot.Root, "test1.cs")) };
+        return EmitLibrary(sources, encoding, checksumAlgorithm, assemblyName, pdbFormat, generatorProject, additionalFileText, analyzerOptions);
     }
 
     internal Guid EmitLibrary(
@@ -243,7 +244,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithms.Default,
         string assemblyName = "",
         DebugInformationFormat pdbFormat = DebugInformationFormat.PortablePdb,
-        ISourceGenerator? generator = null,
+        Project? generatorProject = null,
         string? additionalFileText = null,
         IEnumerable<(string, string)>? analyzerOptions = null)
     {
@@ -259,11 +260,19 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
 
         Compilation compilation = CSharpTestBase.CreateCompilation(trees.ToArray(), options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: assemblyName);
 
-        if (generator != null)
+        if (generatorProject != null)
         {
+            var generators = generatorProject.AnalyzerReferences.SelectMany(r => r.GetGenerators(language: generatorProject.Language));
+
             var optionsProvider = (analyzerOptions != null) ? new EditAndContinueTestAnalyzerConfigOptionsProvider(analyzerOptions) : null;
             var additionalTexts = (additionalFileText != null) ? new[] { new InMemoryAdditionalText("additional_file", additionalFileText) } : null;
-            var generatorDriver = CSharpGeneratorDriver.Create(new[] { generator }, additionalTexts, parseOptions, optionsProvider);
+            var generatorDriver = CSharpGeneratorDriver.Create(
+                generators,
+                additionalTexts,
+                parseOptions,
+                optionsProvider,
+                driverOptions: new GeneratorDriverOptions(baseDirectory: generatorProject.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory()!));
+
             generatorDriver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
             generatorDiagnostics.Verify();
             compilation = outputCompilation;
@@ -414,7 +423,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         const string ClosingMarker = "*/";
 
         var index = markedSource.IndexOf(OpeningMarker);
-        if (index > 0)
+        if (index >= 0)
         {
             index += OpeningMarker.Length;
             var closing = markedSource.IndexOf(ClosingMarker, index);

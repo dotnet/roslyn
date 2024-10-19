@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -9361,7 +9361,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
@@ -9397,7 +9397,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
@@ -9434,7 +9434,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.

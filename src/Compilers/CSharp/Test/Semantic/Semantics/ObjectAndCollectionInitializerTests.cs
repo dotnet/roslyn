@@ -2841,8 +2841,16 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
               Children(2):
                   ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""s"", IsInvalid) (Syntax: '""s""')
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'var')
-              Children(0)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'var')
+              Left:
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'var')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'var')
+                        Children(1):
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Dictionary<System.Object, System.Object>, IsInvalid, IsImplicit) (Syntax: 'Dictionary< ... ct, object>')
+              Right:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'var')
+                  Children(0)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'x = 1')
               Left:
                 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
@@ -2872,9 +2880,6 @@ IInvalidOperation (OperationKind.Invalid, Type: Dictionary<System.Object, System
                 // (8,13): error CS0747: Invalid initializer member declarator
                 //             {"s", 1 },
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"{""s"", 1 }").WithLocation(8, 13),
-                // (9,9): error CS0103: The name 'var' does not exist in the current context
-                //         var x = 1;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(9, 9),
                 // (9,9): error CS0747: Invalid initializer member declarator
                 //         var x = 1;
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var").WithLocation(9, 9)

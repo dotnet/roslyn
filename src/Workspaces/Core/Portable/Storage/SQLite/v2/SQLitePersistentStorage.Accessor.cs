@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 {
     using static SQLitePersistentStorageConstants;
 
-    internal partial class SQLitePersistentStorage
+    internal sealed partial class SQLitePersistentStorage
     {
         /// <summary>
         /// Abstracts out access to specific tables in the DB.  This allows us to share overall
