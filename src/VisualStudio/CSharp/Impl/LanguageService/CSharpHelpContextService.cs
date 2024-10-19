@@ -362,12 +362,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                     return true;
                 }
 
-                if (directive.IsKind(SyntaxKind.PragmaWarningDirectiveTrivia))
-                {
-                    text = token.Text;
-                    return true;
-                }
-
                 if (token.Kind() is SyntaxKind.IdentifierToken or SyntaxKind.EndOfDirectiveToken)
                 {
                     text = $"#{directive.HashToken.GetNextToken(includeDirectives: true).Text}";

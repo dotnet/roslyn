@@ -2054,7 +2054,7 @@ class C
             await TestAsync(
 @"
 #pragma warning disable CS[||]0312
-", "CS0312");
+", "#pragma");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66009")]
