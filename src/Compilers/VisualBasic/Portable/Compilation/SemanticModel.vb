@@ -2920,28 +2920,6 @@ _Default:
         Friend MustOverride Function GetAwaitExpressionInfoWorker(awaitExpression As AwaitExpressionSyntax, Optional cancellationToken As CancellationToken = Nothing) As AwaitExpressionInfo
 
         ''' <summary>
-        ''' If the given token is within a preprocessing directive, gets the preprocessing symbol info for it.
-        ''' </summary>
-        ''' <param name="token">Preprocessing symbol syntax token.</param>
-        Public Shadows Function GetPreprocessingSymbolInfo(token As SyntaxToken) As VisualBasicPreprocessingSymbolInfo
-            Dim parent = DirectCast(token.Parent, VisualBasicSyntaxNode)
-            CheckSyntaxNode(parent)
-
-            If parent.Kind() = SyntaxKind.ConstDirectiveTrivia Then
-                Dim symbolInfo As VisualBasicPreprocessingSymbolInfo = token.SyntaxTree.GetPreprocessingSymbolInfo(token)
-
-                Return RetrieveOrConstructPreprocessingSymbolInfo(symbolInfo, token)
-            End If
-
-            Dim identifierParent = TryCast(parent, IdentifierNameSyntax)
-            If identifierParent IsNot Nothing Then
-                Return GetPreprocessingSymbolInfo(identifierParent)
-            End If
-
-            Return VisualBasicPreprocessingSymbolInfo.None
-        End Function
-
-        ''' <summary>
         ''' If the given node is within a preprocessing directive, gets the preprocessing symbol info for it.
         ''' </summary>
         ''' <param name="node">Preprocessing symbol identifier node.</param>
