@@ -62,11 +62,22 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider : LSPCom
                 return;
 
             var node = targetToken.Parent;
-            if (node is not ExplicitInterfaceSpecifierSyntax specifierNode)
-                return;
-
             // Bind the interface name which is to the left of the dot
-            var name = specifierNode.Name;
+            NameSyntax? name = null;
+            switch (node)
+            {
+                case ExplicitInterfaceSpecifierSyntax specifierNode:
+                    name = specifierNode.Name;
+                    break;
+
+                case QualifiedNameSyntax qualifiedName
+                when node.Parent.IsKind(SyntaxKind.IncompleteMember):
+                    name = qualifiedName.Left;
+                    break;
+
+                default:
+                    return;
+            }
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as ITypeSymbol;

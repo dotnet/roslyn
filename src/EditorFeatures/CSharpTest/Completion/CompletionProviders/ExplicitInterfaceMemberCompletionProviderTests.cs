@@ -1047,4 +1047,68 @@ class C : I
 
         await VerifyProviderCommitAsync(markup, "operator checked string(C3 x)", expected, '\t');
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_01()
+    {
+        var markup = """
+            interface IGoo
+            {
+                void Goo();
+                static abstract void StaticGoo();
+            }
+
+            class Bar : IGoo
+            {
+                IGoo.$$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "StaticGoo", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_02()
+    {
+        var markup = """
+            interface IGoo
+            {
+                void Goo();
+            }
+
+            class Bar : IGoo
+            {
+                void Test()
+                {
+                    IGoo.$$
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Goo");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_03()
+    {
+        var markup = """
+            class Outer
+            {
+                public interface IGoo
+                {
+                    void Goo();
+                    static abstract void StaticGoo();
+                }
+            }
+
+            class Bar : Outer.IGoo
+            {
+                Outer.IGoo.$$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "StaticGoo", displayTextSuffix: "()");
+    }
 }
