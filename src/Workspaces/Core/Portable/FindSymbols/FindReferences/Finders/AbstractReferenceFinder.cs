@@ -894,12 +894,6 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
 
         foreach (var project in solution.Projects)
         {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (compilation is null)
-                continue;
-
             var allDocuments = project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
