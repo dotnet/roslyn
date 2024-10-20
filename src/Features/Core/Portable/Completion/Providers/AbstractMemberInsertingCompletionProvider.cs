@@ -6,12 +6,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPCompletionProvider
 {
     private readonly SyntaxAnnotation _annotation = new();
-    private readonly SyntaxAnnotation _otherAnnotation = new();
+    private readonly SyntaxAnnotation _replaceStartAnnotation = new();
+    private readonly SyntaxAnnotation _replaceEndAnnotation = new();
 
     protected abstract SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
 
@@ -77,9 +76,33 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var line = text.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
 
         // Annotate the line we care about so we can find it after adding usings
+        // We annotate the line in order to handle adding the generated code before our annotated token in the same line
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var token = GetToken(completionItem, tree, cancellationToken);
-        var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
+        var treeRoot = tree.GetRoot(cancellationToken);
+
+        // DevDiv 958235: 
+        //
+        // void goo()
+        // {
+        // }
+        // override $$
+        //
+        // If our text edit includes the trailing trivia of the close brace of goo(),
+        // that token will be reconstructed. The ensuing tree diff will then count
+        // the { } as replaced even though we didn't want it to. If the user
+        // has collapsed the outline for goo, that means we'll edit the outlined 
+        // region and weird stuff will happen. Therefore, we'll start with the first
+        // token on the line in order to leave the token and its trivia alone.
+        var lineStart = line.GetFirstNonWhitespacePosition();
+        Contract.ThrowIfNull(lineStart);
+        var endToken = GetToken(completionItem, tree, cancellationToken);
+        var annotatedRoot = treeRoot
+            .ReplaceToken(endToken, endToken.WithAdditionalAnnotations(_replaceEndAnnotation));
+
+        var startToken = annotatedRoot.FindTokenOnRightOfPosition(lineStart.Value);
+        annotatedRoot = annotatedRoot
+            .ReplaceToken(startToken, startToken.WithAdditionalAnnotations(_replaceStartAnnotation));
+
         // Make sure the new document is frozen before we try to get the semantic model. This is to 
         // avoid trigger source generator, which is expensive and not needed for calculating the change.
         document = document.WithSyntaxRoot(annotatedRoot).WithFrozenPartialSemantics(cancellationToken);
@@ -94,20 +117,17 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         }
 
         var memberContainingDocumentCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(memberContainingDocument, memberContainingDocumentCleanupOptions, cancellationToken).ConfigureAwait(false);
-        var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, memberContainingDocumentCleanupOptions, cancellationToken).ConfigureAwait(false);
 
-        var destinationSpan = ComputeDestinationSpan(insertionRoot);
+        // We get the insertion root and immediately create a document with the replaced text removed
+        // before calculating the insertion text, to ensure syntactical correctness
+        // An example problematic case is explicit interface implementations of static operator methods
+        // which could cause many errors, causing the resulting text to be unformatted in various bad ways
+        var memberContainingRoot = await memberContainingDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var destinationSpan = ComputeDestinationSpan(memberContainingRoot);
 
-        var finalText = insertionRoot.GetText(text.Encoding)
-            .Replace(destinationSpan, insertionText.Trim());
-
-        document = document.WithText(finalText);
-        var newRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
-
-        document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
+        document = await RemoveDestinationNodeAsync(memberContainingDocument, destinationSpan, cancellationToken).ConfigureAwait(false);
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        document = await Simplifier.ReduceAsync(document, _annotation, memberContainingDocumentCleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         return await Formatter.FormatAsync(document, _annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
     }
 
@@ -157,64 +177,30 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
             memberContainingDocument = await codeGenService.AddEventAsync(context, containingType, (IEventSymbol)generatedMember, cancellationToken).ConfigureAwait(false);
         }
 
-        return memberContainingDocument;
+        Contract.ThrowIfNull(memberContainingDocument);
+        return memberContainingDocument!;
     }
 
     private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
     {
-        var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNull();
-        Contract.ThrowIfNull(targetToken);
+        var startToken = insertionRoot.GetAnnotatedTokens(_replaceStartAnnotation).FirstOrNull();
+        Contract.ThrowIfNull(startToken);
+        var endToken = insertionRoot.GetAnnotatedTokens(_replaceEndAnnotation).FirstOrNull();
+        Contract.ThrowIfNull(endToken);
 
         var text = insertionRoot.GetText();
-        var line = text.Lines.GetLineFromPosition(targetToken.Value.Span.End);
+        var line = text.Lines.GetLineFromPosition(endToken.Value.Span.End);
 
-        // DevDiv 958235: 
-        //
-        // void goo()
-        // {
-        // }
-        // override $$
-        //
-        // If our text edit includes the trailing trivia of the close brace of goo(),
-        // that token will be reconstructed. The ensuing tree diff will then count
-        // the { } as replaced even though we didn't want it to. If the user
-        // has collapsed the outline for goo, that means we'll edit the outlined 
-        // region and weird stuff will happen. Therefore, we'll start with the first
-        // token on the line in order to leave the token and its trivia alone.
-        var position = line.GetFirstNonWhitespacePosition();
-        Contract.ThrowIfNull(position);
-
-        var firstToken = insertionRoot.FindToken(position.Value);
-        return TextSpan.FromBounds(firstToken.SpanStart, line.End);
+        return TextSpan.FromBounds(startToken.Value.SpanStart, line.End);
     }
 
-    private async Task<string> GenerateInsertionTextAsync(
-        Document memberContainingDocument, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
+    private static async Task<Document> RemoveDestinationNodeAsync(
+        Document memberContainingDocument, TextSpan destinationSpan, CancellationToken cancellationToken)
     {
-        memberContainingDocument = await Simplifier.ReduceAsync(memberContainingDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
-        memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
-
         var root = await memberContainingDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return root.GetAnnotatedNodes(_annotation).Single().ToString().Trim();
-    }
-
-    private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemovedAsync(
-        Document document, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
-    {
-        // Added imports are annotated for simplification too. Therefore, we simplify the document
-        // before removing added member node to preserve those imports in the document.
-        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
-
-        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var members = root.GetAnnotatedNodes(_annotation).AsImmutable();
-
-        root = root.RemoveNodes(members, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-        Contract.ThrowIfNull(root);
-
-        var dismemberedDocument = document.WithSyntaxRoot(root);
-
-        dismemberedDocument = await Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
-        return await dismemberedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var destinationNode = root.FindNode(destinationSpan);
+        var newRoot = root.RemoveNode(destinationNode, SyntaxRemoveOptions.KeepNoTrivia)!;
+        return memberContainingDocument.WithSyntaxRoot(newRoot);
     }
 
     private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '(')];

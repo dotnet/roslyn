@@ -205,16 +205,4 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
     internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
-
-    //public override Task<TextChange?> GetTextChangeAsync(
-    //    Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-    //{
-    //    // Whatever the user types, only place the insertion text
-    //    // TODO: Evaluate whether we want the user's input to be respected and not automatically insert the
-    //    // default body of the member
-    //    return Task.FromResult<TextChange?>(
-    //        new TextChange(
-    //            selectedItem.Span,
-    //            SymbolCompletionItem.GetInsertionText(selectedItem)));
-    //}
 }
