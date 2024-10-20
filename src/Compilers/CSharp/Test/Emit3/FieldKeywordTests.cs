@@ -10172,6 +10172,109 @@ class C<T>
         }
 
         [Theory]
+        [CombinatorialData]
+        public void InterpolatedString(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = $$"""
+                using System;
+                class C
+                {
+                    public object P1 => $"P1: {field is null}";
+                    public object P2 { get; set { field = value; field = $"{field}"; } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        c.P2 = 2;
+                        Console.WriteLine(c.P1);
+                        Console.WriteLine(c.P2);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,32): error CS0103: The name 'field' does not exist in the current context
+                    //     public object P1 => $"P1: {field is null}";
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 32),
+                    // (5,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public object P2 { get; set { field = value; field = $"{field}"; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(5, 19),
+                    // (5,35): error CS0103: The name 'field' does not exist in the current context
+                    //     public object P2 { get; set { field = value; field = $"{field}"; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 35),
+                    // (5,50): error CS0103: The name 'field' does not exist in the current context
+                    //     public object P2 { get; set { field = value; field = $"{field}"; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 50),
+                    // (5,61): error CS0103: The name 'field' does not exist in the current context
+                    //     public object P2 { get; set { field = value; field = $"{field}"; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 61));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: """
+                    P1: True
+                    2
+                    """);
+                verifier.VerifyIL("C.P1.get", """
+                    {
+                      // Code size       45 (0x2d)
+                      .maxstack  3
+                      .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  ldc.i4.4
+                      IL_0003:  ldc.i4.1
+                      IL_0004:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_0009:  ldloca.s   V_0
+                      IL_000b:  ldstr      "P1: "
+                      IL_0010:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+                      IL_0015:  ldloca.s   V_0
+                      IL_0017:  ldarg.0
+                      IL_0018:  ldfld      "object C.<P1>k__BackingField"
+                      IL_001d:  ldnull
+                      IL_001e:  ceq
+                      IL_0020:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<bool>(bool)"
+                      IL_0025:  ldloca.s   V_0
+                      IL_0027:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_002c:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C.P2.set", """
+                    {
+                      // Code size       43 (0x2b)
+                      .maxstack  4
+                      .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldarg.1
+                      IL_0002:  stfld      "object C.<P2>k__BackingField"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldloca.s   V_0
+                      IL_000a:  ldc.i4.0
+                      IL_000b:  ldc.i4.1
+                      IL_000c:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  ldarg.0
+                      IL_0014:  ldfld      "object C.<P2>k__BackingField"
+                      IL_0019:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<object>(object)"
+                      IL_001e:  ldloca.s   V_0
+                      IL_0020:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_0025:  stfld      "object C.<P2>k__BackingField"
+                      IL_002a:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory]
         [InlineData("{ get; }")]
         [InlineData("{ get; set; }")]
         [InlineData("{ get => field; }")]
