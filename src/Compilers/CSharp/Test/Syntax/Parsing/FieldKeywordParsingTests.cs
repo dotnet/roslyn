@@ -1959,6 +1959,188 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void InterpolatedString_01_Alignment(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => $"{x,field}";
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.InterpolatedStringExpression);
+                            {
+                                N(SyntaxKind.InterpolatedStringStartToken);
+                                N(SyntaxKind.Interpolation);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.InterpolationAlignmentClause);
+                                    {
+                                        N(SyntaxKind.CommaToken);
+                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false);
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                                N(SyntaxKind.InterpolatedStringEndToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterpolatedString_01_Format(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => $"{x:field}";
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.InterpolatedStringExpression);
+                            {
+                                N(SyntaxKind.InterpolatedStringStartToken);
+                                N(SyntaxKind.Interpolation);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.InterpolationFormatClause);
+                                    {
+                                        N(SyntaxKind.ColonToken);
+                                        N(SyntaxKind.InterpolatedStringTextToken);
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                                N(SyntaxKind.InterpolatedStringEndToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterpolatedString_01_AlignmentAndFormat(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => $"{x,field:field}";
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.InterpolatedStringExpression);
+                            {
+                                N(SyntaxKind.InterpolatedStringStartToken);
+                                N(SyntaxKind.Interpolation);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.InterpolationAlignmentClause);
+                                    {
+                                        N(SyntaxKind.CommaToken);
+                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false);
+                                    }
+                                    N(SyntaxKind.InterpolationFormatClause);
+                                    {
+                                        N(SyntaxKind.ColonToken);
+                                        N(SyntaxKind.InterpolatedStringTextToken);
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                                N(SyntaxKind.InterpolatedStringEndToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void InterpolatedString_02(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {

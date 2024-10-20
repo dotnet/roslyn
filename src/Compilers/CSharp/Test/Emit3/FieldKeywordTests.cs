@@ -10275,6 +10275,194 @@ class C<T>
         }
 
         [Theory]
+        [CombinatorialData]
+        public void InterpolatedString_Alignment(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = $$"""
+                using System;
+                class C
+                {
+                    int x = 42;
+                    const int field = 5;
+                    public int P1 { get { Console.WriteLine($"{x,field}"); return 1; } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.WriteLine(c.P1);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
+                    42
+                    1
+                    """));
+                verifier.VerifyIL("C.P1.get", """
+                    {
+                      // Code size       37 (0x25)
+                      .maxstack  3
+                      .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
+                      IL_0000:  ldloca.s   V_0
+                      IL_0002:  ldc.i4.0
+                      IL_0003:  ldc.i4.1
+                      IL_0004:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                      IL_0009:  ldloca.s   V_0
+                      IL_000b:  ldarg.0
+                      IL_000c:  ldfld      "int C.x"
+                      IL_0011:  ldc.i4.5
+                      IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int)"
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                      IL_001e:  call       "void System.Console.WriteLine(string)"
+                      IL_0023:  ldc.i4.1
+                      IL_0024:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,50): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //     public int P1 { get { Console.WriteLine($"{x,field}"); return 1; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(6, 50),
+                    // (6,50): error CS0150: A constant value is expected
+                    //     public int P1 { get { Console.WriteLine($"{x,field}"); return 1; } }
+                    Diagnostic(ErrorCode.ERR_ConstantExpected, "field").WithLocation(6, 50));
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().Where(f => f.IsImplicitlyDeclared).ToImmutableArray();
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                Assert.Empty(actualFields.ToTestDisplayStrings());
+            }
+            else
+            {
+                var expectedFields = new[]
+                {
+                    "System.Int32 C.<P1>k__BackingField",
+                };
+                AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+            }
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(1, actualProperties.Length);
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            }
+            else
+            {
+                Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            }
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void InterpolatedString_Format(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = $$"""
+                using System;
+                class C
+                {
+                    int x = 42;
+                    const int y = 3;
+                    const int field = 5;
+                    public int P2 { get { Console.WriteLine($"{x:field}"); return 2; } }
+                    public int P3 { get { Console.WriteLine($"{x,y:field}"); return 3; } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.WriteLine((c.P2, c.P3));
+                    }
+                }
+                """;
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
+                field
+                field
+                (2, 3)
+                """));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.P2.get", """
+                {
+                    // Code size       41 (0x29)
+                    .maxstack  3
+                    .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
+                    IL_0000:  ldloca.s   V_0
+                    IL_0002:  ldc.i4.0
+                    IL_0003:  ldc.i4.1
+                    IL_0004:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                    IL_0009:  ldloca.s   V_0
+                    IL_000b:  ldarg.0
+                    IL_000c:  ldfld      "int C.x"
+                    IL_0011:  ldstr      "field"
+                    IL_0016:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, string)"
+                    IL_001b:  ldloca.s   V_0
+                    IL_001d:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                    IL_0022:  call       "void System.Console.WriteLine(string)"
+                    IL_0027:  ldc.i4.2
+                    IL_0028:  ret
+                }
+                """);
+            verifier.VerifyIL("C.P3.get", """
+                {
+                    // Code size       42 (0x2a)
+                    .maxstack  4
+                    .locals init (System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_0)
+                    IL_0000:  ldloca.s   V_0
+                    IL_0002:  ldc.i4.0
+                    IL_0003:  ldc.i4.1
+                    IL_0004:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+                    IL_0009:  ldloca.s   V_0
+                    IL_000b:  ldarg.0
+                    IL_000c:  ldfld      "int C.x"
+                    IL_0011:  ldc.i4.3
+                    IL_0012:  ldstr      "field"
+                    IL_0017:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, int, string)"
+                    IL_001c:  ldloca.s   V_0
+                    IL_001e:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+                    IL_0023:  call       "void System.Console.WriteLine(string)"
+                    IL_0028:  ldc.i4.3
+                    IL_0029:  ret
+                }
+                """);
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().Where(f => f.IsImplicitlyDeclared).ToImmutableArray();
+            Assert.Empty(actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(2, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P2", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P3", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
         [InlineData("{ get; }")]
         [InlineData("{ get; set; }")]
         [InlineData("{ get => field; }")]
