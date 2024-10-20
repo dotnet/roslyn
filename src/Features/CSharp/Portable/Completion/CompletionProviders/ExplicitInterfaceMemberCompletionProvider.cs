@@ -191,11 +191,16 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
     {
         for (var i = 0; i < memberString.Length; i++)
         {
-            if (!SyntaxFacts.IsIdentifierPartCharacter(memberString[i]))
+            if (IsSplitterChar(memberString[i]))
                 return (memberString[0..i], memberString[i..]);
         }
 
         return (memberString, "");
+
+        static bool IsSplitterChar(char c)
+        {
+            return c is '(' or '[' or '<';
+        }
     }
 
     internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
