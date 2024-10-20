@@ -10221,10 +10221,10 @@ class C<T>
             }
             else
             {
-                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: """
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
                     P1: True
                     2
-                    """);
+                    """));
                 verifier.VerifyIL("C.P1.get", """
                     {
                       // Code size       45 (0x2d)
