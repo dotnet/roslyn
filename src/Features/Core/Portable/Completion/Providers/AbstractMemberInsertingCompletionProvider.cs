@@ -118,14 +118,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
         var memberContainingDocumentCleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-        // We get the insertion root and immediately create a document with the replaced text removed
-        // before calculating the insertion text, to ensure syntactical correctness
-        // An example problematic case is explicit interface implementations of static operator methods
-        // which could cause many errors, causing the resulting text to be unformatted in various bad ways
-        var memberContainingRoot = await memberContainingDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var destinationSpan = ComputeDestinationSpan(memberContainingRoot);
-
-        document = await RemoveDestinationNodeAsync(memberContainingDocument, destinationSpan, cancellationToken).ConfigureAwait(false);
+        document = await RemoveDestinationNodeAsync(memberContainingDocument, memberContainingDocumentCleanupOptions, cancellationToken).ConfigureAwait(false);
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         document = await Simplifier.ReduceAsync(document, _annotation, memberContainingDocumentCleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
         return await Formatter.FormatAsync(document, _annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
@@ -194,13 +187,29 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         return TextSpan.FromBounds(startToken.Value.SpanStart, line.End);
     }
 
-    private static async Task<Document> RemoveDestinationNodeAsync(
-        Document memberContainingDocument, TextSpan destinationSpan, CancellationToken cancellationToken)
+    private async Task<Document> RemoveDestinationNodeAsync(
+        Document memberContainingDocument, CodeCleanupOptions cleanupOptions, CancellationToken cancellationToken)
     {
+        // At this stage we have created the replacing node, but we also have the source node that triggered the completion
+        // To remove the old node, we need to port over the trivia and then recalculate the node to remove
+        // since we may have adjusted the position of the node by inserting trivia before the new node
+
         var root = await memberContainingDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var destinationSpan = ComputeDestinationSpan(root);
         var destinationNode = root.FindNode(destinationSpan);
+        var replacingNode = root.GetAnnotatedNodes(_annotation).Single();
+        root = root.ReplaceNode(replacingNode, replacingNode.WithTriviaFrom(destinationNode));
+
+        // Now that we have replaced the node, find the destination node again
+        destinationSpan = ComputeDestinationSpan(root);
+        destinationNode = root.FindNode(destinationSpan);
         var newRoot = root.RemoveNode(destinationNode, SyntaxRemoveOptions.KeepNoTrivia)!;
-        return memberContainingDocument.WithSyntaxRoot(newRoot);
+        var document = memberContainingDocument.WithSyntaxRoot(newRoot);
+
+        document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
+        document = await Formatter.FormatAsync(document, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+
+        return document;
     }
 
     private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = [CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '(')];
