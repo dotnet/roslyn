@@ -113,16 +113,16 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             ImplementDisposePattern = false,
             ThroughMember = null,
         };
-
-        // TODO: Consider reducing the result to a single ISymbol instance
-        // Since property is the only symbol that has multiple implementing symbols that are returned
         var generator = new ImplementInterfaceGenerator(
             this, document, info, options, configuration);
         var implementedMembers = await generator.GenerateExplicitlyImplementedMembersAsync(member, options.PropertyGenerationBehavior, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
         var singleImplemented = implementedMembers[0]!;
-        if (member is IPropertySymbol)
+
+        // Since non-indexer properties are the only symbols that get their implementing accessor symbols returned,
+        // we have to process the created symbols and reduce to the single property wherein the accessors are contained
+        if (member is IPropertySymbol { IsIndexer: false })
         {
             IPropertySymbol? commonContainer = null;
             foreach (var implementedMember in implementedMembers)
@@ -134,6 +134,10 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
                 Debug.Assert(commonContainer == containingProperty, "We should have a common property implemented");
             }
             singleImplemented = member;
+        }
+        else
+        {
+            Debug.Assert(implementedMembers.Length == 1, "We missed another case that may return multiple symbols");
         }
 
         return singleImplemented;

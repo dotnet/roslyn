@@ -174,7 +174,7 @@ internal static class CompletionUtilities
         return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
     }
 
-    public static int GetTargetCaretPositionForMethod(MethodDeclarationSyntax methodDeclaration)
+    public static int GetTargetCaretPositionForMethod(BaseMethodDeclarationSyntax methodDeclaration)
     {
         if (methodDeclaration.Body == null)
         {
@@ -191,33 +191,31 @@ internal static class CompletionUtilities
     public static int GetTargetCaretPositionForInsertedMember(SyntaxNode caretTarget)
     {
         // Inserted Event declarations are a single line, so move to the end of the line.
-        if (caretTarget is EventFieldDeclarationSyntax)
+        switch (caretTarget)
         {
-            return caretTarget.GetLocation().SourceSpan.End;
-        }
-        else if (caretTarget is MethodDeclarationSyntax methodDeclaration)
-        {
-            return GetTargetCaretPositionForMethod(methodDeclaration);
-        }
-        else if (caretTarget is BasePropertyDeclarationSyntax propertyDeclaration)
-        {
-            // property: no accessors; move to the end of the declaration
-            if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
-            {
-                // move to the end of the last statement of the first accessor
-                var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
-                var firstAccessorStatement = (SyntaxNode?)firstAccessor.Body?.Statements.LastOrDefault() ??
-                    firstAccessor.ExpressionBody!.Expression;
-                return firstAccessorStatement.GetLocation().SourceSpan.End;
-            }
-            else
-            {
-                return propertyDeclaration.GetLocation().SourceSpan.End;
-            }
-        }
-        else
-        {
-            throw ExceptionUtilities.Unreachable();
+            case EventFieldDeclarationSyntax:
+                return caretTarget.GetLocation().SourceSpan.End;
+            case BaseMethodDeclarationSyntax methodDeclaration:
+                return GetTargetCaretPositionForMethod(methodDeclaration);
+            case BasePropertyDeclarationSyntax propertyDeclaration:
+                {
+                    // property: no accessors; move to the end of the declaration
+                    if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
+                    {
+                        // move to the end of the last statement of the first accessor
+                        var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
+                        var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
+                            firstAccessor.ExpressionBody!.Expression;
+                        return firstAccessorStatement.GetLocation().SourceSpan.End;
+                    }
+                    else
+                    {
+                        return propertyDeclaration.GetLocation().SourceSpan.End;
+                    }
+                }
+
+            default:
+                throw ExceptionUtilities.Unreachable();
         }
     }
 }

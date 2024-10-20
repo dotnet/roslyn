@@ -10,10 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ImplementInterface;
 using Microsoft.CodeAnalysis.ImplementType;
@@ -151,13 +148,26 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
     protected override SyntaxNode GetSyntax(SyntaxToken token)
     {
-        // Common implementation with override and partial completion providers
-        return token.GetAncestor<EventFieldDeclarationSyntax>()
-            ?? token.GetAncestor<EventDeclarationSyntax>()
-            ?? token.GetAncestor<PropertyDeclarationSyntax>()
-            ?? token.GetAncestor<IndexerDeclarationSyntax>()
-            ?? (SyntaxNode?)token.GetAncestor<MethodDeclarationSyntax>()
-            ?? throw ExceptionUtilities.UnexpectedValue(token);
+        var ancestor = token.Parent;
+        while (ancestor is not null)
+        {
+            var kind = ancestor.Kind();
+            switch (kind)
+            {
+                case SyntaxKind.EventFieldDeclaration:
+                case SyntaxKind.EventDeclaration:
+                case SyntaxKind.PropertyDeclaration:
+                case SyntaxKind.IndexerDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                    return ancestor;
+            }
+
+            ancestor = ancestor.Parent;
+        }
+
+        throw ExceptionUtilities.UnexpectedValue(token);
     }
 
     protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
@@ -167,83 +177,13 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
     public override async Task ProvideCompletionsAsync(CompletionContext context)
     {
-        try
+        var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
+        var items = await state.GetItemsAsync().ConfigureAwait(false);
+
+        if (!items.IsDefaultOrEmpty)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
-
-            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken) ||
-                syntaxFacts.IsPreProcessorDirectiveContext(syntaxTree, position, cancellationToken))
-            {
-                return;
-            }
-
-            var targetToken = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-                                        .GetPreviousTokenIfTouchingWord(position);
-
-            if (!syntaxTree.IsRightOfDotOrArrowOrColonColon(position, targetToken, cancellationToken))
-                return;
-
-            var node = targetToken.Parent;
-            // Bind the interface name which is to the left of the dot
-            NameSyntax? name = null;
-            switch (node)
-            {
-                case ExplicitInterfaceSpecifierSyntax specifierNode:
-                    name = specifierNode.Name;
-                    break;
-
-                case QualifiedNameSyntax qualifiedName
-                when node.Parent.IsKind(SyntaxKind.IncompleteMember):
-                    name = qualifiedName.Left;
-                    break;
-
-                default:
-                    return;
-            }
-
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var symbol = semanticModel.GetSymbolInfo(name, cancellationToken).Symbol as ITypeSymbol;
-            if (symbol?.TypeKind != TypeKind.Interface)
-                return;
-
-            // We're going to create a entry for each one, including the signature
-            var namePosition = name.SpanStart;
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            text.GetLineAndOffset(namePosition, out var line, out var lineOffset);
-            foreach (var member in symbol.GetMembers())
-            {
-                if (!member.IsAbstract && !member.IsVirtual)
-                    continue;
-
-                if (member.IsAccessor() ||
-                    member.Kind == SymbolKind.NamedType ||
-                    !semanticModel.IsAccessible(node.SpanStart, member))
-                {
-                    continue;
-                }
-
-                var memberString = CompletionSymbolDisplay.ToDisplayString(member);
-
-                // Split the member string into two parts (generally the name, and the signature portion). We want
-                // the split so that other features (like spell-checking), only look at the name portion.
-                var (displayText, displayTextSuffix) = SplitMemberName(memberString);
-
-                context.AddItem(MemberInsertionCompletionItem.Create(
-                    displayText, displayTextSuffix, DeclarationModifiers.None, line,
-                    member, targetToken, position,
-                    rules: CompletionItemRules.Default));
-            }
-        }
-        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
-        {
-            // nop
+            context.IsExclusive = true;
+            context.AddItems(items);
         }
     }
 
@@ -261,16 +201,15 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
     internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
-    public override Task<TextChange?> GetTextChangeAsync(
-        Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
-    {
-        // If the user is typing a punctuation portion of the signature, then just emit the name.  i.e. if the
-        // member is `Contains<T>(string key)`, then typing `<` should just emit `Contains` and not
-        // `Contains<T>(string key)<`
-        return Task.FromResult<TextChange?>(new TextChange(
-            selectedItem.Span,
-            ch is '(' or '[' or '<'
-                ? selectedItem.DisplayText
-                : SymbolCompletionItem.GetInsertionText(selectedItem)));
-    }
+    //public override Task<TextChange?> GetTextChangeAsync(
+    //    Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+    //{
+    //    // Whatever the user types, only place the insertion text
+    //    // TODO: Evaluate whether we want the user's input to be respected and not automatically insert the
+    //    // default body of the member
+    //    return Task.FromResult<TextChange?>(
+    //        new TextChange(
+    //            selectedItem.Span,
+    //            SymbolCompletionItem.GetInsertionText(selectedItem)));
+    //}
 }

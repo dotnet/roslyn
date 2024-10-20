@@ -451,7 +451,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                void IGoo.Generic<K, V>(K key, V value)
+                int IGoo.Generic<K, V>(K key, V value)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -484,10 +484,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                int IGoo.Generic<K, V>(K key, V value)
-                {
-                    throw new System.NotImplementedException();
-                }
+                 void IGoo.<
             }
             """;
 
@@ -583,10 +580,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                int IGoo.this[K key, V value]
-                {
-                    get => throw new System.NotImplementedException();
-                }
+                int IGoo.this[K key, V value] => throw new System.NotImplementedException();
             }
             """;
 
@@ -616,10 +610,67 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                int IGoo.this[K key, V value]
-                {
-                    get => throw new System.NotImplementedException();
-                }
+                 void IGoo.
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
+    }
+
+    [Fact]
+    public async Task VerifySignatureCommit_IndexerGetSet_Tab()
+    {
+        var markup = """
+            interface IGoo
+            {
+                int this[K key, V value] { get; set; }
+            }
+
+            class Bar : IGoo
+            {
+                 void IGoo.$$
+            }
+            """;
+
+        var expected = """
+            interface IGoo
+            {
+                int this[K key, V value] { get; set; }
+            }
+
+            class Bar : IGoo
+            {
+                int IGoo.this[K key, V value] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '\t');
+    }
+
+    [Fact]
+    public async Task VerifySignatureCommit_IndexerGetSet_OpenBrace()
+    {
+        var markup = """
+            interface IGoo
+            {
+                int this[K key, V value] { get; set; }
+            }
+
+            class Bar : IGoo
+            {
+                 void IGoo.$$
+            }
+            """;
+
+        var expected = """
+            interface IGoo
+            {
+                int this[K key, V value] { get; set; }
+            }
+
+            class Bar : IGoo
+            {
+                 void IGoo.[
             }
             """;
 
@@ -820,6 +871,9 @@ class C : I
             class C : I
             {
                 void I.M(params string[] args)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -891,7 +945,7 @@ class C : I
 
             class C : I
             {
-                void I.M<T>(T? x)
+                void I.M<T>(T? x) where T : default
                 {
                     throw new System.NotImplementedException();
                 }

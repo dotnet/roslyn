@@ -285,7 +285,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return GenerateMembers(
                 compilation, member, memberName: member.Name, generateInvisibly: true,
                 generateAbstractly: false, addNew: false, addUnsafe, propertyGenerationBehavior)
-                .ToImmutableArray();
+                    .ToImmutableArray();
         }
 
         private IEnumerable<ISymbol?> GenerateMembers(
