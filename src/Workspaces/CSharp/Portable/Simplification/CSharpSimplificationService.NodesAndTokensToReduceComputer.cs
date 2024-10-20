@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 
@@ -21,7 +22,8 @@ internal partial class CSharpSimplificationService
         private readonly Func<SyntaxNodeOrToken, bool> _isNodeOrTokenOutsideSimplifySpans;
 
         private bool _simplifyAllDescendants;
-        private int _speculatedNodeAnnotationCount;
+        private int? _speculatedNodeAnnotationCount;
+        private bool InsideSpeculatedNode => _speculatedNodeAnnotationCount.HasValue;
 
         /// <summary>
         /// Computes a list of nodes and tokens that need to be reduced in the given syntax root.
@@ -38,7 +40,7 @@ internal partial class CSharpSimplificationService
         {
             _isNodeOrTokenOutsideSimplifySpans = isNodeOrTokenOutsideSimplifySpans;
             _simplifyAllDescendants = false;
-            _speculatedNodeAnnotationCount = -1;
+            _speculatedNodeAnnotationCount = null;
         }
 
         public override SyntaxNode Visit(SyntaxNode node)
@@ -71,10 +73,11 @@ internal partial class CSharpSimplificationService
             var subTreeAnnotationCount = descendantsWithSimplifierAnnotation + (hasSimplifierAnnotation ? 1 : 0);
 
             // Consider the current node as a possible node for reducing if we curently
-            // are not inside any speculated node (_speculatedNodeAnnotationCount equal to -1)
-            // OR if this node has an equal count of simplifier annotations in it's subtree
-            // as the node we are currently speculating in which case we will prefer this node
-            if (subTreeAnnotationCount >= _speculatedNodeAnnotationCount && SpeculationAnalyzer.CanSpeculateOnNode(node))
+            // are not inside any speculated node OR if this node has an equal count of
+            // simplifier annotations in it's subtree as the node we are currently speculating
+            // in which case we will considering switching to this one.
+            if ((!InsideSpeculatedNode || (subTreeAnnotationCount == _speculatedNodeAnnotationCount && IsSupportedType(node)))
+                && SpeculationAnalyzer.CanSpeculateOnNode(node))
             {
                 if (_simplifyAllDescendants || descendantsWithSimplifierAnnotation > 0)
                 {
@@ -87,7 +90,7 @@ internal partial class CSharpSimplificationService
                     if (_speculatedNodeAnnotationCount >= 0)
                     {
                         _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(rewrittenNode, _simplifyAllDescendants, node));
-                        _speculatedNodeAnnotationCount = -1;
+                        _speculatedNodeAnnotationCount = null;
                     }
                 }
             }
@@ -98,6 +101,14 @@ internal partial class CSharpSimplificationService
 
             _simplifyAllDescendants = savedSimplifyAllDescendants;
             return node;
+
+            // While this is definitely not correct, enabling this behavior
+            // just for ForStatementSyntax will work correctly in some
+            // cases we care about without risking breaking anything.
+            static bool IsSupportedType(SyntaxNode node)
+            {
+                return node is ForStatementSyntax;
+            }
         }
 
         public override SyntaxToken VisitToken(SyntaxToken token)
@@ -119,7 +130,7 @@ internal partial class CSharpSimplificationService
             var savedSimplifyAllDescendants = _simplifyAllDescendants;
             _simplifyAllDescendants = _simplifyAllDescendants || token.HasAnnotation(Simplifier.Annotation);
 
-            if (_simplifyAllDescendants && _speculatedNodeAnnotationCount == -1 && !token.IsKind(SyntaxKind.None))
+            if (_simplifyAllDescendants && !InsideSpeculatedNode && !token.IsKind(SyntaxKind.None))
             {
                 _nodesAndTokensToReduce.Add(new NodeOrTokenToReduce(token, SimplifyAllDescendants: true, token));
             }
@@ -138,7 +149,7 @@ internal partial class CSharpSimplificationService
             if (trivia.HasStructure)
             {
                 var savedAnnotationCount = _speculatedNodeAnnotationCount;
-                _speculatedNodeAnnotationCount = -1;
+                _speculatedNodeAnnotationCount = null;
                 base.VisitTrivia(trivia);
                 _speculatedNodeAnnotationCount = savedAnnotationCount;
             }
