@@ -203,7 +203,16 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         // Now that we have replaced the node, find the destination node again
         destinationSpan = ComputeDestinationSpan(root);
         destinationNode = root.FindNode(destinationSpan);
-        var newRoot = root.RemoveNode(destinationNode, SyntaxRemoveOptions.KeepNoTrivia)!;
+        SyntaxNode newRoot;
+        if (destinationSpan.Contains(destinationNode.Span))
+        {
+            newRoot = root.RemoveNode(destinationNode, SyntaxRemoveOptions.KeepNoTrivia)!;
+        }
+        else
+        {
+            var tokens = destinationNode.DescendantTokens(destinationSpan);
+            newRoot = root.ReplaceTokens(tokens, static (_, _) => default);
+        }
         var document = memberContainingDocument.WithSyntaxRoot(newRoot);
 
         document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).ConfigureAwait(false);
