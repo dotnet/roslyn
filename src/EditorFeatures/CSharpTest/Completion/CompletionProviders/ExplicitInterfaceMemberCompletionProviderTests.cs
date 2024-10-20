@@ -134,7 +134,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Goo()
+                void IGoo.Goo()
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -164,7 +167,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Goo(
+                void IGoo.Goo()
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -445,7 +451,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Generic<K, V>(K key, V value)
+                void IGoo.Generic<K, V>(K key, V value)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -475,7 +484,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Generic<
+                int IGoo.Generic<K, V>(K key, V value)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -505,7 +517,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Generic(K key, V value)
+                int IGoo.Generic(K key, V value)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -535,7 +550,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.Generic(
+                int IGoo.Generic(K key, V value)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -565,7 +583,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.this[K key, V value]
+                int IGoo.this[K key, V value]
+                {
+                    get => throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -595,7 +616,10 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.this[
+                int IGoo.this[K key, V value]
+                {
+                    get => throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -629,6 +653,9 @@ interface I
 class C : I
 {{
     void I.M({refKind} string s)
+    {{
+        throw new System.NotImplementedException();
+    }}
 }}
 ";
 
@@ -659,6 +686,9 @@ class C : I
             class Test2 : I2<Test2>
             {
                 static implicit I2<Test2>.operator int(Test2 x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -691,6 +721,9 @@ class C : I
             class C : I<C>
             {
                 static bool I<C>.operator true(C x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -721,6 +754,9 @@ class C : I
             class C : I<C>
             {
                 static C I<C>.operator +(C x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -751,6 +787,9 @@ class C : I
             class C : I<C>
             {
                 static C I<C>.operator +(C x, C y)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -787,7 +826,7 @@ class C : I
         await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
     }
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72224")]
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/72224")]
     public async Task TestWithParamsCollectionParameter()
     {
@@ -816,6 +855,9 @@ class C : I
             class C : I
             {
                 void I.M(params IEnumerable<string> args)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -850,6 +892,9 @@ class C : I
             class C : I
             {
                 void I.M<T>(T? x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -880,6 +925,9 @@ class C : I
             class C : I
             {
                 void I.M(string @class)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -910,6 +958,9 @@ class C : I
             class C : I
             {
                 void I.M<@class>()
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -940,6 +991,9 @@ class C : I
             class C : I
             {
                 void I.M(int x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
         // TODO: Consider adding the default value too.
@@ -974,6 +1028,9 @@ class C : I
             class C : I1<C>
             {
                 static C I1<C>.operator checked -(C x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -1008,6 +1065,9 @@ class C : I
             class C : I1<C>
             {
                 static C I1<C>.operator checked +(C x, C y)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
@@ -1042,6 +1102,9 @@ class C : I
             class C3 : I1<C3>
             {
                 static C3 I1<C3>.operator checked string(C3 x)
+                {
+                    throw new System.NotImplementedException();
+                }
             }
             """;
 
