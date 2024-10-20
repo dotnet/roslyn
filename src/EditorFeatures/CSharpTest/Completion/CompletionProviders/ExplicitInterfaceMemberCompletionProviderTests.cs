@@ -1111,4 +1111,105 @@ class C : I
         await VerifyItemExistsAsync(markup, "Goo", displayTextSuffix: "()");
         await VerifyItemExistsAsync(markup, "StaticGoo", displayTextSuffix: "()");
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_04()
+    {
+        var markup = """
+            interface IGoo
+            {
+                int Generic<K, V>(K key, V value);
+            }
+
+            class Bar : IGoo
+            {
+                IGoo.$$
+            }
+            """;
+
+        var expected = """
+            interface IGoo
+            {
+                int Generic<K, V>(K key, V value);
+            }
+
+            class Bar : IGoo
+            {
+                int IGoo.Generic<K, V>(K key, V value)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Generic<K, V>(K key, V value)", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_05()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                abstract static bool operator true(T x);
+                abstract static bool operator false(T x);
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                abstract static bool operator true(T x);
+                abstract static bool operator false(T x);
+            }
+
+            class C : I<C>
+            {
+                static bool I<C>.operator true(C x)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_06()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                abstract static ref bool Goo(ref int a, out int b);
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                abstract static ref bool Goo(ref int a, out int b);
+            }
+
+            class C : I<C>
+            {
+                static ref bool I<C>.Goo(ref int a, out int b)
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo(ref int a, out int b)", expected, '\t');
+    }
 }

@@ -9,9 +9,11 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
@@ -183,6 +185,39 @@ internal static class CompletionUtilities
             // move to the end of the last statement in the method
             var lastStatement = methodDeclaration.Body.Statements.Last();
             return lastStatement.GetLocation().SourceSpan.End;
+        }
+    }
+
+    public static int GetTargetCaretPositionForInsertedMember(SyntaxNode caretTarget)
+    {
+        // Inserted Event declarations are a single line, so move to the end of the line.
+        if (caretTarget is EventFieldDeclarationSyntax)
+        {
+            return caretTarget.GetLocation().SourceSpan.End;
+        }
+        else if (caretTarget is MethodDeclarationSyntax methodDeclaration)
+        {
+            return GetTargetCaretPositionForMethod(methodDeclaration);
+        }
+        else if (caretTarget is BasePropertyDeclarationSyntax propertyDeclaration)
+        {
+            // property: no accessors; move to the end of the declaration
+            if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
+            {
+                // move to the end of the last statement of the first accessor
+                var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
+                var firstAccessorStatement = (SyntaxNode?)firstAccessor.Body?.Statements.LastOrDefault() ??
+                    firstAccessor.ExpressionBody!.Expression;
+                return firstAccessorStatement.GetLocation().SourceSpan.End;
+            }
+            else
+            {
+                return propertyDeclaration.GetLocation().SourceSpan.End;
+            }
+        }
+        else
+        {
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

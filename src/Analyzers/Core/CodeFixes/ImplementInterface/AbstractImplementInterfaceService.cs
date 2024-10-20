@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -43,7 +47,6 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             if (state == null)
                 return document;
 
-            // TODO: https://github.com/dotnet/roslyn/issues/60990
             // While implementing just one default action, like in the case of pressing enter after interface name in VB,
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
             var implementDisposePattern = ShouldImplementDisposePattern(model.Compilation, state, explicitly: false);
@@ -93,5 +96,46 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         var generator = new ImplementInterfaceGenerator(
             this, document, info, options, configuration);
         return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ISymbol> ExplicitlyImplementSingleInterfaceMemberAsync(
+        Document document,
+        IImplementInterfaceInfo info,
+        ISymbol member,
+        ImplementTypeOptions options,
+        CancellationToken cancellationToken)
+    {
+        var configuration = new ImplementInterfaceConfiguration()
+        {
+            Abstractly = false,
+            Explicitly = true,
+            OnlyRemaining = false,
+            ImplementDisposePattern = false,
+            ThroughMember = null,
+        };
+
+        // TODO: Consider reducing the result to a single ISymbol instance
+        // Since property is the only symbol that has multiple implementing symbols that are returned
+        var generator = new ImplementInterfaceGenerator(
+            this, document, info, options, configuration);
+        var implementedMembers = await generator.GenerateExplicitlyImplementedMembersAsync(member, options.PropertyGenerationBehavior, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var singleImplemented = implementedMembers[0]!;
+        if (member is IPropertySymbol)
+        {
+            IPropertySymbol? commonContainer = null;
+            foreach (var implementedMember in implementedMembers)
+            {
+                Debug.Assert(implementedMember != null);
+                var containingProperty = implementedMember!.ContainingSymbol as IPropertySymbol;
+                Debug.Assert(containingProperty != null);
+                commonContainer ??= containingProperty;
+                Debug.Assert(commonContainer == containingProperty, "We should have a common property implemented");
+            }
+            singleImplemented = member;
+        }
+
+        return singleImplemented;
     }
 }

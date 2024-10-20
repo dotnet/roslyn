@@ -211,34 +211,6 @@ internal sealed partial class OverrideCompletionProvider : AbstractOverrideCompl
 
     protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
     {
-        // Inserted Event declarations are a single line, so move to the end of the line.
-        if (caretTarget is EventFieldDeclarationSyntax)
-        {
-            return caretTarget.GetLocation().SourceSpan.End;
-        }
-        else if (caretTarget is MethodDeclarationSyntax methodDeclaration)
-        {
-            return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
-        }
-        else if (caretTarget is BasePropertyDeclarationSyntax propertyDeclaration)
-        {
-            // property: no accessors; move to the end of the declaration
-            if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
-            {
-                // move to the end of the last statement of the first accessor
-                var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
-                var firstAccessorStatement = (SyntaxNode?)firstAccessor.Body?.Statements.LastOrDefault() ??
-                    firstAccessor.ExpressionBody!.Expression;
-                return firstAccessorStatement.GetLocation().SourceSpan.End;
-            }
-            else
-            {
-                return propertyDeclaration.GetLocation().SourceSpan.End;
-            }
-        }
-        else
-        {
-            throw ExceptionUtilities.Unreachable();
-        }
+        return CompletionUtilities.GetTargetCaretPositionForInsertedMember(caretTarget);
     }
 }
