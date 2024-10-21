@@ -1402,4 +1402,107 @@ class C : I
 
         await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_09()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                bool Goo { get; set; }
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                bool Goo { get; set; }
+            }
+
+            class C : I<C>
+            {
+                bool I<C>.Goo { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_10()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                event System.Action Goo;
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            using System;
+
+            interface I<T> where T : I<T>
+            {
+                event System.Action Goo;
+            }
+
+            class C : I<C>
+            {
+                event Action I<C>.Goo
+                {
+                    add
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    remove
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_11()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                bool this[int a, T b] { get; set; }
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                bool this[int a, T b] { get; set; }
+            }
+
+            class C : I<C>
+            {
+                bool I<C>.this[int a, C b] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "this[int a, C b]", expected, '\t');
+    }
 }
