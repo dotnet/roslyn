@@ -62,13 +62,13 @@ static ReplayOptions ParseOptions(string[] args)
     }
 
     return new ReplayOptions(
-        PipeName: Guid.NewGuid().ToString(),
-        ClientDirectory: AppDomain.CurrentDomain.BaseDirectory!,
-        OutputDirectory: outputDirectory,
-        BinlogPath: binlogPath,
-        MaxParallel: maxParallel,
-        Wait: wait,
-        Iterations: iterations);
+        pipeName: Guid.NewGuid().ToString(),
+        clientDirectory: AppDomain.CurrentDomain.BaseDirectory!,
+        outputDirectory: outputDirectory,
+        binlogPath: binlogPath,
+        maxParallel: maxParallel,
+        wait: wait,
+        iterations: iterations);
 }
 
 static async Task<int> RunAsync(ReplayOptions options)
@@ -272,9 +272,27 @@ static void RewriteOutputPaths(string outputDirectory, string[] args)
     }
 }
 
-internal sealed record ReplayOptions(string PipeName, string ClientDirectory, string OutputDirectory, string BinlogPath, int MaxParallel, bool Wait, int Iterations)
+internal sealed class ReplayOptions(
+    string pipeName,
+    string clientDirectory,
+    string outputDirectory,
+    string binlogPath,
+    int maxParallel,
+    bool wait,
+    int iterations)
 {
-    internal string TempDirectory { get; } = Path.Combine(OutputDirectory, "temp");
+    internal string PipeName { get; } = pipeName;
+    internal string ClientDirectory { get; } = clientDirectory;
+    internal string OutputDirectory { get; } = outputDirectory;
+    internal string BinlogPath { get; } = binlogPath;
+    internal int MaxParallel { get; } = maxParallel;
+    internal string TempDirectory { get; } = Path.Combine(outputDirectory, "temp");
+    internal bool Wait { get; } = wait;
+    internal int Iterations { get; } = iterations;
 }
 
-internal readonly record struct BuildData(CompilerCall CompilerCall, BuildResponse BuildResponse);
+internal readonly struct BuildData(CompilerCall compilerCall, BuildResponse response)
+{
+    internal CompilerCall CompilerCall { get; } = compilerCall;
+    internal BuildResponse BuildResponse { get; } = response;
+}
