@@ -93,7 +93,7 @@ internal abstract partial class AbstractRenameCommandHandler(
     }
 
     private void HandleTypingOutsideEditableSpan(EditorCommandArgs args, IUIThreadOperationContext operationContext)
-        => CommitOrCancel(args, operationContext);
+        => CommitIfSynchronousOrCancelIfAsynchronous(args, operationContext);
 
     private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool placeCaretAtTheEndOfIdentifier = true)
     {
@@ -110,10 +110,12 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
     }
 
-    private void CommitOrCancel(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool placeCaretAtTheEndOfIdentifier = true)
+    /// <summary>
+    /// Commit() will be called if rename commit is sync. Editor command would be executed after the rename operation complete and it is our legacy behavior.
+    /// Cancel() will be called if rename is async. It also matches the other editor's behavior (like VS LSP and VSCode).
+    /// </summary>
+    private void CommitIfSynchronousOrCancelIfAsynchronous(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool placeCaretAtTheEndOfIdentifier = true)
     {
-        // When the command is invalid, in sync commit mode, we always prefer 'Commit()' to keep our legacy behavior.
-        // If the commit is async, we always prefer 'Cancel()' to session.
         if (globalOptionService.ShouldCommitAsynchronously())
             renameService.ActiveSession?.Cancel();
         else

@@ -44,7 +44,7 @@ internal abstract partial class AbstractRenameCommandHandler :
         if (IsRenameCommitInProgress())
             return true;
 
-        CommitOrCancel(args, context.OperationContext);
+        CommitIfSynchronousOrCancelIfAsynchronous(args, context.OperationContext);
         return false;
     }
 }

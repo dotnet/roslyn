@@ -73,7 +73,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             }
             else
             {
-                CommitOrCancel(args, context.OperationContext);
+                CommitIfSynchronousOrCancelIfAsynchronous(args, context.OperationContext);
             }
         }
 
