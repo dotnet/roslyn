@@ -1329,4 +1329,77 @@ class C : I
 
         await VerifyProviderCommitAsync(markup, "Goo(ref int a, out int b)", expected, '\t');
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_07()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                abstract static bool Goo { set; }
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            interface I<T> where T : I<T>
+            {
+                abstract static bool Goo { set; }
+            }
+
+            class C : I<C>
+            {
+                static bool I<C>.Goo { set => throw new System.NotImplementedException(); }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_08()
+    {
+        var markup = """
+            interface I<T> where T : I<T>
+            {
+                abstract static event System.Action Goo;
+            }
+
+            class C : I<C>
+            {
+                I<C>.$$
+            }
+            """;
+
+        var expected = """
+            using System;
+
+            interface I<T> where T : I<T>
+            {
+                abstract static event System.Action Goo;
+            }
+
+            class C : I<C>
+            {
+                static event Action I<C>.Goo
+                {
+                    add
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    remove
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Goo", expected, '\t');
+    }
 }

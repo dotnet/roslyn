@@ -107,7 +107,8 @@ internal static class EventGenerator
             ? GenerateEventFieldDeclaration(@event, destination, info)
             : GenerateEventDeclarationWorker(@event, destination, info);
 
-        return ConditionallyAddDocumentationCommentTo(declaration, @event, info, cancellationToken);
+        return AddAnnotationsTo(@event,
+            ConditionallyAddDocumentationCommentTo(declaration, @event, info, cancellationToken));
     }
 
     private static MemberDeclarationSyntax GenerateEventFieldDeclaration(

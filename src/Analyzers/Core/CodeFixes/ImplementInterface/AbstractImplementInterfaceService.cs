@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
@@ -127,13 +128,21 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             IPropertySymbol? commonContainer = null;
             foreach (var implementedMember in implementedMembers)
             {
-                Debug.Assert(implementedMember != null);
-                var containingProperty = implementedMember!.ContainingSymbol as IPropertySymbol;
-                Debug.Assert(containingProperty != null);
-                commonContainer ??= containingProperty;
-                Debug.Assert(commonContainer == containingProperty, "We should have a common property implemented");
+                if (implementedMember is IPropertySymbol implementedProperty)
+                {
+                    commonContainer ??= implementedProperty;
+                    Debug.Assert(commonContainer == implementedProperty, "We should have a common property implemented");
+                }
+                else
+                {
+                    Contract.ThrowIfNull(implementedMember);
+                    var containingProperty = implementedMember!.ContainingSymbol as IPropertySymbol;
+                    Contract.ThrowIfNull(containingProperty);
+                    commonContainer ??= containingProperty;
+                    Debug.Assert(commonContainer == containingProperty, "We should have a common property implemented");
+                }
             }
-            singleImplemented = member;
+            singleImplemented = commonContainer;
         }
         else
         {

@@ -170,6 +170,9 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         }
 
         Contract.ThrowIfNull(memberContainingDocument);
+        var memberContainingRoot = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var annotatedNodes = memberContainingRoot!.GetAnnotatedNodes(_annotation);
+        Contract.ThrowIfFalse(annotatedNodes.IsSingle());
         return memberContainingDocument!;
     }
 
