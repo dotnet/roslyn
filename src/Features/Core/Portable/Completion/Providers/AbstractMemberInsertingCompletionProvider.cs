@@ -49,8 +49,6 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
             {
                 var targetPosition = GetTargetCaretPosition(caretTarget);
 
-                // Something weird happened and we failed to get a valid position.
-                // Bail on moving the caret.
                 if (targetPosition > 0 && targetPosition <= newText.Length)
                 {
                     newPosition = targetPosition;

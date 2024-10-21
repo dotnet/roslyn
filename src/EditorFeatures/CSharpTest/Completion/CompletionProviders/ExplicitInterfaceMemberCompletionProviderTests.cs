@@ -144,7 +144,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
         await VerifyProviderCommitAsync(markup, "Goo()", expected, null);
     }
 
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
+    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/709988")]
     public async Task CommitOnParen()
     {
         var markup = """
@@ -169,12 +169,12 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
             {
                 void IGoo.Goo()
                 {
-                    throw new System.NotImplementedException();
+                    throw new System.NotImplementedException();$$
                 }
             }
             """;
 
-        await VerifyProviderCommitAsync(markup, "Goo()", expected, '(');
+        await VerifyCustomCommitProviderAsync(markup, "Goo", expected, commitChar: '(');
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/19947")]
@@ -524,7 +524,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
         await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '\t');
     }
 
-    [Fact]
+    [WpfFact]
     public async Task VerifySignatureCommit_Method_OpenBrace()
     {
         var markup = """
@@ -549,12 +549,12 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
             {
                 int IGoo.Generic(K key, V value)
                 {
-                    throw new System.NotImplementedException();
+                    throw new System.NotImplementedException();$$
                 }
             }
             """;
 
-        await VerifyProviderCommitAsync(markup, "Generic(K key, V value)", expected, '(');
+        await VerifyCustomCommitProviderAsync(markup, "Generic", expected, commitChar: '(');
     }
 
     [Fact]
@@ -610,7 +610,7 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
 
             class Bar : IGoo
             {
-                 void IGoo.
+                 void IGoo.[
             }
             """;
 
