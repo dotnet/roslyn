@@ -142,7 +142,8 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
                     Debug.Assert(commonContainer == containingProperty, "We should have a common property implemented");
                 }
             }
-            singleImplemented = commonContainer;
+            Contract.ThrowIfNull(commonContainer);
+            singleImplemented = commonContainer!;
         }
         else
         {
