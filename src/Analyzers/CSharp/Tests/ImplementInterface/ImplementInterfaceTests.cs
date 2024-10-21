@@ -11538,12 +11538,12 @@ interface I
                     throw new System.NotImplementedException();
                 }
 
-                public static explicit operator checked string(C3 x)
+                static explicit I1<C3>.operator checked string(C3 x)
                 {
                     throw new System.NotImplementedException();
                 }
 
-                public static explicit operator string(C3 x)
+                static explicit I1<C3>.operator string(C3 x)
                 {
                     throw new System.NotImplementedException();
                 }
