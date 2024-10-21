@@ -26,7 +26,6 @@ internal static class GenerateMethodDiagnosticIds
     private const string CS0122 = nameof(CS0122); // error CS0122: 'Class' is inaccessible due to its protection level.
     private const string CS0305 = nameof(CS0305); // error CS0305: Using the generic method 'CA.M<V>()' requires 1 type arguments
     private const string CS0308 = nameof(CS0308); // error CS0308: The non-generic method 'Program.Goo()' cannot be used with type arguments
-    private const string CS0539 = nameof(CS0539); // error CS0539: 'A.Goo<T>()' in explicit interface declaration is not a member of interface
     private const string CS1061 = nameof(CS1061); // error CS1061: Error 'Class' does not contain a definition for 'Goo' and no extension method 'Goo' 
     private const string CS1501 = nameof(CS1501); // error CS1501: No overload for method 'M' takes 1 arguments
     private const string CS1503 = nameof(CS1503); // error CS1503: Argument 1: cannot convert from 'double' to 'int'
@@ -37,7 +36,7 @@ internal static class GenerateMethodDiagnosticIds
     private const string CS0123 = nameof(CS0123); // error CS0123: No overload for 'OnChanged' matches delegate 'NotifyCollectionChangedEventHandler'
 
     public static readonly ImmutableArray<string> FixableDiagnosticIds =
-        [CS0103, CS0117, CS0118, CS0122, CS0305, CS0308, CS0539, CS1061, CS1501, CS1503, CS1660, CS1739, CS7036, CS1955, CS0123];
+        [CS0103, CS0117, CS0118, CS0122, CS0305, CS0308, CS1061, CS1501, CS1503, CS1660, CS1739, CS7036, CS1955, CS0123];
 }
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
