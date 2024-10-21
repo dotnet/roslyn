@@ -185,7 +185,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var text = insertionRoot.GetText();
         var line = text.Lines.GetLineFromPosition(endToken.Value.Span.End);
 
-        return TextSpan.FromBounds(startToken.Value.SpanStart, line.End);
+        return TextSpan.FromBounds(startToken.Value.SpanStart, line.EndIncludingLineBreak);
     }
 
     private async Task<Document> RemoveDestinationNodeAsync(
