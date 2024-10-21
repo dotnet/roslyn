@@ -1165,6 +1165,56 @@ class C : I
         await VerifyProviderCommitAsync(markup, "operator checked string(C3 x)", expected, '\t');
     }
 
+    [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/70458")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/70458")]
+    public async Task TestExlicitImplementationWithAttributesOnNullableParameters()
+    {
+        var markup = """
+            using System.Diagnostics.CodeAnalysis;
+            using Example.Namespace;
+
+            interface IFoo
+            {
+                static abstract bool TryDecode([NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage);
+            }
+
+            class C : IFoo
+            {
+                IFoo.$$
+            }
+
+            namespace Example.Namespace
+            {
+                public record DecodeError;
+            }
+            """;
+
+        var expected = """
+            using System.Diagnostics.CodeAnalysis;
+            using Example.Namespace;
+            
+            interface IFoo
+            {
+                static abstract bool TryDecode([NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage);
+            }
+            
+            class C : IFoo
+            {
+                static bool IFoo.TryDecode([NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage)
+                {
+                    throw new System.NotImplementedException();$$
+                }
+            }
+            
+            namespace Example.Namespace
+            {
+                public record DecodeError;
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markup, "TryDecode", expected);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
     public async Task MissingReturnTypeQualifiedInterface_01()
     {
