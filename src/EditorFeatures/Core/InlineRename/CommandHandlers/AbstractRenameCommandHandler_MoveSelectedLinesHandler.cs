@@ -29,7 +29,7 @@ internal abstract partial class AbstractRenameCommandHandler :
         if (IsRenameCommitInProgress())
             return true;
 
-        CommitIfSynchronousOrCancelIfAsynchronous(args, context.OperationContext);
+        CommitIfSynchronousOrCancelIfAsynchronous(args, context.OperationContext, placeCaretAtTheEndOfIdentifier: true);
         return false;
     }
 }
