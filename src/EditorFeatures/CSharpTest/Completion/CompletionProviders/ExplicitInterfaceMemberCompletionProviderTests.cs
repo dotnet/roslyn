@@ -1155,7 +1155,7 @@ class C : I
 
             class C3 : I1<C3>
             {
-                static C3 I1<C3>.operator checked string(C3 x)
+                static explicit I1<C3>.operator checked string(C3 x)
                 {
                     throw new System.NotImplementedException();
                 }

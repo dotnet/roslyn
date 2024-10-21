@@ -7,7 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.Shared.Collections;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -66,9 +66,9 @@ internal static class ConversionGenerator
 
         var declaration = ConversionOperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
-            modifiers: GenerateModifiers(destination),
+            modifiers: GenerateModifiers(method, destination),
             implicitOrExplicitKeyword: keyword,
-            explicitInterfaceSpecifier: null,
+            explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
             operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedToken,
             type: method.ReturnType.GenerateTypeSyntax(),
@@ -100,11 +100,24 @@ internal static class ConversionGenerator
         return declaration;
     }
 
-    private static SyntaxTokenList GenerateModifiers(CodeGenerationDestination destination)
+    private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination)
     {
         // If these appear in interfaces they must be static abstract
-        return destination is CodeGenerationDestination.InterfaceType
-            ? ([StaticKeyword, AbstractKeyword])
-            : ([PublicKeyword, StaticKeyword]);
+        if (destination is CodeGenerationDestination.InterfaceType)
+            return [StaticKeyword, AbstractKeyword];
+
+        using var tokens = TemporaryArray<SyntaxToken>.Empty;
+
+        if (method.ExplicitInterfaceImplementations.Length == 0)
+        {
+            tokens.Add(PublicKeyword);
+        }
+
+        tokens.Add(StaticKeyword);
+
+        if (method.IsAbstract)
+            tokens.Add(AbstractKeyword);
+
+        return [.. tokens.ToImmutableAndClear()];
     }
 }
