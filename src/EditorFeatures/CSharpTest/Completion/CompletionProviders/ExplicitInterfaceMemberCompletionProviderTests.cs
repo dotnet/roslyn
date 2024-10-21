@@ -1555,4 +1555,263 @@ class C : I
 
         await VerifyProviderCommitAsync(markup, "this[int a, C b]", expected, '\t');
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_12()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter
+            {
+                IOuter.$$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "Method", displayTextSuffix: "()");
+        await VerifyItemIsAbsentAsync(markup, "Method1", displayTextSuffix: "()");
+        await VerifyItemIsAbsentAsync(markup, "Method2", displayTextSuffix: "()");
+        await VerifyItemIsAbsentAsync(markup, "IInner");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_13()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter
+            {
+                IOuter.$$
+            }
+            """;
+
+        var expected = """
+            interface IOuter
+            {
+                void Method();
+            
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C : IOuter
+            {
+                void IOuter.Method()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Method()", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_14()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter.IInner
+            {
+                IOuter.IInner.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "Method1", displayTextSuffix: "()");
+        await VerifyItemExistsAsync(markup, "Method2", displayTextSuffix: "()");
+        await VerifyItemIsAbsentAsync(markup, "IInner");
+
+        // We do not provide that item, maybe consider this expansion in the future
+        await VerifyItemIsAbsentAsync(markup, "IInner.Method1", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_15()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter.IInner
+            {
+                IOuter.IInner.$$
+            }
+            """;
+
+        var expected = """
+            interface IOuter
+            {
+                void Method();
+            
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C : IOuter.IInner
+            {
+                void IOuter.IInner.Method1()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyProviderCommitAsync(markup, "Method1()", expected, '\t');
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_16()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+
+            class C : IOuter
+            {
+                IOuter.IInner.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method1", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_17()
+    {
+        var markup = """
+            interface IInterface
+            {
+                void Method();
+            }
+
+            class C
+            {
+                IInterface.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_18()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+            
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C
+            {
+                IOuter.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_19()
+    {
+        var markup = """
+            interface IOuter
+            {
+                void Method();
+            
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C : IOuter.IInner
+            {
+                IOuter.$$
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markup, "Method", displayTextSuffix: "()");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75435")]
+    public async Task MissingReturnTypeQualifiedInterface_20()
+    {
+        var markup = """
+            class Outer
+            {
+                public interface IInner
+                {
+                    void Method1();
+                    void Method2();
+                }
+            }
+            
+            class C : Outer.IInner
+            {
+                Outer.IInner.$$
+            }
+            """;
+
+        await VerifyItemExistsAsync(markup, "Method1", displayTextSuffix: "()");
+    }
 }

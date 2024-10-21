@@ -60,7 +60,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
 
         public override async Task<ImmutableArray<CompletionItem>> GetItemsAsync()
         {
-            // modifiers* type? I(<typeparams*>)*.|
+            // modifiers* type? Interface(<typeparams+>)?.|
             try
             {
                 var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -100,6 +100,18 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                 var semanticModel = await Document.ReuseExistingSpeculativeModelAsync(Position, CancellationToken).ConfigureAwait(false);
                 var symbol = semanticModel.GetSymbolInfo(name, CancellationToken).Symbol as ITypeSymbol;
                 if (symbol?.TypeKind != TypeKind.Interface)
+                    return [];
+
+                var typeDeclaration = node.GetAncestor<BaseTypeDeclarationSyntax>();
+                if (typeDeclaration is null)
+                    return [];
+
+                var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration, CancellationToken);
+                if (containingType is null)
+                    return [];
+
+                // We must be explicitly implementing the interface
+                if (!containingType.Interfaces.Contains(symbol))
                     return [];
 
                 // We're going to create a entry for each one, including the signature
