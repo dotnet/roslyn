@@ -151,7 +151,8 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var context = new CodeGenerationSolutionContext(
             document.Project.Solution,
             new CodeGenerationContext(
-                contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start))));
+                autoInsertionLocation: false,
+                beforeThisLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start))));
 
         var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
         generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
