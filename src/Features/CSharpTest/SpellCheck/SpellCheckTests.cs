@@ -596,6 +596,58 @@ class C
 }");
     }
 
+    [Fact]
+    public async Task TestInExplicitInterfaceImplementation1()
+    {
+        var text = @"
+using System;
+
+class Program : IDisposable
+{
+    void IDisposable.[|Dspose|]
+}";
+
+        await TestMissingInRegularAndScriptAsync(text);
+    }
+
+    [Fact]
+    public async Task TestInExplicitInterfaceImplementation2()
+    {
+        var text = @"
+using System;
+
+interface IInterface
+{
+    void Generic<K, V>();
+}
+
+class Program : IInterface
+{
+    void IInterface.[|Generi|]
+}";
+
+        await TestMissingInRegularAndScriptAsync(text);
+    }
+
+    [Fact]
+    public async Task TestInExplicitInterfaceImplementation3()
+    {
+        var text = @"
+using System;
+
+interface IInterface
+{
+    int this[int i] { get; }
+}
+
+class Program : IInterface
+{
+    void IInterface.[|thi|]
+}";
+
+        await TestMissingInRegularAndScriptAsync(text);
+    }
+
     [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1640728")]
     public async Task TestMisspelledWordThatIsAlsoSnippetName()
     {
