@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
         <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="new">'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</target>
+        <target state="translated">참조된 문서가 조직에서 제외되었므로 'Copilot로 설명'을 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
