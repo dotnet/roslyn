@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -78,12 +77,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static readonly ImmutableHashSet<string> FeaturesAnalyzerFileNames = [
-                "Microsoft.CodeAnalysis.Features.dll",
-                "Microsoft.CodeAnalysis.CSharp.Features.dll",
-                "Microsoft.CodeAnalysis.VisualBasic.Features.dll",
-            ];
-
             private static ImmutableHashSet<object> GetReferenceIdsToRedirectAsProjectAnalyzers(Project project)
             {
                 if (project.State.HasSdkCodeStyleAnalyzers)
@@ -102,11 +95,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var analyzerReference in hostAnalyzers.HostAnalyzerReferences)
                     {
-                        var fileName = Path.GetFileName(analyzerReference.FullPath)!;
-                        if (FeaturesAnalyzerFileNames.Contains(fileName))
-                        {
+                        if (analyzerReference.IsFeaturesAnalyzer())
                             builder.Add(analyzerReference.Id);
-                        }
                     }
 
                     return builder.ToImmutable();
