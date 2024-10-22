@@ -3962,5 +3962,84 @@ public class MainVersion
 ");
             CompileAndVerify(compilation).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ElseIf_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void M(bool a, bool b)
+    {
+        if (a)
+        {}
+        else if (b)
+        {}
+    }
+}";
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ids = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ToArray();
+
+            var id = ids[1];
+
+            Assert.Equal("b", id.ToString());
+            Assert.Equal("System.Boolean b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[0];
+
+            Assert.Equal("a", id.ToString());
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[1];
+            Assert.Equal("System.Boolean b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void ElseIf_02()
+        {
+            var source =
+@"
+class Program
+{
+    static void M(bool a, object b)
+    {
+        if (a)
+        {}
+        else if (b is bool bb && bb)
+        {
+            bb = false;
+        }
+    }
+}";
+            var comp = CreateCompilation(source);
+            CompileAndVerify(comp).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var ids = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().ToArray();
+
+            var id = ids[1];
+
+            Assert.Equal("b", id.ToString());
+            Assert.Equal("System.Object b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[0];
+
+            Assert.Equal("a", id.ToString());
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            model = comp.GetSemanticModel(tree);
+            Assert.Equal("System.Boolean a", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+
+            id = ids[1];
+            Assert.Equal("System.Object b", model.GetSymbolInfo(id).Symbol.ToTestDisplayString());
+        }
     }
 }
