@@ -624,6 +624,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
 
+        System_Linq_Enumerable__ToList,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

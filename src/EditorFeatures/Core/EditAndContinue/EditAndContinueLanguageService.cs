@@ -319,17 +319,16 @@ internal sealed class EditAndContinueLanguageService(
         var designTimeSolution = GetCurrentDesignTimeSolution();
         var solution = GetCurrentCompileTimeSolution(designTimeSolution);
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-        var (moduleUpdates, diagnosticData, rudeEdits, syntaxError) = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
-        if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
+        if (result.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
         {
             _pendingUpdatedDesignTimeSolution = designTimeSolution;
         }
 
-        UpdateApplyChangesDiagnostics(diagnosticData);
+        UpdateApplyChangesDiagnostics(result.Diagnostics);
 
-        var diagnostics = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
-        return new ManagedHotReloadUpdates(moduleUpdates.Updates.FromContract(), diagnostics.FromContract());
+        return new ManagedHotReloadUpdates(result.ModuleUpdates.Updates.FromContract(), result.GetAllDiagnostics().FromContract());
     }
 }

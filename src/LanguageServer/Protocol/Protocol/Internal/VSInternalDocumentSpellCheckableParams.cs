@@ -8,9 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Parameter for tD/_vs_spellCheckableRanges.
+    /// Parameter for textDocument/_vs_spellCheckableRanges.
     /// </summary>
-    internal class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
+    internal sealed class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
     {
         /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]

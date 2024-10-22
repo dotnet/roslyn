@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From(s, encoding: null, SourceHashAlgorithms.Default), VersionStamp.Default)))).ToList();
 
             var proj = ProjectInfo.Create(pid, VersionStamp.Default, "test", "test.dll", LanguageNames.CSharp, documents: docs,
-                metadataReferences: new[] { NetFramework.mscorlib });
+                metadataReferences: [NetFramework.mscorlib]);
 
             return ws.AddProject(proj).Solution;
         }

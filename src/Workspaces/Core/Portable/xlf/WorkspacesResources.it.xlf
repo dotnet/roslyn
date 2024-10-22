@@ -152,6 +152,11 @@
         <target state="translated">Esecuzione della pulizia del codice nei documenti fissi</target>
         <note />
       </trans-unit>
+      <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_1_workspace">
+        <source>Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</source>
+        <target state="new">Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="translated">La soluzione non contiene il riferimento specificato</target>
@@ -490,11 +495,6 @@
       <trans-unit id="Removing_project_references_is_not_supported">
         <source>Removing project references is not supported.</source>
         <target state="translated">La rimozione di riferimenti al progetto non è supportata.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
-        <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
-        <target state="translated">Per eseguire l'attività, è necessario il servizio di tipo '{0}', che però non è disponibile dall'area di lavoro.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">

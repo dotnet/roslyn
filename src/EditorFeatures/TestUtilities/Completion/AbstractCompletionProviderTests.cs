@@ -1084,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task VerifyCommitCharactersAsync(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
             Assert.NotNull(validChars);
-            invalidChars ??= new[] { 'x' };
+            invalidChars ??= ['x'];
 
             using var workspace = CreateWorkspace(initialMarkup);
             var hostDocument = workspace.DocumentWithCursor;

@@ -56,8 +56,7 @@ class SomeOtherClass
 
         Assert.Collection(
             results,
-            new Action<ITableEntryHandle2>[]
-            {
+            [
                 reference =>
                 {
                     Assert.Equal(expected: "class Program", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
@@ -70,7 +69,7 @@ class SomeOtherClass
                     Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
                     Assert.Equal(expected: 24, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
                 }
-            });
+            ]);
 
         results[0].NavigateTo(isPreview: false, shouldActivate: true);
         await WaitForNavigateAsync(HangMitigatingCancellationToken);
@@ -101,8 +100,7 @@ class Program
 
         Assert.Collection(
             results,
-            new Action<ITableEntryHandle2>[]
-            {
+            [
                 reference =>
                 {
                     Assert.Equal(expected: "int local = 1;", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
@@ -115,7 +113,7 @@ class Program
                     Assert.Equal(expected: 6, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
                     Assert.Equal(expected: 26, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
                 }
-            });
+            ]);
 
         await telemetry.VerifyFiredAsync(["vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference"], HangMitigatingCancellationToken);
     }
@@ -139,15 +137,14 @@ class Program
 
         Assert.Collection(
             results,
-            new Action<ITableEntryHandle2>[]
-            {
+            [
                 reference =>
                 {
                     Assert.Equal(expected: "string local = \"1\";", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
                     Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
                     Assert.Equal(expected: 24, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
                 }
-            });
+            ]);
     }
 
     [IdeFact]

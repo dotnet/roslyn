@@ -27,7 +27,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestHelpers;
-using static Roslyn.Test.Utilities.TestMetadata;
 using KeyValuePairUtil = Roslyn.Utilities.KeyValuePairUtil;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 

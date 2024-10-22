@@ -10,6 +10,11 @@ namespace Roslyn.LanguageServer.Protocol
     internal static class VSInternalMethods
     {
         /// <summary>
+        /// Method name for 'copilot/_related_documents'.
+        /// </summary>
+        public const string CopilotRelatedDocumentsName = "copilot/_related_documents";
+
+        /// <summary>
         /// Method name for 'textDocument/foldingRange/_vs_refresh'.
         /// </summary>
         public const string DocumentFoldingRangeRefreshName = "textDocument/foldingRange/_vs_refresh";

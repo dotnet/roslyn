@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_visited is { } && _visited.Count <= MaxTrackVisited)
                 {
                     bool added = _visited.Add(expr);
-                    Debug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
+                    RoslynDebug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
                 }
             }
         }
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_visited is { } && _visited.Count <= MaxTrackVisited)
             {
-                Debug.Assert(_visited.Contains(expr), $"Expected {expr} `{expr.Syntax}` to be visited.");
+                RoslynDebug.Assert(_visited.Contains(expr), $"Expected {expr} `{expr.Syntax}` to be visited.");
             }
         }
 #endif

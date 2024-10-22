@@ -428,14 +428,14 @@ link text";
         }
 
         private static ClassifiedTextRun[] CreateClassifiedTextRunForClass(string className)
-            => new ClassifiedTextRun[]
-            {
+            =>
+            [
                 new ClassifiedTextRun("whitespace", string.Empty),
                 new ClassifiedTextRun("keyword", "class"),
                 new ClassifiedTextRun("whitespace", " "),
                 new ClassifiedTextRun("class name", className),
                 new ClassifiedTextRun("whitespace", string.Empty),
-            };
+            ];
 
         private static async Task<T> GetCompletionItemToResolveAsync<T>(
             TestLspServer testLspServer,

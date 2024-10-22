@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Text.Adornments;
@@ -309,13 +310,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
-            => new LSP.TextDocumentIdentifier { Uri = document.GetURI() };
+            => new() { Uri = document.GetURI() };
 
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
-            => new LSP.VersionedTextDocumentIdentifier { Uri = document.GetURI() };
+            => new() { Uri = document.GetURI() };
 
         public static LinePosition PositionToLinePosition(LSP.Position position)
-            => new LinePosition(position.Line, position.Character);
+            => new(position.Line, position.Character);
+
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
             => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
@@ -581,6 +583,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return LSP.DocumentHighlightKind.Text;
             }
         }
+
+        public static LSP.VSInternalSpellCheckableRangeKind SpellCheckSpanKindToSpellCheckableRangeKind(SpellCheckKind kind)
+            => kind switch
+            {
+                SpellCheckKind.Identifier => LSP.VSInternalSpellCheckableRangeKind.Identifier,
+                SpellCheckKind.Comment => LSP.VSInternalSpellCheckableRangeKind.Comment,
+                SpellCheckKind.String => LSP.VSInternalSpellCheckableRangeKind.String,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
 
         public static Glyph SymbolKindToGlyph(LSP.SymbolKind kind)
         {

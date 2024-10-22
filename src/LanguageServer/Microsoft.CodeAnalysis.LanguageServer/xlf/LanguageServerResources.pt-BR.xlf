@@ -7,6 +7,11 @@
         <target state="translated">Anulado!</target>
         <note />
       </trans-unit>
+      <trans-unit id="Additional_Info_Messages">
+        <source>Additional Info Messages</source>
+        <target state="new">Additional Info Messages</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Attaching_debugger_to_process_0">
         <source>Attaching debugger to process {0}</source>
         <target state="translated">Anexar o depurador ao processo {0}</target>
@@ -31,6 +36,11 @@
         <source>Completed (re)load of all projects in {0}</source>
         <target state="translated">(Re)carregamento concluído de todos os projetos em {0}</target>
         <note>The placeholder is a time duration like 00:15</note>
+      </trans-unit>
+      <trans-unit id="Debug_Trace_Messages">
+        <source>Debug Trace Messages</source>
+        <target state="new">Debug Trace Messages</target>
+        <note />
       </trans-unit>
       <trans-unit id="Debugging_tests">
         <source>Debugging tests...</source>
@@ -160,6 +170,16 @@
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
         <target state="translated">Rastreamento de pilha</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Standard_Error_Messages">
+        <source>Standard Error Messages</source>
+        <target state="new">Standard Error Messages</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Standard_Output_Messages">
+        <source>Standard Output Messages</source>
+        <target state="new">Standard Output Messages</target>
         <note />
       </trans-unit>
       <trans-unit id="Starting_test_discovery">
