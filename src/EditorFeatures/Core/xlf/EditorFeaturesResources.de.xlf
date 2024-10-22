@@ -17,11 +17,6 @@
         <target state="translated">Änderungen werden übernommen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Navigieren zu dem Symbol unter dem Caret nicht möglich.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Berechnen von "Kapselungsfeld"-Informationen</target>

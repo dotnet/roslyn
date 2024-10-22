@@ -17,11 +17,6 @@
         <target state="translated">변경 내용 적용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">캐럿에서 기호를 탐색할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">'Encapsulate Field' 정보 계산</target>

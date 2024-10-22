@@ -17,11 +17,6 @@
         <target state="translated">Applicazione delle modifiche in corso</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Non è possibile passare al simbolo sotto il punto di inserimento.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Calcolo delle informazioni su 'Incapsula campo'</target>
