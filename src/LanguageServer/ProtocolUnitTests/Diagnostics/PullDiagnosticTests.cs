@@ -2127,5 +2127,5 @@ class A {";
         AssertEx.Empty(results[1].Diagnostics);
     }
 
-#endregion
+    #endregion
 }
