@@ -167,20 +167,20 @@ extends:
           - output: pipelineArtifact
             displayName: 'Publish OptProf Data Files'
             condition: succeeded()
-            targetPath: '$(Build.SourcesDirectory)/artifacts\OptProf\$(BuildConfiguration)\Data'
+            targetPath: '$(Build.SourcesDirectory)/artifacts/OptProf/$(BuildConfiguration)/Data'
             artifactName: 'OptProf Data Files'
 
           - output: pipelineArtifact
             displayName: 'Publish Logs'
             condition: succeededOrFailed()
-            targetPath: '$(Build.SourcesDirectory)/artifacts\log\$(BuildConfiguration)'
+            targetPath: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)'
             artifactName: 'Build Diagnostic Files'
             publishLocation: Container
 
           - output: pipelineArtifact
             displayName: 'Publish Ngen Logs'
             condition: succeeded()
-            targetPath: '$(Build.SourcesDirectory)/artifacts\log\$(BuildConfiguration)\ngen'
+            targetPath: '$(Build.SourcesDirectory)/artifacts/log/$(BuildConfiguration)/ngen'
             artifactName: 'NGen Logs'
             publishLocation: Container
 
@@ -189,7 +189,7 @@ extends:
           - output: microBuildVstsDrop
             displayName: Upload VSTS Drop
             condition: succeeded()
-            dropFolder: '$(Build.SourcesDirectory)/artifacts\VSSetup\$(BuildConfiguration)\Insertion'
+            dropFolder: '$(Build.SourcesDirectory)/artifacts/VSSetup/$(BuildConfiguration)/Insertion'
             dropName: $(VisualStudio.DropName)
             accessToken: $(_DevDivDropAccessToken)
             dropRetentionDays: 90
@@ -210,7 +210,7 @@ extends:
           - output: pipelineArtifact
             displayName: 'Publish Artifact VSSetup'
             condition: succeeded()
-            targetPath: '$(Build.SourcesDirectory)/artifacts\VSSetup\$(BuildConfiguration)'
+            targetPath: '$(Build.SourcesDirectory)/artifacts/VSSetup/$(BuildConfiguration)'
             artifactName: 'VSSetup'
 
           # Publish our NuPkgs as an artifact. The name of this artifact must be PackageArtifacts as the
@@ -218,7 +218,7 @@ extends:
           - output: buildArtifacts
             displayName: 'Publish Artifact Packages'
             condition: succeeded()
-            PathtoPublish: '$(Build.SourcesDirectory)/artifacts\packages\$(BuildConfiguration)'
+            PathtoPublish: '$(Build.SourcesDirectory)/artifacts/packages/$(BuildConfiguration)'
             ArtifactName: 'PackageArtifacts'
 
           # Publish Asset Manifests for Build Asset Registry job
@@ -353,7 +353,7 @@ extends:
           displayName: Publish xUnit Test Results
           inputs:
             testRunner: XUnit
-            testResultsFiles: '$(Build.SourcesDirectory)/artifacts\TestResults\$(BuildConfiguration)\*.xml'
+            testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/$(BuildConfiguration)/*.xml'
             mergeTestResults: true
             testRunTitle: 'Unit Tests'
           condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
