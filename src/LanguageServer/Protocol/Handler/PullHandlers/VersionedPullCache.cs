@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// <param name="idToClientLastResult">a map of roslyn document or project id to the previous result the client sent us for that doc.</param>
         /// <param name="projectOrDocumentId">the id of the project or document that we are checking to see if it has changed.</param>
         /// <returns>Null when results are unchanged, otherwise returns a non-null new resultId.</returns>
-        public async Task<(string ResultId, ImmutableArray<TComputedData> Data)?> GetNewResultIdAsync(
+        public async Task<(string ResultId, ImmutableArray<TComputedData> Data)?> GetOrComputeNewDataAsync(
             Dictionary<ProjectOrDocumentId, PreviousPullResult> idToClientLastResult,
             ProjectOrDocumentId projectOrDocumentId,
             Project project,

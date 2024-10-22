@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 }
 
                 var documentToPreviousDiagnosticParams = documentToPreviousParams.ToDictionary(kvp => new ProjectOrDocumentId(kvp.Key.Id), kvp => kvp.Value);
-                var newResult = await _versionedCache.GetNewResultIdAsync(
+                var newResult = await _versionedCache.GetOrComputeNewDataAsync(
                     documentToPreviousDiagnosticParams,
                     new ProjectOrDocumentId(document.Id),
                     document.Project,
