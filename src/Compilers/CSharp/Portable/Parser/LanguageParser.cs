@@ -11068,7 +11068,7 @@ done:
                 if ((newPrecedence == precedence) && !IsRightAssociative(operatorExpressionKind))
                     return null;
 
-                // No consume the operator (including consuming multiple tokens in the case of merged operator tokens)
+                // Now consume the operator (including consuming multiple tokens in the case of merged operator tokens)
 
                 var operatorToken = eatOperatorToken(operatorTokenKind);
 
