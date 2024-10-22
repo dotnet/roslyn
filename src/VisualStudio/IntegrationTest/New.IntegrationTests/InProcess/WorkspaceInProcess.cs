@@ -75,6 +75,14 @@ internal partial class WorkspaceInProcess
         globalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, languageName, value);
     }
 
+    public async Task SetVarPreferenceForBuiltInTypesAsync(bool preferVar, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(cancellationToken);
+        globalOptions.SetGlobalOption(Microsoft.CodeAnalysis.CSharp.CodeStyle.CSharpCodeStyleOptions.VarForBuiltInTypes,
+            new CodeStyleOption2<bool>(preferVar, NotificationOption2.Warning));
+    }
+
     public async Task SetFileScopedNamespaceAsync(bool value, CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
