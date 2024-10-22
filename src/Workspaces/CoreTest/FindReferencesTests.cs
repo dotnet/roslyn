@@ -461,7 +461,7 @@ namespace N
         public virtual void SomeMethod() { }
     }
 }
-", MscorlibRefPortable);
+", MscorlibPP7Ref);
 
             // create a normal assembly with a type derived from the portable base and overriding the method
             solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
@@ -473,7 +473,7 @@ namespace M
         public override void SomeMethod() { }
     }
 }
-", MscorlibRef, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
+", Net40.References.mscorlib, solution.Projects.Single(pid => pid.Name == "PortableProject").Id);
 
             // get symbols for methods
             var portableCompilation = await solution.Projects.Single(p => p.Name == "PortableProject").GetCompilationAsync();

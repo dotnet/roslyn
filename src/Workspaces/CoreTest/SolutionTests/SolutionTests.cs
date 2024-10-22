@@ -1072,6 +1072,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var metadataReference = MetadataReference.CreateFromImage([], filePath: "meta");
             var projectReference = new ProjectReference(projectId2);
             var analyzerReference = new TestAnalyzerReference();
+            var generatedOutputDir = Path.Combine(TempRoot.Root, "obj");
+            var assemblyPath = Path.Combine(TempRoot.Root, "bin", "assemblyName.dll");
 
             var newInfo = ProjectInfo.Create(
                 projectId,
@@ -1112,7 +1114,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     // add new document:
                     newConfigDocumentInfo3,
                     // remove existing document (c2)
-                ]);
+                ])
+                .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath, generatedOutputDir));
 
             var newSolution = solution.WithProjectInfo(newInfo);
             var newProject = newSolution.GetRequiredProject(projectId);
@@ -1124,6 +1127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(newInfo.Language, newProject.Language);
             Assert.Equal(newInfo.FilePath, newProject.FilePath);
             Assert.Equal(newInfo.OutputFilePath, newProject.OutputFilePath);
+            Assert.Equal(newInfo.CompilationOutputInfo, newProject.CompilationOutputInfo);
             Assert.Equal(newInfo.CompilationOptions!.OutputKind, newProject.CompilationOptions!.OutputKind);
             Assert.Equal(newInfo.CompilationOptions!.ModuleName, newProject.CompilationOptions!.ModuleName);
             Assert.Equal(newInfo.ParseOptions!.LanguageVersion, newProject.ParseOptions!.LanguageVersion);
@@ -1379,7 +1383,39 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 defaultThrows: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputFilePath(null!, "x.dll"));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputFilePath(null!, "x.dll"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectOutputFilePath(ProjectId.CreateNewId(), "x.dll"));
+        }
+
+        [Fact]
+        public void GetEffectiveGeneratedFilesOutputDirectory()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var objDir = Path.Combine(TempRoot.Root, "obj");
+            var binDir = Path.Combine(TempRoot.Root, "bin");
+            var otherDir = Path.Combine(TempRoot.Root, "other");
+
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+            var project = solution.GetRequiredProject(projectId);
+
+            Assert.False(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+
+            project = project
+                .WithOutputFilePath(Path.Combine(binDir, "output.dll"))
+                .WithCompilationOutputInfo(new CompilationOutputInfo(
+                    assemblyPath: Path.Combine(objDir, "output.dll"),
+                    generatedFilesOutputDirectory: null));
+
+            Assert.True(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+            AssertEx.AreEqual(objDir, project.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
+
+            project = project.WithCompilationOutputInfo(
+                project.CompilationOutputInfo.WithGeneratedFilesOutputDirectory(otherDir));
+
+            Assert.True(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+            AssertEx.AreEqual(otherDir, project.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
         }
 
         [Fact]
@@ -1415,17 +1451,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
 
             // any character is allowed
-            var path = "\0<>a/b/*.dll";
+            var info = new CompilationOutputInfo("\0<>a/b/*.dll", TempRoot.Root + "<>\0");
 
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectCompilationOutputInfo(projectId, value),
                 s => s.GetRequiredProject(projectId).CompilationOutputInfo,
-                new CompilationOutputInfo(path),
+                info,
                 defaultThrows: false);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, new CompilationOutputInfo("x.dll")));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), new CompilationOutputInfo("x.dll")));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, info));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), info));
         }
 
         [Fact]
@@ -1856,8 +1892,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var e = OnceEnumerable(projectRef2, externalProjectRef);
 
             var solution3 = solution.AddProjectReferences(projectId, e);
-            AssertEx.Equal([projectRef2], solution3.GetProject(projectId)!.ProjectReferences);
-            AssertEx.Equal([projectRef2, externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2], solution3.GetProject(projectId)!.ProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2, externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.AddProjectReferences(null!, [projectRef2]));
             Assert.Throws<ArgumentNullException>("projectReferences", () => solution.AddProjectReferences(projectId, null!));
@@ -1889,11 +1925,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // remove reference to a project that's not part of the solution:
             var solution2 = solution.RemoveProjectReference(projectId, externalProjectRef);
-            AssertEx.Equal([projectRef2], solution2.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2], solution2.GetProject(projectId)!.AllProjectReferences);
 
             // remove reference to a project that's part of the solution:
             var solution3 = solution.RemoveProjectReference(projectId, projectRef2);
-            AssertEx.Equal([externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
 
             var solution4 = solution3.RemoveProjectReference(projectId, externalProjectRef);
             Assert.Empty(solution4.GetProject(projectId)!.AllProjectReferences);
@@ -1976,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var metadataRef2 = new TestMetadataReference();
 
             var solution3 = solution.AddMetadataReferences(projectId, OnceEnumerable(metadataRef1, metadataRef2));
-            AssertEx.Equal([metadataRef1, metadataRef2], solution3.GetProject(projectId)!.MetadataReferences);
+            AssertEx.Equal((MetadataReference[])[metadataRef1, metadataRef2], solution3.GetProject(projectId)!.MetadataReferences);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.AddMetadataReferences(null!, [metadataRef1]));
             Assert.Throws<ArgumentNullException>("metadataReferences", () => solution.AddMetadataReferences(projectId, null!));
@@ -1999,7 +2035,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.WithProjectMetadataReferences(projectId, [metadataRef1, metadataRef2]);
 
             var solution2 = solution.RemoveMetadataReference(projectId, metadataRef1);
-            AssertEx.Equal([metadataRef2], solution2.GetProject(projectId)!.MetadataReferences);
+            AssertEx.Equal((MetadataReference[])[metadataRef2], solution2.GetProject(projectId)!.MetadataReferences);
 
             var solution3 = solution2.RemoveMetadataReference(projectId, metadataRef2);
             Assert.Empty(solution3.GetProject(projectId)!.MetadataReferences);
@@ -2046,7 +2082,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerRef2 = new TestAnalyzerReference();
 
             var solution3 = solution.AddAnalyzerReferences(projectId, OnceEnumerable(analyzerRef1, analyzerRef2));
-            AssertEx.Equal([analyzerRef1, analyzerRef2], solution3.GetProject(projectId)!.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef1, analyzerRef2], solution3.GetProject(projectId)!.AnalyzerReferences);
 
             var solution4 = solution3.AddAnalyzerReferences(projectId, []);
 
@@ -2072,7 +2108,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.WithProjectAnalyzerReferences(projectId, [analyzerRef1, analyzerRef2]);
 
             var solution2 = solution.RemoveAnalyzerReference(projectId, analyzerRef1);
-            AssertEx.Equal([analyzerRef2], solution2.GetProject(projectId)!.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef2], solution2.GetProject(projectId)!.AnalyzerReferences);
 
             var solution3 = solution2.RemoveAnalyzerReference(projectId, analyzerRef2);
             Assert.Empty(solution3.GetProject(projectId)!.AnalyzerReferences);
@@ -2114,7 +2150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerRef2 = new TestAnalyzerReference();
 
             var solution3 = solution.AddAnalyzerReferences(OnceEnumerable(analyzerRef1, analyzerRef2));
-            AssertEx.Equal([analyzerRef1, analyzerRef2], solution3.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef1, analyzerRef2], solution3.AnalyzerReferences);
 
             var solution4 = solution3.AddAnalyzerReferences([]);
 
@@ -2138,7 +2174,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.WithAnalyzerReferences([analyzerRef1, analyzerRef2]);
 
             var solution2 = solution.RemoveAnalyzerReference(analyzerRef1);
-            AssertEx.Equal([analyzerRef2], solution2.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef2], solution2.AnalyzerReferences);
 
             var solution3 = solution2.RemoveAnalyzerReference(analyzerRef2);
             Assert.Empty(solution3.AnalyzerReferences);
@@ -5583,7 +5619,10 @@ class C
         public async Task TestFrozenPartialSolution7(bool freeze)
         {
             using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
-            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            var project1 = workspace.CurrentSolution
+                .AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp)
+                .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath: Path.Combine(TempRoot.Root, "assembly.dll"), generatedFilesOutputDirectory: null));
+
             project1 = project1.AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
 
             var invokeIndex = 1;

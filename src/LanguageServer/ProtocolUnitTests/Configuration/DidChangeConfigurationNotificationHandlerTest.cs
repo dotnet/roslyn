@@ -145,7 +145,8 @@ public class A { }";
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
                 "projects.dotnet_binary_log_path",
-                "projects.dotnet_enable_automatic_restore"
+                "projects.dotnet_enable_automatic_restore",
+                "navigation.dotnet_navigate_to_source_link_and_embedded_sources"
             };
 
             AssertEx.SetEqual(expectedNames, actualNames);

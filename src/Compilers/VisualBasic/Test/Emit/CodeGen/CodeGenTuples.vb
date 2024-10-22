@@ -14924,7 +14924,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 "ReadOnly Property (System.Int32, System.Int32).System.ITupleInternal.Size As System.Int32"
                 )
 
-            Assert.Equal({
+            AssertEx.Equal({
                 ".ctor",
                 ".ctor",
                 "CompareTo",
@@ -14967,7 +14967,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 "ReadOnly Property (a2 As System.Int32, b2 As System.Int32).System.ITupleInternal.Size As System.Int32"
                 )
 
-            Assert.Equal({
+            AssertEx.Equal({
                 ".ctor",
                 ".ctor",
                 "CompareTo",
@@ -15008,7 +15008,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 "ReadOnly Property (Item1 As System.Int32, Item2 As System.Int32).System.ITupleInternal.Size As System.Int32"
                 )
 
-            Assert.Equal({
+            AssertEx.Equal({
                 ".ctor",
                 ".ctor",
                 "CompareTo",
@@ -15041,7 +15041,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
             Assert.Same(m1Tuple.TupleUnderlyingType.ContainingSymbol, m1Tuple.ContainingSymbol)
             Assert.Null(m1Tuple.EnumUnderlyingType)
 
-            Assert.Equal({
+            AssertEx.Equal({
                 "Item1",
                 "Item2",
                 ".ctor",
@@ -15059,7 +15059,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 "System.ITupleInternal.Size"},
                 m1Tuple.MemberNames.ToArray())
 
-            Assert.Equal({
+            AssertEx.Equal({
                 "Item1",
                 "a2",
                 "Item2",
@@ -16299,9 +16299,9 @@ options:=TestOptions.DebugExe)
             Assert.Same(m1Tuple.TupleUnderlyingType.ContainingSymbol, m1Tuple.ContainingSymbol)
             Assert.Null(m1Tuple.GetUseSiteErrorInfo())
             Assert.Null(m1Tuple.EnumUnderlyingType)
-            Assert.Equal({".ctor", "Item1", "Item2", "ToString"},
+            AssertEx.Equal({".ctor", "Item1", "Item2", "ToString"},
                          m1Tuple.MemberNames.ToArray())
-            Assert.Equal({".ctor", "Item1", "a2", "Item2", "b2", "ToString"},
+            AssertEx.Equal({".ctor", "Item1", "a2", "Item2", "b2", "ToString"},
                          m2Tuple.MemberNames.ToArray())
             Assert.Equal(0, m1Tuple.Arity)
             Assert.True(m1Tuple.TypeParameters.IsEmpty)

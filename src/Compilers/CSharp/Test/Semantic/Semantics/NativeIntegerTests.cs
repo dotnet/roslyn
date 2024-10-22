@@ -12384,7 +12384,7 @@ $@"class Program
 
                 if (expectedDiagnostics.Length == 0)
                 {
-                    CompileAndVerify(comp);
+                    CompileAndVerify(comp, emitOptions: EmitOptions.Default);
                 }
 
                 static bool useUnsafe(string type) => type == "void*";

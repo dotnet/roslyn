@@ -46,7 +46,7 @@ internal sealed class RemoteEncapsulateFieldService(in BrokeredServiceBase.Servi
                 fields.Add(resolved);
             }
 
-            var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
+            var service = document.GetRequiredLanguageService<IEncapsulateFieldService>();
 
             var newSolution = await service.EncapsulateFieldsAsync(
                 document, fields.ToImmutable(), updateReferences, cancellationToken).ConfigureAwait(false);

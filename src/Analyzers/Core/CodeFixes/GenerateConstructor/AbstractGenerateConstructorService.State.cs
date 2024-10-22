@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 
 internal abstract partial class AbstractGenerateConstructorService<TService, TExpressionSyntax>
 {
-    protected internal class State
+    protected internal sealed class State
     {
         private readonly TService _service;
         private readonly SemanticDocument _document;

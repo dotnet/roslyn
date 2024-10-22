@@ -19,6 +19,8 @@ using System.Threading;
 using System.Diagnostics;
 using Roslyn.Test.Utilities.TestGenerators;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -60,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 
             if (exception is object)
             {
-                throw exception;
+                Assert.False(true, exception.ToString());
             }
         }
 
@@ -411,9 +413,9 @@ public class Test
             int nestingLevel = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
                 (4, ExecutionConfiguration.Debug) => 310,
-                (4, ExecutionConfiguration.Release) => 1650,
+                (4, ExecutionConfiguration.Release) => 1419,
                 (8, ExecutionConfiguration.Debug) => 200,
-                (8, ExecutionConfiguration.Release) => 780,
+                (8, ExecutionConfiguration.Release) => 474,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
@@ -447,6 +449,95 @@ $@"        if (F({i}))
                     var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
                     comp.VerifyDiagnostics();
                 });
+            }
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72393")]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
+        [InlineData(2)]
+#if DEBUG
+        [InlineData(2000)]
+#else
+        [InlineData(5000)]
+#endif
+        public void NestedIfElse(int n)
+        {
+            var builder = new System.Text.StringBuilder();
+            builder.AppendLine("""
+                #nullable enable
+                class Program
+                {
+                    static void F(int i)
+                    {
+                        if (i == 0) { }
+                """);
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($$"""
+                            else if (i == {{i}}) { }
+                    """);
+            }
+            builder.AppendLine("""
+                    }
+                }
+                """);
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            // Avoid using ControlFlowGraphVerifier.GetControlFlowGraph() since that calls
+            // TestOperationVisitor.VerifySubTree() which has quadratic behavior using
+            // MemberSemanticModel.GetEnclosingBinderInternalWithinRoot().
+            var operation = (Microsoft.CodeAnalysis.Operations.IMethodBodyOperation)model.GetOperation(node);
+            var graph = Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(operation);
+
+            if (n == 2)
+            {
+                var symbol = model.GetDeclaredSymbol(node);
+                ControlFlowGraphVerifier.VerifyGraph(comp, """
+                    Block[B0] - Entry
+                        Statements (0)
+                        Next (Regular) Block[B1]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B2]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 0')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (Regular) Block[B4]
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B3]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 0')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (Regular) Block[B4]
+                    Block[B3] - Block
+                        Predecessors: [B2]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B4]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 1')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        Next (Regular) Block[B4]
+                    Block[B4] - Exit
+                        Predecessors: [B1] [B2] [B3*2]
+                        Statements (0)
+                    """,
+                    graph, symbol);
             }
         }
 
@@ -716,12 +807,70 @@ $@"        if (F({i}))
                 ctx.RegisterSourceOutput(input, (spc, node) => { });
             }));
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [generator],
+                parseOptions: parseOptions,
+                driverOptions: TestOptions.GeneratorDriverOptions);
+
             driver = driver.RunGenerators(compilation);
             var runResult = driver.GetRunResult().Results[0];
 
             Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
                 step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
+        }
+
+        [Theory]
+        [InlineData("or", "1")]
+        [InlineData("and not", "0")]
+        public void ManyBinaryPatterns(string pattern, string expectedOutput)
+        {
+            const string preamble = $"""
+                int i = 2;
+
+                System.Console.Write(i is
+                """;
+            string append = $"""
+
+                {pattern} 
+                """;
+            const string postscript = """
+
+                ? 1 : 0);
+                """;
+
+            const int numBinaryExpressions = 5_000;
+
+            var builder = new StringBuilder(preamble.Length + postscript.Length + append.Length * numBinaryExpressions + 5 /* Max num digit characters */ * numBinaryExpressions);
+
+            builder.AppendLine(preamble);
+
+            builder.Append(0);
+
+            for (int i = 1; i < numBinaryExpressions; i++)
+            {
+                builder.Append(append);
+                // Make sure the emitter has to handle lots of nodes
+                builder.Append(i * 2);
+            }
+
+            builder.AppendLine(postscript);
+
+            var source = builder.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
+                CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+                var tree = comp.SyntaxTrees[0];
+                var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+                var model = comp.GetSemanticModel(tree);
+                var operation = model.GetOperation(isPattern);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
+            });
         }
     }
 }

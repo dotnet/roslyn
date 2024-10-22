@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
@@ -56,7 +57,7 @@ public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoProperty
             """, "public {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    public override async Task InsertSnippetInInterfaceTest()
+    public override async Task VerifySnippetInInterfaceTest()
     {
         // Ensure we don't generate redundant `set` accessor when executed in interface
         await VerifyPropertyAsync("""
@@ -66,4 +67,9 @@ public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoProperty
             }
             """, "public {|0:int|} {|1:MyProperty|} { get; }");
     }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
+    public override Task InsertSnippetAfterAllowedAccessibilityModifierTest(string modifier)
+        => base.InsertSnippetAfterAllowedAccessibilityModifierTest(modifier);
 }

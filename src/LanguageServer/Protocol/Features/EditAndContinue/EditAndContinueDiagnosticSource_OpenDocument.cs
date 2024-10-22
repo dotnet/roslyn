@@ -27,14 +27,16 @@ internal static partial class EditAndContinueDiagnosticSource
             var designTimeSolution = designTimeDocument.Project.Solution;
             var services = designTimeSolution.Services;
 
-            // avoid creating and synchronizing compile-time solution if Hot Reload/EnC session is not active
-            if (services.GetService<IEditAndContinueWorkspaceService>()?.SessionTracker is not { IsSessionActive: true } sessionStateTracker)
+            // Do not report EnC diagnostics for a non-host workspace, or if Hot Reload/EnC session is not active.
+            if (designTimeSolution.WorkspaceKind != WorkspaceKind.Host ||
+                services.GetService<IEditAndContinueWorkspaceService>()?.SessionTracker is not { IsSessionActive: true } sessionStateTracker)
             {
                 return [];
             }
 
             var applyDiagnostics = sessionStateTracker.ApplyChangesDiagnostics.WhereAsArray(static (data, id) => data.DocumentId == id, designTimeDocument.Id);
 
+            // Only create and synchronize compile-time solution if we need it.
             var compileTimeSolution = services.GetRequiredService<ICompileTimeSolutionProvider>().GetCompileTimeSolution(designTimeSolution);
 
             var compileTimeDocument = await CompileTimeSolutionProvider.TryGetCompileTimeDocumentAsync(designTimeDocument, compileTimeSolution, cancellationToken).ConfigureAwait(false);

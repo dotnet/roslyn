@@ -26,7 +26,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
@@ -4339,7 +4338,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
   </runtime>
 </configuration>");
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(Silverlight.System).Path;
             var net4_0dll = Temp.CreateFile().WriteAllBytes(Net461.Resources.System).Path;
 
             // Test linking two appconfig dlls with simple src
@@ -10069,6 +10068,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10118,6 +10118,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10174,6 +10175,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10242,6 +10244,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10250,6 +10253,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount2++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10355,6 +10359,7 @@ a = globalA");
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
 
                 ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (spc, po) =>
@@ -10440,6 +10445,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 

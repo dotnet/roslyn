@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Tags;
@@ -35,13 +34,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
-        private const string SourceGeneratedDocumentBaseUri = "source-generated:///";
         private const string BlockCodeFence = "```";
         private const string InlineCodeFence = "`";
-
-#pragma warning disable RS0030 // Do not use banned APIs
-        private static readonly Uri s_sourceGeneratedDocumentBaseUri = new(SourceGeneratedDocumentBaseUri, UriKind.Absolute);
-#pragma warning restore
 
         private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
@@ -188,7 +182,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static string GetDocumentFilePathFromUri(Uri uri)
-            => uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+        {
+            return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+        }
 
         /// <summary>
         /// Converts an absolute local file path or an absolute URL string to <see cref="Uri"/>.
@@ -217,9 +213,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         internal static Uri CreateRelativePatternBaseUri(string path)
         {
-            // According to VSCode LSP RelativePattern spec, 
+            // According to VSCode LSP RelativePattern spec,
             // found at https://github.com/microsoft/vscode/blob/9e1974682eb84eebb073d4ae775bad1738c281f6/src/vscode-dts/vscode.d.ts#L2226
-            // the baseUri should not end in a trailing separator, nor should it 
+            // the baseUri should not end in a trailing separator, nor should it
             // have any relative segmeents (., ..)
             if (path[^1] == System.IO.Path.DirectorySeparatorChar)
             {
@@ -259,28 +255,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 #pragma warning disable SYSLIB0013 // Type or member is obsolete
             static string EscapeUriPart(string stringToEscape)
                 => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
-#pragma warning restore
-        }
-
-        public static Uri CreateUriFromSourceGeneratedFilePath(string filePath)
-        {
-            Debug.Assert(!PathUtilities.IsAbsolute(filePath));
-
-            // Fast path for common cases:
-            if (IsAscii(filePath))
-            {
-#pragma warning disable RS0030 // Do not use banned APIs
-                return new Uri(s_sourceGeneratedDocumentBaseUri, filePath);
-#pragma warning restore
-            }
-
-            // Workaround for https://github.com/dotnet/runtime/issues/89538:
-
-            var parts = filePath.Split(s_dirSeparators);
-            var url = SourceGeneratedDocumentBaseUri + string.Join("/", parts.Select(Uri.EscapeDataString));
-
-#pragma warning disable RS0030 // Do not use banned APIs
-            return new Uri(url, UriKind.Absolute);
 #pragma warning restore
         }
 
@@ -512,13 +486,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location?> ConvertTextSpanToLocationAsync(
+            static async Task<LSP.Location> ConvertTextSpanToLocationAsync(
                 TextDocument document,
                 TextSpan span,
                 bool isStale,
                 CancellationToken cancellationToken)
             {
-                Debug.Assert(document.FilePath != null);
                 var uri = document.GetURI();
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -842,7 +815,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var projectContext = new LSP.VSProjectContext
             {
                 Id = ProjectIdToProjectContextId(project.Id),
-                Label = project.Name
+                Label = project.Name,
+                IsMiscellaneous = project.Solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles,
             };
 
             if (project.Language == LanguageNames.CSharp)
@@ -937,11 +911,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         codeFence = null;
 
                         break;
+                    case TextTags.Text when taggedText.Style == (TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace):
+                        // This represents a block of code (`<code></code>`) in doc comments.
+                        // Since code elements optionally support a `lang` attribute and we do not have access to the
+                        // language which was specified at this point, we tell the client to render it as plain text.
+
+                        if (!markdownBuilder.IsLineEmpty())
+                            AppendLineBreak(markdownBuilder);
+
+                        // The current line is empty, we can append a code block.
+                        markdownBuilder.AppendLine($"{BlockCodeFence}text");
+                        markdownBuilder.AppendLine(taggedText.Text);
+                        markdownBuilder.AppendLine(BlockCodeFence);
+
+                        break;
                     case TextTags.LineBreak:
-                        // A line ending with double space and a new line indicates to markdown
-                        // to render a single-spaced line break.
-                        markdownBuilder.Append("  ");
-                        markdownBuilder.AppendLine();
+                        AppendLineBreak(markdownBuilder);
                         break;
                     default:
                         var styledText = GetStyledText(taggedText, codeFence != null);
@@ -957,6 +942,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Kind = LSP.MarkupKind.Markdown,
                 Value = content,
             };
+
+            static void AppendLineBreak(MarkdownContentBuilder markdownBuilder)
+            {
+                // A line ending with double space and a new line indicates to markdown
+                // to render a single-spaced line break.
+                markdownBuilder.Append("  ");
+                markdownBuilder.AppendLine();
+            }
 
             static string GetCodeBlockLanguageName(string language)
             {
@@ -977,7 +970,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 if (!string.IsNullOrEmpty(taggedText.NavigationHint) && taggedText.NavigationHint == taggedText.NavigationTarget)
                     return $"[{text}]({taggedText.NavigationHint})";
 
-                // Markdown ignores spaces at the start of lines outside of code blocks, 
+                // Markdown ignores spaces at the start of lines outside of code blocks,
                 // so we replace regular spaces with non-breaking spaces to ensure structural space is retained.
                 // We want to use regular spaces everywhere else to allow the client to wrap long text.
                 if (!isCode && taggedText.Tag is TextTags.Space or TextTags.ContainerStart)
@@ -989,7 +982,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     TaggedTextStyle.Strong => $"**{text}**",
                     TaggedTextStyle.Emphasis => $"_{text}_",
                     TaggedTextStyle.Underline => $"<u>{text}</u>",
-                    TaggedTextStyle.Code => $"`{text}`",
+                    // Use double backticks to escape code which contains a backtick.
+                    TaggedTextStyle.Code => text.Contains('`') ? $"``{text}``" : $"`{text}`",
                     _ => text,
                 };
             }

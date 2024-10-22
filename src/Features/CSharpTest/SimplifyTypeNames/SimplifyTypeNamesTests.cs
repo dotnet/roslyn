@@ -2251,6 +2251,34 @@ public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBa
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public async Task SimplifyUnmentionableTypeParameter3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            public class C<T>;
+
+            public class D : C<[|D.E|]>
+            {
+                public class E;
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75026")]
+    public async Task SimplifyUnmentionableTypeParameter3_PrimaryCtor()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            public class C<T>;
+
+            public class D() : C<[|D.E|]>()
+            {
+                public class E;
+            }
+            """);
+    }
+
     [Fact]
     public async Task TestGlobalAlias()
     {
@@ -7304,39 +7332,63 @@ namespace N
             """, new TestParameters(options: featureOptions));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75162")]
+    public async Task TestEditorBrowsable1()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System.ComponentModel;
+
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            class Base
+            {
+                public static void Method() { }
+            }
+
+            class Derived : Base { }
+
+            class Test
+            {
+                void M()
+                {
+                    [|Derived|].Method();
+                }
+            }
+            """);
+    }
+
     private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
     private OptionsCollection PreferIntrinsicTypeEverywhere
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError },
         };
 
     private OptionsCollection PreferIntrinsicTypeInDeclaration
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent },
         };
 
     private OptionsCollection PreferIntrinsicTypeInMemberAccess
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption2.Error },
             { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent },
         };
 
     private OptionsCollection PreferImplicitTypeEverywhere
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
             { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
             { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
         };
 
-    private readonly CodeStyleOption2<bool> offWithSilent = new CodeStyleOption2<bool>(false, NotificationOption2.Silent);
-    private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
-    private readonly CodeStyleOption2<bool> onWithError = new CodeStyleOption2<bool>(true, NotificationOption2.Error);
+    private readonly CodeStyleOption2<bool> offWithSilent = new(false, NotificationOption2.Silent);
+    private readonly CodeStyleOption2<bool> onWithInfo = new(true, NotificationOption2.Suggestion);
+    private readonly CodeStyleOption2<bool> onWithError = new(true, NotificationOption2.Error);
 }

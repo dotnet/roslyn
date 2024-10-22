@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMethodWithProperty;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
-public class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new ReplaceMethodWithPropertyCodeRefactoringProvider();
@@ -3018,6 +3018,48 @@ index: 1);
                     {
                     }
                 }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61161")]
+    public async Task TestEndOfLineTrivia1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public int [||]Test1() { return 1; }
+                public void Test2() { }
+            }
+            """,
+            """
+            class C
+            {
+                public int Test1 => 1;
+                public void Test2() { }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61161")]
+    public async Task TestEndOfLineTrivia2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public int [||]Test1() { return 1; }
+
+                public void Test2() { }
+            }
+            """,
+            """
+            class C
+            {
+                public int Test1 => 1;
+
+                public void Test2() { }
             }
             """);
     }

@@ -1105,6 +1105,35 @@ internal static class CastSimplifier
                 if (newSymbolInfo.Symbol is null)
                     return true;
             }
+
+            if (currentOld is InterpolatedStringExpressionSyntax && currentNew is InterpolatedStringExpressionSyntax)
+            {
+                // In the case of interpolations, we need to dive into the operation level to determine if the meaning
+                // of the the interpolation stayed the same in the case of interpolation handlers.
+                if (originalSemanticModel.GetOperation(currentOld, cancellationToken) is not IInterpolatedStringOperation oldInterpolationOperation)
+                    return true;
+
+                if (rewrittenSemanticModel.GetOperation(currentNew, cancellationToken) is not IInterpolatedStringOperation newInterpolationOperation)
+                    return true;
+
+                if (oldInterpolationOperation.Parts.Length != newInterpolationOperation.Parts.Length)
+                    return true;
+
+                for (int i = 0, n = oldInterpolationOperation.Parts.Length; i < n; i++)
+                {
+                    var oldInterpolationPart = oldInterpolationOperation.Parts[i];
+                    var newInterpolationPart = newInterpolationOperation.Parts[i];
+                    if (oldInterpolationPart.Kind != newInterpolationPart.Kind)
+                        return true;
+
+                    // If we were calling some interpolation AppendFormatted helper, and now we're not, we introduced a problem.
+                    if (oldInterpolationPart is IInterpolatedStringAppendOperation { AppendCall: not IInvalidOperation } &&
+                        newInterpolationPart is IInterpolatedStringAppendOperation { AppendCall: IInvalidOperation })
+                    {
+                        return true;
+                    }
+                }
+            }
         }
 
         return false;

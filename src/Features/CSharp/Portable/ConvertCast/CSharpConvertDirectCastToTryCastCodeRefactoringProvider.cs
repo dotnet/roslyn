@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertCast;
 ///     var o = 1 as object;
 /// </summary>
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertDirectCastToTryCast), Shared]
-internal partial class CSharpConvertDirectCastToTryCastCodeRefactoringProvider
+internal sealed partial class CSharpConvertDirectCastToTryCastCodeRefactoringProvider
     : AbstractConvertCastCodeRefactoringProvider<TypeSyntax, CastExpressionSyntax, BinaryExpressionSyntax>
 {
     [ImportingConstructor]

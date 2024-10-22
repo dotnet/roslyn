@@ -9,6 +9,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Globbing;
+using Microsoft.Build.Globbing.Extensions;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -128,6 +131,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 outputRefFilePath = GetAbsolutePathRelativeToProject(outputRefFilePath);
             }
 
+            var generatedFilesOutputDirectory = project.ReadPropertyString(PropertyNames.CompilerGeneratedFilesOutputPath);
+            generatedFilesOutputDirectory = RoslynString.IsNullOrWhiteSpace(generatedFilesOutputDirectory)
+                ? null
+                : GetAbsolutePathRelativeToProject(generatedFilesOutputDirectory);
+
             var intermediateOutputFilePath = project.GetItems(ItemNames.IntermediateAssembly).FirstOrDefault()?.EvaluatedInclude;
             if (!RoslynString.IsNullOrWhiteSpace(intermediateOutputFilePath))
             {
@@ -171,25 +179,36 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
 
-            return ProjectFileInfo.Create(
-                Language,
-                project.FullPath,
-                outputFilePath,
-                outputRefFilePath,
-                intermediateOutputFilePath,
-                defaultNamespace,
-                targetFramework,
-                targetFrameworkIdentifier,
-                targetFrameworkVersion,
-                projectAssetsFilePath,
-                commandLineArgs,
-                docs,
-                additionalDocs,
-                analyzerConfigDocs,
-                project.GetProjectReferences().ToImmutableArray(),
-                packageReferences,
-                projectCapabilities,
-                contentFileInfo);
+            var fileGlobs = _loadedProject?.GetAllGlobs().Select(GetFileGlobs).ToImmutableArray() ?? [];
+
+            return new ProjectFileInfo()
+            {
+                Language = Language,
+                FilePath = project.FullPath,
+                OutputFilePath = outputFilePath,
+                OutputRefFilePath = outputRefFilePath,
+                GeneratedFilesOutputDirectory = generatedFilesOutputDirectory,
+                IntermediateOutputFilePath = intermediateOutputFilePath,
+                DefaultNamespace = defaultNamespace,
+                TargetFramework = targetFramework,
+                TargetFrameworkIdentifier = targetFrameworkIdentifier,
+                TargetFrameworkVersion = targetFrameworkVersion,
+                ProjectAssetsFilePath = projectAssetsFilePath,
+                CommandLineArgs = commandLineArgs,
+                Documents = docs,
+                AdditionalDocuments = additionalDocs,
+                AnalyzerConfigDocuments = analyzerConfigDocs,
+                ProjectReferences = project.GetProjectReferences().ToImmutableArray(),
+                PackageReferences = packageReferences,
+                ProjectCapabilities = projectCapabilities,
+                ContentFilePaths = contentFileInfo,
+                FileGlobs = fileGlobs
+            };
+
+            static FileGlobs GetFileGlobs(GlobResult g)
+            {
+                return new FileGlobs(g.IncludeGlobs.ToImmutableArray(), g.Excludes.ToImmutableArray(), g.Removes.ToImmutableArray());
+            }
         }
 
         private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)

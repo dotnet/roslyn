@@ -7,6 +7,11 @@
         <target state="translated">Проект не может ссылаться на себя.</target>
         <note />
       </trans-unit>
+      <trans-unit id="AbsolutePathExpected">
+        <source>Absolute path expected</source>
+        <target state="new">Absolute path expected</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">Добавление документов конфигурации анализатора не поддерживается.</target>
@@ -44,12 +49,12 @@
       </trans-unit>
       <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
         <source>Changing project between ordinary and interactive submission is not supported</source>
-        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
+        <target state="translated">Изменение проекта между обычной и интерактивной отправкой не поддерживается</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_language_is_not_supported">
         <source>Changing project language is not supported</source>
-        <target state="new">Changing project language is not supported</target>
+        <target state="translated">Изменение языка проекта не поддерживается</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
@@ -134,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Removing_compilation_options_is_not_supported">
         <source>Removing compilation options is not supported</source>
-        <target state="new">Removing compilation options is not supported</target>
+        <target state="translated">Удаление параметров компиляции не поддерживается</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_parse_options_is_not_supported">
         <source>Removing parse options is not supported</source>
-        <target state="new">Removing parse options is not supported</target>
+        <target state="translated">Удаление параметров анализа не поддерживается</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -150,6 +155,11 @@
       <trans-unit id="Running_code_cleanup_on_fixed_documents">
         <source>Running code cleanup on fixed documents</source>
         <target state="translated">Запуск очистки кода для фиксированных документов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_1_workspace">
+        <source>Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</source>
+        <target state="translated">Служба типа "{0}" необходима для выполнения задачи, но она недоступна из рабочей области "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -490,11 +500,6 @@
       <trans-unit id="Removing_project_references_is_not_supported">
         <source>Removing project references is not supported.</source>
         <target state="translated">Удаление ссылок на проекты не поддерживается.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
-        <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
-        <target state="translated">Служба типа "{0}" необходима для выполнения задачи, но она недоступна из рабочей области.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">

@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 /// </summary>
 internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
 {
-    private const string AwaitCompletionTargetTokenPosition = nameof(AwaitCompletionTargetTokenPosition);
+    private const string Position = nameof(Position);
+    private const string LeftTokenPosition = nameof(LeftTokenPosition);
     private const string AppendConfigureAwait = nameof(AppendConfigureAwait);
     private const string MakeContainerAsync = nameof(MakeContainerAsync);
 
@@ -59,7 +60,7 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
     /// </summary>
     protected abstract int GetSpanStart(SyntaxNode declaration);
 
-    protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token);
+    protected abstract SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken leftToken, int position);
 
     protected abstract ITypeSymbol? GetTypeSymbolOfExpression(SemanticModel semanticModel, SyntaxNode potentialAwaitableExpression, CancellationToken cancellationToken);
     protected abstract SyntaxNode? GetExpressionToPlaceAwaitInFrontOf(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
@@ -95,12 +96,13 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         if (!isAwaitKeywordContext && dotAwaitContext == DotAwaitContext.None)
             return;
 
-        var token = syntaxContext.TargetToken;
-        var declaration = GetAsyncSupportingDeclaration(token);
+        var leftToken = syntaxContext.LeftToken;
+        var declaration = GetAsyncSupportingDeclaration(leftToken, position);
 
         using var builder = TemporaryArray<KeyValuePair<string, string>>.Empty;
 
-        builder.Add(KeyValuePairUtil.Create(AwaitCompletionTargetTokenPosition, token.SpanStart.ToString()));
+        builder.Add(KeyValuePairUtil.Create(Position, position.ToString()));
+        builder.Add(KeyValuePairUtil.Create(LeftTokenPosition, leftToken.SpanStart.ToString()));
 
         var makeContainerAsync = declaration is not null && !SyntaxGenerator.GetGenerator(document).GetModifiers(declaration).IsAsync;
         if (makeContainerAsync)
@@ -178,8 +180,9 @@ internal abstract class AbstractAwaitCompletionProvider : LSPCompletionProvider
         if (item.TryGetProperty(MakeContainerAsync, out var _))
         {
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var tokenPosition = int.Parse(item.GetProperty(AwaitCompletionTargetTokenPosition));
-            var declaration = GetAsyncSupportingDeclaration(root.FindToken(tokenPosition));
+            var position = int.Parse(item.GetProperty(Position));
+            var leftTokenPosition = int.Parse(item.GetProperty(LeftTokenPosition));
+            var declaration = GetAsyncSupportingDeclaration(root.FindToken(leftTokenPosition), position);
             if (declaration is null)
             {
                 // IsComplexTextEdit should only be true when GetAsyncSupportingDeclaration returns non-null.

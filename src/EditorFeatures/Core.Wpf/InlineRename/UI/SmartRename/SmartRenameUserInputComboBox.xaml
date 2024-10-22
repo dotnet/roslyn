@@ -87,7 +87,6 @@
                     </Trigger>
                     <Trigger Property="IsKeyboardFocused" Value="true">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderFocusedBrushKey}}"/>
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonFocusedBrushKey}}"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>

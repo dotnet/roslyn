@@ -22,9 +22,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
-    private partial class RegularCompilationTracker : ICompilationTracker
+    private sealed partial class RegularCompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo nextGeneratorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
             CreationPolicy creationPolicy,
@@ -390,6 +390,7 @@ internal partial class SolutionCompilationState
 
             static GeneratorDriver CreateGeneratorDriver(ProjectState projectState)
             {
+                var generatedFilesBaseDirectory = projectState.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory();
                 var additionalTexts = projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
                 var compilationFactory = projectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
@@ -397,7 +398,8 @@ internal partial class SolutionCompilationState
                     projectState.ParseOptions!,
                     GetSourceGenerators(projectState),
                     projectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
-                    additionalTexts);
+                    additionalTexts,
+                    generatedFilesBaseDirectory);
             }
 
             [Conditional("DEBUG")]

@@ -205,6 +205,7 @@ public class RemoteEditAndContinueServiceTests
 
             return new()
             {
+                Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
                 RudeEdits = [],
@@ -212,12 +213,12 @@ public class RemoteEditAndContinueServiceTests
             };
         };
 
-        var (updates, _, _, syntaxErrorData) = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, CancellationToken.None);
-        AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(syntaxErrorData!));
+        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, CancellationToken.None);
+        AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(results.SyntaxError!));
 
-        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
 
-        var delta = updates.Updates.Single();
+        var delta = results.ModuleUpdates.Updates.Single();
         Assert.Equal(moduleId1, delta.Module);
         AssertEx.Equal(new byte[] { 1, 2 }, delta.ILDelta);
         AssertEx.Equal(new byte[] { 3, 4 }, delta.MetadataDelta);

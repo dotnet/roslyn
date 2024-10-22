@@ -46,9 +46,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 activeStatements: [],
                 exceptionRegions: []);
 
-        private static EmitSolutionUpdateResults CreateMockResults(IEnumerable<ProjectId> updates, IEnumerable<ProjectId> rudeEdits)
+        private static EmitSolutionUpdateResults CreateMockResults(Solution solution, IEnumerable<ProjectId> updates, IEnumerable<ProjectId> rudeEdits)
         => new()
         {
+            Solution = solution,
             ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, [.. updates.Select(CreateMockUpdate)]),
             RudeEdits = [.. rudeEdits.Select(id => new ProjectDiagnostics(id, [Diagnostic.Create(EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError), location: null)]))],
             Diagnostics = [],
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var solution = document.Project.Solution;
             var tree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
-            var diagnosticData = ImmutableArray.Create(
+            var diagnostics = ImmutableArray.Create(
                 new DiagnosticData(
                     id: "CS0001",
                     category: "Test",
@@ -129,8 +130,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(1, 10), 123, ["b"]).ToDiagnostic(tree)
             ])).ToDiagnosticData(solution);
 
-            var updateStatus = ModuleUpdateStatus.Blocked;
-            var actual = EmitSolutionUpdateResults.GetAllDiagnostics(diagnosticData, rudeEdits, syntaxError, updateStatus);
+            var data = new EmitSolutionUpdateResults.Data()
+            {
+                Diagnostics = diagnostics,
+                RudeEdits = rudeEdits,
+                SyntaxError = syntaxError,
+                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, Updates: [])
+            };
+
+            var actual = data.GetAllDiagnostics();
 
             AssertEx.Equal(
             [
@@ -154,7 +162,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
             var runningProjects = new[] { a, b };
-            var results = CreateMockResults(updates: [c, d], rudeEdits: []);
+            var results = CreateMockResults(solution, updates: [c, d], rudeEdits: []);
 
             var projectsToRestart = new HashSet<Project>();
             var projectsToRebuild = new HashSet<Project>();
@@ -177,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
             var runningProjects = new[] { a, b };
-            var results = CreateMockResults(updates: [], rudeEdits: [d]);
+            var results = CreateMockResults(solution, updates: [], rudeEdits: [d]);
 
             var projectsToRestart = new HashSet<Project>();
             var projectsToRebuild = new HashSet<Project>();
@@ -203,7 +211,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
             var runningProjects = new[] { a };
-            var results = CreateMockResults(updates: [], rudeEdits: [d]);
+            var results = CreateMockResults(solution, updates: [], rudeEdits: [d]);
 
             var projectsToRestart = new HashSet<Project>();
             var projectsToRebuild = new HashSet<Project>();
@@ -226,7 +234,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
             var runningProjects = new[] { a, b };
-            var results = CreateMockResults(updates: [c], rudeEdits: [d]);
+            var results = CreateMockResults(solution, updates: [c], rudeEdits: [d]);
 
             var projectsToRestart = new HashSet<Project>();
             var projectsToRebuild = new HashSet<Project>();
@@ -253,7 +261,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("B", out var b).AddProjectReferences([new(d)]).Solution;
 
             var runningProjects = new[] { a, b };
-            var results = CreateMockResults(updates: [c], rudeEdits: [d]);
+            var results = CreateMockResults(solution, updates: [c], rudeEdits: [d]);
 
             var projectsToRestart = new HashSet<Project>();
             var projectsToRebuild = new HashSet<Project>();
@@ -284,7 +292,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("R4", out var r4).AddProjectReferences([new(p4)]).Solution;
 
             var runningProjects = new[] { r1, r2, r3, r4 };
-            var results = CreateMockResults(updates: reverse ? [p4, p3, p2] : [p2, p3, p4], rudeEdits: [p1]);
+            var results = CreateMockResults(solution, updates: reverse ? [p4, p3, p2] : [p2, p3, p4], rudeEdits: [p1]);
 
             var projectsToRestart = new HashSet<Project>();
             var projectsToRebuild = new HashSet<Project>();
