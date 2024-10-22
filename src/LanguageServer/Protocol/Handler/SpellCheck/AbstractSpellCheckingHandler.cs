@@ -225,16 +225,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 }
             }
         }
-
-        private static async Task<(Checksum parseOptionsChecksum, Checksum textChecksum)> ComputeChecksumsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var project = document.Project;
-            var parseOptionsChecksum = project.State.GetParseOptionsChecksum();
-
-            var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var textChecksum = documentChecksumState.Text;
-
-            return (parseOptionsChecksum, textChecksum);
-        }
     }
 }
