@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 switch (dkmException.Code)
                 {
+                    case DkmExceptionCode.E_METADATA_UPDATE_DEADLOCK: // Metadata was updated while EE had component lock
                     case DkmExceptionCode.E_PROCESS_DESTROYED:
                     case DkmExceptionCode.E_XAPI_REMOTE_CLOSED:
                     case DkmExceptionCode.E_XAPI_REMOTE_DISCONNECTED:

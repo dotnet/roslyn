@@ -17,6 +17,7 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using static Microsoft.CodeAnalysis.LanguageServer.UnitTests.LocaleTests;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
 {
@@ -172,6 +173,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
         }
 
         [Theory, CombinatorialData]
+        public async Task NonMutatingHandlerExceptionNFWIsNotReportedForLocalRpcException(bool mutatingLspWorkspace)
+        {
+            await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
+
+            var request = new TestRequestWithDocument(new TextDocumentIdentifier
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(@"C:\test.cs")
+            });
+
+            var didReport = false;
+            FatalError.OverwriteHandler((exception, severity, dumps) =>
+            {
+                if (exception.Message == nameof(HandlerTests) || exception.InnerException.Message == nameof(HandlerTests))
+                {
+                    didReport = true;
+                }
+            });
+
+            var response = Task.FromException<TestConfigurableResponse>(new StreamJsonRpc.LocalRpcException(nameof(HandlerTests)) { ErrorCode = LspErrorCodes.ContentModified });
+            TestConfigurableDocumentHandler.ConfigureHandler(server, mutatesSolutionState: false, requiresLspSolution: true, response);
+
+            await Assert.ThrowsAnyAsync<Exception>(async ()
+                => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
+
+            var provider = server.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+            await provider.WaitAllDispatcherOperationAndTasksAsync(
+                server.TestWorkspace,
+                FeatureAttribute.LanguageServer);
+
+            Assert.False(didReport);
+        }
+
+        [Theory, CombinatorialData]
         public async Task MutatingHandlerExceptionNFWIsReported(bool mutatingLspWorkspace)
         {
             var server = await CreateTestLspServerAsync("", mutatingLspWorkspace);
@@ -260,6 +294,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
                 => await server.ExecuteRequestAsync<TestRequestWithDocument, TestConfigurableResponse>(TestConfigurableDocumentHandler.MethodName, request, CancellationToken.None));
 
             Assert.False(didReport);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestMutatingHandlerCrashesIfUnableToDetermineLanguage(bool mutatingLspWorkspace)
+        {
+            await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+            // Run a mutating request against a file which we have no saved languageId for
+            // and where the language cannot be determined from the URI.
+            // This should crash the server.
+            var looseFileUri = ProtocolConversions.CreateAbsoluteUri(@"untitled:untitledFile");
+            var request = new TestRequestTypeOne(new TextDocumentIdentifier
+            {
+                Uri = looseFileUri
+            });
+
+            await Assert.ThrowsAnyAsync<Exception>(async () => await testLspServer.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None)).ConfigureAwait(false);
+            await testLspServer.AssertServerShuttingDownAsync();
         }
 
         internal record TestRequestTypeOne([property: JsonPropertyName("textDocument"), JsonRequired] TextDocumentIdentifier TextDocumentIdentifier);

@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // as optionally evaluated. Otherwise, we treat them as always evaluated
             (BoundExpression? construction, bool useBoolReturns, bool firstPartIsConditional) = data switch
             {
-                null => (null, false, false),
+                null or { BuilderType: null } => (null, false, false),
                 { } d => (d.Construction, d.UsesBoolReturns, d.HasTrailingHandlerValidityParameter)
             };
 
@@ -1545,10 +1545,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arguments.Length; i++)
             {
                 RefKind refKind = GetRefKind(refKindsOpt, i);
-                // passing as a byref argument is also a potential write
-                if (refKind != RefKind.None)
+                switch (refKind)
                 {
-                    WriteArgument(arguments[i], refKind, method);
+                    case RefKind.None:
+                    case RefKind.In:
+                    case RefKind.RefReadOnlyParameter:
+                    case RefKindExtensions.StrictIn:
+                        break;
+                    case RefKind.Ref:
+                    case RefKind.Out:
+                        // passing as a byref argument is also a potential write
+                        WriteArgument(arguments[i], refKind, method);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(refKind);
                 }
             }
         }

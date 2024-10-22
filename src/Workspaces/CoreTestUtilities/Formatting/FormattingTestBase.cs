@@ -24,11 +24,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             string expected,
             string code,
             string language,
-            bool debugMode = false,
             OptionsCollection? changedOptionSet = null,
             bool testWithTransformation = true)
         {
-            return AssertFormatAsync(expected, code, [new TextSpan(0, code.Length)], language, debugMode, changedOptionSet, testWithTransformation);
+            return AssertFormatAsync(expected, code, [new TextSpan(0, code.Length)], language, changedOptionSet, testWithTransformation);
         }
 
         private protected async Task AssertFormatAsync(
@@ -36,9 +35,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             string code,
             IEnumerable<TextSpan> spans,
             string language,
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/44225
-            bool debugMode = false,
-#pragma warning restore IDE0060 // Remove unused parameter
             OptionsCollection? changedOptions = null,
             bool treeCompare = true,
             ParseOptions? parseOptions = null)

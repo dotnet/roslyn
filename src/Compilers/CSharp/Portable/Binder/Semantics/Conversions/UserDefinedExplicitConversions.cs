@@ -212,6 +212,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (IgnoreUserDefinedSpanConversions(source, target))
+            {
+                return;
+            }
+
             ImmutableArray<MethodSymbol> operators = declaringType.GetOperators(
                 isExplicit ? (isChecked ? WellKnownMemberNames.CheckedExplicitConversionName : WellKnownMemberNames.ExplicitConversionName) : WellKnownMemberNames.ImplicitConversionName);
 

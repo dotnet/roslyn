@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
@@ -1395,5 +1396,79 @@ public sealed partial class UseAutoPropertyTests
                 public string Prop { get => prop; set => prop = value; }
             }
             """, new(parseOptions: Preview));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75516")]
+    public async Task TestBackingFieldUsedAsArgument1()
+    {
+        await TestInRegularAndScriptAsync("""
+            class C
+            {
+                [|int _i;|]
+                int P
+                {
+                    get => _i;
+                    set
+                    {
+                        M(_i);
+                        _i = value;
+                    }
+                }
+
+                void M(int i) { }
+            }
+            """, """
+            class C
+            {
+                int P
+                {
+                    get;
+                    set
+                    {
+                        M(field);
+                        field = value;
+                    }
+                }
+
+                void M(int i) { }
+            }
+            """, parseOptions: Preview);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75516")]
+    public async Task TestBackingFieldUsedAsArgument2()
+    {
+        await TestInRegularAndScriptAsync("""
+            class C
+            {
+                [|int _i;|]
+                int P
+                {
+                    get => _i;
+                    set
+                    {
+                        M(ref _i);
+                        _i = value;
+                    }
+                }
+
+                void M(ref int i) { }
+            }
+            """, """
+            class C
+            {
+                int P
+                {
+                    get;
+                    set
+                    {
+                        M(ref field);
+                        field = value;
+                    }
+                }
+
+                void M(ref int i) { }
+            }
+            """, parseOptions: Preview);
     }
 }

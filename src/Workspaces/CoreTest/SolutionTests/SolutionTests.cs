@@ -1072,6 +1072,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var metadataReference = MetadataReference.CreateFromImage([], filePath: "meta");
             var projectReference = new ProjectReference(projectId2);
             var analyzerReference = new TestAnalyzerReference();
+            var generatedOutputDir = Path.Combine(TempRoot.Root, "obj");
+            var assemblyPath = Path.Combine(TempRoot.Root, "bin", "assemblyName.dll");
 
             var newInfo = ProjectInfo.Create(
                 projectId,
@@ -1112,7 +1114,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     // add new document:
                     newConfigDocumentInfo3,
                     // remove existing document (c2)
-                ]);
+                ])
+                .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath, generatedOutputDir));
 
             var newSolution = solution.WithProjectInfo(newInfo);
             var newProject = newSolution.GetRequiredProject(projectId);
@@ -1124,6 +1127,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(newInfo.Language, newProject.Language);
             Assert.Equal(newInfo.FilePath, newProject.FilePath);
             Assert.Equal(newInfo.OutputFilePath, newProject.OutputFilePath);
+            Assert.Equal(newInfo.CompilationOutputInfo, newProject.CompilationOutputInfo);
             Assert.Equal(newInfo.CompilationOptions!.OutputKind, newProject.CompilationOptions!.OutputKind);
             Assert.Equal(newInfo.CompilationOptions!.ModuleName, newProject.CompilationOptions!.ModuleName);
             Assert.Equal(newInfo.ParseOptions!.LanguageVersion, newProject.ParseOptions!.LanguageVersion);
@@ -1379,7 +1383,39 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 defaultThrows: false);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputFilePath(null!, "x.dll"));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectOutputFilePath(null!, "x.dll"));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectOutputFilePath(ProjectId.CreateNewId(), "x.dll"));
+        }
+
+        [Fact]
+        public void GetEffectiveGeneratedFilesOutputDirectory()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            var objDir = Path.Combine(TempRoot.Root, "obj");
+            var binDir = Path.Combine(TempRoot.Root, "bin");
+            var otherDir = Path.Combine(TempRoot.Root, "other");
+
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution.AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
+            var project = solution.GetRequiredProject(projectId);
+
+            Assert.False(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+
+            project = project
+                .WithOutputFilePath(Path.Combine(binDir, "output.dll"))
+                .WithCompilationOutputInfo(new CompilationOutputInfo(
+                    assemblyPath: Path.Combine(objDir, "output.dll"),
+                    generatedFilesOutputDirectory: null));
+
+            Assert.True(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+            AssertEx.AreEqual(objDir, project.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
+
+            project = project.WithCompilationOutputInfo(
+                project.CompilationOutputInfo.WithGeneratedFilesOutputDirectory(otherDir));
+
+            Assert.True(project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+            AssertEx.AreEqual(otherDir, project.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory());
         }
 
         [Fact]
@@ -1415,17 +1451,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp);
 
             // any character is allowed
-            var path = "\0<>a/b/*.dll";
+            var info = new CompilationOutputInfo("\0<>a/b/*.dll", TempRoot.Root + "<>\0");
 
             SolutionTestHelpers.TestProperty(
                 solution,
                 (s, value) => s.WithProjectCompilationOutputInfo(projectId, value),
                 s => s.GetRequiredProject(projectId).CompilationOutputInfo,
-                new CompilationOutputInfo(path),
+                info,
                 defaultThrows: false);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, new CompilationOutputInfo("x.dll")));
-            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), new CompilationOutputInfo("x.dll")));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOutputInfo(null!, info));
+            Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOutputInfo(ProjectId.CreateNewId(), info));
         }
 
         [Fact]
@@ -5583,7 +5619,10 @@ class C
         public async Task TestFrozenPartialSolution7(bool freeze)
         {
             using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
-            var project1 = workspace.CurrentSolution.AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp);
+            var project1 = workspace.CurrentSolution
+                .AddProject("CSharpProject1", "CSharpProject1", LanguageNames.CSharp)
+                .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath: Path.Combine(TempRoot.Root, "assembly.dll"), generatedFilesOutputDirectory: null));
+
             project1 = project1.AddDocument("Doc1", SourceText.From("class Doc1 { }")).Project;
 
             var invokeIndex = 1;

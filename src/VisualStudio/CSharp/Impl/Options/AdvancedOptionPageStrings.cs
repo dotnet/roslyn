@@ -153,9 +153,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Strike_out_obsolete_symbols
             => ServicesVSResources.Strike_out_obsolete_symbols;
 
-        public static string Option_DontPutOutOrRefOnStruct
-            => CSharpVSResources.Don_t_put_ref_or_out_on_custom_struct;
-
         public static string Option_EditorHelp
             => CSharpVSResources.Editor_Help;
 
@@ -167,9 +164,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_EnterOutliningMode
             => CSharpVSResources.Enter_outlining_mode_when_files_open;
-
-        public static string Option_ExtractMethod
-            => CSharpVSResources.Extract_Method;
 
         public static string Option_Implement_Interface_or_Abstract_Class
             => ServicesVSResources.Implement_Interface_or_Abstract_Class;
@@ -416,5 +410,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Balanced_Run_generators_after_saving_or_building
             => ServicesVSResources.Balanced_Run_generators_after_saving_or_building;
+
+        public static string Option_Automatically_reload_updated_analyzers_and_generators
+            => ServicesVSResources.Automatically_reload_updated_analyzers_and_generators;
     }
 }
