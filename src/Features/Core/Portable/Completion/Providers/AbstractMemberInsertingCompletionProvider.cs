@@ -171,7 +171,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
         Contract.ThrowIfNull(memberContainingDocument);
         var memberContainingRoot = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var annotatedNodes = memberContainingRoot!.GetAnnotatedNodes(_annotation);
+        var annotatedNodes = memberContainingRoot!.GetAnnotatedNodes(_annotation).ToList();
         Contract.ThrowIfFalse(annotatedNodes.IsSingle());
         return memberContainingDocument!;
     }
@@ -200,7 +200,9 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var destinationSpan = ComputeDestinationSpan(root);
         var destinationNode = root.FindNode(destinationSpan);
         var replacingNode = root.GetAnnotatedNodes(_annotation).Single();
-        root = root.ReplaceNode(replacingNode, replacingNode.WithTriviaFrom(destinationNode));
+        // WithTriviaFrom does not completely fit our purpose because we could be missing trivia from interior missing tokens,
+        // with all the last tokens being missing, and thus only having part of the picture
+        root = root.ReplaceNode(replacingNode, replacingNode.WithTriviaFromIncludingMissingTokens(destinationNode));
 
         // Now that we have replaced the node, find the destination node again
         destinationSpan = ComputeDestinationSpan(root);
