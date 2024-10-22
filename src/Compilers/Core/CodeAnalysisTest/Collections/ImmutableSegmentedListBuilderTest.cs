@@ -373,6 +373,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.IsType<ArgumentNullException>(tie.InnerException);
         }
 
+#if !NET8_0_OR_GREATER
         [Fact]
         public void ItemRef()
         {
@@ -381,13 +382,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             ref readonly var safeRef = ref builder.ItemRef(1);
             ref var unsafeRef = ref Unsafe.AsRef(safeRef);
-
             Assert.Equal(2, builder.ItemRef(1));
 
             unsafeRef = 4;
 
             Assert.Equal(4, builder.ItemRef(1));
         }
+#endif
 
         [Fact]
         public void ItemRef_OutOfBounds()
