@@ -2190,8 +2190,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void FallbackAnalyzerOptions(bool isRoot)
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments(editorConfig: $"""
-                [*]
                 {(isRoot ? "root = true" : "")}
+                [*]
                 optionA = A
                 """);
             var solution = workspace.CurrentSolution;
@@ -2203,46 +2203,65 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     .Add("optionA", "fallbackA")
                     .Add("optionB", "fallbackB")))));
 
-            TestOptionValues(solution2, expectedA: "A", expectedB: "fallbackB");
+            TestOptionValues(solution2, expectedA: "A", hasBWithoutFallback: false, expectedB: "fallbackB", expectedBFile: "fallbackB");
 
             var solution3 = solution2.WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty
                .Add(LanguageNames.CSharp, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
                    .Add("optionA", "fallbackX")
                    .Add("optionB", "fallbackY")))));
 
-            TestOptionValues(solution3, expectedA: "A", expectedB: "fallbackY");
+            TestOptionValues(solution3, expectedA: "A", hasBWithoutFallback: false, expectedB: "fallbackY", expectedBFile: "fallbackY");
 
             Assert.True(workspace.TryApplyChanges(solution3));
-            TestOptionValues(workspace.CurrentSolution, expectedA: "A", expectedB: "fallbackY");
+            TestOptionValues(workspace.CurrentSolution, expectedA: "A", hasBWithoutFallback: false, expectedB: "fallbackY", expectedBFile: "fallbackY");
 
             var editorConfigContent = """
                 [*]
                 optionB = ec2
                 """;
             var editorConfigId = DocumentId.CreateNewId(solution3.Projects.Single().Id);
-            var solution4 = solution3.AddAnalyzerConfigDocument(editorConfigId, "editorconfig2", SourceText.From(editorConfigContent), filePath: Path.Combine(s_projectDir, "editorconfig2"));
+            var solution4 = solution3.AddAnalyzerConfigDocument(editorConfigId, ".editorconfig", SourceText.From(editorConfigContent), filePath: Path.Combine(s_projectDir, "subfolder", ".editorconfig"));
 
-            TestOptionValues(solution4, expectedA: "A", expectedB: "ec2");
+            TestOptionValues(solution4, expectedA: "A", hasBWithoutFallback: true, expectedB: "fallbackY", expectedBFile: "ec2");
 
-            static void TestOptionValues(Solution solution, string expectedA, string expectedB)
+            static void TestOptionValues(Solution solution, string expectedA, bool hasBWithoutFallback, string expectedB, string expectedBFile)
             {
                 var project2 = solution.Projects.Single();
 
                 var projectOptions = project2.GetAnalyzerConfigOptions();
                 Assert.NotNull(projectOptions);
 
-                Assert.True(projectOptions!.Value.ConfigOptions.TryGetValue("optionA", out var value1));
+                Assert.True(projectOptions!.Value.ConfigOptionsWithoutFallback.TryGetValue("optionA", out var value1));
+                Assert.Equal(expectedA, value1);
+                Assert.True(projectOptions!.Value.ConfigOptionsWithFallback.TryGetValue("optionA", out value1));
                 Assert.Equal(expectedA, value1);
 
-                Assert.True(projectOptions!.Value.ConfigOptions.TryGetValue("optionB", out var value2));
+                Assert.False(projectOptions!.Value.ConfigOptionsWithoutFallback.TryGetValue("optionB", out var value2));
+                Assert.Null(value2);
+                Assert.True(projectOptions!.Value.ConfigOptionsWithFallback.TryGetValue("optionB", out value2));
                 Assert.Equal(expectedB, value2);
 
                 var sourcePathOptions = project2.State.GetAnalyzerOptionsForPath(Path.Combine(s_projectDir, "x.cs"), CancellationToken.None);
-                Assert.True(sourcePathOptions.ConfigOptions.TryGetValue("optionA", out var value3));
+                Assert.True(sourcePathOptions.ConfigOptionsWithoutFallback.TryGetValue("optionA", out var value3));
+                Assert.Equal(expectedA, value3);
+                Assert.True(sourcePathOptions.ConfigOptionsWithFallback.TryGetValue("optionA", out value3));
                 Assert.Equal(expectedA, value3);
 
-                Assert.True(sourcePathOptions.ConfigOptions.TryGetValue("optionB", out var value4));
+                Assert.False(sourcePathOptions.ConfigOptionsWithoutFallback.TryGetValue("optionB", out var value4));
+                Assert.Null(value4);
+                Assert.True(sourcePathOptions.ConfigOptionsWithFallback.TryGetValue("optionB", out value4));
                 Assert.Equal(expectedB, value4);
+
+                sourcePathOptions = project2.State.GetAnalyzerOptionsForPath(Path.Combine(s_projectDir, "subfolder", "x.cs"), CancellationToken.None);
+                Assert.True(sourcePathOptions.ConfigOptionsWithoutFallback.TryGetValue("optionA", out var value5));
+                Assert.Equal(expectedA, value5);
+                Assert.True(sourcePathOptions.ConfigOptionsWithFallback.TryGetValue("optionA", out value5));
+                Assert.Equal(expectedA, value5);
+
+                Assert.Equal(hasBWithoutFallback, sourcePathOptions.ConfigOptionsWithoutFallback.TryGetValue("optionB", out var value6));
+                Assert.Equal(hasBWithoutFallback ? expectedBFile : null, value6);
+                Assert.True(sourcePathOptions.ConfigOptionsWithFallback.TryGetValue("optionB", out value6));
+                Assert.Equal(expectedBFile, value6);
             }
         }
 
@@ -5418,11 +5437,12 @@ class C
 #pragma warning restore
 
             var syntaxTree = await document.GetSyntaxTreeAsync();
-            var documentOptionsViaSyntaxTree = document.Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+            var documentOptionsViaSyntaxTree = document.Project.State.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
             Assert.Equal(appliedToDocument, documentOptionsViaSyntaxTree.TryGetValue("indent_style", out var value) == true && value == "tab");
 
             var projectOptions = document.Project.GetAnalyzerConfigOptions();
-            Assert.Equal(appliedToEntireProject, projectOptions?.ConfigOptions.TryGetValue("indent_style", out value) == true && value == "tab");
+            Assert.Equal(appliedToEntireProject, projectOptions?.ConfigOptionsWithoutFallback.TryGetValue("indent_style", out value) == true && value == "tab");
+            Assert.Equal(appliedToEntireProject, projectOptions?.ConfigOptionsWithFallback.TryGetValue("indent_style", out value) == true && value == "tab");
         }
 
         [Fact]
