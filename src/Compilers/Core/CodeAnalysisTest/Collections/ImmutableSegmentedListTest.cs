@@ -809,21 +809,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 #endif
 
+#if !NET8_0_OR_GREATER
         [Fact]
         public void ItemRef()
         {
             var list = new[] { 1, 2, 3 }.ToImmutableSegmentedList();
 
             ref readonly var safeRef = ref list.ItemRef(1);
-#pragma warning disable CS1620, CS9195
-            ref var unsafeRef = ref Unsafe.AsRef(safeRef);
-#pragma warning restore CS1620, CS9195
+            ref var unsafeRef = ref Unsafe.AsRef(in safeRef);
             Assert.Equal(2, list.ItemRef(1));
 
             unsafeRef = 4;
 
             Assert.Equal(4, list.ItemRef(1));
         }
+#endif
 
         [Fact]
         public void ItemRef_OutOfBounds()

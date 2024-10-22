@@ -373,6 +373,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.IsType<ArgumentNullException>(tie.InnerException);
         }
 
+#if !NET8_0_OR_GREATER
         [Fact]
         public void ItemRef()
         {
@@ -380,15 +381,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var builder = new ImmutableSegmentedList<int>.Builder(list);
 
             ref readonly var safeRef = ref builder.ItemRef(1);
-#pragma warning disable CS1620, CS9195 // Argument should be passed with the 'in' keyword
             ref var unsafeRef = ref Unsafe.AsRef(safeRef);
-#pragma warning restore CS1620, CS9195 // Argument should be passed with the 'in' keyword
             Assert.Equal(2, builder.ItemRef(1));
 
             unsafeRef = 4;
 
             Assert.Equal(4, builder.ItemRef(1));
         }
+#endif
 
         [Fact]
         public void ItemRef_OutOfBounds()
