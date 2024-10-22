@@ -342,7 +342,7 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on Mono Core";
     }
 
-    public class NotOnAnyMono: ExecutionCondition
+    public class NotOnAnyMono : ExecutionCondition
     {
         public override bool ShouldSkip => ExecutionConditionUtil.IsAnyMono;
         public override string SkipReason => "Test not supported on Mono core or Mono Desktop";
