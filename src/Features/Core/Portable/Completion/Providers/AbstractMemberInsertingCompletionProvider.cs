@@ -198,7 +198,7 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
 
         var root = await memberContainingDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var destinationSpan = ComputeDestinationSpan(root);
-        var destinationNode = root.FindNode(destinationSpan);
+        var destinationNode = root.FindNode(destinationSpan, true);
         var replacingNode = root.GetAnnotatedNodes(_annotation).Single();
         // WithTriviaFrom does not completely fit our purpose because we could be missing trivia from interior missing tokens,
         // with all the last tokens being missing, and thus only having part of the picture

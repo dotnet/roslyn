@@ -126,7 +126,7 @@ internal static class MethodGenerator
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
@@ -145,7 +145,7 @@ internal static class MethodGenerator
             returnType: method.GenerateReturnTypeSyntax(),
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: StatementGenerator.GenerateBlock(method),
             expressionBody: null,
@@ -196,11 +196,8 @@ internal static class MethodGenerator
     {
         var attributes = new List<AttributeListSyntax>();
 
-        if (!isExplicit)
-        {
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
-            attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
-        }
+        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
+        attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetReturnTypeAttributes(), info, ReturnKeyword));
 
         return [.. attributes];
     }

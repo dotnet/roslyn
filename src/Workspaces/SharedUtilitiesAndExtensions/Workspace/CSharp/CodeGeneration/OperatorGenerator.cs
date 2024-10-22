@@ -97,7 +97,7 @@ internal static class OperatorGenerator
             operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedToken,
             operatorToken: operatorToken,
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info: info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
             semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());

@@ -1165,12 +1165,12 @@ class C : I
         await VerifyProviderCommitAsync(markup, "operator checked string(C3 x)", expected, '\t');
     }
 
-    [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/70458")]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/70458")]
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/70458")]
     public async Task TestExlicitImplementationWithAttributesOnNullableParameters()
     {
         var markup = """
-            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+
             using Example.Namespace;
 
             interface IFoo
@@ -1183,6 +1183,8 @@ class C : I
                 IFoo.$$
             }
 
+            class NotNullWhenAttribute(bool _) : System.Attribute;
+
             namespace Example.Namespace
             {
                 public record DecodeError;
@@ -1190,7 +1192,8 @@ class C : I
             """;
 
         var expected = """
-            using System.Diagnostics.CodeAnalysis;
+            #nullable enable
+
             using Example.Namespace;
             
             interface IFoo
@@ -1205,6 +1208,8 @@ class C : I
                     throw new System.NotImplementedException();$$
                 }
             }
+            
+            class NotNullWhenAttribute(bool _) : System.Attribute;
             
             namespace Example.Namespace
             {
