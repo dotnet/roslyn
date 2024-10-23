@@ -12,7 +12,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn> where TDiagnosticsParams : IPartialResultParams<TReport>
+internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport, TReturn>
+    where TDiagnosticsParams : IPartialResultParams<TReport>
 {
     internal record struct DiagnosticsRequestState(Project Project, int GlobalStateVersion, RequestContext Context, IDiagnosticSource DiagnosticSource);
 
@@ -23,7 +24,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
     /// update the version stamp but not the content (for example, forking LSP text).
     /// </summary>
-    internal class DiagnosticsPullCache(string uniqueKey) : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, DiagnosticData>(uniqueKey)
+    private sealed class DiagnosticsPullCache(string uniqueKey) : VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum), DiagnosticsRequestState, DiagnosticData>(uniqueKey)
     {
         public override async Task<(int globalStateVersion, VersionStamp? dependentVersion)> ComputeCheapVersionAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
@@ -35,6 +36,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             return (state.GlobalStateVersion, await state.Project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false));
         }
 
+        /// <inheritdoc cref="VersionedPullCache{TCheapVersion, TExpensiveVersion, TState, TComputedData}.ComputeDataAsync(TState, CancellationToken)"/>
         public override async Task<ImmutableArray<DiagnosticData>> ComputeDataAsync(DiagnosticsRequestState state, CancellationToken cancellationToken)
         {
             var diagnostics = await state.DiagnosticSource.GetDiagnosticsAsync(state.Context, cancellationToken).ConfigureAwait(false);

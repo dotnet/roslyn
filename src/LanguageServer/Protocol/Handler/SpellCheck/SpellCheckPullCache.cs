@@ -43,6 +43,7 @@ internal class SpellCheckPullCache(string uniqueKey) : VersionedPullCache<(Check
 
     public override Task<object?> ComputeExpensiveVersionAsync(SpellCheckState state, CancellationToken cancellationToken)
     {
+        // Spell check does not need an expensive version check - we return null to effectively skip this check.
         return SpecializedTasks.Null<object>();
     }
 

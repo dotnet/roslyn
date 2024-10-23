@@ -14,13 +14,13 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
-public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper) : AbstractPullDiagnosticTestsBase(testOutputHelper)
+public class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper)
+    : AbstractPullDiagnosticTestsBase(testOutputHelper)
 {
     [Theory, CombinatorialData]
     public async Task TestDocumentDiagnosticsCallsDiagnosticSourceWhenVersionChanges(bool useVSDiagnostics, bool mutatingLspWorkspace)

@@ -16,16 +16,17 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
     /// Internal cache item that updates state for a particular <see cref="Workspace"/> and <see cref="ProjectOrDocumentId"/> in <see cref="VersionedPullCache{TCheapVersion, TExpensiveVersion, TState, TComputedData}"/>
     /// This type ensures that the state for a particular key is never updated concurrently for the same key (but different key states can be concurrent).
     /// </summary>
-    private class CacheItem(string uniqueKey)
+    private sealed class CacheItem(string uniqueKey)
     {
         /// <summary>
         /// Guards access to <see cref="_lastResult"/>.
         /// This ensures that a cache entry is fully updated in a single transaction.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new(1);
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         /// <summary>
         /// Stores the current state associated with this cache item.
+        /// Guarded by <see cref="_gate"/>
         /// 
         /// <list type="bullet">
         ///   <item>The resultId reported to the client.</item>
@@ -47,9 +48,9 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
         private (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion, Checksum dataChecksum)? _lastResult;
 
         /// <summary>
-        /// Updates the values for this cache entry.  Guarded by <see cref="_semaphore"/>
+        /// Updates the values for this cache entry.  Guarded by <see cref="_gate"/>
         /// 
-        /// Returns null if the previousPullResult can be re-used, otherwise returns a new resultId and the new data associated with it.
+        /// Returns <see langword="null"/> if the previousPullResult can be re-used, otherwise returns a new resultId and the new data associated with it.
         /// </summary>
         public async Task<(string, ImmutableArray<TComputedData>)?> UpdateCacheItemAsync(
             VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData> cache,
@@ -60,7 +61,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
         {
             // Ensure that we only update the cache item one at a time.
             // This means that the computation of new data for this item only occurs sequentially.
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 TCheapVersion cheapVersion;
                 TExpensiveVersion expensiveVersion;
@@ -106,7 +107,10 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
                     // The new data we've computed is exactly the same as the data we computed last time even though the versions have changed.
                     // Instead of reserializing everything, we can return the same result id back to the client.
 
-                    // Ensure we store the updated versions we calculated with the old resultId.
+                    // Ensure we store the updated versions we calculated against old resultId.  If we do not do this,
+                    // subsequent requests will always fail the version comparison check (the resultId is still associated with the older version even
+                    // though we reused it here for a newer version) and will trigger re-computation.
+                    // By storing the updated version with the resultId we can short circuit earlier in the version checks.
                     _lastResult = (_lastResult.Value.resultId, cheapVersion, expensiveVersion, dataChecksum);
                     return null;
                 }
@@ -122,7 +126,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
                     //
                     // Note that we can safely update the map before computation as any cancellation or exception
                     // during computation means that the client will never recieve this resultId and so cannot ask us for it.
-                    newResultId = $"{uniqueKey}:{cache.IncrementResultId()}";
+                    newResultId = $"{uniqueKey}:{cache.GetNextResultId()}";
                     _lastResult = (newResultId, cheapVersion, expensiveVersion, dataChecksum);
                     return (newResultId, data);
                 }
