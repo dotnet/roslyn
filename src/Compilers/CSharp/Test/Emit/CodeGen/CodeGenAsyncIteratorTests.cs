@@ -641,7 +641,10 @@ ref struct S
             {
                 // source(4,65): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IAsyncEnumerable<T>'
                 //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<T>", "T", "S").WithLocation(4, 65)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<T>", "T", "S").WithLocation(4, 65),
+                // source(4,65): error CS9267: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "M").WithLocation(4, 65)
             };
 
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
@@ -655,6 +658,9 @@ ref struct S
                 // source(4,65): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IAsyncEnumerable<T>'
                 //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<T>", "T", "S").WithLocation(4, 65),
+                // source(4,65): error CS9267: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "M").WithLocation(4, 65),
                 // source(11,24): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var s in M())
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(11, 24));
