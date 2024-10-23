@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 internal sealed partial class IsolatedAnalyzerReferenceSet
 {
-    public static partial ValueTask<IReadOnlyList<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ImmutableArray<AnalyzerReference> references,
         SolutionServices solutionServices,
@@ -30,7 +30,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         return DefaultCreateIsolatedAnalyzerReferencesAsync(references);
     }
 
-    public static partial ValueTask<IReadOnlyList<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ChecksumCollection analyzerChecksums,
         SolutionServices solutionServices,

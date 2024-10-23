@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -566,6 +567,15 @@ internal static class ChecksumCache
         where TValue : class
     {
         return StronglyTypedChecksumCache<TValue, Checksum>.GetOrCreate(value, checksumCreator, arg);
+    }
+
+    public static ChecksumCollection GetOrCreateChecksumCollection<TReference>(
+        ImmutableArray<TReference> references, ISerializerService serializer, CancellationToken cancellationToken) where TReference : class
+    {
+        // Grab the internal array from the immutable array.  This is safe as the callers can't modify it, and we just
+        // want the internal reference object to use as the key in the cache.
+        return GetOrCreateChecksumCollection(
+            ImmutableCollectionsMarshal.AsArray(references)!, serializer, cancellationToken);
     }
 
     public static ChecksumCollection GetOrCreateChecksumCollection<TReference>(
