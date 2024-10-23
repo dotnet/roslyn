@@ -166,15 +166,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             void verify()
             {
-                N(SyntaxKind.PostIncrementExpression);
+                N(SyntaxKind.ConditionalAccessExpression);
                 {
-                    N(SyntaxKind.ConditionalAccessExpression);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "a");
-                        }
-                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
                         N(SyntaxKind.MemberBindingExpression);
                         {
                             N(SyntaxKind.DotToken);
@@ -183,8 +183,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.IdentifierToken, "b");
                             }
                         }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.CoalesceExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.QuestionQuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "d");
+                            }
+                        }
                     }
-                    N(SyntaxKind.PlusPlusToken);
                 }
                 EOF();
             }
@@ -243,5 +255,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EOF();
             }
         }
+
+        [Fact]
+        public void Parentheses_Assignment_LHS_01()
+        {
+            UsingExpression("(c?.F) = 1");
+
+            N(SyntaxKind.SimpleAssignmentExpression);
+            {
+                N(SyntaxKind.ParenthesizedExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.ConditionalAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "c");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "F");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                }
+            }
+            EOF();
+        }
     }
-}

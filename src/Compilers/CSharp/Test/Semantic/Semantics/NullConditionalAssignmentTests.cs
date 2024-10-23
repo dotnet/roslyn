@@ -1006,6 +1006,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // TODO2: verify IL
         }
 
+        [Fact]
+        public void Parentheses_Assignment_LHS_01()
+        {
+            var source = """
+                using System;
+                
+                class C
+                {
+                    int F;
+                    static void M(C c)
+                    {
+                        (c?.F) = 1; // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,9): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 0
+                //     int F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "0").WithLocation(5, 9),
+                // (8,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         (c?.F) = 1; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "c?.F").WithLocation(8, 10));
+        }
+
         // TODO2: null-coalescing-assignment
         // TODO2: other tricky cases from the proposal
     }
