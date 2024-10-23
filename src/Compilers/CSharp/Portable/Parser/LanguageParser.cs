@@ -10938,7 +10938,7 @@ done:
                 {
                     return _syntaxFactory.RangeExpression(
                         leftOperand: null,
-                        this.EatToken(),
+                        this.EatDotDotToken(),
                         CanStartExpression()
                             ? this.ParseSubExpression(Precedence.Range)
                             : null);
