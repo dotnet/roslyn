@@ -11234,7 +11234,7 @@ done:
                 }
                 else
                 {
-                    // Normal operator.  Eat as a single token (converting cases contextual words 'with' to a keyword)
+                    // Normal operator.  Eat as a single token, converting contextual words cases (like 'with') to a keyword.
                     return this.EatContextualToken(operatorTokenKind);
                 }
             }
