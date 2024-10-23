@@ -11017,7 +11017,7 @@ done:
 
         /// <summary>
         /// Takes in an initial unary expression or primary expression, and then consumes what follows as long as as
-        /// it's precedence is either lower than the <paramref name="precedence"/> we're parsing currently (or equal, to
+        /// it's precedence is either lower than the <paramref name="precedence"/> we're parsing currently, or equal to
         /// that precedence if we have something right-associative <see cref="IsRightAssociative"/>.
         /// </summary>
         private ExpressionSyntax ParseExpressionContinued(ExpressionSyntax unaryOrPrimaryExpression, Precedence precedence)
