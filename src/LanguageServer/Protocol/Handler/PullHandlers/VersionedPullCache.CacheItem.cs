@@ -35,7 +35,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
         ///       LSP text, reloading the same project). So we additionally store:</para></item>
         ///   <item>A TExpensiveVersion (normally a checksum) checksum that will still allow us to reuse data even when
         ///   unimportant changes happen that trigger the cheap version change detection.</item>
-        ///   <item>The hash of the data that was computed when the resultId was generated.
+        ///   <item>The checksum of the data that was computed when the resultId was generated.
         ///       <para>
         ///       When the versions above change, we must recalculate the data.  However sometimes that data ends up being exactly the same as the prior request.
         ///       When that happens, this allows us to send back an unchanged result instead of reserializing data the client already has.
@@ -44,7 +44,7 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
         /// </list>
         /// 
         /// </summary>
-        private (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion, int hashedData)? _lastResult;
+        private (string resultId, TCheapVersion cheapVersion, TExpensiveVersion expensiveVersion, Checksum dataChecksum)? _lastResult;
 
         /// <summary>
         /// Updates the values for this cache entry.  Guarded by <see cref="_semaphore"/>
@@ -98,16 +98,16 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
 
                 // Compute the new result for the request.
                 var data = await cache.ComputeDataAsync(state, cancellationToken).ConfigureAwait(false);
-                var dataHash = GetComputedDataHash(data);
+                var dataChecksum = cache.ComputeChecksum(data);
 
                 string newResultId;
-                if (_lastResult is not null && _lastResult?.resultId == previousPullResult?.PreviousResultId && _lastResult?.hashedData == dataHash)
+                if (_lastResult is not null && _lastResult?.resultId == previousPullResult?.PreviousResultId && _lastResult?.dataChecksum == dataChecksum)
                 {
                     // The new data we've computed is exactly the same as the data we computed last time even though the versions have changed.
                     // Instead of reserializing everything, we can return the same result id back to the client.
 
                     // Ensure we store the updated versions we calculated with the old resultId.
-                    _lastResult = (_lastResult.Value.resultId, cheapVersion, expensiveVersion, dataHash);
+                    _lastResult = (_lastResult.Value.resultId, cheapVersion, expensiveVersion, dataChecksum);
                     return null;
                 }
                 else
@@ -123,16 +123,10 @@ internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVers
                     // Note that we can safely update the map before computation as any cancellation or exception
                     // during computation means that the client will never recieve this resultId and so cannot ask us for it.
                     newResultId = $"{uniqueKey}:{cache.IncrementResultId()}";
-                    _lastResult = (newResultId, cheapVersion, expensiveVersion, dataHash);
+                    _lastResult = (newResultId, cheapVersion, expensiveVersion, dataChecksum);
                     return (newResultId, data);
                 }
             }
-        }
-
-        private static int GetComputedDataHash(ImmutableArray<TComputedData> data)
-        {
-            var hashes = data.SelectAsArray(d => d.GetHashCode()).Sort();
-            return Hash.CombineValues(hashes);
         }
     }
 }

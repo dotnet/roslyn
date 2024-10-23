@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public abstract Task<ImmutableArray<TComputedData>> ComputeDataAsync(TState state, CancellationToken cancellationToken);
 
+        public abstract Checksum ComputeChecksum(ImmutableArray<TComputedData> data);
+
         /// <summary>
         /// If results have changed since the last request this calculates and returns a new
         /// non-null resultId to use for subsequent computation and caches it.

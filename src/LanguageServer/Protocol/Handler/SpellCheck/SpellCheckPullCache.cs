@@ -29,6 +29,12 @@ internal class SpellCheckPullCache(string uniqueKey) : VersionedPullCache<(Check
         return (parseOptionsChecksum, textChecksum);
     }
 
+    public override Checksum ComputeChecksum(ImmutableArray<SpellCheckSpan> data)
+    {
+        var checksums = data.SelectAsArray(s => Checksum.Create(s, SerializeSpellCheckSpan)).Sort();
+        return Checksum.Create(checksums);
+    }
+
     public override async Task<ImmutableArray<SpellCheckSpan>> ComputeDataAsync(SpellCheckState state, CancellationToken cancellationToken)
     {
         var spans = await state.Service.GetSpansAsync(state.Document, cancellationToken).ConfigureAwait(false);
@@ -38,5 +44,12 @@ internal class SpellCheckPullCache(string uniqueKey) : VersionedPullCache<(Check
     public override Task<object?> ComputeExpensiveVersionAsync(SpellCheckState state, CancellationToken cancellationToken)
     {
         return SpecializedTasks.Null<object>();
+    }
+
+    private void SerializeSpellCheckSpan(SpellCheckSpan span, ObjectWriter writer)
+    {
+        writer.WriteInt32(span.TextSpan.Start);
+        writer.WriteInt32(span.TextSpan.Length);
+        writer.WriteInt32((int)span.Kind);
     }
 }
