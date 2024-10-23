@@ -7629,6 +7629,29 @@ class Program : IDisposable
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
     public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced2()
     {
+        const string equatableParameter =
+#if NET9_0_OR_GREATER
+            "[AllowNull] int other"
+#else
+            "int other"
+#endif
+            ;
+
+        const string resultUsings =
+#if NET9_0_OR_GREATER
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
+            """
+#else
+            """
+            using System;
+            using System.Collections.Generic;
+            """
+#endif
+            ;
+
         await TestWithAllCodeStyleOptionsOffAsync(
             """
             interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
@@ -7646,9 +7669,7 @@ class Program : IDisposable
             }
             """,
             $$"""
-            using System;
-            using System.Collections.Generic;
-            using System.Diagnostics.CodeAnalysis;
+            {{resultUsings}}
 
             interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
             {
@@ -7660,7 +7681,7 @@ class Program : IDisposable
             {
                 private bool disposedValue;
 
-                bool IEquatable<int>.Equals([AllowNull] int other)
+                bool IEquatable<int>.Equals({{equatableParameter}})
                 {
                     throw new NotImplementedException();
                 }

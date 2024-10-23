@@ -1044,7 +1044,7 @@ class C : I
 
             class C : I
             {
-                void I.M(int x)
+                void I.M(int x = 10)
                 {
                     throw new System.NotImplementedException();
                 }
