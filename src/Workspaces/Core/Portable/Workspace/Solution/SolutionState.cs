@@ -1251,6 +1251,13 @@ internal sealed partial class SolutionState
         return Branch(analyzerReferences: analyzerReferences);
     }
 
+    /// <summary>
+    /// Returns the first related document id (a document with the same <see cref="DocumentInfo.FilePath"/> as <paramref
+    /// name="documentId"/>) found in the solution.  The related document is guaranteed to come from the same language as
+    /// <paramref name="documentId"/>.  
+    /// </summary>
+    /// <param name="relatedProjectIdHint">An optional project to check first as it has high likelihood of containing
+    /// a related document.</param>
     public DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
     {
         Contract.ThrowIfTrue(documentId.ProjectId == relatedProjectIdHint);
@@ -1274,31 +1281,41 @@ internal sealed partial class SolutionState
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
                 if (relatedDocumentId != documentId)
-                    return relatedDocumentId;
+                {
+                    var relatedProject = this.GetRequiredProjectState(relatedDocumentId.ProjectId);
+                    if (relatedProject.Language == projectState.Language)
+                        return relatedDocumentId;
+                }
             }
 
             return null;
         }
 
-        var relatedProject = relatedProjectIdHint is null ? null : this.ProjectStates[relatedProjectIdHint];
-        Contract.ThrowIfTrue(relatedProject == projectState);
-        if (relatedProject != null)
         {
-            var siblingDocumentId = relatedProject.GetFirstDocumentIdWithFilePath(filePath);
-            if (siblingDocumentId is not null)
-                return siblingDocumentId;
-        }
+            var relatedProject = relatedProjectIdHint is null ? null : this.ProjectStates[relatedProjectIdHint];
+            Contract.ThrowIfTrue(relatedProject == projectState);
+            if (relatedProject?.Language == projectState.Language)
+            {
+                var siblingDocumentId = relatedProject.GetFirstDocumentIdWithFilePath(filePath);
+                if (siblingDocumentId is not null)
+                    return siblingDocumentId;
+            }
 
-        // Wasn't in cache, do the linear search.
-        foreach (var (_, siblingProjectState) in this.ProjectStates)
-        {
-            // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
-            if (siblingProjectState == projectState || siblingProjectState == relatedProject)
-                continue;
+            // Wasn't in cache, do the linear search.
+            foreach (var (_, siblingProjectState) in this.ProjectStates)
+            {
+                // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
+                if (siblingProjectState == projectState ||
+                    siblingProjectState == relatedProject ||
+                    siblingProjectState.Language != projectState.Language)
+                {
+                    continue;
+                }
 
-            var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
-            if (siblingDocumentId is not null)
-                return siblingDocumentId;
+                var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
+                if (siblingDocumentId is not null)
+                    return siblingDocumentId;
+            }
         }
 
         return null;
