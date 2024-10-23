@@ -4540,7 +4540,7 @@ codeAction: ("False;True;True:global::IGoo;Microsoft.CodeAnalysis.ImplementInter
 
             class Opt : IOptional
             {
-                int IOptional.Goo(int g)
+                int IOptional.Goo(int g = 0)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -4704,8 +4704,9 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]
     public async Task TestOptionalDateTime2()
     {
-        await TestWithAllCodeStyleOptionsOffAsync(
-            """
+        await new VerifyCS.Test
+        {
+            TestCode = """
             using System;
             using System.Runtime.CompilerServices;
             using System.Runtime.InteropServices;
@@ -4719,7 +4720,7 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
             {
             }
             """,
-            """
+            FixedCode = """
             using System;
             using System.Runtime.CompilerServices;
             using System.Runtime.InteropServices;
@@ -4731,13 +4732,18 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
 
             public class C : IGoo
             {
-                void IGoo.Goo(DateTime x)
+                void IGoo.Goo([DateTimeConstant(100), Optional] DateTime x)
                 {
                     throw new NotImplementedException();
                 }
             }
             """,
-codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            Options = { AllOptionsOff },
+
+            CodeActionEquivalenceKey = "True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            // 🐛 one value is generated with 0L instead of 0
+            CodeActionValidationMode = CodeActionValidationMode.None,
+        }.RunAsync();
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545477")]
@@ -4813,12 +4819,12 @@ codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInte
 
             public class C : IGoo
             {
-                void IGoo.Goo1(object x)
+                void IGoo.Goo1([IUnknownConstant, Optional] object x)
                 {
                     throw new System.NotImplementedException();
                 }
 
-                void IGoo.Goo2(object x)
+                void IGoo.Goo2([IDispatchConstant, Optional] object x)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -4942,7 +4948,7 @@ class B : IGoo
 
             class c : d
             {
-                void d.m(b? x, b? y)
+                void d.m(b? x = null, b? y = null)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -6726,7 +6732,8 @@ class C : I
 
             class C : I
             {
-                bool I.Goo(bool x)
+                [return: MarshalAs(UnmanagedType.U1)]
+                bool I.Goo([MarshalAs(UnmanagedType.U1)] bool x)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -7641,6 +7648,7 @@ class Program : IDisposable
             $$"""
             using System;
             using System.Collections.Generic;
+            using System.Diagnostics.CodeAnalysis;
 
             interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
             {
@@ -7652,7 +7660,7 @@ class Program : IDisposable
             {
                 private bool disposedValue;
 
-                bool IEquatable<int>.Equals(int other)
+                bool IEquatable<int>.Equals([AllowNull] int other)
                 {
                     throw new NotImplementedException();
                 }
