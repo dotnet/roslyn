@@ -67,7 +67,7 @@ class ReallyDerived : Goo // should not be shown as inherited by Base
                             <Link Source="(@1 Type=Goo2)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -115,7 +115,7 @@ interface I3 : I2 // should not be shown as inherited by I
                             <Link Source="(@1 Type=I2)" Target="(@1 Type=I)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -175,7 +175,7 @@ End Class
                             <Link Source="(@1 Type=Goo2)" Target="(@1 Type=Base)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -228,7 +228,7 @@ End Interface
                             <Link Source="(@1 Type=I2)" Target="(@1 Type=I)" Category="InheritsFrom"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

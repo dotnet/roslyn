@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
                         else
                         {
-                            var analyzerWithStateAndEmptyData = new AnalyzerWithState(analyzerWithState.Analyzer, analyzerWithState.State, DocumentAnalysisData.Empty);
+                            var analyzerWithStateAndEmptyData = new AnalyzerWithState(analyzerWithState.Analyzer, analyzerWithState.IsHostAnalyzer, analyzerWithState.State, DocumentAnalysisData.Empty);
                             if (!compilerAnalyzerData.HasValue && analyzerWithState.Analyzer.IsCompilerAnalyzer())
                                 compilerAnalyzerData = (analyzerWithStateAndEmptyData, spanBased: false);
                             else

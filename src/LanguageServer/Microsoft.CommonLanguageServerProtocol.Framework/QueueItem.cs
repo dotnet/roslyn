@@ -6,11 +6,7 @@
 #nullable enable
 
 using System;
-using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
@@ -29,6 +25,13 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
 {
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
+
+    /// <summary>
+    /// True if this queue item has actually started handling the request
+    /// by delegating to the handler.  False while the item is still being
+    /// processed by the queue.
+    /// </summary>
+    private bool _requestHandlingStarted = false;
 
     /// <summary>
     /// A task completion source representing the result of this queue item's work.
@@ -158,6 +161,7 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
     /// </summary>
     public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, string language, CancellationToken cancellationToken)
     {
+        _requestHandlingStarted = true;
         _logger.LogStartContext($"{MethodName}");
 
         try
@@ -239,5 +243,21 @@ internal class QueueItem<TRequestContext> : IQueueItem<TRequestContext>
         // Return the result of this completion source to the caller
         // so it can decide how to handle the result / exception.
         await _completionSource.Task.ConfigureAwait(false);
+    }
+
+    public void FailRequest(string message)
+    {
+        // This is not valid to call after StartRequestAsync starts as they both access the same state.
+        // StartRequestAsync handles any failures internally once it runs.
+        if (_requestHandlingStarted)
+        {
+            throw new InvalidOperationException("Cannot manually fail queue item after it has started");
+        }
+        var exception = new Exception(message);
+        _requestTelemetryScope?.RecordException(exception);
+        _logger.LogException(exception);
+
+        _completionSource.TrySetException(exception);
+        _requestTelemetryScope?.Dispose();
     }
 }

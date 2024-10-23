@@ -169,6 +169,7 @@ internal class WorkspaceProject : IWorkspaceProject
                     case "RunAnalyzersDuringLiveAnalysis": _project.RunAnalyzersDuringLiveAnalysis = bool.Parse(valueOrNull ?? bool.TrueString); break;
                     case "TargetPath": _project.OutputFilePath = GetFullyQualifiedPath(valueOrNull); break;
                     case "TargetRefPath": _project.OutputRefFilePath = GetFullyQualifiedPath(valueOrNull); break;
+                    case "CompilerGeneratedFilesOutputPath": _project.GeneratedFilesOutputDirectory = GetFullyQualifiedPath(valueOrNull); break;
                     case "TargetFrameworkIdentifier": _targetFrameworkManager.UpdateIdentifierForProject(_project.Id, valueOrNull); break;
                 }
             }

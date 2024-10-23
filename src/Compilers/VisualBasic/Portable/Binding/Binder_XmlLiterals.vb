@@ -1048,7 +1048,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateStringLiteral(
-                                            syntax As VisualBasicSyntaxNode,
+                                            syntax As SyntaxNode,
                                             str As String,
                                             compilerGenerated As Boolean,
                                             diagnostics As BindingDiagnosticBag,

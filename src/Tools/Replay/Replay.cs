@@ -30,13 +30,15 @@ static ReplayOptions ParseOptions(string[] args)
     string? binlogPath = null;
     int maxParallel = 6;
     bool wait = false;
+    int iterations = 1;
 
     var options = new Mono.Options.OptionSet()
     {
-        { "b|binlogPath=", "The binary log to relpay", v => binlogPath = v },
+        { "b|binlogPath=", "The binary log to replay", v => binlogPath = v },
         { "o|outputDirectory=", "The directory to output the build results", v => outputDirectory = v },
         { "m|maxParallel=", "The maximum number of parallel builds", (int v) => maxParallel = v },
         { "w|wait", "Wait for a key press after starting the server", o => wait = o is object },
+        { "i|iterations=", "Perform the compilation multiple times", (int v) => iterations = v },
     };
 
     var rest = options.Parse(args);
@@ -65,7 +67,8 @@ static ReplayOptions ParseOptions(string[] args)
         outputDirectory: outputDirectory,
         binlogPath: binlogPath,
         maxParallel: maxParallel,
-        wait: wait);
+        wait: wait,
+        iterations: iterations);
 }
 
 static async Task<int> RunAsync(ReplayOptions options)
@@ -75,6 +78,7 @@ static async Task<int> RunAsync(ReplayOptions options)
     Console.WriteLine($"Output Directory: {options.OutputDirectory}");
     Console.WriteLine($"Pipe Name: {options.PipeName}");
     Console.WriteLine($"Parallel: {options.MaxParallel}");
+    Console.WriteLine($"Iterations: {options.Iterations}");
     Console.WriteLine();
     Console.WriteLine("Starting server");
 
@@ -95,19 +99,24 @@ static async Task<int> RunAsync(ReplayOptions options)
 
     try
     {
-        var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
-        var stopwatch = new Stopwatch();
-        stopwatch.Start();
-
-        await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
+        for (var i = 0; i < options.Iterations; i++)
         {
-            Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
-        }
+            Console.WriteLine();
+            Console.WriteLine($"Iteration: {i + 1}");
+            var compilerCalls = ReadAllCompilerCalls(options.BinlogPath);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-        stopwatch.Stop();
-        Console.WriteLine($"Pipe Name: {options.PipeName}");
-        Console.WriteLine($"Compilation Events: {compilerCalls.Count}");
-        Console.WriteLine($"Time: {stopwatch.Elapsed:mm\\:ss}");
+            await foreach (var buildData in BuildAllAsync(options, compilerCalls, compilerServerLogger, CancellationToken.None))
+            {
+                Console.WriteLine($"{buildData.CompilerCall.GetDiagnosticName()} ... {buildData.BuildResponse.Type}");
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine($"Pipe Name: {options.PipeName}");
+            Console.WriteLine($"Compilation Events: {compilerCalls.Count}");
+            Console.WriteLine($"Time: {stopwatch.Elapsed:mm\\:ss}");
+        }
 
         return 0;
     }
@@ -269,7 +278,8 @@ internal sealed class ReplayOptions(
     string outputDirectory,
     string binlogPath,
     int maxParallel,
-    bool wait)
+    bool wait,
+    int iterations)
 {
     internal string PipeName { get; } = pipeName;
     internal string ClientDirectory { get; } = clientDirectory;
@@ -278,6 +288,7 @@ internal sealed class ReplayOptions(
     internal int MaxParallel { get; } = maxParallel;
     internal string TempDirectory { get; } = Path.Combine(outputDirectory, "temp");
     internal bool Wait { get; } = wait;
+    internal int Iterations { get; } = iterations;
 }
 
 internal readonly struct BuildData(CompilerCall compilerCall, BuildResponse response)

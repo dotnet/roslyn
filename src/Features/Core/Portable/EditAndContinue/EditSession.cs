@@ -818,9 +818,8 @@ internal sealed class EditSession
             var hasEmitErrors = false;
             foreach (var newProject in solution.Projects)
             {
-                if (newProject.FilePath == null)
+                if (!newProject.SupportsEditAndContinue(log))
                 {
-                    log.Write("Skipping project '{0}' without a file path", newProject.Name);
                     continue;
                 }
 
