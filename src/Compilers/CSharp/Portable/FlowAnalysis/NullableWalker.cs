@@ -3646,7 +3646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // When the target-typing conversion is processed, the completion continuation will be given a target-type and
             // we'll be able to process the element conversions and compute the final visit result.
 
-            var (collectionKind, elementType) = getCollectionDetails(node, node.Type);
+            var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
             var elementConversionCompletions = ArrayBuilder<Func<TypeWithAnnotations, TypeWithState>>.GetInstance();
@@ -3664,18 +3664,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         VisitRvalue(initializer.Arguments[0]);
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
-                        // https://github.com/dotnet/roslyn/issues/68786: We should check the spread
                         Visit(spread);
+                        if (targetElementType.HasType &&
+                            spread.ElementPlaceholder is { } elementPlaceholder &&
+                            spread.IteratorBody is { })
+                        {
+                            var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
+                            var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
+                            AddPlaceholderReplacement(elementPlaceholder, expression: elementPlaceholder, itemResult);
+                            var completion = VisitOptionalImplicitConversion(iteratorBody, targetElementType,
+                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
+                            Debug.Assert(completion is not null);
+                            elementConversionCompletions.Add(completion);
+                            RemovePlaceholderReplacement(elementPlaceholder);
+                        }
                         break;
                     default:
                         var elementExpr = (BoundExpression)element;
-                        if (!elementType.HasType)
+                        if (!targetElementType.HasType)
                         {
                             VisitRvalueWithState(elementExpr);
                         }
                         else
                         {
-                            var completion = VisitOptionalImplicitConversion(elementExpr, elementType,
+                            var completion = VisitOptionalImplicitConversion(elementExpr, targetElementType,
                                 useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
 
                             Debug.Assert(completion is not null);
@@ -3765,6 +3777,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return (collectionKind, targetElementType);
             }
+        }
+
+        public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
+        {
+            VisitRvalue(node.Expression);
+
+            if (node.Conversion is BoundConversion { Conversion: var conversion })
+            {
+                Debug.Assert(node.ExpressionPlaceholder is { });
+                Debug.Assert(node.EnumeratorInfoOpt is { });
+                AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression, _visitResult);
+                VisitForEachExpression(
+                    node,
+                    node.Conversion,
+                    conversion,
+                    node.ExpressionPlaceholder,
+                    node.EnumeratorInfoOpt,
+                    awaitOpt: null);
+                RemovePlaceholderReplacement(node.ExpressionPlaceholder);
+            }
+            else
+            {
+                Debug.Assert(node.HasErrors);
+                Debug.Assert(node.Conversion is null);
+                Debug.Assert(node.EnumeratorInfoOpt is null);
+            }
+
+            return null;
         }
 
         private void VisitObjectCreationExpressionBase(BoundObjectCreationExpressionBase node)
@@ -10612,6 +10652,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
+        {
+            VisitPlaceholderWithReplacement(node);
+            return null;
+        }
+
+        public override BoundNode? VisitValuePlaceholder(BoundValuePlaceholder node)
+        {
+            VisitPlaceholderWithReplacement(node);
+            return null;
+        }
+
         public override BoundNode? VisitEventAccess(BoundEventAccess node)
         {
             var updatedSymbol = VisitMemberAccess(node, node.ReceiverOpt, node.EventSymbol);
@@ -10711,6 +10763,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             var (expr, conversion) = RemoveConversion(node.Expression, includeExplicitConversions: false);
             SnapshotWalkerThroughConversionGroup(node.Expression, expr);
 
+            VisitForEachExpression(
+                node,
+                node.Expression,
+                conversion,
+                expr,
+                node.EnumeratorInfoOpt,
+                node.AwaitOpt);
+        }
+
+        private void VisitForEachExpression(
+            BoundNode node,
+            BoundExpression collectionExpression,
+            Conversion conversion,
+            BoundExpression expr,
+            ForEachEnumeratorInfo? enumeratorInfoOpt,
+            BoundAwaitableInfo? awaitOpt)
+        {
             // There are 7 ways that a foreach can be created:
             //    1. The collection type is an array type. For this, initial binding will generate an implicit reference conversion to
             //       IEnumerable, and we do not need to do any reinferring of enumerators here.
@@ -10744,7 +10813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol? reinferredGetEnumeratorMethod = null;
 
-            if (node.EnumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo)
+            if (enumeratorInfoOpt?.GetEnumeratorInfo is { Method: { IsExtensionMethod: true, Parameters: var parameters } } enumeratorMethodInfo)
             {
                 // this is case 7
                 // We do not need to do this same analysis for non-extension methods because they do not have generic parameters that
@@ -10772,13 +10841,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (conversion.IsImplicit)
             {
-                bool isAsync = node.AwaitOpt != null;
-                if (node.Expression.Type!.SpecialType == SpecialType.System_Collections_IEnumerable)
+                bool isAsync = awaitOpt != null;
+                if (collectionExpression.Type!.SpecialType == SpecialType.System_Collections_IEnumerable)
                 {
                     // If this is a conversion to IEnumerable (non-generic), nothing to do. This is cases 1, 2, and 5.
-                    targetTypeWithAnnotations = TypeWithAnnotations.Create(node.Expression.Type);
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(collectionExpression.Type);
                 }
-                else if (ForEachLoopBinder.IsIEnumerableT(node.Expression.Type.OriginalDefinition, isAsync, compilation))
+                else if (ForEachLoopBinder.IsIEnumerableT(collectionExpression.Type.OriginalDefinition, isAsync, compilation))
                 {
                     // This is case 4. We need to look for the IEnumerable<T> that this reinferred expression implements,
                     // so that we pick up any nested type substitutions that could have occurred.
@@ -10801,7 +10870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var convertedResult = VisitConversion(
-                GetConversionIfApplicable(node.Expression, expr),
+                GetConversionIfApplicable(collectionExpression, expr),
                 expr,
                 conversion,
                 targetTypeWithAnnotations,
@@ -10811,15 +10880,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 AssignmentKind.Assignment);
 
-            bool reportedDiagnostic = node.EnumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true }
+            bool reportedDiagnostic = enumeratorInfoOpt?.GetEnumeratorInfo.Method is { IsExtensionMethod: true }
                 ? false
                 : CheckPossibleNullReceiver(expr);
 
-            SetAnalyzedNullability(node.Expression, new VisitResult(convertedResult, convertedResult.ToTypeWithAnnotations(compilation)));
+            SetAnalyzedNullability(collectionExpression, new VisitResult(convertedResult, convertedResult.ToTypeWithAnnotations(compilation)));
 
             TypeWithState currentPropertyGetterTypeWithState;
 
-            if (node.EnumeratorInfoOpt is null)
+            if (enumeratorInfoOpt is null)
             {
                 currentPropertyGetterTypeWithState = default;
             }
@@ -10834,17 +10903,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // There are frameworks where System.String does not implement IEnumerable, but we still lower it to a for loop
                 // using the indexer over the individual characters anyway. So the type must be not annotated char.
                 currentPropertyGetterTypeWithState =
-                    TypeWithAnnotations.Create(node.EnumeratorInfoOpt.ElementType, NullableAnnotation.NotAnnotated).ToTypeWithState();
+                    TypeWithAnnotations.Create(enumeratorInfoOpt.ElementType, NullableAnnotation.NotAnnotated).ToTypeWithState();
             }
             else
             {
-                // Reinfer the return type of the node.Expression.GetEnumerator().Current property, so that if
+                // Reinfer the return type of the collectionExpression.GetEnumerator().Current property, so that if
                 // the collection changed nested generic types we pick up those changes.
                 if (reinferredGetEnumeratorMethod is null)
                 {
                     TypeSymbol? getEnumeratorType;
 
-                    if (node.EnumeratorInfoOpt is { InlineArraySpanType: not WellKnownType.Unknown and var wellKnownSpan })
+                    if (enumeratorInfoOpt is { InlineArraySpanType: not WellKnownType.Unknown and var wellKnownSpan })
                     {
                         Debug.Assert(wellKnownSpan is WellKnownType.System_Span_T or WellKnownType.System_ReadOnlySpan_T);
                         NamedTypeSymbol spanType = compilation.GetWellKnownType(wellKnownSpan);
@@ -10855,29 +10924,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         getEnumeratorType = convertedResult.Type;
                     }
 
-                    reinferredGetEnumeratorMethod = (MethodSymbol)AsMemberOfType(getEnumeratorType, node.EnumeratorInfoOpt.GetEnumeratorInfo.Method);
+                    reinferredGetEnumeratorMethod = (MethodSymbol)AsMemberOfType(getEnumeratorType, enumeratorInfoOpt.GetEnumeratorInfo.Method);
                 }
 
                 var enumeratorReturnType = GetReturnTypeWithState(reinferredGetEnumeratorMethod);
 
                 if (enumeratorReturnType.State != NullableFlowState.NotNull)
                 {
-                    if (!reportedDiagnostic && !(node.Expression is BoundConversion { Operand: { IsSuppressed: true } }))
+                    if (!reportedDiagnostic && !(collectionExpression is BoundConversion { Operand: { IsSuppressed: true } }))
                     {
                         ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, expr.Syntax.GetLocation());
                     }
                 }
 
-                var currentPropertyGetter = (MethodSymbol)AsMemberOfType(enumeratorReturnType.Type, node.EnumeratorInfoOpt.CurrentPropertyGetter);
+                var currentPropertyGetter = (MethodSymbol)AsMemberOfType(enumeratorReturnType.Type, enumeratorInfoOpt.CurrentPropertyGetter);
 
                 currentPropertyGetterTypeWithState = ApplyUnconditionalAnnotations(
                     currentPropertyGetter.ReturnTypeWithAnnotations.ToTypeWithState(),
                     currentPropertyGetter.ReturnTypeFlowAnalysisAnnotations);
 
                 // Analyze `await MoveNextAsync()`
-                if (node.AwaitOpt is { AwaitableInstancePlaceholder: BoundAwaitableValuePlaceholder moveNextPlaceholder } awaitMoveNextInfo)
+                if (awaitOpt is { AwaitableInstancePlaceholder: BoundAwaitableValuePlaceholder moveNextPlaceholder } awaitMoveNextInfo)
                 {
-                    var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, node.EnumeratorInfoOpt.MoveNextInfo.Method);
+                    var moveNextAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, enumeratorInfoOpt.MoveNextInfo.Method);
 
                     var result = new VisitResult(GetReturnTypeWithState(moveNextAsyncMethod), moveNextAsyncMethod.ReturnTypeWithAnnotations);
                     AddPlaceholderReplacement(moveNextPlaceholder, moveNextPlaceholder, result);
@@ -10886,11 +10955,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Analyze `await DisposeAsync()`
-                if (node.EnumeratorInfoOpt is { NeedsDisposal: true, DisposeAwaitableInfo: BoundAwaitableInfo awaitDisposalInfo })
+                if (enumeratorInfoOpt is { NeedsDisposal: true, DisposeAwaitableInfo: BoundAwaitableInfo awaitDisposalInfo })
                 {
                     var disposalPlaceholder = awaitDisposalInfo.AwaitableInstancePlaceholder;
                     bool addedPlaceholder = false;
-                    if (node.EnumeratorInfoOpt.PatternDisposeInfo is { Method: var originalDisposeMethod }) // no statically known Dispose method if doing a runtime check
+                    if (enumeratorInfoOpt.PatternDisposeInfo is { Method: var originalDisposeMethod }) // no statically known Dispose method if doing a runtime check
                     {
                         Debug.Assert(disposalPlaceholder is not null);
                         var disposeAsyncMethod = (MethodSymbol)AsMemberOfType(reinferredGetEnumeratorMethod.ReturnType, originalDisposeMethod);

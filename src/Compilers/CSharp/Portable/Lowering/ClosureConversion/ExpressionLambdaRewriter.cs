@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return _bound.StaticCall(WellKnownMember.System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions, ctor, args);
+                return _bound.StaticCall(WellKnownMember.System_Linq_Expressions_Expression__New_ConstructorInfo_IEnumerableExpressions, ctor, args);
             }
         }
 

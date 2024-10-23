@@ -197,6 +197,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     }
                 }
             }
+            else if (name == BuildPropertyNames.CompilerGeneratedFilesOutputPath)
+            {
+                _projectSystemProject.GeneratedFilesOutputDirectory = string.IsNullOrWhiteSpace(value) ? null : value;
+            }
         }
 
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)

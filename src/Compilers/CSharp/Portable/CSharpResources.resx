@@ -8014,4 +8014,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AccessorDoesNotUseBackingField_Title" xml:space="preserve">
     <value>Property accessor should use 'field' because the other accessor is using it.</value>
   </data>
+  <data name="ERR_IteratorRefLikeElementType" xml:space="preserve">
+    <value>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</value>
+  </data>
 </root>

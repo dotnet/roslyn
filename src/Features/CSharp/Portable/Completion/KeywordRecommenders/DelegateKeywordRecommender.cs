@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal sealed class DelegateKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class DelegateKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.DelegateKeyword)
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
@@ -20,11 +20,6 @@ internal sealed class DelegateKeywordRecommender : AbstractSyntacticSingleKeywor
             SyntaxKind.ProtectedKeyword,
             SyntaxKind.UnsafeKeyword
         };
-
-    public DelegateKeywordRecommender()
-        : base(SyntaxKind.DelegateKeyword)
-    {
-    }
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
