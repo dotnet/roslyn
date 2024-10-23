@@ -17,11 +17,6 @@
         <target state="translated">変更の適用</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">カレットの下のシンボルに移動できません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">'フィールドのカプセル化' 情報を計算中</target>
@@ -44,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
         <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="new">'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</target>
+        <target state="translated">参照されているドキュメントが組織によって除外されているため、'Copilot で説明' は使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">

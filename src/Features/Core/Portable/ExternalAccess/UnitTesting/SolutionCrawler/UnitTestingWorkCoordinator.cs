@@ -439,6 +439,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
                 !object.Equals(oldProject.Name, newProject.Name) ||
                 !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+                !object.Equals(oldProject.HostAnalyzerOptions, newProject.HostAnalyzerOptions) ||
                 !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
                 !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
                 !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath) ||

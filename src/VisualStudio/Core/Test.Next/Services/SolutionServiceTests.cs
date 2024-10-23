@@ -245,9 +245,10 @@ public class SolutionServiceTests
     [Fact]
     public async Task ProjectProperties()
     {
+        var dir = Path.GetDirectoryName(typeof(SolutionServiceTests).Assembly.Location);
         using var workspace = TestWorkspace.CreateCSharp("");
 
-        static Solution SetProjectProperties(Solution solution, int version)
+        Solution SetProjectProperties(Solution solution, int version)
         {
             var projectId = solution.ProjectIds.Single();
             return solution
@@ -256,14 +257,14 @@ public class SolutionServiceTests
                 .WithProjectFilePath(projectId, "FilePath" + version)
                 .WithProjectOutputFilePath(projectId, "OutputFilePath" + version)
                 .WithProjectOutputRefFilePath(projectId, "OutputRefFilePath" + version)
-                .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo("AssemblyPath" + version))
+                .WithProjectCompilationOutputInfo(projectId, new CompilationOutputInfo("AssemblyPath" + version, dir + version))
                 .WithProjectDefaultNamespace(projectId, "DefaultNamespace" + version)
                 .WithProjectChecksumAlgorithm(projectId, SourceHashAlgorithm.Sha1 + version)
                 .WithHasAllInformation(projectId, (version % 2) != 0)
                 .WithRunAnalyzers(projectId, (version % 2) != 0);
         }
 
-        static void ValidateProperties(Solution solution, int version)
+        void ValidateProperties(Solution solution, int version)
         {
             var project = solution.Projects.Single();
             Assert.Equal("Name" + version, project.Name);
@@ -271,6 +272,7 @@ public class SolutionServiceTests
             Assert.Equal("FilePath" + version, project.FilePath);
             Assert.Equal("OutputFilePath" + version, project.OutputFilePath);
             Assert.Equal("OutputRefFilePath" + version, project.OutputRefFilePath);
+            Assert.Equal(dir + version, project.CompilationOutputInfo.GeneratedFilesOutputDirectory);
             Assert.Equal("AssemblyPath" + version, project.CompilationOutputInfo.AssemblyPath);
             Assert.Equal("DefaultNamespace" + version, project.DefaultNamespace);
             Assert.Equal(SourceHashAlgorithm.Sha1 + version, project.State.ChecksumAlgorithm);

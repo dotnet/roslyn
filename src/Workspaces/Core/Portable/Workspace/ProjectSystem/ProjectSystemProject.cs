@@ -80,6 +80,7 @@ internal sealed partial class ProjectSystemProject
     private string? _compilationOutputAssemblyFilePath;
     private string? _outputFilePath;
     private string? _outputRefFilePath;
+    private string? _generatedFilesOutputDirectory;
     private string? _defaultNamespace;
 
     /// <summary>
@@ -374,6 +375,18 @@ internal sealed partial class ProjectSystemProject
             ref _compilationOutputAssemblyFilePath,
             value,
             s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
+    }
+
+    /// <summary>
+    /// The path to the source generated files.
+    /// </summary>
+    internal string? GeneratedFilesOutputDirectory
+    {
+        get => _generatedFilesOutputDirectory;
+        set => ChangeProjectOutputPath(
+            ref _generatedFilesOutputDirectory,
+            value,
+            s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithGeneratedFilesOutputDirectory(value)));
     }
 
     public string? OutputFilePath

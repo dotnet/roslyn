@@ -2230,7 +2230,7 @@ End Class
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Capture_Local()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2351,7 +2351,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Capture_Parameter()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2468,7 +2468,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub Capture_This()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2576,7 +2576,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub CeaseCapture_Local()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2651,7 +2651,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub CeaseCapture_LastLocal()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2825,7 +2825,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub CeaseCapture_This()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2940,7 +2940,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub AddingAndRemovingClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3065,7 +3065,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub ChainClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3235,7 +3235,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub UnchainClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3390,7 +3390,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub ChangeClosureParent()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3626,7 +3626,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub ChangeLambdaParent()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3791,7 +3791,7 @@ End Class
         ''' The value of the captured variable might be uninitialized in the lambda.
         ''' We leave it up to the user to set its value as needed.
         ''' </summary>
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub UninitializedCapture()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3871,8 +3871,7 @@ End Class
                     Verify()
             End Using
         End Sub
-
-        <Fact>
+        <ConditionalFact(GetType(NotOnMonoCore))>
         Public Sub CaptureOrdering()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
