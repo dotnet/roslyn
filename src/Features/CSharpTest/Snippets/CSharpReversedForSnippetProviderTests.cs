@@ -40,6 +40,37 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             """);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74839")]
+    public async Task InsertNestedReversedForSnippetInMethodTest()
+    {
+        await VerifySnippetAsync("""
+            class Program
+            {
+                public void Method()
+                {
+                    for (int i = 5; i >= 0; i--)
+                    {
+                        $$
+                    }
+                }
+            }
+            """, """
+            class Program
+            {
+                public void Method()
+                {
+                    for (int i = 5; i >= 0; i--)
+                    {
+                        for (int {|0:j|} = {|1:length|} - 1; {|0:j|} >= 0; {|0:j|}--)
+                        {
+                            $$
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
     [Fact]
     public async Task InsertReversedForSnippetInMethodUsedIncrementorTest()
     {
@@ -135,7 +166,6 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
     [Fact]
     public async Task InsertReversedForSnippetInLocalFunctionTest()
     {
-        // TODO: fix this test when bug with simplifier failing to find correct node is fixed
         await VerifySnippetAsync("""
             class Program
             {
@@ -154,7 +184,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     void LocalFunction()
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:(length)|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (int {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
@@ -167,7 +197,6 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
     [Fact]
     public async Task InsertReversedForSnippetInAnonymousFunctionTest()
     {
-        // TODO: fix this test when bug with simplifier failing to find correct node is fixed
         await VerifySnippetAsync("""
             class Program
             {
@@ -186,7 +215,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     var action = delegate()
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:(length)|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (int {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
@@ -199,7 +228,6 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
     [Fact]
     public async Task InsertReversedForSnippetInParenthesizedLambdaExpressionTest()
     {
-        // TODO: fix this test when bug with simplifier failing to find correct node is fixed
         await VerifySnippetAsync("""
             class Program
             {
@@ -218,7 +246,7 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
                 {
                     var action = () =>
                     {
-                        for (global::System.Int32 {|0:i|} = {|1:(length)|} - (1); {|0:i|} >= 0; {|0:i|}--)
+                        for (int {|0:i|} = {|1:length|} - 1; {|0:i|} >= 0; {|0:i|}--)
                         {
                             $$
                         }
