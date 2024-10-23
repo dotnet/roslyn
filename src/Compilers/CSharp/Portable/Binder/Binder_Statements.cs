@@ -2553,6 +2553,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var b = binder.GetBinder(ifStatementSyntax);
                         Debug.Assert(b != null);
+
+                        if (b.TryGetBoundElseIfStatement(ifStatementSyntax, out alternative))
+                        {
+                            break;
+                        }
+
                         binder = b;
                         node = ifStatementSyntax;
                     }
@@ -2582,6 +2588,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return result;
             }
+        }
+
+        protected virtual bool TryGetBoundElseIfStatement(IfStatementSyntax node, out BoundStatement? alternative)
+        {
+            alternative = null;
+            return false;
         }
 #nullable disable
 
