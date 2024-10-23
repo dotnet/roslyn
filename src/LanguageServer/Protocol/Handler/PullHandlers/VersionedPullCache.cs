@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 internal abstract partial class VersionedPullCache<TCheapVersion, TExpensiveVersion, TState, TComputedData>(string uniqueKey)
     where TComputedData : notnull
 {
-
     /// <summary>
     /// Map of workspace and diagnostic source to the data used to make the last pull report.
     /// This is a concurrent dictionary as parallel access is allowed for different workspace+project/doc combinations.

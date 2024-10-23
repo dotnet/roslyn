@@ -120,7 +120,7 @@ internal readonly partial record struct Checksum(
     public int CompareTo(Checksum other)
     {
         var result = Data1.CompareTo(other.Data1);
-        return (result != 0) ? result : Data2.CompareTo(other.Data2);
+        return result != 0 ? result : Data2.CompareTo(other.Data2);
     }
 }
 
