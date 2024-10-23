@@ -393,7 +393,7 @@ class C {
 
             return;
 
-            void testContainsHelper1(string directive, params SyntaxKind[] directiveKinds)
+            static void testContainsHelper1(string directive, params SyntaxKind[] directiveKinds)
             {
                 Assert.True(directiveKinds.Length > 0);
 
@@ -467,9 +467,14 @@ class C {
                         }
                     }
                     """));
+
+                // https://github.com/dotnet/roslyn/issues/75583
+                testContainsHelper2(directiveKinds, SyntaxFactory.ParseCompilationUnit($$"""
+                    if ({{directive}})
+                    """));
             }
 
-            void testContainsHelper2(SyntaxKind[] directiveKinds, CompilationUnitSyntax compilationUnit)
+            static void testContainsHelper2(SyntaxKind[] directiveKinds, CompilationUnitSyntax compilationUnit)
             {
                 Assert.True(compilationUnit.ContainsDirectives);
                 foreach (var directiveKind in directiveKinds)
