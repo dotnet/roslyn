@@ -1,0 +1,224 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Xunit;
+using Xunit.Abstractions;
+
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
+
+public sealed class RangeExpressionParsingTests(ITestOutputHelper output)
+    : ParsingTests(output)
+{
+    [Fact]
+    public void CastingRangeExpressionWithoutStartOrEnd()
+    {
+        UsingExpression("(int)..");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastingRangeExpressionWithoutStart()
+    {
+        UsingExpression("(int)..0");
+
+        N(SyntaxKind.CastExpression);
+        {
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.PredefinedType);
+            {
+                N(SyntaxKind.IntKeyword);
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "0");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ConditionalExpressionWithEmptyRangeForWhenTrue()
+    {
+        UsingExpression("a ? .. : b");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "b");
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ConditionalExpressionWithEmptyRangeForWhenFalse()
+    {
+        UsingExpression("a ? b : ..");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "b");
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ConditionalExpressionWithEmptyRangeForWhenTrueAndWhenFalse()
+    {
+        UsingExpression("a ? .. : ..");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ConditionalExpressionWithEmptyStartRangeForWhenTrue()
+    {
+        UsingExpression("a ? ..b : c");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "c");
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ConditionalExpressionWithEmptyStartRangeForWhenFalse()
+    {
+        UsingExpression("a ? b : ..c");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "b");
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void ConditionalExpressionWithEmptyStartRangeForWhenTrueAndFalse()
+    {
+        UsingExpression("a ? ..b : ..c");
+
+        N(SyntaxKind.ConditionalExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.QuestionToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "b");
+                }
+            }
+            N(SyntaxKind.ColonToken);
+            N(SyntaxKind.RangeExpression);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "c");
+                }
+            }
+        }
+        EOF();
+    }
+}
