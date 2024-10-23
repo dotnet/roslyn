@@ -860,8 +860,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
 
             Assert.Equal(text1.ToString(), text2.ToString());
-
-            // The versions will not match as we won't share the underlying text-and-tree instances between languages.
             Assert.Equal(version1, version2);
 
             // These are different languages, so we should get entirely different tree structures.
