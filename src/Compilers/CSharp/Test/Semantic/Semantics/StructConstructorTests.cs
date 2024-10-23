@@ -3877,6 +3877,54 @@ ReadOnlySpan<int> r = stackalloc int[512];
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(3, 1));
         }
 
+        [WorkItem(60568, "https://github.com/dotnet/roslyn/issues/60568")]
+        [ConditionalTheory(typeof(CoreClrOnly))] // For conversion from Span<T> to ReadOnlySpan<T>.
+        [CombinatorialData]
+        public void FieldInitializer_EscapeAnalysis_08(bool useRefStruct)
+        {
+            var source = $$"""
+                using System;
+                {{(useRefStruct ? "ref struct" : "class")}} Example
+                {
+                    Span<byte> Field = TryGetSpan(stackalloc byte[512], out var y) ? y : default;
+                    ReadOnlySpan<int> Property { get; } = TryGetSpan(stackalloc int[512], out var y) ? y : default;
+                    public Example() { }
+                    static bool TryGetSpan<T>(Span<T> x, out Span<T> y)
+                    {
+                        y = x;
+                        return true;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            if (useRefStruct)
+            {
+                comp.VerifyDiagnostics(
+                    // (4,70): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                    //     Span<byte> Field = TryGetSpan(stackalloc byte[512], out var y) ? y : default;
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(4, 70),
+                    // (5,88): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                    //     ReadOnlySpan<int> Property { get; } = TryGetSpan(stackalloc int[512], out var y) ? y : default;
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(5, 88));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (4,5): error CS8345: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
+                    //     Span<byte> Field = TryGetSpan(stackalloc byte[512], out var y) ? y : default;
+                    Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(4, 5),
+                    // (4,70): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                    //     Span<byte> Field = TryGetSpan(stackalloc byte[512], out var y) ? y : default;
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(4, 70),
+                    // (5,5): error CS8345: Field or auto-implemented property cannot be of type 'ReadOnlySpan<int>' unless it is an instance member of a ref struct.
+                    //     ReadOnlySpan<int> Property { get; } = TryGetSpan(stackalloc int[512], out var y) ? y : default;
+                    Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 5),
+                    // (5,88): error CS8352: Cannot use variable 'y' in this context because it may expose referenced variables outside of their declaration scope
+                    //     ReadOnlySpan<int> Property { get; } = TryGetSpan(stackalloc int[512], out var y) ? y : default;
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(5, 88));
+            }
+        }
+
         [Fact]
         public void ImplicitlyInitializedField_Simple()
         {

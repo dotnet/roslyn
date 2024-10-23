@@ -660,21 +660,12 @@ class Test
                 // (7,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(7, 37),
-                // (7,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         var q1 = from item in array select stackalloc int[3] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[3] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(7, 44),
                 // (8,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(8, 37),
-                // (8,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         var q2 = from item in array select stackalloc int[ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(8, 44),
                 // (9,37): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Enumerable.Select<TSource, TResult>(IEnumerable<TSource>, Func<TSource, TResult>)'
                 //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(9, 37),
-                // (9,44): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
-                //         var q3 = from item in array select stackalloc    [ ] { 1, 2, 3 };
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Span<int>").WithLocation(9, 44)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "select stackalloc    [ ] { 1, 2, 3 }").WithArguments("System.Linq.Enumerable.Select<TSource, TResult>(System.Collections.Generic.IEnumerable<TSource>, System.Func<TSource, TResult>)", "TResult", "System.Span<int>").WithLocation(9, 37)
                 );
         }
 

@@ -994,15 +994,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var includeInitializersInBody = methodSymbol.IncludeFieldInitializersInBody();
                     // Do not emit initializers if we are invoking another constructor of this class.
                     includeNonEmptyInitializersInBody = includeInitializersInBody && !processedInitializers.BoundInitializers.IsDefaultOrEmpty;
+                    ArrayBuilder<BoundAssignmentOperator> initializerAssignments = null;
 
                     if (includeNonEmptyInitializersInBody && processedInitializers.LoweredInitializers == null)
                     {
-                        analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
+                        initializerAssignments = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
+                        analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol, initializerAssignments);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
-
-                        RefSafetyAnalysis.Analyze(_compilation, methodSymbol,
-                                                  new BoundBlock(analyzedInitializers.Syntax, ImmutableArray<LocalSymbol>.Empty, analyzedInitializers.Statements), // The block is necessary to establish the right local scope for the analysis 
-                                                  diagsForCurrentMethod);
                     }
 
                     body = BindMethodBody(
@@ -1011,11 +1009,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagsForCurrentMethod,
                         includeInitializersInBody,
                         analyzedInitializers,
+                        initializerAssignments,
                         ReportNullableDiagnostics,
                         out importChain,
                         out originalBodyNested,
                         out bool prependedDefaultValueTypeConstructorInitializer,
                         out forSemanticModel);
+
+                    initializerAssignments?.Free();
 
                     Debug.Assert(!prependedDefaultValueTypeConstructorInitializer || originalBodyNested);
                     Debug.Assert(!prependedDefaultValueTypeConstructorInitializer || methodSymbol.ContainingType.IsStructType());
@@ -1722,6 +1723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 includeInitializersInBody: false,
                 initializersBody: null,
+                initializerAssignments: null,
                 reportNullableDiagnostics: true,
                 importChain: out _,
                 originalBodyNested: out _,
@@ -1735,7 +1737,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             BindingDiagnosticBag diagnostics,
             bool includeInitializersInBody,
-            BoundNode? initializersBody,
+            BoundStatementList? initializersBody,
+            ArrayBuilder<BoundAssignmentOperator>? initializerAssignments,
             bool reportNullableDiagnostics,
             out ImportChain? importChain,
             out bool originalBodyNested,
@@ -1783,6 +1786,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConcurrentDictionary<IdentifierNameSyntax, int>? identifierMap;
                     buildIdentifierMapOfBindIdentifierTargets(syntaxNode, bodyBinder, out inMethodBinder, out identifierMap);
 #endif
+
+                    if (initializerAssignments is { })
+                    {
+                        foreach (var initializerAssignment in initializerAssignments)
+                        {
+                            bodyBinder.ValidateAssignment(initializerAssignment.Syntax, initializerAssignment.Left, initializerAssignment.Right, initializerAssignment.IsRef, diagnostics);
+                        }
+                    }
 
                     BoundNode methodBody = bodyBinder.BindWithLambdaBindingCountDiagnostics(
                         syntaxNode,
@@ -1835,15 +1846,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 finalNullableState: out _);
                         }
                     }
-
                     forSemanticModel = new MethodBodySemanticModel.InitialState(syntaxNode, methodBodyForSemanticModel, bodyBinder, snapshotManager, remappedSymbols);
 
 #if DEBUG
                     Debug.Assert(IsEmptyRewritePossible(methodBody));
                     Debug.Assert(WasPropertyBackingFieldAccessChecked.FindUncheckedAccess(methodBody) is null);
 #endif
-
-                    RefSafetyAnalysis.Analyze(compilation, method, methodBody, diagnostics);
 
                     switch (methodBody.Kind)
                     {
@@ -1910,6 +1918,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ctor.GenerateMethodBodyStatements(factory, stmts, diagnostics);
                 body = BoundBlock.SynthesizedNoLocals(node, stmts.ToImmutableAndFree());
                 nullableInitialState = getInitializerState(body);
+
+                if (initializerAssignments is { Count: > 0 })
+                {
+                    foreach (var initializerAssignment in initializerAssignments)
+                    {
+                        var binderFactory = compilationState.Compilation.GetBinderFactory(initializerAssignment.Syntax.SyntaxTree);
+                        var bodyBinder = binderFactory.GetBinder(initializerAssignment.Syntax);
+                        // PROTOTYPE: The binder doesn't seem correct since it applies to the initializer value
+                        // only, not the field. Should we avoid the need for a BoundExpression for the field
+                        // and have ValidateAssignment() take a FieldSymbol directly? Then the ValidateAssignment
+                        // call can be moved back to BindRegularCSharpFieldInitializers where it was previously.
+                        var fieldSymbol = ((BoundFieldAccess)initializerAssignment.Left).FieldSymbol;
+                        bodyBinder = bodyBinder.GetFieldInitializerBinder(fieldSymbol);
+                        bodyBinder.ValidateAssignment(initializerAssignment.Syntax, initializerAssignment.Left, initializerAssignment.Right, initializerAssignment.IsRef, diagnostics);
+                    }
+                }
             }
             else
             {
