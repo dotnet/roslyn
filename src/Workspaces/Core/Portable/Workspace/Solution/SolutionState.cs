@@ -1304,7 +1304,7 @@ internal sealed partial class SolutionState
         return null;
     }
 
-    public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
+    public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId, bool includeDifferentLanguages)
     {
         var projectState = this.GetProjectState(documentId.ProjectId);
         if (projectState == null)
@@ -1331,7 +1331,9 @@ internal sealed partial class SolutionState
         return documentIds.WhereAsArray(
             static (documentId, args) =>
             {
-                var projectState = args.solution.GetProjectState(documentId.ProjectId);
+                var (@this, language, includeDifferentLanguages) = args;
+
+                var projectState = @this.GetProjectState(documentId.ProjectId);
                 if (projectState == null)
                 {
                     // this document no longer exist
@@ -1341,13 +1343,13 @@ internal sealed partial class SolutionState
                     return false;
                 }
 
-                if (projectState.ProjectInfo.Language != args.Language)
+                if (!includeDifferentLanguages && projectState.ProjectInfo.Language != language)
                     return false;
 
                 // GetDocumentIdsWithFilePath may return DocumentIds for other types of documents (like additional files), so filter to normal documents
                 return projectState.DocumentStates.Contains(documentId);
             },
-            (solution: this, projectState.Language));
+            (solution: this, projectState.Language, includeDifferentLanguages));
     }
 
     /// <summary>
