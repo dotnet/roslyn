@@ -861,8 +861,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(text1.ToString(), text2.ToString());
 
-            // The versions will not match as we don't share any contents between these languages (even text).
-            Assert.NotEqual(version1, version2);
+            // The versions will not match as we won't share the underlying text-and-tree instances between languages.
+            Assert.Equal(version1, version2);
 
             // These are different languages, so we should get entirely different tree structures.
             Assert.NotEqual(root1.GetType(), root2.GetType());
@@ -885,7 +885,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.NotEqual(text1.ToString(), text2.ToString());
 
-            // The versions will not match as we don't share any contents between these languages (even text).
+            // The versions will not match as we won't share the underlying text-and-tree instances between languages.
             Assert.NotEqual(version1, version2);
 
             // These are different languages, so we should get entirely different tree structures.
@@ -907,9 +907,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
 
             Assert.Equal(text1.ToString(), text2.ToString());
-
-            // The versions will not match as we don't share any contents between these languages (even text).
-            Assert.NotEqual(version1, version2);
+            Assert.Equal(version1, version2);
 
             // These are different languages, so we should get entirely different tree structures.
             Assert.NotEqual(root1.GetType(), root2.GetType());

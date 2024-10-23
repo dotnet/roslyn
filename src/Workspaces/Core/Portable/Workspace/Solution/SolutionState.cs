@@ -1251,13 +1251,6 @@ internal sealed partial class SolutionState
         return Branch(analyzerReferences: analyzerReferences);
     }
 
-    /// <summary>
-    /// Returns the first related document id (a document with the same <see cref="DocumentInfo.FilePath"/> as <paramref
-    /// name="documentId"/>) found in the solution.  The related document is guaranteed to come from the same language as
-    /// <paramref name="documentId"/>.  
-    /// </summary>
-    /// <param name="relatedProjectIdHint">An optional project to check first as it has high likelihood of containing
-    /// a related document.</param>
     public DocumentId? GetFirstRelatedDocumentId(DocumentId documentId, ProjectId? relatedProjectIdHint)
     {
         Contract.ThrowIfTrue(documentId.ProjectId == relatedProjectIdHint);
@@ -1281,47 +1274,37 @@ internal sealed partial class SolutionState
             foreach (var relatedDocumentId in relatedDocumentIds)
             {
                 if (relatedDocumentId != documentId)
-                {
-                    var relatedProject = this.GetRequiredProjectState(relatedDocumentId.ProjectId);
-                    if (relatedProject.Language == projectState.Language)
-                        return relatedDocumentId;
-                }
+                    return relatedDocumentId;
             }
 
             return null;
         }
 
+        var relatedProject = relatedProjectIdHint is null ? null : this.ProjectStates[relatedProjectIdHint];
+        Contract.ThrowIfTrue(relatedProject == projectState);
+        if (relatedProject != null)
         {
-            var relatedProject = relatedProjectIdHint is null ? null : this.ProjectStates[relatedProjectIdHint];
-            Contract.ThrowIfTrue(relatedProject == projectState);
-            if (relatedProject?.Language == projectState.Language)
-            {
-                var siblingDocumentId = relatedProject.GetFirstDocumentIdWithFilePath(filePath);
-                if (siblingDocumentId is not null)
-                    return siblingDocumentId;
-            }
+            var siblingDocumentId = relatedProject.GetFirstDocumentIdWithFilePath(filePath);
+            if (siblingDocumentId is not null)
+                return siblingDocumentId;
+        }
 
-            // Wasn't in cache, do the linear search.
-            foreach (var (_, siblingProjectState) in this.ProjectStates)
-            {
-                // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
-                if (siblingProjectState == projectState ||
-                    siblingProjectState == relatedProject ||
-                    siblingProjectState.Language != projectState.Language)
-                {
-                    continue;
-                }
+        // Wasn't in cache, do the linear search.
+        foreach (var (_, siblingProjectState) in this.ProjectStates)
+        {
+            // Don't want to search the same project that document already came from, or from the related-project we had a hint for.
+            if (siblingProjectState == projectState || siblingProjectState == relatedProject)
+                continue;
 
-                var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
-                if (siblingDocumentId is not null)
-                    return siblingDocumentId;
-            }
+            var siblingDocumentId = siblingProjectState.GetFirstDocumentIdWithFilePath(filePath);
+            if (siblingDocumentId is not null)
+                return siblingDocumentId;
         }
 
         return null;
     }
 
-    public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
+    public ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId, bool includeDifferentLanguages)
     {
         var projectState = this.GetProjectState(documentId.ProjectId);
         if (projectState == null)
@@ -1348,7 +1331,9 @@ internal sealed partial class SolutionState
         return documentIds.WhereAsArray(
             static (documentId, args) =>
             {
-                var projectState = args.solution.GetProjectState(documentId.ProjectId);
+                var (@this, language, includeDifferentLanguages) = args;
+
+                var projectState = @this.GetProjectState(documentId.ProjectId);
                 if (projectState == null)
                 {
                     // this document no longer exist
@@ -1358,13 +1343,13 @@ internal sealed partial class SolutionState
                     return false;
                 }
 
-                if (projectState.ProjectInfo.Language != args.Language)
+                if (!includeDifferentLanguages && projectState.ProjectInfo.Language != language)
                     return false;
 
                 // GetDocumentIdsWithFilePath may return DocumentIds for other types of documents (like additional files), so filter to normal documents
                 return projectState.DocumentStates.Contains(documentId);
             },
-            (solution: this, projectState.Language));
+            (solution: this, projectState.Language, includeDifferentLanguages));
     }
 
     /// <summary>
