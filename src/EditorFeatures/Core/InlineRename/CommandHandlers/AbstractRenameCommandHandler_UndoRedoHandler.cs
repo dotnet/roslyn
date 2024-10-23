@@ -18,31 +18,43 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(UndoCommandArgs args, CommandExecutionContext context)
     {
-        if (renameService.ActiveSession != null)
+        if (renameService.ActiveSession == null)
         {
-            for (var i = 0; i < args.Count && renameService.ActiveSession != null; i++)
-            {
-                renameService.ActiveSession.UndoManager.Undo(args.SubjectBuffer);
-            }
+            return false;
+        }
 
+        if (renameService.ActiveSession.IsCommitInProgress)
+        {
+            // When rename commit is in progress, handle the command so it won't change the workspace
             return true;
         }
 
-        return false;
+        for (var i = 0; i < args.Count && renameService.ActiveSession != null; i++)
+        {
+            renameService.ActiveSession.UndoManager.Undo(args.SubjectBuffer);
+        }
+
+        return true;
     }
 
     public bool ExecuteCommand(RedoCommandArgs args, CommandExecutionContext context)
     {
-        if (renameService.ActiveSession != null)
+        if (renameService.ActiveSession == null)
         {
-            for (var i = 0; i < args.Count && renameService.ActiveSession != null; i++)
-            {
-                renameService.ActiveSession.UndoManager.Redo(args.SubjectBuffer);
-            }
+            return false;
+        }
 
+        if (renameService.ActiveSession.IsCommitInProgress)
+        {
+            // When rename commit is in progress, handle the command so it won't change the workspace
             return true;
         }
 
-        return false;
+        for (var i = 0; i < args.Count && renameService.ActiveSession != null; i++)
+        {
+            renameService.ActiveSession.UndoManager.Redo(args.SubjectBuffer);
+        }
+
+        return true;
     }
 }

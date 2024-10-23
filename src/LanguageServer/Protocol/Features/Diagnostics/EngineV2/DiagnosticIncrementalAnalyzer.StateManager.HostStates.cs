@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var language = arg.Language;
                     var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
-                    var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeWorkspacePlaceholderAnalyzers: true);
+                    var analyzerMap = CreateStateSetMap(language, [], analyzersPerReference.Values, includeWorkspacePlaceholderAnalyzers: true);
 
                     return new HostAnalyzerStateSets(analyzerMap);
                 }

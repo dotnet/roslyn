@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis
             public const EventTask SingleGeneratorRunTime = (EventTask)2;
             public const EventTask BuildStateTable = (EventTask)3;
             public const EventTask Compilation = (EventTask)4;
+            public const EventTask AnalyzerAssemblyLoader = (EventTask)5;
         }
 
         private CodeAnalysisEventSource() { }
@@ -101,6 +102,15 @@ namespace Microsoft.CodeAnalysis
 
         [Event(8, Message = "Server compilation {0} completed", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.Compilation)]
         internal void StopServerCompilation(string name) => WriteEvent(8, name);
+
+        [Event(9, Message = "ALC for directory '{0}' created", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Start, Task = Tasks.AnalyzerAssemblyLoader)]
+        internal void CreateAssemblyLoadContext(string directory) => WriteEvent(9, directory);
+
+        [Event(10, Message = "ALC for directory '{0}' disposed", Keywords = Keywords.Performance, Level = EventLevel.Informational, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
+        internal void DisposeAssemblyLoadContext(string directory) => WriteEvent(10, directory);
+
+        [Event(11, Message = "ALC for directory '{0}' disposal failed with exception '{1}'", Keywords = Keywords.Performance, Level = EventLevel.Error, Opcode = EventOpcode.Stop, Task = Tasks.AnalyzerAssemblyLoader)]
+        internal void DisposeAssemblyLoadContextException(string directory, string errorMessage) => WriteEvent(11, directory, errorMessage);
 
         private static unsafe EventData GetEventDataForString(string value, char* ptr)
         {

@@ -64,11 +64,10 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         // We're going to walk this property body, converting most reference of the field to use the `field` keyword
         // instead.  However, not all reference can be updated.  For example, reference through another instance.  Those
         // we update to point at the property instead.  So we grab that property name here to use in the rewriter.
-        var propertyIdentifier = property.Identifier.WithoutTrivia();
-        var propertyIdentifierName = IdentifierName(propertyIdentifier);
+        var propertyIdentifierName = IdentifierName(property.Identifier.WithoutTrivia());
 
         var identifierNames = fieldLocations.Locations
-            .Select(loc => loc.Location.FindNode(cancellationToken) as IdentifierNameSyntax)
+            .Select(loc => loc.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as IdentifierNameSyntax)
             .WhereNotNull()
             .ToSet();
 

@@ -35,42 +35,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WpfFact>
         Public Async Function TestSimpleType() As Task
-            Await AssertCreatedNodeIsAsync("namespace N { class $$C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C)",
+            Await AssertCreatedNodeIsAsync("namespace N { class $$C { } }", "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=C)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
         End Function
 
         <WpfFact>
         Public Async Function TestNamespaceType() As Task
-            Await AssertCreatedNodeIsAsync("namespace $$N { class C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N)",
+            Await AssertCreatedNodeIsAsync("namespace $$N { class C { } }", "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N)" Category="CodeSchema_Namespace" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="N" Label="N"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
         End Function
 
         <WpfFact>
         Public Async Function TestLongNamespaceType() As Task
-            Await AssertCreatedNodeIsAsync("namespace N.$$N1.N11 { class C { } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N.N1)",
+            Await AssertCreatedNodeIsAsync("namespace N.$$N1.N11 { class C { } }", "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N.N1)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N.N1)" Category="CodeSchema_Namespace" CodeSchemaProperty_IsPublic="True" CodeSchemaProperty_IsStatic="True" CommonLabel="N.N1" Label="N.N1"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
         End Function
@@ -78,14 +78,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WpfFact>
         Public Async Function TestSimpleParameterType() As Task
             Await AssertCreatedNodeIsAsync("namespace N { class C { void M(int $$x) { } } }",
-                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]) ParameterIdentifier=x)",
+                    "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]) ParameterIdentifier=x)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=(Name=M OverloadingParameters=[(@2 Namespace=System Type=Int32)]) ParameterIdentifier=x)" Category="CodeSchema_Parameter" CodeSchemaProperty_IsByReference="False" CodeSchemaProperty_IsOut="False" CodeSchemaProperty_IsParameterArray="False" CommonLabel="x" Label="x"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -94,14 +94,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WpfFact>
         Public Async Function TestDelegateType() As Task
             Await AssertCreatedNodeIsAsync("namespace N { delegate void D(string $$m); }",
-                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=D Member=(Name=Invoke OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=String)]) ParameterIdentifier=m)",
+                    "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=D Member=(Name=Invoke OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=String)]) ParameterIdentifier=m)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=D Member=(Name=Invoke OverloadingParameters=[(@2 Namespace=System Type=String)]) ParameterIdentifier=m)" Category="CodeSchema_Parameter" CodeSchemaProperty_IsByReference="False" CodeSchemaProperty_IsOut="False" CodeSchemaProperty_IsParameterArray="False" CommonLabel="m" Label="m"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -110,14 +110,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WpfFact>
         Public Async Function TestLambdaParameterType() As Task
             Await AssertCreatedNodeIsAsync("namespace N { class C { void M(Func<int,int> $$x) { } } }",
-                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/CSharpAssembly1.dll Type=(Name=Func GenericParameterCount=2 GenericArguments=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32),(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]))]) ParameterIdentifier=x)",
+                    "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=M OverloadingParameters=[(Assembly=file:///Z:/bin/CSharpAssembly1.dll Type=(Name=Func GenericParameterCount=2 GenericArguments=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32),(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32)]))]) ParameterIdentifier=x)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=(Name=M OverloadingParameters=[(@1 Type=(Name=Func GenericParameterCount=2 GenericArguments=[(@2 Namespace=System Type=Int32),(@2 Namespace=System Type=Int32)]))]) ParameterIdentifier=x)" Category="CodeSchema_Parameter" CodeSchemaProperty_IsByReference="False" CodeSchemaProperty_IsOut="False" CodeSchemaProperty_IsParameterArray="False" CommonLabel="x" Label="x"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -125,28 +125,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
 
         <WpfFact>
         Public Async Function TestLocalType() As Task
-            Await AssertCreatedNodeIsAsync("namespace N { class C { int M() { int $$y = 0; return y; } } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
+            Await AssertCreatedNodeIsAsync("namespace N { class C { int M() { int $$y = 0; return y; } } }", "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=M LocalVariable=y)" Category="CodeSchema_LocalExpression" CommonLabel="y" Label="y"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
         End Function
 
         <WpfFact>
         Public Async Function TestFirstLocalWithSameNameType() As Task
-            Await AssertCreatedNodeIsAsync("namespace N { class C { int M() { { int $$y = 0; } { int y = 1;} } } }", "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
+            Await AssertCreatedNodeIsAsync("namespace N { class C { int M() { { int $$y = 0; } { int y = 1;} } } }", "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=M LocalVariable=y)" Category="CodeSchema_LocalExpression" CommonLabel="y" Label="y"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
         End Function
@@ -154,14 +154,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WpfFact>
         Public Async Function TestSecondLocalWithSameNameType() As Task
             Await AssertCreatedNodeIsAsync("namespace N { class C { int M() { { int y = 0; } { int $$y = 1;} } } }",
-                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y LocalVariableIndex=1)",
+                    "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=C Member=M LocalVariable=y LocalVariableIndex=1)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=M LocalVariable=y LocalVariableIndex=1)" Category="CodeSchema_LocalExpression" CommonLabel="y" Label="y"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
         End Function
@@ -170,14 +170,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         Public Async Function TestErrorType() As Task
             Await AssertCreatedNodeIsAsync(
                 "Class $$C : Inherits D : End Class",
-                "(Assembly=file:///Z:/VisualBasicAssembly1.dll Type=C)",
+                "(Assembly=file:///Z:/bin/VisualBasicAssembly1.dll Type=C)",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Type=C)" Category="CodeSchema_Class" CodeSchemaProperty_IsInternal="True" CommonLabel="C" Icon="Microsoft.VisualStudio.Class.Internal" Label="C"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>,
             LanguageNames.VisualBasic)
@@ -206,14 +206,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WpfFact>
         Public Async Function TestReferenceParameterSymbolTest() As Task
             Await AssertCreatedNodeIsAsync("namespace N { class C { void $$Goo(ref int i) { i = i + 1; } } }",
-                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
+                    "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(@2 Namespace=System Type=Int32 ParamKind=Ref)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Private" Label="Goo"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -222,14 +222,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
         <WpfFact>
         Public Async Function TestReferenceOutParameterSymbolTest() As Task
             Await AssertCreatedNodeIsAsync("namespace N { class C { void $$Goo(out int i) { i = 1; } } }",
-                    "(Assembly=file:///Z:/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
+                    "(Assembly=file:///Z:/bin/CSharpAssembly1.dll Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(Assembly=file:///Z:/FxReferenceAssembliesUri Namespace=System Type=Int32 ParamKind=Ref)]))",
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Namespace=N Type=C Member=(Name=Goo OverloadingParameters=[(@2 Namespace=System Type=Int32 ParamKind=Ref)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPrivate="True" CommonLabel="Goo" Icon="Microsoft.VisualStudio.Method.Private" Label="Goo"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -265,7 +265,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -303,7 +303,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -336,7 +336,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
@@ -370,7 +370,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -403,7 +403,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -440,7 +440,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -477,7 +477,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -531,7 +531,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -585,7 +585,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -638,7 +638,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -667,7 +667,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -725,7 +725,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -760,7 +760,7 @@ End Module
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -801,7 +801,7 @@ End Class
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                             <Alias n="2" Uri="Assembly=file:///Z:/FxReferenceAssembliesUri"/>
                         </IdentifierAliases>
                     </DirectedGraph>)

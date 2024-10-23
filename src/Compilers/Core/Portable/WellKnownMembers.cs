@@ -4447,7 +4447,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewExpression - WellKnownType.ExtSentinel), // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
 
-                // System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions,
+                // System_Linq_Expressions_Expression__New_ConstructorInfo_IEnumerableExpressions,
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
                 0,                                                                                                          // Arity
@@ -4458,6 +4458,15 @@ namespace Microsoft.CodeAnalysis
                         (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
                         1,
                         (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+
+                // System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_NewExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_ConstructorInfo,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
 
                 // System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions_MemberInfos,
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
@@ -5143,6 +5152,24 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
+
+                // System_Linq_Expressions_Expression__Default
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_DefaultExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
+
+                // System_Linq_Expressions_Expression__Power_MethodInfo,
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)WellKnownType.System_Linq_Expressions_Expression,                                                     // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Linq_Expressions_BinaryExpression - WellKnownType.ExtSentinel), // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Linq_Expressions_Expression,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_MethodInfo,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -5690,7 +5717,8 @@ namespace Microsoft.CodeAnalysis
                 "Not",                                      // System_Linq_Expressions_Expression__Not_Expression
                 "Not",                                      // System_Linq_Expressions_Expression__Not_Expression_MethodInfo
                 "New",                                      // System_Linq_Expressions_Expression__New_Type
-                "New",                                      // System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions
+                "New",                                      // System_Linq_Expressions_Expression__New_ConstructorInfo_IEnumerableExpressions
+                "New",                                      // System_Linq_Expressions_Expression__New_ConstructorInfo_ArrayExpressions
                 "New",                                      // System_Linq_Expressions_Expression__New_ConstructorInfo_Expressions_MemberInfos
                 "Property",                                 // System_Linq_Expressions_Expression__Property
                 "MemberBind",                               // System_Linq_Expressions_Expression__MemberBind_MemberInfo
@@ -5763,6 +5791,8 @@ namespace Microsoft.CodeAnalysis
                 "GreaterThan",                              // System_Linq_Expressions_Expression__GreaterThan_MethodInfo,
                 "GreaterThanOrEqual",                       // System_Linq_Expressions_Expression__GreaterThanOrEqual,
                 "GreaterThanOrEqual",                       // System_Linq_Expressions_Expression__GreaterThanOrEqual_MethodInfo,
+                "Default",                                  // System_Linq_Expressions_Expression__Default
+                "Power",                                    // System_Linq_Expressions_Expression__Power_MethodInfo,
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

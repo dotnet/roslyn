@@ -54,10 +54,17 @@ internal sealed class CSharpGenerateVariableCodeFixProvider() : AbstractGenerate
         return base.GetTargetNode(node);
     }
 
-    protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
+    protected override async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
         Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
+        // While this service is defined for C#, we support running in a torn environment, where we have compiled
+        // against the version in the features layer, but the value is provided from the code-fix layer.  In that case
+        // we just bail out.  This will not be necessary once we have the code that ensures no torn code scenarios
+        // happen regardless of which SDK you are running against.
         var service = document.GetLanguageService<IGenerateVariableService>();
-        return service.GenerateVariableAsync(document, node, cancellationToken);
+        if (service is null)
+            return [];
+
+        return await service.GenerateVariableAsync(document, node, cancellationToken).ConfigureAwait(false);
     }
 }

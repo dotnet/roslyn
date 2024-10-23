@@ -321,6 +321,7 @@ extends:
             publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
+            retainInsertedBuild: false
         # Arcade is done so we can set BuildNumber back
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(FancyBuildNumber)"
           displayName: Reset BuildNumber

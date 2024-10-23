@@ -49,7 +49,7 @@ internal static class MemberDisplayOptionsProviders
 
     public static async ValueTask<MemberDisplayOptions> GetMemberDisplayOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return configOptions.GetMemberDisplayOptions(document.Project.Language);
     }
 }
