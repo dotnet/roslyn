@@ -10225,6 +10225,7 @@ class C<T>
                     P1: True
                     2
                     """));
+                verifier.VerifyDiagnostics();
                 verifier.VerifyIL("C.P1.get", """
                     {
                       // Code size       45 (0x2d)
@@ -10308,6 +10309,7 @@ class C<T>
                     42
                     1
                     """));
+                verifier.VerifyDiagnostics();
                 verifier.VerifyIL("C.P1.get", """
                     {
                       // Code size       37 (0x25)
