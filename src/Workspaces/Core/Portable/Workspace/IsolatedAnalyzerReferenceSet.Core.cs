@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,7 +83,11 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     /// </summary>
     /// <remarks>Guarded by <see cref="s_gate"/>.  Note that while the gate is static, this is instance data on the <see
     /// cref="s_lastCreatedAnalyzerReferenceSet"/>.  And we only want to mutate that instance data from one thread at a
-    /// time.</remarks>
+    /// time.
+    /// 
+    /// Stored as an <see cref="IReadOnlyList{T}"/> so this can safely be used as a key in caches that map from a list
+    /// of items to some value (for example in an <see cref="ConditionalWeakTable{TKey, TValue}"/>.
+    /// </remarks>
     private readonly Dictionary<Checksum, ImmutableArray<AnalyzerReference>> _analyzerReferences = [];
 
     private IsolatedAnalyzerReferenceSet(
@@ -304,7 +309,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
                 // Can ignore all other analyzer reference types.  This is only about analyzer references changing on disk.
                 var analyzerReference = GetUnderlyingAnalyzerReference(initialReference);
                 if (analyzerReference is AnalyzerFileReference analyzerFileReference)
-                    pathToMvidMap[analyzerFileReference.FullPath] = TryGetAnalyzerFileReferenceMvid(analyzerFileReference);
+                    pathToMvidMap[analyzerFileReference.FullPath] = TryGetFileReferenceMvid(analyzerFileReference.FullPath);
             }
         }
     }
