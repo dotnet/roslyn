@@ -31,7 +31,7 @@ internal class DiagnosticComputer
     /// The <see cref="CompilationWithAnalyzers"/> instance is shared between all the following document analyses modes for the project:
     ///  1. Span-based analysis for active document (lightbulb)
     ///  2. Background analysis for active and open documents.
-    ///  
+    ///
     /// NOTE: We do not re-use this cache for project analysis as it leads to significant memory increase in the OOP process.
     /// Additionally, we only store the cache entry for the last project to be analyzed instead of maintaining a CWT keyed off
     /// each project in the solution, as the CWT does not seem to drop entries until ForceGC happens, leading to significant memory
@@ -171,7 +171,7 @@ internal class DiagnosticComputer
         //    the executing high priority tasks before starting its execution.
         //  - Note that it is critical to do this step prior to Step 3 below to ensure that
         //    any canceled normal priority tasks in Step 3 do not resume execution prior to
-        //    completion of this high priority computeTask. 
+        //    completion of this high priority computeTask.
         lock (s_gate)
         {
             Debug.Assert(!s_highPriorityComputeTasks.Contains(computeTask));
@@ -583,7 +583,18 @@ internal class DiagnosticComputer
             }
 
             var analyzers = reference.GetAnalyzers(_project.Language);
-            hostAnalyzerBuilder.AddRange(analyzers);
+
+            // At times some Host analyzers should be treated as project analyzers and
+            // not be given access to the Host fallback options. In particular when we
+            // replace SDK CodeStyle analyzers with the Features analyzers.
+            if (ShouldRedirectAnalyzers(_project, reference))
+            {
+                projectAnalyzerBuilder.AddRange(analyzers);
+            }
+            else
+            {
+                hostAnalyzerBuilder.AddRange(analyzers);
+            }
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
 
@@ -607,6 +618,13 @@ internal class DiagnosticComputer
         var analyzerToIdMap = new BidirectionalMap<string, DiagnosticAnalyzer>(analyzerMapBuilder);
 
         return new CompilationWithAnalyzersCacheEntry(_solutionChecksum, _project, compilationWithAnalyzers, analyzerToIdMap);
+
+        static bool ShouldRedirectAnalyzers(Project project, AnalyzerReference reference)
+        {
+            // When replacing SDK CodeStyle analyzers we should redirect Features analyzers
+            // so they are treated as project analyzers.
+            return project.State.HasSdkCodeStyleAnalyzers && reference.IsFeaturesAnalyzer();
+        }
     }
 
     private async Task<CompilationWithAnalyzersPair> CreateCompilationWithAnalyzerAsync(ImmutableArray<DiagnosticAnalyzer> projectAnalyzers, ImmutableArray<DiagnosticAnalyzer> hostAnalyzers, CancellationToken cancellationToken)
@@ -626,7 +644,7 @@ internal class DiagnosticComputer
 
         // Run analyzers concurrently, with performance logging and reporting suppressed diagnostics.
         // This allows all client requests with or without performance data and/or suppressed diagnostics to be satisfied.
-        // TODO: can we support analyzerExceptionFilter in remote host? 
+        // TODO: can we support analyzerExceptionFilter in remote host?
         //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
         var projectAnalyzerOptions = new CompilationWithAnalyzersOptions(
             options: _project.AnalyzerOptions,

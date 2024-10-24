@@ -130,7 +130,8 @@ internal sealed partial class ProjectSystemProjectFactory
                 SourceHashAlgorithms.Default, // will be updated when command line is set
                 outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
                 filePath: creationInfo.FilePath,
-                telemetryId: creationInfo.TelemetryId),
+                telemetryId: creationInfo.TelemetryId,
+                hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
             compilationOptions: creationInfo.CompilationOptions,
             parseOptions: creationInfo.ParseOptions);
 
@@ -262,7 +263,7 @@ internal sealed partial class ProjectSystemProjectFactory
     /// <summary>
     /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
     /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.
-    /// 
+    ///
     /// The <paramref name="solutionTransformation"/> function must be safe to be attempted multiple times (and not update local state).
     /// </summary>
     public void ApplyChangeToWorkspace(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
