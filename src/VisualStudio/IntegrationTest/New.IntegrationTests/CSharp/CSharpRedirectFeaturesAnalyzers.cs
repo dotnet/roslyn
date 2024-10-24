@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -150,6 +151,8 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
     {
         await TestServices.Editor.ActivateAsync(cancellationToken);
         await TestServices.Editor.PlaceCaretAsync("void M()", charsOffset: -1, cancellationToken);
+
+        await Task.Delay(TimeSpan.FromSeconds(1));
 
         await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
 
