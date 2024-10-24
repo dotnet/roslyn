@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -29,5 +29,12 @@ internal interface IImplementInterfaceService : ILanguageService
         IImplementInterfaceInfo info,
         ImplementTypeOptions options,
         ImplementInterfaceConfiguration configuration,
+        CancellationToken cancellationToken);
+
+    Task<ISymbol> ExplicitlyImplementSingleInterfaceMemberAsync(
+        Document document,
+        IImplementInterfaceInfo info,
+        ISymbol member,
+        ImplementTypeOptions options,
         CancellationToken cancellationToken);
 }

@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
@@ -11,6 +15,7 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
@@ -43,7 +48,6 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
             if (state == null)
                 return document;
 
-            // TODO: https://github.com/dotnet/roslyn/issues/60990
             // While implementing just one default action, like in the case of pressing enter after interface name in VB,
             // choose to implement with the dispose pattern as that's the Dev12 behavior.
             var implementDisposePattern = ShouldImplementDisposePattern(model.Compilation, state, explicitly: false);
@@ -93,5 +97,59 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         var generator = new ImplementInterfaceGenerator(
             this, document, info, options, configuration);
         return await generator.ImplementInterfaceAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ISymbol> ExplicitlyImplementSingleInterfaceMemberAsync(
+        Document document,
+        IImplementInterfaceInfo info,
+        ISymbol member,
+        ImplementTypeOptions options,
+        CancellationToken cancellationToken)
+    {
+        var configuration = new ImplementInterfaceConfiguration()
+        {
+            Abstractly = false,
+            Explicitly = true,
+            OnlyRemaining = false,
+            ImplementDisposePattern = false,
+            ThroughMember = null,
+        };
+        var generator = new ImplementInterfaceGenerator(
+            this, document, info, options, configuration);
+        var implementedMembers = await generator.GenerateExplicitlyImplementedMembersAsync(member, options.PropertyGenerationBehavior, cancellationToken).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var singleImplemented = implementedMembers[0]!;
+
+        // Since non-indexer properties are the only symbols that get their implementing accessor symbols returned,
+        // we have to process the created symbols and reduce to the single property wherein the accessors are contained
+        if (member is IPropertySymbol { IsIndexer: false })
+        {
+            IPropertySymbol? commonContainer = null;
+            foreach (var implementedMember in implementedMembers)
+            {
+                if (implementedMember is IPropertySymbol implementedProperty)
+                {
+                    commonContainer ??= implementedProperty;
+                    Debug.Assert(commonContainer == implementedProperty, "We should have a common property implemented");
+                }
+                else
+                {
+                    Contract.ThrowIfNull(implementedMember);
+                    var containingProperty = implementedMember!.ContainingSymbol as IPropertySymbol;
+                    Contract.ThrowIfNull(containingProperty);
+                    commonContainer ??= containingProperty;
+                    Debug.Assert(commonContainer == containingProperty, "We should have a common property implemented");
+                }
+            }
+            Contract.ThrowIfNull(commonContainer);
+            singleImplemented = commonContainer!;
+        }
+        else
+        {
+            Debug.Assert(implementedMembers.Length == 1, "We missed another case that may return multiple symbols");
+        }
+
+        return singleImplemented;
     }
 }

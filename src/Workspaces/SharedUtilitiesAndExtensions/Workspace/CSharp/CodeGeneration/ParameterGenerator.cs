@@ -20,29 +20,26 @@ internal static class ParameterGenerator
 {
     public static ParameterListSyntax GenerateParameterList(
         ImmutableArray<IParameterSymbol> parameterDefinitions,
-        bool isExplicit,
         CSharpCodeGenerationContextInfo info)
     {
-        var parameters = GetParameters(parameterDefinitions, isExplicit, info);
+        var parameters = GetParameters(parameterDefinitions, info);
 
         return ParameterList([.. parameters]);
     }
 
     public static BracketedParameterListSyntax GenerateBracketedParameterList(
         ImmutableArray<IParameterSymbol> parameterDefinitions,
-        bool isExplicit,
         CSharpCodeGenerationContextInfo info)
     {
         // Bracketed parameter lists come from indexers.  Those don't have type parameters, so we
         // could never have a typeParameterMapping.
-        var parameters = GetParameters(parameterDefinitions, isExplicit, info);
+        var parameters = GetParameters(parameterDefinitions, info);
 
         return BracketedParameterList([.. parameters]);
     }
 
     internal static ImmutableArray<ParameterSyntax> GetParameters(
         ImmutableArray<IParameterSymbol> parameterDefinitions,
-        bool isExplicit,
         CSharpCodeGenerationContextInfo info)
     {
         var seenOptional = false;
@@ -51,7 +48,7 @@ internal static class ParameterGenerator
         var result = new FixedSizeArrayBuilder<ParameterSyntax>(parameterDefinitions.Length);
         foreach (var p in parameterDefinitions)
         {
-            var parameter = GetParameter(p, info, isExplicit, isFirstParam, seenOptional);
+            var parameter = GetParameter(p, info, isFirstParam, seenOptional);
             result.Add(parameter);
             seenOptional = seenOptional || parameter.Default != null;
             isFirstParam = false;
@@ -60,17 +57,17 @@ internal static class ParameterGenerator
         return result.MoveToImmutable();
     }
 
-    internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CSharpCodeGenerationContextInfo info, bool isExplicit, bool isFirstParam, bool seenOptional)
+    internal static ParameterSyntax GetParameter(IParameterSymbol parameter, CSharpCodeGenerationContextInfo info, bool isFirstParam, bool seenOptional)
     {
         var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ParameterSyntax>(parameter, info);
         if (reusableSyntax != null)
             return reusableSyntax;
 
         return Parameter(parameter.Name.ToIdentifierToken())
-            .WithAttributeLists(GenerateAttributes(parameter, isExplicit, info))
+            .WithAttributeLists(GenerateAttributes(parameter, info))
             .WithModifiers(GenerateModifiers(parameter, isFirstParam))
             .WithType(parameter.Type.GenerateTypeSyntax())
-            .WithDefault(GenerateEqualsValueClause(info.Generator, parameter, isExplicit, seenOptional));
+            .WithDefault(GenerateEqualsValueClause(info.Generator, parameter, seenOptional));
     }
 
     private static SyntaxTokenList GenerateModifiers(
@@ -96,10 +93,9 @@ internal static class ParameterGenerator
     private static EqualsValueClauseSyntax? GenerateEqualsValueClause(
         SyntaxGenerator generator,
         IParameterSymbol parameter,
-        bool isExplicit,
         bool seenOptional)
     {
-        if (!parameter.IsParams && !isExplicit && !parameter.IsRefOrOut())
+        if (!parameter.IsParams && !parameter.IsRefOrOut())
         {
             if (parameter.HasExplicitDefaultValue || seenOptional)
             {
@@ -119,13 +115,8 @@ internal static class ParameterGenerator
         => ExpressionGenerator.GenerateExpression(generator, parameter.Type, value, canUseFieldReference: true);
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-        IParameterSymbol parameter, bool isExplicit, CSharpCodeGenerationContextInfo info)
+        IParameterSymbol parameter, CSharpCodeGenerationContextInfo info)
     {
-        if (isExplicit)
-        {
-            return default;
-        }
-
         var attributes = parameter.GetAttributes();
         if (attributes.Length == 0)
         {
