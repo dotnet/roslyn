@@ -69,6 +69,8 @@ internal readonly struct EditDistance(string text) : IDisposable
         if (_sourceLowerCaseCharacters == null)
             throw new ObjectDisposedException(nameof(EditDistance));
 
+        // Place properly sized arrays back in the pool. As these only store chars, no need
+        // to clear them out before doing so.
         if (_sourceLowerCaseCharacters.Length == PooledArraySize)
             s_pool.Free(_sourceLowerCaseCharacters);
     }
