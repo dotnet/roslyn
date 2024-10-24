@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -890,131 +889,142 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
     protected static async ValueTask DiscoverImpliedSymbolsAsync(
         TSymbol symbol, Solution solution, ArrayBuilder<ISymbol> symbolBuilder, CancellationToken cancellationToken)
     {
-        var name = symbol.Name;
-
         using var _ = PooledHashSet<ISymbol>.GetInstance(out var symbolSet);
-        var documentChannel = Channel.CreateUnbounded<Document>();
-        Task? documentProcessingTask = null;
 
-        foreach (var project in solution.Projects)
-        {
-            var allDocuments = project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            await foreach (var document in allDocuments)
+        await ProducerConsumer<Document>.RunParallelAsync(
+            GetCandidateDocumentsAsync(),
+            produceItems: static async (document, callback, args, cancellationToken) =>
             {
-                if (!document.SupportsSemanticModel)
-                    continue;
+                var (symbol, symbolSet) = args;
+                var name = symbol.Name;
 
-                var treeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (treeIndex is null)
-                    continue;
-
-                if (!treeIndex.ProbablyContainsIdentifier(name))
-                    continue;
-
-                await AskProcessDocumentForSymbolsAsync(document).ConfigureAwait(false);
-            }
-        }
-
-        documentChannel.Writer.Complete();
-
-        if (documentProcessingTask is not null)
-            await documentProcessingTask.ConfigureAwait(false);
+                var shouldProcess = await ShouldProcessDocumentAsync(document, name, cancellationToken).ConfigureAwait(false);
+                if (shouldProcess)
+                {
+                    callback(document);
+                }
+            },
+            consumeItems: static async (documents, args, cancellationToken) =>
+            {
+                var (symbol, symbolSet) = args;
+                await foreach (var document in documents)
+                {
+                    await FindImplicitSymbolsInDocumentAsync(symbol, symbolSet, document, cancellationToken).ConfigureAwait(false);
+                }
+            },
+            args: (symbol, symbolSet),
+            cancellationToken).ConfigureAwait(false);
 
         symbolBuilder.AddRange(symbolSet);
 
-        async ValueTask AskProcessDocumentForSymbolsAsync(Document document)
+        async IAsyncEnumerable<Document> GetCandidateDocumentsAsync()
         {
-            await documentChannel.Writer.WriteAsync(document, cancellationToken).ConfigureAwait(false);
-            documentProcessingTask ??= Task.Run(ProcessQueuedDocumentsAsync, cancellationToken);
+            var name = symbol.Name;
+
+            foreach (var project in solution.Projects)
+            {
+                var allDocuments = project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await foreach (var document in allDocuments)
+                {
+                    yield return document;
+                }
+            }
         }
 
-        async ValueTask ProcessQueuedDocumentsAsync()
+        static async ValueTask<bool> ShouldProcessDocumentAsync(Document document, string name, CancellationToken cancellationToken)
         {
-            while (true)
+            if (!document.SupportsSemanticModel)
+                return false;
+
+            var treeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (treeIndex is null)
+                return false;
+
+            return treeIndex.ProbablyContainsIdentifier(name);
+        }
+    }
+
+    private static async ValueTask FindImplicitSymbolsInDocumentAsync(TSymbol symbol, PooledHashSet<ISymbol> symbolSet, Document document, CancellationToken cancellationToken)
+    {
+        var semanticModel = await document!.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        Debug.Assert(semanticModel is not null);
+
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        if (root is null)
+            return;
+
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+
+        // Instead of getting all the declared symbols from the document, invoke this semantic operation in every node we encounter
+        foreach (var descendantNode in root.DescendantNodes())
+        {
+            // Discover all the declared type symbols in the document
+            var documentSymbol = semanticModel.GetDeclaredSymbol(descendantNode, cancellationToken);
+            if (documentSymbol is not ITypeSymbol documentTypeSymbol)
+                continue;
+
+            if (documentTypeSymbol.IsAnonymousType)
             {
-                var canRead = await documentChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
-                if (!canRead)
-                    break;
-
-                var document = await documentChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
-
-                var semanticModel = await document!.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                if (cancellationToken.IsCancellationRequested)
-                    return;
-
-                Debug.Assert(semanticModel is not null);
-
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                if (root is null)
-                    continue;
-
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
-                // Instead of getting all the declared symbols from the document, invoke this semantic operation in every node we encounter
-                foreach (var descendantNode in root.DescendantNodes())
+                // If we encounter an anonymous type declaration, we want to match their properties' declarations that do not provide an explicit name for the property
+                // For instance, the property declarations in 'new { Value, Length }'
+                foreach (var property in documentTypeSymbol.GetValidAnonymousTypeProperties())
                 {
-                    // Discover all the declared type symbols in the document
-                    var documentSymbol = semanticModel.GetDeclaredSymbol(descendantNode, cancellationToken);
-                    if (documentSymbol is not ITypeSymbol documentTypeSymbol)
+                    if (symbol.Name != property.Name)
                         continue;
 
-                    if (documentTypeSymbol.IsAnonymousType)
+                    // Here we match properties declared without an explicit property name, which matches two symbols to find references for
+                    // For example, in 'new { Value }' we also want to find the 'Value' property of the anonymous type
+                    // Though in 'new { Value: Value }' we don't want to find the 'Value' property, despite being synonymous
+                    var propertyDeclarationSyntax = await property.DeclaringSyntaxReferences.First()!.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                    if (!syntaxFacts.IsInferredAnonymousObjectMemberDeclarator(propertyDeclarationSyntax))
+                        continue;
+
+                    var assignedExpression = syntaxFacts.GetAssignedExpressionForAnonymousTypeDeclarator(propertyDeclarationSyntax);
+                    if (assignedExpression is null)
+                        continue;
+
+                    var assignedSymbol = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken).Symbol;
+                    if (symbol.Equals(assignedSymbol))
                     {
-                        // If we encounter an anonymous type declaration, we want to match their properties' declarations that do not provide an explicit name for the property
-                        // For instance, the property declarations in 'new { Value, Length }'
-                        foreach (var property in documentTypeSymbol.GetValidAnonymousTypeProperties())
-                        {
-                            if (symbol.Name != property.Name)
-                                continue;
-
-                            // Here we match properties declared without an explicit property name, which matches two symbols to find references for
-                            // For example, in 'new { Value }' we also want to find the 'Value' property of the anonymous type
-                            // Though in 'new { Value: Value }' we don't want to find the 'Value' property, despite being synonymous
-                            var propertyDeclarationSyntax = await property.DeclaringSyntaxReferences.First()!.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                            if (!syntaxFacts.IsInferredAnonymousObjectMemberDeclarator(propertyDeclarationSyntax))
-                                continue;
-
-                            var assignedExpression = syntaxFacts.GetAssignedExpressionForAnonymousTypeDeclarator(propertyDeclarationSyntax);
-                            if (assignedExpression is null)
-                                continue;
-
-                            var assignedSymbol = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken).Symbol;
-                            if (symbol.Equals(assignedSymbol))
-                            {
-                                symbolSet.Add(property);
-                            }
-                        }
+                        symbolSet.Add(property);
                     }
-                    else if (documentTypeSymbol.IsTupleType)
+                }
+            }
+            else if (documentTypeSymbol.IsTupleType)
+            {
+                // If we encounter a tuple type declaration, we want to match their fields' declarations that do not provide an explicit name for the field
+                // For instance, the declared fields in '(Value, Length)'
+                foreach (var tupleMember in documentTypeSymbol.GetMembers(symbol.Name).OfType<IFieldSymbol>())
+                {
+                    // Here we match fields declared without an explicit field name, which matches two symbols to find references for
+                    // For example, in '(Value, Length)' we also want to find the 'Value' and 'Length' fields of the tuple
+                    // Though in '(Value, Length: Length)' we don't want to find the 'Length' field, despite being synonymous
+                    var declaringSyntaxReference = tupleMember.DeclaringSyntaxReferences.FirstOrDefault();
+                    if (declaringSyntaxReference is null)
                     {
-                        // If we encounter a tuple type declaration, we want to match their fields' declarations that do not provide an explicit name for the field
-                        // For instance, the declared fields in '(Value, Length)'
-                        foreach (var tupleMember in documentTypeSymbol.GetMembers(symbol.Name))
-                        {
-                            if (tupleMember is not IFieldSymbol)
-                                continue;
+                        // We are probably finding references to the ItemN fields of the tuple, which have no declaring
+                        // syntax references, so we just bail out
+                        continue;
+                    }
+                    var tupleArgumentDeclarationSyntax = await declaringSyntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                    if (!syntaxFacts.IsInferredTupleMemberDeclarator(tupleArgumentDeclarationSyntax))
+                        continue;
 
-                            // Here we match fields declared without an explicit field name, which matches two symbols to find references for
-                            // For example, in '(Value, Length)' we also want to find the 'Value' and 'Length' fields of the tuple
-                            // Though in '(Value, Length: Length)' we don't want to find the 'Length' field, despite being synonymous
-                            var tupleArgumentDeclarationSyntax = await tupleMember.DeclaringSyntaxReferences.First()!.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                            if (!syntaxFacts.IsInferredTupleMemberDeclarator(tupleArgumentDeclarationSyntax))
-                                continue;
+                    var assignedExpression = syntaxFacts.GetAssignedExpressionForTupleMemberDeclarator(tupleArgumentDeclarationSyntax);
+                    if (assignedExpression is null)
+                        continue;
 
-                            var assignedExpression = syntaxFacts.GetAssignedExpressionForTupleMemberDeclarator(tupleArgumentDeclarationSyntax);
-                            if (assignedExpression is null)
-                                continue;
-
-                            var assignedSymbol = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken).Symbol;
-                            if (symbol.Equals(assignedSymbol))
-                            {
-                                symbolSet.Add(tupleMember);
-                            }
-                        }
+                    var assignedSymbol = semanticModel.GetSymbolInfo(assignedExpression, cancellationToken).Symbol;
+                    if (symbol.Equals(assignedSymbol))
+                    {
+                        symbolSet.Add(tupleMember);
                     }
                 }
             }
