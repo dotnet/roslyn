@@ -991,6 +991,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var expressionSyntax = element.Expression.Syntax;
                 var elementPlaceholder = new BoundValuePlaceholder(expressionSyntax, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+                elementPlaceholder = (BoundValuePlaceholder)elementPlaceholder.WithSuppression(element.Expression.IsSuppressed);
                 var convertElement = CreateConversion(
                     expressionSyntax,
                     elementPlaceholder,
