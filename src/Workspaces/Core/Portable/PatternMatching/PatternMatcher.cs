@@ -192,21 +192,15 @@ internal abstract partial class PatternMatcher : IDisposable
                 // user that they expect the same letters to be uppercase in the result.  As 
                 // such, only return this if we can find this pattern exactly in the candidate.
 
-                var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
+                var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, startIndex: caseInsensitiveIndex, CompareOptions.None);
                 if (caseSensitiveIndex > 0)
                 {
-                    if (char.IsUpper(candidate[caseInsensitiveIndex]))
-                    {
-                        return new PatternMatch(
-                            PatternMatchKind.StartOfWordSubstring, punctuationStripped, isCaseSensitive: true,
-                            matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
-                    }
-                    else
-                    {
-                        return new PatternMatch(
-                            PatternMatchKind.NonLowercaseSubstring, punctuationStripped, isCaseSensitive: true,
-                            matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
-                    }
+                    var resultType = char.IsUpper(candidate[caseSensitiveIndex]) ? PatternMatchKind.StartOfWordSubstring : PatternMatchKind.NonLowercaseSubstring;
+                    return new PatternMatch(
+                        resultType,
+                        punctuationStripped,
+                        isCaseSensitive: true,
+                        matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
                 }
             }
             else
@@ -261,7 +255,7 @@ internal abstract partial class PatternMatcher : IDisposable
         // user has only barely started writing a word.
         if (patternIsLowercase && caseInsensitiveIndex > 0 && patternChunk.Text.Length >= 3)
         {
-            var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.None);
+            var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, startIndex: caseInsensitiveIndex, CompareOptions.None);
             if (caseSensitiveIndex > 0)
             {
                 return new PatternMatch(

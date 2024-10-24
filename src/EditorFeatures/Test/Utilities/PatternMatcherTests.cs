@@ -191,6 +191,9 @@ public class PatternMatcherTests
     [InlineData("[|_|]my_[|b|]utton", "_B", PatternMatchKind.CamelCaseNonContiguousPrefix, CaseInsensitive)]
     [InlineData("Com[|bin|]e", "bin", PatternMatchKind.LowercaseSubstring, CaseSensitive)]
     [InlineData("Combine[|Bin|]ary", "bin", PatternMatchKind.StartOfWordSubstring, CaseInsensitive)]
+
+    [InlineData("_ABC_[|Abc|]_", "Abc", PatternMatchKind.StartOfWordSubstring, CaseSensitive)]
+
     [WorkItem("https://github.com/dotnet/roslyn/issues/51029")]
     internal void TestNonFuzzyMatch(
         string candidate, string pattern, PatternMatchKind matchKind, bool isCaseSensitive)
