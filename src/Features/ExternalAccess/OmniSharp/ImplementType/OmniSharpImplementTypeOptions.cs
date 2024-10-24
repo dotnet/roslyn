@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType
 {
-    internal readonly record struct OmniSharpImplementTypeOptions(
-        OmniSharpImplementTypeInsertionBehavior InsertionBehavior,
-        OmniSharpImplementTypePropertyGenerationBehavior PropertyGenerationBehavior);
+    internal static class OmniSharpImplementTypeOptions
+    {
+        internal static IOption InsertionBehavior = ImplementTypeOptionsStorage.InsertionBehavior;
+        internal static IOption PropertyGenerationBehavior = ImplementTypeOptionsStorage.PropertyGenerationBehavior;
+    }
 
     internal enum OmniSharpImplementTypeInsertionBehavior
     {
