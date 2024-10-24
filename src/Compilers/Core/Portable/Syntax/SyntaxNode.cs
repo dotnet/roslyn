@@ -479,7 +479,16 @@ namespace Microsoft.CodeAnalysis
                             Debug.Assert(!triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind), "Should not have a match if the token doesn't even have leading trivia");
                         }
 
-                        Debug.Assert(!triviaContainsMatch(current.GetTrailingTriviaCore(), rawKind), "Should never have a match in trailing trivia");
+                        // no need to look within if this token doesn't even have trailing trivia.
+                        if (current.HasTrailingTrivia)
+                        {
+                            if (triviaContainsMatch(current.GetTrailingTriviaCore(), rawKind))
+                                return true;
+                        }
+                        else
+                        {
+                            Debug.Assert(!triviaContainsMatch(current.GetTrailingTriviaCore(), rawKind), "Should not have a match if the token doesn't even have trailing trivia");
+                        }
                     }
                     else
                     {
