@@ -3202,6 +3202,16 @@
         <target state="translated">형식 및 별칭의 이름은 'record'로 지정할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">이 참조는 '{0}'에 '{1}'을(를) 할당하지만 '{1}'은(는) '{0}'보다 좁은 이스케이프 범위를 갖습니다.</target>

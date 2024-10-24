@@ -3202,6 +3202,16 @@
         <target state="translated">Typy a aliasy by neměly mít název record</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Tento odkaz přiřadí {1} k {0}, ale {1} má užší řídicí obor než {0}.</target>

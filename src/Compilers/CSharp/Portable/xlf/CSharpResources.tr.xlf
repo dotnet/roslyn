@@ -3202,6 +3202,16 @@
         <target state="translated">Türler ve diğer adlar 'record' olarak adlandırılmamalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_RedundantPattern">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RedundantPattern_Title">
+        <source>The pattern is redundant</source>
+        <target state="new">The pattern is redundant</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">
         <source>This ref-assigns '{1}' to '{0}' but '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">Bu başvuru, '{1}'i '{0}'ye atar, ancak '{1}', '{0}'ten daha dar bir kaçış kapsamına sahiptir.</target>
