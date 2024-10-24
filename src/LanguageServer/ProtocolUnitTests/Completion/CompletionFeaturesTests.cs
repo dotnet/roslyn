@@ -866,7 +866,7 @@ public class C
         }
     }
 
-    [Theory, CombinatorialData]
+    [Theory(Skip = "https://github.com/dotnet/roslyn/issues/75611"), CombinatorialData]
     public async Task TestHandleExceptionFromGetCompletionChange(bool mutatingLspWorkspace)
     {
         var markup = "Item {|caret:|}";
