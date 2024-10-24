@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal readonly struct TokenSemanticInfo(
     ISymbol declaredSymbol,
+    IPreprocessingSymbol preprocessingSymbol,
     IAliasSymbol aliasSymbol,
     ImmutableArray<ISymbol> referencedSymbols,
     ITypeSymbol type,
@@ -20,9 +21,10 @@ internal readonly struct TokenSemanticInfo(
     TextSpan span)
 {
     public static readonly TokenSemanticInfo Empty = new(
-        null, null, [], null, null, default);
+        null, null, null, [], null, null, default);
 
     public readonly ISymbol DeclaredSymbol = declaredSymbol;
+    public readonly IPreprocessingSymbol PreprocessingSymbol = preprocessingSymbol;
     public readonly IAliasSymbol AliasSymbol = aliasSymbol;
     public readonly ImmutableArray<ISymbol> ReferencedSymbols = referencedSymbols;
     public readonly ITypeSymbol Type = type;
@@ -33,6 +35,7 @@ internal readonly struct TokenSemanticInfo(
     {
         var result = ArrayBuilder<ISymbol>.GetInstance();
         result.AddIfNotNull(DeclaredSymbol);
+        result.AddIfNotNull(PreprocessingSymbol);
         result.AddIfNotNull(AliasSymbol);
         result.AddRange(ReferencedSymbols);
 

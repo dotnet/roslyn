@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -86,13 +87,15 @@ internal static partial class SemanticModelExtensions
         ITypeSymbol? type = null;
         ITypeSymbol? convertedType = null;
         ISymbol? declaredSymbol = null;
+        IPreprocessingSymbol? preprocessingSymbol = null;
         var allSymbols = ImmutableArray<ISymbol?>.Empty;
 
+        var tokenParent = token.Parent;
         if (token.RawKind == syntaxKinds.UsingKeyword &&
-            (token.Parent?.RawKind == syntaxKinds.UsingStatement || token.Parent?.RawKind == syntaxKinds.LocalDeclarationStatement))
+            (tokenParent?.RawKind == syntaxKinds.UsingStatement || tokenParent?.RawKind == syntaxKinds.LocalDeclarationStatement))
         {
             var usingStatement = token.Parent;
-            declaredSymbol = semanticFacts.TryGetDisposeMethod(semanticModel, token.Parent, cancellationToken);
+            declaredSymbol = semanticFacts.TryGetDisposeMethod(semanticModel, tokenParent, cancellationToken);
         }
         else if (overriddingIdentifier.HasValue)
         {
@@ -104,20 +107,26 @@ internal static partial class SemanticModelExtensions
         }
         else
         {
-            aliasSymbol = semanticModel.GetAliasInfo(token.Parent!, cancellationToken);
+            Debug.Assert(tokenParent is not null);
+            aliasSymbol = semanticModel.GetAliasInfo(tokenParent, cancellationToken);
             var bindableParent = syntaxFacts.TryGetBindableParent(token);
             var typeInfo = bindableParent != null ? semanticModel.GetTypeInfo(bindableParent, cancellationToken) : default;
             type = typeInfo.Type;
             convertedType = typeInfo.ConvertedType;
             declaredSymbol = MapSymbol(semanticFacts.GetDeclaredSymbol(semanticModel, token, cancellationToken), type);
+            preprocessingSymbol = semanticFacts.GetPreprocessingSymbol(semanticModel, tokenParent);
 
-            var skipSymbolInfoLookup = declaredSymbol.IsKind(SymbolKind.RangeVariable);
-            allSymbols = skipSymbolInfoLookup
-                ? []
-                : semanticFacts
+            if (preprocessingSymbol != null)
+            {
+                allSymbols = [preprocessingSymbol];
+            }
+            else if (!declaredSymbol.IsKind(SymbolKind.RangeVariable))
+            {
+                allSymbols = semanticFacts
                     .GetBestOrAllSymbols(semanticModel, bindableParent, token, cancellationToken)
                     .WhereAsArray(s => s != null && !s.Equals(declaredSymbol))
                     .SelectAsArray(s => MapSymbol(s, type));
+            }
         }
 
         // NOTE(cyrusn): This is a workaround to how the semantic model binds and returns
@@ -150,6 +159,6 @@ internal static partial class SemanticModelExtensions
             convertedType = null;
         }
 
-        return new TokenSemanticInfo(declaredSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
+        return new TokenSemanticInfo(declaredSymbol, preprocessingSymbol, aliasSymbol, allSymbols, type, convertedType, token.Span);
     }
 }

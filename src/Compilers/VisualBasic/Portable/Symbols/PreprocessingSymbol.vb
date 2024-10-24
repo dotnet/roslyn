@@ -15,7 +15,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _name As String
 
         Friend Sub New(name As String)
-            MyBase.New()
             _name = name
         End Sub
 
@@ -109,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Overrides Sub Accept(visitor As SymbolVisitor)
-            Throw New NotSupportedException()
+            visitor.VisitPreprocessing(Me)
         End Sub
 
         Public Overloads Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
@@ -117,11 +116,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
-            Throw New NotSupportedException()
+            Return visitor.VisitPreprocessing(Me)
         End Function
 
         Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Throw New NotSupportedException()
+            Return visitor.VisitPreprocessing(Me, argument)
         End Function
 
         Public Overloads Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
