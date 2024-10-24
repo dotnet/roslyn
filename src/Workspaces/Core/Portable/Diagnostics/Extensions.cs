@@ -81,12 +81,21 @@ internal static partial class Extensions
 
     private static string GetAssemblyQualifiedName(Type type)
     {
-        // AnalyzerFileReference now includes things like versions, public key as part of its identity. 
+        // AnalyzerFileReference now includes things like versions, public key as part of its identity.
         // so we need to consider them.
         return RoslynImmutableInterlocked.GetOrAdd(
             ref s_typeToAssemblyQualifiedName,
             type,
             static type => type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type));
+    }
+
+    public static bool IsFeaturesAnalyzer(this AnalyzerReference reference)
+    {
+        var fileNameSpan = reference.FullPath.AsSpan(FileNameUtilities.IndexOfFileName(reference.FullPath));
+        return
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.CSharp.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.VisualBasic.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase);
     }
 
     public static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>> ToResultBuilderMapAsync(
