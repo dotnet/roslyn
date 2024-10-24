@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
@@ -17,22 +18,29 @@ internal sealed class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEve
     protected override bool CanFind(IEventSymbol symbol)
         => true;
 
-    protected sealed override ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+    // old change
+    protected sealed override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
         IEventSymbol symbol,
         Solution solution,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var backingFields = symbol.ContainingType.GetMembers()
-                                                 .OfType<IFieldSymbol>()
-                                                 .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                                 .ToImmutableArray<ISymbol>();
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-        var associatedNamedTypes = symbol.ContainingType.GetTypeMembers()
-                                                        .WhereAsArray(n => symbol.Equals(n.AssociatedSymbol))
-                                                        .CastArray<ISymbol>();
+        await DiscoverImpliedSymbolsAsync(symbol, solution, symbols, cancellationToken).ConfigureAwait(false);
 
-        return new(backingFields.Concat(associatedNamedTypes));
+        var backingFields = symbol.ContainingType
+            .GetMembers()
+            .OfType<IFieldSymbol>()
+            .Where(f => symbol.Equals(f.AssociatedSymbol));
+        symbols.AddRange(backingFields);
+
+        var associatedNamedTypes = symbol.ContainingType
+            .GetTypeMembers()
+            .Where(n => symbol.Equals(n.AssociatedSymbol));
+        symbols.AddRange(associatedNamedTypes);
+
+        return symbols.ToImmutable();
     }
 
     protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
