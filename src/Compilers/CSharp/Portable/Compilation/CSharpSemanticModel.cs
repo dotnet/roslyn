@@ -3371,6 +3371,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (resultKind == LookupResultKind.NotCreatable)
                             {
+                                if (expr.Type is { IsStatic: true } or { TypeKind: TypeKind.Interface or TypeKind.TypeParameter })
+                                {
+                                    return symbols;
+                                }
+
                                 return OneOrMany.Create(expr.Symbols);
                             }
                             else if (expr.Type.IsDelegateType())
