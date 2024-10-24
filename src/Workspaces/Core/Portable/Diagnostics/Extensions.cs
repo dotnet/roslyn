@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,23 +89,13 @@ internal static partial class Extensions
             static type => type.AssemblyQualifiedName ?? throw ExceptionUtilities.UnexpectedValue(type));
     }
 
-    private static readonly ImmutableHashSet<string> s_featuresAnalyzerFileNames = new[] {
-        "Microsoft.CodeAnalysis.Features.dll",
-        "Microsoft.CodeAnalysis.CSharp.Features.dll",
-        "Microsoft.CodeAnalysis.VisualBasic.Features.dll",
-    }.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
-
-    private static ImmutableSegmentedDictionary<string, bool> s_analyzerFullPathToIsFeatureAnalyzer = ImmutableSegmentedDictionary<string, bool>.Empty;
-
     public static bool IsFeaturesAnalyzer(this AnalyzerReference reference)
     {
-        if (reference.FullPath is null)
-            return false;
-
-        return RoslynImmutableInterlocked.GetOrAdd(
-            ref s_analyzerFullPathToIsFeatureAnalyzer,
-            reference.FullPath,
-            static fullPath => s_featuresAnalyzerFileNames.Contains(Path.GetFileName(fullPath)));
+        var fileNameSpan = reference.FullPath.AsSpan(FileNameUtilities.IndexOfFileName(reference.FullPath));
+        return
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.CSharp.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase) ||
+          fileNameSpan.Equals("Microsoft.CodeAnalysis.VisualBasic.Features.dll".AsSpan(), StringComparison.OrdinalIgnoreCase);
     }
 
     public static async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder>> ToResultBuilderMapAsync(

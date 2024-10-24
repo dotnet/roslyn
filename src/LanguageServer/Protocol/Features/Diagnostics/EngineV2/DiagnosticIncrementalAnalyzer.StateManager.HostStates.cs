@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
-                var key = new HostAnalyzerStateSetKey(project.Language, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
+                var key = new HostAnalyzerStateSetKey(project.Language, project.State.HasSdkCodeStyleAnalyzers, project.Solution.SolutionState.Analyzers.HostAnalyzerReferences);
                 // Some Host Analyzers may need to be treated as Project Analyzers so that they do not have access to the
                 // Host fallback options. These ids will be used when building up the Host and Project analyzer collections.
                 var referenceIdsToRedirect = GetReferenceIdsToRedirectAsProjectAnalyzers(project);
@@ -58,22 +59,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return (analyzersPerReference.Values, []);
                     }
 
-                    var hostAnalyzerCollection = new List<ImmutableArray<DiagnosticAnalyzer>>();
-                    var projectAnalyzerCollection = new List<ImmutableArray<DiagnosticAnalyzer>>();
+                    var hostAnalyzerCollection = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance();
+                    var projectAnalyzerCollection = ArrayBuilder<ImmutableArray<DiagnosticAnalyzer>>.GetInstance();
 
-                    foreach (var kvp in analyzersPerReference)
+                    foreach (var (referenceId, analyzers) in analyzersPerReference)
                     {
-                        if (referenceIdsToRedirectAsProjectAnalyzers.Contains(kvp.Key))
+                        if (referenceIdsToRedirectAsProjectAnalyzers.Contains(referenceId))
                         {
-                            projectAnalyzerCollection.Add(kvp.Value);
+                            projectAnalyzerCollection.Add(analyzers);
                         }
                         else
                         {
-                            hostAnalyzerCollection.Add(kvp.Value);
+                            hostAnalyzerCollection.Add(analyzers);
                         }
                     }
 
-                    return (hostAnalyzerCollection, projectAnalyzerCollection);
+                    return (hostAnalyzerCollection.ToImmutableAndFree(), projectAnalyzerCollection.ToImmutableAndFree());
                 }
             }
 

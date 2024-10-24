@@ -59,9 +59,9 @@ internal sealed partial class ProjectSystemProject
     private readonly HashSet<string> _projectAnalyzerPaths = [];
 
     /// <summary>
-    /// The set of unmapped analyzer reference paths that the project knows about.
+    /// The set of SDK code style analyzer reference paths that the project knows about.
     /// </summary>
-    private readonly HashSet<string> _unmappedProjectAnalyzerPaths = [];
+    private readonly HashSet<string> _sdkCodeStyleAnalyzerPaths = [];
 
     /// <summary>
     /// Paths to analyzers we want to add when the current batch completes.
@@ -988,11 +988,14 @@ internal sealed partial class ProjectSystemProject
 
         using (_gate.DisposableWait())
         {
-            // Track the unmapped analyzer paths
-            _unmappedProjectAnalyzerPaths.Add(fullPath);
+            if (IsSdkCodeStyleAnalyzer(fullPath))
+            {
+                // Track the sdk code style analyzer paths
+                _sdkCodeStyleAnalyzerPaths.Add(fullPath);
+            }
 
-            // Determine if we started using SDK CodeStyle analyzers while access to _unmappedProjectAnalyzerPaths is gated.
-            containsSdkCodeStyleAnalyzers = _unmappedProjectAnalyzerPaths.Any(IsSdkCodeStyleAnalyzer);
+            // Determine if we are still using SDK CodeStyle analyzers while access to _sdkCodeStyleAnalyzerPaths is gated.
+            containsSdkCodeStyleAnalyzers = _sdkCodeStyleAnalyzerPaths.Count > 0;
 
             // check all mapped paths first, so that all analyzers are either added or not
             foreach (var mappedFullPath in mappedPaths)
@@ -1035,11 +1038,14 @@ internal sealed partial class ProjectSystemProject
 
         using (_gate.DisposableWait())
         {
-            // Track the unmapped analyzer paths
-            _unmappedProjectAnalyzerPaths.Remove(fullPath);
+            if (IsSdkCodeStyleAnalyzer(fullPath))
+            {
+                // Track the sdk code style analyzer paths
+                _sdkCodeStyleAnalyzerPaths.Remove(fullPath);
+            }
 
-            // Determine if we are still using SDK CodeStyle analyzers while access to _unmappedProjectAnalyzerPaths is gated.
-            containsSdkCodeStyleAnalyzers = _unmappedProjectAnalyzerPaths.Any(IsSdkCodeStyleAnalyzer);
+            // Determine if we are still using SDK CodeStyle analyzers while access to _sdkCodeStyleAnalyzerPaths is gated.
+            containsSdkCodeStyleAnalyzers = _sdkCodeStyleAnalyzerPaths.Count > 0;
 
             // check all mapped paths first, so that all analyzers are either removed or not
             foreach (var mappedFullPath in mappedPaths)
@@ -1092,14 +1098,6 @@ internal sealed partial class ProjectSystemProject
         LanguageNames.VisualBasic => DirectoryNameEndsWith(fullPath, s_visualBasicCodeStyleAnalyzerSdkDirectory),
         _ => false,
     };
-
-    private void UpdateHasSdkCodeStyleAnalyzers()
-    {
-        var containsSdkCodeStyleAnalyzers = _unmappedProjectAnalyzerPaths.Any(IsSdkCodeStyleAnalyzer);
-        if (containsSdkCodeStyleAnalyzers == HasSdkCodeStyleAnalyzers)
-            return;
-        HasSdkCodeStyleAnalyzers = containsSdkCodeStyleAnalyzers;
-    }
 
     internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
     private static readonly string s_razorSourceGeneratorSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators");
