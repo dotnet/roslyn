@@ -2920,11 +2920,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var toArgEscape = GetValEscape(mixableArg.Argument, scopeOfTheContainingExpression);
                 foreach (var (fromParameter, fromArg, escapeKind, isRefEscape) in escapeValues)
                 {
-                    if (mixableArg.Parameter is not null && object.ReferenceEquals(mixableArg.Parameter, fromParameter))
-                    {
-                        continue;
-                    }
-
                     // This checks to see if the EscapeValue could ever be assigned to this argument based 
                     // on comparing the EscapeLevel of both. If this could never be assigned due to 
                     // this then we don't need to consider it for MAMM analysis.

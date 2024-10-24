@@ -10170,5 +10170,78 @@ public struct Vec4
                 """;
             CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
+        public void SelfAssignment_ReturnOnly()
+        {
+            var source = """
+                ref struct S
+                {
+                    int field;
+                    ref int refField;
+
+                    static void M(ref S s)
+                    {
+                        s.refField = ref s.field;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (8,9): error CS9079: Cannot ref-assign 's.field' to 'refField' because 's.field' can only escape the current method through a return statement.
+                //         s.refField = ref s.field;
+                Diagnostic(ErrorCode.ERR_RefAssignReturnOnly, "s.refField = ref s.field").WithArguments("refField", "s.field").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
+        public void SelfAssignment_CallerContext()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                S s = default;
+                S.M(ref s);
+
+                ref struct S
+                {
+                    int field;
+                    ref int refField;
+
+                    public static void M([UnscopedRef] ref S s)
+                    {
+                        s.refField = ref s.field;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (4,1): error CS8350: This combination of arguments to 'S.M(ref S)' is disallowed because it may expose variables referenced by parameter 's' outside of their declaration scope
+                // S.M(ref s);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "S.M(ref s)").WithArguments("S.M(ref S)", "s").WithLocation(4, 1),
+                // (4,9): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                // S.M(ref s);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(4, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75592")]
+        public void SelfAssignment_CallerContext_Scoped()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                scoped S s = default;
+                S.M(ref s);
+
+                ref struct S
+                {
+                    int field;
+                    ref int refField;
+
+                    public static void M([UnscopedRef] ref S s)
+                    {
+                        s.refField = ref s.field;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
     }
 }
