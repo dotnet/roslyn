@@ -3258,9 +3258,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var oldPending = SavePending();
 
                 EnterParameters();
-                bool isLocalFunction = lambdaOrFunctionSymbol is LocalFunctionSymbol;
-                SyntaxNode? localFunctionSyntax = isLocalFunction ? ((LocalFunctionSymbol)lambdaOrFunctionSymbol).Syntax : null;
 
+                bool isLocalFunction = lambdaOrFunctionSymbol is LocalFunctionSymbol;
                 if (isLocalFunction)
                 {
                     MakeMembersMaybeNull(lambdaOrFunctionSymbol, lambdaOrFunctionSymbol.NotNullMembers);
@@ -3281,7 +3280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnforceDoesNotReturn(syntaxOpt: null);
                 if (isLocalFunction)
                 {
-                    enforceMemberNotNull(localFunctionSyntax, this.State);
+                    enforceMemberNotNull(((LocalFunctionSymbol)lambdaOrFunctionSymbol).Syntax, this.State);
                 }
                 EnforceParameterNotNullOnExit(null, this.State);
 
