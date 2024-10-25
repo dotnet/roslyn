@@ -369,9 +369,6 @@
   <data name="Formatting_currently_selected_text" xml:space="preserve">
     <value>Formatting currently selected text...</value>
   </data>
-  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
-    <value>Cannot navigate to the symbol under the caret.</value>
-  </data>
   <data name="Go_to_Definition" xml:space="preserve">
     <value>Go to Definition</value>
   </data>

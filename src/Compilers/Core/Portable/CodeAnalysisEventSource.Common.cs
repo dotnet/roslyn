@@ -7,11 +7,8 @@ using System.Diagnostics.Tracing;
 
 namespace Microsoft.CodeAnalysis
 {
-    [EventSource(Name = "Microsoft-CodeAnalysis-General")]
-    internal sealed class CodeAnalysisEventSource : EventSource
+    internal sealed partial class CodeAnalysisEventSource : EventSource
     {
-        public static readonly CodeAnalysisEventSource Log = new CodeAnalysisEventSource();
-
         public static class Keywords
         {
             public const EventKeywords Performance = (EventKeywords)1;

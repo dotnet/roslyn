@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression;
 
@@ -40,7 +41,7 @@ internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressio
         /// The indent trivia to insert if we are trying to simply smart-indent all wrapped
         /// parts of the expression.
         /// </summary>
-        private readonly SyntaxTriviaList _smartIndentTrivia;
+        private readonly AsyncLazy<SyntaxTriviaList> _smartIndentTrivia;
 
         public BinaryExpressionCodeActionComputer(
             AbstractBinaryExpressionWrapper<TBinaryExpressionSyntax> service,
@@ -48,9 +49,8 @@ internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressio
             SourceText originalSourceText,
             SyntaxWrappingOptions options,
             TBinaryExpressionSyntax binaryExpression,
-            ImmutableArray<SyntaxNodeOrToken> exprsAndOperators,
-            CancellationToken cancellationToken)
-            : base(service, document, originalSourceText, options, cancellationToken)
+            ImmutableArray<SyntaxNodeOrToken> exprsAndOperators)
+            : base(service, document, originalSourceText, options)
         {
             _exprsAndOperators = exprsAndOperators;
 
@@ -62,30 +62,33 @@ internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressio
                 OriginalSourceText.GetOffset(binaryExpression.Span.Start)
                                   .CreateIndentationString(options.FormattingOptions.UseTabs, options.FormattingOptions.TabSize)));
 
-            _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                GetSmartIndentationAfter(_exprsAndOperators[1])));
+            _smartIndentTrivia = AsyncLazy.Create(async cancellationToken => new SyntaxTriviaList(generator.Whitespace(
+                await GetSmartIndentationAfterAsync(_exprsAndOperators[1], cancellationToken).ConfigureAwait(false))));
         }
 
-        protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
+        protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken)
             => [new WrappingGroup(
                 isInlinable: true,
                 [
-                    await GetWrapCodeActionAsync(align: false).ConfigureAwait(false),
-                    await GetWrapCodeActionAsync(align: true).ConfigureAwait(false),
-                    await GetUnwrapCodeActionAsync().ConfigureAwait(false),
+                    await GetWrapCodeActionAsync(align: false, cancellationToken).ConfigureAwait(false),
+                    await GetWrapCodeActionAsync(align: true, cancellationToken).ConfigureAwait(false),
+                    await GetUnwrapCodeActionAsync(cancellationToken).ConfigureAwait(false),
                 ])];
 
-        private Task<WrapItemsAction> GetWrapCodeActionAsync(bool align)
-            => TryCreateCodeActionAsync(GetWrapEdits(align), FeaturesResources.Wrapping,
-                    align ? FeaturesResources.Wrap_and_align_expression : FeaturesResources.Wrap_expression);
+        private async Task<WrapItemsAction> GetWrapCodeActionAsync(bool align, CancellationToken cancellationToken)
+            => await TryCreateCodeActionAsync(await GetWrapEditsAsync(align, cancellationToken).ConfigureAwait(false), FeaturesResources.Wrapping,
+                    align ? FeaturesResources.Wrap_and_align_expression : FeaturesResources.Wrap_expression,
+                    cancellationToken).ConfigureAwait(false);
 
-        private Task<WrapItemsAction> GetUnwrapCodeActionAsync()
-            => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression);
+        private Task<WrapItemsAction> GetUnwrapCodeActionAsync(CancellationToken cancellationToken)
+            => TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_expression, cancellationToken);
 
-        private ImmutableArray<Edit> GetWrapEdits(bool align)
+        private async Task<ImmutableArray<Edit>> GetWrapEditsAsync(bool align, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
-            var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
+            var indentationTrivia = align
+                ? _indentAndAlignTrivia
+                : await _smartIndentTrivia.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
             for (var i = 1; i < _exprsAndOperators.Length; i += 2)
             {
