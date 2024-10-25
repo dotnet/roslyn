@@ -29,7 +29,7 @@
 
   <PropertyGroup>
     <!-- The version here must be the LOWEST supported. -->
-    <LowestSupportedRoslynVersion>4.0.0</LowestSupportedRoslynVersion>
+    <LowestSupportedRoslynVersion>4.4.0</LowestSupportedRoslynVersion>
   </PropertyGroup>
 
   <ItemGroup>
