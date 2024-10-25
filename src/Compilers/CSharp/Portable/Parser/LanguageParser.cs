@@ -9136,19 +9136,45 @@ done:
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ForKeyword);
 
-            var forToken = this.EatToken(SyntaxKind.ForKeyword);
-            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
-
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfForStatementArgument;
 
-            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
-            var initializers = default(SeparatedSyntaxList<ExpressionSyntax>);
-            try
+            var forToken = this.EatToken(SyntaxKind.ForKeyword);
+            var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+
+            var (decl, initializers) = eatVariableDeclarationOrInitializers();
+
+            var firstSemicolonToken = eatCommaOrSemicolon();
+            var condition = this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
+                ? this.ParseExpressionCore()
+                : null;
+            var secondSemicolonToken = eatCommaOrSemicolon();
+
+            var forStatement = _syntaxFactory.ForStatement(
+                attributes,
+                forToken,
+                openParen,
+                decl,
+                initializers,
+                firstSemicolonToken,
+                condition,
+                secondSemicolonToken,
+                incrementors: this.CurrentToken.Kind != SyntaxKind.CloseParenToken
+                    ? this.ParseForStatementExpressionList(ref secondSemicolonToken)
+                    : default,
+                this.EatToken(SyntaxKind.CloseParenToken),
+                ParseEmbeddedStatement());
+
+            _termState = saveTerm;
+
+            return forStatement;
+
+            (VariableDeclarationSyntax variableDeclaration, SeparatedSyntaxList<ExpressionSyntax>) eatVariableDeclarationOrInitializers()
             {
+                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
                 // Here can be either a declaration or an expression statement list.  Scan
                 // for a declaration first.
-                VariableDeclarationSyntax decl = null;
                 bool isDeclaration = false;
                 bool haveScopedKeyword = false;
 
@@ -9189,7 +9215,7 @@ done:
                         scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
                     }
 
-                    decl = ParseParenthesizedVariableDeclaration(VariableFlags.ForStatement);
+                    var decl = ParseParenthesizedVariableDeclaration(VariableFlags.ForStatement);
 
                     var declType = decl.Type;
 
@@ -9202,41 +9228,18 @@ done:
                     {
                         decl = decl.Update(declType, decl.Variables);
                     }
+
+                    return (decl, default);
                 }
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
                     // Not a type followed by an identifier, so it must be an expression list.
-                    initializers = this.ParseForStatementExpressionList(ref openParen);
+                    return (null, this.ParseForStatementExpressionList(ref openParen));
                 }
-
-                var semi1 = eatCommaOrSemicolon();
-
-                var condition = this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
-                    ? this.ParseExpressionCore()
-                    : null;
-
-                var semi2 = eatCommaOrSemicolon();
-
-                var incrementors = this.CurrentToken.Kind != SyntaxKind.CloseParenToken
-                    ? this.ParseForStatementExpressionList(ref semi2)
-                    : default;
-
-                return _syntaxFactory.ForStatement(
-                    attributes,
-                    forToken,
-                    openParen,
-                    decl,
-                    initializers,
-                    semi1,
-                    condition,
-                    semi2,
-                    incrementors,
-                    this.EatToken(SyntaxKind.CloseParenToken),
-                    ParseEmbeddedStatement());
-            }
-            finally
-            {
-                _termState = saveTerm;
+                else
+                {
+                    return default;
+                }
             }
 
             SyntaxToken eatCommaOrSemicolon()
