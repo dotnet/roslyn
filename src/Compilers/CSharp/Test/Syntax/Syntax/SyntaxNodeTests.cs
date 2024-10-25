@@ -2907,7 +2907,7 @@ class C
 
             var text = cu2.ToFullString();
 
-            Assert.Equal("class A { } \r\n#endregion", text);
+            Assert.Equal("class A { } ", text);
         }
 
         [Fact]
@@ -3272,7 +3272,7 @@ class A { } #endregion";
 
             var expectedText = @"
 #region A
-#endregion";
+";
 
             TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
             {
