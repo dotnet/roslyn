@@ -1093,13 +1093,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var memberName in members)
             {
-                makeMemberMaybeNull(method.ContainingType, memberName);
+                makeMemberMaybeNull(method, memberName);
             }
             return;
 
-            void makeMemberMaybeNull(NamedTypeSymbol containingType, string memberName)
+            void makeMemberMaybeNull(MethodSymbol method, string memberName)
             {
-                foreach (var member in containingType.GetMembers(memberName))
+                var type = method.ContainingType;
+                foreach (var member in type.GetMembers(memberName))
                 {
                     if (GetSlotForMemberPostCondition(member) is int memberSlot &&
                         memberSlot > 0)
@@ -7044,11 +7045,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            int receiverSlot =
-                method.MethodKind == MethodKind.LocalFunction ? GetReceiverSlotForMemberPostConditions(method) :
-                method.IsStatic ? 0 :
-                receiverOpt is not null ? MakeSlot(receiverOpt) :
-                -1;
+            int receiverSlot = receiverOpt is not null && !method.IsStatic
+                ? MakeSlot(receiverOpt)
+                : GetReceiverSlotForMemberPostConditions(method);
 
             if (receiverSlot < 0)
             {
@@ -7058,6 +7057,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ApplyMemberPostConditions(receiverSlot, method);
         }
 
+        // For an instance method, or a non-static local function in an instance method, returns the slot for the `this` parameter
+        // For a static method, or a static local function in a static method, returns 0
+        // Otherwise, returns -1
         private int GetReceiverSlotForMemberPostConditions(MethodSymbol? method)
         {
             if (method is null)
@@ -7085,7 +7087,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return 0;
                     }
 
-                    if (current.ThisParameter is { } thisParameter)
+                    if (current.TryGetThisParameter(out var thisParameter) && thisParameter is not null)
                     {
                         return GetOrCreateSlot(thisParameter);
                     }
