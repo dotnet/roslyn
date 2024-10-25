@@ -73,8 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol symbol,
             bool inUnsafeRegion,
             bool useUpdatedEscapeRules,
-            BindingDiagnosticBag diagnostics,
-            Dictionary<LocalSymbol, (uint RefEscapeScope, uint ValEscapeScope)>? localEscapeScopes = null)
+            BindingDiagnosticBag diagnostics)
         {
             _compilation = compilation;
             _symbol = symbol;
@@ -85,7 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // outermost. To ensure that locals in the outermost block are considered at
             // the same depth as parameters, _localScopeDepth is initialized to one less.
             _localScopeDepth = CurrentMethodScope - 1;
-            _localEscapeScopes = localEscapeScopes;
         }
 
         private ref struct LocalScope
@@ -177,10 +175,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private (uint RefEscapeScope, uint ValEscapeScope) GetLocalScopes(LocalSymbol local)
         {
-            Debug.Assert(_localEscapeScopes?.ContainsKey(local) == true);
+            Debug.Assert(_localEscapeScopes?.ContainsKey(local) == true || _symbol != local.ContainingSymbol);
 
             return _localEscapeScopes?.TryGetValue(local, out var scopes) == true
                 ? scopes
+                : _symbol != local.ContainingSymbol // captured local
+                ? (CurrentMethodScope, CallingMethodScope)
                 : (CallingMethodScope, CallingMethodScope);
         }
 
@@ -311,10 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var localFunction = node.Symbol;
-            // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
-            // across nested local functions or lambdas because _localScopeDepth is reset when entering
-            // the function or lambda so the scopes across the methods are unrelated.
-            var analysis = new RefSafetyAnalysis(_compilation, localFunction, _inUnsafeRegion || localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
+            var analysis = new RefSafetyAnalysis(_compilation, localFunction, _inUnsafeRegion || localFunction.IsUnsafe, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.BlockBody);
             analysis.Visit(node.ExpressionBody);
             return null;
@@ -323,10 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLambda(BoundLambda node)
         {
             var lambda = node.Symbol;
-            // https://github.com/dotnet/roslyn/issues/65353: We should not reuse _localEscapeScopes
-            // across nested local functions or lambdas because _localScopeDepth is reset when entering
-            // the function or lambda so the scopes across the methods are unrelated.
-            var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics, _localEscapeScopes);
+            var analysis = new RefSafetyAnalysis(_compilation, lambda, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.Body);
             return null;
         }
@@ -434,9 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLocal(BoundLocal node)
         {
-            // _localEscapeScopes may be null for locals in top-level statements.
             Debug.Assert(_localEscapeScopes?.ContainsKey(node.LocalSymbol) == true ||
-                (node.LocalSymbol.ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol entryPoint && _symbol != entryPoint));
+                _symbol != node.LocalSymbol.ContainingSymbol);
 
             return base.VisitLocal(node);
         }

@@ -8630,6 +8630,62 @@ public struct Vec4
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "y").WithArguments("y").WithLocation(25, 20));
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65353")]
+        public void Local_NestedLambda([CombinatorialRange(0, 3)] int nesting)
+        {
+            var source = $$"""
+                {{new string('{', nesting)}}
+                    int x = 1;
+                    F(() =>
+                    {
+                        int y = 2;
+                        ref int r = ref y;
+                        r = ref x;
+                    });
+                {{new string('}', nesting)}}
+
+                static void F(System.Action a) { }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65353")]
+        public void Local_NestedLocalFunction([CombinatorialRange(0, 3)] int nesting)
+        {
+            var source = $$"""
+                {{new string('{', nesting)}}
+                    int x = 1;
+                    F();
+                    void F()
+                    {
+                        int y = 2;
+                        ref int r = ref y;
+                        r = ref x;
+                    }
+                {{new string('}', nesting)}}
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65353")]
+        public void Local_NestedLocalFunction_Parameter([CombinatorialRange(0, 3)] int nesting)
+        {
+            var source = $$"""
+                {{new string('{', nesting)}}
+                    int x = 1;
+                    F(ref x);
+                    void F(ref int z)
+                    {
+                        z = ref x;
+                    }
+                {{new string('}', nesting)}}
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS8374: Cannot ref-assign 'x' to 'z' because 'x' has a narrower escape scope than 'z'.
+                //         z = ref x;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "z = ref x").WithArguments("z", "x").WithLocation(6, 9));
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void ParameterEscape()
         {
