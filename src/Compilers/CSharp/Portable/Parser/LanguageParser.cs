@@ -5029,6 +5029,19 @@ parse_member_name:;
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                 {
+                    // If we see `for (int i = 0, j < ...` then we do not want to consume j as the next declarator.
+                    //
+                    // Legal forms here are `for (int i = 0, j; ...` or `for (int i = 0, j = ...` or `for (int i = 0,
+                    // j).  Anything else we'll treat as as more likely to be the following 
+                    if (flags.HasFlag(VariableFlags.ForStatement))
+                    {
+                        if (!IsTrueIdentifier(this.PeekToken(1)) ||
+                            this.PeekToken(2).Kind is not (SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken or SyntaxKind.CloseParenToken))
+                        {
+                            break;
+                        }
+                    }
+
                     variables.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     variables.Add(
                         this.ParseVariableDeclarator(
@@ -5062,9 +5075,11 @@ parse_member_name:;
         [Flags]
         private enum VariableFlags
         {
+            None = 0,
             Fixed = 0x01,
             Const = 0x02,
-            LocalOrField = 0x04
+            LocalOrField = 0x04,
+            ForStatement = 0x08,
         }
 
         private static SyntaxTokenList GetOriginalModifiers(CSharp.CSharpSyntaxNode decl)
@@ -8836,7 +8851,7 @@ done:
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFixedStatement;
-            var decl = ParseParenthesizedVariableDeclaration();
+            var decl = ParseParenthesizedVariableDeclaration(VariableFlags.None);
             _termState = saveTerm;
 
             return _syntaxFactory.FixedStatement(
@@ -9159,9 +9174,8 @@ done:
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfForStatementArgument;
 
-            var resetPoint = this.GetResetPoint();
+            using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
             var initializers = default(SeparatedSyntaxList<ExpressionSyntax>);
-            var incrementors = default(SeparatedSyntaxList<ExpressionSyntax>);
             try
             {
                 // Here can be either a declaration or an expression statement list.  Scan
@@ -9180,7 +9194,7 @@ done:
                     {
                         this.EatToken();
                         isDeclaration = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
-                        this.Reset(ref resetPoint);
+                        resetPoint.Reset();
                     }
 
                     haveScopedKeyword = isDeclaration;
@@ -9195,8 +9209,7 @@ done:
                     isDeclaration = !this.IsQueryExpression(mayBeVariableDeclaration: true, mayBeMemberDeclaration: false) &&
                                     this.ScanType() != ScanTypeFlags.NotType &&
                                     this.IsTrueIdentifier();
-
-                    this.Reset(ref resetPoint);
+                    resetPoint.Reset();
                 }
 
                 if (isDeclaration)
@@ -9208,7 +9221,7 @@ done:
                         scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
                     }
 
-                    decl = ParseParenthesizedVariableDeclaration();
+                    decl = ParseParenthesizedVariableDeclaration(VariableFlags.ForStatement);
 
                     var declType = decl.Type;
 
@@ -9228,18 +9241,17 @@ done:
                     initializers = this.ParseForStatementExpressionList(ref openParen);
                 }
 
-                var semi = this.EatToken(SyntaxKind.SemicolonToken);
-                ExpressionSyntax condition = null;
-                if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
-                {
-                    condition = this.ParseExpressionCore();
-                }
+                var semi1 = eatCommaOrSemicolon();
 
-                var semi2 = this.EatToken(SyntaxKind.SemicolonToken);
-                if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
-                {
-                    incrementors = this.ParseForStatementExpressionList(ref semi2);
-                }
+                var condition = this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
+                    ? this.ParseExpressionCore()
+                    : null;
+
+                var semi2 = eatCommaOrSemicolon();
+
+                var incrementors = this.CurrentToken.Kind != SyntaxKind.CloseParenToken
+                    ? this.ParseForStatementExpressionList(ref semi2)
+                    : default;
 
                 return _syntaxFactory.ForStatement(
                     attributes,
@@ -9247,7 +9259,7 @@ done:
                     openParen,
                     decl,
                     initializers,
-                    semi,
+                    semi1,
                     condition,
                     semi2,
                     incrementors,
@@ -9257,7 +9269,23 @@ done:
             finally
             {
                 _termState = saveTerm;
-                this.Release(ref resetPoint);
+            }
+
+            SyntaxToken eatCommaOrSemicolon()
+            {
+                if (this.CurrentToken.Kind is SyntaxKind.CommaToken)
+                {
+                    // Still parse out a semicolon so we give an appropriate error that the comma is unexpected, and so
+                    // we have the correct token kind.
+                    var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
+
+                    // Now skip past the comma
+                    return AddTrailingSkippedSyntax(semicolon, this.EatToken());
+                }
+                else
+                {
+                    return this.EatToken(SyntaxKind.SemicolonToken);
+                }
             }
         }
 
@@ -9902,7 +9930,7 @@ done:
 
                 if (scopedKeyword != null)
                 {
-                    declaration = ParseParenthesizedVariableDeclaration();
+                    declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None);
                     declaration = declaration.Update(_syntaxFactory.ScopedType(scopedKeyword, declaration.Type), declaration.Variables);
                     return;
                 }
@@ -9936,14 +9964,14 @@ done:
                         case SyntaxKind.CommaToken:
                         case SyntaxKind.CloseParenToken:
                             this.Reset(ref resetPoint);
-                            declaration = ParseParenthesizedVariableDeclaration();
+                            declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None);
                             break;
 
                         case SyntaxKind.EqualsToken:
                             // Parse it as a decl. If the next token is a : and only one variable was parsed,
                             // convert the whole thing to ?: expression.
                             this.Reset(ref resetPoint);
-                            declaration = ParseParenthesizedVariableDeclaration();
+                            declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None);
 
                             // We may have non-nullable types in error scenarios.
                             if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
@@ -9964,7 +9992,7 @@ done:
             else if (IsUsingStatementVariableDeclaration(st))
             {
                 this.Reset(ref resetPoint);
-                declaration = ParseParenthesizedVariableDeclaration();
+                declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None);
             }
             else
             {
@@ -10055,6 +10083,7 @@ done:
                     stopOnCloseParen: false,
                     attributes,
                     mods.ToList(),
+                    initialFlags: VariableFlags.None,
                     out var type,
                     out var localFunction);
 
@@ -10220,7 +10249,7 @@ done:
         /// Parse a local variable declaration for constructs where the variable declaration is enclosed in parentheses.
         /// Specifically, only for the `fixed (...)` `for(...)` or `using (...)` statements.
         /// </summary>
-        private VariableDeclarationSyntax ParseParenthesizedVariableDeclaration()
+        private VariableDeclarationSyntax ParseParenthesizedVariableDeclaration(VariableFlags initialFlags)
         {
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             ParseLocalDeclaration(
@@ -10231,6 +10260,7 @@ done:
                 stopOnCloseParen: true,
                 attributes: default,
                 mods: default,
+                initialFlags,
                 out var type,
                 out var localFunction);
             Debug.Assert(localFunction == null);
@@ -10245,12 +10275,13 @@ done:
             bool stopOnCloseParen,
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxList<SyntaxToken> mods,
+            VariableFlags initialFlags,
             out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType();
 
-            VariableFlags flags = VariableFlags.LocalOrField;
+            VariableFlags flags = initialFlags | VariableFlags.LocalOrField;
             if (mods.Any((int)SyntaxKind.ConstKeyword))
             {
                 flags |= VariableFlags.Const;
