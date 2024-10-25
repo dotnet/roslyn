@@ -5482,6 +5482,30 @@ _ = o switch
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_NotRecursiveOrNullPattern()
+        {
+            var source = """
+string o = null;
+_ = o is not { Length: > 0 } or null; // 1
+
+_ = o switch
+{
+    not { Length: > 0 } => 42,
+    null => 43, // 2
+    _ => 44
+};
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,33): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = o is not { Length: > 0 } or null; // 1
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(2, 33),
+                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     null => 43, // 2
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(7, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
         public void RedundantPattern_NotNullOrVariousNumericLiteralPattern()
         {
             var source = """

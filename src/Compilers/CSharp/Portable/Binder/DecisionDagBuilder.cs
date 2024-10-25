@@ -2382,11 +2382,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
+                        // Handles `not { ... } or null`
+                        if (negated is AndSequence { RemainingTests: [One { Test: BoundDagNonNullTest nonNullTest2 }, ..] }
+                            && test == nonNullTest2)
+                        {
+                            return true;
+                        }
+
                         // If we have something like `not null or ... or C`,
                         // the C test could only be true when the `not null` test is true,
                         // then the user probably made a mistake having the `or C` condition
-                        if (negated is One { Test: BoundDagExplicitNullTest nonNullTest2 }
-                            && test == nonNullTest2)
+                        if (negated is One { Test: BoundDagExplicitNullTest nonNullTest3 }
+                            && test == nonNullTest3)
                         {
                             return true;
                         }
