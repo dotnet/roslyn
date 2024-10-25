@@ -190,7 +190,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _containingType;
+                return MethodKind is MethodKind.LocalFunction
+                    ? OriginalDefinition.ContainingSymbol
+                    : _containingType;
             }
         }
 
