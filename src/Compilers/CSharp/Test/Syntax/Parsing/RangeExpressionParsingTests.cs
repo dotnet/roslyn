@@ -221,4 +221,67 @@ public sealed class RangeExpressionParsingTests(ITestOutputHelper output)
         }
         EOF();
     }
+
+    [Fact]
+    public void CastingRangeExpressionInPattern1()
+    {
+        UsingExpression("x is (int)..");
+
+        N(SyntaxKind.IsPatternExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.IsKeyword);
+            N(SyntaxKind.ConstantPattern);
+            {
+                N(SyntaxKind.CastExpression);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                    N(SyntaxKind.RangeExpression);
+                    {
+                        N(SyntaxKind.DotDotToken);
+                    }
+                }
+            }
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void CastingRangeExpressionInPattern2()
+    {
+        UsingExpression("x is (int).",
+            // (1,1): error CS1073: Unexpected token '.'
+            // x is (int).
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "x is (int)").WithArguments(".").WithLocation(1, 1));
+
+        N(SyntaxKind.IsPatternExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.IsKeyword);
+            N(SyntaxKind.ParenthesizedPattern);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.TypePattern);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
+    }
 }
