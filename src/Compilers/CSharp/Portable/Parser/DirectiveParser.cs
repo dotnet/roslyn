@@ -32,13 +32,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isActive,
             bool endIsActive,
             bool isAfterFirstTokenInFile,
-            bool isAfterNonWhitespaceOnLine)
+            bool isAfterNonWhitespaceOnLine,
+            bool trailing)
         {
             var hashPosition = lexer.TextWindow.Position;
             var hash = this.EatToken(SyntaxKind.HashToken, false);
             if (isAfterNonWhitespaceOnLine)
             {
                 hash = this.AddError(hash, ErrorCode.ERR_BadDirectivePlacement);
+            }
+
+            // A directive should never be in trailing trivia, so we need to wrap such directive in a skipped tokens trivia.
+            // We use the hash token to attach the skipped tokens trivia to.
+            // This also preserves the "directive must be at the beginning of the line" diagnostic which is attached to the hash token.
+            SyntaxToken originalHash = null;
+            if (trailing)
+            {
+                Debug.Assert(isAfterNonWhitespaceOnLine);
+                originalHash = hash;
+                hash = SyntaxToken.CreateMissing(SyntaxKind.HashToken);
             }
 
             // The behavior of these directives when isActive is false is somewhat complicated.
@@ -137,6 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
 
                     break;
+            }
+
+            if (originalHash is not null)
+            {
+                Debug.Assert(trailing && isAfterNonWhitespaceOnLine);
+                result = this.AddTrailingSkippedSyntax(originalHash, result);
             }
 
             return result;
