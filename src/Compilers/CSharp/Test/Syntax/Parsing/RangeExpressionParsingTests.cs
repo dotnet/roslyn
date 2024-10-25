@@ -284,4 +284,35 @@ public sealed class RangeExpressionParsingTests(ITestOutputHelper output)
         }
         EOF();
     }
+
+    [Fact]
+    public void CastingRangeExpressionInPattern3()
+    {
+        UsingExpression("x is (int).Length",
+            // (1,1): error CS1073: Unexpected token '.'
+            // x is (int).Length
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "x is (int)").WithArguments(".").WithLocation(1, 1));
+
+        N(SyntaxKind.IsPatternExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "x");
+            }
+            N(SyntaxKind.IsKeyword);
+            N(SyntaxKind.ParenthesizedPattern);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.TypePattern);
+                {
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.IntKeyword);
+                    }
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
+    }
 }
