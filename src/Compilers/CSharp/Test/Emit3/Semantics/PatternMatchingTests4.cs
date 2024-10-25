@@ -5557,5 +5557,124 @@ enum E { Zero = 0, One = 1 }
                 //     E.One => 43, // 2
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E.One").WithLocation(7, 5));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_NotRecursiveOrRecursivePattern()
+        {
+            var source = """
+string s = null;
+
+_ = s is not { Length: 0 } or { Length: 10 }; // 1
+
+_ = s switch
+{
+    not { Length: 0 } => 42,
+    { Length: 10 } => 43, // 2
+    _ => 44
+};
+
+object o = null;
+
+_ = s is not string { Length: 0 } or string { Length: 10 }; // 3
+
+_ = o switch
+{
+    not string { Length: 0 } => 42,
+    string { Length: 10 } => 43, // 4
+    _ => 44
+};
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,41): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = s is not { Length: 0 } or { Length: 10 }; // 1
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "10").WithLocation(3, 41),
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     { Length: 10 } => 43, // 2
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: 10 }").WithLocation(8, 5),
+                // (14,55): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = s is not string { Length: 0 } or string { Length: 10 }; // 3
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "10").WithLocation(14, 55),
+                // (19,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     string { Length: 10 } => 43, // 4
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string { Length: 10 }").WithLocation(19, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_NotRedundant()
+        {
+            // A collection of legitimate usages of `not ... or ...` pattern
+            var source = """
+string s = null;
+_ = s is not object or { Length: 0 };
+
+_ = s switch
+{
+    not object => 42,
+    { Length: 0 } => 43,
+    _ => 44
+};
+
+object o = null;
+
+_ = o is not Base or Derived { };
+
+_ = o switch
+{
+    not Base => 42,
+    Derived => 43,
+    _ => 44
+};
+
+_ = o is not string or string { Length: 0 };
+
+_ = o switch
+{
+    not string => 42,
+    string { Length: 0 } => 43,
+    _ => 44
+};
+
+_ = o is not C { Prop1: true } or C { Prop2: 10 };
+
+_ = o switch
+{
+    not C { Prop1: true } => 42,
+    C { Prop2: 10 } => 43,
+    _ => 44
+};
+
+C c = null;
+
+_ = c is not { Prop1: true } or { Prop2: 10 };
+
+_ = c switch
+{
+    not { Prop1: true } => 42,
+    { Prop2: 10 } => 43,
+    _ => 44
+};
+
+_ = o is not bool or true;
+
+_ = o switch
+{
+    not bool => 42,
+    true => 43,
+    _ => 44
+};
+
+class Base { }
+class Derived : Base { }
+
+class C
+{
+    public bool Prop1 { get; set; }
+    public int Prop2 { get; set; }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
