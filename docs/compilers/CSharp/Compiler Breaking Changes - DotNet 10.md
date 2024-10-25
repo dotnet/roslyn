@@ -11,7 +11,7 @@ might be raised because a new overload is applicable but there is no single best
 The following example shows some ambiguities and possible workarounds.
 Note that another workaround is for API authors to use the `OverloadResolutionPriorityAttribute`.
 
-```cs
+```csharp
 var x = new long[] { 1 };
 Assert.Equal([2], x); // previously Assert.Equal<T>(T[], T[]), now ambiguous with Assert.Equal<T>(ReadOnlySpan<T>, Span<T>)
 Assert.Equal([2], x.AsSpan()); // workaround
@@ -25,7 +25,7 @@ Assert.Equal(y.AsSpan(), s); // workaround
 A `Span<T>` overload might be chosen in C# 14 where an overload taking an interface implemented by `T[]` (such as `IEnumerable<T>`) was chosen in C# 13,
 and that can lead to an `ArrayTypeMismatchException` at runtime if used with a covariant array:
 
-```cs
+```csharp
 string[] s = new[] { "a" };
 object[] o = s; // array variance
 
@@ -46,7 +46,7 @@ When using C# 14 or newer and targeting a .NET older than `net10.0`
 or .NET Framework with `System.Memory` reference,
 there is a breaking change with `Enumerable.Reverse` and arrays:
 
-```cs
+```csharp
 int[] x = new[] { 1, 2, 3 };
 var y = x.Reverse(); // previously Enumerable.Reverse, now MemoryExtensions.Reverse
 ```
@@ -57,7 +57,7 @@ than `Enumerable.Reverse(this IEnumerable<T>)` (which used to be resolved in C# 
 Specifically, the `Span` extension does the reversal in place and returns `void`.
 As a workaround, one can define their own `Enumerable.Reverse(this T[])` or use `Enumerable.Reverse` explicitly:
 
-```cs
+```csharp
 int[] x = new[] { 1, 2, 3 };
 var y = Enumerable.Reverse(x); // instead of 'x.Reverse();'
 ```
@@ -95,8 +95,8 @@ class C
 In a disjunctive `or` pattern such as `is not null or 42` or `is not int or string`
 the second pattern is redundant and likely results from misunderstanding the precedence order
 of `not` and `or` pattern combinators.  
-The compiler will provide a warning in such cases:
-```
+The compiler provides a warning in common cases of this mistake:
+```csharp
 _ = o is not null or 42; // warning: pattern "42" is redundant
 _ = o is int or string; // warning: pattern "string" is redundant
 ```
