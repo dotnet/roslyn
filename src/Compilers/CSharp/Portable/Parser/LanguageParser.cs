@@ -9141,24 +9141,22 @@ done:
 
             var forToken = this.EatToken(SyntaxKind.ForKeyword);
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+            var (variableDeclaration, initializers) = eatVariableDeclarationOrInitializers();
 
-            var (decl, initializers) = eatVariableDeclarationOrInitializers();
-
-            var firstSemicolonToken = eatCommaOrSemicolon();
-            var condition = this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
-                ? this.ParseExpressionCore()
-                : null;
-            var secondSemicolonToken = eatCommaOrSemicolon();
+            // Pulled out as we need to track this when parsing incrementors to place skipped tokens.
+            SyntaxToken secondSemicolonToken;
 
             var forStatement = _syntaxFactory.ForStatement(
                 attributes,
                 forToken,
                 openParen,
-                decl,
+                variableDeclaration,
                 initializers,
-                firstSemicolonToken,
-                condition,
-                secondSemicolonToken,
+                firstSemicolonToken: eatCommaOrSemicolon(),
+                condition: this.CurrentToken.Kind is not SyntaxKind.SemicolonToken and not SyntaxKind.CommaToken
+                    ? this.ParseExpressionCore()
+                    : null,
+                secondSemicolonToken = eatCommaOrSemicolon(),
                 incrementors: this.CurrentToken.Kind != SyntaxKind.CloseParenToken
                     ? this.ParseForStatementExpressionList(ref secondSemicolonToken)
                     : default,
