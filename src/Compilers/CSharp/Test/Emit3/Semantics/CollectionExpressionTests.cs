@@ -14184,14 +14184,19 @@ namespace System
             var source = """
                 #nullable enable
                 using System.Collections.Generic;
-                IEnumerable<object?> a = [null];
-                object[] b = [..a];
-                object[] c = [..a!];
+                {
+                    IEnumerable<object?> a = [null];
+                    object[] b = [..a];
+                }
+                {
+                    IEnumerable<object?> a = [null];
+                    object[] b = [..a!];
+                }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,17): warning CS8601: Possible null reference assignment.
-                // object[] b = [..a];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a").WithLocation(4, 17));
+                // (5,21): warning CS8601: Possible null reference assignment.
+                //     object[] b = [..a];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a").WithLocation(5, 21));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
@@ -14200,14 +14205,19 @@ namespace System
             var source = """
                 #nullable enable
                 using System.Collections.Generic;
-                IEnumerable<object>? a = null;
-                object[] b = [..a];
-                object[] c = [..a!];
+                {
+                    IEnumerable<object>? a = null;
+                    object[] b = [..a];
+                }
+                {
+                    IEnumerable<object>? a = null;
+                    object[] b = [..a!];
+                }
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,17): warning CS8602: Dereference of a possibly null reference.
-                // object[] b = [..a];
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(4, 17));
+                // (5,21): warning CS8602: Dereference of a possibly null reference.
+                //     object[] b = [..a];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(5, 21));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
@@ -14216,16 +14226,22 @@ namespace System
             var source = """
                 #nullable enable
                 using System.Collections.Generic;
-                IEnumerable<object?> a1 = [null];
-                IEnumerable<object?> a2 = [null];
-                object[] b = [..(m() ? a1 : a2)];
-                object[] c = [..(m() ? a1 : a2)!];
+                {
+                    IEnumerable<object?> a1 = [null];
+                    IEnumerable<object?> a2 = [null];
+                    object[] b = [..(m() ? a1 : a2)];
+                }
+                {
+                    IEnumerable<object?> a1 = [null];
+                    IEnumerable<object?> a2 = [null];
+                    object[] b = [..(m() ? a1 : a2)!];
+                }
                 bool m() => throw null!;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,18): warning CS8601: Possible null reference assignment.
-                // object[] b = [..(m() ? a1 : a2)];
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(5, 18));
+                // (6,22): warning CS8601: Possible null reference assignment.
+                //     object[] b = [..(m() ? a1 : a2)];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(6, 22));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
