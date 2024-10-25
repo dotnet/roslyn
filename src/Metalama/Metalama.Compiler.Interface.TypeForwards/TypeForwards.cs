@@ -20,6 +20,7 @@ using Metalama.Compiler.Services;
 [assembly: TypeForwardedTo(typeof(ManagedResource))]
 [assembly: TypeForwardedTo(typeof(MetalamaCompilerAnnotations))]
 [assembly: TypeForwardedTo(typeof(TransformerOptions))]
+[assembly: TypeForwardedTo(typeof(SourceGeneratedCodeTracker))]
 
 namespace Metalama.Compiler.Interface.TypeForwards
 {
