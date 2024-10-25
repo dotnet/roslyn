@@ -179,9 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return _localEscapeScopes?.TryGetValue(local, out var scopes) == true
                 ? scopes
-                : _symbol != local.ContainingSymbol // captured local
-                ? (CurrentMethodScope, CallingMethodScope)
-                : (CallingMethodScope, CallingMethodScope);
+                : (CurrentMethodScope, CallingMethodScope);
         }
 
         private void SetLocalScopes(LocalSymbol local, uint refEscapeScope, uint valEscapeScope)
