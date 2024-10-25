@@ -7845,6 +7845,8 @@ done:
 
             // Check the next token to see if it indicates the `[...]` sequence we have is a term or not. This is the
             // same set of tokens that ParsePostFixExpression looks for.
+            //
+            // Note `SyntaxKind.DotToken` handles both the `[...].Name` case as well as the `[...]..Range` case.
             var isCollectionExpression = this.CurrentToken.Kind
                 is SyntaxKind.DotToken
                 or SyntaxKind.QuestionToken
@@ -7860,7 +7862,6 @@ done:
             isCollectionExpression = isCollectionExpression
                 || IsExpectedBinaryOperator(this.CurrentToken.Kind)
                 || IsExpectedAssignmentOperator(this.CurrentToken.Kind)
-                || IsAtDotDotToken()
                 || (this.CurrentToken.ContextualKind is SyntaxKind.SwitchKeyword or SyntaxKind.WithKeyword && this.PeekToken(1).Kind is SyntaxKind.OpenBraceToken);
 
             if (!isCollectionExpression &&
