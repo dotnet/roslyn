@@ -583,7 +583,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             this.Diagnostics.Clear();
             this.regionPlace = RegionPlace.Before;
-            int containingSlot = GetReceiverSlotForMemberPostConditions(_symbol as MethodSymbol);
             if (!_isSpeculative)
             {
                 ParameterSymbol methodThisParameter = MethodThisParameter;
@@ -593,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
                 }
 
-                makeNotNullMembersMaybeNull(containingSlot);
+                makeNotNullMembersMaybeNull();
                 // We need to create a snapshot even of the first node, because we want to have the state of the initial parameters.
                 _snapshotBuilderOpt?.TakeIncrementalSnapshot(methodMainNode, State);
             }
@@ -602,25 +601,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((_symbol as MethodSymbol)?.IsConstructor() != true || _useConstructorExitWarnings)
             {
                 EnforceDoesNotReturn(syntaxOpt: null);
-                enforceMemberNotNull(syntaxOpt: null, this.State, containingSlot);
+                enforceMemberNotNull(syntaxOpt: null, this.State);
                 EnforceParameterNotNullOnExit(syntaxOpt: null, this.State);
 
                 foreach (var pendingReturn in pendingReturns)
                 {
-                    enforceMemberNotNull(syntaxOpt: pendingReturn.Branch.Syntax, pendingReturn.State, containingSlot);
+                    enforceMemberNotNull(syntaxOpt: pendingReturn.Branch.Syntax, pendingReturn.State);
 
                     if (pendingReturn.Branch is BoundReturnStatement returnStatement)
                     {
                         EnforceParameterNotNullOnExit(returnStatement.Syntax, pendingReturn.State);
                         EnforceNotNullWhenForPendingReturn(pendingReturn, returnStatement);
-                        EnforceMemberNotNullWhenForPendingReturn(pendingReturn, returnStatement, containingSlot);
+                        EnforceMemberNotNullWhenForPendingReturn(pendingReturn, returnStatement);
                     }
                 }
             }
 
             return pendingReturns;
 
-            void enforceMemberNotNull(SyntaxNode? syntaxOpt, LocalState state, int containingSlot)
+            void enforceMemberNotNull(SyntaxNode? syntaxOpt, LocalState state)
             {
                 if (!state.Reachable)
                 {
@@ -691,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (var memberName in method.NotNullMembers)
                             {
-                                EnforceMemberNotNullOnMember(syntaxOpt, state, method.ContainingType, memberName, containingSlot);
+                                EnforceMemberNotNullOnMember(syntaxOpt, state, method, memberName);
                             }
 
                             method = method.OverriddenMethod;
@@ -792,13 +791,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            void makeNotNullMembersMaybeNull(int containingSlot)
+            void makeNotNullMembersMaybeNull()
             {
-                if (containingSlot < 0)
-                {
-                    return;
-                }
-
                 if (_symbol is MethodSymbol method)
                 {
                     if (method.IsConstructor())
@@ -838,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 default:
                                     break;
                             }
-                            var memberSlot = GetSlotForMemberNotNullMember(memberToInitialize, containingSlot);
+                            var memberSlot = GetSlotForMemberPostCondition(memberToInitialize);
                             if (memberSlot > 0)
                             {
                                 var type = memberToInitialize.GetTypeOrReturnType();
@@ -853,9 +847,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         do
                         {
-                            MakeMembersMaybeNull(method, method.NotNullMembers, containingSlot);
-                            MakeMembersMaybeNull(method, method.NotNullWhenTrueMembers, containingSlot);
-                            MakeMembersMaybeNull(method, method.NotNullWhenFalseMembers, containingSlot);
+                            MakeMembersMaybeNull(method, method.NotNullMembers);
+                            MakeMembersMaybeNull(method, method.NotNullWhenTrueMembers);
+                            MakeMembersMaybeNull(method, method.NotNullWhenFalseMembers);
                             method = method.OverriddenMethod;
                         }
                         while (method != null);
@@ -983,14 +977,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void EnforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, NamedTypeSymbol containingType, string memberName, int containingSlot)
+        private void EnforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, MethodSymbol method, string memberName)
         {
-            if (containingSlot < 0)
-                return;
-
-            foreach (var member in containingType.GetMembers(memberName))
+            foreach (var member in method.ContainingType.GetMembers(memberName))
             {
-                if (FailsMemberNotNullExpectation(member, containingSlot, state))
+                if (FailsMemberNotNullExpectation(member, state))
                 {
                     SyntaxNodeOrToken syntax = syntaxOpt switch
                     {
@@ -1005,16 +996,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void EnforceMemberNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement, int containingSlot)
+        private void EnforceMemberNotNullWhenForPendingReturn(PendingBranch pendingReturn, BoundReturnStatement returnStatement)
         {
-            if (containingSlot < 0)
-                return;
-
             if (pendingReturn.IsConditionalState)
             {
                 if (returnStatement.ExpressionOpt is { ConstantValueOpt: { IsBoolean: true, BooleanValue: bool value } })
                 {
-                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: value, pendingReturn.State, containingSlot);
+                    enforceMemberNotNullWhen(returnStatement.Syntax, sense: value, pendingReturn.State);
                     return;
                 }
 
@@ -1027,34 +1015,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var memberName in method.NotNullWhenTrueMembers)
                     {
-                        enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: true, members: method.ContainingType.GetMembers(memberName), containingSlot: containingSlot, state: pendingReturn.StateWhenTrue, otherState: pendingReturn.StateWhenFalse);
+                        enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: true, members: method.ContainingType.GetMembers(memberName), state: pendingReturn.StateWhenTrue, otherState: pendingReturn.StateWhenFalse);
                     }
 
                     foreach (var memberName in method.NotNullWhenFalseMembers)
                     {
-                        enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: false, members: method.ContainingType.GetMembers(memberName), containingSlot: containingSlot, state: pendingReturn.StateWhenFalse, otherState: pendingReturn.StateWhenTrue);
+                        enforceMemberNotNullWhenIfAffected(returnStatement.Syntax, sense: false, members: method.ContainingType.GetMembers(memberName), state: pendingReturn.StateWhenFalse, otherState: pendingReturn.StateWhenTrue);
                     }
                 }
             }
 
             return;
 
-            void enforceMemberNotNullWhenIfAffected(SyntaxNode? syntaxOpt, bool sense, ImmutableArray<Symbol> members, int containingSlot, LocalState state, LocalState otherState)
+            void enforceMemberNotNullWhenIfAffected(SyntaxNode? syntaxOpt, bool sense, ImmutableArray<Symbol> members, LocalState state, LocalState otherState)
             {
-                Debug.Assert(containingSlot >= 0);
                 foreach (var member in members)
                 {
                     // For non-constant values, only complain if we were able to analyze a difference for this member between two branches
-                    if (FailsMemberNotNullExpectation(member, containingSlot, state) != FailsMemberNotNullExpectation(member, containingSlot, otherState))
+                    if (FailsMemberNotNullExpectation(member, state) != FailsMemberNotNullExpectation(member, otherState))
                     {
-                        ReportFailedMemberNotNullIfNeeded(syntaxOpt, sense, member, containingSlot, state);
+                        ReportFailedMemberNotNullIfNeeded(syntaxOpt, sense, member, state);
                     }
                 }
             }
 
-            void enforceMemberNotNullWhen(SyntaxNode? syntaxOpt, bool sense, LocalState state, int containingSlot)
+            void enforceMemberNotNullWhen(SyntaxNode? syntaxOpt, bool sense, LocalState state)
             {
-                Debug.Assert(containingSlot >= 0);
                 if (_symbol is MethodSymbol method)
                 {
                     var notNullMembers = sense ? method.NotNullWhenTrueMembers : method.NotNullWhenFalseMembers;
@@ -1062,29 +1048,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var member in method.ContainingType.GetMembers(memberName))
                         {
-                            ReportFailedMemberNotNullIfNeeded(syntaxOpt, sense, member, containingSlot, state);
+                            ReportFailedMemberNotNullIfNeeded(syntaxOpt, sense, member, state);
                         }
                     }
                 }
             }
         }
 
-        private void ReportFailedMemberNotNullIfNeeded(SyntaxNode? syntaxOpt, bool sense, Symbol member, int containingSlot, LocalState state)
+        private void ReportFailedMemberNotNullIfNeeded(SyntaxNode? syntaxOpt, bool sense, Symbol member, LocalState state)
         {
-            if (FailsMemberNotNullExpectation(member, containingSlot, state))
+            if (FailsMemberNotNullExpectation(member, state))
             {
                 // Member '{name}' must have a non-null value when exiting with '{sense}'.
                 Diagnostics.Add(ErrorCode.WRN_MemberNotNullWhen, syntaxOpt?.GetLocation() ?? methodMainNode.Syntax.GetLastToken().GetLocation(), member.Name, sense ? "true" : "false");
             }
         }
 
-        private bool FailsMemberNotNullExpectation(Symbol member, int containingSlot, LocalState state)
+        private bool FailsMemberNotNullExpectation(Symbol member, LocalState state)
         {
             switch (member.Kind)
             {
                 case SymbolKind.Field:
                 case SymbolKind.Property:
-                    if (GetSlotForMemberNotNullMember(member, containingSlot) is int memberSlot &&
+                    if (GetSlotForMemberPostCondition(member) is int memberSlot &&
                         memberSlot > 0)
                     {
                         var parameterState = GetState(ref state, memberSlot);
@@ -1103,23 +1089,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void MakeMembersMaybeNull(MethodSymbol method, ImmutableArray<string> members, int containingSlot)
+        private void MakeMembersMaybeNull(MethodSymbol method, ImmutableArray<string> members)
         {
-            if (containingSlot < 0)
-                return;
-
             foreach (var memberName in members)
             {
-                makeMemberMaybeNull(method.ContainingType, memberName, containingSlot);
+                makeMemberMaybeNull(method.ContainingType, memberName);
             }
             return;
 
-            void makeMemberMaybeNull(NamedTypeSymbol containingType, string memberName, int containingSlot)
+            void makeMemberMaybeNull(NamedTypeSymbol containingType, string memberName)
             {
-                Debug.Assert(containingSlot >= 0);
                 foreach (var member in containingType.GetMembers(memberName))
                 {
-                    if (GetSlotForMemberNotNullMember(member, containingSlot) is int memberSlot &&
+                    if (GetSlotForMemberPostCondition(member) is int memberSlot &&
                         memberSlot > 0)
                     {
                         SetState(ref this.State, memberSlot, NullableFlowState.MaybeNull);
@@ -1128,11 +1110,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private int GetSlotForMemberNotNullMember(Symbol member, int containingSlot)
+        private int GetSlotForMemberPostCondition(Symbol member)
         {
             if (member.Kind != SymbolKind.Field &&
                 member.Kind != SymbolKind.Property &&
                 member.Kind != SymbolKind.Event)
+            {
+                return -1;
+            }
+
+            int containingSlot = GetReceiverSlotForMemberPostConditions(_symbol as MethodSymbol);
+
+            if (containingSlot < 0)
             {
                 return -1;
             }
@@ -3270,13 +3259,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnterParameters();
                 bool isLocalFunction = lambdaOrFunctionSymbol is LocalFunctionSymbol;
                 SyntaxNode? localFunctionSyntax = isLocalFunction ? ((LocalFunctionSymbol)lambdaOrFunctionSymbol).Syntax : null;
-                int containingSlot = isLocalFunction ? GetReceiverSlotForMemberPostConditions(lambdaOrFunctionSymbol) : -1;
 
                 if (isLocalFunction)
                 {
-                    MakeMembersMaybeNull(lambdaOrFunctionSymbol, lambdaOrFunctionSymbol.NotNullMembers, containingSlot);
-                    MakeMembersMaybeNull(lambdaOrFunctionSymbol, lambdaOrFunctionSymbol.NotNullWhenTrueMembers, containingSlot);
-                    MakeMembersMaybeNull(lambdaOrFunctionSymbol, lambdaOrFunctionSymbol.NotNullWhenFalseMembers, containingSlot);
+                    MakeMembersMaybeNull(lambdaOrFunctionSymbol, lambdaOrFunctionSymbol.NotNullMembers);
+                    MakeMembersMaybeNull(lambdaOrFunctionSymbol, lambdaOrFunctionSymbol.NotNullWhenTrueMembers);
+                    MakeMembersMaybeNull(lambdaOrFunctionSymbol, lambdaOrFunctionSymbol.NotNullWhenFalseMembers);
                 }
 
                 var oldPending2 = SavePending();
@@ -3292,7 +3280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnforceDoesNotReturn(syntaxOpt: null);
                 if (isLocalFunction)
                 {
-                    enforceMemberNotNull(localFunctionSyntax, this.State, containingSlot);
+                    enforceMemberNotNull(localFunctionSyntax, this.State);
                 }
                 EnforceParameterNotNullOnExit(null, this.State);
 
@@ -3303,7 +3291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (isLocalFunction)
                     {
-                        enforceMemberNotNull(syntax: pendingReturn.Branch?.Syntax, pendingReturn.State, containingSlot);
+                        enforceMemberNotNull(syntax: pendingReturn.Branch?.Syntax, pendingReturn.State);
                     }
 
                     if (pendingReturn.Branch is BoundReturnStatement returnStatement)
@@ -3312,7 +3300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         EnforceNotNullWhenForPendingReturn(pendingReturn, returnStatement);
                         if (isLocalFunction)
                         {
-                            EnforceMemberNotNullWhenForPendingReturn(pendingReturn, returnStatement, containingSlot);
+                            EnforceMemberNotNullWhenForPendingReturn(pendingReturn, returnStatement);
                         }
                     }
                 }
@@ -3337,18 +3325,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             this._symbol = oldSymbol;
             return;
 
-            void enforceMemberNotNull(SyntaxNode? syntax, LocalState state, int containingSlot)
+            void enforceMemberNotNull(SyntaxNode? syntax, LocalState state)
             {
-                if (containingSlot < 0)
-                    return;
-
                 if (!state.Reachable)
                     return;
 
                 var method = (LocalFunctionSymbol)_symbol;
                 foreach (var memberName in method.NotNullMembers)
                 {
-                    EnforceMemberNotNullOnMember(syntax, state, method.ContainingType, memberName, containingSlot);
+                    EnforceMemberNotNullOnMember(syntax, state, method, memberName);
                 }
             }
         }
