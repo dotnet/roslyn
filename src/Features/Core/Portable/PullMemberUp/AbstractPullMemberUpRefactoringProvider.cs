@@ -50,11 +50,6 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider(IPullMem
         if (selectedMembers.Any(m => !m.ContainingType.Equals(containingType)))
             return;
 
-        // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
-        var memberSpan = TextSpan.FromBounds(
-            memberNodeSymbolPairs.First().node.FullSpan.Start,
-            memberNodeSymbolPairs.Last().node.FullSpan.End);
-
         var allDestinations = FindAllValidDestinations(
             selectedMembers,
             containingType,
@@ -63,19 +58,19 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider(IPullMem
         if (allDestinations.Length == 0)
             return;
 
-        var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination))
-            .WhereNotNull()
-            .Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service))
-            .ToImmutableArray();
-
-        var nestedCodeAction = CodeAction.Create(
-            selectedMembers.IsSingle()
-                ? string.Format(FeaturesResources.Pull_0_up_to, selectedMembers.Single().ToNameDisplayString())
-                : FeaturesResources.Pull_selected_members_up,
-            allActions,
-            isInlinable: false);
-
-        context.RegisterRefactoring(nestedCodeAction, memberSpan);
+        context.RegisterRefactoring(CodeAction.Create(
+                selectedMembers.IsSingle()
+                    ? string.Format(FeaturesResources.Pull_0_up_to, selectedMembers.Single().ToNameDisplayString())
+                    : FeaturesResources.Pull_selected_members_up,
+                allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination))
+                    .WhereNotNull()
+                    .Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service))
+                    .ToImmutableArray(),
+                isInlinable: false),
+            // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
+            TextSpan.FromBounds(
+                memberNodeSymbolPairs.First().node.FullSpan.Start,
+                memberNodeSymbolPairs.Last().node.FullSpan.End));
     }
 
     private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
