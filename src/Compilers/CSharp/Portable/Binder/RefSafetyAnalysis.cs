@@ -1024,7 +1024,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeconstructionVariable getDeconstructionAssignmentVariable(BoundExpression expr)
             {
                 return expr is BoundTupleExpression tuple
-                    // TODO2: it feels like it would be most correct for the outer 'valEscape' to be the intersection of all constituent 'valEscape's.
                     ? new DeconstructionVariable(expr, valEscape: Lifetime.Empty, GetDeconstructionAssignmentVariables(tuple))
                     : new DeconstructionVariable(expr, GetValEscape(expr, _localScopeDepth), null);
             }

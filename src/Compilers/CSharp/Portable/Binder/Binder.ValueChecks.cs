@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var inUnsafeRegion = _inUnsafeRegion;
-            if (escapeTo.Equals(Lifetime.CallingMethod) || escapeTo.Equals(Lifetime.ReturnOnly))
+            if (escapeTo.IsReturnable)
             {
                 if (localSymbol.RefKind == RefKind.None)
                 {
@@ -3214,7 +3214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private static ErrorCode GetStandardRValueRefEscapeError(Lifetime escapeTo)
         {
-            if (escapeTo.IsCallingMethod || escapeTo.IsReturnOnly)
+            if (escapeTo.IsReturnable)
             {
                 return ErrorCode.ERR_RefReturnLvalueExpected;
             }
@@ -5104,7 +5104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        // TODO2: it seems much cleaner to just always get a lifetime for the expression and check its convertibility
                         if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !Lifetime.CurrentMethod.IsConvertibleTo(escapeTo))
                         {
                             Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
