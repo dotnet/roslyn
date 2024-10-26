@@ -1937,7 +1937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var argument in arguments)
             {
                 Lifetime argEscape = GetValEscape(argument, scopeOfTheContainingExpression);
-                escapeScope = escapeScope.IsConvertibleTo(argEscape) ? argEscape : escapeScope;
+                escapeScope = escapeScope.Intersect(argEscape);
             }
 
             arguments.Free();
