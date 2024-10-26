@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -486,6 +487,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal virtual NamedTypeSymbol? ParamsCollectionTypeInProgress => null;
 
+        internal virtual MethodSymbol? ParamsCollectionConstructorInProgress => null;
+
         internal virtual BoundExpression? ConditionalReceiverExpression
         {
             get
@@ -727,6 +730,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (info != null)
             {
+                if (node.AsNode() is ForEachStatementSyntax foreachSyntax)
+                {
+                    node = foreachSyntax.ForEachKeyword;
+                }
+
                 diagnostics.Add(info, node.GetLocation());
             }
 

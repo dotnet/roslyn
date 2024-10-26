@@ -70,7 +70,7 @@ internal partial class SerializerService
             {
                 case AnalyzerFileReference fileReference:
                     writer.WriteString(fileReference.FullPath);
-                    writer.WriteGuid(IsolatedAnalyzerReferenceSet.TryGetAnalyzerFileReferenceMvid(fileReference));
+                    writer.WriteGuid(IsolatedAnalyzerReferenceSet.TryGetFileReferenceMvid(fileReference.FullPath));
                     break;
 
                 case AnalyzerImageReference analyzerImageReference:

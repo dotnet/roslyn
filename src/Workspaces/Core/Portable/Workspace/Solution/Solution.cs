@@ -1538,8 +1538,8 @@ public partial class Solution
         return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
     }
 
-    internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId)
-        => this.SolutionState.GetRelatedDocumentIds(documentId);
+    internal ImmutableArray<DocumentId> GetRelatedDocumentIds(DocumentId documentId, bool includeDifferentLanguages = false)
+        => this.SolutionState.GetRelatedDocumentIds(documentId, includeDifferentLanguages);
 
     /// <summary>
     /// Returns one of any of the related documents of <paramref name="documentId"/>.  Importantly, this will never

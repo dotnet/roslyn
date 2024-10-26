@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         /// significance changed. The version key is produced by combining the checksums for project options <see
         /// cref="ProjectState.GetParseOptionsChecksum"/> and <see cref="DocumentStateChecksums.Text"/>
         /// </summary>
-        private readonly VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)?> _versionedCache;
+        private readonly SpellCheckPullCache _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -97,16 +99,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     continue;
                 }
 
-                var newResultId = await _versionedCache.GetNewResultIdAsync(
-                    documentToPreviousParams,
-                    document,
-                    computeVersionAsync: async () => await ComputeChecksumsAsync(document, cancellationToken).ConfigureAwait(false),
+                var documentToPreviousDiagnosticParams = documentToPreviousParams.ToDictionary(kvp => new ProjectOrDocumentId(kvp.Key.Id), kvp => kvp.Value);
+                var newResult = await _versionedCache.GetOrComputeNewDataAsync(
+                    documentToPreviousDiagnosticParams,
+                    new ProjectOrDocumentId(document.Id),
+                    document.Project,
+                    new SpellCheckState(languageService, document),
                     cancellationToken).ConfigureAwait(false);
-                if (newResultId != null)
+                if (newResult != null)
                 {
+                    var (newResultId, spans) = newResult.Value;
                     context.TraceInformation($"Spans were changed for document: {document.FilePath}");
-                    await foreach (var report in ComputeAndReportCurrentSpansAsync(
-                        document, languageService, newResultId, cancellationToken).ConfigureAwait(false))
+                    foreach (var report in ReportCurrentSpans(
+                        document, spans, newResultId))
                     {
                         progress.Report(report);
                     }
@@ -148,15 +153,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             return result;
         }
 
-        private async IAsyncEnumerable<TReport> ComputeAndReportCurrentSpansAsync(
+        private IEnumerable<TReport> ReportCurrentSpans(
             Document document,
-            ISpellCheckSpanService service,
-            string resultId,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            ImmutableArray<SpellCheckSpan> spans,
+            string resultId)
         {
             var textDocumentIdentifier = ProtocolConversions.DocumentToTextDocumentIdentifier(document);
-
-            var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
             // protocol requires the results be in sorted order
             spans = spans.Sort(static (s1, s2) => s1.TextSpan.CompareTo(s2.TextSpan));
@@ -222,17 +224,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     }
                 }
             }
-        }
-
-        private static async Task<(Checksum parseOptionsChecksum, Checksum textChecksum)> ComputeChecksumsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var project = document.Project;
-            var parseOptionsChecksum = project.State.GetParseOptionsChecksum();
-
-            var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var textChecksum = documentChecksumState.Text;
-
-            return (parseOptionsChecksum, textChecksum);
         }
     }
 }

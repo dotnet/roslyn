@@ -3382,7 +3382,10 @@ class Test1 : I1
                         Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
                     break;
                 case (true, false):
-                    compilation1.VerifyDiagnostics();
+                    compilation1.VerifyDiagnostics(
+                        // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        //         get
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
                     break;
                 case (false, true):
                     compilation1.VerifyDiagnostics(
@@ -3399,7 +3402,10 @@ class Test1 : I1
                     compilation1.VerifyDiagnostics(
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9),
+                        // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        //         get
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
                     break;
             }
 
@@ -3465,7 +3471,10 @@ class Test1 : I1
             }
             else
             {
-                compilation1.VerifyDiagnostics();
+                compilation1.VerifyDiagnostics(
+                    // (6,9): warning CS9266: The 'get' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                    //         get
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I1.P1").WithLocation(6, 9));
             }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -3528,7 +3537,10 @@ class Test1 : I1
                         Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
                     break;
                 case (true, false):
-                    compilation1.VerifyDiagnostics();
+                    compilation1.VerifyDiagnostics(
+                        // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        //         set => System.Console.WriteLine("set P1");
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
                     break;
                 case (false, true):
                     compilation1.VerifyDiagnostics(
@@ -3545,7 +3557,10 @@ class Test1 : I1
                     compilation1.VerifyDiagnostics(
                         // (4,9): error CS0525: Interfaces cannot contain instance fields
                         //     int P1 
-                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9),
+                        // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                        //         set => System.Console.WriteLine("set P1");
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
                     break;
             }
 
@@ -3607,7 +3622,10 @@ class Test1 : I1
             }
             else
             {
-                compilation1.VerifyDiagnostics();
+                compilation1.VerifyDiagnostics(
+                    // (7,9): warning CS9266: The 'set' accessor of property 'I1.P1' should use 'field' because the other accessor is using it.
+                    //         set => System.Console.WriteLine("set P1");
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I1.P1").WithLocation(7, 9));
             }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");

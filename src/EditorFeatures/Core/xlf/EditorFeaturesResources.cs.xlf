@@ -17,11 +17,6 @@
         <target state="translated">Aplikují se změny.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Nejde navigovat k symbolu pod stříškou.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Výpočet informací Encapsulate Field</target>
@@ -44,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
         <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
-        <target state="new">'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</target>
+        <target state="translated">Funkce Popis s využitím Copilotu není k dispozici, protože vaše organizace vyloučila odkazovaný dokument.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
