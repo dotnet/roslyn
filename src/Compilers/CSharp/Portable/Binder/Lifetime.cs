@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns the narrower of two lifetimes.
         /// </summary>
         /// <remarks>
-        /// In other words, this method returns the widest lifetime which both 'this' and 'other' are both convertible to.
+        /// In other words, this method returns the widest lifetime which 'this' and 'other' are both convertible to.
         /// If in future we added the concept of unrelated lifetimes (e.g. to implement 'ref scoped'), this method would perhaps return a Nullable,
         /// for the case that no lifetime exists which both input lifetimes are convertible to.
         /// </remarks>
