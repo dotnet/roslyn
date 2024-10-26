@@ -974,4 +974,27 @@ public class ObjectCreationExpressionSignatureHelpProviderTests : AbstractCSharp
             ],
             usePreviousCharAsTrigger: true);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70235")]
+    public async Task ProtectedConstructor3()
+    {
+        var markup = """
+            public class BaseClass
+            {
+                public BaseClass(int val) { }
+                protected BaseClass(int val, int val1) { } 
+
+                public void Do()
+                {
+                    var baseInstance = new BaseClass($$);
+                }
+            }
+            """;
+
+        await TestAsync(markup, [
+                new SignatureHelpTestItem("BaseClass(int val)", currentParameterIndex: 0),
+                new SignatureHelpTestItem("BaseClass(int val, int val1)", currentParameterIndex: 0),
+            ],
+            usePreviousCharAsTrigger: true);
+    }
 }
