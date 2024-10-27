@@ -319,6 +319,72 @@ public class RawStringLiteralCommandHandlerTests
         testState.SendReturn(handled: false);
     }
 
+    [WpfFact]
+    public void TestReturnAfterThreeQuotesFollowingText()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = """$$following text""";
+            """");
+
+        testState.SendReturn(handled: true);
+        testState.AssertCodeIs(
+            """"
+            var v = """
+                $$following text
+                """;
+            """");
+    }
+
+    [WpfFact]
+    public void TestReturnAfterThreeQuotesFollowingText_Interpolated()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = $"""$$following text {0}""";
+            """");
+
+        testState.SendReturn(handled: true);
+        testState.AssertCodeIs(
+            """"
+            var v = $"""
+                $$following text {0}
+                """;
+            """");
+    }
+
+    [WpfFact]
+    public void TestReturnAfterTextInRawStringFollowingText()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = """before text$$following text""";
+            """");
+
+        testState.SendReturn(handled: true);
+        testState.AssertCodeIs(
+            """"
+            var v = """
+                before text
+                $$following text
+                """;
+            """");
+    }
+
+    [WpfFact]
+    public void TestReturnAfterTextInRawStringFollowingText_Interpolated()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = $"""before text$$following text {0}""";
+            """");
+
+        testState.SendReturn(handled: true);
+        testState.AssertCodeIs(
+            """"
+            var v = $"""
+                before text
+                $$following text {0}
+                """;
+            """");
+    }
+
     #endregion
 
     #region generate initial empty raw string

@@ -5,6 +5,7 @@
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Indentation;
@@ -50,12 +51,164 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         if (position >= currentSnapshot.Length)
             return false;
 
-        if (currentSnapshot[position] != '"')
+        if (currentSnapshot[position] == '"')
+        {
+            return HandleCaretOnQuote(textView, subjectBuffer, span, position, context.OperationContext.UserCancellationToken);
+        }
+
+        return HandleCaretNotOnQuote(textView, subjectBuffer, span, position, context.OperationContext.UserCancellationToken);
+    }
+
+    private bool HandleCaretNotOnQuote(ITextView textView, ITextBuffer subjectBuffer, SnapshotSpan span, int position, CancellationToken cancellationToken)
+    {
+        // If the caret is not on a quote, we need to find whether we are within the contents of a single-line raw string literal
+        // but not inside an interpolation
+        // If we are inside a raw string literal and the caret is not on top of a quote, it is part of the literal's text
+        // Here we try to ensure that the literal's closing quotes are properly placed in their own line
+        // We could reach this point after pressing enter on a single-line raw string
+
+        var currentSnapshot = subjectBuffer.CurrentSnapshot;
+        var document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document == null)
             return false;
 
+        var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+
+        var token = parsedDocument.Root.FindToken(position);
+        switch (token.Kind())
+        {
+            case SyntaxKind.SingleLineRawStringLiteralToken:
+                break;
+
+            case SyntaxKind.InterpolatedStringTextToken
+            when token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated &&
+                interpolated.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                break;
+
+            default:
+                return false;
+        }
+
+        var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: false);
+        var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
+
+        var newLine = indentationOptions.FormattingOptions.NewLine;
+
+        using var transaction = CaretPreservingEditTransaction.TryCreate(
+            CSharpEditorResources.Split_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+
+        var edit = subjectBuffer.CreateEdit();
+
+        // Add a newline at the position of the end literal
+        var closingStart = GetStartPositionOfClosingDelimiter(token);
+        var newLineAndIndentation = newLine + indentation;
+        var insertedLines = 1;
+        edit.Insert(closingStart, newLineAndIndentation);
+        // Add a newline at the requested position
+        edit.Insert(position, newLineAndIndentation);
+        // Also add a newline at the start of the text, only if there is text before the requested position
+        var openingEnd = GetEndPositionOfOpeningDelimiter(token);
+        if (openingEnd != position)
+        {
+            insertedLines++;
+            edit.Insert(openingEnd, newLineAndIndentation);
+        }
+        var snapshot = edit.Apply();
+
+        // move caret:
+        var lineInNewSnapshot = snapshot.GetLineFromPosition(openingEnd);
+        var nextLine = snapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + insertedLines);
+        textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
+
+        transaction?.Complete();
+        return true;
+    }
+
+    private static int GetEndPositionOfOpeningDelimiter(SyntaxToken currentStringLiteralToken)
+    {
+        switch (currentStringLiteralToken.Kind())
+        {
+            case SyntaxKind.SingleLineRawStringLiteralToken:
+            case SyntaxKind.MultiLineRawStringLiteralToken:
+                {
+                    var text = currentStringLiteralToken.Text;
+                    var tokenSpan = currentStringLiteralToken.Span;
+                    var tokenStart = tokenSpan.Start;
+                    var length = tokenSpan.Length;
+                    var index = 0;
+                    while (index < length)
+                    {
+                        var c = text[index];
+                        if (c != '"')
+                            return tokenStart + index;
+                        index++;
+                    }
+
+                    Contract.Fail("This should only be triggered by raw string literals that contain text aside from the double quotes");
+                    return -1;
+                }
+
+            case SyntaxKind.InterpolatedStringTextToken:
+                var tokenParent = currentStringLiteralToken.Parent?.Parent;
+                if (tokenParent is not InterpolatedStringExpressionSyntax interpolatedStringExpression)
+                {
+                    Contract.Fail("This token should only be contained in an interpolated string text syntax");
+                    return -1;
+                }
+
+                return interpolatedStringExpression.StringStartToken.Span.End;
+
+            default:
+                Contract.Fail("This should only be triggered on a known raw string literal kind");
+                return -1;
+        }
+    }
+
+    private static int GetStartPositionOfClosingDelimiter(SyntaxToken currentStringLiteralToken)
+    {
+        switch (currentStringLiteralToken.Kind())
+        {
+            case SyntaxKind.SingleLineRawStringLiteralToken:
+            case SyntaxKind.MultiLineRawStringLiteralToken:
+                {
+                    var text = currentStringLiteralToken.Text;
+                    var tokenSpan = currentStringLiteralToken.Span;
+                    var tokenStart = tokenSpan.Start;
+                    var index = tokenSpan.Length - 1;
+                    while (index > 0)
+                    {
+                        var c = text[index];
+                        if (c != '"')
+                            return tokenStart + index + 1;
+                        index--;
+                    }
+
+                    Contract.Fail("This should only be triggered by raw string literals that contain text aside from the double quotes");
+                    return -1;
+                }
+
+            case SyntaxKind.InterpolatedStringTextToken:
+                var tokenParent = currentStringLiteralToken.Parent?.Parent;
+                if (tokenParent is not InterpolatedStringExpressionSyntax interpolatedStringExpression)
+                {
+                    Contract.Fail("This token should only be contained in an interpolated string text syntax");
+                    return -1;
+                }
+
+                return interpolatedStringExpression.StringEndToken.SpanStart;
+
+            default:
+                Contract.Fail("This should only be triggered on a known raw string literal kind");
+                return -1;
+        }
+    }
+
+    private bool HandleCaretOnQuote(ITextView textView, ITextBuffer subjectBuffer, SnapshotSpan span, int position, CancellationToken cancellationToken)
+    {
         var quotesBefore = 0;
         var quotesAfter = 0;
 
+        var currentSnapshot = subjectBuffer.CurrentSnapshot;
         for (int i = position, n = currentSnapshot.Length; i < n; i++)
         {
             if (currentSnapshot[i] != '"')
@@ -78,7 +231,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         if (quotesAfter < 3)
             return false;
 
-        return SplitRawString(textView, subjectBuffer, span.Start.Position, CancellationToken.None);
+        return SplitRawString(textView, subjectBuffer, span.Start.Position, cancellationToken);
     }
 
     private bool SplitRawString(ITextView textView, ITextBuffer subjectBuffer, int position, CancellationToken cancellationToken)
@@ -104,7 +257,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         var newLine = indentationOptions.FormattingOptions.NewLine;
 
         using var transaction = CaretPreservingEditTransaction.TryCreate(
-            CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+            CSharpEditorResources.Split_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
         var edit = subjectBuffer.CreateEdit();
 
