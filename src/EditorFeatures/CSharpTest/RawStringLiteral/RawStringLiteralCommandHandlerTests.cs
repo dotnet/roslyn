@@ -412,6 +412,26 @@ public class RawStringLiteralCommandHandlerTests
         testState.SendReturn(handled: false);
     }
 
+    [WpfFact]
+    public void TestReturnWithinOpenBracesInterpolationInRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = $$$"""before text{[||]{{0}}} following text""";
+            """");
+
+        testState.SendReturn(handled: false);
+    }
+
+    [WpfFact]
+    public void TestReturnWithinCloseBracesInterpolationInRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = $$$"""before text{{{0}}[||]} following text""";
+            """");
+
+        testState.SendReturn(handled: false);
+    }
+
     #endregion
 
     #region generate initial empty raw string

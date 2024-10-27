@@ -75,22 +75,42 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
 
         var token = parsedDocument.Root.FindToken(position);
+        var preferredIndentationToken = token;
         switch (token.Kind())
         {
             case SyntaxKind.SingleLineRawStringLiteralToken:
                 break;
 
-            case SyntaxKind.InterpolatedStringTextToken
-            when token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated &&
-                interpolated.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken:
-                break;
+            case SyntaxKind.InterpolatedStringTextToken:
+            case SyntaxKind.OpenBraceToken:
+                if (token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated &&
+                    interpolated.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken)
+                {
+                    if (token.Kind() is SyntaxKind.OpenBraceToken)
+                    {
+                        // If we are not at the start of the interpolation braces, we do not intend to handle converting the raw string
+                        // into a new one
+                        if (position != token.SpanStart)
+                        {
+                            return false;
+                        }
+
+                        // We prefer the indentation options of the string start delimiter because the indentation of the interpolation
+                        // is empty and thus we cannot properly indent the lines that we insert
+                        preferredIndentationToken = interpolated.StringStartToken;
+                    }
+
+                    break;
+                }
+
+                return false;
 
             default:
                 return false;
         }
 
         var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: false);
-        var indentation = token.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
+        var indentation = preferredIndentationToken.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
 
         var newLine = indentationOptions.FormattingOptions.NewLine;
 
@@ -148,6 +168,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 }
 
             case SyntaxKind.InterpolatedStringTextToken:
+            case SyntaxKind.OpenBraceToken:
                 var tokenParent = currentStringLiteralToken.Parent?.Parent;
                 if (tokenParent is not InterpolatedStringExpressionSyntax interpolatedStringExpression)
                 {
@@ -186,6 +207,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 }
 
             case SyntaxKind.InterpolatedStringTextToken:
+            case SyntaxKind.OpenBraceToken:
                 var tokenParent = currentStringLiteralToken.Parent?.Parent;
                 if (tokenParent is not InterpolatedStringExpressionSyntax interpolatedStringExpression)
                 {
