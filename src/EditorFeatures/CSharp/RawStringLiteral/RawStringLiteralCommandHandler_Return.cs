@@ -56,16 +56,16 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
             return HandleCaretOnQuote(textView, subjectBuffer, span, position, context.OperationContext.UserCancellationToken);
         }
 
-        return HandleCaretNotOnQuote(textView, subjectBuffer, span, position, context.OperationContext.UserCancellationToken);
+        return HandleCaretNotOnQuote(textView, subjectBuffer, position, context.OperationContext.UserCancellationToken);
     }
 
-    private bool HandleCaretNotOnQuote(ITextView textView, ITextBuffer subjectBuffer, SnapshotSpan span, int position, CancellationToken cancellationToken)
+    private bool HandleCaretNotOnQuote(ITextView textView, ITextBuffer subjectBuffer, int position, CancellationToken cancellationToken)
     {
         // If the caret is not on a quote, we need to find whether we are within the contents of a single-line raw string literal
         // but not inside an interpolation
         // If we are inside a raw string literal and the caret is not on top of a quote, it is part of the literal's text
         // Here we try to ensure that the literal's closing quotes are properly placed in their own line
-        // We could reach this point after pressing enter on a single-line raw string
+        // We could reach this point after pressing enter within a single-line raw string
 
         var currentSnapshot = subjectBuffer.CurrentSnapshot;
         var document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -104,9 +104,9 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         var newLineAndIndentation = newLine + indentation;
         var insertedLines = 1;
         edit.Insert(closingStart, newLineAndIndentation);
-        // Add a newline at the requested position
+        // Add a newline at the caret's position
         edit.Insert(position, newLineAndIndentation);
-        // Also add a newline at the start of the text, only if there is text before the requested position
+        // Also add a newline at the start of the text, only if there is text before the caret's position
         var openingEnd = GetEndPositionOfOpeningDelimiter(token);
         if (openingEnd != position)
         {
@@ -129,7 +129,6 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         switch (currentStringLiteralToken.Kind())
         {
             case SyntaxKind.SingleLineRawStringLiteralToken:
-            case SyntaxKind.MultiLineRawStringLiteralToken:
                 {
                     var text = currentStringLiteralToken.Text;
                     var tokenSpan = currentStringLiteralToken.Span;
@@ -169,7 +168,6 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         switch (currentStringLiteralToken.Kind())
         {
             case SyntaxKind.SingleLineRawStringLiteralToken:
-            case SyntaxKind.MultiLineRawStringLiteralToken:
                 {
                     var text = currentStringLiteralToken.Text;
                     var tokenSpan = currentStringLiteralToken.Span;

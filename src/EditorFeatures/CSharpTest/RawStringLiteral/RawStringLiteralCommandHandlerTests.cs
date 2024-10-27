@@ -385,6 +385,33 @@ public class RawStringLiteralCommandHandlerTests
             """");
     }
 
+    [WpfFact]
+    public void TestReturnOnInterpolationOpenBraceInRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = $"""before text$${0} following text""";
+            """");
+
+        testState.SendReturn(handled: true);
+        testState.AssertCodeIs(
+            """"
+            var v = $"""
+                before text
+                $${0} following text
+                """;
+            """");
+    }
+
+    [WpfFact]
+    public void TestReturnInsideInterpolationInRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = $"""before text{0$$} following text""";
+            """");
+
+        testState.SendReturn(handled: false);
+    }
+
     #endregion
 
     #region generate initial empty raw string
