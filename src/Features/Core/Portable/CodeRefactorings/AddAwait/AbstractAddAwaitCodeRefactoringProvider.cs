@@ -83,7 +83,7 @@ internal abstract class AbstractAddAwaitCodeRefactoringProvider<TExpressionSynta
 
         for (var current = node; current != null;)
         {
-            if (syntaxFacts.IsMemberBindingExpression(current)  ||
+            if (syntaxFacts.IsMemberBindingExpression(current) ||
                 syntaxFacts.IsElementBindingExpression(current))
             {
                 // Can't add 'await' to the `.X` in `a?.X`.  Nor would we want to.  Those could return null, which
