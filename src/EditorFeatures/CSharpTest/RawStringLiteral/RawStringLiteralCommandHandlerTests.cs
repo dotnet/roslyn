@@ -432,6 +432,33 @@ public class RawStringLiteralCommandHandlerTests
         testState.SendReturn(handled: false);
     }
 
+    [WpfFact]
+    public void TestReturnBeforeEndQuotesInRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = """before text$$""";
+            """");
+
+        testState.SendReturn(handled: true);
+        testState.AssertCodeIs(
+            """"
+            var v = $"""
+                before text
+                $$
+                """;
+            """");
+    }
+
+    [WpfFact]
+    public void TestReturnWithinEndQuotesInRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = """before text""$$";
+            """");
+
+        testState.SendReturn(handled: false);
+    }
+
     #endregion
 
     #region generate initial empty raw string
