@@ -442,7 +442,7 @@ public class RawStringLiteralCommandHandlerTests
         testState.SendReturn(handled: true);
         testState.AssertCodeIs(
             """"
-            var v = $"""
+            var v = """
                 before text
                 $$
                 """;
