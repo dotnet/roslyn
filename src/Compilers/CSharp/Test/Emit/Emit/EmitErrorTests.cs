@@ -336,11 +336,14 @@ public class A
 }
 ");
 
+            // For debugging.
+            CompileAndVerify(builder.ToString()
+                , verify: Verification.Skipped
+                ).Dump();
+
             CompileAndVerify(builder.ToString(),
                 verify: Verification.Skipped,
-                expectedOutput: expectedOutputBuilder.ToString())
-                .VerifyDiagnostics()
-                .Dump();
+                expectedOutput: expectedOutputBuilder.ToString()).VerifyDiagnostics();
         }
 
         #endregion

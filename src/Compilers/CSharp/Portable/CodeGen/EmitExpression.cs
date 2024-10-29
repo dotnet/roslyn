@@ -3487,25 +3487,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     constantValue.StringValue.Length > 100 &&
                     LocalRewriter.TryGetUtf8ByteRepresentation(constantValue.StringValue, out byte[] utf8Bytes, out _))
                 {
-                    // Create `static readonly byte[] <S><hash>.f = "string"u8`.
                     var data = utf8Bytes.ToImmutableArray();
                     var field = _builder.module.GetFieldForDataString(data, syntaxNode, _diagnostics.DiagnosticBag);
-
-                    // Convert the bytes to a string. In reality, this should be done in the generated class static constructor.
-                    // Call `Encoding.get_UTF8()`.
-                    _builder.EmitOpCode(ILOpCode.Call, 1);
-                    _builder.EmitToken(_builder.module.GetEncodingUtf8(), syntaxNode, _diagnostics.DiagnosticBag);
-
-                    // Push the field's address.
-                    _builder.EmitOpCode(ILOpCode.Ldsflda);
+                    _builder.EmitOpCode(ILOpCode.Ldsfld);
                     _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
-
-                    // Push the byte size.
-                    _builder.EmitIntConstant(data.Length);
-
-                    // Call `Encoding.GetString(byte*, int)`.
-                    _builder.EmitOpCode(ILOpCode.Callvirt, -2);
-                    _builder.EmitToken(_builder.module.GetEncodingGetString(), syntaxNode, _diagnostics.DiagnosticBag);
                 }
                 else
                 {

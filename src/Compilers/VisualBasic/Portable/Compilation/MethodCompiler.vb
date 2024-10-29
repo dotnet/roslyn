@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     compiler.CompileSynthesizedMethods(privateImplClass)
                 End If
 
-                moduleBeingBuiltOpt.FreezeDataStringHolders()
+                moduleBeingBuiltOpt.FreezeDataStringHolders(compiler._diagnostics.DiagnosticBag)
             End If
 
             Dim entryPoint = GetEntryPoint(compilation, moduleBeingBuiltOpt, diagnostics, cancellationToken)

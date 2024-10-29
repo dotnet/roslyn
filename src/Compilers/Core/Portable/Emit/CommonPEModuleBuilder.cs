@@ -1056,10 +1056,12 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             TSyntaxNode tSyntaxNode = (TSyntaxNode)syntaxNode;
 
+            // TODO: Don't create twice for the same string.
             var holder = new DataStringHolder(
                 moduleBuilder: this,
                 dataHash: PrivateImplementationDetails.DataToHex(data),
                 systemObject: GetSpecialType(SpecialType.System_Object, tSyntaxNode, diagnostics),
+                systemString: GetSpecialType(SpecialType.System_String, tSyntaxNode, diagnostics),
                 compilerGeneratedAttribute: SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
                 privateImplementationDetails: GetPrivateImplClass(tSyntaxNode, diagnostics));
 
@@ -1141,12 +1143,12 @@ namespace Microsoft.CodeAnalysis.Emit
             return _lazyPrivateImplementationDetails;
         }
 
-        public void FreezeDataStringHolders()
+        public void FreezeDataStringHolders(DiagnosticBag diagnostics)
         {
             foreach (var dataStringHolder in _dataStringHolders ?? [])
             {
                 Debug.Assert(!dataStringHolder.IsFrozen);
-                dataStringHolder.Freeze();
+                dataStringHolder.Freeze(diagnostics);
             }
         }
 

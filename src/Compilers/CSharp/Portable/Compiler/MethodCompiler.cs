@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
                 }
 
-                moduleBeingBuiltOpt.FreezeDataStringHolders();
+                moduleBeingBuiltOpt.FreezeDataStringHolders(diagnostics.DiagnosticBag);
             }
 
             // If we are trying to emit and there's an error without a corresponding diagnostic (e.g. because
