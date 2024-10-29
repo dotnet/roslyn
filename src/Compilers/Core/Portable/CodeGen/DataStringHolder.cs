@@ -131,15 +131,62 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
         return _orderedSynthesizedMethods;
     }
 
+    private Cci.IMethodDefinition GetOrSynthesizeBytesToStringHelper(DiagnosticBag diagnostics)
+    {
+        var method = _privateImplementationDetails.GetMethod(PrivateImplementationDetails.SynthesizedBytesToStringFunctionName);
+
+        if (method is null)
+        {
+            _privateImplementationDetails.TryAddSynthesizedMethod(SynthesizeBytesToStringHelper(diagnostics));
+
+            method = _privateImplementationDetails.GetMethod(PrivateImplementationDetails.SynthesizedBytesToStringFunctionName);
+        }
+
+        Debug.Assert(method is not null);
+        return method;
+    }
+
     public Cci.IUnitReference GetUnit(EmitContext context)
     {
         Debug.Assert(context.Module == _moduleBuilder);
         return _moduleBuilder;
     }
 
+    private BytesToStringHelper SynthesizeBytesToStringHelper(DiagnosticBag diagnostics)
+    {
+        var ilBuilder = new ILBuilder((ITokenDeferral)_moduleBuilder, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+
+        // Call `Encoding.get_UTF8()`.
+        ilBuilder.EmitOpCode(ILOpCode.Call, 1);
+        ilBuilder.EmitToken(ilBuilder.module.GetEncodingUtf8(), null, diagnostics);
+
+        // Push the `byte*`.
+        ilBuilder.EmitOpCode(ILOpCode.Ldarg_0);
+
+        // Push the byte size.
+        ilBuilder.EmitOpCode(ILOpCode.Ldarg_1);
+
+        // Call `Encoding.GetString(byte*, int)`.
+        var encodingGetString = ilBuilder.module.GetEncodingGetString();
+        ilBuilder.EmitOpCode(ILOpCode.Callvirt, -2);
+        ilBuilder.EmitToken(encodingGetString, null, diagnostics);
+
+        // Return.
+        ilBuilder.EmitRet(isVoid: false);
+        ilBuilder.Realize();
+
+        return new BytesToStringHelper(
+            containingType: _privateImplementationDetails,
+            encodingGetString: encodingGetString,
+            maxStack: ilBuilder.MaxStack,
+            il: ilBuilder.RealizedIL);
+    }
+
     private StaticConstructor SynthesizeStaticConstructor(DiagnosticBag diagnostics)
     {
         var ilBuilder = new ILBuilder((ITokenDeferral)_moduleBuilder, new LocalSlotManager(slotAllocator: null), OptimizationLevel.Release, areLocalsZeroed: false);
+
+        Cci.IMethodDefinition? bytesToStringHelper = null;
 
         foreach (var field in _orderedSynthesizedFields)
         {
@@ -148,10 +195,6 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
                 continue;
             }
 
-            // Call `Encoding.get_UTF8()`.
-            ilBuilder.EmitOpCode(ILOpCode.Call, 1);
-            ilBuilder.EmitToken(ilBuilder.module.GetEncodingUtf8(), null, diagnostics);
-
             // Push the `byte*` field's address.
             ilBuilder.EmitOpCode(ILOpCode.Ldsflda);
             ilBuilder.EmitToken(stringField.MappedField, null, diagnostics);
@@ -159,9 +202,10 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
             // Push the byte size.
             ilBuilder.EmitIntConstant(stringField.MappedField.MappedData.Length);
 
-            // Call `Encoding.GetString(byte*, int)`.
-            ilBuilder.EmitOpCode(ILOpCode.Callvirt, -2);
-            ilBuilder.EmitToken(ilBuilder.module.GetEncodingGetString(), null, diagnostics);
+            // Call `<PrivateImplementationDetails>.BytesToString(byte*, int)`.
+            bytesToStringHelper ??= GetOrSynthesizeBytesToStringHelper(diagnostics);
+            ilBuilder.EmitOpCode(ILOpCode.Call, -1);
+            ilBuilder.EmitToken(bytesToStringHelper, null, diagnostics);
 
             // Store into the corresponding `string` field.
             ilBuilder.EmitOpCode(ILOpCode.Stsfld);
@@ -188,13 +232,66 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
         public override bool IsReadOnly => true;
     }
 
+    private sealed class BytesToStringHelper(
+        PrivateImplementationDetails containingType,
+        Cci.IMethodReference encodingGetString,
+        ushort maxStack,
+        ImmutableArray<byte> il)
+        : MethodDefinitionBase(
+            PrivateImplementationDetails.SynthesizedBytesToStringFunctionName,
+            Cci.TypeMemberVisibility.Assembly,
+            containingType,
+            maxStack,
+            il)
+    {
+        private readonly ImmutableArray<Cci.IParameterDefinition> _parameters =
+        [
+            new BytesParameter(encodingGetString),                              // byte* bytes
+            new ParameterDefinition(1, "length", Cci.PlatformType.SystemInt32), // int length
+        ];
+
+        public override ImmutableArray<Cci.IParameterDefinition> Parameters => _parameters;
+        public override Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(Cci.PlatformType.SystemString, context);
+
+        private sealed class BytesParameter(
+            Cci.IMethodReference encodingGetString)
+            : ParameterDefinitionBase(0, "bytes")
+        {
+            private readonly Cci.IMethodReference _encodingGetString = encodingGetString;
+
+            public override Cci.ITypeReference GetType(EmitContext context)
+            {
+                return _encodingGetString.GetParameters(context)[0].GetType(context);
+            }
+        }
+    }
+
     private sealed class StaticConstructor(
         DataStringHolder containingType,
         ushort maxStack,
         ImmutableArray<byte> il)
+        : MethodDefinitionBase(
+            WellKnownMemberNames.StaticConstructorName,
+            Cci.TypeMemberVisibility.Private,
+            containingType,
+            maxStack,
+            il)
+    {
+        public override bool IsRuntimeSpecial => true;
+        public override bool IsSpecialName => true;
+    }
+
+    private abstract class MethodDefinitionBase(
+        string name,
+        Cci.TypeMemberVisibility visibility,
+        Cci.INamespaceTypeDefinition containingType,
+        ushort maxStack,
+        ImmutableArray<byte> il)
         : Cci.IMethodDefinition, Cci.IMethodBody
     {
-        private readonly DataStringHolder _containingType = containingType;
+        private readonly string _name = name;
+        private readonly Cci.TypeMemberVisibility _visibility = visibility;
+        private readonly Cci.INamespaceTypeDefinition _containingType = containingType;
         private readonly ushort _maxStack = maxStack;
         private readonly ImmutableArray<byte> _il = il;
 
@@ -209,12 +306,12 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
         public bool IsHiddenBySignature => true;
         public bool IsNewSlot => false;
         public bool IsPlatformInvoke => false;
-        public bool IsRuntimeSpecial => true;
+        public virtual bool IsRuntimeSpecial => false;
         public bool IsSealed => false;
-        public bool IsSpecialName => true;
+        public virtual bool IsSpecialName => false;
         public bool IsStatic => true;
         public bool IsVirtual => false;
-        public ImmutableArray<Cci.IParameterDefinition> Parameters => [];
+        public virtual ImmutableArray<Cci.IParameterDefinition> Parameters => [];
         public Cci.IPlatformInvokeInformation PlatformInvokeData => throw ExceptionUtilities.Unreachable();
         public bool RequiresSecurityObject => false;
         public bool ReturnValueIsMarshalledExplicitly => false;
@@ -223,7 +320,7 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
         public IEnumerable<Cci.SecurityAttribute> SecurityAttributes => [];
         public Cci.INamespace ContainingNamespace => throw ExceptionUtilities.Unreachable();
         public Cci.ITypeDefinition ContainingTypeDefinition => _containingType;
-        public Cci.TypeMemberVisibility Visibility => Cci.TypeMemberVisibility.Private;
+        public Cci.TypeMemberVisibility Visibility => _visibility;
         public bool IsEncDeleted => false;
         public bool AcceptsExtraArguments => false;
         public ushort GenericParameterCount => 0;
@@ -231,11 +328,11 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
         public Cci.IGenericMethodInstanceReference? AsGenericMethodInstanceReference => null;
         public Cci.ISpecializedMethodReference? AsSpecializedMethodReference => null;
         public Cci.CallingConvention CallingConvention => Cci.CallingConvention.Default;
-        public ushort ParameterCount => 0;
+        public ushort ParameterCount => (ushort)Parameters.Length;
         public ImmutableArray<Cci.ICustomModifier> ReturnValueCustomModifiers => [];
         public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers => [];
         public bool ReturnValueIsByRef => false;
-        public string Name => WellKnownMemberNames.StaticConstructorName;
+        public string Name => _name;
 
         public Cci.IMethodBody? GetBody(EmitContext context) => this;
         public Cci.IDefinition? AsDefinition(EmitContext context) => this;
@@ -244,10 +341,11 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
         public Cci.ITypeReference GetContainingType(EmitContext context) => ContainingTypeDefinition;
         public MethodImplAttributes GetImplementationAttributes(EmitContext context) => default;
         public ISymbolInternal? GetInternalSymbol() => null;
-        public ImmutableArray<Cci.IParameterTypeInformation> GetParameters(EmitContext context) => [];
+        public ImmutableArray<Cci.IParameterTypeInformation> GetParameters(EmitContext context)
+            => Parameters.CastArray<Cci.IParameterTypeInformation>();
         public Cci.IMethodDefinition? GetResolvedMethod(EmitContext context) => this;
         public IEnumerable<Cci.ICustomAttribute> GetReturnValueAttributes(EmitContext context) => [];
-        public Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
+        public virtual Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(Cci.PlatformType.SystemVoid, context);
         #endregion
 
         #region IMethodBody
@@ -275,5 +373,46 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
         public ImmutableArray<SourceSpan> CodeCoverageSpans => [];
         public bool IsPrimaryConstructor => false;
         #endregion
+    }
+
+    private sealed class ParameterDefinition(
+        ushort index,
+        string name,
+        Cci.PlatformType type)
+        : ParameterDefinitionBase(index, name)
+    {
+        private readonly Cci.PlatformType _type = type;
+
+        public override Cci.ITypeReference GetType(EmitContext context) => context.Module.GetPlatformType(_type, context);
+    }
+
+    private abstract class ParameterDefinitionBase(
+        ushort index,
+        string name)
+        : Cci.IParameterDefinition
+    {
+        private readonly ushort _index = index;
+        private readonly string _name = name;
+
+        public bool HasDefaultValue => false;
+        public bool IsIn => false;
+        public bool IsMarshalledExplicitly => false;
+        public bool IsOptional => false;
+        public bool IsOut => false;
+        public Cci.IMarshallingInformation? MarshallingInformation => null;
+        public ImmutableArray<byte> MarshallingDescriptor => default;
+        public bool IsEncDeleted => false;
+        public string Name => _name;
+        public ImmutableArray<Cci.ICustomModifier> CustomModifiers => [];
+        public ImmutableArray<Cci.ICustomModifier> RefCustomModifiers => [];
+        public bool IsByReference => false;
+        public ushort Index => _index;
+
+        public Cci.IDefinition? AsDefinition(EmitContext context) => this;
+        public void Dispatch(Cci.MetadataVisitor visitor) => visitor.Visit(this);
+        public IEnumerable<Cci.ICustomAttribute> GetAttributes(EmitContext context) => [];
+        public MetadataConstant? GetDefaultValue(EmitContext context) => null;
+        public ISymbolInternal? GetInternalSymbol() => null;
+        public abstract Cci.ITypeReference GetType(EmitContext context);
     }
 }

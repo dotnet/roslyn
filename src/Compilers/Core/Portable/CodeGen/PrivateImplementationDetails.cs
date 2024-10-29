@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal const string SynthesizedInlineArrayFirstElementRefName = "InlineArrayFirstElementRef";
         internal const string SynthesizedInlineArrayFirstElementRefReadOnlyName = "InlineArrayFirstElementRefReadOnly";
 
+        internal const string SynthesizedBytesToStringFunctionName = "BytesToString";
+
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type
         private readonly Cci.ITypeReference _systemValueType;        //base for nested structs

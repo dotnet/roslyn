@@ -183,14 +183,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 methodCompiler.WaitForWorkers();
 
+                moduleBeingBuiltOpt.FreezeDataStringHolders(diagnostics.DiagnosticBag);
+
                 // all threads that were adding methods must be finished now, we can freeze the class:
                 var privateImplClass = moduleBeingBuiltOpt.FreezePrivateImplementationDetails();
                 if (privateImplClass != null)
                 {
                     methodCompiler.CompileSynthesizedMethods(privateImplClass, diagnostics);
                 }
-
-                moduleBeingBuiltOpt.FreezeDataStringHolders(diagnostics.DiagnosticBag);
             }
 
             // If we are trying to emit and there's an error without a corresponding diagnostic (e.g. because
@@ -673,8 +673,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelAndNestedTypeMethods(context)))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
-                Debug.Assert(method.SynthesizesLoweredBoundBody);
-                method.GenerateMethodBody(compilationState, diagnostics);
+                if (method is not null)
+                {
+                    Debug.Assert(method.SynthesizesLoweredBoundBody);
+                    method.GenerateMethodBody(compilationState, diagnostics);
+                }
             }
 
             CompileSynthesizedMethods(compilationState);
