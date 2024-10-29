@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <remarks>
     /// For example, in this design, all lifetimes have a known relationship to all other lifetimes.
     /// </remarks>
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct Lifetime
     {
         private const uint CallingMethodRaw = 0;
@@ -118,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool operator !=(Lifetime lhs, Lifetime rhs)
             => lhs._value != rhs._value;
 
-        private string GetDebuggerDisplay()
+        public override string ToString()
             => _value switch
             {
                 CallingMethodRaw => "Lifetime<CallingMethod>",
