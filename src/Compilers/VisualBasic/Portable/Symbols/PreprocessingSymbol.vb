@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _name As String
 
         Friend Sub New(name As String)
+            MyBase.New()
             _name = name
         End Sub
 

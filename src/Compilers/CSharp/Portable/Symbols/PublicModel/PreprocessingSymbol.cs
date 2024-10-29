@@ -36,8 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
                 return true;
             }
 
-            return obj is PreprocessingSymbol other &&
-                _name == other._name;
+            if (ReferenceEquals(obj, null))
+            {
+                return false;
+            }
+
+            PreprocessingSymbol? other = obj as PreprocessingSymbol;
+
+            return (object?)other != null &&
+                this._name.Equals(other._name);
         }
 
         bool IEquatable<ISymbol?>.Equals(ISymbol? other)
