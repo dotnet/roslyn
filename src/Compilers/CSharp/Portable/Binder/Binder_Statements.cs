@@ -239,14 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-            if (!argument.HasAnyErrors)
-            {
-                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
-            }
-            else
-            {
-                argument = BindToTypeForErrorRecovery(argument);
-            }
+            bool hasErrors = false;
 
             // NOTE: it's possible that more than one of these conditions is satisfied and that
             // we won't report the syntactically innermost.  However, dev11 appears to check
@@ -254,25 +247,45 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Flags.Includes(BinderFlags.InFinallyBlock))
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInFinally, node.YieldKeyword);
+                hasErrors = true;
             }
             else if (this.Flags.Includes(BinderFlags.InTryBlockOfTryCatch))
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInTryOfCatch, node.YieldKeyword);
+                hasErrors = true;
             }
             else if (this.Flags.Includes(BinderFlags.InCatchBlock))
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInCatch, node.YieldKeyword);
+                hasErrors = true;
             }
             else if (BindingTopLevelScriptCode)
             {
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+                hasErrors = true;
             }
             else if (InUnsafeRegion && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync))
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
+                hasErrors = true;
             }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
+
+            if (argument != null)
+            {
+                hasErrors |= argument.HasErrors || ((object)argument.Type != null && argument.Type.IsErrorType());
+            }
+
+            if (hasErrors)
+            {
+                argument = BindToTypeForErrorRecovery(argument);
+            }
+            else
+            {
+                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
+            }
+
             return new BoundYieldReturnStatement(node, argument);
         }
 

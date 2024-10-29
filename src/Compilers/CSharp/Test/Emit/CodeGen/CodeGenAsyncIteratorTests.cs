@@ -8727,6 +8727,9 @@ class C
                 // (9,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         yield return async s =>
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 30),
+                // (11,13): error CS0118: 's' is a variable but is used like a type
+                //             s // 1
+                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(11, 13), /* TODO2 */
                 // (12,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //             await Task.CompletedTask;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(12, 13),
@@ -8735,13 +8738,21 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "await").WithArguments("await").WithLocation(12, 13),
                 // (12,19): error CS1002: ; expected
                 //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(12, 19));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(12, 19),
+                // (12,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(12, 19)); /* TODO2 */
+
+            // TODO2
+            // Note: the ERR_BadSKknown and ERR_IllegalStatement binding errors are reported here, but not in the similar scenario with a `return` instead of a `yield return`
+            // In BindReturn scenario, we use CreateReturnConversion, which skips reporting from GenerateImplicitConversionError if argument.HasAnyErrors
+            // But in BindYieldReturn scenario, we use GenerateConversionForAssignment which uses GenerateImplicitConversionError unconditionally.
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var s = GetSyntax<IdentifierNameSyntax>(tree, "s");
             Assert.Null(model.GetSymbolInfo(s).Symbol);
-            Assert.Equal(new[] { "? s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
+            Assert.Equal(new[] { "System.String s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
         }
 
         [Fact]
