@@ -1145,10 +1145,13 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public void FreezeDataStringHolders(DiagnosticBag diagnostics)
         {
-            foreach (var dataStringHolder in _dataStringHolders ?? [])
+            if (_dataStringHolders is { } dataStringHolders)
             {
-                Debug.Assert(!dataStringHolder.IsFrozen);
-                dataStringHolder.Freeze(diagnostics);
+                foreach (var dataStringHolder in dataStringHolders)
+                {
+                    Debug.Assert(!dataStringHolder.IsFrozen);
+                    dataStringHolder.Freeze(diagnostics);
+                }
             }
         }
 
