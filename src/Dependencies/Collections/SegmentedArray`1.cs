@@ -94,6 +94,39 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
+        public SegmentedArray<T> Resize(int newLength)
+        {
+            // For now, only allow growing resizes
+            if (newLength <= _length)
+                throw new ArgumentOutOfRangeException(nameof(newLength));
+
+            var newItems = new T[(newLength + SegmentSize - 1) >> SegmentShift][];
+            var lastPageSize = newLength - ((newItems.Length - 1) << SegmentShift);
+
+            // Copy over all old pages
+            for (var i = 0; i < _items.Length; i++)
+                newItems[i] = _items[i];
+
+            // If the previous last page is still the last page, resize it to lastPageSize.
+            // Otherwise, resize it to SegmentSize.
+            if (_items.Length > 0)
+            {
+                Array.Resize(
+                    ref newItems[_items.Length - 1],
+                    _items.Length == newItems.Length ? lastPageSize : SegmentSize);
+            }
+
+            // Create all new pages (except the last one which is done separately)
+            for (var i = _items.Length; i < newItems.Length - 1; i++)
+                newItems[i] = new T[SegmentSize];
+
+            // Create a new last page if necessary
+            if (_items.Length < newItems.Length)
+                newItems[newItems.Length - 1] = new T[lastPageSize];
+
+            return new SegmentedArray<T>(newLength, newItems);
+        }
+
         private SegmentedArray(int length, T[][] items)
         {
             _length = length;

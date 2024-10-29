@@ -135,12 +135,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 {
                     if (value > 0)
                     {
-                        var newItems = new SegmentedArray<T>(value);
-                        if (_size > 0)
-                        {
-                            SegmentedArray.Copy(_items, newItems, _size);
-                        }
-                        _items = newItems;
+                        _items = _items.Resize(value);
                     }
                     else
                     {
@@ -503,6 +498,14 @@ namespace Microsoft.CodeAnalysis.Collections
             // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
             if (newCapacity < capacity)
                 newCapacity = capacity;
+            else
+            {
+                var segmentSize = SegmentedArrayHelper.GetSegmentSize<T>();
+
+                // If caller didn't request a large capacity increase, limit the increase to a single page
+                if (newCapacity > segmentSize)
+                    newCapacity = (((capacity - 1) / segmentSize) + 1) * segmentSize;
+            }
 
             Capacity = newCapacity;
         }
