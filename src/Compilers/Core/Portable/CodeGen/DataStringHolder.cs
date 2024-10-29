@@ -92,7 +92,7 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
             throw new InvalidOperationException();
         }
 
-        var fieldsBuilder = ArrayBuilder<SynthesizedStaticField>.GetInstance(_mappedFields.Count);
+        var fieldsBuilder = ArrayBuilder<SynthesizedStaticField>.GetInstance(_mappedFields.Count * 2);
 
         foreach (var (mappedField, stringField) in _mappedFields.Values)
         {
