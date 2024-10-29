@@ -1980,7 +1980,31 @@ LoopExit:
                     case '#':
                         if (_allowPreprocessorDirectives)
                         {
-                            this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
+                            if (isTrailing || !onlyWhitespaceOnLine)
+                            {
+                                // Directives cannot be in trailing trivia - parse as skipped tokens trivia instead.
+
+                                var directiveBuilder = new SyntaxListBuilder(10);
+                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, afterNonWhitespaceOnLine: true, ref directiveBuilder);
+
+                                if (directiveBuilder.ToListNode() is { } listNode)
+                                {
+                                    var skippedTriviaBuilder = new SyntaxListBuilder(10);
+                                    foreach (var node in listNode.EnumerateNodes())
+                                    {
+                                        if (node is SyntaxToken token)
+                                        {
+                                            skippedTriviaBuilder.Add(token);
+                                        }
+                                    }
+
+                                    this.AddTrivia(SyntaxFactory.SkippedTokensTrivia(skippedTriviaBuilder.ToList()), ref triviaList);
+                                }
+                            }
+                            else
+                            {
+                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, afterNonWhitespaceOnLine: false, ref triviaList);
+                            }
                             break;
                         }
                         else
