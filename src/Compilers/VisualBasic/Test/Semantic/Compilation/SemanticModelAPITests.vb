@@ -2947,12 +2947,12 @@ End Class")
                                    Single(Function(n) n.Identifier.ValueText = name)
                                    Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
                                End Function
-            ' VB does not have a concept of a managed type
-            Assert.False(getLocalType("s1").IsUnmanagedType)
-            Assert.False(getLocalType("s2").IsUnmanagedType)
+
+            Assert.True(getLocalType("s1").IsUnmanagedType)
+            Assert.True(getLocalType("s2").IsUnmanagedType)
             Assert.False(getLocalType("s3").IsUnmanagedType)
-            Assert.False(getLocalType("s4").IsUnmanagedType)
-            Assert.False(getLocalType("e1").IsUnmanagedType)
+            Assert.True(getLocalType("s4").IsUnmanagedType)
+            Assert.True(getLocalType("e1").IsUnmanagedType)
         End Sub
 
         <Fact>

@@ -1530,6 +1530,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic16_9, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:17.13", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic17_13, parsedArgs.ParseOptions.LanguageVersion)
+
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
 
@@ -2055,7 +2059,7 @@ End Module").Path
             ' - update the "UpgradeProject" codefixer (not yet supported in VB)
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "latest"},
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "17.13", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
@@ -2077,7 +2081,8 @@ End Module").Path
                 "15.3",
                 "15.5",
                 "16",
-                "16.9"
+                "16.9",
+                "17.13"
              }
 
             AssertEx.SetEqual(versions, errorCodes)
@@ -2098,6 +2103,7 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic17_13, LanguageVersion.VisualBasic17_13.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -2121,6 +2127,7 @@ End Module").Path
             InlineData("16", True, LanguageVersion.VisualBasic16),
             InlineData("16.0", True, LanguageVersion.VisualBasic16),
             InlineData("16.9", True, LanguageVersion.VisualBasic16_9),
+            InlineData("17.13", True, LanguageVersion.VisualBasic17_13),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),

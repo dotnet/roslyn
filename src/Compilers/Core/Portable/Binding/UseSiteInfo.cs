@@ -320,6 +320,21 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public void AddDiagnosticInfo(DiagnosticInfo diagnosticInfo)
+        {
+            if (!AccumulatesDiagnostics)
+            {
+                return;
+            }
+
+            _diagnostics ??= new HashSet<DiagnosticInfo>();
+
+            if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                RecordPresenceOfAnError();
+            }
+        }
+
         public void AddDependencies(UseSiteInfo<TAssemblySymbol> info)
         {
             if (!_hasErrors && AccumulatesDependencies)

@@ -80,6 +80,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+            Get
+                Return _underlyingTypeParameter.HasUnmanagedTypeConstraint
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property HasConstructorConstraint As Boolean
             Get
                 Return _underlyingTypeParameter.HasConstructorConstraint
