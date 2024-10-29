@@ -1127,8 +1127,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -1;
             }
 
-            if (member.IsStatic != (containingSlot == 0))
+            if (member.IsStatic)
             {
+                // Trying to access a static member from a non-static context
+                containingSlot = 0;
+            }
+            else if (containingSlot == 0)
+            {
+                // Trying to access an instance member from a static context
                 return -1;
             }
 
@@ -7057,7 +7063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // For an instance method, or a non-static local function in an instance method, returns the slot for the `this` parameter
-        // For a static method, or a static local function in a static method, returns 0
+        // For a static method, or a static local function, or a local function in a static method, returns 0
         // Otherwise, returns -1
         private int GetReceiverSlotForMemberPostConditions(MethodSymbol? method)
         {
@@ -7066,40 +7072,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -1;
             }
 
-            bool isStatic = method.IsStatic;
-
             MethodSymbol? current = method;
-            while (current is object)
+            bool anyStatic = current.IsStatic;
+            while (current.ContainingSymbol is MethodSymbol container)
             {
-                if (current.IsStatic != isStatic)
-                {
-                    // If an instance local function is a static method or vice versa, 
-                    // we cannot apply the member post-conditions
-                    return -1;
-                }
-
-                var container = current.ContainingSymbol;
-                if (container.Kind == SymbolKind.NamedType)
-                {
-                    if (isStatic)
-                    {
-                        return 0;
-                    }
-
-                    if (current.TryGetThisParameter(out var thisParameter) && thisParameter is not null)
-                    {
-                        return GetOrCreateSlot(thisParameter);
-                    }
-
-                    // The ContainingSymbol on a substituted local function is incorrect (returns the containing type instead of the containing method)
-                    // so we can't find the proper `this` receiver to apply the member post-conditions to.
-                    // Tracked by https://github.com/dotnet/roslyn/issues/75543
-                    return -1;
-                }
-
-                current = container as MethodSymbol;
+                current = container;
+                anyStatic |= container.IsStatic;
             }
 
+            if (anyStatic)
+            {
+                return 0;
+            }
+
+            if (current.TryGetThisParameter(out var thisParameter) && thisParameter is not null)
+            {
+                return GetOrCreateSlot(thisParameter);
+            }
+
+            // The ContainingSymbol on a substituted local function is incorrect (returns the containing type instead of the containing method)
+            // so we can't find the proper `this` receiver to apply the member post-conditions to.
+            // Tracked by https://github.com/dotnet/roslyn/issues/75543
             return -1;
         }
 
@@ -7154,7 +7147,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (member.IsStatic)
                     {
+                        // Trying to access a static member from a non-static context
                         receiverSlot = 0;
+                    }
+                    else if (receiverSlot == 0)
+                    {
+                        // Trying to access an instance member from a static context
+                        continue;
                     }
 
                     switch (member.Kind)
