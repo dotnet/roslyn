@@ -17,12 +17,20 @@ schedules:
 #    name: DeploymentScripts
 #    ref: refs/heads/test
 
+parameters:
+  - name: ShouldSkipOptimize
+    displayName: Skip OptProf optimization
+    type: boolean
+    default: false # Should usually be false so that optprof LKG can apply when tests fail, but may need to be set to true in a manually queued pipeline run if all drops have expired.
+
 variables:
 - template: GlobalVariables.yml
 - name: PublicRelease
   value: false # avoid using nice version since we're building a preliminary/unoptimized package
 - name: IsOptProf
   value: true
+- name: MicroBuild_NuPkgSigningEnabled
+  value: false # test-signed nuget packages fail to restore in the VS insertion PR validations. Just don't sign them *at all*.
 
 stages:
 - stage: Library
@@ -34,12 +42,13 @@ stages:
   - template: build.yml
     parameters:
       Is1ESPT: false
-      RealSign: true
+      RealSign: false
       windowsPool: VSEngSS-MicroBuild2022-1ES
       EnableMacOSBuild: false
-      ShouldSkipOptimize: true
+      ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
       IsOptProf: true
       RunTests: false
+      SkipCodesignVerify: true
 - stage: QueueVSBuild
   jobs:
   - job: QueueOptProf
@@ -75,7 +84,7 @@ stages:
         targetType: filePath
         filePath: $(Agent.TempDirectory)/Variables-Windows/_pipelines.ps1
     - task: NuGetCommand@2
-      displayName: Push CoreXT packages to VS feed
+      displayName: Push VS-repo packages to VS feed
       inputs:
         command: push
         packagesToPush: $(Agent.TempDirectory)/VSInsertion-Windows/*.nupkg

@@ -36,7 +36,7 @@ function Replace-Placeholders {
 
     $Path = Resolve-Path $Path
     Write-Host "Replacing tokens in `"$Path`""
-    $content = Get-Content -Path $Path | Out-String
+    $content = Get-Content -Encoding UTF8 -Path $Path | Out-String
     $Replacements.GetEnumerator() |% {
         $modifiedContent = $content -replace $_.Key,$_.Value
         if ($modifiedContent -eq $content) {
@@ -105,6 +105,8 @@ try {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     git mv test/Library.Tests "test/$LibraryName.Tests"
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    git mv src/VSInsertionMetadata/Library.VSInsertionMetadata.proj "src/VSInsertionMetadata/$LibraryName.VSInsertionMetadata.proj"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     # Refresh solution file both to update paths and give the projects unique GUIDs
     dotnet sln remove src/Library/Library.csproj
@@ -164,16 +166,14 @@ try {
         'LibraryNoDots' = $LibraryName.Replace('.','');
     }
 
+    Replace-Placeholders -Path "azure-pipelines/variables/InsertJsonValues.ps1" -Replacements @{
+        'LibraryName' = $LibraryName;
+    }
+
     Replace-Placeholders -Path "azure-pipelines/variables/SymbolsFeatureName.ps1" -Replacements @{
         'LibraryName' = $LibraryName;
     }
 
-    Replace-Placeholders -Path "azure-pipelines/InsertionMetadataPackage.nuspec" -Replacements @{
-        'LibraryName' = $LibraryName;
-    }
-    Replace-Placeholders -Path "azure-pipelines/artifacts/VSInsertion.ps1" -Replacements @{
-        'LibraryName' = $LibraryName;
-    }
     Replace-Placeholders -Path "azure-pipelines/OptProf.yml" -Replacements @{
         'LibraryName' = $LibraryName;
     }

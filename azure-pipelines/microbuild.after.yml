@@ -5,14 +5,19 @@ parameters:
 - name: IsOptProf
   type: boolean
   default: false
+- name: SkipCodesignVerify
+  type: boolean
 
 steps:
-- task: MicroBuildCodesignVerify@3
-  displayName: 🔍 Verify Signed Files
-  inputs:
-    TargetFolders: |
-      $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)/NuGet
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
+- ${{ if not(parameters.SkipCodesignVerify) }}: # skip CodesignVerify on validation builds because we don't even test-sign nupkg's.
+  - task: MicroBuildCodesignVerify@3
+    displayName: 🔍 Verify Signed Files
+    inputs:
+      ApprovalListPathForSigs: $(Build.SourcesDirectory)\azure-pipelines\no_strongname.txt
+      ApprovalListPathForCerts: $(Build.SourcesDirectory)\azure-pipelines\no_authenticode.txt
+      TargetFolders: |
+        $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - ${{ if parameters.IsOptProf }}:
   - task: ms-vscs-artifact.build-tasks.artifactDropTask-1.artifactDropTask@0

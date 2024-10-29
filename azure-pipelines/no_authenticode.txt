@@ -1,0 +1,2 @@
+bin\packages\release\vsix\_manifest\manifest.cat,sbom signed
+bin\packages\release\vsix\_manifest\spdx_2.2\manifest.cat,sbom signed

@@ -71,6 +71,11 @@ parameters:
   type: boolean
   default: true
 
+# Whether this is a special one-off build for inserting into VS for a validation insertion PR (that will never be merged).
+- name: SkipCodesignVerify
+  type: boolean
+  default: false
+
 - name: EnableAPIScan
   type: boolean
   default: false
@@ -91,7 +96,7 @@ parameters:
 - name: linuxPool
   type: object
   default:
-    vmImage: ubuntu-20.04
+    vmImage: ubuntu-22.04
 - name: macOSPool
   type: object
   default:
@@ -197,6 +202,7 @@ jobs:
       parameters:
         EnableOptProf: ${{ parameters.EnableOptProf }}
         IsOptProf: ${{ parameters.IsOptProf }}
+        SkipCodesignVerify: ${{ parameters.SkipCodesignVerify }}
 
   - template: expand-template.yml
 
@@ -273,6 +279,15 @@ jobs:
       - macOS
     pool: ${{ parameters.windowsPool }} # Use Windows agent because PublishSymbols task requires it (https://github.com/microsoft/azure-pipelines-tasks/issues/13821).
     condition: succeededOrFailed()
+    ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
+      templateContext:
+        outputParentDirectory: $(Build.ArtifactStagingDirectory)
+        outputs:
+          - output: pipelineArtifact
+            displayName: 📢 Publish symbols-legacy
+            targetPath: $(Build.ArtifactStagingDirectory)/symbols-legacy
+            artifactName: symbols-legacy
+            condition: succeededOrFailed()
     steps:
     - checkout: self
       fetchDepth: 0 # avoid shallow clone so nbgv can do its work.

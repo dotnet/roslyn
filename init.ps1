@@ -157,7 +157,9 @@ try {
     if ($SBOM) {
         Write-Host "Installing MicroBuild SBOM plugin" -ForegroundColor $HeaderColor
         & $InstallNuGetPkgScriptPath MicroBuild.Plugins.Sbom -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
-        $PkgMicrosoft_ManifestTool_CrossPlatform = & $InstallNuGetPkgScriptPath Microsoft.ManifestTool.CrossPlatform -source 'https://1essharedassets.pkgs.visualstudio.com/1esPkgs/_packaging/SBOMTool/nuget/v3/index.json' -Verbosity $nugetVerbosity
+        # The feed with the latest versions of the tool is at 'https://1essharedassets.pkgs.visualstudio.com/1esPkgs/_packaging/SBOMTool/nuget/v3/index.json',
+        # but we'll use the feed that the SBOM task itself uses to install the tool for consistency.
+        $PkgMicrosoft_ManifestTool_CrossPlatform = & $InstallNuGetPkgScriptPath Microsoft.ManifestTool.CrossPlatform -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
         $EnvVars['GenerateSBOM'] = "true"
         $EnvVars['PkgMicrosoft_ManifestTool_CrossPlatform'] = $PkgMicrosoft_ManifestTool_CrossPlatform
     }

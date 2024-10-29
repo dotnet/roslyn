@@ -19,6 +19,6 @@
   // Needs to be explicitly configured: https://github.com/Microsoft/azure-pipelines-vscode#document-formatting
   "[azure-pipelines]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": false // enable this when the conform
+    "editor.formatOnSave": false // enable this when they conform
   },
 }

@@ -2,12 +2,10 @@ $inputs = & "$PSScriptRoot/symbols.ps1"
 
 if (!$inputs) { return }
 
-# Filter out specific files that APIScan does not support.
-# Specifically, APIScan doesn't support Windows ARM64 binaries, nor linux/OSX binaries.
+# Filter out specific files that target OS's that are not subject to APIScan.
+# Files that are subject but are not supported must be scanned and an SEL exception filed.
 $outputs = @{}
 $forbiddenSubPaths = @(
-    , 'arm64'
-    , 'win-arm64'
     , 'linux-*'
     , 'osx*'
 )
