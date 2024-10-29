@@ -8674,7 +8674,7 @@ class C
             comp1.VerifyEmitDiagnostics(); // Would call EnsureMetadataVirtual on S.DisposeAsync and would therefore assert if S was not already ForceCompleted
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68027")]
         public void LambdaWithBindingErrorInYieldReturn()
         {
             var src = """
@@ -8695,10 +8695,10 @@ class C
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            //comp.VerifyDiagnostics(
-            //    // (7,63): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //    //     static async IAsyncEnumerable<Func<string, Task<string>>> BarAsync()
-            //    Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "BarAsync").WithLocation(7, 63));
+            comp.VerifyDiagnostics(
+                // (7,63): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async IAsyncEnumerable<Func<string, Task<string>>> BarAsync()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "BarAsync").WithLocation(7, 63));
 
             src = """
 using System;
@@ -8729,7 +8729,7 @@ class C
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 30),
                 // (11,13): error CS0118: 's' is a variable but is used like a type
                 //             s // 1
-                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(11, 13), /* TODO2 */
+                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(11, 13),
                 // (12,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //             await Task.CompletedTask;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(12, 13),
@@ -8741,12 +8741,7 @@ class C
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(12, 19),
                 // (12,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(12, 19)); /* TODO2 */
-
-            // TODO2
-            // Note: the ERR_BadSKknown and ERR_IllegalStatement binding errors are reported here, but not in the similar scenario with a `return` instead of a `yield return`
-            // In BindReturn scenario, we use CreateReturnConversion, which skips reporting from GenerateImplicitConversionError if argument.HasAnyErrors
-            // But in BindYieldReturn scenario, we use GenerateConversionForAssignment which uses GenerateImplicitConversionError unconditionally.
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(12, 19));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -8775,10 +8770,10 @@ class C
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            //comp.VerifyDiagnostics(
-            //    // (6,51): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-            //    //     static async Task<Func<string, Task<string>>> BarAsync()
-            //    Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "BarAsync").WithLocation(6, 51));
+            comp.VerifyDiagnostics(
+                // (6,51): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     static async Task<Func<string, Task<string>>> BarAsync()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "BarAsync").WithLocation(6, 51));
 
             src = """
 using System;
@@ -8805,6 +8800,9 @@ class C
                 // (8,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //         return async s =>
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 24),
+                // (10,13): error CS0118: 's' is a variable but is used like a type
+                //             s // 1
+                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(10, 13),
                 // (11,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //             await Task.CompletedTask;
                 Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(11, 13),
@@ -8813,7 +8811,10 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "await").WithArguments("await").WithLocation(11, 13),
                 // (11,19): error CS1002: ; expected
                 //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(11, 19));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(11, 19),
+                // (11,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(11, 19));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

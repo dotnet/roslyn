@@ -3167,7 +3167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(syntax, useSiteInfo);
 
-            if (!argument.HasAnyErrors)
+            if (!argument.HasAnyErrors || argument.Kind == BoundKind.UnboundLambda)
             {
                 if (returnRefKind != RefKind.None)
                 {
