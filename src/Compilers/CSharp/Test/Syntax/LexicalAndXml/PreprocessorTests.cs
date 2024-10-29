@@ -2426,7 +2426,7 @@ class A { } #define XXX
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_BadDirectivePlacement); // CS1040
-            VerifyDirectivesSpecial(node);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
         [Fact]
@@ -2587,7 +2587,7 @@ class A { } #undef XXX
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_BadDirectivePlacement);
-            VerifyDirectivesSpecial(node);
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.BadDirectiveTrivia, Status = NodeStatus.IsActive });
         }
 
         [Fact]

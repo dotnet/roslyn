@@ -479,6 +479,9 @@ namespace Microsoft.CodeAnalysis
                             Debug.Assert(!triviaContainsMatch(current.GetLeadingTriviaCore(), rawKind), "Should not have a match if the token doesn't even have leading trivia");
                         }
 
+                        // This assert would fail if `rawKind` is not a directive or it corresponds to BadDirectiveTrivia
+                        // (directives after non-whitespace are put into a trailing BadDirectiveTrivia).
+                        // This method should not be called with such `rawKind`s, though.
                         Debug.Assert(!triviaContainsMatch(current.GetTrailingTriviaCore(), rawKind), "Should never have a match in trailing trivia");
                     }
                     else

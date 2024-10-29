@@ -32,9 +32,11 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
     {
         await TestInMethodAsync(
             """
+
             #pragma warning disable CS0219$$
                         var i = 0;
             #pragma warning restore CS0219
+
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
     }
 
@@ -43,9 +45,11 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
     {
         await TestInMethodAsync(
             """
+
             #pragma warning disable CS0219
                         var i = 0;
             #pragma warning restore CS0219$$
+
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
     }
 
@@ -54,7 +58,9 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
     {
         await TestInMethodAsync(
             """
+
             #pragma warning disable CS0219$$
+
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
     }
 

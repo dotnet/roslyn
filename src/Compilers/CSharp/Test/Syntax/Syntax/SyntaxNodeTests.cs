@@ -347,22 +347,21 @@ class C {
         public void TestContainsDirective()
         {
             // Empty compilation unit shouldn't have any directives in it.
-            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.BadDirectiveTrivia; kind++)
                 Assert.False(SyntaxFactory.ParseCompilationUnit("").ContainsDirective(kind));
 
             // basic file shouldn't have any directives in it.
-            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.BadDirectiveTrivia; kind++)
                 Assert.False(SyntaxFactory.ParseCompilationUnit("namespace N { }").ContainsDirective(kind));
 
             // directive in trailing trivia is not a thing
-            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
+            for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.BadDirectiveTrivia; kind++)
             {
                 var compilationUnit = SyntaxFactory.ParseCompilationUnit("namespace N { } #if false");
                 compilationUnit.GetDiagnostics().Verify(
                     // (1,17): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                     // namespace N { } #if false
                     TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17));
-                Assert.False(compilationUnit.ContainsDirectives);
                 Assert.False(compilationUnit.ContainsDirective(kind));
             }
 
@@ -473,7 +472,7 @@ class C {
                 foreach (var directiveKind in directiveKinds)
                     Assert.True(compilationUnit.ContainsDirective(directiveKind));
 
-                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.XmlElement; kind++)
+                for (var kind = SyntaxKind.TildeToken; kind < SyntaxKind.BadDirectiveTrivia; kind++)
                 {
                     if (!directiveKinds.Contains(kind))
                         Assert.False(compilationUnit.ContainsDirective(kind));
@@ -491,22 +490,18 @@ class C {
                 // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // if (#if)
                 TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
-                // (1,6): error CS1733: Expected expression
+                // (1,9): error CS1733: Expected expression
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6),
-                // (1,6): error CS1026: ) expected
+                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1026: ) expected
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 6),
-                // (1,6): error CS1733: Expected expression
+                TestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6),
-                // (1,6): error CS1002: ; expected
+                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1002: ; expected
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 6),
-                // (1,8): error CS1517: Invalid preprocessor expression
-                // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_InvalidPreprocExpr, ")").WithLocation(1, 8));
-            Assert.False(compilationUnit.ContainsDirectives);
+                TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
             Assert.False(compilationUnit.ContainsDirective(SyntaxKind.IfDirectiveTrivia));
         }
 
@@ -2907,7 +2902,7 @@ class C
 
             var text = cu2.ToFullString();
 
-            Assert.Equal("class A { } ", text);
+            Assert.Equal("class A { } \r\n#endregion", text);
         }
 
         [Fact]
@@ -3272,7 +3267,7 @@ class A { } #endregion";
 
             var expectedText = @"
 #region A
-";
+#endregion";
 
             TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
             {
