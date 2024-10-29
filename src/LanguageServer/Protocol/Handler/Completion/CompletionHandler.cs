@@ -220,23 +220,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             matchResultsBuilder.Sort(MatchResult.SortingComparer);
 
             // Determine if the list should be hard selected or soft selected.
-            bool isHardSelection;
-            if (matchResultsBuilder.Count > 0)
-            {
-                var bestResult = GetBestCompletionItemSelectionFromFilteredResults(matchResultsBuilder);
-                isHardSelection = CompletionService.IsHardSelection(bestResult.CompletionItem, bestResult.ShouldBeConsideredMatchingFilterText, completionList.SuggestionModeItem != null, filterText);
-            }
-            else
-            {
-                isHardSelection = completionList.SuggestionModeItem != null;
-            }
+            var isFilterTextAllPunctuation = CompletionService.IsAllPunctuation(filterText);
 
-            // If we only had punctuation - we set the list to be incomplete so we get called back when the user continues typing.
+            // If we only had punctuation - we set soft selection and the list to be incomplete so we get called back when the user continues typing.
             // If they type something that is not punctuation, we may need to update the hard vs soft selection.
             // For example, typing '_' should initially be soft selection, but if the user types 'o' we should hard select '_otherVar' (if it exists).
             // This isn't perfect - ideally we would make this determination every time a filter character is typed, but we do not get called back
             // for typing filter characters in LSP (unless we always set isIncomplete, which is expensive).
-            var isIncomplete = CompletionService.IsAllPunctuation(filterText);
+            var isHardSelection = completionList.SuggestionModeItem is null && !isFilterTextAllPunctuation;
+            var isIncomplete = isFilterTextAllPunctuation;
 
             // If our completion list hasn't hit the max size, we don't need to do anything filtering
             if (completionListMaxSize < 0 || completionListMaxSize >= completionList.ItemsList.Count)
@@ -277,68 +269,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     _ => CompletionFilterReason.Other,
                 };
             }
-        }
-
-        private static MatchResult GetBestCompletionItemSelectionFromFilteredResults(IReadOnlyList<MatchResult> filteredMatchResults)
-        {
-            Debug.Assert(filteredMatchResults.Count > 0);
-
-            var bestResult = filteredMatchResults[0];
-            var bestResultMruIndex = bestResult.RecentItemIndex;
-
-            for (int i = 1, n = filteredMatchResults.Count; i < n; i++)
-            {
-                var currentResult = filteredMatchResults[i];
-                var currentResultMruIndex = currentResult.RecentItemIndex;
-
-                // Most recently used item is our top preference.
-                if (currentResultMruIndex != bestResultMruIndex)
-                {
-                    if (currentResultMruIndex > bestResultMruIndex)
-                    {
-                        bestResult = currentResult;
-                        bestResultMruIndex = currentResultMruIndex;
-                    }
-
-                    continue;
-                }
-
-                // 2nd preference is IntelliCode item
-                var currentIsPreferred = currentResult.CompletionItem.IsPreferredItem();
-                var bestIsPreferred = bestResult.CompletionItem.IsPreferredItem();
-
-                if (currentIsPreferred != bestIsPreferred)
-                {
-                    if (currentIsPreferred && !bestIsPreferred)
-                    {
-                        bestResult = currentResult;
-                    }
-
-                    continue;
-                }
-
-                // 3rd preference is higher MatchPriority
-                var currentMatchPriority = currentResult.CompletionItem.Rules.MatchPriority;
-                var bestMatchPriority = bestResult.CompletionItem.Rules.MatchPriority;
-
-                if (currentMatchPriority != bestMatchPriority)
-                {
-                    if (currentMatchPriority > bestMatchPriority)
-                    {
-                        bestResult = currentResult;
-                    }
-
-                    continue;
-                }
-
-                // final preference is match to FilterText over AdditionalFilterTexts
-                if (bestResult.MatchedWithAdditionalFilterTexts && !currentResult.MatchedWithAdditionalFilterTexts)
-                {
-                    bestResult = currentResult;
-                }
-            }
-
-            return bestResult;
         }
     }
 }
