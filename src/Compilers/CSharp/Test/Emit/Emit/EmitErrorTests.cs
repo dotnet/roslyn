@@ -338,7 +338,9 @@ public class A
 
             CompileAndVerify(builder.ToString(),
                 verify: Verification.Skipped,
-                expectedOutput: expectedOutputBuilder.ToString()).VerifyDiagnostics();
+                expectedOutput: expectedOutputBuilder.ToString())
+                .VerifyDiagnostics()
+                .Dump();
         }
 
         #endregion

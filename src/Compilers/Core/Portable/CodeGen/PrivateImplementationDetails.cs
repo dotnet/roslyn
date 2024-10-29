@@ -229,31 +229,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             });
         }
 
-        /// <summary>
-        /// Gets a field that can be used to to store data directly in an RVA field.
-        /// </summary>
-        /// <param name="data">The data for the field.</param>
-        /// <param name="alignment">
-        /// The alignment value is the necessary alignment for addresses for the underlying element type of the array.
-        /// The data is stored by using a type whose size is equal to the total size of the blob. If a built-in system
-        /// type has an appropriate size and .pack, it can be used. Otherwise, a type is generated of the same size as
-        /// the data, and that type needs its .pack set to the alignment required for the underlying data. While that
-        /// .pack value isn't required by anything else in the compiler (the compiler always aligns RVA fields at 8-byte
-        /// boundaries, which accomodates any element type that's relevant), it is necessary for IL rewriters. Such rewriters
-        /// also need to ensure an appropriate alignment is maintained for the RVA field, and while they could also simplify
-        /// by choosing a worst-case alignment as does the compiler, they may instead use the .pack value as the alignment
-        /// to use for that field, since it's an opaque blob with no other indication as to what kind of data is
-        /// stored and what alignment might be required.
-        /// </param>
-        /// <returns>The field. This may have been newly created or may be an existing field previously created for the same data and alignment.</returns>
-        internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data, ushort alignment)
+        internal Cci.ITypeReference GetOrAddProxyType(int length, ushort alignment)
         {
             Debug.Assert(!IsFrozen);
             Debug.Assert(alignment is 1 or 2 or 4 or 8);
-            Debug.Assert(data.Length != 1 || alignment == 1);
+            Debug.Assert(length != 1 || alignment == 1);
 
-            Cci.ITypeReference type = _proxyTypes.GetOrAdd(
-                ((uint)data.Length, Alignment: alignment), key =>
+            return _proxyTypes.GetOrAdd(
+                ((uint)length, Alignment: alignment), key =>
                 {
                     // We need a type that's both the same size as the data and that has a .pack
                     // that matches the data's alignment requirements. If the size of the data
@@ -275,6 +258,28 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     // Use a custom type.
                     return new ExplicitSizeStruct(key.Size, key.Alignment, this, _systemValueType);
                 });
+        }
+
+        /// <summary>
+        /// Gets a field that can be used to to store data directly in an RVA field.
+        /// </summary>
+        /// <param name="data">The data for the field.</param>
+        /// <param name="alignment">
+        /// The alignment value is the necessary alignment for addresses for the underlying element type of the array.
+        /// The data is stored by using a type whose size is equal to the total size of the blob. If a built-in system
+        /// type has an appropriate size and .pack, it can be used. Otherwise, a type is generated of the same size as
+        /// the data, and that type needs its .pack set to the alignment required for the underlying data. While that
+        /// .pack value isn't required by anything else in the compiler (the compiler always aligns RVA fields at 8-byte
+        /// boundaries, which accomodates any element type that's relevant), it is necessary for IL rewriters. Such rewriters
+        /// also need to ensure an appropriate alignment is maintained for the RVA field, and while they could also simplify
+        /// by choosing a worst-case alignment as does the compiler, they may instead use the .pack value as the alignment
+        /// to use for that field, since it's an opaque blob with no other indication as to what kind of data is
+        /// stored and what alignment might be required.
+        /// </param>
+        /// <returns>The field. This may have been newly created or may be an existing field previously created for the same data and alignment.</returns>
+        internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data, ushort alignment)
+        {
+            Cci.ITypeReference type = GetOrAddProxyType(data.Length, alignment);
 
             return _mappedFields.GetOrAdd((data, alignment), key =>
             {
@@ -449,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public string NamespaceName => string.Empty;
 
-        private static string DataToHex(ImmutableArray<byte> data)
+        internal static string DataToHex(ImmutableArray<byte> data)
         {
             ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(data);
             return HashToHex(hash);
@@ -484,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             static char hexchar(int x) => (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
         }
 
-        private sealed class FieldComparer : IComparer<SynthesizedStaticField>
+        internal sealed class FieldComparer : IComparer<SynthesizedStaticField>
         {
             public static readonly FieldComparer Instance = new FieldComparer();
 
@@ -502,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private sealed class DataAndUShortEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, ushort Value)>
+        internal sealed class DataAndUShortEqualityComparer : EqualityComparer<(ImmutableArray<byte> Data, ushort Value)>
         {
             public static readonly DataAndUShortEqualityComparer Instance = new DataAndUShortEqualityComparer();
 

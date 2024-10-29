@@ -210,9 +210,16 @@ namespace Microsoft.CodeAnalysis.Emit
                     yield return typeDef;
                 }
             }
+
+            foreach (var typeDef in GetFrozenDataStringHolders())
+            {
+                yield return typeDef;
+            }
         }
 
         public abstract PrivateImplementationDetails? GetFrozenPrivateImplementationDetails();
+
+        public abstract IEnumerable<DataStringHolder> GetFrozenDataStringHolders();
 
         /// <summary>
         /// Additional top-level types injected by the Expression Evaluators.
@@ -591,6 +598,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly TCompilation Compilation;
 
         private PrivateImplementationDetails _lazyPrivateImplementationDetails;
+        private ArrayBuilder<DataStringHolder> _dataStringHolders;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
 
@@ -1044,6 +1052,26 @@ namespace Microsoft.CodeAnalysis.Emit
             return privateImpl.CreateArrayCachingField(constants, arrayType, emitContext);
         }
 
+        Cci.IFieldReference ITokenDeferral.GetFieldForDataString(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            TSyntaxNode tSyntaxNode = (TSyntaxNode)syntaxNode;
+
+            var holder = new DataStringHolder(
+                moduleBuilder: this,
+                moduleName: SourceModule.Name,
+                submissionSlotIndex: Compilation.GetSubmissionSlotIndex(),
+                nameSuffix: PrivateImplementationDetails.DataToHex(data),
+                systemObject: GetSpecialType(SpecialType.System_Object, tSyntaxNode, diagnostics),
+                compilerGeneratedAttribute: SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
+                privateImplementationDetails: GetPrivateImplClass(tSyntaxNode, diagnostics));
+
+            _dataStringHolders ??= ArrayBuilder<DataStringHolder>.GetInstance();
+
+            _dataStringHolders.Add(holder);
+
+            return holder.CreateDataField(data);
+        }
+
         public abstract Cci.IMethodReference GetInitArrayHelper();
 
         public abstract Cci.IMethodReference GetEncodingUtf8();
@@ -1113,6 +1141,21 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             Debug.Assert(_lazyPrivateImplementationDetails?.IsFrozen != false);
             return _lazyPrivateImplementationDetails;
+        }
+
+        public void FreezeDataStringHolders()
+        {
+            foreach (var dataStringHolder in _dataStringHolders ?? [])
+            {
+                Debug.Assert(!dataStringHolder.IsFrozen);
+                dataStringHolder.Freeze();
+            }
+        }
+
+        public override IEnumerable<DataStringHolder> GetFrozenDataStringHolders()
+        {
+            Debug.Assert(_dataStringHolders?.All(h => h.IsFrozen) != false);
+            return _dataStringHolders ?? [];
         }
 
 #nullable disable
