@@ -29,6 +29,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             }
         }
 
+        public static IEnumerable<object[]> TestLengthsAndSegmentCounts
+        {
+            get
+            {
+                for (var segmentsToAdd = 1; segmentsToAdd < 4; segmentsToAdd++)
+                {
+                    yield return new object[] { 1, segmentsToAdd };
+                    yield return new object[] { 10, segmentsToAdd };
+                    yield return new object[] { 100, segmentsToAdd };
+                    yield return new object[] { SegmentedArray<object>.TestAccessor.SegmentSize / 2, segmentsToAdd };
+                    yield return new object[] { SegmentedArray<object>.TestAccessor.SegmentSize, segmentsToAdd };
+                    yield return new object[] { SegmentedArray<object>.TestAccessor.SegmentSize * 2, segmentsToAdd };
+                    yield return new object[] { 100000, segmentsToAdd };
+                }
+            }
+        }
+
         private static void ResetToSequence(SegmentedArray<IntPtr> array)
         {
             for (var i = 0; i < array.Length; i++)
@@ -240,6 +257,75 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     segmented[i] = i;
                 }
             }
+        }
+
+        [Theory]
+        [MemberData(nameof(TestLengths))]
+        public void Resize_ArgumentValidity(int length)
+        {
+            var o = new object();
+
+            var segmented = new SegmentedArray<object>(length);
+            for (var i = 0; i < length; i++)
+                segmented[i] = o;
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => segmented.Resize(length - 1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => segmented.Resize(length));
+        }
+
+        [Theory]
+        [MemberData(nameof(TestLengthsAndSegmentCounts))]
+        public void Resize_ReusesSegments(
+            int length,
+            int addSegmentCount)
+        {
+            var elementCountToAdd = SegmentedArray<object>.TestAccessor.SegmentSize * addSegmentCount;
+            var o = new object();
+
+            var oldSegmented = new SegmentedArray<object>(length);
+            for (var i = 0; i < length; i++)
+                oldSegmented[i] = o;
+
+            var oldSegments = SegmentedArray<object>.TestAccessor.GetSegments(oldSegmented);
+            var oldSegmentCount = oldSegments.Length;
+
+            var resizedSegmented = oldSegmented.Resize(length + elementCountToAdd);
+            var resizedSegments = SegmentedArray<object>.TestAccessor.GetSegments(resizedSegmented);
+            var resizedSegmentCount = resizedSegments.Length;
+
+            Assert.Equal(oldSegmentCount + addSegmentCount, resizedSegmentCount);
+
+            for (var i = 0; i < oldSegmentCount - 1; i++)
+                Assert.Same(resizedSegments[i], oldSegments[i]);
+
+            for (var i = oldSegmentCount - 1; i < resizedSegmentCount - 1; i++)
+                Assert.Equal(resizedSegments[i].Length, SegmentedArray<object>.TestAccessor.SegmentSize);
+
+            Assert.NotSame(resizedSegments[resizedSegmentCount - 1], oldSegments[oldSegmentCount - 1]);
+            Assert.Equal(resizedSegments[resizedSegmentCount - 1].Length, oldSegments[oldSegmentCount - 1].Length);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Resize_InOnlySingleSegment(
+            [CombinatorialValues(1, 2, 10, 100)] int length,
+            [CombinatorialValues(1, 2, 10, 100)] int addItemCount)
+        {
+            var o = new object();
+
+            var oldSegmented = new SegmentedArray<object>(length);
+            for (var i = 0; i < length; i++)
+                oldSegmented[i] = o;
+
+            var oldSegments = SegmentedArray<object>.TestAccessor.GetSegments(oldSegmented);
+
+            var resizedSegmented = oldSegmented.Resize(length + addItemCount);
+            var resizedSegments = SegmentedArray<object>.TestAccessor.GetSegments(resizedSegmented);
+
+            Assert.Equal(1, oldSegments.Length);
+            Assert.Equal(1, resizedSegments.Length);
+            Assert.NotSame(resizedSegments[0], oldSegments[0]);
+            Assert.Equal(resizedSegments[0].Length, oldSegments[0].Length + addItemCount);
         }
     }
 }
