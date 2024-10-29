@@ -159,13 +159,12 @@ namespace Roslyn.Test.Utilities
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         // IsMonoDesktop means https://github.com/mono/mono
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
-        public static bool IsMono => MonoHelpers.IsRunningOnMono();
         // IsMonoCore means https://github.com/dotnet/runtime/tree/main/src/mono
         public static bool IsMonoCore => Type.GetType("Mono.RuntimeStructs") != null;
         public static bool IsAnyMono => IsMonoCore || IsMonoDesktop;
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
-        public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
+        public static bool IsMonoOrCoreClr => IsMonoDesktop || IsCoreClr;
         public static bool RuntimeSupportsCovariantReturnsOfClasses => Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") != null;
 
         private static readonly Lazy<bool> s_operatingSystemRestrictsFileNames = new Lazy<bool>(() =>
