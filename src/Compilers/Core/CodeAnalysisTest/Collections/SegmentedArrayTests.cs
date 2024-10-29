@@ -286,11 +286,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             for (var i = 0; i < length; i++)
                 oldSegmented[i] = o;
 
-            var oldSegments = SegmentedArray<object>.TestAccessor.GetSegments(oldSegmented);
+            var oldSegments = SegmentedArray<object>.PrivateMarshal.AsSegments(oldSegmented);
             var oldSegmentCount = oldSegments.Length;
 
             var resizedSegmented = oldSegmented.Resize(length + elementCountToAdd);
-            var resizedSegments = SegmentedArray<object>.TestAccessor.GetSegments(resizedSegmented);
+            var resizedSegments = SegmentedArray<object>.PrivateMarshal.AsSegments(resizedSegmented);
             var resizedSegmentCount = resizedSegments.Length;
 
             Assert.Equal(oldSegmentCount + addSegmentCount, resizedSegmentCount);
@@ -317,10 +317,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             for (var i = 0; i < length; i++)
                 oldSegmented[i] = o;
 
-            var oldSegments = SegmentedArray<object>.TestAccessor.GetSegments(oldSegmented);
+            var oldSegments = SegmentedArray<object>.PrivateMarshal.AsSegments(oldSegmented);
 
             var resizedSegmented = oldSegmented.Resize(length + addItemCount);
-            var resizedSegments = SegmentedArray<object>.TestAccessor.GetSegments(resizedSegmented);
+            var resizedSegments = SegmentedArray<object>.PrivateMarshal.AsSegments(resizedSegmented);
 
             Assert.Equal(1, oldSegments.Length);
             Assert.Equal(1, resizedSegments.Length);

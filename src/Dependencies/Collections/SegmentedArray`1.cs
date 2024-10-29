@@ -465,8 +465,6 @@ namespace Microsoft.CodeAnalysis.Collections
         internal static class TestAccessor
         {
             public static int SegmentSize => SegmentedArray<T>.SegmentSize;
-            public static T[][] GetSegments(SegmentedArray<T> array)
-                => array._items;
         }
     }
 }
