@@ -497,7 +497,9 @@ namespace Microsoft.CodeAnalysis.Collections
             // If the computed capacity is still less than specified, set to the original argument.
             // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
             if (newCapacity < capacity)
+            {
                 newCapacity = capacity;
+            }
             else
             {
                 var segmentSize = SegmentedArrayHelper.GetSegmentSize<T>();

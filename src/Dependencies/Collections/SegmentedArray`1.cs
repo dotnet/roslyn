@@ -94,6 +94,19 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
+        /// <summary>
+        /// Creates a new SegmentedArray of the specified size. All pages from this
+        /// SegmentedArray are copied into the new array. Note as this reuses the
+        /// pages, operations on the returned SegmentedArray and this SegmentedArray
+        /// will affect each other.
+        /// </summary>
+        /// <param name="newLength">The desired length of the returned SegmentedArray.
+        /// Note that this is currently limited to be larger than the current SegmentedArray's
+        /// length.
+        /// </param>
+        /// <returns>The new SegmentedArray</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the desired length is not
+        /// greater than the current SegmentedArray's length.</exception>
         public SegmentedArray<T> Resize(int newLength)
         {
             // For now, only allow growing resizes
