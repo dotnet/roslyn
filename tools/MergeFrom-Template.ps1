@@ -43,7 +43,7 @@ if ($LASTEXITCODE -ne 0) {
 
 $LibTemplateUrl = 'https://github.com/aarnott/Library.Template'
 Spawn-Tool 'git' ('fetch', $LibTemplateUrl, $remoteBranch)
-$SourceCommit = git rev-parse FETCH_HEAD
+$SourceCommit = Spawn-Tool 'git' ('rev-parse', 'FETCH_HEAD')
 $BaseBranch = Spawn-Tool 'git' ('branch', '--show-current')
 $SourceCommitUrl = "$LibTemplateUrl/commit/$SourceCommit"
 

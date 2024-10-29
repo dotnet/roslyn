@@ -100,7 +100,7 @@ parameters:
 - name: macOSPool
   type: object
   default:
-    vmImage: macOS-12
+    vmImage: macOS-14
 
 jobs:
 - job: Windows
