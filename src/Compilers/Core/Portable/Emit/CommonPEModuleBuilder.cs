@@ -1058,9 +1058,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             var holder = new DataStringHolder(
                 moduleBuilder: this,
-                moduleName: SourceModule.Name,
-                submissionSlotIndex: Compilation.GetSubmissionSlotIndex(),
-                nameSuffix: PrivateImplementationDetails.DataToHex(data),
+                dataHash: PrivateImplementationDetails.DataToHex(data),
                 systemObject: GetSpecialType(SpecialType.System_Object, tSyntaxNode, diagnostics),
                 compilerGeneratedAttribute: SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
                 privateImplementationDetails: GetPrivateImplClass(tSyntaxNode, diagnostics));

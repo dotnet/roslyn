@@ -34,36 +34,16 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
 
     public DataStringHolder(
         CommonPEModuleBuilder moduleBuilder,
-        string moduleName,
-        int submissionSlotIndex,
-        string nameSuffix,
+        string dataHash,
         Cci.ITypeReference systemObject,
         Cci.ICustomAttribute compilerGeneratedAttribute,
         PrivateImplementationDetails privateImplementationDetails)
     {
+        _name = TypeNamePrefix + dataHash;
         _moduleBuilder = moduleBuilder;
         _systemObject = systemObject;
         _compilerGeneratedAttribute = compilerGeneratedAttribute;
         _privateImplementationDetails = privateImplementationDetails;
-
-        // we include the module name in the name of the PrivateImplementationDetails class so that more than
-        // one of them can be included in an assembly as part of netmodules.    
-        var name = (moduleBuilder.OutputKind == OutputKind.NetModule) ?
-            $"{TypeNamePrefix}<{MetadataHelpers.MangleForTypeNameIfNeeded(moduleName)}>" : TypeNamePrefix;
-
-        if (submissionSlotIndex >= 0)
-        {
-            name += submissionSlotIndex.ToString();
-        }
-
-        if (moduleBuilder.CurrentGenerationOrdinal > 0)
-        {
-            name += "#" + moduleBuilder.CurrentGenerationOrdinal;
-        }
-
-        name += "_" + nameSuffix;
-
-        _name = name;
     }
 
     public string Name => _name;
