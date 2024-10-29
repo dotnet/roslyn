@@ -239,13 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-            if (argument.HasErrors || ((object)argument.Type != null && argument.Type.IsErrorType()))
+            if (!argument.HasErrors && ((object)argument.Type == null || !argument.Type.IsErrorType()))
             {
-                argument = BindToTypeForErrorRecovery(argument);
+                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
             else
             {
-                argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
+                argument = BindToTypeForErrorRecovery(argument);
             }
 
             // NOTE: it's possible that more than one of these conditions is satisfied and that
@@ -273,7 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
-
             return new BoundYieldReturnStatement(node, argument);
         }
 
