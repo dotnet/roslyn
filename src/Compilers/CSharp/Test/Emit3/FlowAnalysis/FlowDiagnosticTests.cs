@@ -964,6 +964,11 @@ struct D<T>
 {
     static C<D<T>> x;
 }
+#pragma warning disable CS0067 // The event 'E<T>.x' is never used
+struct E<T>
+{
+    static event E<E<T>> x;
+}
 ";
             CreateCompilation(program)
                 .VerifyDiagnostics(
@@ -987,7 +992,13 @@ struct D<T>
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("D<T>.x").WithLocation(18, 20),
                 // (14,17): warning CS0169: The field 'C<T>.x' is never used
                 //     static D<T> x;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C<T>.x").WithLocation(14, 17)
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C<T>.x").WithLocation(14, 17),
+                // (23,26): error CS0523: Struct member 'E<T>.x' of type 'E<E<T>>' causes a cycle in the struct layout
+                //     static event E<E<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("E<T>.x", "E<E<T>>").WithLocation(23, 26),
+                // (23,26): error CS0066: 'E<T>.x': event must be of a delegate type
+                //     static event E<E<T>> x;
+                Diagnostic(ErrorCode.ERR_EventNotDelegate, "x").WithArguments("E<T>.x").WithLocation(23, 26)
                 );
         }
 

@@ -3773,7 +3773,7 @@ public struct YourStruct<T> where T : unmanaged
             Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/75620")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75620")]
         public void UnmanagedExpandingTypeArgumentConstraintViolation_05()
         {
@@ -3794,6 +3794,9 @@ public struct YourStruct<T> where T : unmanaged
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
 
             compilation.VerifyDiagnostics(
+                    // (6,52): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(6, 52),
                     // (6,52): error CS0066: 'MyStruct<T>.field': event must be of a delegate type
                     //     public event YourStruct<MyStruct<MyStruct<T>>> field;
                     Diagnostic(ErrorCode.ERR_EventNotDelegate, "field").WithArguments("MyStruct<T>.field").WithLocation(6, 52),
@@ -3806,7 +3809,7 @@ public struct YourStruct<T> where T : unmanaged
             Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/75620")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75620")]
         public void UnmanagedExpandingTypeArgumentConstraintViolation_06()
         {
@@ -3826,15 +3829,16 @@ public struct YourStruct<T> where T : unmanaged
 ";
             var compilation = CreateCompilation(code, options: TestOptions.UnsafeReleaseDll);
             compilation.VerifyDiagnostics(
-                    // (4,52): error CS0066: 'MyStruct<T>.field': event must be of a delegate type
+                    // (7,52): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
                     //     public event YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_EventNotDelegate, "field").WithArguments("MyStruct<T>.field").WithLocation(4, 52),
-                    // (5,46): error CS0523: Struct member 'MyStruct<T>.field' of type 'YourStruct<MyStruct<MyStruct<T>>>' causes a cycle in the struct layout
-                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(5, 46),
-                    // (5,46): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
-                    //     public YourStruct<MyStruct<MyStruct<T>>> field;
-                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(5, 46));
+                    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "field").WithArguments("MyStruct<T>.field", "YourStruct<MyStruct<MyStruct<T>>>").WithLocation(7, 52),
+                    // (7,52): error CS0066: 'MyStruct<T>.field': event must be of a delegate type
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_EventNotDelegate, "field").WithArguments("MyStruct<T>.field").WithLocation(7, 52),
+                    // (7,52): error CS8377: The type 'MyStruct<MyStruct<T>>' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'YourStruct<T>'
+                    //     public event YourStruct<MyStruct<MyStruct<T>>> field;
+                    Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "field").WithArguments("YourStruct<T>", "T", "MyStruct<MyStruct<T>>").WithLocation(7, 52)
+                    );
 
             Assert.True(compilation.GetMember<NamedTypeSymbol>("MyStruct").IsManagedTypeNoUseSiteDiagnostics);
             Assert.False(compilation.GetMember<NamedTypeSymbol>("YourStruct").IsManagedTypeNoUseSiteDiagnostics);
