@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Gets a lifetime which is "empty". i.e. which refers to a variable whose storage is never allocated.
-        ///</summary>
+        /// </summary>
         public static Lifetime Empty => new Lifetime(uint.MaxValue);
 
         /// <summary>
