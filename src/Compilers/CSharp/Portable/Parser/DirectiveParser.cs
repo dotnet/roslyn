@@ -32,23 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isActive,
             bool endIsActive,
             bool isAfterFirstTokenInFile,
-            bool isAfterNonWhitespaceOnLine,
-            bool trailing)
+            bool isAfterNonWhitespaceOnLine)
         {
             var hashPosition = lexer.TextWindow.Position;
             var hash = this.EatToken(SyntaxKind.HashToken, false);
             if (isAfterNonWhitespaceOnLine)
             {
                 hash = this.AddError(hash, ErrorCode.ERR_BadDirectivePlacement);
-            }
-
-            // A directive should never be in trailing trivia, so ignore those.
-            if (trailing)
-            {
-                Debug.Assert(isAfterNonWhitespaceOnLine);
-                var id = this.EatToken(SyntaxKind.IdentifierToken, false);
-                var end = this.ParseEndOfDirective(ignoreErrors: true);
-                return SyntaxFactory.BadDirectiveTrivia(hash, id, end, isActive);
             }
 
             // The behavior of these directives when isActive is false is somewhat complicated.
