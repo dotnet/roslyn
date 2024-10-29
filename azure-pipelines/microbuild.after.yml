@@ -29,7 +29,6 @@ steps:
       usePat: true
     displayName: 📢 Publish to Artifact Services - ProfilingInputs
     condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
-    continueOnError: true
 
   - task: PublishBuildArtifacts@1
     inputs:

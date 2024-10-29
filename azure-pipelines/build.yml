@@ -4,6 +4,12 @@ parameters:
 ##### Feel free to adjust their default value as needed.
 
 # Whether this repo uses OptProf to optimize the built binaries.
+# When enabling this, be sure to update these files:
+# - OptProf.targets: InstallationPath and match TestCase selection with what's in the VS repo.
+# - The project file(s) for the libraries to optimize must import OptProf.targets (for multi-targeted projects, only import it for ONE target).
+# - OptProf.yml: Search for LibraryName (or your library's name) and verify that those names are appropriate.
+# - OptProf_part2.yml: Search for LibraryName (or your library's name) and verify that those names are appropriate.
+# and create pipelines for OptProf.yml, OptProf_part2.yml
 - name: EnableOptProf
   type: boolean
   default: false
