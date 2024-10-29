@@ -8678,6 +8678,7 @@ class C
         public void LambdaWithBindingErrorInYieldReturn()
         {
             var src = """
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8695,12 +8696,10 @@ class C
 }
 """;
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics(
-                // (7,63): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async IAsyncEnumerable<Func<string, Task<string>>> BarAsync()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "BarAsync").WithLocation(7, 63));
+            comp.VerifyDiagnostics();
 
             src = """
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8721,12 +8720,72 @@ class C
             comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
 
             comp.VerifyDiagnostics(
-                // (7,63): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async IAsyncEnumerable<Func<string, Task<string>>> BarAsync()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "BarAsync").WithLocation(7, 63),
-                // (9,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         yield return async s =>
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(9, 30),
+                // (12,13): error CS0118: 's' is a variable but is used like a type
+                //             s // 1
+                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(12, 13),
+                // (13,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(13, 13),
+                // (13,13): warning CS0168: The variable 'await' is declared but never used
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "await").WithArguments("await").WithLocation(13, 13),
+                // (13,19): error CS1002: ; expected
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(13, 19),
+                // (13,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //             await Task.CompletedTask;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(13, 19));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var s = GetSyntax<IdentifierNameSyntax>(tree, "s");
+            Assert.Null(model.GetSymbolInfo(s).Symbol);
+            Assert.Equal(new[] { "System.String s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
+        }
+
+        [Fact]
+        public void LambdaWithBindingErrorInReturn()
+        {
+            var src = """
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<Func<string, Task<string>>> BarAsync()
+    {
+        return async s =>
+        {
+            await Task.CompletedTask;
+            throw new NotImplementedException();
+        };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+
+            src = """
+#pragma warning disable CS1998 // This async method lacks 'await' operators and will run synchronously
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<Func<string, Task<string>>> BarAsync()
+    {
+        return async s =>
+        {
+            s // 1
+            await Task.CompletedTask;
+            throw new NotImplementedException();
+        };
+    }
+}
+""";
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
                 // (11,13): error CS0118: 's' is a variable but is used like a type
                 //             s // 1
                 Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(11, 13),
@@ -8742,79 +8801,6 @@ class C
                 // (12,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //             await Task.CompletedTask;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(12, 19));
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var s = GetSyntax<IdentifierNameSyntax>(tree, "s");
-            Assert.Null(model.GetSymbolInfo(s).Symbol);
-            Assert.Equal(new[] { "System.String s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
-        }
-
-        [Fact]
-        public void LambdaWithBindingErrorInReturn()
-        {
-            var src = """
-using System;
-using System.Threading.Tasks;
-
-class C
-{
-    static async Task<Func<string, Task<string>>> BarAsync()
-    {
-        return async s =>
-        {
-            await Task.CompletedTask;
-            throw new NotImplementedException();
-        };
-    }
-}
-""";
-            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics(
-                // (6,51): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<Func<string, Task<string>>> BarAsync()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "BarAsync").WithLocation(6, 51));
-
-            src = """
-using System;
-using System.Threading.Tasks;
-
-class C
-{
-    static async Task<Func<string, Task<string>>> BarAsync()
-    {
-        return async s =>
-        {
-            s // 1
-            await Task.CompletedTask;
-            throw new NotImplementedException();
-        };
-    }
-}
-""";
-            comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics(
-                // (6,51): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     static async Task<Func<string, Task<string>>> BarAsync()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "BarAsync").WithLocation(6, 51),
-                // (8,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //         return async s =>
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 24),
-                // (10,13): error CS0118: 's' is a variable but is used like a type
-                //             s // 1
-                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(10, 13),
-                // (11,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_BadAwaitAsIdentifier, "await").WithLocation(11, 13),
-                // (11,13): warning CS0168: The variable 'await' is declared but never used
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "await").WithArguments("await").WithLocation(11, 13),
-                // (11,19): error CS1002: ; expected
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "Task").WithLocation(11, 19),
-                // (11,19): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
-                //             await Task.CompletedTask;
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "Task.CompletedTask").WithLocation(11, 19));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
