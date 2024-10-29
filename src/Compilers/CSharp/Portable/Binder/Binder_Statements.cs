@@ -239,45 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-            bool hasErrors = false;
-
-            // NOTE: it's possible that more than one of these conditions is satisfied and that
-            // we won't report the syntactically innermost.  However, dev11 appears to check
-            // them in this order, regardless of syntactic nesting (StatementBinder::bindYield).
-            if (this.Flags.Includes(BinderFlags.InFinallyBlock))
-            {
-                Error(diagnostics, ErrorCode.ERR_BadYieldInFinally, node.YieldKeyword);
-                hasErrors = true;
-            }
-            else if (this.Flags.Includes(BinderFlags.InTryBlockOfTryCatch))
-            {
-                Error(diagnostics, ErrorCode.ERR_BadYieldInTryOfCatch, node.YieldKeyword);
-                hasErrors = true;
-            }
-            else if (this.Flags.Includes(BinderFlags.InCatchBlock))
-            {
-                Error(diagnostics, ErrorCode.ERR_BadYieldInCatch, node.YieldKeyword);
-                hasErrors = true;
-            }
-            else if (BindingTopLevelScriptCode)
-            {
-                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
-                hasErrors = true;
-            }
-            else if (InUnsafeRegion && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync))
-            {
-                Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
-                hasErrors = true;
-            }
-
-            CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
-
-            if (argument != null)
-            {
-                hasErrors |= argument.HasErrors || ((object)argument.Type != null && argument.Type.IsErrorType());
-            }
-
-            if (hasErrors)
+            if (argument.HasErrors || ((object)argument.Type != null && argument.Type.IsErrorType()))
             {
                 argument = BindToTypeForErrorRecovery(argument);
             }
@@ -285,6 +247,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
+
+            // NOTE: it's possible that more than one of these conditions is satisfied and that
+            // we won't report the syntactically innermost.  However, dev11 appears to check
+            // them in this order, regardless of syntactic nesting (StatementBinder::bindYield).
+            if (this.Flags.Includes(BinderFlags.InFinallyBlock))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadYieldInFinally, node.YieldKeyword);
+            }
+            else if (this.Flags.Includes(BinderFlags.InTryBlockOfTryCatch))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadYieldInTryOfCatch, node.YieldKeyword);
+            }
+            else if (this.Flags.Includes(BinderFlags.InCatchBlock))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadYieldInCatch, node.YieldKeyword);
+            }
+            else if (BindingTopLevelScriptCode)
+            {
+                Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+            }
+            else if (InUnsafeRegion && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
+            }
+
+            CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
 
             return new BoundYieldReturnStatement(node, argument);
         }
