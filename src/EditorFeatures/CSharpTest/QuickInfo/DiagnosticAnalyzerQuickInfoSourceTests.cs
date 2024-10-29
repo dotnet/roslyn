@@ -32,11 +32,9 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
     {
         await TestInMethodAsync(
             """
-
             #pragma warning disable CS0219$$
                         var i = 0;
             #pragma warning restore CS0219
-
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
     }
 
@@ -45,11 +43,9 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
     {
         await TestInMethodAsync(
             """
-
             #pragma warning disable CS0219
                         var i = 0;
             #pragma warning restore CS0219$$
-
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
     }
 
@@ -58,9 +54,7 @@ public class DiagnosticAnalyzerQuickInfoSourceTests
     {
         await TestInMethodAsync(
             """
-
             #pragma warning disable CS0219$$
-
             """, GetFormattedErrorTitle(ErrorCode.WRN_UnreferencedVarAssg));
     }
 
@@ -245,15 +239,19 @@ namespace T
 
     protected static Task TestInClassAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestAsync(
-            """
+            $$"""
             class C
             {
-            """ + code + "}", expectedDescription, relatedSpans.ToImmutableArray());
+            {{code}}
+            }
+            """, expectedDescription, relatedSpans.ToImmutableArray());
 
     protected static Task TestInMethodAsync(string code, string expectedDescription, params TextSpan[] relatedSpans)
         => TestInClassAsync(
-            """
+            $$"""
             void M()
             {
-            """ + code + "}", expectedDescription, relatedSpans);
+            {{code}}
+            }
+            """, expectedDescription, relatedSpans);
 }
