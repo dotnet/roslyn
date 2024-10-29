@@ -533,6 +533,17 @@ public partial class Solution
     }
 
     /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified hasSdkCodeStyleAnalyzers.
+    /// </summary>
+    internal Solution WithHasSdkCodeStyleAnalyzers(ProjectId projectId, bool hasSdkCodeStyleAnalyzers)
+    {
+        CheckContainsProject(projectId);
+
+        return WithCompilationState(CompilationState.WithHasSdkCodeStyleAnalyzers(projectId, hasSdkCodeStyleAnalyzers));
+    }
+
+    /// <summary>
     /// Creates a new solution instance with the project documents in the order by the specified document ids.
     /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
     /// </summary>
