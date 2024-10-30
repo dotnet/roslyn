@@ -59,10 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public Lifetime Narrower()
         {
-            var result = new Lifetime(_value + 1);
-            // Narrower() operator should always result in a local lifetime
-            Debug.Assert(!result.IsReturnable);
-            return result;
+            Debug.Assert(_value >= ReturnOnlyRaw);
+            return new Lifetime(_value + 1);
         }
 
         /// <summary>
@@ -71,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public Lifetime Wider()
         {
-            // Wider() operator should always start from a local lifetime
-            Debug.Assert(!IsReturnable);
+            Debug.Assert(_value >= CurrentMethodRaw);
             return new Lifetime(_value - 1);
         }
 
