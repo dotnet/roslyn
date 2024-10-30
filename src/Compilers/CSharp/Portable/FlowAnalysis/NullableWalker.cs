@@ -7072,17 +7072,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return -1;
             }
 
+            if (method.IsStatic)
+            {
+                return 0;
+            }
+
             MethodSymbol? current = method;
-            bool anyStatic = current.IsStatic;
             while (current.ContainingSymbol is MethodSymbol container)
             {
                 current = container;
-                anyStatic |= container.IsStatic;
-            }
-
-            if (anyStatic)
-            {
-                return 0;
+                if (container.IsStatic)
+                {
+                    return 0;
+                }
             }
 
             if (current.TryGetThisParameter(out var thisParameter) && thisParameter is not null)
