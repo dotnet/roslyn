@@ -1998,7 +1998,7 @@ LoopExit:
                                         }
                                         else if (node is SyntaxTrivia trivia)
                                         {
-                                            skippedTriviaBuilder.Add(trivia);
+                                            skippedTriviaBuilder.Add(SyntaxFactory.BadToken(null, trivia.Text, null));
                                         }
                                     }
 

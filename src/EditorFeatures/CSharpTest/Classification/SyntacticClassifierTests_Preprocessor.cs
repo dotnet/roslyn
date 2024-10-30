@@ -1282,6 +1282,35 @@ public partial class SyntacticClassifierTests
             Number("102"));
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+    public async Task PP_AfterNonWhiteSpaceOnLine(TestHost testHost)
+    {
+        var code = """
+            if (#if false
+            true
+            #else
+            false
+            #endif
+            ) { }
+            """;
+
+        await TestAsync(code,
+            testHost,
+            ControlKeyword("if"),
+            Punctuation.OpenParen,
+            Punctuation.Text("#"),
+            Keyword("if"),
+            Keyword("false"),
+            Punctuation.Text("#"),
+            Keyword("else"),
+            Keyword("false"),
+            PPKeyword("#"),
+            PPKeyword("endif"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            Punctuation.CloseCurly);
+    }
+
     [Theory, CombinatorialData]
     public async Task DiscardInOutDeclaration(TestHost testHost)
     {
