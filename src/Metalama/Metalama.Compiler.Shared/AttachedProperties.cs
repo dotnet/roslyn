@@ -61,22 +61,12 @@ namespace Metalama.Compiler
         public static bool Has<TTarget, TProperty>(TTarget obj)
             where TTarget : class
             where TProperty : class
-        {
-            return Impl<TTarget, TProperty>.Properties.TryGetValue(obj, out _);
-        }
+            => Impl<TTarget, TProperty>.Properties.TryGetValue(obj, out _);
 
         public static TProperty GetOrAdd<TTarget, TProperty>(TTarget obj)
             where TTarget : class
             where TProperty : class, new()
-        {
-            if (!Impl<TTarget, TProperty>.Properties.TryGetValue(obj, out var value))
-            {
-                value = new TProperty();
-                Impl<TTarget, TProperty>.Properties.Add(obj, value);
-            }
-
-            return value;
-        }
+            => Impl<TTarget, TProperty>.Properties.GetOrCreateValue(obj);
 
         public static void Add<TTarget, TProperty>(TTarget obj, TProperty value)
             where TTarget : class
