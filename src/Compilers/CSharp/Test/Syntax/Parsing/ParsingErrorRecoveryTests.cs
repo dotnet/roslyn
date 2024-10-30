@@ -8120,27 +8120,24 @@ class c
                 // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // if (#if)
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
-                // (1,8): error CS1517: Invalid preprocessor expression
+                // (1,6): error CS1525: Invalid expression term 'if'
                 // if (#if)
-                Diagnostic(ErrorCode.ERR_InvalidPreprocExpr, ")").WithLocation(1, 8),
-                // (1,8): error CS1025: Single-line comment or end-of-line expected
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "if").WithArguments("if").WithLocation(1, 6),
+                // (1,6): error CS1026: ) expected
                 // if (#if)
-                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, ")").WithLocation(1, 8),
-                // (1,9): error CS1733: Expected expression
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "if").WithLocation(1, 6),
+                // (1,8): error CS1003: Syntax error, '(' expected
                 // if (#if)
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
-                // (1,9): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(1, 8),
+                // (1,8): error CS1525: Invalid expression term ')'
                 // if (#if)
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 8),
                 // (1,9): error CS1733: Expected expression
                 // if (#if)
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
                 // (1,9): error CS1002: ; expected
                 // if (#if)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9),
-                // (1,9): error CS1027: #endif directive expected
-                // if (#if)
-                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8155,13 +8152,23 @@ class c
                             M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.CloseParenToken);
-                        M(SyntaxKind.ExpressionStatement);
+                        N(SyntaxKind.IfStatement);
                         {
+                            N(SyntaxKind.IfKeyword);
+                            M(SyntaxKind.OpenParenToken);
                             M(SyntaxKind.IdentifierName);
                             {
                                 M(SyntaxKind.IdentifierToken);
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            N(SyntaxKind.CloseParenToken);
+                            M(SyntaxKind.ExpressionStatement);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
                         }
                     }
                 }
@@ -8183,15 +8190,27 @@ class c
                 // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // if (#if false
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
-                // (4,2): error CS1026: ) expected
-                // y
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 2),
-                // (4,2): error CS1733: Expected expression
-                // y
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(4, 2),
+                // (1,6): error CS1525: Invalid expression term 'if'
+                // if (#if false
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "if").WithArguments("if").WithLocation(1, 6),
+                // (1,6): error CS1026: ) expected
+                // if (#if false
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "if").WithLocation(1, 6),
+                // (1,9): error CS1003: Syntax error, '(' expected
+                // if (#if false
+                Diagnostic(ErrorCode.ERR_SyntaxError, "false").WithArguments("(").WithLocation(1, 9),
+                // (1,14): error CS1026: ) expected
+                // if (#if false
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 14),
+                // (3,1): error CS1028: Unexpected preprocessor directive
+                // #else
+                Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#else").WithLocation(3, 1),
                 // (4,2): error CS1002: ; expected
                 // y
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
+                // (5,1): error CS1028: Unexpected preprocessor directive
+                // #endif
+                Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#endif").WithLocation(5, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8201,18 +8220,35 @@ class c
                     {
                         N(SyntaxKind.IfKeyword);
                         N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.IdentifierName);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "y");
+                            M(SyntaxKind.IdentifierToken);
                         }
                         M(SyntaxKind.CloseParenToken);
-                        M(SyntaxKind.ExpressionStatement);
+                        N(SyntaxKind.IfStatement);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IfKeyword);
+                            M(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.FalseLiteralExpression);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.FalseKeyword);
                             }
-                            M(SyntaxKind.SemicolonToken);
+                            M(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "y");
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
                         }
                     }
                 }

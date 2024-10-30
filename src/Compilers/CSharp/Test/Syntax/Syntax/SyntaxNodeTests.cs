@@ -362,9 +362,21 @@ class C {
                     // (1,17): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                     // namespace N { } #if false
                     TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17),
-                    // (1,26): error CS1027: #endif directive expected
+                    // (1,18): error CS8803: Top-level statements must precede namespace and type declarations.
                     // namespace N { } #if false
-                    TestBase.Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 26));
+                    TestBase.Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "if false").WithLocation(1, 18),
+                    // (1,21): error CS1003: Syntax error, '(' expected
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "false").WithArguments("(").WithLocation(1, 21),
+                    // (1,26): error CS1026: ) expected
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 26),
+                    // (1,26): error CS1733: Expected expression
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 26),
+                    // (1,26): error CS1002: ; expected
+                    // namespace N { } #if false
+                    TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 26));
                 Assert.False(compilationUnit.ContainsDirective(kind));
             }
 
@@ -493,27 +505,24 @@ class C {
                 // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // if (#if)
                 TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
-                // (1,8): error CS1517: Invalid preprocessor expression
+                // (1,6): error CS1525: Invalid expression term 'if'
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_InvalidPreprocExpr, ")").WithLocation(1, 8),
-                // (1,8): error CS1025: Single-line comment or end-of-line expected
+                TestBase.Diagnostic(ErrorCode.ERR_InvalidExprTerm, "if").WithArguments("if").WithLocation(1, 6),
+                // (1,6): error CS1026: ) expected
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, ")").WithLocation(1, 8),
-                // (1,9): error CS1733: Expected expression
+                TestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "if").WithLocation(1, 6),
+                // (1,8): error CS1003: Syntax error, '(' expected
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
-                // (1,9): error CS1026: ) expected
+                TestBase.Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(1, 8),
+                // (1,8): error CS1525: Invalid expression term ')'
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                TestBase.Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 8),
                 // (1,9): error CS1733: Expected expression
                 // if (#if)
                 TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
                 // (1,9): error CS1002: ; expected
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9),
-                // (1,9): error CS1027: #endif directive expected
-                // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 9));
+                TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
             Assert.False(compilationUnit.ContainsDirectives);
             Assert.False(compilationUnit.ContainsDirective(SyntaxKind.IfDirectiveTrivia));
         }
@@ -2915,7 +2924,7 @@ class C
 
             var text = cu2.ToFullString();
 
-            Assert.Equal("class A { } ", text);
+            Assert.Equal("class A { } endregion", text);
         }
 
         [Fact]
@@ -3280,7 +3289,7 @@ class A { } #endregion";
 
             var expectedText = @"
 #region A
-";
+endregion";
 
             TestWithWindowsAndUnixEndOfLines(inputText, expectedText, (cu, expected) =>
             {

@@ -1982,28 +1982,10 @@ LoopExit:
                         {
                             if (isTrailing || !onlyWhitespaceOnLine)
                             {
-                                // Directives cannot be in trailing trivia - parse as skipped tokens trivia instead.
-
-                                var directiveBuilder = new SyntaxListBuilder(10);
-                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, afterNonWhitespaceOnLine: true, ref directiveBuilder);
-
-                                if (directiveBuilder.ToListNode() is { } listNode)
-                                {
-                                    var skippedTriviaBuilder = new SyntaxListBuilder(10);
-                                    foreach (var node in listNode.EnumerateNodes())
-                                    {
-                                        if (node is SyntaxToken token)
-                                        {
-                                            skippedTriviaBuilder.Add(token);
-                                        }
-                                        else if (node is SyntaxTrivia trivia)
-                                        {
-                                            skippedTriviaBuilder.Add(SyntaxFactory.BadToken(null, trivia.Text, null));
-                                        }
-                                    }
-
-                                    this.AddTrivia(SyntaxFactory.SkippedTokensTrivia(skippedTriviaBuilder.ToList()), ref triviaList);
-                                }
+                                // Directives cannot be in trailing trivia.
+                                this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_BadDirectivePlacement);
+                                this.TextWindow.AdvanceChar();
+                                this.AddTrivia(SyntaxFactory.SkippedTokensTrivia(SyntaxFactory.Token(SyntaxKind.HashToken)), ref triviaList);
                             }
                             else
                             {
