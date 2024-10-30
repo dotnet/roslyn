@@ -12,6 +12,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit.NoPia;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -598,7 +599,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly TCompilation Compilation;
 
         private PrivateImplementationDetails _lazyPrivateImplementationDetails;
-        private ArrayBuilder<DataStringHolder> _dataStringHolders;
+        private ConcurrentDictionary<ImmutableArray<byte>, DataStringHolder> _lazyDataStringHolders;
         private int _dataStringHoldersFrozen;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
@@ -1055,20 +1056,23 @@ namespace Microsoft.CodeAnalysis.Emit
 
         Cci.IFieldReference ITokenDeferral.GetFieldForDataString(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            TSyntaxNode tSyntaxNode = (TSyntaxNode)syntaxNode;
+            _lazyDataStringHolders ??= new ConcurrentDictionary<ImmutableArray<byte>, DataStringHolder>(ByteSequenceComparer.Instance);
 
-            // TODO: Don't create twice for the same string.
-            var holder = new DataStringHolder(
-                moduleBuilder: this,
-                dataHash: PrivateImplementationDetails.DataToHex(data),
-                systemObject: GetSpecialType(SpecialType.System_Object, tSyntaxNode, diagnostics),
-                systemString: GetSpecialType(SpecialType.System_String, tSyntaxNode, diagnostics),
-                compilerGeneratedAttribute: SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
-                privateImplementationDetails: GetPrivateImplClass(tSyntaxNode, diagnostics));
+            DataStringHolder holder = _lazyDataStringHolders.GetOrAdd(data, static (data, arg) =>
+            {
+                var (@this, syntaxNode, diagnostics) = arg;
 
-            _dataStringHolders ??= ArrayBuilder<DataStringHolder>.GetInstance();
+                TSyntaxNode tSyntaxNode = (TSyntaxNode)syntaxNode;
 
-            _dataStringHolders.Add(holder);
+                return new DataStringHolder(
+                    moduleBuilder: @this,
+                    dataHash: PrivateImplementationDetails.DataToHex(data),
+                    systemObject: @this.GetSpecialType(SpecialType.System_Object, tSyntaxNode, diagnostics),
+                    systemString: @this.GetSpecialType(SpecialType.System_String, tSyntaxNode, diagnostics),
+                    compilerGeneratedAttribute: @this.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor),
+                    privateImplementationDetails: @this.GetPrivateImplClass(tSyntaxNode, diagnostics));
+            },
+            (this, syntaxNode, diagnostics));
 
             return holder.CreateDataField(data);
         }
@@ -1152,16 +1156,19 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new InvalidOperationException();
             }
 
-            foreach (var dataStringHolder in _dataStringHolders ?? [])
+            if (_lazyDataStringHolders is not null)
             {
-                dataStringHolder.Freeze(diagnostics);
+                foreach (var dataStringHolder in _lazyDataStringHolders.Values)
+                {
+                    dataStringHolder.Freeze(diagnostics);
+                }
             }
         }
 
         public override IEnumerable<DataStringHolder> GetFrozenDataStringHolders()
         {
-            Debug.Assert(_dataStringHolders?.All(h => h.IsFrozen) != false);
-            return _dataStringHolders ?? [];
+            Debug.Assert(_dataStringHoldersFrozen == 1);
+            return _lazyDataStringHolders?.Values ?? SpecializedCollections.EmptyEnumerable<DataStringHolder>();
         }
 
 #nullable disable
