@@ -8110,5 +8110,115 @@ class c
             }
             EOF();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_01()
+        {
+            UsingTree("""
+                if (#if)
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
+                // (1,8): error CS1517: Invalid preprocessor expression
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_InvalidPreprocExpr, ")").WithLocation(1, 8),
+                // (1,8): error CS1025: Single-line comment or end-of-line expected
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, ")").WithLocation(1, 8),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1026: ) expected
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1733: Expected expression
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1002: ; expected
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9),
+                // (1,9): error CS1027: #endif directive expected
+                // if (#if)
+                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75583")]
+        public void PreprocessorDirective_Trailing_02()
+        {
+            UsingTree("""
+                if (#if false
+                x
+                #else
+                y
+                #endif
+                """,
+                // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // if (#if false
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
+                // (4,2): error CS1026: ) expected
+                // y
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 2),
+                // (4,2): error CS1733: Expected expression
+                // y
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(4, 2),
+                // (4,2): error CS1002: ; expected
+                // y
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.GlobalStatement);
+                {
+                    N(SyntaxKind.IfStatement);
+                    {
+                        N(SyntaxKind.IfKeyword);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                        M(SyntaxKind.CloseParenToken);
+                        M(SyntaxKind.ExpressionStatement);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                            M(SyntaxKind.SemicolonToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

@@ -1996,6 +1996,10 @@ LoopExit:
                                         {
                                             skippedTriviaBuilder.Add(token);
                                         }
+                                        else if (node is SyntaxTrivia trivia)
+                                        {
+                                            skippedTriviaBuilder.Add(trivia);
+                                        }
                                     }
 
                                     this.AddTrivia(SyntaxFactory.SkippedTokensTrivia(skippedTriviaBuilder.ToList()), ref triviaList);
