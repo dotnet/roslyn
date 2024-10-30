@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             else if (name == BuildPropertyNames.CompilerGeneratedFilesOutputPath)
             {
-                _projectSystemProject.GeneratedFilesOutputDirectory = string.IsNullOrWhiteSpace(value) ? null : value;
+                _projectSystemProject.GeneratedFilesOutputDirectory = PathUtilities.IsAbsolute(value) ? value : null;
             }
         }
 
