@@ -363,6 +363,19 @@ public abstract partial class CompletionService : ILanguageService
         }
     }
 
+    internal static bool IsAllPunctuation(string filterText)
+    {
+        foreach (var ch in filterText)
+        {
+            if (!char.IsPunctuation(ch))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Don't call. Used for pre-populating MEF providers only.
     /// </summary>
