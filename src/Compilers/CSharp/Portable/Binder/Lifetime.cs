@@ -7,11 +7,13 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// A representation of the program region in which a 'ref' can be used,
-    /// which is limited to what is expressible in C#.
+    /// A representation of the program region in which the *referent* of a `ref` is *live*.
+    /// Limited to what is expressible in C#.
     /// </summary>
     /// <remarks>
-    /// For example, in this design, all lifetimes have a known relationship to all other lifetimes.
+    /// - A *referent* is the variable being referenced by a `ref`.
+    /// - Informally, a variable is *live* if it has storage allocated for it (either on heap or stack).
+    /// - In this design, all lifetimes have a known relationship to all other lifetimes.
     /// </remarks>
     internal readonly struct Lifetime
     {
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public Lifetime Narrower()
         {
-            var result = new Lifetime(this._value + 1);
+            var result = new Lifetime(_value + 1);
             // Narrower() operator should always result in a local lifetime
             Debug.Assert(!result.IsReturnable);
             return result;
@@ -70,8 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Lifetime Wider()
         {
             // Wider() operator should always start from a local lifetime
-            Debug.Assert(!this.IsReturnable);
-            return new Lifetime(this._value - 1);
+            Debug.Assert(!IsReturnable);
+            return new Lifetime(_value - 1);
         }
 
         public bool IsCallingMethod => _value == CallingMethodRaw;
