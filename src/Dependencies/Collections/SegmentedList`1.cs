@@ -135,7 +135,39 @@ namespace Microsoft.CodeAnalysis.Collections
                 {
                     if (value > 0)
                     {
-                        _items = _items.Resize(value);
+                        // Rather than creating a copy of _items, instead reuse as much of it's data as possible.
+                        // This saves as much as 50% of allocations and 70% of CPU cost of Add in large collections.
+                        // See SegmentedListBenchmarks_Add for repro details.
+                        var segments = SegmentedCollectionsMarshal.AsSegments(_items);
+
+                        var segmentSize = SegmentedArrayHelper.GetSegmentSize<T>();
+                        var segmentShift = SegmentedArrayHelper.GetSegmentShift<T>();
+                        var oldSegmentCount = segments.Length;
+                        var newSegmentCount = (value + segmentSize - 1) >> segmentShift;
+
+                        // Grow the array of segments, if necessary
+                        Array.Resize(ref segments, newSegmentCount);
+
+                        var lastPageSize = value - ((newSegmentCount - 1) << segmentShift);
+
+                        // If the previous last page is still the last page, resize it to lastPageSize.
+                        // Otherwise, resize it to SegmentSize.
+                        if (oldSegmentCount > 0)
+                        {
+                            Array.Resize(
+                                ref segments[oldSegmentCount - 1],
+                                oldSegmentCount == newSegmentCount ? lastPageSize : segmentSize);
+                        }
+
+                        // Create all new pages (except the last one which is done separately)
+                        for (var i = oldSegmentCount; i < newSegmentCount - 1; i++)
+                            segments[i] = new T[segmentSize];
+
+                        // Create a new last page if necessary
+                        if (oldSegmentCount < newSegmentCount)
+                            segments[newSegmentCount - 1] = new T[lastPageSize];
+
+                        _items = SegmentedCollectionsMarshal.AsSegmentedArray(segments);
                     }
                     else
                     {

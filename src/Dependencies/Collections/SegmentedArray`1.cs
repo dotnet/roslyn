@@ -93,53 +93,6 @@ namespace Microsoft.CodeAnalysis.Collections
                 _length = length;
             }
         }
-
-        /// <summary>
-        /// Creates a new SegmentedArray of the specified size. All pages from this
-        /// SegmentedArray are copied into the new array. Note as this reuses the
-        /// pages, operations on the returned SegmentedArray and this SegmentedArray
-        /// will affect each other.
-        /// </summary>
-        /// <param name="newLength">The desired length of the returned SegmentedArray.
-        /// Note that this is currently limited to be larger than the current SegmentedArray's
-        /// length.
-        /// </param>
-        /// <returns>The new SegmentedArray</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the desired length is not
-        /// greater than the current SegmentedArray's length.</exception>
-        public SegmentedArray<T> Resize(int newLength)
-        {
-            // For now, only allow growing resizes
-            if (newLength <= _length)
-                throw new ArgumentOutOfRangeException(nameof(newLength));
-
-            var newItems = new T[(newLength + SegmentSize - 1) >> SegmentShift][];
-            var lastPageSize = newLength - ((newItems.Length - 1) << SegmentShift);
-
-            // Copy over all old pages
-            for (var i = 0; i < _items.Length; i++)
-                newItems[i] = _items[i];
-
-            // If the previous last page is still the last page, resize it to lastPageSize.
-            // Otherwise, resize it to SegmentSize.
-            if (_items.Length > 0)
-            {
-                Array.Resize(
-                    ref newItems[_items.Length - 1],
-                    _items.Length == newItems.Length ? lastPageSize : SegmentSize);
-            }
-
-            // Create all new pages (except the last one which is done separately)
-            for (var i = _items.Length; i < newItems.Length - 1; i++)
-                newItems[i] = new T[SegmentSize];
-
-            // Create a new last page if necessary
-            if (_items.Length < newItems.Length)
-                newItems[newItems.Length - 1] = new T[lastPageSize];
-
-            return new SegmentedArray<T>(newLength, newItems);
-        }
-
         private SegmentedArray(int length, T[][] items)
         {
             _length = length;

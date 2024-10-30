@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Collections;
 
 namespace IdeCoreBenchmarks
 {
-    [MemoryDiagnoser]
     [DisassemblyDiagnoser]
     public class SegmentedListBenchmarks_InsertRange
     {
@@ -24,7 +23,7 @@ namespace IdeCoreBenchmarks
         private Microsoft.CodeAnalysis.Collections.SegmentedList<object?> _segmentedValuesObject = null!;
         private SegmentedArray<object?> _segmentedInsertValuesObject;
 
-        [Params(1_000, 10_000, 100_000, 1_000_000)]
+        [Params(100000)]
         public int Count { get; set; }
 
         [GlobalSetup]
@@ -39,17 +38,6 @@ namespace IdeCoreBenchmarks
             _insertValuesObject = new object?[100];
             _segmentedInsertValues = new SegmentedArray<int>(100);
             _segmentedInsertValuesObject = new SegmentedArray<object?>(100);
-        }
-
-        [Benchmark(Description = "AddToSegmentedList<object>", Baseline = true)]
-        public void AddList()
-        {
-            var array = new Microsoft.CodeAnalysis.Collections.SegmentedList<object?>();
-            var iterations = Count;
-            for (var i = 0; i < iterations; i++)
-            {
-                array.Add(null);
-            }
         }
 
         [Benchmark(Description = "List<int>", Baseline = true)]
