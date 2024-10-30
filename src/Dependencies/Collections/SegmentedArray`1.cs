@@ -93,6 +93,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 _length = length;
             }
         }
+
         private SegmentedArray(int length, T[][] items)
         {
             _length = length;
