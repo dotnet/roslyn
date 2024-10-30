@@ -653,12 +653,36 @@ namespace A.B {
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS1026: ) expected
+                // (1,22): error CS9009: String must start with quote character: "
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-                // (1,61): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@").WithLocation(1, 22),
+                // (1,48): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61),
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 48),
+                // (1,49): error CS9009: String must start with quote character: "
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@").WithLocation(1, 49),
+                // (1,52): error CS1525: Invalid expression term '%'
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "%").WithArguments("%").WithLocation(1, 52),
+                // (1,55): error CS1525: Invalid expression term ')'
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 55),
+                // (1,56): error CS1003: Syntax error, ',' expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 56),
+                // (1,57): error CS1003: Syntax error, ',' expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments(",").WithLocation(1, 57),
+                // (1,41): error CS0246: The type or namespace name 'Alias' could not be found (are you missing a using directive or an assembly reference?)
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Alias").WithArguments("Alias").WithLocation(1, 41),
+                // (1,46): error CS8861: Unexpected argument list.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(*#$@^%*&)").WithLocation(1, 46),
+                // (1,57): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(1, 57),
                 // (1,14): error CS8112: Local function 'Alias()' must declare a body because it is not marked 'static extern'.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Alias").WithArguments("Alias()").WithLocation(1, 14),
@@ -718,24 +742,45 @@ namespace A.B {
              );
 
             comp.VerifyDiagnostics(
-                // (1,1): error CS8059: Feature 'top-level statements' is not available in C# 6. Please use language version 9.0 or greater.
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
-                // (1,1): error CS8059: Feature 'extern local functions' is not available in C# 6. Please use language version 9.0 or greater.
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "extern").WithArguments("extern local functions", "9.0").WithLocation(1, 1),
-                // (1,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
-                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Alias").WithArguments("local functions", "7.0").WithLocation(1, 14),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS1026: ) expected
+                // (1,22): error CS9009: String must start with quote character: "
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-                // (1,61): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@").WithLocation(1, 22),
+                // (1,48): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61),
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 48),
+                // (1,49): error CS9009: String must start with quote character: "
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@").WithLocation(1, 49),
+                // (1,52): error CS1525: Invalid expression term '%'
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "%").WithArguments("%").WithLocation(1, 52),
+                // (1,55): error CS1525: Invalid expression term ')'
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 55),
+                // (1,56): error CS1003: Syntax error, ',' expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 56),
+                // (1,57): error CS1003: Syntax error, ',' expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments(",").WithLocation(1, 57),
+                // (1,41): error CS0246: The type or namespace name 'Alias' could not be found (are you missing a using directive or an assembly reference?)
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Alias").WithArguments("Alias").WithLocation(1, 41),
+                // (1,46): error CS8861: Unexpected argument list.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_UnexpectedArgumentList, "(*#$@^%*&)").WithLocation(1, 46),
+                // (1,57): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(1, 57),
+                // (1,1): error CS8059: Feature 'top-level statements' is not available in C# 6. Please use language version 9.0 or greater.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "extern alias Alias(*#$@^%*&);").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Alias").WithArguments("local functions", "7.0").WithLocation(1, 14),
                 // (1,14): error CS8112: Local function 'Alias()' must declare a body because it is not marked 'static extern'.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "Alias").WithArguments("Alias()").WithLocation(1, 14),
@@ -745,6 +790,9 @@ namespace A.B {
                 // (1,14): warning CS0626: Method, operator, or accessor 'Alias()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Alias").WithArguments("Alias()").WithLocation(1, 14),
+                // (1,1): error CS8059: Feature 'extern local functions' is not available in C# 6. Please use language version 9.0 or greater.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "extern").WithArguments("extern local functions", "9.0").WithLocation(1, 1),
                 // (1,14): warning CS8321: The local function 'Alias' is declared but never used
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Alias").WithArguments("Alias").WithLocation(1, 14)

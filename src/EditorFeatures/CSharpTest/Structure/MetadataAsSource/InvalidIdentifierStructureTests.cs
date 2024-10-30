@@ -52,11 +52,12 @@ public class InvalidIdentifierStructureTests : AbstractSyntaxStructureProviderTe
         var code = """
                 {|hint:$$class C{|textspan:
                 {
-                    public void !#$%^&*(()_-+=|\}]{["':;?/>.<,~`();
-                }|}|}
+                    public void !#$%^&*(()_-+=|\}|}|}]{{|textspan2:["':;?/>.<,~`();
+                |}}
                 """;
 
         await VerifyBlockSpansAsync(code,
+            Region("textspan2", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
             Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 

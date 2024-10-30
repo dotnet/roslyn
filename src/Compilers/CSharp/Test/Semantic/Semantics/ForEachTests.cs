@@ -3421,7 +3421,7 @@ internal ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#=
             var node = tree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ForEachStatement).OfType<ForEachStatementSyntax>().Single();
             var model = compilation.GetSemanticModel(tree);
 
-            Assert.Null(model.GetDeclaredSymbol(node));
+            AssertEx.Equal("var child", model.GetDeclaredSymbol(node).ToTestDisplayString());
         }
 
         [Fact, WorkItem(1733, "https://github.com/dotnet/roslyn/issues/1733")]

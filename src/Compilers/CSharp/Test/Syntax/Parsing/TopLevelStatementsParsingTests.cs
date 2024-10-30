@@ -1327,12 +1327,27 @@ public class A
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS1026: ) expected
+                // (1,22): error CS9009: String must start with quote character: "
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-                // (1,61): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@").WithLocation(1, 22),
+                // (1,48): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 48),
+                // (1,49): error CS9009: String must start with quote character: "
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@").WithLocation(1, 49),
+                // (1,52): error CS1525: Invalid expression term '%'
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "%").WithArguments("%").WithLocation(1, 52),
+                // (1,55): error CS1525: Invalid expression term ')'
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 55),
+                // (1,56): error CS1003: Syntax error, ',' expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 56),
+                // (1,57): error CS1003: Syntax error, ',' expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments(",").WithLocation(1, 57)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1350,10 +1365,77 @@ public class A
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.CloseParenToken);
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.SemicolonToken);
                     }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "D");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Alias");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.ExclusiveOrExpression);
+                                    {
+                                        N(SyntaxKind.PointerIndirectionExpression);
+                                        {
+                                            N(SyntaxKind.AsteriskToken);
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                                                M(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CaretToken);
+                                        N(SyntaxKind.ModuloExpression);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                            N(SyntaxKind.PercentToken);
+                                            N(SyntaxKind.PointerIndirectionExpression);
+                                            {
+                                                N(SyntaxKind.AsteriskToken);
+                                                N(SyntaxKind.AddressOfExpression);
+                                                {
+                                                    N(SyntaxKind.AmpersandToken);
+                                                    M(SyntaxKind.IdentifierName);
+                                                    {
+                                                        M(SyntaxKind.IdentifierToken);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -1672,12 +1754,27 @@ using VT2 = (int, int);
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
-                // (1,61): error CS1026: ) expected
+                // (1,22): error CS9009: String must start with quote character: "
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
-                // (1,61): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@").WithLocation(1, 22),
+                // (1,48): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 61)
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 48),
+                // (1,49): error CS9009: String must start with quote character: "
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@").WithLocation(1, 49),
+                // (1,52): error CS1525: Invalid expression term '%'
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "%").WithArguments("%").WithLocation(1, 52),
+                // (1,55): error CS1525: Invalid expression term ')'
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(1, 55),
+                // (1,56): error CS1003: Syntax error, ',' expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, ".").WithArguments(",").WithLocation(1, 56),
+                // (1,57): error CS1003: Syntax error, ',' expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments(",").WithLocation(1, 57)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1695,10 +1792,77 @@ using VT2 = (int, int);
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.CloseParenToken);
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.SemicolonToken);
                     }
+                }
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "D");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.PrimaryConstructorBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Alias");
+                            }
+                            N(SyntaxKind.ArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.ExclusiveOrExpression);
+                                    {
+                                        N(SyntaxKind.PointerIndirectionExpression);
+                                        {
+                                            N(SyntaxKind.AsteriskToken);
+                                            N(SyntaxKind.InterpolatedStringExpression);
+                                            {
+                                                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                                                M(SyntaxKind.InterpolatedStringEndToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.CaretToken);
+                                        N(SyntaxKind.ModuloExpression);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                            N(SyntaxKind.PercentToken);
+                                            N(SyntaxKind.PointerIndirectionExpression);
+                                            {
+                                                N(SyntaxKind.AsteriskToken);
+                                                N(SyntaxKind.AddressOfExpression);
+                                                {
+                                                    N(SyntaxKind.AmpersandToken);
+                                                    M(SyntaxKind.IdentifierName);
+                                                    {
+                                                        M(SyntaxKind.IdentifierToken);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        M(SyntaxKind.CommaToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "C");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }

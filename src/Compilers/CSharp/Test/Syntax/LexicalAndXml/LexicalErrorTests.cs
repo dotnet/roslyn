@@ -654,7 +654,13 @@ class Test
 }
 ";
 
-            ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#"));
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (2,15): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+                // /* comment */ #define TEST
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(2, 15),
+                // (2,27): error CS1002: ; expected
+                // /* comment */ #define TEST
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 27));
         }
 
         [Fact, WorkItem(526994, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526994")]

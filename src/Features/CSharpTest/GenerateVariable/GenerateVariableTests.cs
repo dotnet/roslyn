@@ -2322,7 +2322,7 @@ parseOptions: Options.Script);
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539558")]
     public async Task BugFix5565()
     {
-        await TestInRegularAndScriptAsync(
+        await TestMissingInRegularAndScriptAsync(
             """
             using System;
             using System.Collections.Generic;
@@ -2333,21 +2333,6 @@ parseOptions: Options.Script);
                 static void Main(string[] args)
                 {
                     [|Goo|]#();
-                }
-            }
-            """,
-            """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-
-            class Program
-            {
-                public static object Goo { get; private set; }
-
-                static void Main(string[] args)
-                {
-                    Goo#();
                 }
             }
             """);
