@@ -1989,7 +1989,7 @@ LoopExit:
                             }
                             else
                             {
-                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, afterNonWhitespaceOnLine: false, ref triviaList);
+                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, ref triviaList);
                             }
                             break;
                         }
@@ -2328,10 +2328,9 @@ top:
 
         private void LexDirectiveAndExcludedTrivia(
             bool afterFirstToken,
-            bool afterNonWhitespaceOnLine,
             ref SyntaxListBuilder triviaList)
         {
-            var directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, ref triviaList);
+            var directive = this.LexSingleDirective(true, true, afterFirstToken, ref triviaList);
 
             // also lex excluded stuff
             var branching = directive as BranchingDirectiveTriviaSyntax;
@@ -2357,7 +2356,7 @@ top:
                     break;
                 }
 
-                var directive = this.LexSingleDirective(false, endIsActive, false, false, ref triviaList);
+                var directive = this.LexSingleDirective(false, endIsActive, false, ref triviaList);
                 var branching = directive as BranchingDirectiveTriviaSyntax;
                 if (directive.Kind == SyntaxKind.EndIfDirectiveTrivia || (branching != null && branching.BranchTaken))
                 {
@@ -2374,7 +2373,6 @@ top:
             bool isActive,
             bool endIsActive,
             bool afterFirstToken,
-            bool afterNonWhitespaceOnLine,
             ref SyntaxListBuilder triviaList)
         {
             if (SyntaxFacts.IsWhitespace(TextWindow.PeekChar()))
@@ -2389,7 +2387,7 @@ top:
             _directiveParser ??= new DirectiveParser(this);
             _directiveParser.ReInitialize(_directives);
 
-            directive = _directiveParser.ParseDirective(isActive, endIsActive, afterFirstToken, afterNonWhitespaceOnLine);
+            directive = _directiveParser.ParseDirective(isActive, endIsActive, afterFirstToken);
 
             this.AddTrivia(directive, ref triviaList);
             _directives = directive.ApplyDirectives(_directives);
