@@ -34,24 +34,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The "calling method" scope that is outside of the containing method/lambda.
         /// If something can escape to this scope, it can escape to any scope in a given method through a ref parameter or return.
         /// </summary>
-        public static Lifetime CallingMethod => new Lifetime(CallingMethodRaw);
+        public static readonly Lifetime CallingMethod = new Lifetime(CallingMethodRaw);
 
         /// <summary>
         /// The "return-only" scope that is outside of the containing method/lambda.
         /// If something can escape to this scope, it can escape to any scope in a given method or can be returned, but it can't escape through a ref parameter.
         /// </summary>
-        public static Lifetime ReturnOnly => new Lifetime(ReturnOnlyRaw);
+        public static readonly Lifetime ReturnOnly = new Lifetime(ReturnOnlyRaw);
 
         /// <summary>
         /// The "current method" scope that is just inside the containing method/lambda.
         /// If something can escape to this scope, it can escape to any scope in a given method, but cannot be returned.
         /// </summary>
-        public static Lifetime CurrentMethod => new Lifetime(CurrentMethodRaw);
+        public static readonly Lifetime CurrentMethod = new Lifetime(CurrentMethodRaw);
 
         /// <summary>
         /// Gets a lifetime which is "empty". i.e. which refers to a variable whose storage is never allocated.
         /// </summary>
-        public static Lifetime Empty => new Lifetime(uint.MaxValue);
+        public static readonly Lifetime Empty = new Lifetime(uint.MaxValue);
 
         /// <summary>
         /// Gets a lifetime which is narrower than the given lifetime.

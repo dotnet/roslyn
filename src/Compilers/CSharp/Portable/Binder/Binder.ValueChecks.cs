@@ -1277,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!refSafeToEscape.IsConvertibleTo(escapeTo))
             {
                 var isRefScoped = parameterSymbol.EffectiveScope == ScopedKind.ScopedRef;
-                Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped || refSafeToEscape.Equals(Lifetime.ReturnOnly));
+                Debug.Assert(parameterSymbol.RefKind == RefKind.None || isRefScoped || refSafeToEscape.IsReturnOnly);
                 var inUnsafeRegion = _inUnsafeRegion;
 
                 if (parameter is BoundThisReference)
