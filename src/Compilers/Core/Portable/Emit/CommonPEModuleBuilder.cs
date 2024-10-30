@@ -599,6 +599,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private PrivateImplementationDetails _lazyPrivateImplementationDetails;
         private ArrayBuilder<DataStringHolder> _dataStringHolders;
+        private int _dataStringHoldersFrozen;
         private ArrayMethods _lazyArrayMethods;
         private HashSet<string> _namesOfTopLevelTypes;
 
@@ -1145,13 +1146,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public void FreezeDataStringHolders(DiagnosticBag diagnostics)
         {
-            if (_dataStringHolders is { } dataStringHolders)
+            var wasFrozen = Interlocked.Exchange(ref _dataStringHoldersFrozen, 1);
+            if (wasFrozen != 0)
             {
-                foreach (var dataStringHolder in dataStringHolders)
-                {
-                    Debug.Assert(!dataStringHolder.IsFrozen);
-                    dataStringHolder.Freeze(diagnostics);
-                }
+                throw new InvalidOperationException();
+            }
+
+            foreach (var dataStringHolder in _dataStringHolders ?? [])
+            {
+                dataStringHolder.Freeze(diagnostics);
             }
         }
 
