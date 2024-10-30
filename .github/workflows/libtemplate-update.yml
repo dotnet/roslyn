@@ -1,0 +1,72 @@
+name: Library.Template update
+
+# PREREQUISITE: This workflow requires the repo to be configured to allow workflows to push commits and create pull requests.
+# Visit https://github.com/USER/REPO/settings/actions
+# Under "Workflow permissions", select "Read and write permissions" and check "Allow GitHub Actions to create ...pull requests"
+# Click Save.
+
+on:
+  schedule:
+  - cron: "0 3 * * Mon" # Sun @ 8 or 9 PM Mountain Time (depending on DST)
+  workflow_dispatch:
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
+
+    - name: merge
+      shell: pwsh
+      run: |
+        $LibTemplateBranch = & ./azure-pipelines/Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
+        if ($LASTEXITCODE -ne 0) {
+          exit $LASTEXITCODE
+        }
+
+        git fetch https://github.com/aarnott/Library.Template $LibTemplateBranch
+        if ($LASTEXITCODE -ne 0) {
+          exit $LASTEXITCODE
+        }
+        $LibTemplateCommit = git rev-parse FETCH_HEAD
+
+        if ((git rev-list FETCH_HEAD ^HEAD --count) -eq 0) {
+          Write-Host "There are no Library.Template updates to merge."
+          exit 0
+        }
+
+        git -c http.extraheader="AUTHORIZATION: bearer $env:GH_TOKEN" push origin -u FETCH_HEAD:refs/heads/auto/libtemplateUpdate
+    - name: pull request
+      shell: pwsh
+      run: |
+        # If there is already an active pull request, don't create a new one.
+        $existingPR = gh pr list -H auto/libtemplateUpdate --json url | ConvertFrom-Json
+        if ($existingPR) {
+          Write-Host "::warning::Skipping pull request creation because one already exists at $($existingPR[0].url)"
+          exit 0
+        }
+
+        $prTitle = "Merge latest Library.Template"
+        $prBody = "This merges the latest features and fixes from [Library.Template's  branch](https://github.com/AArnott/Library.Template/tree/).
+
+        <details>
+        <summary>Merge conflicts?</summary>
+        Resolve merge conflicts locally by carrying out these steps:
+
+        ```
+        git fetch
+        git checkout auto/libtemplateUpdate
+        git merge origin/main
+        # resolve conflicts
+        git commit
+        git push
+        ```
+        </details>
+
+        ⚠️ Do **not** squash this pull request when completing it. You must *merge* it."
+
+        gh pr create -H auto/libtemplateUpdate -b $prBody -t $prTitle
+      env:
+        GH_TOKEN: ${{ github.token }}
