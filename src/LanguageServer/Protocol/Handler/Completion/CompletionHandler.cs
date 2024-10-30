@@ -196,6 +196,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var filterText = sourceText.GetSubText(completionList.Span).ToString();
             var filterReason = GetFilterReason(completionTrigger);
 
+            // Determine if the list should be hard selected or soft selected.
+            var isFilterTextAllPunctuation = CompletionService.IsAllPunctuation(filterText);
+
+            // If we only had punctuation - we set soft selection and the list to be incomplete so we get called back when the user continues typing.
+            // If they type something that is not punctuation, we may need to update the hard vs soft selection.
+            // For example, typing '_' should initially be soft selection, but if the user types 'o' we should hard select '_otherVar' (if it exists).
+            // This isn't perfect - ideally we would make this determination every time a filter character is typed, but we do not get called back
+            // for typing filter characters in LSP (unless we always set isIncomplete, which is expensive).
+            var isHardSelection = completionList.SuggestionModeItem is null && !isFilterTextAllPunctuation;
+            var isIncomplete = isFilterTextAllPunctuation;
+
+            // If our completion list hasn't hit the max size, we don't need to do anything filtering
+            if (completionListMaxSize < 0 || completionListMaxSize >= completionList.ItemsList.Count)
+                return (completionList, isIncomplete, isHardSelection);
+
             // Use pattern matching to determine which items are most relevant out of the calculated items.
             using var _ = ArrayBuilder<MatchResult>.GetInstance(out var matchResultsBuilder);
             var index = 0;
@@ -218,21 +233,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             // Next, we sort the list based on the pattern matching result.
             matchResultsBuilder.Sort(MatchResult.SortingComparer);
-
-            // Determine if the list should be hard selected or soft selected.
-            var isFilterTextAllPunctuation = CompletionService.IsAllPunctuation(filterText);
-
-            // If we only had punctuation - we set soft selection and the list to be incomplete so we get called back when the user continues typing.
-            // If they type something that is not punctuation, we may need to update the hard vs soft selection.
-            // For example, typing '_' should initially be soft selection, but if the user types 'o' we should hard select '_otherVar' (if it exists).
-            // This isn't perfect - ideally we would make this determination every time a filter character is typed, but we do not get called back
-            // for typing filter characters in LSP (unless we always set isIncomplete, which is expensive).
-            var isHardSelection = completionList.SuggestionModeItem is null && !isFilterTextAllPunctuation;
-            var isIncomplete = isFilterTextAllPunctuation;
-
-            // If our completion list hasn't hit the max size, we don't need to do anything filtering
-            if (completionListMaxSize < 0 || completionListMaxSize >= completionList.ItemsList.Count)
-                return (completionList, isIncomplete, isHardSelection);
 
             // Finally, truncate the list to 1000 items plus any preselected items that occur after the first 1000.
             var filteredList = matchResultsBuilder
