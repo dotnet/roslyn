@@ -138,9 +138,18 @@ internal sealed class TextDocumentStates<TState>
     }
 
     public TextDocumentStates<TState> AddRange(ImmutableArray<TState> states)
-        => new(_ids.AddRange(states.Select(state => state.Id)),
-               States.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))),
-               filePathToDocumentIds: null);
+    {
+        using var pooledIds = SharedPools.Default<List<DocumentId>>().GetPooledObject();
+        var ids = pooledIds.Object;
+
+        foreach (var state in states)
+            ids.Add(state.Id);
+
+        return new(
+            _ids.AddRange(ids),
+            States.AddRange(states.Select(state => KeyValuePairUtil.Create(state.Id, state))),
+            filePathToDocumentIds: null);
+    }
 
     public TextDocumentStates<TState> RemoveRange(ImmutableArray<DocumentId> ids)
     {
