@@ -4897,5 +4897,24 @@ BC30990: Member 'Key' cannot be initialized in an object initializer expression 
 </expected>)
         End Sub
 
+        <Fact()>
+        Public Sub CommonPreprocessingSymbolProperties()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+#If NET5_0_OR_GREATER
+#End If
+    </file>
+</compilation>)
+
+            Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetCompilationUnitRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax).First()
+            Dim symbol = semanticModel.GetPreprocessingSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("NET5_0_OR_GREATER", symbol.Name)
+            Assert.True(symbol.CanBeReferencedByName)
+        End Sub
+
     End Class
 End Namespace
