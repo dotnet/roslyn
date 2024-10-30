@@ -26490,6 +26490,34 @@ class Program<S> where S : allows ref struct
         }
 
         [Fact]
+        public void ReturnRefToByValueParameter_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program<S> where S : allows ref struct
+{
+    static ref S F1(ref S x1)
+    {
+        return ref x1;
+    }
+    static ref S F2(S x2)
+    {
+        ref var y2 = ref F1(ref x2);
+        return ref y2; // 1
+    }
+}";
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
+                // (13,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y2; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(13, 20)
+                );
+        }
+
+        [Fact]
         public void ReturnRefToRefStruct_RefEscape_01()
         {
             var source = """
