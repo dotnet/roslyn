@@ -26477,6 +26477,40 @@ class Program<S> where S : allows ref struct
 
             var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyEmitDiagnostics(
+                // (12,26): error CS8350: This combination of arguments to 'Program<S>.F1(ref S)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
+                //         ref var y2 = ref F1(ref x2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2)").WithArguments("Program<S>.F1(ref S)", "x1").WithLocation(12, 26),
+                // (12,33): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
+                //         ref var y2 = ref F1(ref x2);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(12, 33),
+                // (13,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y2; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(13, 20)
+                );
+        }
+
+        [Fact]
+        public void ReturnRefToByValueParameter_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program<S> where S : allows ref struct
+{
+    static ref S F1(ref S x1)
+    {
+        return ref x1;
+    }
+    static ref S F2(S x2)
+    {
+        ref var y2 = ref F1(ref x2);
+        return ref y2; // 1
+    }
+}";
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
                 // (13,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref y2; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(13, 20)
