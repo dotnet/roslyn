@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Services.SourceLink;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class VSCodeSourceLinkService(IServiceBrokerProvider serviceBrokerProvider, IPdbSourceDocumentLogger logger) : AbstractSourceLinkService
 {
-    private readonly IServiceBroker _serviceBroker = serviceBrokerProvider.ServiceBroker;
 
     protected override async Task<SymbolLocatorResult?> LocateSymbolFileAsync(SymbolLocatorPdbInfo pdbInfo, SymbolLocatorSearchFlags flags, CancellationToken cancellationToken)
     {
-        var proxy = await _serviceBroker.GetProxyAsync<IDebuggerSymbolLocatorService>(BrokeredServiceDescriptors.DebuggerSymbolLocatorService, cancellationToken).ConfigureAwait(false);
+        var serviceBroker = await serviceBrokerProvider.GetServiceBrokerAsync(cancellationToken).ConfigureAwait(false);
+        var proxy = await serviceBroker.GetProxyAsync<IDebuggerSymbolLocatorService>(BrokeredServiceDescriptors.DebuggerSymbolLocatorService, cancellationToken).ConfigureAwait(false);
         using ((IDisposable?)proxy)
         {
             if (proxy is null)
@@ -49,7 +49,8 @@ internal class VSCodeSourceLinkService(IServiceBrokerProvider serviceBrokerProvi
 
     protected override async Task<SourceLinkResult?> GetSourceLinkAsync(string url, string relativePath, CancellationToken cancellationToken)
     {
-        var proxy = await _serviceBroker.GetProxyAsync<IDebuggerSourceLinkService>(BrokeredServiceDescriptors.DebuggerSourceLinkService, cancellationToken).ConfigureAwait(false);
+        var serviceBroker = await serviceBrokerProvider.GetServiceBrokerAsync(cancellationToken).ConfigureAwait(false);
+        var proxy = await serviceBroker.GetProxyAsync<IDebuggerSourceLinkService>(BrokeredServiceDescriptors.DebuggerSourceLinkService, cancellationToken).ConfigureAwait(false);
         using ((IDisposable?)proxy)
         {
             if (proxy is null)

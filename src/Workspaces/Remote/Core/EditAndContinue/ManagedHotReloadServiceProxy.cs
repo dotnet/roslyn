@@ -8,12 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class ManagedHotReloadServiceProxy(IServiceBroker serviceBroker) :
-    BrokeredServiceProxy<IManagedHotReloadService>(serviceBroker, BrokeredServiceDescriptors.DebuggerManagedHotReloadService),
+internal sealed class ManagedHotReloadServiceProxy(IServiceBrokerProvider serviceBrokerProvider) :
+    BrokeredServiceProxy<IManagedHotReloadService>(serviceBrokerProvider, BrokeredServiceDescriptors.DebuggerManagedHotReloadService),
     IManagedHotReloadService
 {
     public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)

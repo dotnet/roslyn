@@ -5,13 +5,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
-using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class HotReloadLoggerProxy(IServiceBroker serviceBroker) :
-    BrokeredServiceProxy<IHotReloadLogger>(serviceBroker, BrokeredServiceDescriptors.HotReloadLoggerService),
+internal sealed class HotReloadLoggerProxy(IServiceBrokerProvider serviceBrokerProvider) :
+    BrokeredServiceProxy<IHotReloadLogger>(serviceBrokerProvider, BrokeredServiceDescriptors.HotReloadLoggerService),
     IHotReloadLogger
 {
     public ValueTask LogAsync(HotReloadLogMessage message, CancellationToken cancellationToken)

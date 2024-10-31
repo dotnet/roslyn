@@ -4,15 +4,21 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.BrokeredServices;
 
 internal interface IServiceBrokerProvider
 {
+    [Obsolete]
     IServiceBroker ServiceBroker { get; }
+
+    Task<IServiceBroker> GetServiceBrokerAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -21,7 +27,24 @@ internal interface IServiceBrokerProvider
 [Export(typeof(IServiceBrokerProvider))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ServiceBrokerProvider([Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker) : IServiceBrokerProvider
+internal sealed class ServiceBrokerProvider([Import(typeof(SVsFullAccessServiceBroker))] Task<IServiceBroker> serviceBrokerTask) : IServiceBrokerProvider
 {
-    public IServiceBroker ServiceBroker { get; } = serviceBroker;
+    [Obsolete]
+    public IServiceBroker ServiceBroker
+    {
+        get
+        {
+            if (serviceBrokerTask.IsCompleted)
+            {
+                return serviceBrokerTask.Result;
+            }
+            else
+            {
+                throw new InvalidOperationException("Service broker is not yet available.");
+            }
+        }
+    }
+
+    public Task<IServiceBroker> GetServiceBrokerAsync(CancellationToken cancellationToken)
+        => serviceBrokerTask.WithCancellation(cancellationToken);
 }

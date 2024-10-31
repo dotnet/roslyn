@@ -23,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.ServiceHub.Framework;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -58,7 +59,10 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
         var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
         listenerProvider.EventListeners = [sourceTextProvider];
 
-        ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
+        var provider = workspace.GetService<IServiceBrokerProvider>();
+        var task = provider.GetServiceBrokerAsync(CancellationToken.None);
+        var broker = task.WaitAndGetResult(CancellationToken.None);
+        ((MockServiceBroker)broker).CreateService = t => t switch
         {
             _ when t == typeof(Microsoft.VisualStudio.Debugger.Contracts.HotReload.IHotReloadLogger) => new MockHotReloadLogger(),
             _ => throw ExceptionUtilities.UnexpectedValue(t)
@@ -99,8 +103,10 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
 
         var globalOptions = localWorkspace.GetService<IGlobalOptionService>();
         ((MockHostWorkspaceProvider)localWorkspace.GetService<IHostWorkspaceProvider>()).Workspace = localWorkspace;
-
-        ((MockServiceBroker)localWorkspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
+        var provider = localWorkspace.GetService<IServiceBrokerProvider>();
+        var task = provider.GetServiceBrokerAsync(CancellationToken.None);
+        var broker = task.WaitAndGetResult(CancellationToken.None);
+        ((MockServiceBroker)broker).CreateService = t => t switch
         {
             _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
             _ => throw ExceptionUtilities.UnexpectedValue(t)

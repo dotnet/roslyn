@@ -10,10 +10,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BrokeredServices;
 
-internal abstract class BrokeredServiceProxy<TService>(IServiceBroker serviceBroker, ServiceRpcDescriptor descriptor) where TService : class
+internal abstract class BrokeredServiceProxy<TService>(IServiceBrokerProvider serviceBrokerProvider, ServiceRpcDescriptor descriptor) where TService : class
 {
     protected async ValueTask InvokeAsync(Func<TService, CancellationToken, ValueTask> operation, CancellationToken cancellationToken)
     {
+        var serviceBroker = await serviceBrokerProvider.GetServiceBrokerAsync(cancellationToken).ConfigureAwait(false);
         var service = await serviceBroker.GetProxyAsync<TService>(descriptor, cancellationToken).ConfigureAwait(false);
         using ((IDisposable?)service)
         {
@@ -24,6 +25,7 @@ internal abstract class BrokeredServiceProxy<TService>(IServiceBroker serviceBro
 
     protected async ValueTask<TResult> InvokeAsync<TResult>(Func<TService, CancellationToken, ValueTask<TResult>> operation, CancellationToken cancellationToken)
     {
+        var serviceBroker = await serviceBrokerProvider.GetServiceBrokerAsync(cancellationToken).ConfigureAwait(false);
         var service = await serviceBroker.GetProxyAsync<TService>(descriptor, cancellationToken).ConfigureAwait(false);
         using ((IDisposable?)service)
         {
@@ -34,6 +36,7 @@ internal abstract class BrokeredServiceProxy<TService>(IServiceBroker serviceBro
 
     protected async ValueTask<TResult> InvokeAsync<TArgs, TResult>(Func<TService, TArgs, CancellationToken, ValueTask<TResult>> operation, TArgs args, CancellationToken cancellationToken)
     {
+        var serviceBroker = await serviceBrokerProvider.GetServiceBrokerAsync(cancellationToken).ConfigureAwait(false);
         var service = await serviceBroker.GetProxyAsync<TService>(descriptor, cancellationToken).ConfigureAwait(false);
         using ((IDisposable?)service)
         {
@@ -44,6 +47,7 @@ internal abstract class BrokeredServiceProxy<TService>(IServiceBroker serviceBro
 
     protected async ValueTask InvokeAsync<TArgs>(Func<TService, TArgs, CancellationToken, ValueTask> operation, TArgs args, CancellationToken cancellationToken)
     {
+        var serviceBroker = await serviceBrokerProvider.GetServiceBrokerAsync(cancellationToken).ConfigureAwait(false);
         var service = await serviceBroker.GetProxyAsync<TService>(descriptor, cancellationToken).ConfigureAwait(false);
         using ((IDisposable?)service)
         {

@@ -21,8 +21,9 @@ internal sealed class ProjectInitializationHandler : IDisposable
 {
     private const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
 
-    private readonly IServiceBroker _serviceBroker;
-    private readonly ServiceBrokerClient _serviceBrokerClient;
+    private readonly CancellationTokenSource _tokenSource = new();
+    private IServiceBroker? _serviceBroker;
+    private ServiceBrokerClient? _serviceBrokerClient;
     private readonly ILogger _logger;
 
     private readonly TaskCompletionSource _serviceAvailable = new();
@@ -34,12 +35,19 @@ internal sealed class ProjectInitializationHandler : IDisposable
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ProjectInitializationHandler(IServiceBrokerProvider serviceBrokerProvider, ILoggerFactory loggerFactory)
     {
-        _serviceBroker = serviceBrokerProvider.ServiceBroker;
-        _serviceBroker.AvailabilityChanged += AvailabilityChanged;
-        _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
-
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);
+
+        _ = FinishInitializationAsync(serviceBrokerProvider);
+    }
+
+    private async Task FinishInitializationAsync(IServiceBrokerProvider serviceBrokerProvider)
+    {
+        _serviceBroker = await serviceBrokerProvider.GetServiceBrokerAsync(_tokenSource.Token).ConfigureAwait(false);
+        _serviceBroker.AvailabilityChanged += AvailabilityChanged;
+#pragma warning disable ISB001 // Dispose of proxies
+        _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
+#pragma warning restore ISB001 // Dispose of proxies
     }
 
     public static async Task SendProjectInitializationCompleteNotificationAsync()
@@ -64,13 +72,15 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     private async Task<bool> TrySubscribeAsync(CancellationToken cancellationToken)
     {
-        using var rental = await _serviceBrokerClient.GetProxyAsync<IProjectInitializationStatusService>(Descriptors.RemoteProjectInitializationStatusService, cancellationToken);
-        if (rental.Proxy is not null)
+        if (_serviceBrokerClient is ServiceBrokerClient serviceBrokerClient)
         {
-            _subscription = await rental.Proxy.SubscribeInitializationCompletionAsync(_projectInitializationCompleteObserver, cancellationToken);
-            return true;
+            using var rental = await serviceBrokerClient.GetProxyAsync<IProjectInitializationStatusService>(Descriptors.RemoteProjectInitializationStatusService, cancellationToken);
+            if (rental.Proxy is not null)
+            {
+                _subscription = await rental.Proxy.SubscribeInitializationCompletionAsync(_projectInitializationCompleteObserver, cancellationToken);
+                return true;
+            }
         }
-
         return false;
     }
 
@@ -82,9 +92,16 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     public void Dispose()
     {
-        _serviceBroker.AvailabilityChanged -= AvailabilityChanged;
-        _subscription?.Dispose();
-        _serviceBrokerClient.Dispose();
+        if (!_tokenSource.IsCancellationRequested)
+        {
+            _tokenSource.Dispose();
+            if (_serviceBroker is IServiceBroker serviceBroker)
+            {
+                serviceBroker.AvailabilityChanged -= AvailabilityChanged;
+            }
+            _subscription?.Dispose();
+            _serviceBrokerClient?.Dispose();
+        }
     }
 
     internal class ProjectInitializationCompleteObserver : IObserver<ProjectInitializationCompletionState>

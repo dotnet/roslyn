@@ -31,6 +31,7 @@ internal class ServiceBrokerFactory
     private BrokeredServiceContainer? _container;
     private readonly ExportProvider _exportProvider;
     private Task _bridgeCompletionTask;
+    private readonly TaskCompletionSource<IServiceBroker> _serviceBrokerTask = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
     private readonly ImmutableArray<IOnServiceBrokerInitialized> _onServiceBrokerInitialized;
 
@@ -48,7 +49,8 @@ internal class ServiceBrokerFactory
     /// Returns a full-access service broker, but will throw if we haven't yet connected to the Dev Kit broker.
     /// </summary>
     [Export(typeof(SVsFullAccessServiceBroker))]
-    public IServiceBroker FullAccessServiceBroker => this.GetRequiredServiceBrokerContainer().GetFullAccessServiceBroker();
+    public Task<IServiceBroker> FullAccessServiceBroker => _serviceBrokerTask.Task;
+    //this.GetRequiredServiceBrokerContainer().GetFullAccessServiceBroker();
 
     /// <summary>
     /// Returns a full-access service broker, but will return null if we haven't yet connected to the Dev Kit broker.
@@ -69,12 +71,14 @@ internal class ServiceBrokerFactory
         Contract.ThrowIfFalse(_container == null, "We should only create one container.");
 
         _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
+        IServiceBroker serviceBroker = _container.GetFullAccessServiceBroker();
+        _serviceBrokerTask.SetResult(serviceBroker);
 
         foreach (var onInitialized in _onServiceBrokerInitialized)
         {
             try
             {
-                onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker());
+                onInitialized.OnServiceBrokerInitialized(serviceBroker);
             }
             catch (Exception)
             {

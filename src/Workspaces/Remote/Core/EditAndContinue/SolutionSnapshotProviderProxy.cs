@@ -6,12 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Contracts.Client;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class SolutionSnapshotProviderProxy(IServiceBroker serviceBroker) :
-    BrokeredServiceProxy<ISolutionSnapshotProvider>(serviceBroker, BrokeredServiceDescriptors.SolutionSnapshotProvider),
+internal sealed class SolutionSnapshotProviderProxy(IServiceBrokerProvider serviceBrokerProvider) :
+    BrokeredServiceProxy<ISolutionSnapshotProvider>(serviceBrokerProvider, BrokeredServiceDescriptors.SolutionSnapshotProvider),
     ISolutionSnapshotProvider
 {
     public ValueTask<SolutionSnapshotId> RegisterSolutionSnapshotAsync(CancellationToken cancellationToken)

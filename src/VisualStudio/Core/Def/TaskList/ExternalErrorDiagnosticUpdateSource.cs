@@ -41,7 +41,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     private readonly IDiagnosticAnalyzerService _diagnosticService;
     private readonly IAsynchronousOperationListener _listener;
     private readonly CancellationToken _disposalToken;
-    private readonly IServiceBroker _serviceBroker;
+    private readonly Task<IServiceBroker> _serviceBrokerTask;
 
     /// <summary>
     /// Task queue to serialize all the work for errors reported by build.
@@ -67,7 +67,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         VisualStudioWorkspace workspace,
         IDiagnosticAnalyzerService diagnosticService,
         IAsynchronousOperationListenerProvider listenerProvider,
-        [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker,
+        [Import(typeof(SVsFullAccessServiceBroker))] Task<IServiceBroker> serviceBrokerTask,
         IThreadingContext threadingContext)
     {
         _disposalToken = threadingContext.DisposalToken;
@@ -75,7 +75,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         _diagnosticService = diagnosticService;
         _listener = listenerProvider.GetListener(FeatureAttribute.ErrorList);
 
-        _serviceBroker = serviceBroker;
+        _serviceBrokerTask = serviceBrokerTask;
         _taskQueue = new AsyncBatchingWorkQueue<Func<CancellationToken, Task>>(
             TimeSpan.Zero,
             processBatchAsync: ProcessTaskQueueItemsAsync,
@@ -264,7 +264,8 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     {
         if (_diagnosticManagerService == null)
         {
-            _diagnosticManagerService = await _serviceBroker.GetProxyAsync<IDiagnosticManagerService>(
+            var serviceBroker = await _serviceBrokerTask.ConfigureAwait(false);
+            _diagnosticManagerService = await serviceBroker.GetProxyAsync<IDiagnosticManagerService>(
                 VisualStudioServices.VS2019_7.DiagnosticManagerService,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(_diagnosticManagerService, $"Unable to acquire {nameof(IDiagnosticManagerService)}");

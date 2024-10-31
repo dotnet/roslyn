@@ -46,7 +46,7 @@ internal sealed class EditAndContinueLanguageService(
     }
 
     private readonly IAsynchronousOperationListener _asyncListener = listenerProvider.GetListener(FeatureAttribute.EditAndContinue);
-    private readonly HotReloadLoggerProxy _logger = new(serviceBrokerProvider.ServiceBroker);
+    private readonly HotReloadLoggerProxy? _logger = new(serviceBrokerProvider.GetServiceBrokerAsync(CancellationToken.None));
 
     private bool _disabled;
     private RemoteDebuggingSessionProxy? _debuggingSession;

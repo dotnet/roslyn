@@ -38,8 +38,8 @@ internal sealed partial class ManagedHotReloadLanguageService(
     private static readonly ActiveStatementSpanProvider s_emptyActiveStatementProvider =
         (_, _, _) => ValueTaskFactory.FromResult(ImmutableArray<ActiveStatementSpan>.Empty);
 
-    private readonly ManagedHotReloadServiceProxy _debuggerService = new(serviceBrokerProvider.ServiceBroker);
-    private readonly SolutionSnapshotProviderProxy _solutionSnapshotProvider = new(serviceBrokerProvider.ServiceBroker);
+    private readonly ManagedHotReloadServiceProxy _debuggerService = new(serviceBrokerProvider);
+    private readonly SolutionSnapshotProviderProxy _solutionSnapshotProvider = new(serviceBrokerProvider);
 
     private bool _disabled;
     private DebuggingSessionId? _debuggingSession;
