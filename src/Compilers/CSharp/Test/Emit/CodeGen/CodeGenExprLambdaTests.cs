@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -1813,6 +1815,43 @@ partial class Program : TestBase
                 new[] { text, ExpressionTestLibrary },
                 expectedOutput: @"null
 S");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72571")]
+        public void LambdaWithBindingErrorInInitializerOfTargetTypedNew()
+        {
+            var src = """
+AddConfig(new()
+{
+    A = a =>
+    {
+        a // 1
+    },
+});
+
+static void AddConfig(Config config) { }
+
+class Config
+{
+    public System.Action<A> A { get; set; }
+}
+
+class A
+{
+    public string Property { get; set; } = "";
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,10): error CS1002: ; expected
+                //         a // 1
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 10));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var s = GetSyntax<IdentifierNameSyntax>(tree, "a");
+            Assert.Equal("A a", model.GetSymbolInfo(s).Symbol.ToTestDisplayString());
+            Assert.Equal(new string[] { }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
         }
 
         #region Regression Tests
