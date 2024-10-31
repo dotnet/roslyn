@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace IdeCoreBenchmarks
 {
@@ -12,15 +13,10 @@ namespace IdeCoreBenchmarks
         [Params(1_000, 10_000, 100_000, 1_000_000)]
         public int Count { get; set; }
 
-        [GlobalSetup]
-        public void GlobalSetup()
-        {
-        }
-
         [Benchmark(Description = "AddIntToList")]
         public void AddIntToList()
         {
-            var array = new Microsoft.CodeAnalysis.Collections.SegmentedList<int>();
+            var array = new SegmentedList<int>();
             var iterations = Count;
 
             for (var i = 0; i < iterations; i++)
@@ -32,7 +28,7 @@ namespace IdeCoreBenchmarks
         [Benchmark(Description = "AddObjectToList")]
         public void AddObjectToList()
         {
-            var array = new Microsoft.CodeAnalysis.Collections.SegmentedList<object?>();
+            var array = new SegmentedList<object?>();
             var iterations = Count;
 
             for (var i = 0; i < iterations; i++)
@@ -44,7 +40,7 @@ namespace IdeCoreBenchmarks
         [Benchmark(Description = "AddLargeStructToList")]
         public void AddLargeStructToList()
         {
-            var array = new Microsoft.CodeAnalysis.Collections.SegmentedList<LargeStruct>();
+            var array = new SegmentedList<LargeStruct>();
             var item = new LargeStruct();
             var iterations = Count;
 
@@ -57,7 +53,7 @@ namespace IdeCoreBenchmarks
         [Benchmark(Description = "AddEnormousStructToList")]
         public void AddEnormousStructToList()
         {
-            var array = new Microsoft.CodeAnalysis.Collections.SegmentedList<EnormousStruct>();
+            var array = new SegmentedList<EnormousStruct>();
             var item = new EnormousStruct();
             var iterations = Count;
 
@@ -69,40 +65,40 @@ namespace IdeCoreBenchmarks
 
         private struct LargeStruct
         {
-            public int i1;
-            public int i2;
-            public int i3;
-            public int i4;
-            public int i5;
-            public int i6;
-            public int i7;
-            public int i8;
-            public int i9;
-            public int i10;
-            public int i11;
-            public int i12;
-            public int i13;
-            public int i14;
-            public int i15;
-            public int i16;
-            public int i17;
-            public int i18;
-            public int i19;
-            public int i20;
+            public int i1 { get; set; }
+            public int i2 { get; set; }
+            public int i3 { get; set; }
+            public int i4 { get; set; }
+            public int i5 { get; set; }
+            public int i6 { get; set; }
+            public int i7 { get; set; }
+            public int i8 { get; set; }
+            public int i9 { get; set; }
+            public int i10 { get; set; }
+            public int i11 { get; set; }
+            public int i12 { get; set; }
+            public int i13 { get; set; }
+            public int i14 { get; set; }
+            public int i15 { get; set; }
+            public int i16 { get; set; }
+            public int i17 { get; set; }
+            public int i18 { get; set; }
+            public int i19 { get; set; }
+            public int i20 { get; set; }
         }
 
         private struct EnormousStruct
         {
-            public LargeStruct s1;
-            public LargeStruct s2;
-            public LargeStruct s3;
-            public LargeStruct s4;
-            public LargeStruct s5;
-            public LargeStruct s6;
-            public LargeStruct s7;
-            public LargeStruct s8;
-            public LargeStruct s9;
-            public LargeStruct s10;
+            public LargeStruct s1 { get; set; }
+            public LargeStruct s2 { get; set; }
+            public LargeStruct s3 { get; set; }
+            public LargeStruct s4 { get; set; }
+            public LargeStruct s5 { get; set; }
+            public LargeStruct s6 { get; set; }
+            public LargeStruct s7 { get; set; }
+            public LargeStruct s8 { get; set; }
+            public LargeStruct s9 { get; set; }
+            public LargeStruct s10 { get; set; }
         }
     }
 }
