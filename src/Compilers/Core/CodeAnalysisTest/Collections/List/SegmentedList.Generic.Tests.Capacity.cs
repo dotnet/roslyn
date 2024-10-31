@@ -139,24 +139,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [InlineData(1)]
         [InlineData(2)]
         [InlineData(4)]
-        public void EnsureCapacity_GrowsBySegment(int segmentCount)
-        {
-            var elementCount = SegmentedArray<T>.TestAccessor.SegmentSize * segmentCount;
-            var list = new SegmentedList<T>(elementCount);
-
-            for (var i = 0; i < elementCount; i++)
-                list.Add(CreateT(i));
-
-            Assert.Equal(elementCount, list.Capacity);
-
-            list.EnsureCapacity(elementCount + 1);
-            Assert.Equal(elementCount + SegmentedArray<T>.TestAccessor.SegmentSize, list.Capacity);
-        }
-
-        [Theory]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(4)]
         public void EnsureCapacity_MatchesSizeWithLargeCapacityRequest(int segmentCount)
         {
             var elementCount = SegmentedArray<T>.TestAccessor.SegmentSize * segmentCount;

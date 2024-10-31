@@ -136,36 +136,22 @@ namespace Microsoft.CodeAnalysis.Collections
                     if (value > 0)
                     {
                         // Rather than creating a copy of _items, instead reuse as much of it's data as possible.
-                        // This saves as much as 50% of allocations and 70% of CPU cost of Add in large collections.
-                        // See SegmentedListBenchmarks_Add for repro details.
                         var segments = SegmentedCollectionsMarshal.AsSegments(_items);
 
-                        var segmentSize = SegmentedArrayHelper.GetSegmentSize<T>();
-                        var segmentShift = SegmentedArrayHelper.GetSegmentShift<T>();
                         var oldSegmentCount = segments.Length;
-                        var newSegmentCount = (value + segmentSize - 1) >> segmentShift;
+                        var newSegmentCount = (value + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
 
                         // Grow the array of segments, if necessary
                         Array.Resize(ref segments, newSegmentCount);
 
-                        var lastPageSize = value - ((newSegmentCount - 1) << segmentShift);
+                        // Resize all segments to full segment size from the last old segment to the next to last
+                        // new segment.
+                        for (var i = oldSegmentCount > 0 ? oldSegmentCount - 1 : 0; i < newSegmentCount - 1; i++)
+                            Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<T>());
 
-                        // If the previous last page is still the last page, resize it to lastPageSize.
-                        // Otherwise, resize it to SegmentSize.
-                        if (oldSegmentCount > 0)
-                        {
-                            Array.Resize(
-                                ref segments[oldSegmentCount - 1],
-                                oldSegmentCount == newSegmentCount ? lastPageSize : segmentSize);
-                        }
-
-                        // Create all new pages (except the last one which is done separately)
-                        for (var i = oldSegmentCount; i < newSegmentCount - 1; i++)
-                            segments[i] = new T[segmentSize];
-
-                        // Create a new last page if necessary
-                        if (oldSegmentCount < newSegmentCount)
-                            segments[newSegmentCount - 1] = new T[lastPageSize];
+                        // Resize the last segment
+                        var lastSegmentSize = value - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
+                        Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
 
                         _items = SegmentedCollectionsMarshal.AsSegmentedArray(segments);
                     }
@@ -529,17 +515,7 @@ namespace Microsoft.CodeAnalysis.Collections
             // If the computed capacity is still less than specified, set to the original argument.
             // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
             if (newCapacity < capacity)
-            {
                 newCapacity = capacity;
-            }
-            else
-            {
-                var segmentSize = SegmentedArrayHelper.GetSegmentSize<T>();
-
-                // If caller didn't request a large capacity increase, limit the increase to a single page
-                if (newCapacity > segmentSize)
-                    newCapacity = (((capacity - 1) / segmentSize) + 1) * segmentSize;
-            }
 
             Capacity = newCapacity;
         }
