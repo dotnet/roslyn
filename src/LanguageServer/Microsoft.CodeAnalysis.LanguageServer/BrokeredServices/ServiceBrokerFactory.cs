@@ -33,6 +33,7 @@ internal class ServiceBrokerFactory
     private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
     private readonly ImmutableArray<IOnServiceBrokerInitialized> _onServiceBrokerInitialized;
+    private readonly TaskCompletionSource<IServiceBroker> _serviceBrokerTask = new();
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -55,6 +56,13 @@ internal class ServiceBrokerFactory
     /// </summary>
     public IServiceBroker? TryGetFullAccessServiceBroker() => _container?.GetFullAccessServiceBroker();
 
+    /// <summary>
+    /// Returns a task for full-access service broker. Task might never complete, e.g. if Dev Kit is not available.
+    /// </summary>
+    [Export(typeof(Task<IServiceBroker>))]
+    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    public Task<IServiceBroker> FullAccessServiceBrokerTask => _serviceBrokerTask.Task;
+
     public BrokeredServiceContainer GetRequiredServiceBrokerContainer()
     {
         Contract.ThrowIfNull(_container);
@@ -70,11 +78,22 @@ internal class ServiceBrokerFactory
 
         _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
 
+        IServiceBroker serviceBroker;
+        try
+        {
+            serviceBroker = _container.GetFullAccessServiceBroker();
+            _serviceBrokerTask.TrySetResult(serviceBroker);
+        }
+        catch (Exception)
+        {
+            return;
+        }
+
         foreach (var onInitialized in _onServiceBrokerInitialized)
         {
             try
             {
-                onInitialized.OnServiceBrokerInitialized(_container.GetFullAccessServiceBroker());
+                onInitialized.OnServiceBrokerInitialized(serviceBroker);
             }
             catch (Exception)
             {
