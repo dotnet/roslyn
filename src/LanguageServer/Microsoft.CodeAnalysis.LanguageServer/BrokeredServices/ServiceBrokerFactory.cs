@@ -50,7 +50,16 @@ internal class ServiceBrokerFactory
     /// </summary>
     [Export(typeof(SVsFullAccessServiceBroker))]
     public Task<IServiceBroker> FullAccessServiceBroker => _serviceBrokerTask.Task;
-    //this.GetRequiredServiceBrokerContainer().GetFullAccessServiceBroker();
+
+    /// <summary>
+    /// Returns a full-access service broker, but will throw if we haven't yet connected to the Dev Kit broker.
+    /// </summary>
+    /// <remarks>
+    /// This export is needed for importers which use MEF v1 where ImportAttribute(Type type) is not available.
+    /// </remarks>
+    [Export(typeof(Task<IServiceBroker>))]
+    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    public Task<IServiceBroker> FullAccessServiceBrokerMef1 => _serviceBrokerTask.Task;
 
     /// <summary>
     /// Returns a full-access service broker, but will return null if we haven't yet connected to the Dev Kit broker.
