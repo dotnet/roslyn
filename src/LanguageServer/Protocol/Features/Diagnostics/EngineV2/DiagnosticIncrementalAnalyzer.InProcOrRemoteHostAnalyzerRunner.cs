@@ -167,7 +167,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (hostAnalysisResult is not null)
                 {
-                    telemetry = telemetry.AddRange(hostAnalysisResult.AnalyzerTelemetryInfo);
+                    // Use SetItems instead of AddRange so exceptions will not occur if diagnostic suppressors are
+                    // counted in both project and host analysis results.
+                    telemetry = telemetry.SetItems(hostAnalysisResult.AnalyzerTelemetryInfo);
                 }
             }
 

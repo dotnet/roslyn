@@ -528,7 +528,15 @@ internal class DiagnosticComputer
             }
         }
 
-        return (projectBuilder.ToImmutableAndClear(), hostBuilder.ToImmutableAndClear());
+        var projectAnalyzers = projectBuilder.ToImmutableAndClear();
+
+        if (hostAnalyzerIds.Any())
+        {
+            // If any host analyzers are active, make sure to also include any project diagnostic suppressors
+            hostBuilder.AddRange(projectAnalyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
+        }
+
+        return (projectAnalyzers, hostBuilder.ToImmutableAndClear());
     }
 
     private async Task<(CompilationWithAnalyzersPair? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
@@ -609,6 +617,7 @@ internal class DiagnosticComputer
 
             var analyzers = reference.GetAnalyzers(_project.Language);
             projectAnalyzerBuilder.AddRange(analyzers);
+            hostAnalyzerBuilder.AddRange(analyzers.WhereAsArray(static a => a is DiagnosticSuppressor));
             analyzerMapBuilder.AppendAnalyzerMap(analyzers);
         }
 
