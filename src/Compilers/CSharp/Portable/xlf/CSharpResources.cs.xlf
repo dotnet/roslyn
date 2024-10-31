@@ -1858,7 +1858,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Tento odkaz přiřazuje {1} k {0}, protože {1} má širší obor řídicích hodnot než {0}, který povoluje přiřazení prostřednictvím {0} hodnot s užšími řídicími obory než {1}.</target>
         <note />
       </trans-unit>
@@ -3223,7 +3223,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
-        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Tento odkaz přiřazuje {1} k {0}, ale {1} má širší obor řídicích hodnot než {0}, který povoluje přiřazení prostřednictvím {0} hodnot s užšími řídicími obory než {1}.</target>
         <note />
       </trans-unit>

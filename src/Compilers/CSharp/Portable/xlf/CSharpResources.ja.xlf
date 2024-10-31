@@ -1858,7 +1858,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">'{1}' を '{0}' に参照割り当てできません。'{1}' には '{0}' よりも広い値エスケープ スコープがあり、'{0}' を使用して '{1}' より狭いエスケープ スコープを持つ値の割り当てが許可されています。</target>
         <note />
       </trans-unit>
@@ -3223,7 +3223,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
-        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">この参照は '{1}' に '{0}' を割り当てますが、'{1}' の値のエスケープ スコープは、'{0}' よりも狭いエスケープ スコープを持つ値の'{0}' を介した割り当てを許可する '{1}' よりも広い値のエスケープ スコープを持っています。</target>
         <note />
       </trans-unit>

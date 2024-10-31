@@ -5975,10 +5975,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This ref-assigns a value that has a narrower escape scope than the target.</value>
   </data>
   <data name="ERR_RefAssignValEscapeWider" xml:space="preserve">
-    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</value>
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</value>
   </data>
   <data name="WRN_RefAssignValEscapeWider" xml:space="preserve">
-    <value>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</value>
+    <value>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</value>
   </data>
   <data name="WRN_RefAssignValEscapeWider_Title" xml:space="preserve">
     <value>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</value>

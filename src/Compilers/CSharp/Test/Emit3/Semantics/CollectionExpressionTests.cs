@@ -14178,6 +14178,72 @@ namespace System
             CompileAndVerify(comp, expectedOutput: "[],");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
+        public void Nullable_Spread_01()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                {
+                    IEnumerable<object?> a = [null];
+                    object[] b = [..a];
+                }
+                {
+                    IEnumerable<object?> a = [null];
+                    object[] b = [..a!];
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): warning CS8601: Possible null reference assignment.
+                //     object[] b = [..a];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "a").WithLocation(5, 21));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
+        public void Nullable_Spread_02()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                {
+                    IEnumerable<object>? a = null;
+                    object[] b = [..a];
+                }
+                {
+                    IEnumerable<object>? a = null;
+                    object[] b = [..a!];
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,21): warning CS8602: Dereference of a possibly null reference.
+                //     object[] b = [..a];
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(5, 21));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75560")]
+        public void Nullable_Spread_03()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                {
+                    IEnumerable<object?> a1 = [null];
+                    IEnumerable<object?> a2 = [null];
+                    object[] b = [..(m() ? a1 : a2)];
+                }
+                {
+                    IEnumerable<object?> a1 = [null];
+                    IEnumerable<object?> a2 = [null];
+                    object[] b = [..(m() ? a1 : a2)!];
+                }
+                bool m() => throw null!;
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,22): warning CS8601: Possible null reference assignment.
+                //     object[] b = [..(m() ? a1 : a2)];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "m() ? a1 : a2").WithLocation(6, 22));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69447")]
         public void NullableValueType_ImplicitConversion()
         {

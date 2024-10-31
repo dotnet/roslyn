@@ -1858,7 +1858,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Non è possibile ref-assign '{1}' a '{0}' perché '{1}' ha un ambito di escape del valore più ampio di '{0}' consentendo l'assegnazione tramite '{0}' di valori con ambiti di escape più ristretti rispetto a '{1}'.</target>
         <note />
       </trans-unit>
@@ -3223,7 +3223,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
-        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Questo riferimento assegna '{1}' a '{0}' ma '{1}' ha un ambito di escape del valore più ampio di '{0}' consentendo l'assegnazione tramite '{0}' di valori con ambiti di escape più ristretti rispetto a '{1}'.</target>
         <note />
       </trans-unit>
