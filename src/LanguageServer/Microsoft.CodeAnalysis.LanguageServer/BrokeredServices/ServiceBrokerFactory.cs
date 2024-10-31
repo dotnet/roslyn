@@ -77,17 +77,8 @@ internal class ServiceBrokerFactory
         Contract.ThrowIfFalse(_container == null, "We should only create one container.");
 
         _container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _cancellationTokenSource.Token);
-
-        IServiceBroker serviceBroker;
-        try
-        {
-            serviceBroker = _container.GetFullAccessServiceBroker();
-            _serviceBrokerTask.TrySetResult(serviceBroker);
-        }
-        catch (Exception)
-        {
-            return;
-        }
+        var serviceBroker = _container.GetFullAccessServiceBroker();
+        _serviceBrokerTask.TrySetResult(serviceBroker);
 
         foreach (var onInitialized in _onServiceBrokerInitialized)
         {
