@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-            if (!argument.HasAnyErrors)
+            if (!argument.HasErrors && ((object)argument.Type == null || !argument.Type.IsErrorType()))
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
@@ -2553,6 +2553,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var b = binder.GetBinder(ifStatementSyntax);
                         Debug.Assert(b != null);
+
+                        if (b.TryGetBoundElseIfStatement(ifStatementSyntax, out alternative))
+                        {
+                            break;
+                        }
+
                         binder = b;
                         node = ifStatementSyntax;
                     }
@@ -2582,6 +2588,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return result;
             }
+        }
+
+        protected virtual bool TryGetBoundElseIfStatement(IfStatementSyntax node, out BoundStatement? alternative)
+        {
+            alternative = null;
+            return false;
         }
 #nullable disable
 
@@ -3142,7 +3154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(syntax, useSiteInfo);
 
-            if (!argument.HasAnyErrors)
+            if (!argument.HasAnyErrors || argument.Kind == BoundKind.UnboundLambda)
             {
                 if (returnRefKind != RefKind.None)
                 {

@@ -977,8 +977,8 @@ internal sealed partial class SolutionCompilationState
             arg: forceEvenIfTreesWouldDiffer,
             static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
                 oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource && oldDocumentState.TreeSource == documentState.TreeSource
-                ? oldDocumentState
-                : oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer));
+                    ? oldDocumentState
+                    : oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer));
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
@@ -1561,7 +1561,12 @@ internal sealed partial class SolutionCompilationState
         // WithDocumentContentsFrom with the current document state no-ops immediately, returning back the same
         // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
         // there is no additional cost processing the initiating document in this loop.
-        var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
+        //
+        // Note: when getting related document ids, we want to include those from different languages.  That way we
+        // ensure a consistent state where all the files (even those shared across languages) agree on their contents.
+        const bool includeDifferentLanguages = true;
+
+        var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId, includeDifferentLanguages);
         var allDocumentIdsWithCurrentDocumentState = allDocumentIds.SelectAsArray(static (docId, currentDocumentState) => (docId, currentDocumentState), currentDocumentState);
         currentCompilationState = currentCompilationState.WithDocumentContentsFrom(allDocumentIdsWithCurrentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
@@ -1573,7 +1578,7 @@ internal sealed partial class SolutionCompilationState
         {
             try
             {
-                var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId);
+                var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId, includeDifferentLanguages);
                 using var _ = ArrayBuilder<DocumentState>.GetInstance(allDocumentIds.Length, out var documentStates);
 
                 // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the

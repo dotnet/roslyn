@@ -1569,6 +1569,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
+        Public Function IsElementBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsElementBindingExpression
+            ' Does not exist in VB.  VB represents an element binding as a InvocationExpression with null target.
+            Return False
+        End Function
+
         Public Function IsMemberBindingExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMemberBindingExpression
             ' Does not exist in VB.  VB represents a member binding as a MemberAccessExpression with null target.
             Return False

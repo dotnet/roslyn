@@ -38,12 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 // reasonable TLS protocol version for outgoing connections.
 #pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
 #pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable SYSLIB0014 // 'ServicePointManager' is obsolete
                 if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
 #pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
                 {
                     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 }
+#pragma warning restore SYSLIB0014 // 'ServicePointManager' is obsolete
             }
 
             public Test()

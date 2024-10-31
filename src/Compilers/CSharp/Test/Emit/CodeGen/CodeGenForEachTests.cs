@@ -5593,5 +5593,228 @@ public static class C
             CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42" : null, verify: Verification.Skipped)
                 .VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TestWithPatternAndObsolete_WithDisposableInterface()
+        {
+            string source = """
+foreach (var i in new C())
+{
+}
+class C
+{
+    [System.Obsolete]
+    public MyEnumerator GetEnumerator()
+    {
+        throw null;
+    }
+    [System.Obsolete]
+    public sealed class MyEnumerator : System.IDisposable
+    {
+        [System.Obsolete]
+        public int Current { get => throw null; }
+        [System.Obsolete]
+        public bool MoveNext() => throw null;
+        [System.Obsolete("error", true)]
+        public void Dispose() => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): warning CS0612: 'C.GetEnumerator()' is obsolete
+                // foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetEnumerator()").WithLocation(1, 1),
+                // (1,1): warning CS0612: 'C.MyEnumerator.MoveNext()' is obsolete
+                // foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.MyEnumerator.MoveNext()").WithLocation(1, 1),
+                // (1,1): warning CS0612: 'C.MyEnumerator.Current' is obsolete
+                // foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.MyEnumerator.Current").WithLocation(1, 1));
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       41 (0x29)
+  .maxstack  1
+  .locals init (C.MyEnumerator V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  call       "C.MyEnumerator C.GetEnumerator()"
+  IL_000a:  stloc.0
+  .try
+  {
+    IL_000b:  br.s       IL_0014
+    IL_000d:  ldloc.0
+    IL_000e:  callvirt   "int C.MyEnumerator.Current.get"
+    IL_0013:  pop
+    IL_0014:  ldloc.0
+    IL_0015:  callvirt   "bool C.MyEnumerator.MoveNext()"
+    IL_001a:  brtrue.s   IL_000d
+    IL_001c:  leave.s    IL_0028
+  }
+  finally
+  {
+    IL_001e:  ldloc.0
+    IL_001f:  brfalse.s  IL_0027
+    IL_0021:  ldloc.0
+    IL_0022:  callvirt   "void System.IDisposable.Dispose()"
+    IL_0027:  endfinally
+  }
+  IL_0028:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface()
+        {
+            string source = """
+foreach (var i in new C())
+{
+}
+class C
+{
+    [System.Obsolete]
+    public MyEnumerator GetEnumerator()
+    {
+        throw null;
+    }
+    [System.Obsolete]
+    public sealed class MyEnumerator
+    {
+        [System.Obsolete]
+        public int Current { get => throw null; }
+        [System.Obsolete]
+        public bool MoveNext() => throw null;
+        [System.Obsolete("error", true)]
+        public void Dispose() => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): warning CS0612: 'C.GetEnumerator()' is obsolete
+                // foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.GetEnumerator()").WithLocation(1, 1),
+                // (1,1): warning CS0612: 'C.MyEnumerator.MoveNext()' is obsolete
+                // foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.MyEnumerator.MoveNext()").WithLocation(1, 1),
+                // (1,1): warning CS0612: 'C.MyEnumerator.Current' is obsolete
+                // foreach (var i in new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "foreach").WithArguments("C.MyEnumerator.Current").WithLocation(1, 1));
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+{
+  // Code size       29 (0x1d)
+  .maxstack  1
+  .locals init (C.MyEnumerator V_0)
+  IL_0000:  newobj     "C..ctor()"
+  IL_0005:  call       "C.MyEnumerator C.GetEnumerator()"
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_0014
+  IL_000d:  ldloc.0
+  IL_000e:  callvirt   "int C.MyEnumerator.Current.get"
+  IL_0013:  pop
+  IL_0014:  ldloc.0
+  IL_0015:  callvirt   "bool C.MyEnumerator.MoveNext()"
+  IL_001a:  brtrue.s   IL_000d
+  IL_001c:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator()
+        {
+            string source = """
+foreach (var i in new C())
+{
+}
+
+class C
+{
+    public MyEnumerator GetEnumerator()
+    {
+        throw null;
+    }
+
+    public ref struct MyEnumerator
+    {
+        public int Current { get => throw null; }
+        public bool MoveNext() => throw null;
+
+        [System.Obsolete("error", true)]
+        public void Dispose() => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,1): error CS0619: 'C.MyEnumerator.Dispose()' is obsolete: 'error'
+                // foreach (var i in new C())
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "foreach").WithArguments("C.MyEnumerator.Dispose()", "error").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator_Spread()
+        {
+            string source = """
+int[] a = [42, ..new C()];
+
+class C
+{
+    public MyEnumerator GetEnumerator()
+    {
+        throw null;
+    }
+
+    public ref struct MyEnumerator
+    {
+        public int Current { get => throw null; }
+        public bool MoveNext() => throw null;
+
+        [System.Obsolete("error", true)]
+        public void Dispose() => throw null;
+    }
+}
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,16): error CS0619: 'C.MyEnumerator.Dispose()' is obsolete: 'error'
+                // int[] a = [42, ..new C()];
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "..new C()").WithArguments("C.MyEnumerator.Dispose()", "error").WithLocation(1, 16));
+        }
+
+        [Fact]
+        public void TestWithPatternAndObsolete_WithoutDisposableInterface_RefStructEnumerator_CollectionType()
+        {
+            string source = """
+C c = [42];
+
+[System.Runtime.CompilerServices.CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+public class C
+{
+    public MyEnumerator GetEnumerator()
+    {
+        throw null;
+    }
+
+    public ref struct MyEnumerator
+    {
+        public int Current { get => throw null; }
+        public bool MoveNext() => throw null;
+
+        [System.Obsolete("error", true)]
+        public void Dispose() => throw null;
+    }
+}
+
+public class MyCollectionBuilder
+{
+    public static C Create(System.ReadOnlySpan<int> items) => throw null;
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

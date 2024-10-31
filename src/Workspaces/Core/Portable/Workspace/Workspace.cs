@@ -1254,8 +1254,10 @@ public abstract partial class Workspace : IDisposable
                 {
                     updatedDocumentIds.Add(documentId);
 
-                    // Now go update the linked docs to have the same doc contents.
-                    var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId);
+                    // Now go update the linked docs to have the same doc contents. Note: We want to do this even across
+                    // languags.  If two projects are actually referring to the same file and that file changes, we need
+                    // them all to agree on the contents to leave us in a consistent state.
+                    var linkedDocumentIds = oldSolution.GetRelatedDocumentIds(documentId, includeDifferentLanguages: true);
                     if (linkedDocumentIds.Length > 0)
                     {
                         // Have the linked documents point *into* the same instance data that the initial document

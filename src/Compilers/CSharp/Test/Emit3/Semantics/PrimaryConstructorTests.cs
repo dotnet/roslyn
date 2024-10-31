@@ -7117,10 +7117,7 @@ struct Example()
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
-                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
-                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
         }
 
         public static IEnumerable<object[]> ParameterScope_MemberData()
@@ -9543,7 +9540,10 @@ class C1 (int p1)
             comp1.VerifyEmitDiagnostics(
                 // (4,38): error CS1041: Identifier expected; 'delegate' is a keyword
                 //     public System.Func<int> M21() => delegate => p1;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38),
+                // (4,47): error CS1593: Delegate 'Func<int>' does not take 1 arguments
+                //     public System.Func<int> M21() => delegate => p1;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<int>", "1").WithLocation(4, 47)
                 );
 
             var source = @"
@@ -20114,7 +20114,7 @@ p1
         [Fact]
         public void IllegalCapturingDueToRefness_02()
         {
-            var source = @"#pragma warning disable CS0649 // Field 'R1.F1' is never assigned to, and will always have its default value 0
+            var source = @"#pragma warning disable CS0649, CS9265 // Field 'R1.F1' is never assigned to, and will always have its default value 0
 ref struct R1
 {
     public int F1;

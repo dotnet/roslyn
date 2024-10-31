@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -19,14 +18,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("ObjectCreationExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal sealed partial class ObjectCreationExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ObjectCreationExpressionSignatureHelpProvider() : AbstractCSharpSignatureHelpProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ObjectCreationExpressionSignatureHelpProvider()
-    {
-    }
-
     public override bool IsTriggerCharacter(char ch)
         => ch is '(' or ',';
 
@@ -80,17 +75,18 @@ internal sealed partial class ObjectCreationExpressionSignatureHelpProvider : Ab
         if (within == null)
             return null;
 
-        var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
         if (type.TypeKind == TypeKind.Delegate)
             return await GetItemsWorkerForDelegateAsync(document, position, objectCreationExpression, type, cancellationToken).ConfigureAwait(false);
 
-        // get the candidate methods
+        // Get the candidate methods.  Consider the constructor's containing type to be the "through type" instance
+        // (which matches the compiler's logic in Binder.IsConstructorAccessible), to ensure that we do not see
+        // protected constructors in derived types (but continue to see them in nested types).
         var methods = type.InstanceConstructors
-            .WhereAsArray(c => c.IsAccessibleWithin(within))
+            .WhereAsArray(c => c.IsAccessibleWithin(within: within, throughType: c.ContainingType))
             .WhereAsArray(s => s.IsEditorBrowsable(options.HideAdvancedMembers, semanticModel.Compilation))
             .Sort(semanticModel, objectCreationExpression.SpanStart);
 
-        if (!methods.Any())
+        if (methods.IsEmpty)
             return null;
 
         // guess the best candidate if needed and determine parameter index

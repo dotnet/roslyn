@@ -1202,5 +1202,28 @@ class Test
 
             Await VerifyHighlightsAsync(input, testHost)
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://devdiv.visualstudio.com/DevDiv/_queries/edit/2239702")>
+        Public Async Function TestVerifyHighlightsForLinqQueryOrdering(testHost As TestHost) As Task
+            Await VerifyHighlightsAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.Linq;
+
+                            class C
+                            {
+                                void M(int[] values)
+                                {
+                                    var v = from x in values
+                                            $$orderby x.ToString() ascending
+                                            select x;
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, testHost)
+        End Function
     End Class
 End Namespace

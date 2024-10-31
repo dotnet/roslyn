@@ -390,14 +390,16 @@ internal sealed partial class SolutionCompilationState
 
             static GeneratorDriver CreateGeneratorDriver(ProjectState projectState)
             {
+                var generatedFilesBaseDirectory = projectState.CompilationOutputInfo.GetEffectiveGeneratedFilesOutputDirectory();
                 var additionalTexts = projectState.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText);
                 var compilationFactory = projectState.LanguageServices.GetRequiredService<ICompilationFactoryService>();
 
                 return compilationFactory.CreateGeneratorDriver(
                     projectState.ParseOptions!,
                     GetSourceGenerators(projectState),
-                    projectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
-                    additionalTexts);
+                    projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider,
+                    additionalTexts,
+                    generatedFilesBaseDirectory);
             }
 
             [Conditional("DEBUG")]

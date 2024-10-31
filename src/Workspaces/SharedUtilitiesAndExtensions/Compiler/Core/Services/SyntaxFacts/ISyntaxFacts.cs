@@ -287,6 +287,7 @@ internal interface ISyntaxFacts
     SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node);
     SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
 
+    bool IsElementBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node);
 
