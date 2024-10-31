@@ -1037,13 +1037,19 @@ BC37332: Type argument 'S4(Of Program)' must be a non-nullable value type, along
 
             Dim s1 = compilation.GetTypeByMetadataName("S1")
             Dim s2 = compilation.GetTypeByMetadataName("S2")
+            Dim s3 = compilation.GetTypeByMetadataName("S3")
+            Dim s4 = compilation.GetTypeByMetadataName("S4`1")
             Dim s5 = compilation.GetTypeByMetadataName("S5`1")
             Assert.Equal(ManagedKind.Managed, s1.GetManagedKind(Nothing))
             Assert.Equal(ManagedKind.Unmanaged, s2.GetManagedKind(Nothing))
+            Assert.Equal(ManagedKind.Unmanaged, s3.GetManagedKind(Nothing))
+            Assert.Equal(ManagedKind.Managed, s4.GetManagedKind(Nothing))
             Assert.Equal(ManagedKind.UnmanagedWithGenerics, s5.GetManagedKind(Nothing))
 
             Assert.False(DirectCast(s1, INamedTypeSymbol).IsUnmanagedType)
             Assert.True(DirectCast(s2, INamedTypeSymbol).IsUnmanagedType)
+            Assert.True(DirectCast(s3, INamedTypeSymbol).IsUnmanagedType)
+            Assert.False(DirectCast(s4, INamedTypeSymbol).IsUnmanagedType)
             Assert.True(DirectCast(s5, INamedTypeSymbol).IsUnmanagedType)
 
             Dim s5T = s5.TypeParameters(0)
@@ -1719,18 +1725,32 @@ public class Test
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
 
             Dim source = "
-public class Program(Of T As Structure) 
-    Shared Sub Main
+public class Program
+    Shared Sub Main(Of T1, T2 As Class, T3 As Structure)(x1 as T1, x2 As T2, x3 As T3)
         Dim o As New Test
-        o.M(New T())
+        o.M(x1)
+        o.M(x2)
+        o.M(x3)
     End Sub
 End Class
 "
 
             Dim compilation = CreateCompilation(source, references:={reference})
             AssertTheseDiagnostics(compilation, <expected><![CDATA[
-BC37332: Type argument 'T' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter 'T'.
-        o.M(New T())
+BC32105: Type argument 'T1' does not satisfy the 'Structure' constraint for type parameter 'T'.
+        o.M(x1)
+          ~
+BC37332: Type argument 'T1' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter 'T'.
+        o.M(x1)
+          ~
+BC32105: Type argument 'T2' does not satisfy the 'Structure' constraint for type parameter 'T'.
+        o.M(x2)
+          ~
+BC37332: Type argument 'T2' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter 'T'.
+        o.M(x2)
+          ~
+BC37332: Type argument 'T3' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter 'T'.
+        o.M(x3)
           ~
                                                 ]]></expected>)
         End Sub
