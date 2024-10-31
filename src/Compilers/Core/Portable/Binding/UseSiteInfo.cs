@@ -270,11 +270,18 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var diagnosticInfo in diagnostics)
                 {
-                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
-                    {
-                        RecordPresenceOfAnError();
-                    }
+                    AccumulateDiagnosticInfoAndRecordPresenceOfAnError(diagnosticInfo);
                 }
+            }
+        }
+
+        private void AccumulateDiagnosticInfoAndRecordPresenceOfAnError(DiagnosticInfo diagnosticInfo)
+        {
+            Debug.Assert(_diagnostics is not null);
+
+            if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
+            {
+                RecordPresenceOfAnError();
             }
         }
 
@@ -291,10 +298,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var diagnosticInfo in diagnostics)
                 {
-                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
-                    {
-                        RecordPresenceOfAnError();
-                    }
+                    AccumulateDiagnosticInfoAndRecordPresenceOfAnError(diagnosticInfo);
                 }
             }
         }
@@ -312,10 +316,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var diagnosticInfo in diagnostics)
                 {
-                    if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
-                    {
-                        RecordPresenceOfAnError();
-                    }
+                    AccumulateDiagnosticInfoAndRecordPresenceOfAnError(diagnosticInfo);
                 }
             }
         }
@@ -329,10 +330,7 @@ namespace Microsoft.CodeAnalysis
 
             _diagnostics ??= new HashSet<DiagnosticInfo>();
 
-            if (_diagnostics.Add(diagnosticInfo) && diagnosticInfo?.Severity == DiagnosticSeverity.Error)
-            {
-                RecordPresenceOfAnError();
-            }
+            AccumulateDiagnosticInfoAndRecordPresenceOfAnError(diagnosticInfo);
         }
 
         public void AddDependencies(UseSiteInfo<TAssemblySymbol> info)

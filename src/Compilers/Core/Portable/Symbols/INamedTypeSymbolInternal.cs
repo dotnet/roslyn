@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// <summary>
         /// True if this type or some containing type has type parameters.
         /// </summary>
-        public bool IsGenericType { get; }
+        bool IsGenericType { get; }
 
         internal static class Helpers
         {

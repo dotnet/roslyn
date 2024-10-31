@@ -1199,22 +1199,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return GetManagedKind(Me, useSiteInfo)
         End Function
 
-        ' <summary>
-        ' IsManagedType is simple for most named types:
-        '     enums are not managed;
-        '     non-enum, non-struct named types are managed;
-        '     type parameters are managed unless an 'unmanaged' constraint is present;
-        '     all special types have spec'd values (basically, (non-string) primitives) are not managed;
-        ' 
-        ' Only structs are complicated, because the definition is recursive.  A struct type is managed
-        ' if one of its instance fields is managed or a ref field.  Unfortunately, this can result in infinite recursion.
-        ' If the closure is finite, and we don't find anything definitely managed, then we return true.
-        ' If the closure is infinite, we disregard all but a representative of any expanding cycle.
-        ' 
-        ' Intuitively, this will only return true if there's a specific type we can point to that is would
-        ' be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
-        ' is because we can point to object.
-        ' </summary>
+        ''' <summary>
+        ''' <see cref="ManagedKind"/> is simple for most named types:
+        '''     enums are not managed;
+        '''     non-enum, non-struct named types are managed;
+        '''     type parameters are managed unless an 'unmanaged' constraint is present;
+        '''     all special types have spec'd values (basically, (non-string) primitives) are not managed;
+        ''' 
+        ''' Only structs are complicated, because the definition is recursive.  A struct type is managed
+        ''' if one of its instance fields is managed or a ref field.  Unfortunately, this can result in infinite recursion.
+        ''' If the closure is finite, and we don't find anything definitely managed, then we return true.
+        ''' If the closure is infinite, we disregard all but a representative of any expanding cycle.
+        ''' 
+        ''' Intuitively, this will only return true if there's a specific type we can point to that is would
+        ''' be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
+        ''' is because we can point to object.
+        ''' </summary>
         Private Overloads Shared Function GetManagedKind(type As NamedTypeSymbol, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
             type = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
