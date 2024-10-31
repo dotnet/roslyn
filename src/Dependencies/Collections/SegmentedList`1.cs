@@ -131,34 +131,41 @@ namespace Microsoft.CodeAnalysis.Collections
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.value, ExceptionResource.ArgumentOutOfRange_SmallCapacity);
                 }
 
-                if (value != _items.Length)
+                if (value == _items.Length)
+                    return;
+
+                if (value <= 0)
                 {
-                    if (value > 0)
-                    {
-                        // Rather than creating a copy of _items, instead reuse as much of it's data as possible.
-                        var segments = SegmentedCollectionsMarshal.AsSegments(_items);
+                    _items = s_emptyArray;
+                    return;
+                }
 
-                        var oldSegmentCount = segments.Length;
-                        var newSegmentCount = (value + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
+                if (_items.Length == 0)
+                {
+                    // No data from existing array to reuse, just create a new one.
+                    _items = new SegmentedArray<T>(value);
+                }
+                else
+                {
+                    // Rather than creating a copy of _items, instead reuse as much of it's data as possible.
+                    var segments = SegmentedCollectionsMarshal.AsSegments(_items);
 
-                        // Grow the array of segments, if necessary
-                        Array.Resize(ref segments, newSegmentCount);
+                    var oldSegmentCount = segments.Length;
+                    var newSegmentCount = (value + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
 
-                        // Resize all segments to full segment size from the last old segment to the next to last
-                        // new segment.
-                        for (var i = oldSegmentCount > 0 ? oldSegmentCount - 1 : 0; i < newSegmentCount - 1; i++)
-                            Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<T>());
+                    // Grow the array of segments, if necessary
+                    Array.Resize(ref segments, newSegmentCount);
 
-                        // Resize the last segment
-                        var lastSegmentSize = value - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
-                        Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
+                    // Resize all segments to full segment size from the last old segment to the next to last
+                    // new segment.
+                    for (var i = oldSegmentCount - 1; i < newSegmentCount - 1; i++)
+                        Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<T>());
 
-                        _items = SegmentedCollectionsMarshal.AsSegmentedArray(segments);
-                    }
-                    else
-                    {
-                        _items = s_emptyArray;
-                    }
+                    // Resize the last segment
+                    var lastSegmentSize = value - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
+                    Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
+
+                    _items = SegmentedCollectionsMarshal.AsSegmentedArray(segments);
                 }
             }
         }
