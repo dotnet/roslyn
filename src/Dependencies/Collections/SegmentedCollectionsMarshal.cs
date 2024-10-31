@@ -26,6 +26,7 @@ internal static class SegmentedCollectionsMarshal
     /// Gets a <see cref="SegmentedArray{T}"/> value wrapping the input T[][].
     /// </summary>
     /// <typeparam name="T">The type of elements in the input.</typeparam>
+    /// <param name="length">The combined length of the input arrays</param>
     /// <param name="segments">The input array to wrap in the returned <see cref="SegmentedArray{T}"/> value.</param>
     /// <returns>A <see cref="SegmentedArray{T}"/> value wrapping <paramref name="segments"/>.</returns>
     /// <remarks>
@@ -37,8 +38,8 @@ internal static class SegmentedCollectionsMarshal
     /// </para>
     /// </remarks>
     /// <exception cref="System.ArgumentNullException">Thrown when <paramref name="segments"/> is <see langword="null"/></exception>
-    public static SegmentedArray<T> AsSegmentedArray<T>(T[][] segments)
-        => SegmentedArray<T>.PrivateMarshal.AsSegmentedArray(segments);
+    public static SegmentedArray<T> AsSegmentedArray<T>(int length, T[][] segments)
+        => SegmentedArray<T>.PrivateMarshal.AsSegmentedArray(length, segments);
 
     /// <summary>
     /// Gets either a ref to a <typeparamref name="TValue"/> in the <see cref="SegmentedDictionary{TKey, TValue}"/> or a

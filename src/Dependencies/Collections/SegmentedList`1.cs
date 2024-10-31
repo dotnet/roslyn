@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     var lastSegmentSize = value - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
                     Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
 
-                    _items = SegmentedCollectionsMarshal.AsSegmentedArray(segments);
+                    _items = SegmentedCollectionsMarshal.AsSegmentedArray(value, segments);
                 }
             }
         }

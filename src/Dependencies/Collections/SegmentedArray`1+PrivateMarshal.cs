@@ -17,13 +17,7 @@ internal readonly partial struct SegmentedArray<T>
         public static T[][] AsSegments(SegmentedArray<T> array)
             => array._items;
 
-        public static SegmentedArray<T> AsSegmentedArray(T[][] segments)
-        {
-            var length = segments.Length == 0 ? 0 : segments[segments.Length - 1].Length;
-            if (segments.Length > 1)
-                length = length + SegmentedArrayHelper.GetSegmentSize<T>() * (segments.Length - 1);
-
-            return new SegmentedArray<T>(length, segments);
-        }
+        public static SegmentedArray<T> AsSegmentedArray(int length, T[][] segments)
+            => new SegmentedArray<T>(length, segments);
     }
 }
