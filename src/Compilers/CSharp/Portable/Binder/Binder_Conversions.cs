@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionGroup? conversionGroupOpt, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
         {
             var arguments = AnalyzedArguments.GetInstance(node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt);
-            BoundExpression expr = bindObjectCreationExpression(((ImplicitObjectCreationExpressionSyntax)node.Syntax).ArgumentList, node.InitializerOpt, node.Binder, destination.StrippedType(), arguments, diagnostics);
+            BoundExpression expr = bindObjectCreationExpression(node.Syntax, node.InitializerOpt, node.Binder, destination.StrippedType(), arguments, diagnostics);
             arguments.Free();
 
             Debug.Assert(expr is BoundObjectCreationExpressionBase { WasTargetTyped: true } or

@@ -102,10 +102,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                // NOTE: check Syntax rather than WasCompilerGenerated because sequence points can have null syntax.
-                if (this.HasErrors || this.Syntax != null && this.Syntax.HasErrors)
+                if (this.HasErrors)
                 {
                     return true;
+                }
+
+                // The syntax attached to placeholders should not limit usage of those placeholders
+                if (this is not BoundValuePlaceholderBase)
+                {
+                    // NOTE: check Syntax rather than WasCompilerGenerated because sequence points can have null syntax.
+                    if (this.Syntax != null && this.Syntax.HasErrors)
+                    {
+                        return true;
+                    }
                 }
                 var expression = this as BoundExpression;
                 return expression?.Type?.IsErrorType() == true;
