@@ -254,9 +254,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Currently the VS client does not remember to re-request, so the completion list only ever shows items from "Som"
             // so we always set the isIncomplete flag to true when the original list size (computed when no filter text was typed) is too large.
             // VS bug here - https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1335142
-            isIncomplete |= completionCapabilityHelper.SupportVSInternalClientCapabilities
-                ? completionList.ItemsList.Count > newCompletionList.ItemsList.Count
-                : matchResultsBuilder.Count > filteredList.Length;
+            isIncomplete |= matchResultsBuilder.Count > filteredList.Length;
 
             return (newCompletionList, isIncomplete, isHardSelection);
 
