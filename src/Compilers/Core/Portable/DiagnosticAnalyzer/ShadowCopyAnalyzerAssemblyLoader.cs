@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Globalization;
+
 
 #if NET
 using System.Runtime.Loader;
@@ -141,6 +143,7 @@ namespace Microsoft.CodeAnalysis
                 var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
                 var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
                 CopyFile(originalAnalyzerPath, shadowAnalyzerPath);
+                GetRealSatelliteLoadPath(originalAnalyzerPath, CultureInfo.CurrentUICulture);
 
                 return shadowAnalyzerPath;
             }
