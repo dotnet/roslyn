@@ -34,27 +34,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
-        public void Capacity_ArgumentValidity(int count)
-        {
-            var list = new SegmentedList<T>(count);
-            for (var i = 0; i < count; i++)
-                list.Add(CreateT(i));
-
-            Assert.Throws<ArgumentOutOfRangeException>(() => list.Capacity = count - 1);
-        }
-
-        [Theory]
-        [InlineData(0, 0, 1)]
-        [InlineData(0, 0, 10)]
-        [InlineData(4, 4, 6)]
-        [InlineData(4, 4, 10)]
-        [InlineData(4, 4, 100_000)]
-        public void Capacity_MatchesSizeRequested(int initialCapacity, int initialSize, int requestedCapacity)
+        public void Capacity_ArgumentValidity(int initialCapacity)
         {
             var list = new SegmentedList<T>(initialCapacity);
 
-            for (var i = 0; i < initialSize; i++)
+            for (var i = 0; i < initialCapacity; i++)
                 list.Add(CreateT(i));
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => list.Capacity = initialCapacity - 1);
+        }
+
+        [Theory]
+        [InlineData(0, 1)]
+        [InlineData(0, 10)]
+        [InlineData(4, 6)]
+        [InlineData(4, 10)]
+        [InlineData(4, 100_000)]
+        public void Capacity_MatchesSizeRequested(int initialCapacity, int requestedCapacity)
+        {
+            var list = new SegmentedList<T>(initialCapacity);
 
             list.Capacity = requestedCapacity;
 
@@ -63,26 +61,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         [Theory]
         [MemberData(nameof(TestLengthsAndSegmentCounts))]
-        public void Capacity_ReusesSegments(
-            int length,
-            int addSegmentCount)
+        public void Capacity_ReusesSegments(int initialCapacity, int segmentCountToAdd)
         {
-            var elementCountToAdd = SegmentedArray<object>.TestAccessor.SegmentSize * addSegmentCount;
-            var o = new object();
+            var elementCountToAdd = segmentCountToAdd * SegmentedArray<object>.TestAccessor.SegmentSize;
 
-            var segmented = new SegmentedList<object>(length);
-            for (var i = 0; i < length; i++)
-                segmented.Add(o);
+            var segmented = new SegmentedList<object>(initialCapacity);
 
             var oldSegments = SegmentedCollectionsMarshal.AsSegments(segmented.GetTestAccessor().Items);
             var oldSegmentCount = oldSegments.Length;
 
-            segmented.Capacity = length + elementCountToAdd;
+            segmented.Capacity = initialCapacity + elementCountToAdd;
 
             var resizedSegments = SegmentedCollectionsMarshal.AsSegments(segmented.GetTestAccessor().Items);
             var resizedSegmentCount = resizedSegments.Length;
 
-            Assert.Equal(oldSegmentCount + addSegmentCount, resizedSegmentCount);
+            Assert.Equal(oldSegmentCount + segmentCountToAdd, resizedSegmentCount);
 
             for (var i = 0; i < oldSegmentCount - 1; i++)
                 Assert.Same(resizedSegments[i], oldSegments[i]);
@@ -97,18 +90,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Theory]
         [CombinatorialData]
         public void Capacity_InOnlySingleSegment(
-            [CombinatorialValues(1, 2, 10, 100)] int length,
+            [CombinatorialValues(1, 2, 10, 100)] int initialCapacity,
             [CombinatorialValues(1, 2, 10, 100)] int addItemCount)
         {
-            var o = new object();
-
-            var segmented = new SegmentedList<object>(length);
-            for (var i = 0; i < length; i++)
-                segmented.Add(o);
+            var segmented = new SegmentedList<object>(initialCapacity);
 
             var oldSegments = SegmentedCollectionsMarshal.AsSegments(segmented.GetTestAccessor().Items);
 
-            segmented.Capacity = length + addItemCount;
+            segmented.Capacity = initialCapacity + addItemCount;
 
             var resizedSegments = SegmentedCollectionsMarshal.AsSegments(segmented.GetTestAccessor().Items);
 
@@ -119,16 +108,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
 
         [Theory]
-        [InlineData(0, 0, 1, 4)]
-        [InlineData(0, 0, 10, 10)]
-        [InlineData(4, 4, 6, 8)]
-        [InlineData(4, 4, 10, 10)]
-        public void EnsureCapacity_ResizesAppropriately(int initialCapacity, int initialSize, int requestedCapacity, int expectedCapacity)
+        [InlineData(0, 1, 4)]
+        [InlineData(0, 10, 10)]
+        [InlineData(4, 6, 8)]
+        [InlineData(4, 10, 10)]
+        public void EnsureCapacity_ResizesAppropriately(int initialCapacity, int requestedCapacity, int expectedCapacity)
         {
             var list = new SegmentedList<T>(initialCapacity);
-
-            for (var i = 0; i < initialSize; i++)
-                list.Add(CreateT(i));
 
             list.EnsureCapacity(requestedCapacity);
 
@@ -141,11 +127,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [InlineData(4)]
         public void EnsureCapacity_MatchesSizeWithLargeCapacityRequest(int segmentCount)
         {
-            var elementCount = SegmentedArray<T>.TestAccessor.SegmentSize * segmentCount;
+            var elementCount = segmentCount * SegmentedArray<T>.TestAccessor.SegmentSize;
             var list = new SegmentedList<T>(elementCount);
-
-            for (var i = 0; i < elementCount; i++)
-                list.Add(CreateT(i));
 
             Assert.Equal(elementCount, list.Capacity);
 
