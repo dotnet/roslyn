@@ -161,7 +161,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             {
                 Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
 
-                // relative path is realtive to the project dir:
+                // relative path is relative to the project dir:
                 project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "generated");
                 AssertEx.AreEqual(
                     Path.Combine(Path.GetDirectoryName(project.ProjectFilePath), "generated"),
