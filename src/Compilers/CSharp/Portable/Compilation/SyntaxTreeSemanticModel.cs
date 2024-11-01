@@ -6,7 +6,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -138,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Compilation.GetDiagnosticsForSyntaxTree(
             CompilationStage.Compile, this.SyntaxTree, span, includeEarlierStages: true, cancellationToken: cancellationToken);
         }
-#nullable disable
 
         /// <summary>
         /// Gets the enclosing binder associated with the node
@@ -285,7 +283,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = (object)symbol != null ? GetSymbolInfoForSymbol(symbol, options) : SymbolInfo.None;
             }
 
+            AssertSymbolExpectations(node, result);
             return result;
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertSymbolExpectations(CSharpSyntaxNode node, SymbolInfo symbolInfo)
+        {
+            if (node is BaseObjectCreationExpressionSyntax)
+            {
+                // For object creation expressions,
+                // either explicit (like `new TypeName()`) or implicit (just `new()`),
+                // assert that all returned symbols are constructors
+                Debug.Assert(symbolInfo.GetAllSymbols().All(s => s is IMethodSymbol { MethodKind: MethodKind.Constructor }));
+            }
         }
 
         internal override SymbolInfo GetCollectionInitializerSymbolInfoWorker(InitializerExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
