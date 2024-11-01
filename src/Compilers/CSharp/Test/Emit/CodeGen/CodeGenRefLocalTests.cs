@@ -4168,24 +4168,24 @@ public class C
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'new ref[] { 1 }')
   Children(1):
-      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?[]) (Syntax: '{ 1 }')
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: ?[], IsInvalid) (Syntax: '{ 1 }')
         Initializers(1):
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: '1')
-              Children(2):
-                  IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: '1')
-                    Children(1):
-                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: ?[], IsInvalid, IsImplicit) (Syntax: 'ref[]')
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '1')
+              Children(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
 
             var expectedDiagnostics = new[]
             {
-                // file.cs(6,28): error CS8386: Invalid object creation
+                // (6,28): error CS8386: Invalid object creation
                 //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
                 Diagnostic(ErrorCode.ERR_InvalidObjectCreation, "ref[]").WithLocation(6, 28),
-                // file.cs(6,31): error CS1031: Type expected
+                // (6,31): error CS1031: Type expected
                 //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 31)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 31),
+                // (6,36): error CS1061: '?[]' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type '?[]' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = /*<bind>*/ new ref[] { 1 } /*</bind>*/ ;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "1").WithArguments("?[]", "Add").WithLocation(6, 36)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(text, expectedOperationTree, expectedDiagnostics);
