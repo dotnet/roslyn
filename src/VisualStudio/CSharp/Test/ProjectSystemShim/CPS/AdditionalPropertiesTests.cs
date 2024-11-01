@@ -161,13 +161,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             {
                 Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
 
-                // relative path ignored:
+                // relative path is realtive to the project dir:
                 project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "generated");
-                Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+                AssertEx.AreEqual(
+                    Path.Combine(Path.GetDirectoryName(project.ProjectFilePath), "generated"),
+                    environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
 
                 var path = Path.Combine(TempRoot.Root, "generated");
                 project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, path);
                 AssertEx.AreEqual(path, environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+                // empty path:
+                project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "");
+                Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
             }
         }
     }

@@ -200,6 +200,12 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             cpsProject.SetOptions(["/generatedfilesout:" + path]);
 
             AssertEx.AreEqual(path, environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+            // relative path is realtive to the project dir:
+            cpsProject.SetOptions(["/generatedfilesout:gen2"]);
+            AssertEx.AreEqual(
+                Path.Combine(Path.GetDirectoryName(cpsProject.ProjectFilePath), "gen2"),
+                environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
         }
     }
 }
