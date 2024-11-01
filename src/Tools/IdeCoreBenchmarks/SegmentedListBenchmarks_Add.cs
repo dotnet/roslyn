@@ -13,54 +13,29 @@ namespace IdeCoreBenchmarks
         [Params(1_000, 10_000, 100_000, 1_000_000)]
         public int Count { get; set; }
 
-        [Benchmark(Description = "AddIntToList")]
+        [Benchmark]
         public void AddIntToList()
-        {
-            var array = new SegmentedList<int>();
-            var iterations = Count;
+            => AddToList(1);
 
-            for (var i = 0; i < iterations; i++)
-            {
-                array.Add(i);
-            }
-        }
-
-        [Benchmark(Description = "AddObjectToList")]
+        [Benchmark]
         public void AddObjectToList()
-        {
-            var array = new SegmentedList<object?>();
-            var iterations = Count;
+            => AddToList(new object());
 
-            for (var i = 0; i < iterations; i++)
-            {
-                array.Add(null);
-            }
-        }
-
-        [Benchmark(Description = "AddLargeStructToList")]
+        [Benchmark]
         public void AddLargeStructToList()
-        {
-            var array = new SegmentedList<LargeStruct>();
-            var item = new LargeStruct();
-            var iterations = Count;
+            => AddToList(new LargeStruct());
 
-            for (var i = 0; i < iterations; i++)
-            {
-                array.Add(item);
-            }
-        }
-
-        [Benchmark(Description = "AddEnormousStructToList")]
+        [Benchmark]
         public void AddEnormousStructToList()
+            => AddToList(new EnormousStruct());
+
+        private void AddToList<T>(T item)
         {
-            var array = new SegmentedList<EnormousStruct>();
-            var item = new EnormousStruct();
+            var array = new SegmentedList<T>();
             var iterations = Count;
 
             for (var i = 0; i < iterations; i++)
-            {
                 array.Add(item);
-            }
         }
 
         private struct LargeStruct
