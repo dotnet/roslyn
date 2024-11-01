@@ -1218,7 +1218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Overloads Shared Function GetManagedKind(type As NamedTypeSymbol, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
             type = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
-            ' The code below is a clone of BaseTypeAnalysis.GetManagedKind from C# it should be kept in sync going forward
+            ' The code below is a clone of BaseTypeAnalysis.GetManagedKind from C#. It should be kept in sync going forward
             Dim managedInfo = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(type)
             Dim definitelyManaged = (managedInfo.isManaged = ThreeState.True)
 

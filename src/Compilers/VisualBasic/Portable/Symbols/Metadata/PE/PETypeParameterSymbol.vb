@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             ' - presence of unmanaged pattern has to be matched with `valuetype`
-            ' - IsUnmanagedAttribute is allowed iff there is an unmanaged pattern
+            ' - IsUnmanagedAttribute is allowed if there is an unmanaged pattern
             If (hasUnmanagedModreqPattern AndAlso (_flags And GenericParameterAttributes.NotNullableValueTypeConstraint) = 0) OrElse
                hasUnmanagedModreqPattern <> moduleSymbol.Module.HasIsUnmanagedAttribute(_handle) Then
                 ' we do not recognize these combinations as "unmanaged"
@@ -355,6 +355,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 _lazyCachedBoundsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency, useSiteInfo)
                 _lazyHasIsUnmanagedConstraint = hasUnmanagedModreqPattern.ToThreeState()
+
+                ' Note, we are relying on the fact that _lazyConstraintTypes is initialized last, and
+                ' we depend on the memory barrier from this interlocked operation to prevent write reordering
                 ImmutableInterlocked.InterlockedInitialize(_lazyConstraintTypes, GetConstraintTypesOnly(constraints))
             End If
 
