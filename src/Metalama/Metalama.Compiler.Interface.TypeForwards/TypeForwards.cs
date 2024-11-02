@@ -21,6 +21,10 @@ using Metalama.Compiler.Services;
 [assembly: TypeForwardedTo(typeof(MetalamaCompilerAnnotations))]
 [assembly: TypeForwardedTo(typeof(TransformerOptions))]
 [assembly: TypeForwardedTo(typeof(SourceGeneratedCodeTracker))]
+[assembly: TypeForwardedTo(typeof(DiagnosticFilter))]
+[assembly: TypeForwardedTo(typeof(DiagnosticFilterDelegate))]
+[assembly: TypeForwardedTo(typeof(DiagnosticFilterRunner))]
+[assembly: TypeForwardedTo(typeof(DiagnosticFilterCollection))]
 
 namespace Metalama.Compiler.Interface.TypeForwards
 {

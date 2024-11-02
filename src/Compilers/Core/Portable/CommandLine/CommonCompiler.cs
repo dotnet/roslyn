@@ -1496,8 +1496,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerOptions, sourceOnlyAnalyzers, severityFilter, Arguments.ReportAnalyzer);
 
                     // Execute transformers.
-                    var transformerOptions = new TransformerOptions(
-                        this.Arguments.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage));
+                    var transformerOptions = new TransformerOptions { RequiresCodeCoverageAnnotations = this.Arguments.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage) };
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
                     var transformersResult = RunTransformers(compilationBeforeTransformation, serviceProvider,

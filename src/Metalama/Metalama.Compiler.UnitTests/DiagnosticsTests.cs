@@ -161,8 +161,8 @@ namespace Metalama.Compiler.UnitTests
             var transformers =
                 new ISourceTransformer[]
                 {
-                    new AppendTransformer("class D { int _f; }"), new SuppressTransformer("MY001"),
-                    new SuppressTransformer("CS0169")
+                    new AppendTransformer("class D { int _f; }"), new SuppressTransformer("MY001", src.Path),
+                    new SuppressTransformer("CS0169", src.Path)
                 };
             var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
 
