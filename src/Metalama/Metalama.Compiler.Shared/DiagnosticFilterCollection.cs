@@ -31,7 +31,7 @@ namespace Metalama.Compiler
 
         public void Freeze() => _frozen = true;
 
-        public void Add(DiagnosticFilter diagnosticFilter)
+        public void Add(DiagnosticFilter diagnosticFilter) => Add(in diagnosticFilter);
         public void Add(in DiagnosticFilter diagnosticFilter)
         {
             if (this.IsReadOnly)
