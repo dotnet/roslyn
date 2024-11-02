@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 
             // Store the members in the resolve cache so that when we get a resolve request for a particular
             // member we can re-use the inline hint.
-            var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints, syntaxVersion));
+            var resultId = inlayHintCache.UpdateCache(new InlayHintCache.InlayHintCacheEntry(hints));
 
             var inlayHints = new LSP.InlayHint[hints.Length];
             for (var i = 0; i < hints.Length; i++)
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
                     ToolTip = null,
                     PaddingLeft = leftPadding,
                     PaddingRight = rightPadding,
-                    Data = new InlayHintResolveData(resultId, i, textDocumentIdentifier)
+                    Data = new InlayHintResolveData(resultId, i, textDocumentIdentifier, syntaxVersion.ToString(), range, displayAllOverride)
                 };
 
                 inlayHints[i] = inlayHint;
