@@ -45,7 +45,7 @@ internal abstract class StructuredAnalyzerConfigOptions : AnalyzerConfigOptions,
             => _lazyNamingStylePreferences.Value is { IsEmpty: false } nonEmpty ? nonEmpty : _fallback?.GetNamingStylePreferences() ?? NamingStylePreferences.Empty;
     }
 
-    public static readonly StructuredAnalyzerConfigOptions Empty = Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty));
+    public static readonly StructuredAnalyzerConfigOptions Empty = Create(DictionaryAnalyzerConfigOptions.Empty);
 
     public abstract NamingStylePreferences GetNamingStylePreferences();
 

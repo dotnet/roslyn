@@ -206,7 +206,7 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
         Contract.ThrowIfFalse(count <= 2);
 
         var optionsByLanguage = ImmutableDictionary.CreateBuilder<string, StructuredAnalyzerConfigOptions>();
-        var options = ImmutableDictionary.CreateBuilder<string, string>();
+        var options = ImmutableDictionary.CreateBuilder<string, string>(AnalyzerConfigOptions.KeyComparer);
 
         for (var i = 0; i < count; i++)
         {

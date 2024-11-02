@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
             var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var optionsWithFallback = StructuredAnalyzerConfigOptions.Create(configOptions,
-                StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(DictionaryAnalyzerConfigOptions.EmptyDictionary
                     .Add(FormattingOptions2.TabSize.Definition.ConfigName, FormattingOptions2.TabSize.Definition.Serializer.Serialize(fallbackLineFormattingOptions.TabSize))
                     .Add(FormattingOptions2.IndentationSize.Definition.ConfigName, FormattingOptions2.IndentationSize.Definition.Serializer.Serialize(fallbackLineFormattingOptions.IndentationSize))
                     .Add(FormattingOptions2.UseTabs.Definition.ConfigName, FormattingOptions2.UseTabs.Definition.Serializer.Serialize(fallbackLineFormattingOptions.UseTabs))
