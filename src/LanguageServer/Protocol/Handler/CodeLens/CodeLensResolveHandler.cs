@@ -10,20 +10,22 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using LSP = Roslyn.LanguageServer.Protocol;
 using System.Text.Json;
 using StreamJsonRpc;
+using System.Composition;
+using System;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
+[ExportCSharpVisualBasicStatelessLspService(typeof(CodeLensResolveHandler)), Shared]
 [Method(LSP.Methods.CodeLensResolveName)]
-internal sealed class CodeLensResolveHandler : ILspServiceDocumentRequestHandler<LSP.CodeLens, LSP.CodeLens>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandler<LSP.CodeLens, LSP.CodeLens>
 {
     /// <summary>
     /// Command name implemented by the client and invoked when the references code lens is selected.
     /// </summary>
     private const string ClientReferencesCommand = "roslyn.client.peekReferences";
-
-    public CodeLensResolveHandler()
-    {
-    }
 
     public bool MutatesSolutionState => false;
 
