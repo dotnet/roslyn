@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Collections.Internal;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Collections
@@ -24,9 +25,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                     yield return new object[] { 1, segmentsToAdd };
                     yield return new object[] { 10, segmentsToAdd };
                     yield return new object[] { 100, segmentsToAdd };
-                    yield return new object[] { SegmentedArray<object>.TestAccessor.SegmentSize / 2, segmentsToAdd };
-                    yield return new object[] { SegmentedArray<object>.TestAccessor.SegmentSize, segmentsToAdd };
-                    yield return new object[] { SegmentedArray<object>.TestAccessor.SegmentSize * 2, segmentsToAdd };
+                    yield return new object[] { SegmentedArray<T>.TestAccessor.SegmentSize / 2, segmentsToAdd };
+                    yield return new object[] { SegmentedArray<T>.TestAccessor.SegmentSize, segmentsToAdd };
+                    yield return new object[] { SegmentedArray<T>.TestAccessor.SegmentSize * 2, segmentsToAdd };
                     yield return new object[] { 100000, segmentsToAdd };
                 }
             }
@@ -63,25 +64,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [MemberData(nameof(TestLengthsAndSegmentCounts))]
         public void Capacity_ReusesSegments(int initialCapacity, int segmentCountToAdd)
         {
-            var elementCountToAdd = segmentCountToAdd * SegmentedArray<object>.TestAccessor.SegmentSize;
+            var elementCountToAdd = segmentCountToAdd * SegmentedArray<T>.TestAccessor.SegmentSize;
 
-            var segmented = new SegmentedList<object>(initialCapacity);
+            var segmented = new SegmentedList<T>(initialCapacity);
 
             var oldSegments = SegmentedCollectionsMarshal.AsSegments(segmented.GetTestAccessor().Items);
-            var oldSegmentCount = oldSegments.Length;
+            var oldSegmentCount = (segmented.Capacity + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
 
             segmented.Capacity = initialCapacity + elementCountToAdd;
 
             var resizedSegments = SegmentedCollectionsMarshal.AsSegments(segmented.GetTestAccessor().Items);
-            var resizedSegmentCount = resizedSegments.Length;
-
-            Assert.Equal(oldSegmentCount + segmentCountToAdd, resizedSegmentCount);
+            var resizedSegmentCount = (segmented.Capacity + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
 
             for (var i = 0; i < oldSegmentCount - 1; i++)
                 Assert.Same(resizedSegments[i], oldSegments[i]);
 
             for (var i = oldSegmentCount - 1; i < resizedSegmentCount - 1; i++)
-                Assert.Equal(resizedSegments[i].Length, SegmentedArray<object>.TestAccessor.SegmentSize);
+                Assert.Equal(resizedSegments[i].Length, SegmentedArray<T>.TestAccessor.SegmentSize);
+
+            for (var i = resizedSegmentCount; i < resizedSegments.Length; i++)
+                Assert.Null(resizedSegments[i]);
 
             Assert.NotSame(resizedSegments[resizedSegmentCount - 1], oldSegments[oldSegmentCount - 1]);
             Assert.Equal(resizedSegments[resizedSegmentCount - 1].Length, oldSegments[oldSegmentCount - 1].Length);
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             [CombinatorialValues(1, 2, 10, 100)] int initialCapacity,
             [CombinatorialValues(1, 2, 10, 100)] int addItemCount)
         {
-            var segmented = new SegmentedList<object>(initialCapacity);
+            var segmented = new SegmentedList<T>(initialCapacity);
 
             var oldSegments = SegmentedCollectionsMarshal.AsSegments(segmented.GetTestAccessor().Items);
 
@@ -135,6 +137,55 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var requestedCapacity = 2 * elementCount + 10;
             list.EnsureCapacity(requestedCapacity);
             Assert.Equal(requestedCapacity, list.Capacity);
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(4)]
+        public void EnsureCapacity_FullSegmentGrowsBySegment(int segmentCount)
+        {
+            var elementCount = segmentCount * SegmentedArray<T>.TestAccessor.SegmentSize;
+            var list = new SegmentedList<T>(elementCount);
+
+            Assert.Equal(elementCount, list.Capacity);
+
+            list.EnsureCapacity(elementCount + 1);
+            Assert.Equal((segmentCount + 1) * SegmentedArray<T>.TestAccessor.SegmentSize, list.Capacity);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(4)]
+        public void EnsureCapacity_HalfSegmentGrowsToMaxSegmentSize(int segmentCount)
+        {
+            var elementCount = segmentCount * SegmentedArray<T>.TestAccessor.SegmentSize + SegmentedArray<T>.TestAccessor.SegmentSize / 2;
+            var list = new SegmentedList<T>(elementCount);
+
+            Assert.Equal(elementCount, list.Capacity);
+
+            list.EnsureCapacity(elementCount + 1);
+            Assert.Equal((segmentCount + 1) * SegmentedArray<T>.TestAccessor.SegmentSize, list.Capacity);
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(4)]
+        public void EnsureCapacity_FullSegmentDoublesUnderlyingArraySize(int segmentCount)
+        {
+            var elementCount = segmentCount * SegmentedArray<T>.TestAccessor.SegmentSize;
+            var list = new SegmentedList<T>(elementCount);
+            var segments = SegmentedCollectionsMarshal.AsSegments(list.GetTestAccessor().Items);
+
+            Assert.Equal(segmentCount, segments.Length);
+
+            list.EnsureCapacity(elementCount + 1);
+            segments = SegmentedCollectionsMarshal.AsSegments(list.GetTestAccessor().Items);
+
+            Assert.Equal(2 * segmentCount, segments.Length);
         }
     }
 }
