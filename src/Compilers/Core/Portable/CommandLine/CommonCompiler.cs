@@ -1267,10 +1267,10 @@ namespace Microsoft.CodeAnalysis
                 var sourceOnlyAnalyzerDiagnostics = sourceOnlyAnalyzerDriver
                     .GetDiagnosticsAsync(compilationWithSourceOnlyAnalyzers, cancellationToken).Result;
 
-                logger.Trace?.Log($"Source-only analyzers reported {sourceOnlyAnalyzerDiagnostics.Length} diagnostics.");
-
                 if (logger.Trace != null)
                 {
+                    logger.Trace.Log($"Source-only analyzers reported {sourceOnlyAnalyzerDiagnostics.Length} diagnostics.");
+
                     foreach (var diagnostic in sourceOnlyAnalyzerDiagnostics)
                     {
                         logger.Trace.Log(diagnostic.ToString());
@@ -1496,8 +1496,7 @@ namespace Microsoft.CodeAnalysis
                         analyzerOptions, sourceOnlyAnalyzers, severityFilter, Arguments.ReportAnalyzer);
 
                     // Execute transformers.
-                    var transformerOptions = new TransformerOptions(
-                        this.Arguments.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage));
+                    var transformerOptions = new TransformerOptions { RequiresCodeCoverageAnnotations = this.Arguments.EmitOptions.InstrumentationKinds.Contains(InstrumentationKind.TestCoverage) };
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
                     var transformersResult = RunTransformers(compilationBeforeTransformation, serviceProvider,

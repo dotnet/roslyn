@@ -9,7 +9,7 @@ namespace Metalama.Compiler
         Compilation AnnotatedInputCompilation,
         Compilation TransformedCompilation,
         ImmutableArray<SyntaxTreeTransformation> TransformedTrees,
-        DiagnosticFilters DiagnosticFilters,
+        DiagnosticFilterCollection DiagnosticFilters,
         ImmutableArray<ResourceDescription> AdditionalResources,
         AnalyzerConfigOptionsProvider MappedAnalyzerOptions)
     {
@@ -20,7 +20,7 @@ namespace Metalama.Compiler
                 compilation,
                 compilation,
                 ImmutableArray<SyntaxTreeTransformation>.Empty,
-                DiagnosticFilters.Empty,
+                new DiagnosticFilterCollection(),
                 ImmutableArray<ResourceDescription>.Empty,
                 analyzerOptions);
 
@@ -29,7 +29,7 @@ namespace Metalama.Compiler
                 compilation,
                 compilation,
                 ImmutableArray<SyntaxTreeTransformation>.Empty,
-                DiagnosticFilters.Empty,
+                new DiagnosticFilterCollection(),
                 ImmutableArray<ResourceDescription>.Empty,
                 CompilerAnalyzerConfigOptionsProvider.Empty)
             {

@@ -4,20 +4,24 @@ namespace Metalama.Compiler.UnitTests;
 
 partial class DiagnosticsTests
 {
-    class SuppressTransformer : ISourceTransformer
+    private class SuppressTransformer : ISourceTransformer
     {
         private readonly string _diagnosticId;
+        private readonly string _filePath;
 
-        public SuppressTransformer(string diagnosticId)
+        public SuppressTransformer(string diagnosticId, string filePath)
         {
             _diagnosticId = diagnosticId;
+            _filePath = filePath;
         }
 
         public void Execute(TransformerContext context)
         {
             context.RegisterDiagnosticFilter(
-                new SuppressionDescriptor("Suppress." + _diagnosticId, _diagnosticId, ""),
-                request => request.Suppress());
+                new DiagnosticFilter(
+                    new SuppressionDescriptor("Suppress." + _diagnosticId, _diagnosticId, ""),
+                    _filePath,
+                    (in DiagnosticFilteringRequest _) => true));
         }
     }
 }

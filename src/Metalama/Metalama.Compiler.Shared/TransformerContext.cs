@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-
 #if !METALAMA_COMPILER_INTERFACE
 using System.Linq;
 #endif
@@ -19,9 +18,12 @@ using System.Linq;
 namespace Metalama.Compiler;
 
 /// <summary>
-/// Context passed to a source transformer when <see cref="ISourceTransformer.Execute(TransformerContext)"/> is called.
-/// The implementation can modify the compilation using the methods <see cref="AddSyntaxTrees(Microsoft.CodeAnalysis.SyntaxTree[])"/>, <see cref="ReplaceSyntaxTree"/> or
-/// <see cref="AddResources(ManagedResource[])"/>. It can report a diagnostic using <see cref="ReportDiagnostic"/> or suppress diagnostics using <see cref="RegisterDiagnosticFilter"/>.
+///     Context passed to a source transformer when <see cref="ISourceTransformer.Execute(TransformerContext)" /> is
+///     called.
+///     The implementation can modify the compilation using the methods
+///     <see cref="AddSyntaxTrees(Microsoft.CodeAnalysis.SyntaxTree[])" />, <see cref="ReplaceSyntaxTree" /> or
+///     <see cref="AddResources(ManagedResource[])" />. It can report a diagnostic using <see cref="ReportDiagnostic" /> or
+///     suppress diagnostics using <see cref="RegisterDiagnosticFilter" />.
 /// </summary>
 // ReSharper disable once ClassCannotBeInstantiated
 public sealed class TransformerContext
@@ -32,7 +34,7 @@ public sealed class TransformerContext
 
     internal List<SyntaxTreeTransformation> TransformedTrees { get; } = new();
     internal List<ManagedResource> AddedResources { get; } = new();
-    internal List<DiagnosticFilter> DiagnosticFilters { get; } = new();
+    internal DiagnosticFilterCollection DiagnosticFilters { get; } = new();
 
     internal TransformerContext(
         Compilation compilation,
@@ -96,7 +98,7 @@ public sealed class TransformerContext
                 continue;
             }
 
-            if (transformation.OldTree != null && transformation.NewTree != null)
+            if (transformation is { OldTree: not null, NewTree: not null })
             {
                 if (!Compilation.ContainsSyntaxTree(transformation.OldTree))
                 {
@@ -127,71 +129,78 @@ public sealed class TransformerContext
     }
 
     /// <summary>
-    /// Gets the original <see cref="Compilation"/>.
-    /// Transformers typically modify the compilation by using methods on this <see cref="TransformerContext" />,
-    /// though such modifications are not reflection on this property.
+    ///     Gets the original <see cref="Compilation" />.
+    ///     Transformers typically modify the compilation by using methods on this <see cref="TransformerContext" />,
+    ///     though such modifications are not reflection on this property.
     /// </summary>
     public Compilation Compilation { get; }
 
     /// <summary>
-    /// Gets options of the current <see cref="TransformerContext"/>.
+    ///     Gets options of the current <see cref="TransformerContext" />.
     /// </summary>
     public TransformerOptions Options { get; }
 
     /// <summary>
-    /// Gets the <see cref="AnalyzerConfigOptionsProvider"/>, which allows to access <c>.editorconfig</c> options.
+    ///     Gets the <see cref="AnalyzerConfigOptionsProvider" />, which allows to access <c>.editorconfig</c> options.
     /// </summary>
     public AnalyzerConfigOptionsProvider AnalyzerConfigOptionsProvider { get; }
 
     /// <summary>
-    /// Gets the list of managed resources. 
+    ///     Gets the list of managed resources.
     /// </summary>
     public ImmutableArray<ManagedResource> Resources { get; }
 
     /// <summary>
-    /// Adds a <see cref="Diagnostic"/> to the user's compilation.
+    ///     Adds a <see cref="Diagnostic" /> to the user's compilation.
     /// </summary>
     /// <param name="diagnostic">The diagnostic that should be added to the compilation</param>
     /// <remarks>
-    /// The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation"/> settings.
+    ///     The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="Compilation" />
+    ///     settings.
     /// </remarks>
     public void ReportDiagnostic(Diagnostic diagnostic)
     {
-#if !METALAMA_COMPILER_INTERFACE
+#if METALAMA_COMPILER_INTERFACE
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
+#else
         _diagnostics.Add(diagnostic);
 #endif
     }
 
     public void AddResources(params ManagedResource[] resources)
     {
-#if !METALAMA_COMPILER_INTERFACE
+#if METALAMA_COMPILER_INTERFACE
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
+#else
         AddedResources.AddRange(resources);
 #endif
     }
 
     public void AddResources(IEnumerable<ManagedResource> resources)
     {
-#if !METALAMA_COMPILER_INTERFACE
+#if METALAMA_COMPILER_INTERFACE
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
+#else
         AddedResources.AddRange(resources);
 #endif
     }
 
     /// <summary>
-    /// Registers a delegate that can suppress a diagnostic.
+    ///     Registers a <see cref="DiagnosticFilter" />, which can suppress diagnostics.
     /// </summary>
-    /// <param name="filter">A delegate that can suppress a diagnostic using <see cref="DiagnosticFilteringRequest.Suppress"/>.</param>
-    /// <exception cref="InvalidOperationException"></exception>
-    public void RegisterDiagnosticFilter(SuppressionDescriptor descriptor, Action<DiagnosticFilteringRequest> filter)
+    public void RegisterDiagnosticFilter(in DiagnosticFilter filter)
     {
-#if !METALAMA_COMPILER_INTERFACE
-        DiagnosticFilters.Add(new DiagnosticFilter(descriptor, filter));
+#if METALAMA_COMPILER_INTERFACE
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
+#else
+        DiagnosticFilters.Add(filter);
 #endif
     }
 
     public Assembly LoadReferencedAssembly(IAssemblySymbol assemblySymbol)
     {
 #if METALAMA_COMPILER_INTERFACE
-        throw new InvalidOperationException("This operation works only inside Metalama.");
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
 #else
         // ReSharper disable LocalizableElement
         if (Compilation.GetMetadataReference(assemblySymbol) is not { } reference)
@@ -217,21 +226,4 @@ public sealed class TransformerContext
     }
 }
 
-/// <summary>
-/// Options of a <see cref="ISourceTransformer"/>, exposed on <see cref="TransformerContext.Options"/>.
-/// </summary>
-public sealed class TransformerOptions
-{
-    /// <summary>
-    /// Gets or sets a value indicating that transformers should annotate
-    /// the code with code coverage annotations from <see cref="MetalamaCompilerAnnotations"/>.
-    /// </summary>
-    public bool RequiresCodeCoverageAnnotations { get; }
 
-    internal TransformerOptions(bool requiresCodeCoverageAnnotations)
-    {
-        RequiresCodeCoverageAnnotations = requiresCodeCoverageAnnotations;
-    }
-
-    public static TransformerOptions Default { get; } = new(requiresCodeCoverageAnnotations: false);
-}

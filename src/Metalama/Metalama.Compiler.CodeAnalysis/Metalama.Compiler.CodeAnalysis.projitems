@@ -14,7 +14,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)NullLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxAnnotationHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedPathGenerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ServiceProviderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerDiagnosticSuppressor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Graphs\AbstractGraph.cs" />

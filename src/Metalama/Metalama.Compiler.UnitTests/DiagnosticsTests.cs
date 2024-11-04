@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis;
@@ -145,13 +146,19 @@ namespace Metalama.Compiler.UnitTests
             Assert.Contains("test-transformation-annotation", output);
         }
 
-        [Fact]
-        public void TransformersCanSuppressWarnings()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void TransformersCanSuppressWarnings(bool warnAsErrors)
         {
             var dir = Temp.CreateDirectory();
             var src = dir.CreateFile("temp.cs").WriteAllText("class C {  int _f;  }");
 
-            var args = new[] { "/t:library", src.Path };
+            var args = new List<string> { "/t:library", src.Path };
+            if (warnAsErrors)
+            {
+                args.Add("/warnaserror+");
+            }
 
             var analyzers =
                 new DiagnosticAnalyzer[]
@@ -161,10 +168,10 @@ namespace Metalama.Compiler.UnitTests
             var transformers =
                 new ISourceTransformer[]
                 {
-                    new AppendTransformer("class D { int _f; }"), new SuppressTransformer("MY001"),
-                    new SuppressTransformer("CS0169")
+                    new AppendTransformer("class D { int _f; }"), new SuppressTransformer("MY001", src.Path),
+                    new SuppressTransformer("CS0169", src.Path)
                 };
-            var csc = CreateCSharpCompiler(null, dir.Path, args, transformers: transformers, analyzers: analyzers);
+            var csc = CreateCSharpCompiler(null, dir.Path, args.ToArray(), transformers: transformers, analyzers: analyzers);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
@@ -173,10 +180,11 @@ namespace Metalama.Compiler.UnitTests
             Assert.Equal(0, exitCode);
 
             // Check that the analyzer did not see the transformed code.
-            Assert.DoesNotContain("warning MY001: Found a class 'C'.", output);
-            Assert.DoesNotContain("warning MY001: Found a class 'D'.", output);
-            Assert.DoesNotContain("warning CS0169: The field 'C._f' is never used", output);
-            Assert.DoesNotContain("warning CS0169: The field 'D._f' is never used", output);
+            var warningOrError = warnAsErrors ? "error" : "warning";
+            Assert.DoesNotContain($"{warningOrError} MY001: Found a class 'C'.", output);
+            Assert.DoesNotContain($"{warningOrError} MY001: Found a class 'D'.", output);
+            Assert.DoesNotContain($"{warningOrError} CS0169: The field 'C._f' is never used", output);
+            Assert.DoesNotContain($"{warningOrError} CS0169: The field 'D._f' is never used", output);
         }
 
         [Fact]
@@ -192,8 +200,7 @@ namespace Metalama.Compiler.UnitTests
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);
-            var output = outWriter.ToString();
-
+            
             Assert.Equal(0, exitCode);
         }
 
