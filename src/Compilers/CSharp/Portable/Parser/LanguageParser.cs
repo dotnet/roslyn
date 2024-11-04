@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using Microsoft.CodeAnalysis.Shared.Collections;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
     internal sealed partial class LanguageParser : SyntaxParser
@@ -9145,7 +9146,6 @@ done:
 
             // Pulled out as we need to track this when parsing incrementors to place skipped tokens.
             SyntaxToken secondSemicolonToken;
-
             var forStatement = _syntaxFactory.ForStatement(
                 attributes,
                 forToken,
@@ -9160,7 +9160,7 @@ done:
                 incrementors: this.CurrentToken.Kind != SyntaxKind.CloseParenToken
                     ? this.ParseForStatementExpressionList(ref secondSemicolonToken)
                     : default,
-                this.EatToken(SyntaxKind.CloseParenToken),
+                eatUnexpectedTokensAndCloseParenToken(),
                 ParseEmbeddedStatement());
 
             _termState = saveTerm;
@@ -9255,6 +9255,17 @@ done:
                 {
                     return this.EatToken(SyntaxKind.SemicolonToken);
                 }
+            }
+
+            SyntaxToken eatUnexpectedTokensAndCloseParenToken()
+            {
+                var skippedTokens = _pool.Allocate();
+
+                while (this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CommaToken)
+                    skippedTokens.Add(this.EatTokenWithPrejudice(SyntaxKind.CloseParenToken));
+
+                var result = this.EatToken(SyntaxKind.CloseParenToken);
+                return AddLeadingSkippedSyntax(result, _pool.ToTokenListAndFree(skippedTokens).Node);
             }
         }
 
