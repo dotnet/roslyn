@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 /// This wrapper will wait for the service broker to be available before invoking the requested method.
 /// </summary>
 [Export(typeof(SVsFullAccessServiceBroker)), Shared]
-[Export(typeof(IServiceBroker))]
 [Export(typeof(WrappedServiceBroker))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
