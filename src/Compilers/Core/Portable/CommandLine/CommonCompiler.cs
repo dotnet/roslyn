@@ -1267,10 +1267,10 @@ namespace Microsoft.CodeAnalysis
                 var sourceOnlyAnalyzerDiagnostics = sourceOnlyAnalyzerDriver
                     .GetDiagnosticsAsync(compilationWithSourceOnlyAnalyzers, cancellationToken).Result;
 
-                logger.Trace?.Log($"Source-only analyzers reported {sourceOnlyAnalyzerDiagnostics.Length} diagnostics.");
-
                 if (logger.Trace != null)
                 {
+                    logger.Trace.Log($"Source-only analyzers reported {sourceOnlyAnalyzerDiagnostics.Length} diagnostics.");
+
                     foreach (var diagnostic in sourceOnlyAnalyzerDiagnostics)
                     {
                         logger.Trace.Log(diagnostic.ToString());

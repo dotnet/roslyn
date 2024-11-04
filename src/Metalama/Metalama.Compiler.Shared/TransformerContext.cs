@@ -98,7 +98,7 @@ public sealed class TransformerContext
                 continue;
             }
 
-            if (transformation.OldTree != null && transformation.NewTree != null)
+            if (transformation is { OldTree: not null, NewTree: not null })
             {
                 if (!Compilation.ContainsSyntaxTree(transformation.OldTree))
                 {
@@ -160,21 +160,27 @@ public sealed class TransformerContext
     /// </remarks>
     public void ReportDiagnostic(Diagnostic diagnostic)
     {
-#if !METALAMA_COMPILER_INTERFACE
+#if METALAMA_COMPILER_INTERFACE
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
+#else
         _diagnostics.Add(diagnostic);
 #endif
     }
 
     public void AddResources(params ManagedResource[] resources)
     {
-#if !METALAMA_COMPILER_INTERFACE
+#if METALAMA_COMPILER_INTERFACE
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
+#else
         AddedResources.AddRange(resources);
 #endif
     }
 
     public void AddResources(IEnumerable<ManagedResource> resources)
     {
-#if !METALAMA_COMPILER_INTERFACE
+#if METALAMA_COMPILER_INTERFACE
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
+#else
         AddedResources.AddRange(resources);
 #endif
     }
@@ -184,7 +190,9 @@ public sealed class TransformerContext
     /// </summary>
     public void RegisterDiagnosticFilter(in DiagnosticFilter filter)
     {
-#if !METALAMA_COMPILER_INTERFACE
+#if METALAMA_COMPILER_INTERFACE
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
+#else
         DiagnosticFilters.Add(filter);
 #endif
     }
@@ -192,7 +200,7 @@ public sealed class TransformerContext
     public Assembly LoadReferencedAssembly(IAssemblySymbol assemblySymbol)
     {
 #if METALAMA_COMPILER_INTERFACE
-        throw new InvalidOperationException("This operation works only inside Metalama.");
+        throw new InvalidOperationException("This operation works only inside the Metalama.Compiler process.");
 #else
         // ReSharper disable LocalizableElement
         if (Compilation.GetMetadataReference(assemblySymbol) is not { } reference)

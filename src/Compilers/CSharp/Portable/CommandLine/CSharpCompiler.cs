@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         transformerDiagnostics,
                         assemblyLoader);
                     transformer.Execute(context);
-
+                    
                     if ( diagnosticFilters == null )
                     {
                         diagnosticFilters = context.DiagnosticFilters;
