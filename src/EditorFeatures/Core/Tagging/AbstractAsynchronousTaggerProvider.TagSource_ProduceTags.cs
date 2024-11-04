@@ -629,8 +629,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             TagSpanIntervalTree<TTag> latestTree,
             TagSpanIntervalTree<TTag> previousTree)
         {
-            using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var latestSpans);
-            using var _2 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var previousSpans);
+            using var _1 = SegmentedListPool.GetPooledList<(SnapshotSpan, TTag)>(out var latestSpans);
+            using var _2 = SegmentedListPool.GetPooledList<(SnapshotSpan, TTag)>(out var previousSpans);
 
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
             using var _4 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
@@ -646,8 +646,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             while (latest != null && previous != null)
             {
-                var latestSpan = latest.Span;
-                var previousSpan = previous.Span;
+                var latestSpan = latest.Value.Span;
+                var previousSpan = previous.Value.Span;
 
                 if (latestSpan.Start < previousSpan.Start)
                 {
@@ -675,7 +675,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     }
                     else
                     {
-                        if (!_dataSource.TagEquals(latest.Tag, previous.Tag))
+                        if (!_dataSource.TagEquals(latest.Value.Tag, previous.Value.Tag))
                             added.Add(latestSpan);
 
                         latest = NextOrNull(ref latestEnumerator);
@@ -686,19 +686,19 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             while (latest != null)
             {
-                added.Add(latest.Span);
+                added.Add(latest.Value.Span);
                 latest = NextOrNull(ref latestEnumerator);
             }
 
             while (previous != null)
             {
-                removed.Add(previous.Span);
+                removed.Add(previous.Value.Span);
                 previous = NextOrNull(ref previousEnumerator);
             }
 
             return new DiffResult(new(added), new(removed));
 
-            static TagSpan<TTag>? NextOrNull(ref SegmentedList<TagSpan<TTag>>.Enumerator enumerator)
+            static (SnapshotSpan Span, TTag Tag)? NextOrNull(ref SegmentedList<(SnapshotSpan, TTag)>.Enumerator enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 
