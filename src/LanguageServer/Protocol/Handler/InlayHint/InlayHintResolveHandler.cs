@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -64,12 +63,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             {
                 // It is very possible that the cache no longer contains the hint being resolved (for example, multiple documents open side by side).
                 // Instead of throwing, we can recompute the hints since we've already verified above that the version has not changed.
-
-                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                var textSpan = ProtocolConversions.RangeToTextSpan(resolveData.Range, text);
-
-                var inlineHintService = document.GetRequiredLanguageService<IInlineHintsService>();
-                var hints = await inlineHintService.GetInlineHintsAsync(document, textSpan, options, resolveData.DisplayAllOverride, cancellationToken).ConfigureAwait(false);
+                var hints = await InlayHintHandler.CalculateInlayHintsAsync(document, resolveData.Range, options, resolveData.DisplayAllOverride, cancellationToken).ConfigureAwait(false);
                 inlineHintToResolve = hints[resolveData.ListIndex];
             }
 
@@ -82,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         private static InlineHint? GetCacheEntry(InlayHintResolveData resolveData, InlayHintCache inlayHintCache)
         {
             var cacheEntry = inlayHintCache.GetCachedEntry(resolveData.ResultId);
-            return cacheEntry is null ? null : cacheEntry.InlayHintMembers[resolveData.ListIndex];
+            return cacheEntry?.InlayHintMembers[resolveData.ListIndex];
         }
 
         internal static InlayHintResolveData GetInlayHintResolveData(LSP.InlayHint inlayHint)

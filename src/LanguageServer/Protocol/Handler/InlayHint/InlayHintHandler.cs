@@ -50,11 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         internal static async Task<LSP.InlayHint[]?> GetInlayHintsAsync(Document document, TextDocumentIdentifier textDocumentIdentifier, LSP.Range range, InlineHintsOptions options, bool displayAllOverride, InlayHintCache inlayHintCache, CancellationToken cancellationToken)
         {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
-
-            var inlineHintService = document.GetRequiredLanguageService<IInlineHintsService>();
-            var hints = await inlineHintService.GetInlineHintsAsync(document, textSpan, options, displayAllOverride, cancellationToken).ConfigureAwait(false);
-
+            var hints = await CalculateInlayHintsAsync(document, range, options, displayAllOverride, cancellationToken).ConfigureAwait(false);
             var syntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
 
             // Store the members in the resolve cache so that when we get a resolve request for a particular
@@ -96,6 +92,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             }
 
             return inlayHints;
+        }
+
+        internal static async Task<ImmutableArray<InlineHint>> CalculateInlayHintsAsync(Document document, LSP.Range range, InlineHintsOptions options, bool displayAllOverride, CancellationToken cancellationToken)
+        {
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var textSpan = ProtocolConversions.RangeToTextSpan(range, text);
+
+            var inlineHintService = document.GetRequiredLanguageService<IInlineHintsService>();
+            var hints = await inlineHintService.GetInlineHintsAsync(document, textSpan, options, displayAllOverride, cancellationToken).ConfigureAwait(false);
+            return hints;
         }
 
         /// <summary>
