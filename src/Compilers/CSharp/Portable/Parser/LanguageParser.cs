@@ -9162,6 +9162,8 @@ done:
                     ? this.ParseExpressionCore()
                     : null,
                 secondSemicolonToken = eatCommaOrSemicolon(),
+                // Do allow semicolons (with diagnostics) in the incrementors list.  This allows us to consume
+                // accidental extra incrementors that should have been separated by commas.
                 incrementors: this.CurrentToken.Kind != SyntaxKind.CloseParenToken
                     ? this.ParseForStatementExpressionList(ref secondSemicolonToken, allowSemicolonAsSeparator: true)
                     : default,
@@ -9172,7 +9174,7 @@ done:
 
             return forStatement;
 
-            (VariableDeclarationSyntax variableDeclaration, SeparatedSyntaxList<ExpressionSyntax>) eatVariableDeclarationOrInitializers()
+            (VariableDeclarationSyntax variableDeclaration, SeparatedSyntaxList<ExpressionSyntax> initializers) eatVariableDeclarationOrInitializers()
             {
                 using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
@@ -9232,12 +9234,15 @@ done:
                         decl = decl.Update(declType, decl.Variables);
                     }
 
-                    return (decl, default);
+                    return (decl, initializers: default);
                 }
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
-                    // Not a type followed by an identifier, so it must be an expression list.
-                    return (null, this.ParseForStatementExpressionList(ref openParen, allowSemicolonAsSeparator: false));
+                    // Not a type followed by an identifier, so it must be the initializer expression list.
+                    //
+                    // Do not consume semicolons here as they are used to separate the initializers out from the
+                    // condition of the for loop.
+                    return (variableDeclaration: null, this.ParseForStatementExpressionList(ref openParen, allowSemicolonAsSeparator: false));
                 }
                 else
                 {
@@ -9279,6 +9284,11 @@ done:
             return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.OpenBraceToken;
         }
 
+        /// <summary>
+        /// Parses out a sequence of expressions.  Both for the initializer section (the `for (initializer1,
+        /// initializer2, ...` section), as well as the incrementor section (the `for (;; incrementor1, incrementor2,
+        /// ...` section).
+        /// </summary>
         private SeparatedSyntaxList<ExpressionSyntax> ParseForStatementExpressionList(
             ref SyntaxToken startToken, bool allowSemicolonAsSeparator)
         {
