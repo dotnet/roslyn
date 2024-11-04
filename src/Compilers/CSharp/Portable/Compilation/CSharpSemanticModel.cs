@@ -4294,6 +4294,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // we want to get the symbol that overload resolution chose for M, not the whole method group M.
                         var conversion = (BoundConversion)boundNodeForSyntacticParent;
 
+                        if (conversion.ConversionKind is not ConversionKind.MethodGroup && conversion.Operand is BoundConversion nestedConversion)
+                        {
+                            Debug.Assert(conversion.ConversionKind is ConversionKind.NoConversion || conversion.ExplicitCastInCode);
+                            conversion = nestedConversion;
+                        }
+
                         var method = conversion.SymbolOpt;
                         if ((object)method != null)
                         {

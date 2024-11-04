@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -423,6 +424,112 @@ class Program
             conversion = model.ClassifyConversion(position, sourceExpression5, targetType);
             Assert.True(conversion.IsExplicit);
             Assert.True(conversion.IsNumeric);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36377")]
+        public void GetSymbolInfo_ExplicitCastOnMethodGroup()
+        {
+            var src = """
+public sealed class C
+{
+    public static void M()
+    {
+        C x = (C)C.Test;
+    }
+
+    public static int Test() => 1;
+
+    public static explicit operator C(System.Func<int> intDelegate)
+    {
+        return new C();
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
+            Assert.Equal("System.Int32 C.Test()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36377")]
+        public void GetSymbolInfo_TwoExplicitCastsOnMethodGroup()
+        {
+            var src = """
+public sealed class C
+{
+    public static void M()
+    {
+        D x = (D)(C)C.Test;
+    }
+
+    public static int Test() => 1;
+
+    public static explicit operator C(System.Func<int> intDelegate) => throw null;
+}
+public sealed class D
+{
+    public static explicit operator D(C c) => throw null;
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
+            Assert.Equal("System.Int32 C.Test()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36377")]
+        public void GetSymbolInfo_NoConversion()
+        {
+            var src = """
+public sealed class C
+{
+    public static void M()
+    {
+        int x = C.Test;
+    }
+
+    public static int Test() => 1;
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,19): error CS0428: Cannot convert method group 'Test' to non-delegate type 'int'. Did you intend to invoke the method?
+                //         int x = C.Test;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Test").WithArguments("Test", "int").WithLocation(5, 19));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/36377")]
+        public void GetSymbolInfo_MethodGroupConversion()
+        {
+            var src = """
+public sealed class C
+{
+    public static void M()
+    {
+        System.Func<int> x = C.Test;
+    }
+
+    public static int Test() => 1;
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
+            Assert.Equal("System.Int32 C.Test()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         }
 
         #region "Diagnostics"
