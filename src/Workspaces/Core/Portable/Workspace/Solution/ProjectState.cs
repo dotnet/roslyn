@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Host;
@@ -58,7 +59,11 @@ internal sealed partial class ProjectState
     /// </summary>
     private readonly AnalyzerConfigOptionsCache _analyzerConfigOptionsCache;
 
-    private AnalyzerOptions? _lazyAnalyzerOptions;
+    private ImmutableArray<AdditionalText> _lazyAdditionalFiles;
+
+    private AnalyzerOptions? _lazyProjectAnalyzerOptions;
+
+    private AnalyzerOptions? _lazyHostAnalyzerOptions;
 
     private ProjectState(
         ProjectInfo projectInfo,
@@ -291,10 +296,32 @@ internal sealed partial class ProjectState
             typeof(TDocumentState) == typeof(AnalyzerConfigDocumentState) ? new AnalyzerConfigDocumentState(LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(ChecksumAlgorithm)) :
             throw ExceptionUtilities.UnexpectedValue(typeof(TDocumentState)));
 
-    public AnalyzerOptions AnalyzerOptions
-        => _lazyAnalyzerOptions ??= new AnalyzerOptions(
-            additionalFiles: AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
-            optionsProvider: new ProjectAnalyzerConfigOptionsProvider(this));
+    private ImmutableArray<AdditionalText> AdditionalFiles
+    {
+        get
+        {
+            return InterlockedOperations.Initialize(
+                ref _lazyAdditionalFiles,
+                static self => self.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
+                this);
+        }
+    }
+
+    public AnalyzerOptions ProjectAnalyzerOptions
+        => InterlockedOperations.Initialize(
+            ref _lazyProjectAnalyzerOptions,
+            static self => new AnalyzerOptions(
+                additionalFiles: self.AdditionalFiles,
+                optionsProvider: new ProjectAnalyzerConfigOptionsProvider(self)),
+            this);
+
+    public AnalyzerOptions HostAnalyzerOptions
+        => InterlockedOperations.Initialize(
+            ref _lazyHostAnalyzerOptions,
+            static self => new AnalyzerOptions(
+                additionalFiles: self.AdditionalFiles,
+                optionsProvider: new ProjectHostAnalyzerConfigOptionsProvider(self)),
+            this);
 
     public AnalyzerConfigData GetAnalyzerOptionsForPath(string path, CancellationToken cancellationToken)
         => _analyzerConfigOptionsCache.Lazy.GetValue(cancellationToken).GetOptionsForSourcePath(path);
@@ -334,13 +361,83 @@ internal sealed partial class ProjectState
 
     internal sealed class ProjectAnalyzerConfigOptionsProvider(ProjectState projectState) : AnalyzerConfigOptionsProvider
     {
+        private AnalyzerConfigOptionsCache.Value GetCache()
+            => projectState._analyzerConfigOptionsCache.Lazy.GetValue(CancellationToken.None);
+
+        public override AnalyzerConfigOptions GlobalOptions
+            => GetCache().GlobalConfigOptions.ConfigOptionsWithoutFallback;
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
+        {
+            var documentId = DocumentState.GetDocumentIdForTree(tree);
+            var cache = GetCache();
+            if (documentId != null && projectState.DocumentStates.TryGetState(documentId, out var documentState))
+            {
+                return GetOptions(cache, documentState);
+            }
+
+            return GetOptionsForSourcePath(cache, tree.FilePath);
+        }
+
+        internal async ValueTask<StructuredAnalyzerConfigOptions> GetOptionsAsync(DocumentState documentState, CancellationToken cancellationToken)
+        {
+            var cache = await projectState._analyzerConfigOptionsCache.Lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            return GetOptions(cache, documentState);
+        }
+
+        private StructuredAnalyzerConfigOptions GetOptions(in AnalyzerConfigOptionsCache.Value cache, DocumentState documentState)
+        {
+            var filePath = GetEffectiveFilePath(documentState);
+            return filePath == null
+                ? StructuredAnalyzerConfigOptions.Empty
+                : GetOptionsForSourcePath(cache, filePath);
+        }
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile)
+        {
+            // TODO: correctly find the file path, since it looks like we give this the document's .Name under the covers if we don't have one
+            return GetOptionsForSourcePath(GetCache(), textFile.Path);
+        }
+
+        private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache.Value cache, string path)
+            => cache.GetOptionsForSourcePath(path).ConfigOptionsWithoutFallback;
+
+        private string? GetEffectiveFilePath(DocumentState documentState)
+        {
+            if (!string.IsNullOrEmpty(documentState.FilePath))
+            {
+                return documentState.FilePath;
+            }
+
+            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+            // as a part of a code action, but haven't been written to disk yet.
+
+            var projectFilePath = projectState.FilePath;
+
+            if (documentState.Name != null && projectFilePath != null)
+            {
+                var projectPath = PathUtilities.GetDirectoryName(projectFilePath);
+
+                if (!RoslynString.IsNullOrEmpty(projectPath) &&
+                    PathUtilities.GetDirectoryName(projectFilePath) is string directory)
+                {
+                    return PathUtilities.CombinePathsUnchecked(directory, documentState.Name);
+                }
+            }
+
+            return null;
+        }
+    }
+
+    internal sealed class ProjectHostAnalyzerConfigOptionsProvider(ProjectState projectState) : AnalyzerConfigOptionsProvider
+    {
         private RazorDesignTimeAnalyzerConfigOptions? _lazyRazorDesignTimeOptions = null;
 
         private AnalyzerConfigOptionsCache.Value GetCache()
             => projectState._analyzerConfigOptionsCache.Lazy.GetValue(CancellationToken.None);
 
         public override AnalyzerConfigOptions GlobalOptions
-            => GetCache().GlobalConfigOptions.ConfigOptions;
+            => GetCache().GlobalConfigOptions.ConfigOptionsWithoutFallback;
 
         public override AnalyzerConfigOptions GetOptions(SyntaxTree tree)
         {
@@ -382,7 +479,7 @@ internal sealed partial class ProjectState
         }
 
         private static StructuredAnalyzerConfigOptions GetOptionsForSourcePath(in AnalyzerConfigOptionsCache.Value cache, string path)
-            => cache.GetOptionsForSourcePath(path).ConfigOptions;
+            => cache.GetOptionsForSourcePath(path).ConfigOptionsWithFallback;
 
         private string? GetEffectiveFilePath(DocumentState documentState)
         {
@@ -467,7 +564,7 @@ internal sealed partial class ProjectState
         {
             var options = _lazyAnalyzerConfigSet.Lazy
                 .GetValue(cancellationToken).GetOptionsForSourcePath(tree.FilePath);
-            return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options.ConfigOptions);
+            return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options.ConfigOptionsWithoutFallback);
         }
 
         public override bool TryGetDiagnosticValue(SyntaxTree tree, string diagnosticId, CancellationToken cancellationToken, out ReportDiagnostic severity)

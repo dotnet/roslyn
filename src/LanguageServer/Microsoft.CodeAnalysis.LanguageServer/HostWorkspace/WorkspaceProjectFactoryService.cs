@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
@@ -44,7 +45,7 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
     {
         _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit, creationInfo.FilePath));
-
+        VSCodeRequestTelemetryLogger.ReportProjectLoadStarted();
         try
         {
             if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))

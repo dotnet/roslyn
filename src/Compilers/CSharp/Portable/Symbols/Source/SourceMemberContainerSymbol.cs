@@ -2380,13 +2380,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var member in valuesByName)
                 {
-                    if (member.Kind != SymbolKind.Field)
+                    FieldSymbol? field;
+
+                    // Only instance fields (including field-like events) affect the outcome.
+                    switch (member.Kind)
                     {
-                        // NOTE: don't have to check field-like events, because they can't have struct types.
-                        continue;
+                        case SymbolKind.Field:
+                            field = (FieldSymbol)member;
+                            Debug.Assert(field.AssociatedSymbol is not EventSymbol, "Didn't expect to find a field-like event backing field in the member list.");
+                            break;
+                        case SymbolKind.Event:
+                            field = ((EventSymbol)member).AssociatedField;
+                            break;
+                        default:
+                            continue;
                     }
-                    var field = (FieldSymbol)member;
-                    if (field.IsStatic)
+
+                    if (field is null || field.IsStatic)
                     {
                         continue;
                     }
@@ -2670,7 +2680,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             instanceMap.Add(this, this);
             foreach (var m in this.GetMembersUnordered())
             {
-                var f = m as FieldSymbol;
+                FieldSymbol? f;
+
+                // Only instance fields (including field-like events) affect the outcome.
+                switch (m.Kind)
+                {
+                    case SymbolKind.Field:
+                        f = (FieldSymbol)m;
+                        Debug.Assert(f.AssociatedSymbol is not EventSymbol, "Didn't expect to find a field-like event backing field in the member list.");
+                        break;
+                    case SymbolKind.Event:
+                        f = ((EventSymbol)m).AssociatedField;
+                        break;
+                    default:
+                        continue;
+                }
+
                 if (f is null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
                 var type = (NamedTypeSymbol)f.Type;
                 if (InfiniteFlatteningGraph(this, type, instanceMap))

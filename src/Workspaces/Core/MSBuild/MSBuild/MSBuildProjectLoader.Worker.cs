@@ -302,8 +302,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                 name: projectName,
                                 assemblyName: assemblyName,
                                 language: language,
-                                compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                                compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath, projectFileInfo.GeneratedFilesOutputDirectory),
                                 checksumAlgorithm: SourceHashAlgorithms.Default,
+                                outputFilePath: projectFileInfo.OutputFilePath,
+                                outputRefFilePath: projectFileInfo.OutputRefFilePath,
                                 filePath: projectPath),
                             compilationOptions: compilationOptions,
                             parseOptions: parseOptions));
@@ -370,7 +372,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             projectName,
                             assemblyName,
                             language,
-                            compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                            compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath, projectFileInfo.GeneratedFilesOutputDirectory),
                             checksumAlgorithm: commandLineArgs.ChecksumAlgorithm,
                             filePath: projectPath,
                             outputFilePath: projectFileInfo.OutputFilePath,
@@ -385,8 +387,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         additionalDocuments: additionalDocuments,
                         hostObjectType: null)
                         .WithDefaultNamespace(projectFileInfo.DefaultNamespace)
-                        .WithAnalyzerConfigDocuments(analyzerConfigDocuments)
-                        .WithCompilationOutputInfo(new CompilationOutputInfo(projectFileInfo.OutputFilePath));
+                        .WithAnalyzerConfigDocuments(analyzerConfigDocuments);
                 });
             }
 

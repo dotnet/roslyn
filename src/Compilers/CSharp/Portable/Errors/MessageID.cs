@@ -293,7 +293,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
         IDS_OverloadResolutionPriority = MessageBase + 12848,
 
-        IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12849,
+        IDS_FeatureFirstClassSpan = MessageBase + 12849,
+        IDS_FeatureSimpleLambdaParameterModifiers = MessageBase + 12850,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -475,6 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_FeatureFieldKeyword:
+                case MessageID.IDS_FeatureFirstClassSpan:
                 case MessageID.IDS_FeatureSimpleLambdaParameterModifiers:
                     return LanguageVersion.Preview;
 

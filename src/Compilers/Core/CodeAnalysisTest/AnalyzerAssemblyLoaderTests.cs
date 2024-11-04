@@ -19,6 +19,10 @@ using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.Text;
+using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 
 #if NET
 using Roslyn.Test.Utilities.CoreClr;
@@ -95,7 +99,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
 #if NET
 
-        private void Run(AnalyzerTestKind kind, Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction, IAnalyzerAssemblyResolver[]? externalResolvers = null, [CallerMemberName] string? memberName = null) =>
+        private void Run(
+            AnalyzerTestKind kind,
+            Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
+            IAnalyzerAssemblyResolver[]? externalResolvers = null,
+            [CallerMemberName] string? memberName = null) =>
             Run(
                 kind,
                 static (_, _) => { },
@@ -105,17 +113,46 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private void Run(
             AnalyzerTestKind kind,
+            object state,
+            Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture, object> testAction,
+            IAnalyzerAssemblyResolver[]? externalResolvers = null,
+            [CallerMemberName] string? memberName = null) =>
+            Run(
+                kind,
+                state,
+                static (_, _) => { },
+                testAction.Method,
+                externalResolvers,
+                memberName);
+
+        private void Run(
+            AnalyzerTestKind kind,
             Action<AssemblyLoadContext, AssemblyLoadTestFixture> prepLoadContextAction,
             Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
             IAnalyzerAssemblyResolver[]? externalResolvers = null,
-            [CallerMemberName] string? memberName = null)
+            [CallerMemberName] string? memberName = null) =>
+            Run(
+                kind,
+                state: null,
+                prepLoadContextAction,
+                testAction.Method,
+                externalResolvers,
+                memberName);
+
+        private void Run(
+            AnalyzerTestKind kind,
+            object? state,
+            Action<AssemblyLoadContext, AssemblyLoadTestFixture> prepLoadContextAction,
+            MethodInfo method,
+            IAnalyzerAssemblyResolver[]? externalResolvers,
+            string? memberName)
         {
             var alc = new AssemblyLoadContext($"Test {memberName}", isCollectible: true);
             try
             {
                 prepLoadContextAction(alc, TestFixture);
                 var util = new InvokeUtil();
-                util.Exec(TestOutputHelper, alc, TestFixture, kind, testAction.Method.DeclaringType!.FullName!, testAction.Method.Name, externalResolvers ?? []);
+                util.Exec(TestOutputHelper, alc, TestFixture, kind, method.DeclaringType!.FullName!, method.Name, externalResolvers ?? [], state);
             }
             finally
             {
@@ -129,7 +166,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AnalyzerTestKind kind,
             Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
             IAnalyzerAssemblyResolver[]? externalResolvers = null,
-            [CallerMemberName] string? memberName = null)
+            [CallerMemberName] string? memberName = null) =>
+            Run(
+                kind,
+                state: null,
+                testAction.Method,
+                externalResolvers,
+                memberName);
+
+        private void Run(
+            AnalyzerTestKind kind,
+            object state,
+            Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture, object> testAction,
+            IAnalyzerAssemblyResolver[]? externalResolvers = null,
+            [CallerMemberName] string? memberName = null) =>
+            Run(kind,
+                state,
+                testAction.Method,
+                externalResolvers,
+                memberName);
+
+        private void Run(
+            AnalyzerTestKind kind,
+            object state,
+            MethodInfo method,
+            IAnalyzerAssemblyResolver[]? externalResolvers,
+            string? memberName)
         {
             AppDomain? appDomain = null;
             try
@@ -138,7 +200,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var testOutputHelper = new AppDomainTestOutputHelper(TestOutputHelper);
                 var type = typeof(InvokeUtil);
                 var util = (InvokeUtil)appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
-                util.Exec(testOutputHelper, TestFixture, kind, testAction.Method.DeclaringType.FullName, testAction.Method.Name, externalResolvers ?? []);
+                util.Exec(testOutputHelper, TestFixture, kind, method.DeclaringType.FullName, method.Name, externalResolvers ?? [], state);
             }
             finally
             {
@@ -153,7 +215,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// us back to the actual test code to execute. The intent is to invoke the lambda / static
         /// local func where the code exists.
         /// </summary>
-        internal static void InvokeTestCode(AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture fixture, string typeName, string methodName)
+        internal static void InvokeTestCode(AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture fixture, string typeName, string methodName, object? state)
         {
             var type = typeof(AnalyzerAssemblyLoaderTests).Assembly.GetType(typeName, throwOnError: false)!;
             var member = type.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)!;
@@ -164,7 +226,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ? null
                 : type.Assembly.CreateInstance(typeName);
 
-            member.Invoke(obj, new object[] { loader, fixture });
+            object[] args = state is null
+                ? [loader, fixture]
+                : [loader, fixture, state];
+            member.Invoke(obj, args);
         }
 
         [Theory]
@@ -346,6 +411,7 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(
                 expected
                     .Select(x => (x.simpleName, x.version, getExpectedLoadPath(x.path)))
+                    .OrderBy(static x => x)
                     .ToArray(),
                 assemblies.Select(assembly => (assembly.GetName().Name!, assembly.GetName().Version!.ToString(), assembly.Location))
                     .OrderBy(static x => x)
@@ -419,11 +485,8 @@ Delta: Gamma: Beta: Test B
             IEnumerable<Assembly> loadedAssemblies;
 
 #if NET
-            // This verify only works where there is a single load context.
             var alcs = loader.GetDirectoryLoadContextsSnapshot();
-            Assert.Equal(1, alcs.Length);
-
-            loadedAssemblies = alcs[0].Assemblies;
+            loadedAssemblies = alcs.SelectMany(x => x.Assemblies);
 #else
 
             // The assemblies in the LoadFrom context are the assemblies loaded from 
@@ -590,7 +653,7 @@ Delta: Gamma: Beta: Test B
                 VerifyDependencyAssemblies(
                     loader,
                     copyCount: copyCount,
-                    deltaFile);
+                    assemblyPaths: [deltaFile]);
             });
         }
 
@@ -1121,6 +1184,151 @@ Delta: Epsilon: Test E
     @"Delta: Gamma: Test G
 ",
                     actual);
+            });
+        }
+
+        /// <summary>
+        /// Test the case where a utility is loaded by multiple analyzers at different versions. Ensure that no matter
+        /// what order we load the analyzers we correctly resolve the utility version.
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_MultipleVersions_AnalyzerDependency(AnalyzerTestKind kind, bool normalOrder)
+        {
+            Run(kind, state: normalOrder, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture, object state) =>
+            {
+                using var temp = new TempRoot();
+                var analyzerFilePaths = new List<string>();
+                var compilerReference = MetadataReference.CreateFromFile(typeof(SyntaxNode).Assembly.Location);
+                var immutableReference = MetadataReference.CreateFromFile(typeof(ImmutableArray).Assembly.Location);
+
+                var testCode = """
+                    using System;
+
+                    Console.WriteLine("Hello World");
+                    """;
+
+                var compilation = CSharpCompilation.Create(
+                    "test",
+                    [CSharpSyntaxTree.ParseText(SourceText.From(testCode, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default))],
+                    NetStandard20.References.All);
+
+                // Test loading the analyzers in different orders. That makes sure we verify the loading handles
+                // the higher version of delta being loaded first or second.
+                ImmutableArray<DiagnosticAnalyzer> analyzers = state is true
+                    ? [loadAnalyzer1(), loadAnalyzer2()]
+                    : [loadAnalyzer2(), loadAnalyzer1()];
+                var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+                compilation.VerifyEmitDiagnostics();
+                Assert.Empty(compilationWithAnalyzers.GetAllDiagnosticsAsync().Result);
+
+                foreach (var analyzer in analyzers)
+                {
+                    assertRan(analyzer);
+                }
+
+                VerifyDependencyAssemblies(loader, analyzerFilePaths.ToArray());
+
+                void assertRan(DiagnosticAnalyzer a)
+                {
+                    var prop = a.GetType().GetProperty("Ran", BindingFlags.Public | BindingFlags.Instance);
+                    Assert.NotNull(prop);
+                    var value = prop.GetValue(a, null);
+                    Assert.True(value is true);
+                }
+
+                DiagnosticAnalyzer loadAnalyzer1()
+                {
+                    var code = """
+
+                        using System;
+                        using System.Collections.Immutable;
+                        using Microsoft.CodeAnalysis;
+                        using Microsoft.CodeAnalysis.Diagnostics;
+
+                        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                        public class Analyzer1: DiagnosticAnalyzer
+                        {
+                            public static readonly DiagnosticDescriptor Warning = new DiagnosticDescriptor(
+                                "Warning2",
+                                "",
+                                "",
+                                "",
+                                DiagnosticSeverity.Warning,
+                                isEnabledByDefault: true);
+                            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray<DiagnosticDescriptor>.Empty.Add(Warning);
+                            public bool Ran { get; set; }
+                            public override void Initialize(AnalysisContext context)
+                            {
+                                var d = new Delta.D();
+                                d.M1();
+                                Ran = true;
+                            }
+                        }
+                        """;
+                    var assemblyFilePath = buildWithCode("analyzer1", code, testFixture.DeltaPublicSigned1);
+                    var assembly = loader.LoadFromPath(assemblyFilePath);
+                    return (DiagnosticAnalyzer)assembly.CreateInstance("Analyzer1")!;
+                }
+
+                DiagnosticAnalyzer loadAnalyzer2()
+                {
+                    var code = """
+                        using System;
+                        using System.Collections.Immutable;
+                        using Microsoft.CodeAnalysis;
+                        using Microsoft.CodeAnalysis.Diagnostics;
+
+                        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+                        public class Analyzer2: DiagnosticAnalyzer
+                        {
+                            public static readonly DiagnosticDescriptor Warning = new DiagnosticDescriptor(
+                                "Warning1",
+                                "",
+                                "",
+                                "",
+                                DiagnosticSeverity.Warning,
+                                isEnabledByDefault: true);
+                            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray<DiagnosticDescriptor>.Empty.Add(Warning);
+
+                            public bool Ran { get; set; }
+                            public override void Initialize(AnalysisContext context)
+                            {
+                                var d = new Delta.D();
+                                d.M2();
+                                Ran = true;
+                            }
+                        }
+                        """;
+                    var assemblyFilePath = buildWithCode("analyzer2", code, testFixture.DeltaPublicSigned2);
+                    var assembly = loader.LoadFromPath(assemblyFilePath);
+                    return (DiagnosticAnalyzer)assembly.CreateInstance("Analyzer2")!;
+                }
+
+                string buildWithCode(string assemblyName, string analyzerCode, string deltaFilePath)
+                {
+                    var dir = temp.CreateDirectory();
+                    var deltaNewFilePath = dir.CopyFile(deltaFilePath).Path;
+
+                    var compilation = CSharpCompilation.Create(
+                        assemblyName,
+                        [CSharpSyntaxTree.ParseText(SourceText.From(analyzerCode, encoding: null, checksumAlgorithm: SourceHashAlgorithms.Default))],
+                        [
+                            .. NetStandard20.References.All,
+                            compilerReference,
+                            immutableReference,
+                            MetadataReference.CreateFromFile(deltaFilePath)
+                        ],
+                        TestOptions.DebugDll.WithPublicSign(true).WithCryptoPublicKey(SigningTestHelpers.PublicKey));
+
+                    var array = compilation.EmitToArray(EmitOptions.Default);
+                    var assemblyFilePath = dir.CreateFile(assemblyName + ".dll").WriteAllBytes(array).Path;
+                    loader.AddDependencyLocation(deltaNewFilePath);
+                    analyzerFilePaths.Add(deltaNewFilePath);
+                    loader.AddDependencyLocation(assemblyFilePath);
+                    analyzerFilePaths.Add(assemblyFilePath);
+                    return assemblyFilePath;
+                }
             });
         }
 

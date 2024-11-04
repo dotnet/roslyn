@@ -216,6 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToString(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(unconvertedInterpolatedString.Type?.SpecialType == SpecialType.System_String);
+
             // We have 5 possible lowering strategies, dependent on the contents of the string, in this order:
             //  1. The string is a constant value. We can just use the final value.
             //  2. The string is composed of 4 or fewer components that are all strings, we can lower to a call to string.Concat without a
@@ -241,29 +243,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Case 1
                 Debug.Assert(unconvertedInterpolatedString.Parts.All(static part => part.Type is null or { SpecialType: SpecialType.System_String }));
-                return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
+                return constructWithoutData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics));
             }
 
-            // Case 2. Attempt to see if all parts are strings.
-            if (unconvertedInterpolatedString.Parts.Length <= 4 && AllInterpolatedStringPartsAreStrings(unconvertedInterpolatedString.Parts))
-            {
-                return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
-            }
-
-            if (tryBindAsHandlerType(out var result))
+            if ((unconvertedInterpolatedString.Parts.Length > 4 || !AllInterpolatedStringPartsAreStrings(unconvertedInterpolatedString.Parts)) &&
+                tryBindAsHandlerType(out var result))
             {
                 // Case 3
                 return result;
             }
 
-            // The specifics of 4 vs 5 aren't necessary for this stage of binding. The only thing that matters is that every part needs to be convertible
-            // object.
-            return constructWithData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics), data: null);
+            // Case 2, 4, 5
+            ImmutableArray<BoundExpression> parts = BindInterpolatedStringPartsForFactory(unconvertedInterpolatedString, diagnostics, out bool haveErrors);
 
-            BoundInterpolatedString constructWithData(ImmutableArray<BoundExpression> parts, InterpolatedStringHandlerData? data)
+            if (unconvertedInterpolatedString.Type.IsErrorType() || haveErrors || canLowerToStringConcatenation(parts))
+            {
+                return constructWithoutData(parts);
+            }
+
+            return BindUnconvertedInterpolatedExpressionToFactory(unconvertedInterpolatedString, parts, (NamedTypeSymbol)unconvertedInterpolatedString.Type, factoryMethod: "Format", unconvertedInterpolatedString.Type, diagnostics);
+
+            BoundInterpolatedString constructWithoutData(ImmutableArray<BoundExpression> parts)
                 => new BoundInterpolatedString(
                     unconvertedInterpolatedString.Syntax,
-                    data,
+                    interpolationData: null,
                     parts,
                     unconvertedInterpolatedString.ConstantValueOpt,
                     unconvertedInterpolatedString.Type,
@@ -287,6 +290,141 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = BindUnconvertedInterpolatedStringToHandlerType(unconvertedInterpolatedString, interpolatedStringHandlerType, diagnostics, isHandlerConversion: false);
 
                 return true;
+            }
+
+            bool canLowerToStringConcatenation(ImmutableArray<BoundExpression> parts)
+            {
+                foreach (var part in parts)
+                {
+                    if (part is BoundStringInsert fillin)
+                    {
+                        // this is one of the expression holes
+                        if (InExpressionTree ||
+                            fillin.HasErrors ||
+                            fillin.Value.Type?.SpecialType != SpecialType.System_String ||
+                            fillin.Alignment != null ||
+                            fillin.Format != null)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        private ImmutableArray<BoundExpression> BindInterpolatedStringPartsForFactory(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics, out bool haveErrors)
+        {
+            var partsDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
+
+            ImmutableArray<BoundExpression> parts = BindInterpolatedStringParts(unconvertedInterpolatedString, partsDiagnostics);
+            haveErrors = partsDiagnostics.HasAnyResolvedErrors() ||
+                         parts.Any(static p => p.HasErrors ||
+                                          p is BoundStringInsert { Alignment.ConstantValueOpt: null or { IsBad: true } } or
+                                               BoundStringInsert { Format.ConstantValueOpt: null or { IsBad: true } });
+            diagnostics.AddRangeAndFree(partsDiagnostics);
+
+            return parts;
+        }
+
+        private BoundInterpolatedString BindUnconvertedInterpolatedExpressionToFactory(
+            BoundUnconvertedInterpolatedString unconvertedSource,
+            ImmutableArray<BoundExpression> parts,
+            NamedTypeSymbol factoryType,
+            string factoryMethod,
+            TypeSymbol destination,
+            BindingDiagnosticBag diagnostics)
+        {
+            SyntaxNode syntax = unconvertedSource.Syntax;
+            ImmutableArray<BoundExpression> expressions = makeInterpolatedStringFactoryArguments(syntax, parts, diagnostics);
+
+            BoundExpression construction = MakeInvocationExpression(
+                syntax,
+                new BoundTypeExpression(syntax, null, factoryType) { WasCompilerGenerated = true },
+                factoryMethod,
+                expressions,
+                diagnostics,
+                typeArgs: default(ImmutableArray<TypeWithAnnotations>),
+                allowFieldsAndProperties: false,
+                ignoreNormalFormIfHasValidParamsParameter: true, // if an interpolation expression is the null literal, it should not match a params parameter.
+                disallowExpandedNonArrayParams: InExpressionTree);
+
+            // We do not verify expected return type of the chosen factory method.
+            // This is technically a spec violation because there is no guarantee what
+            // conversion we might accept here. Could be even a user-defined conversion.
+            construction = GenerateConversionForAssignment(
+                destination,
+                construction,
+                construction.HasErrors ? BindingDiagnosticBag.Discarded : diagnostics,
+                ConversionForAssignmentFlags.InterpolatedString);
+
+            return new BoundInterpolatedString(
+                syntax,
+                interpolationData: new InterpolatedStringHandlerData(construction),
+                parts,
+                unconvertedSource.ConstantValueOpt,
+                unconvertedSource.Type,
+                unconvertedSource.HasErrors);
+
+            ImmutableArray<BoundExpression> makeInterpolatedStringFactoryArguments(SyntaxNode syntax, ImmutableArray<BoundExpression> parts, BindingDiagnosticBag diagnostics)
+            {
+                int n = parts.Length - 1;
+                var formatString = PooledStringBuilder.GetInstance();
+                var stringBuilder = formatString.Builder;
+                var expressions = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
+                expressions.Add(null!); // format placeholder
+                int nextFormatPosition = 0;
+                for (int i = 0; i <= n; i++)
+                {
+                    var part = parts[i];
+                    if (part is BoundStringInsert fillin)
+                    {
+                        // this is one of the expression holes
+                        stringBuilder.Append('{').Append(nextFormatPosition++);
+                        if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
+                        {
+                            Debug.Assert(fillin.Alignment.ConstantValueOpt is { });
+                            stringBuilder.Append(',').Append(fillin.Alignment.ConstantValueOpt.Int64Value);
+                        }
+                        if (fillin.Format != null && !fillin.Format.HasErrors)
+                        {
+                            Debug.Assert(fillin.Format.ConstantValueOpt is { });
+                            stringBuilder.Append(':').Append(fillin.Format.ConstantValueOpt.StringValue);
+                        }
+                        stringBuilder.Append('}');
+                        var value = fillin.Value;
+                        if (value.Type?.TypeKind == TypeKind.Dynamic)
+                        {
+                            // Object type is checked by BindInterpolatedStringParts
+                            value = GenerateConversionForAssignment(Compilation.ObjectType, value, diagnostics);
+                        }
+
+                        expressions.Add(value); // NOTE: must still be lowered
+                    }
+                    else
+                    {
+                        Debug.Assert(part is BoundLiteral && part.ConstantValueOpt?.StringValue != null);
+                        // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
+                        // they're treated the same way in string.Format.
+                        escapeAndAppendInterpolatedStringLiteral(stringBuilder, part.ConstantValueOpt.StringValue);
+                    }
+                }
+
+                expressions[0] = new BoundLiteral(syntax, ConstantValue.Create(formatString.ToStringAndFree()), GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_String, diagnostics, syntax)) { WasCompilerGenerated = true };
+                return expressions.ToImmutableAndFree();
+            }
+
+            static void escapeAndAppendInterpolatedStringLiteral(System.Text.StringBuilder stringBuilder, string value)
+            {
+                foreach (var c in value)
+                {
+                    stringBuilder.Append(c);
+                    if (c is '{' or '}')
+                    {
+                        stringBuilder.Append(c);
+                    }
+                }
             }
         }
 
@@ -746,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(part is BoundLiteral { Type: { SpecialType: SpecialType.System_String } });
+                    Debug.Assert(part is BoundLiteral { Type: { SpecialType: SpecialType.System_String }, ConstantValueOpt.IsString: true });
                     partsBuilder?.Add(part);
                 }
             }
