@@ -56,7 +56,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=B Member=Run)" Target="(@1 Type=A Member=.ctor)" Category="CodeSchema_Calls"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

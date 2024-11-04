@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseConditionalExpressionForAssignmentCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-public partial class UseConditionalExpressionForAssignmentTests
+public sealed partial class UseConditionalExpressionForAssignmentTests
 {
     private static async Task TestMissingAsync(
         string testCode,
@@ -2101,5 +2101,48 @@ public partial class UseConditionalExpressionForAssignmentTests
                 private static bool TryGetValue(out Class1 c) => throw new NotImplementedException();
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71403")]
+    public async Task TestGlobalStatements()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System;
+
+                object? x = null;
+                object? y = null;
+                object? z;
+
+                [|if|] (x != null)
+                {
+                    z = x;
+                }
+                else
+                {
+                    z = y;
+                }
+
+                Console.WriteLine($"{x}{y}{z}");
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System;
+
+                object? x = null;
+                object? y = null;
+                object? z = x != null ? x : y;
+            
+                Console.WriteLine($"{x}{y}{z}");
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState = {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
     }
 }

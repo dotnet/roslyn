@@ -664,23 +664,16 @@ internal class CSharpGenerateTypeService :
             return false;
         }
 
-        var node = expression as SyntaxNode;
-
-        while (node != null)
+        if (expression.Parent is BaseTypeSyntax { Parent: BaseListSyntax baseList })
         {
-            if (node is BaseListSyntax)
+            if (baseList.Parent.Kind() is SyntaxKind.InterfaceDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration)
             {
-                if (node.Parent.Kind() is SyntaxKind.InterfaceDeclaration or SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration)
-                {
-                    typeKindValue = TypeKindOptions.Interface;
-                    return true;
-                }
-
-                typeKindValue = TypeKindOptions.BaseList;
+                typeKindValue = TypeKindOptions.Interface;
                 return true;
             }
 
-            node = node.Parent;
+            typeKindValue = TypeKindOptions.BaseList;
+            return true;
         }
 
         return false;

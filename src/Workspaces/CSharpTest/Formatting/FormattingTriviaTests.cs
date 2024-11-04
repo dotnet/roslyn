@@ -474,7 +474,7 @@ class C { }";
     }
 }";
 
-            await AssertFormatAsync(expected, content, true);
+            await AssertFormatAsync(expected, content);
         }
 
         [Fact]

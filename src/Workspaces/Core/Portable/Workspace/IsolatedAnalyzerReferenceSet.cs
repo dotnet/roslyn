@@ -51,11 +51,11 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         return await getReferencesAsync().ConfigureAwait(false);
     }
 
-    public static Guid TryGetAnalyzerFileReferenceMvid(AnalyzerFileReference file)
+    public static Guid TryGetFileReferenceMvid(string filePath)
     {
         try
         {
-            return AssemblyUtilities.ReadMvid(file.FullPath);
+            return AssemblyUtilities.ReadMvid(filePath);
         }
         catch
         {

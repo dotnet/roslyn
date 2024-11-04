@@ -13,7 +13,7 @@ internal static class CSharpSimplifierOptionsProviders
 {
     public static async ValueTask<CSharpSimplifierOptions> GetCSharpSimplifierOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return new CSharpSimplifierOptions(configOptions);
     }
 }

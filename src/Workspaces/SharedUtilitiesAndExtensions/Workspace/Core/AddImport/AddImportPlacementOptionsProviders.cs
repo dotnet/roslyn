@@ -26,7 +26,7 @@ internal static class AddImportPlacementOptionsProviders
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         var service = document.GetRequiredLanguageService<IAddImportsService>();
         return service.GetAddImportOptions(configOptions, document.AllowImportsInHiddenRegions());
     }

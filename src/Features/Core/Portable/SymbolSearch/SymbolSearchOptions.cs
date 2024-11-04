@@ -53,7 +53,7 @@ internal static class SymbolSearchOptionsProviders
 
     public static async ValueTask<SymbolSearchOptions> GetSymbolSearchOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return configOptions.GetSymbolSearchOptions(document.Project.Language);
     }
 }

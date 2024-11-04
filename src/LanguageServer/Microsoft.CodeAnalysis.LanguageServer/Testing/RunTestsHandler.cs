@@ -154,14 +154,15 @@ internal class RunTestsHandler(DotnetCliHelper dotnetCliHelper, TestDiscoverer t
 
     private static TraceLevel GetTraceLevel(ServerConfiguration serverConfiguration)
     {
-        return serverConfiguration.MinimumLogLevel switch
+        var level = serverConfiguration.LogConfiguration.GetLogLevel();
+        return level switch
         {
             Microsoft.Extensions.Logging.LogLevel.Trace or Microsoft.Extensions.Logging.LogLevel.Debug => TraceLevel.Verbose,
             Microsoft.Extensions.Logging.LogLevel.Information => TraceLevel.Info,
             Microsoft.Extensions.Logging.LogLevel.Warning => TraceLevel.Warning,
             Microsoft.Extensions.Logging.LogLevel.Error or Microsoft.Extensions.Logging.LogLevel.Critical => TraceLevel.Error,
             Microsoft.Extensions.Logging.LogLevel.None => TraceLevel.Off,
-            _ => throw new InvalidOperationException($"Unexpected log level {serverConfiguration.MinimumLogLevel}"),
+            _ => throw new InvalidOperationException($"Unexpected log level {level}"),
         };
     }
 

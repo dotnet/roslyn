@@ -156,7 +156,8 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
             document, position, cancellationToken).ConfigureAwait(false);
 
-        if (symbol is null)
+        // Don't show on-the-fly-docs for namespace symbols.
+        if (symbol is null || symbol.IsNamespace())
         {
             return null;
         }

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities;
 
@@ -48,9 +49,15 @@ internal readonly struct EditDistance(string text) : IDisposable
     private readonly string _source = text ?? throw new ArgumentNullException(nameof(text));
     private readonly char[] _sourceLowerCaseCharacters = ConvertToLowercaseArray(text);
 
+    private const int PooledArraySize = 512;
+    private static readonly ObjectPool<char[]> s_pool = new ObjectPool<char[]>(() => new char[PooledArraySize]);
+
     private static char[] ConvertToLowercaseArray(string text)
     {
-        var array = ArrayPool<char>.GetArray(text.Length);
+        var array = text.Length <= PooledArraySize
+            ? s_pool.Allocate()
+            : new char[text.Length];
+
         for (var i = 0; i < text.Length; i++)
             array[i] = CaseInsensitiveComparison.ToLower(text[i]);
 
@@ -62,7 +69,10 @@ internal readonly struct EditDistance(string text) : IDisposable
         if (_sourceLowerCaseCharacters == null)
             throw new ObjectDisposedException(nameof(EditDistance));
 
-        ArrayPool<char>.ReleaseArray(_sourceLowerCaseCharacters);
+        // Place properly sized arrays back in the pool. As these only store chars, no need
+        // to clear them out before doing so.
+        if (_sourceLowerCaseCharacters.Length == PooledArraySize)
+            s_pool.Free(_sourceLowerCaseCharacters);
     }
 
     public static int GetEditDistance(string source, string target, int threshold = int.MaxValue)
@@ -71,26 +81,22 @@ internal readonly struct EditDistance(string text) : IDisposable
         return editDistance.GetEditDistance(target, threshold);
     }
 
-    public static int GetEditDistance(char[] source, char[] target, int threshold = int.MaxValue)
-        => GetEditDistance(source.AsSpan(), target.AsSpan(), threshold);
-
     public int GetEditDistance(string target, int threshold = int.MaxValue)
     {
         if (_sourceLowerCaseCharacters == null)
             throw new ObjectDisposedException(nameof(EditDistance));
 
-        var targetLowerCaseCharacters = ConvertToLowercaseArray(target);
-        try
-        {
-            return GetEditDistance(
-                _sourceLowerCaseCharacters.AsSpan(0, _source.Length),
-                targetLowerCaseCharacters.AsSpan(0, target.Length),
-                threshold);
-        }
-        finally
-        {
-            ArrayPool<char>.ReleaseArray(targetLowerCaseCharacters);
-        }
+        Span<char> targetLowerCaseCharacters = target.Length < 512
+            ? stackalloc char[target.Length]
+            : new char[target.Length];
+
+        for (var i = 0; i < target.Length; i++)
+            targetLowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(target[i]);
+
+        return GetEditDistance(
+            _sourceLowerCaseCharacters.AsSpan(0, _source.Length),
+            targetLowerCaseCharacters,
+            threshold);
     }
 
     private const int MaxMatrixPoolDimension = 64;
@@ -598,62 +604,5 @@ internal readonly struct EditDistance(string text) : IDisposable
         // Matrix is -1 based, so we add 1 to both i and j to make it
         // possible to index into the actual storage.
         matrix[i + 1, j + 1] = val;
-    }
-}
-
-internal sealed class SimplePool<T>(Func<T> allocate) where T : class
-{
-    private readonly object _gate = new();
-    private readonly Stack<T> _values = new();
-
-    public T Allocate()
-    {
-        lock (_gate)
-        {
-            if (_values.Count > 0)
-            {
-                return _values.Pop();
-            }
-
-            return allocate();
-        }
-    }
-
-    public void Free(T value)
-    {
-        lock (_gate)
-        {
-            _values.Push(value);
-        }
-    }
-}
-
-internal static class ArrayPool<T>
-{
-    private const int MaxPooledArraySize = 256;
-
-    // Keep around a few arrays of size 256 that we can use for operations without
-    // causing lots of garbage to be created.  If we do compare items larger than
-    // that, then we will just allocate and release those arrays on demand.
-    private static readonly SimplePool<T[]> s_pool = new(() => new T[MaxPooledArraySize]);
-
-    public static T[] GetArray(int size)
-    {
-        if (size <= MaxPooledArraySize)
-        {
-            var array = s_pool.Allocate();
-            Array.Clear(array, 0, array.Length);
-            return array;
-        }
-
-        return new T[size];
-    }
-
-    public static void ReleaseArray(T[] array)
-    {
-        if (array.Length <= MaxPooledArraySize)
-        {
-            s_pool.Free(array);
-        }
     }
 }

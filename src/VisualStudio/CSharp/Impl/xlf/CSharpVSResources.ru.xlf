@@ -532,11 +532,6 @@
         <target state="translated">_Показывать разделительные линии процедур</target>
         <note />
       </trans-unit>
-      <trans-unit id="Don_t_put_ref_or_out_on_custom_struct">
-        <source>_Don't put ref or out on custom struct</source>
-        <target state="translated">_Не помещать ссылку или вывод в настраиваемую структуру</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">Справка по редактору</target>
