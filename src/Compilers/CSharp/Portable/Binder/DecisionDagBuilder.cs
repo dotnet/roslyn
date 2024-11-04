@@ -2382,6 +2382,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
+                        // If we have something like `... or not A or B`, by the time we get to process the `not A or B`,
+                        // the null test has already been removed
+                        if (negated is One { Test: BoundDagTypeTest typeTest2 }
+                            && test == typeTest2)
+                        {
+                            return true;
+                        }
+
                         // Handles `not { ... } or null`
                         if (negated is AndSequence { RemainingTests: [One { Test: BoundDagNonNullTest nonNullTest2 }, ..] }
                             && test == nonNullTest2)

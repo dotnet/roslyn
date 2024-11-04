@@ -5700,5 +5700,117 @@ class C
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_NotNullOrNotAOrBPattern()
+        {
+            var source = """
+object o = null;
+_ = o is not null or not A or B; // 1, 2
+_ = o is {} or not A or B; // 3
+
+_ = o switch
+{
+    not null => 41,
+    not A => 42,
+    B => 43, // 4
+};
+
+_ = o switch
+{
+    {} => 41,
+    not A => 42,
+    B => 43, // 5
+};
+
+class A { }
+class B { }
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                // _ = o is not null or not A or B; // 1, 2
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is not null or not A or B").WithArguments("object").WithLocation(2, 5),
+                // (2,31): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = o is not null or not A or B; // 1, 2
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(2, 31),
+                // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                // _ = o is {} or not A or B; // 3
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is {} or not A or B").WithArguments("object").WithLocation(3, 5),
+                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     B => 43, // 4
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B").WithLocation(9, 5),
+                // (16,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     B => 43, // 5
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B").WithLocation(16, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_BaseOrNotAOrBPattern()
+        {
+            var source = """
+object o = null;
+_ = o is Base { Prop: 10 } or not A or B; // 1
+
+_ = o switch
+{
+    Base { Prop: 10 } => 41,
+    not A => 42,
+    B => 43, // 2
+    _ => 44
+};
+
+class Base { public int Prop { get; set; } }
+class A : Base { }
+class B : Base { }
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (2,40): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = o is Base { Prop: 10 } or not A or B; // 1
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(2, 40),
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     B => 43, // 2
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B").WithLocation(8, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_BaseTypeOrType()
+        {
+            var source = """
+object o = null;
+_ = o is object or string;
+
+_ = o switch
+{
+    object => 41,
+    string => 42, // 1
+    _ => 43
+};
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     string => 42,
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(7, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_TypeOrBaseType()
+        {
+            var source = """
+object o = null;
+_ = o is string or object;
+
+_ = o switch
+{
+    string => 41,
+    object => 42,
+    _ => 43
+};
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
