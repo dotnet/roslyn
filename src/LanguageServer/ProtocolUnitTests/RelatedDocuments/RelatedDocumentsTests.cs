@@ -180,15 +180,15 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
     public async Task DoesNotIncludeSourceGeneratedDocuments(bool mutatingLspWorkspace, bool useProgress)
     {
         var source =
-                """
-                namespace M
+            """
+            namespace M
+            {
+                class A
                 {
-                    class A
-                    {
-                        public {|caret:|}B b;
-                    }
+                    public {|caret:|}B b;
                 }
-                """;
+            }
+            """;
         var generated =
             """
             namespace M
