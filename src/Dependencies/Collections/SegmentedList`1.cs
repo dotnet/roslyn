@@ -124,54 +124,57 @@ namespace Microsoft.CodeAnalysis.Collections
         public int Capacity
         {
             get => _items.Length;
-            set
+            set => SetCapacityInternal(value, isExactCapacity: true);
+        }
+
+        private void SetCapacityInternal(int value, bool isExactCapacity)
+        {
+            if (value < _size)
             {
-                if (value < _size)
+                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.value, ExceptionResource.ArgumentOutOfRange_SmallCapacity);
+            }
+
+            if (value == _items.Length)
+                return;
+
+            if (value <= 0)
+            {
+                _items = s_emptyArray;
+                return;
+            }
+
+            if (_items.Length == 0)
+            {
+                // No data from existing array to reuse, just create a new one.
+                _items = new SegmentedArray<T>(value);
+            }
+            else
+            {
+                // Rather than creating a copy of _items, instead reuse as much of it's data as possible.
+                var segments = SegmentedCollectionsMarshal.AsSegments(_items);
+
+                var oldSegmentCount = segments.Length;
+                var newSegmentCount = (value + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
+
+                if (newSegmentCount > segments.Length)
                 {
-                    ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.value, ExceptionResource.ArgumentOutOfRange_SmallCapacity);
+                    // Grow the array of segments, if necessary. If isExactCapacity is false, then this array may end up
+                    // having null entries at it's end when this method completes. Minimally doubling the outer array size
+                    // allows amortized linear cost growth properties.
+                    var newSegmentAllocCount = isExactCapacity ? newSegmentCount : Math.Max(newSegmentCount, segments.Length * 2);
+                    Array.Resize(ref segments, newSegmentAllocCount);
                 }
 
-                if (value == _items.Length)
-                    return;
+                // Resize all segments to full segment size from the last old segment to the next to last
+                // new segment.
+                for (var i = oldSegmentCount - 1; i < newSegmentCount - 1; i++)
+                    Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<T>());
 
-                if (value <= 0)
-                {
-                    _items = s_emptyArray;
-                    return;
-                }
+                // Resize the last segment
+                var lastSegmentSize = value - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
+                Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
 
-                if (_items.Length == 0)
-                {
-                    // No data from existing array to reuse, just create a new one.
-                    _items = new SegmentedArray<T>(value);
-                }
-                else
-                {
-                    // Rather than creating a copy of _items, instead reuse as much of it's data as possible.
-                    var segments = SegmentedCollectionsMarshal.AsSegments(_items);
-
-                    var oldSegmentCount = segments.Length;
-                    var newSegmentCount = (value + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
-
-                    if (newSegmentCount > segments.Length)
-                    {
-                        // Grow the array of segments, if necessary. Note that this array may end up having null entries
-                        // at it's end when this method completes. Minimally doubling the outer array size allows amortized
-                        // linear cost growth properties.
-                        Array.Resize(ref segments, Math.Max(newSegmentCount, segments.Length * 2));
-                    }
-
-                    // Resize all segments to full segment size from the last old segment to the next to last
-                    // new segment.
-                    for (var i = oldSegmentCount - 1; i < newSegmentCount - 1; i++)
-                        Array.Resize(ref segments[i], SegmentedArrayHelper.GetSegmentSize<T>());
-
-                    // Resize the last segment
-                    var lastSegmentSize = value - ((newSegmentCount - 1) << SegmentedArrayHelper.GetSegmentShift<T>());
-                    Array.Resize(ref segments[newSegmentCount - 1], lastSegmentSize);
-
-                    _items = SegmentedCollectionsMarshal.AsSegmentedArray(value, segments);
-                }
+                _items = SegmentedCollectionsMarshal.AsSegmentedArray(value, segments);
             }
         }
 
@@ -544,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (newCapacity < capacity)
                 newCapacity = capacity;
 
-            Capacity = newCapacity;
+            SetCapacityInternal(newCapacity, isExactCapacity: false);
         }
 
         public bool Exists(Predicate<T> match)
