@@ -450,16 +450,16 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private struct AlignedSegmentEnumerator<T>
         {
-            private readonly T[][] _firstSegments;
+            private readonly T[]?[] _firstSegments;
             private readonly int _firstOffset;
-            private readonly T[][] _secondSegments;
+            private readonly T[]?[] _secondSegments;
             private readonly int _secondOffset;
             private readonly int _length;
 
             private int _completed;
             private (Memory<T> first, Memory<T> second) _current;
 
-            public AlignedSegmentEnumerator(T[][] firstSegments, int firstOffset, T[][] secondSegments, int secondOffset, int length)
+            public AlignedSegmentEnumerator(T[]?[] firstSegments, int firstOffset, T[]?[] secondSegments, int secondOffset, int length)
             {
                 _firstSegments = firstSegments;
                 _firstOffset = firstOffset;
@@ -488,8 +488,8 @@ namespace Microsoft.CodeAnalysis.Collections
                     var offset = _firstOffset & SegmentedArrayHelper.GetOffsetMask<T>();
                     Debug.Assert(offset == (_secondOffset & SegmentedArrayHelper.GetOffsetMask<T>()), "Aligned views must start at the same segment offset");
 
-                    var firstSegment = _firstSegments[initialFirstSegment];
-                    var secondSegment = _secondSegments[initialSecondSegment];
+                    var firstSegment = _firstSegments[initialFirstSegment]!;
+                    var secondSegment = _secondSegments[initialSecondSegment]!;
                     var remainingInSegment = firstSegment.Length - offset;
                     var currentSegmentLength = Math.Min(remainingInSegment, _length);
                     _current = (firstSegment.AsMemory().Slice(offset, currentSegmentLength), secondSegment.AsMemory().Slice(offset, currentSegmentLength));
@@ -555,16 +555,16 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private struct UnalignedSegmentEnumerator<T>
         {
-            private readonly T[][] _firstSegments;
+            private readonly T[]?[] _firstSegments;
             private readonly int _firstOffset;
-            private readonly T[][] _secondSegments;
+            private readonly T[]?[] _secondSegments;
             private readonly int _secondOffset;
             private readonly int _length;
 
             private int _completed;
             private (Memory<T> first, Memory<T> second) _current;
 
-            public UnalignedSegmentEnumerator(T[][] firstSegments, int firstOffset, T[][] secondSegments, int secondOffset, int length)
+            public UnalignedSegmentEnumerator(T[]?[] firstSegments, int firstOffset, T[]?[] secondSegments, int secondOffset, int length)
             {
                 _firstSegments = firstSegments;
                 _firstOffset = firstOffset;
@@ -591,8 +591,8 @@ namespace Microsoft.CodeAnalysis.Collections
                 var firstOffset = (_completed + _firstOffset) & SegmentedArrayHelper.GetOffsetMask<T>();
                 var secondOffset = (_completed + _secondOffset) & SegmentedArrayHelper.GetOffsetMask<T>();
 
-                var firstSegment = _firstSegments[initialFirstSegment];
-                var secondSegment = _secondSegments[initialSecondSegment];
+                var firstSegment = _firstSegments[initialFirstSegment]!;
+                var secondSegment = _secondSegments[initialSecondSegment]!;
                 var remainingInFirstSegment = firstSegment.Length - firstOffset;
                 var remainingInSecondSegment = secondSegment.Length - secondOffset;
                 var currentSegmentLength = Math.Min(Math.Min(remainingInFirstSegment, remainingInSecondSegment), _length - _completed);
@@ -603,16 +603,16 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public struct Reverse
             {
-                private readonly T[][] _firstSegments;
+                private readonly T[]?[] _firstSegments;
                 private readonly int _firstOffset;
-                private readonly T[][] _secondSegments;
+                private readonly T[]?[] _secondSegments;
                 private readonly int _secondOffset;
                 private readonly int _length;
 
                 private int _completed;
                 private (Memory<T> first, Memory<T> second) _current;
 
-                public Reverse(T[][] firstSegments, int firstOffset, T[][] secondSegments, int secondOffset, int length)
+                public Reverse(T[]?[] firstSegments, int firstOffset, T[]?[] secondSegments, int secondOffset, int length)
                 {
                     _firstSegments = firstSegments;
                     _firstOffset = firstOffset;
@@ -699,14 +699,14 @@ namespace Microsoft.CodeAnalysis.Collections
 
         private struct SegmentEnumerator<T>
         {
-            private readonly T[][] _segments;
+            private readonly T[]?[] _segments;
             private readonly int _offset;
             private readonly int _length;
 
             private int _completed;
             private Memory<T> _current;
 
-            public SegmentEnumerator(T[][] segments, int offset, int length)
+            public SegmentEnumerator(T[]?[] segments, int offset, int length)
             {
                 _segments = segments;
                 _offset = offset;
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     var firstSegment = _offset >> SegmentedArrayHelper.GetSegmentShift<T>();
                     var offset = _offset & SegmentedArrayHelper.GetOffsetMask<T>();
 
-                    var segment = _segments[firstSegment];
+                    var segment = _segments[firstSegment]!;
                     var remainingInSegment = segment.Length - offset;
                     _current = segment.AsMemory().Slice(offset, Math.Min(remainingInSegment, _length));
                     _completed = _current.Length;
@@ -748,14 +748,14 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public struct Reverse
             {
-                private readonly T[][] _segments;
+                private readonly T[]?[] _segments;
                 private readonly int _offset;
                 private readonly int _length;
 
                 private int _completed;
                 private Memory<T> _current;
 
-                public Reverse(T[][] segments, int offset, int length)
+                public Reverse(T[]?[] segments, int offset, int length)
                 {
                     _segments = segments;
                     _offset = offset;
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.Collections
                         var firstSegment = _offset >> SegmentedArrayHelper.GetSegmentShift<T>();
                         var offset = _offset & SegmentedArrayHelper.GetOffsetMask<T>();
 
-                        var segment = _segments[firstSegment];
+                        var segment = _segments[firstSegment]!;
                         var remainingInSegment = segment.Length - offset;
                         _current = segment.AsMemory().Slice(offset, Math.Min(remainingInSegment, _length));
                         _completed = _current.Length;

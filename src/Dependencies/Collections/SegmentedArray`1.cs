@@ -61,7 +61,12 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         private readonly int _length;
-        private readonly T[][] _items;
+
+        /// <summary>
+        /// Array containing inner arrays of items. The first (length + SegmentSize - 1) >> SegmentShift
+        /// elements in this array will be non-null arrays. The remaining elements will be null.
+        /// </summary>
+        private readonly T[]?[] _items;
 
         public SegmentedArray(int length)
         {
@@ -94,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
-        private SegmentedArray(int length, T[][] items)
+        private SegmentedArray(int length, T[]?[] items)
         {
             _length = length;
             _items = items;
@@ -115,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Collections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                return ref _items[index >> SegmentShift][index & OffsetMask];
+                return ref _items[index >> SegmentShift]![index & OffsetMask];
             }
         }
 
@@ -141,10 +146,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public object Clone()
         {
-            var items = (T[][])_items.Clone();
+            var items = (T[]?[])_items.Clone();
             for (var i = 0; i < items.Length; i++)
             {
-                items[i] = (T[])items[i].Clone();
+                if (items[i] is not T[] innerItems)
+                    break;
+
+                items[i] = (T[])innerItems.Clone();
             }
 
             return new SegmentedArray<T>(Length, items);
@@ -154,7 +162,10 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             for (var i = 0; i < _items.Length; i++)
             {
-                _items[i].CopyTo(array, index + (i * SegmentSize));
+                if (_items[i] is not T[] segment)
+                    break;
+
+                segment.CopyTo(array, index + (i * SegmentSize));
             }
         }
 
@@ -162,7 +173,9 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             for (var i = 0; i < _items.Length; i++)
             {
-                ICollection<T> collection = _items[i];
+                if (_items[i] is not ICollection<T> collection)
+                    break;
+
                 collection.CopyTo(array, arrayIndex + (i * SegmentSize));
             }
         }
@@ -200,8 +213,11 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             // Matches System.Array
             // https://github.com/dotnet/runtime/blob/e0ec035994179e8ebd6ccf081711ee11d4c5491b/src/libraries/System.Private.CoreLib/src/System/Array.cs#L279-L282
-            foreach (IList list in _items)
+            foreach (IList? list in _items)
             {
+                if (list is null)
+                    break;
+
                 list.Clear();
             }
         }
@@ -214,8 +230,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
         bool IList.Contains(object? value)
         {
-            foreach (IList list in _items)
+            foreach (IList? list in _items)
             {
+                if (list is null)
+                    return false;
+
                 if (list.Contains(value))
                     return true;
             }
@@ -225,8 +244,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
         bool ICollection<T>.Contains(T value)
         {
-            foreach (ICollection<T> collection in _items)
+            foreach (ICollection<T>? collection in _items)
             {
+                if (collection is null)
+                    return false;
+
                 if (collection.Contains(value))
                     return true;
             }
@@ -238,7 +260,9 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             for (var i = 0; i < _items.Length; i++)
             {
-                IList list = _items[i];
+                if (_items[i] is not IList list)
+                    break;
+
                 var index = list.IndexOf(value);
                 if (index >= 0)
                 {
@@ -253,7 +277,9 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             for (var i = 0; i < _items.Length; i++)
             {
-                IList<T> list = _items[i];
+                if (_items[i] is not IList<T> list)
+                    break;
+
                 var index = list.IndexOf(value);
                 if (index >= 0)
                 {
@@ -367,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public struct Enumerator : IEnumerator<T>
         {
-            private readonly T[][] _items;
+            private readonly T[]?[] _items;
             private int _nextItemSegment;
             private int _nextItemIndex;
             private T _current;
@@ -392,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 if (_items.Length == 0)
                     return false;
 
-                if (_nextItemIndex == _items[_nextItemSegment].Length)
+                if (_nextItemIndex == _items[_nextItemSegment]!.Length)
                 {
                     if (_nextItemSegment == _items.Length - 1)
                     {
@@ -403,7 +429,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     _nextItemIndex = 0;
                 }
 
-                _current = _items[_nextItemSegment][_nextItemIndex];
+                _current = _items[_nextItemSegment]![_nextItemIndex];
                 _nextItemIndex++;
                 return true;
             }

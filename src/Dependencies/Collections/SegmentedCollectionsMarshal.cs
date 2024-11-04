@@ -19,7 +19,7 @@ internal static class SegmentedCollectionsMarshal
     /// <param name="array">The segmented array.</param>
     /// <returns>The backing storage array for the segmented array. Note that replacing segments within the returned
     /// value will invalidate the <see cref="SegmentedArray{T}"/> data structure.</returns>
-    public static T[][] AsSegments<T>(SegmentedArray<T> array)
+    public static T[]?[] AsSegments<T>(SegmentedArray<T> array)
         => SegmentedArray<T>.PrivateMarshal.AsSegments(array);
 
     /// <summary>
@@ -38,7 +38,7 @@ internal static class SegmentedCollectionsMarshal
     /// </para>
     /// </remarks>
     /// <exception cref="System.ArgumentNullException">Thrown when <paramref name="segments"/> is <see langword="null"/></exception>
-    public static SegmentedArray<T> AsSegmentedArray<T>(int length, T[][] segments)
+    public static SegmentedArray<T> AsSegmentedArray<T>(int length, T[]?[] segments)
         => SegmentedArray<T>.PrivateMarshal.AsSegmentedArray(length, segments);
 
     /// <summary>

@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Assert.Same(resizedSegments[i], oldSegments[i]);
 
             for (var i = oldSegmentCount - 1; i < resizedSegmentCount - 1; i++)
-                Assert.Equal(resizedSegments[i].Length, SegmentedArray<T>.TestAccessor.SegmentSize);
+                Assert.Equal(resizedSegments[i]!.Length, SegmentedArray<T>.TestAccessor.SegmentSize);
 
             for (var i = resizedSegmentCount; i < resizedSegments.Length; i++)
                 Assert.Null(resizedSegments[i]);
 
             Assert.NotSame(resizedSegments[resizedSegmentCount - 1], oldSegments[oldSegmentCount - 1]);
-            Assert.Equal(resizedSegments[resizedSegmentCount - 1].Length, oldSegments[oldSegmentCount - 1].Length);
+            Assert.Equal(resizedSegments[resizedSegmentCount - 1]!.Length, oldSegments[oldSegmentCount - 1]!.Length);
         }
 
         [Theory]
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(1, oldSegments.Length);
             Assert.Equal(1, resizedSegments.Length);
             Assert.Same(resizedSegments[0], oldSegments[0]);
-            Assert.Equal(segmented.Capacity, resizedSegments[0].Length);
+            Assert.Equal(segmented.Capacity, resizedSegments[0]!.Length);
         }
 
         [Theory]

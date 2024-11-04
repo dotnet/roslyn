@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     _items = new SegmentedArray<T>(count);
                     if (SegmentedCollectionsMarshal.AsSegments(_items) is { Length: 1 } segments)
                     {
-                        c.CopyTo(segments[0], 0);
+                        c.CopyTo(segments[0]!, 0);
                         _size = count;
                         return;
                     }
