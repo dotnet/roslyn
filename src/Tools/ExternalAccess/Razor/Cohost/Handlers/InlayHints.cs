@@ -34,8 +34,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers
         public static Task<InlayHint> ResolveInlayHintAsync(Document document, InlayHint request, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(s_resolveCache, "Cache should never be null for resolve, since it should have been created by the original request");
-
-
             var data = InlayHintResolveHandler.GetInlayHintResolveData(request);
             var options = GetOptions(data.DisplayAllOverride);
             return InlayHintResolveHandler.ResolveInlayHintAsync(document, request, s_resolveCache, data, options, cancellationToken);
