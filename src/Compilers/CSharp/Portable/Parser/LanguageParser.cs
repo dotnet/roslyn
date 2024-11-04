@@ -5032,9 +5032,14 @@ parse_member_name:;
                 {
                     // If we see `for (int i = 0, j < ...` then we do not want to consume j as the next declarator.
                     //
-                    // Legal forms here are `for (int i = 0, j; ...` or `for (int i = 0, j = ...` or `for (int i = 0,
-                    // j).  Anything else we'll treat as as more likely to be the following 
-                    if (flags.HasFlag(VariableFlags.ForStatement))
+                    // Legal forms here are `for (int i = 0, j; ...` or `for (int i = 0, j = ...` or `for (int i = 0, j)`.
+                    //
+                    // We also accept: `for (int i = 0, ;` as that's likely an intermediary state prior to writing the next
+                    // variable.
+                    //
+                    // Anything else we'll treat as as more likely to be the following conditional.
+
+                    if (flags.HasFlag(VariableFlags.ForStatement) && this.PeekToken(1).Kind != SyntaxKind.SemicolonToken)
                     {
                         if (!IsTrueIdentifier(this.PeekToken(1)) ||
                             this.PeekToken(2).Kind is not (SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken or SyntaxKind.CloseParenToken))
@@ -9158,7 +9163,7 @@ done:
                     : null,
                 secondSemicolonToken = eatCommaOrSemicolon(),
                 incrementors: this.CurrentToken.Kind != SyntaxKind.CloseParenToken
-                    ? this.ParseForStatementExpressionList(ref secondSemicolonToken)
+                    ? this.ParseForStatementExpressionList(ref secondSemicolonToken, allowSemicolonAsSeparator: true)
                     : default,
                 eatUnexpectedTokensAndCloseParenToken(),
                 ParseEmbeddedStatement());
@@ -9232,7 +9237,7 @@ done:
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
                     // Not a type followed by an identifier, so it must be an expression list.
-                    return (null, this.ParseForStatementExpressionList(ref openParen));
+                    return (null, this.ParseForStatementExpressionList(ref openParen, allowSemicolonAsSeparator: false));
                 }
                 else
                 {
@@ -9274,7 +9279,8 @@ done:
             return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.OpenBraceToken;
         }
 
-        private SeparatedSyntaxList<ExpressionSyntax> ParseForStatementExpressionList(ref SyntaxToken startToken)
+        private SeparatedSyntaxList<ExpressionSyntax> ParseForStatementExpressionList(
+            ref SyntaxToken startToken, bool allowSemicolonAsSeparator)
         {
             return ParseCommaSeparatedSyntaxList(
                 ref startToken,
@@ -9284,7 +9290,7 @@ done:
                 skipBadForStatementExpressionListTokens,
                 allowTrailingSeparator: false,
                 requireOneElement: false,
-                allowSemicolonAsSeparator: false);
+                allowSemicolonAsSeparator);
 
             static PostSkipAction skipBadForStatementExpressionListTokens(
                 LanguageParser @this, ref SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)

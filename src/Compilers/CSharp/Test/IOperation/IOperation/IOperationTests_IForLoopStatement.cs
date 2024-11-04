@@ -2678,7 +2678,7 @@ IForLoopOperation (LoopKind.For, Continue Label Id: 0, Exit Label Id: 1) (Operat
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
-        public void IForLoopStatement_InvalidExpression()
+        public void IForLoopStatement_InvalidExpression1()
         {
             string source = @"
 class C
@@ -2688,6 +2688,25 @@ class C
         /*<bind>*/for (int k = 0, j = 0; k < 100, j > 5;/*</bind>*/ k++)
         {
         }
+    }
+}
+";
+            var tree = GetOperationTreeForTest<ForStatementSyntax>(source);
+            Assert.Null(tree);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17602")]
+        public void IForLoopStatement_InvalidExpression2()
+        {
+            string source = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        /*<bind>*/for (int k = 0, j = 0; k < 100, j > 5; k++)
+        {
+        }/*</bind>*/
     }
 }
 ";
