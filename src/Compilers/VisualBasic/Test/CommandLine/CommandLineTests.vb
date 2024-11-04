@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Private Shared ReadOnly s_basicCompilerExecutable As String = Path.Combine(
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
-        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMono, "mono", String.Empty)
+        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMonoDesktop, "mono", String.Empty)
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
