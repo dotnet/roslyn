@@ -595,60 +595,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SetPatternLocalScopes(node);
 
-            if (node.DeconstructMethod is { } deconstructMethod)
+            // If the equivalent `Deconstruct` call has unscoped receiver,
+            // we narrow the escape scope of the pattern input
+            // which flows as the escape scope of all ref-struct declaration subpatterns
+            // and so the ref safety of the pattern is equivalent to a `Deconstruct(out var ...)` invocation
+            // where "safe-context inference of declaration expressions" would have the same effect.
+            if (node.DeconstructMethod is { HasUnscopedRefAttribute: true } or
+                { IsExtensionMethod: true, Parameters: [{ EffectiveScope: ScopedKind.None }, ..] })
             {
                 using (new PatternInput(this, _localScopeDepth))
                 {
-                    base.VisitRecursivePattern(node);
+                    return base.VisitRecursivePattern(node);
                 }
-
-                var placeholders = ArrayBuilder<(BoundValuePlaceholderBase, uint)>.GetInstance();
-
-                var receiver = new BoundDeconstructValuePlaceholder(
-                    node.Syntax,
-                    variableSymbol: null,
-                    isDiscardExpression: false,
-                    node.InputType);
-                placeholders.Add((receiver, _localScopeDepth));
-
-                ImmutableArray<BoundExpression> arguments = node.Deconstruction.SelectAsArray(static (x, placeholders) =>
-                {
-                    if (x.Pattern is BoundObjectPattern { VariableAccess: { } variableAccess })
-                    {
-                        return variableAccess;
-                    }
-
-                    var placeholder = new BoundDeconstructValuePlaceholder(
-                        x.Syntax,
-                        variableSymbol: null,
-                        isDiscardExpression: true,
-                        x.Pattern.NarrowedType);
-                    placeholders.Add((placeholder, CallingMethodScope));
-                    return placeholder;
-                }, placeholders);
-
-                if (!deconstructMethod.RequiresInstanceReceiver)
-                {
-                    arguments = arguments.Insert(0, receiver);
-                    receiver = null;
-                }
-
-                using (new PlaceholderRegion(this, placeholders))
-                {
-                    CheckInvocationArgMixing(
-                        node.Syntax,
-                        MethodInfo.Create(deconstructMethod),
-                        receiver,
-                        receiverIsSubjectToCloning: ThreeState.False,
-                        deconstructMethod.Parameters,
-                        arguments,
-                        deconstructMethod.ParameterRefKinds,
-                        argsToParamsOpt: default,
-                        _localScopeDepth,
-                        _diagnostics);
-                }
-
-                return null;
             }
 
             return base.VisitRecursivePattern(node);
