@@ -21573,6 +21573,7 @@ public class X
                 (int)ErrorCode.ERR_UseDefViolation,
                 (int)ErrorCode.ERR_SemicolonExpected,
                 (int)ErrorCode.ERR_CloseParenExpected,
+                (int)ErrorCode.ERR_InvalidExprTerm,
             ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
@@ -21769,15 +21770,10 @@ public class X
                 (int)ErrorCode.WRN_UnreferencedVar,
                 (int)ErrorCode.ERR_CloseParenExpected,
                 (int)ErrorCode.ERR_SemicolonExpected,
+                (int)ErrorCode.ERR_InvalidExprTerm,
             ];
 
             compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
-                // (31,57): error CS1513: } expected
-                //              Dummy(TakeOutParam(true, out var x8) && x8))
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(31, 57),
-                // (40,57): error CS1513: } expected
-                //              Dummy(TakeOutParam(true, out var x9) && x9))
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(40, 57),
                 // (12,22): error CS0841: Cannot use local variable 'x4' before it is declared
                 //         for (bool d, x4(
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(12, 22),
@@ -21793,18 +21789,18 @@ public class X
                 // (28,21): error CS0103: The name 'b1' does not exist in the current context
                 //         for (bool d,b1(Dummy(TakeOutParam(true, out var x8) && x8)], 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b1").WithArguments("b1").WithLocation(28, 21),
-                // (28,57): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //         for (bool d,b1(Dummy(TakeOutParam(true, out var x8) && x8)], 
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(28, 57),
                 // (29,16): error CS0103: The name 'b2' does not exist in the current context
                 //                b2(Dummy(TakeOutParam(true, out var x8) && x8));
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(29, 16),
                 // (29,52): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                b2(Dummy(TakeOutParam(true, out var x8) && x8));
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(29, 52),
-                // (30,47): error CS0136: A local or parameter named 'x8' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (30,47): error CS0128: A local variable or function named 'x8' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x8) && x8);
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x8").WithArguments("x8").WithLocation(30, 47),
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(30, 47),
+                // (31,47): error CS0128: A local variable or function named 'x8' is already defined in this scope
+                //              Dummy(TakeOutParam(true, out var x8) && x8))
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x8").WithArguments("x8").WithLocation(31, 47),
                 // (37,23): error CS0103: The name 'x9' does not exist in the current context
                 //         for (bool b = x9, 
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "x9").WithArguments("x9").WithLocation(37, 23),
@@ -21814,9 +21810,9 @@ public class X
                 // (39,47): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //              Dummy(TakeOutParam(true, out var x9) && x9);
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(39, 47),
-                // (40,47): error CS0136: A local or parameter named 'x9' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (40,47): error CS0128: A local variable or function named 'x9' is already defined in this scope
                 //              Dummy(TakeOutParam(true, out var x9) && x9))
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x9").WithArguments("x9").WithLocation(40, 47));
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x9").WithArguments("x9").WithLocation(40, 47));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -21839,8 +21835,8 @@ public class X
             AssertNotContainedInDeclaratorArguments(x8Decl[1]);
             VerifyModelForOutVar(model, x8Decl[0], x8Ref[0]);
             VerifyModelForOutVar(model, x8Decl[1], x8Ref[1]);
-            VerifyModelForOutVar(model, x8Decl[2], x8Ref[2]);
-            VerifyModelForOutVar(model, x8Decl[3], x8Ref[3]);
+            VerifyModelForOutVarWithoutDataFlow(model, x8Decl[2], isShadowed: true);
+            VerifyModelForOutVarWithoutDataFlow(model, x8Decl[3], isShadowed: true);
 
             var x9Decl = GetOutVarDeclarations(tree, "x9").ToArray();
             var x9Ref = GetReferences(tree, "x9").ToArray();
@@ -21849,7 +21845,7 @@ public class X
             AssertNotContainedInDeclaratorArguments(x9Decl[0]);
             VerifyModelForOutVar(model, x9Decl[0], x9Ref[1]);
             VerifyModelForOutVar(model, x9Decl[1], x9Ref[2]);
-            VerifyModelForOutVar(model, x9Decl[2], x9Ref[3]);
+            VerifyModelForOutVarWithoutDataFlow(model, x9Decl[2], isShadowed: true);
         }
 
         [Fact]
