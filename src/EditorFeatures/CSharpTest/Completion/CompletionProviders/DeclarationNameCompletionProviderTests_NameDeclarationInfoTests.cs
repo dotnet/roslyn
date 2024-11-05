@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class DeclarationNameCompletion_ContextTests
+public sealed class DeclarationNameCompletion_ContextTests
 {
-    protected readonly CSharpTestWorkspaceFixture Fixture = new();
+    private readonly CSharpTestWorkspaceFixture _fixture = new();
 
     [Fact]
     public async Task AfterTypeInClass1()
@@ -809,6 +809,6 @@ class C
     private (Document, int) ApplyChangesToFixture(string markup)
     {
         MarkupTestFile.GetPosition(markup, out var text, out int position);
-        return (Fixture.UpdateDocument(text, SourceCodeKind.Regular), position);
+        return (_fixture.UpdateDocument(text, SourceCodeKind.Regular), position);
     }
 }
