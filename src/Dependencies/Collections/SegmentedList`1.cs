@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Collections
         private static readonly SegmentedArray<T> s_emptyArray = new(0);
         private static IEnumerator<T>? s_emptyEnumerator;
 
-        public static double SegmentGrowthRate { get; set; } = 2.0;
+        public static int SegmentGrowthShiftValue { get; set; } = 3;
 
         // Constructs a SegmentedList. The list is initially empty and has a capacity
         // of zero. Upon adding the first element to the list the capacity is
@@ -532,9 +532,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
                 else
                 {
-                    // The last segment is fully sized, increase the number of segments by the desired growth factor
+                    // The last segment is fully sized, increase the number of segments by at least the desired growth factor (1.125)
                     var oldSegmentCount = (_items.Length + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
-                    var newSegmentCount = (int)Math.Ceiling(oldSegmentCount * SegmentGrowthRate);
+                    var newSegmentCount = oldSegmentCount + Math.Max(1, oldSegmentCount >> SegmentGrowthShiftValue);
 
                     newCapacity = SegmentedArrayHelper.GetSegmentSize<T>() * newSegmentCount;
                 }

@@ -10,13 +10,40 @@ using Microsoft.CodeAnalysis.Collections.Internal;
 public class SegmentedListBenchmarks_Add_SegmentCounts
 {
     [Params(16, 256, 4096, 65536)]
-    public int SegmentCount { get; set; }
+    public int RoughSegmentCount { get; set; }
 
     [ParamsAllValues]
     public bool AddExtraItem { get; set; }
 
-    [Params(1.000001, 1.1, 1.25, 1.5, 2)]
-    public double SegmentGrowthRate { get; set; }
+    [Params(2, 3)]
+    public int SegmentGrowthShiftValue { get; set; }
+
+    private int _actualSegmentCount;
+
+    [IterationSetup]
+    public void IterationSetup()
+    {
+        if (SegmentGrowthShiftValue == 2)
+        {
+            _actualSegmentCount = RoughSegmentCount switch
+            {
+                16 => 18,
+                256 => 293,
+                4096 => 4241,
+                65536 => 61697
+            };
+        }
+        else if (SegmentGrowthShiftValue == 3)
+        {
+            _actualSegmentCount = RoughSegmentCount switch
+            {
+                16 => 18,
+                256 => 289,
+                4096 => 4282,
+                65536 => 64247
+            };
+        }
+    }
 
     [Benchmark]
     public void AddObjectToList()
@@ -32,9 +59,9 @@ public class SegmentedListBenchmarks_Add_SegmentCounts
 
     private void AddToList<T>(T item)
     {
-        SegmentedList<T>.SegmentGrowthRate = SegmentGrowthRate;
+        SegmentedList<T>.SegmentGrowthShiftValue = SegmentGrowthShiftValue;
 
-        var count = SegmentCount * SegmentedArrayHelper.GetSegmentSize<T>();
+        var count = _actualSegmentCount * SegmentedArrayHelper.GetSegmentSize<T>();
         if (AddExtraItem)
             count++;
 
