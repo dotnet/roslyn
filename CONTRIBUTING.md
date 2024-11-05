@@ -40,3 +40,12 @@ This repository can be built on Windows, Linux, and OSX.
 Building, testing, and packing this repository can be done by using the standard dotnet CLI commands (e.g. `dotnet build`, `dotnet test`, `dotnet pack`, etc.).
 
 [pwsh]: https://docs.microsoft.com/powershell/scripting/install/installing-powershell?view=powershell-6
+
+## Tutorial and API documentation
+
+API and hand-written docs are found under the `docfx/` directory. and are built by [docfx](https://dotnet.github.io/docfx/).
+
+You can make changes and host the site locally to preview them by switching to that directory and running the `dotnet docfx --serve` command.
+After making a change, you can rebuild the docs site while the localhost server is running by running `dotnet docfx` again from a separate terminal.
+
+The `.github/workflows/docs.yml` GitHub Actions workflow publishes the content of these docs to github.io if the workflow itself and [GitHub Pages is enabled for your repository](https://docs.github.com/en/pages/quickstart).

@@ -166,6 +166,12 @@ try {
         "(?m)^.*\[GitHub Actions status\].*`r?`n"=""
         "(?m)^.*\[codecov\].*`r?`n"=""
     }
+    Replace-Placeholders -Path "docfx/docfx.json" -Replacements @{
+        'Library'=$LibraryName
+    }
+    Replace-Placeholders -Path "docfx/docs/getting-started.md" -Replacements @{
+        'Library'=$LibraryName
+    }
 
     # Specially handle azure-pipelines .yml edits
     Replace-Placeholders -Path "azure-pipelines/build.yml" -Replacements @{
