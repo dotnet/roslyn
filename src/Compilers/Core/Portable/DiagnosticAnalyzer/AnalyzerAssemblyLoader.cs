@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
         {
             CheckIfDisposed();
 
-            return GetBestPath(assemblyName);
+            return GetBestPath(assemblyName).BestOriginalPath;
         }
         /// <summary>
         /// Get the real load path of the satellite assembly given the original path to the analyzer 
@@ -268,16 +268,15 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Return the best path for loading an assembly with the specified <see cref="AssemblyName"/>. This
-        /// return is a real path to load, not an original path.
+        /// Return the best (original, real) path information for loading an assembly with the specified <see cref="AssemblyName"/>.
         /// </summary>
-        protected string? GetBestPath(AssemblyName requestedName)
+        protected (string? BestOriginalPath, string? BestRealPath) GetBestPath(AssemblyName requestedName)
         {
             CheckIfDisposed();
 
             if (requestedName.Name is null)
             {
-                return null;
+                return (null, null);
             }
 
             ImmutableHashSet<string>? paths;
@@ -285,13 +284,14 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_knownAssemblyPathsBySimpleName.TryGetValue(requestedName.Name, out paths))
                 {
-                    return null;
+                    return (null, null);
                 }
             }
 
             // Sort the candidate paths by ordinal, to ensure determinism with the same inputs if you were to have
             // multiple assemblies providing the same version.
-            string? bestPath = null;
+            string? bestRealPath = null;
+            string? bestOriginalPath = null;
             AssemblyName? bestName = null;
             foreach (var candidateOriginalPath in paths.OrderBy(StringComparer.Ordinal))
             {
@@ -305,18 +305,19 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (candidateName.Version == requestedName.Version)
                     {
-                        return candidateRealPath;
+                        return (candidateOriginalPath, candidateRealPath);
                     }
 
                     if (bestName is null || candidateName.Version > bestName.Version)
                     {
-                        bestPath = candidateRealPath;
+                        bestOriginalPath = candidateOriginalPath;
+                        bestRealPath = candidateRealPath;
                         bestName = candidateName;
                     }
                 }
             }
 
-            return bestPath;
+            return (bestOriginalPath, bestRealPath);
         }
 
         protected static string GetSatelliteFileName(string assemblyFileName) =>

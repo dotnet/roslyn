@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 var assemblyName = new AssemblyName(args.Name);
-                string? bestPath = GetBestPath(assemblyName);
+                string? bestPath = GetBestPath(assemblyName).BestRealPath;
                 if (bestPath is not null)
                 {
                     return Assembly.LoadFrom(bestPath);

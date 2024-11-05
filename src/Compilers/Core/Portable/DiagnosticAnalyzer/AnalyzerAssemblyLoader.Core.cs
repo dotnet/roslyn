@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis
                 // be necessary but msbuild target defaults have caused a number of customers to 
                 // fall into this path. See discussion here for where it comes up
                 // https://github.com/dotnet/roslyn/issues/56442
-                if (_loader.GetBestPath(assemblyName) is string bestRealPath)
+                if (_loader.GetBestPath(assemblyName).BestRealPath is string bestRealPath)
                 {
                     return loadCore(bestRealPath);
                 }
