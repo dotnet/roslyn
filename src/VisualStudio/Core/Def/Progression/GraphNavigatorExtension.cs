@@ -42,7 +42,6 @@ internal sealed class GraphNavigatorExtension(
     private async Task NavigateToAsync(GraphNode graphNode, CancellationToken cancellationToken)
     {
         var projectId = graphNode.GetValue<ProjectId>(RoslynGraphProperties.ContextProjectId);
-        var symbolId = graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId);
 
         if (projectId is null)
             return;
@@ -54,6 +53,7 @@ internal sealed class GraphNavigatorExtension(
 
         // Go through the mainline symbol id path if we have it.  That way we notify third parties, and we can navigate
         // to metadata.
+        var symbolId = graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId);
         if (symbolId is not null)
         {
             var symbol = symbolId.Value.Resolve(await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false), cancellationToken: cancellationToken).GetAnySymbol();
