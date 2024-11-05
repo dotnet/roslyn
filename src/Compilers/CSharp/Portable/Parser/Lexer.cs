@@ -1984,26 +1984,20 @@ LoopExit:
                             {
                                 // Directives cannot be in trailing trivia - parse as skipped tokens trivia instead.
 
-                                var directiveBuilder = new SyntaxListBuilder(10);
-                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, afterNonWhitespaceOnLine: true, ref directiveBuilder);
+                                var savePosition = TextWindow.Position;
 
-                                if (directiveBuilder.ToListNode() is { } listNode)
-                                {
-                                    var skippedTriviaBuilder = new SyntaxListBuilder(10);
-                                    foreach (var node in listNode.EnumerateNodes())
-                                    {
-                                        if (node is SyntaxToken token)
-                                        {
-                                            skippedTriviaBuilder.Add(token);
-                                        }
-                                        else if (node is SyntaxTrivia trivia)
-                                        {
-                                            skippedTriviaBuilder.Add(SyntaxFactory.BadToken(null, trivia.Text, null));
-                                        }
-                                    }
+                                this.LexDirectiveAndExcludedTrivia(afterFirstToken, afterNonWhitespaceOnLine: true, ref triviaList);
 
-                                    this.AddTrivia(SyntaxFactory.SkippedTokensTrivia(skippedTriviaBuilder.ToList()), ref triviaList);
-                                }
+                                var text = TextWindow.Text.GetSubText(TextSpan.FromBounds(savePosition, TextWindow.Position));
+
+                                var error = new SyntaxDiagnosticInfo(
+                                    offset: 0,
+                                    width: Math.Min(1, text.Length),
+                                    code: ErrorCode.ERR_BadDirectivePlacement);
+
+                                var token = SyntaxFactory.BadToken(null, text.ToString(), null).WithDiagnosticsGreen([error]);
+
+                                this.AddTrivia(SyntaxFactory.SkippedTokensTrivia(token), ref triviaList);
                             }
                             else
                             {
@@ -2352,8 +2346,8 @@ top:
             var directive = this.LexSingleDirective(true, true, afterFirstToken, afterNonWhitespaceOnLine, ref triviaList);
 
             // also lex excluded stuff
-            var branching = directive as BranchingDirectiveTriviaSyntax;
-            if (branching != null && !branching.BranchTaken)
+            if (!afterNonWhitespaceOnLine &&
+                directive is BranchingDirectiveTriviaSyntax { BranchTaken: false })
             {
                 this.LexExcludedDirectivesAndTrivia(true, ref triviaList);
             }
@@ -2409,8 +2403,12 @@ top:
 
             directive = _directiveParser.ParseDirective(isActive, endIsActive, afterFirstToken, afterNonWhitespaceOnLine);
 
-            this.AddTrivia(directive, ref triviaList);
-            _directives = directive.ApplyDirectives(_directives);
+            if (!afterNonWhitespaceOnLine)
+            {
+                this.AddTrivia(directive, ref triviaList);
+                _directives = directive.ApplyDirectives(_directives);
+            }
+
             _mode = saveMode;
             return directive;
         }

@@ -8120,12 +8120,6 @@ class c
                 // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // if (#if)
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
-                // (1,8): error CS1517: Invalid preprocessor expression
-                // if (#if)
-                Diagnostic(ErrorCode.ERR_InvalidPreprocExpr, ")").WithLocation(1, 8),
-                // (1,8): error CS1025: Single-line comment or end-of-line expected
-                // if (#if)
-                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, ")").WithLocation(1, 8),
                 // (1,9): error CS1733: Expected expression
                 // if (#if)
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
@@ -8137,10 +8131,7 @@ class c
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
                 // (1,9): error CS1002: ; expected
                 // if (#if)
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9),
-                // (1,9): error CS1027: #endif directive expected
-                // if (#if)
-                Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 9));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8183,15 +8174,18 @@ class c
                 // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // if (#if false
                 Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
-                // (4,2): error CS1026: ) expected
-                // y
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 2),
-                // (4,2): error CS1733: Expected expression
-                // y
-                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(4, 2),
+                // (2,2): error CS1026: ) expected
+                // x
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(2, 2),
+                // (3,1): error CS1028: Unexpected preprocessor directive
+                // #else
+                Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#else").WithLocation(3, 1),
                 // (4,2): error CS1002: ; expected
                 // y
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2));
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 2),
+                // (5,1): error CS1028: Unexpected preprocessor directive
+                // #endif
+                Diagnostic(ErrorCode.ERR_UnexpectedDirective, "#endif").WithLocation(5, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -8203,14 +8197,14 @@ class c
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "y");
+                            N(SyntaxKind.IdentifierToken, "x");
                         }
                         M(SyntaxKind.CloseParenToken);
-                        M(SyntaxKind.ExpressionStatement);
+                        N(SyntaxKind.ExpressionStatement);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                M(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "y");
                             }
                             M(SyntaxKind.SemicolonToken);
                         }

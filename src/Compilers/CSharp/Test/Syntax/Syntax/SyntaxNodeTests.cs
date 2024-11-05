@@ -361,10 +361,7 @@ class C {
                 compilationUnit.GetDiagnostics().Verify(
                     // (1,17): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                     // namespace N { } #if false
-                    TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17),
-                    // (1,26): error CS1027: #endif directive expected
-                    // namespace N { } #if false
-                    TestBase.Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 26));
+                    TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 17));
                 Assert.False(compilationUnit.ContainsDirective(kind));
             }
 
@@ -493,12 +490,6 @@ class C {
                 // (1,5): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
                 // if (#if)
                 TestBase.Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 5),
-                // (1,8): error CS1517: Invalid preprocessor expression
-                // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_InvalidPreprocExpr, ")").WithLocation(1, 8),
-                // (1,8): error CS1025: Single-line comment or end-of-line expected
-                // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, ")").WithLocation(1, 8),
                 // (1,9): error CS1733: Expected expression
                 // if (#if)
                 TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
@@ -510,10 +501,7 @@ class C {
                 TestBase.Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 9),
                 // (1,9): error CS1002: ; expected
                 // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9),
-                // (1,9): error CS1027: #endif directive expected
-                // if (#if)
-                TestBase.Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(1, 9));
+                TestBase.Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 9));
             Assert.False(compilationUnit.ContainsDirectives);
             Assert.False(compilationUnit.ContainsDirective(SyntaxKind.IfDirectiveTrivia));
         }
