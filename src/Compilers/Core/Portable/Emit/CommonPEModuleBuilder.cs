@@ -1056,9 +1056,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
         Cci.IFieldReference ITokenDeferral.GetFieldForDataString(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
-            _lazyDataStringHolders ??= new ConcurrentDictionary<ImmutableArray<byte>, DataStringHolder>(ByteSequenceComparer.Instance);
+            if (_dataStringHoldersFrozen == 1)
+            {
+                throw new InvalidOperationException($"Field {nameof(_lazyDataStringHolders)} is frozen.");
+            }
 
-            DataStringHolder holder = _lazyDataStringHolders.GetOrAdd(data, static (data, arg) =>
+            var holders = InterlockedOperations.Initialize(ref _lazyDataStringHolders,
+                static () => new ConcurrentDictionary<ImmutableArray<byte>, DataStringHolder>(ByteSequenceComparer.Instance));
+
+            DataStringHolder holder = holders.GetOrAdd(data, static (data, arg) =>
             {
                 var (@this, syntaxNode, diagnostics) = arg;
 
@@ -1153,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.Emit
             var wasFrozen = Interlocked.Exchange(ref _dataStringHoldersFrozen, 1);
             if (wasFrozen != 0)
             {
-                throw new InvalidOperationException();
+                throw new InvalidOperationException($"Field {nameof(_lazyDataStringHolders)} was already frozen.");
             }
 
             if (_lazyDataStringHolders is not null)
