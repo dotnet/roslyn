@@ -145,7 +145,7 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
                 FeatureAttribute.ErrorList
              ],
              cancellationToken);
-        return await TestServices.ErrorList.GetErrorsAsync(ErrorSource.Other, __VSERRORCATEGORY.EC_MESSAGE, cancellationToken);
+        return await TestServices.ErrorList.GetErrorsAsync(ErrorSource.Other, __VSERRORCATEGORY.EC_WARNING, cancellationToken);
     }
 
     private async Task WaitForCodeActionListToPopulateAsync(CancellationToken cancellationToken)
