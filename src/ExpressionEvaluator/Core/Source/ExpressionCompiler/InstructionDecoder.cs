@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -35,6 +36,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         {
             return _useReferencedAssembliesOnly ? MakeAssemblyReferencesKind.AllReferences : MakeAssemblyReferencesKind.AllAssemblies;
         }
+
+        internal abstract string GetCompactName(TMethodSymbol method);
 
         internal abstract void AppendFullName(StringBuilder builder, TMethodSymbol method);
 

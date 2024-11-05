@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             AddMemberOptions(SymbolDisplayMemberOptions.IncludeParameters).
             WithParameterOptions(SymbolDisplayParameterOptions.IncludeType);
 
+        internal override string GetCompactName(MethodSymbol method)
+        {
+            return (method.AssociatedSymbol ?? method).Name;
+        }
+
         internal override void AppendFullName(StringBuilder builder, MethodSymbol method)
         {
             var displayFormat = method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet

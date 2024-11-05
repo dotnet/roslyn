@@ -8,7 +8,6 @@ Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.VisualStudio.Debugger
 Imports Microsoft.VisualStudio.Debugger.Clr
 Imports System.Text
 
@@ -28,6 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         Private Sub New()
         End Sub
+
+        Friend Overrides Function GetCompactName(method As MethodSymbol) As String
+            Return If(method.AssociatedSymbol, method).Name
+        End Function
 
         Friend Overrides Sub AppendFullName(builder As StringBuilder, method As MethodSymbol)
             Dim parts = method.ToDisplayParts(DisplayFormat)
