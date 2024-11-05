@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 #pragma warning restore RS0030 // Do not used banned APIs
@@ -22,11 +23,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class WrappedServiceBroker() : IServiceBroker
 {
-    private readonly TaskCompletionSource<IServiceBroker> _serviceBrokerTask = new();
+    private readonly TaskCompletionSource<IServiceBroker> _serviceBrokerTask = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     internal void SetServiceBroker(IServiceBroker serviceBroker)
     {
-        serviceBroker.AvailabilityChanged += (s, e) => AvailabilityChanged?.Invoke(s, e);
+        Contract.ThrowIfTrue(_serviceBrokerTask.Task.IsCompleted);
+        serviceBroker.AvailabilityChanged += (s, e) => AvailabilityChanged?.Invoke(this, e);
         _serviceBrokerTask.SetResult(serviceBroker);
     }
 
