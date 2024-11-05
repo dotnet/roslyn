@@ -12638,6 +12638,7 @@ $$
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
         Public Async Function CompletionInsideImplicitObjectCreationInsideCollectionExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -12682,6 +12683,7 @@ internal class Program
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
         Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -12705,6 +12707,7 @@ internal class Program
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
         Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -12728,6 +12731,7 @@ internal class Program
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
         Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch3(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
