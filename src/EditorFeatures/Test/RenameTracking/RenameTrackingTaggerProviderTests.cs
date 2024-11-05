@@ -857,8 +857,10 @@ End Enum";
         Assert.Same(thrownException, caughtException);
     }
 
-    [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063943")]
-    public async Task RenameTrackingNotFromReferenceWithWrongNumberOfArguments()
+    [WpfFact]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063943")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/10914")]
+    public async Task RenameTrackingOnReferenceWithWrongNumberOfArguments()
     {
         var code = @"
 class C
@@ -866,6 +868,29 @@ class C
     void M(int x)
     {
         M$$();
+    }
+}";
+
+        using var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp);
+        state.EditorOperations.InsertText("eow");
+        await state.AssertTag("M", "Meow");
+    }
+
+    [WpfFact]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063943")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/10914")]
+    public async Task RenameTrackingOnReferenceWithWrongNumberOfArguments_Overloads()
+    {
+        var code = @"
+class C
+{
+    void M(int x)
+    {
+        M$$();
+    }
+
+    void M(bool x)
+    {
     }
 }";
 
