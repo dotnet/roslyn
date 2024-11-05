@@ -62,6 +62,7 @@ internal sealed class GraphNavigatorExtension(
 
             await GoToDefinitionHelpers.TryNavigateToLocationAsync(
                 symbol, project.Solution, _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+            return;
         }
 
         // If we didn't have a symbol id, attempt to navigate to the source location directly if the node includes one.
