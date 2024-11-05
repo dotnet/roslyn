@@ -3511,6 +3511,34 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool CatchAnalyzerExceptions => Feature("debug-analyzers") == null;
 
+        internal int? Utf8StringEncodingThreshold
+        {
+            get
+            {
+                if (Feature("utf8-string-encoding") is { } s)
+                {
+                    if (s == "off")
+                    {
+                        // disabled
+                        return null;
+                    }
+
+                    if (int.TryParse(s, out var i) && i >= 0)
+                    {
+                        // custom non-negative threshold
+                        // 0 can be used to enable for all strings
+                        return i;
+                    }
+
+                    // default value
+                    return 100;
+                }
+
+                // disabled
+                return null;
+            }
+        }
+
         #endregion
 
         private ConcurrentDictionary<SyntaxTree, SmallConcurrentSetOfInts>? _lazyTreeToUsedImportDirectivesMap;

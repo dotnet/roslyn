@@ -1519,7 +1519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 StateMachineMoveNextBodyDebugInfo moveNextBodyDebugInfoOpt = null;
 
-                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb);
+                var codeGen = new CodeGen.CodeGenerator(method, block, builder, moduleBuilder, diagnosticsForThisMethod, optimizations, emittingPdb, compilation);
 
                 if (diagnosticsForThisMethod.HasAnyErrors())
                 {

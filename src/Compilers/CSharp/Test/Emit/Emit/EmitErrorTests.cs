@@ -336,14 +336,36 @@ public class A
 }
 ");
 
+            var source = builder.ToString();
+            var expectedOutput = expectedOutputBuilder.ToString();
+
             // For debugging.
-            CompileAndVerify(builder.ToString()
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding")
                 , verify: Verification.Skipped
                 ).Dump();
 
-            CompileAndVerify(builder.ToString(),
-                verify: Verification.Skipped,
-                expectedOutput: expectedOutputBuilder.ToString()).VerifyDiagnostics();
+            var expectedDiagnostics = new[]
+            {
+                // error CS8103: Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.
+                Diagnostic(ErrorCode.ERR_TooManyUserStrings).WithLocation(1, 1)
+            };
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "1000000"))
+                .VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"),
+                verify: Verification.Fails,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         #endregion

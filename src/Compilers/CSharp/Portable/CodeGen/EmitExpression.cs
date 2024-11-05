@@ -3482,9 +3482,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitInitObj(type, used, syntaxNode);
                 }
                 // Emit long strings into data section so they don't overflow the UserString heap.
-                // This could be configurable via a feature flag.
                 else if (constantValue.IsString &&
-                    constantValue.StringValue.Length > 100 &&
+                    constantValue.StringValue.Length > _utf8StringEncodingThreshold &&
                     LocalRewriter.TryGetUtf8ByteRepresentation(constantValue.StringValue, out byte[] utf8Bytes, out _))
                 {
                     var data = utf8Bytes.ToImmutableArray();
