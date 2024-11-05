@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Linq;
 using System.Threading;
@@ -16,7 +14,6 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.GraphModel;
 using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
-using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
@@ -56,13 +53,17 @@ internal sealed class GraphNavigatorExtension(
         var symbolId = graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId);
         if (symbolId is not null)
         {
-            var symbol = symbolId.Value.Resolve(await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false), cancellationToken: cancellationToken).GetAnySymbol();
-            if (symbol is null)
-                return;
-
-            await GoToDefinitionHelpers.TryNavigateToLocationAsync(
-                symbol, project.Solution, _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
-            return;
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            if (compilation is not null)
+            {
+                var symbol = symbolId.Value.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
+                if (symbol is not null)
+                {
+                    await GoToDefinitionHelpers.TryNavigateToLocationAsync(
+                        symbol, project.Solution, _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
+                    return;
+                }
+            }
         }
 
         // If we didn't have a symbol id, attempt to navigate to the source location directly if the node includes one.
@@ -84,7 +85,7 @@ internal sealed class GraphNavigatorExtension(
         // document, but only exists in the other
 
         var editorWorkspace = document.Project.Solution.Workspace;
-        var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+        var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
         // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
         await navigationService.TryNavigateToLineAndOffsetAsync(
