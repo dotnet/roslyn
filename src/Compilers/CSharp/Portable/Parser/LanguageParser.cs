@@ -8825,7 +8825,7 @@ done:
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsEndOfFixedStatement;
-            var decl = ParseParenthesizedVariableDeclaration(VariableFlags.None);
+            var decl = ParseParenthesizedVariableDeclaration(VariableFlags.None, scopedKeyword: null);
             _termState = saveTerm;
 
             return _syntaxFactory.FixedStatement(
@@ -9181,7 +9181,6 @@ done:
                 // Here can be either a declaration or an expression statement list.  Scan
                 // for a declaration first.
                 bool isDeclaration = false;
-                bool haveScopedKeyword = false;
 
                 if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
@@ -9195,8 +9194,6 @@ done:
                         isDeclaration = ScanType() != ScanTypeFlags.NotType && this.CurrentToken.Kind == SyntaxKind.IdentifierToken;
                         resetPoint.Reset();
                     }
-
-                    haveScopedKeyword = isDeclaration;
                 }
                 else if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                 {
@@ -9213,28 +9210,7 @@ done:
 
                 if (isDeclaration)
                 {
-                    SyntaxToken scopedKeyword = null;
-
-                    if (haveScopedKeyword)
-                    {
-                        scopedKeyword = EatContextualToken(SyntaxKind.ScopedKeyword);
-                    }
-
-                    var decl = ParseParenthesizedVariableDeclaration(VariableFlags.ForStatement);
-
-                    var declType = decl.Type;
-
-                    if (scopedKeyword != null)
-                    {
-                        declType = _syntaxFactory.ScopedType(scopedKeyword, declType);
-                    }
-
-                    if (declType != decl.Type)
-                    {
-                        decl = decl.Update(declType, decl.Variables);
-                    }
-
-                    return (decl, initializers: default);
+                    return (ParseParenthesizedVariableDeclaration(VariableFlags.ForStatement, ParsePossibleScopedKeyword(isFunctionPointerParameter: false)), initializers: default);
                 }
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
@@ -9921,8 +9897,7 @@ done:
 
                 if (scopedKeyword != null)
                 {
-                    declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None);
-                    declaration = declaration.Update(_syntaxFactory.ScopedType(scopedKeyword, declaration.Type), declaration.Variables);
+                    declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None, scopedKeyword);
                     return;
                 }
                 else
@@ -9955,14 +9930,14 @@ done:
                         case SyntaxKind.CommaToken:
                         case SyntaxKind.CloseParenToken:
                             this.Reset(ref resetPoint);
-                            declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None);
+                            declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None, scopedKeyword: null);
                             break;
 
                         case SyntaxKind.EqualsToken:
                             // Parse it as a decl. If the next token is a : and only one variable was parsed,
                             // convert the whole thing to ?: expression.
                             this.Reset(ref resetPoint);
-                            declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None);
+                            declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None, scopedKeyword: null);
 
                             // We may have non-nullable types in error scenarios.
                             if (this.CurrentToken.Kind == SyntaxKind.ColonToken &&
@@ -9983,7 +9958,7 @@ done:
             else if (IsUsingStatementVariableDeclaration(st))
             {
                 this.Reset(ref resetPoint);
-                declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None);
+                declaration = ParseParenthesizedVariableDeclaration(VariableFlags.None, scopedKeyword: null);
             }
             else
             {
@@ -10074,6 +10049,7 @@ done:
                     stopOnCloseParen: false,
                     attributes,
                     mods.ToList(),
+                    scopedKeyword: null,
                     initialFlags: VariableFlags.None,
                     out var type,
                     out var localFunction);
@@ -10236,11 +10212,14 @@ done:
                 ParseSubExpression(precedence));
         }
 
+#nullable enable
+
         /// <summary>
         /// Parse a local variable declaration for constructs where the variable declaration is enclosed in parentheses.
         /// Specifically, only for the `fixed (...)` `for(...)` or `using (...)` statements.
         /// </summary>
-        private VariableDeclarationSyntax ParseParenthesizedVariableDeclaration(VariableFlags initialFlags)
+        private VariableDeclarationSyntax ParseParenthesizedVariableDeclaration(
+            VariableFlags initialFlags, SyntaxToken? scopedKeyword)
         {
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             ParseLocalDeclaration(
@@ -10251,6 +10230,7 @@ done:
                 stopOnCloseParen: true,
                 attributes: default,
                 mods: default,
+                scopedKeyword,
                 initialFlags,
                 out var type,
                 out var localFunction);
@@ -10266,11 +10246,15 @@ done:
             bool stopOnCloseParen,
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxList<SyntaxToken> mods,
+            SyntaxToken? scopedKeyword,
             VariableFlags initialFlags,
             out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType();
+
+            if (scopedKeyword != null)
+                type = _syntaxFactory.ScopedType(scopedKeyword, type);
 
             VariableFlags flags = initialFlags | VariableFlags.LocalOrField;
             if (mods.Any((int)SyntaxKind.ConstKeyword))
@@ -10297,6 +10281,8 @@ done:
                 type = this.AddError(type, ErrorCode.ERR_NoVoidHere);
             }
         }
+
+#nullable disable
 
         private bool IsEndOfDeclarationClause()
         {
