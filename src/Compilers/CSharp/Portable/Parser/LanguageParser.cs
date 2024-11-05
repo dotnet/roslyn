@@ -9165,7 +9165,7 @@ done:
                 // Do allow semicolons (with diagnostics) in the incrementors list.  This allows us to consume
                 // accidental extra incrementors that should have been separated by commas.
                 incrementors: this.CurrentToken.Kind != SyntaxKind.CloseParenToken
-                    ? this.ParseForStatementExpressionList(ref secondSemicolonToken, allowSemicolonAsSeparator: true)
+                    ? parseForStatementExpressionList(ref secondSemicolonToken, allowSemicolonAsSeparator: true)
                     : default,
                 eatUnexpectedTokensAndCloseParenToken(),
                 ParseEmbeddedStatement());
@@ -9242,7 +9242,7 @@ done:
                     //
                     // Do not consume semicolons here as they are used to separate the initializers out from the
                     // condition of the for loop.
-                    return (variableDeclaration: null, this.ParseForStatementExpressionList(ref openParen, allowSemicolonAsSeparator: false));
+                    return (variableDeclaration: null, parseForStatementExpressionList(ref openParen, allowSemicolonAsSeparator: false));
                 }
                 else
                 {
@@ -9277,30 +9277,20 @@ done:
                 var result = this.EatToken(SyntaxKind.CloseParenToken);
                 return AddLeadingSkippedSyntax(result, _pool.ToTokenListAndFree(skippedTokens).Node);
             }
-        }
 
-        private bool IsEndOfForStatementArgument()
-        {
-            return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.OpenBraceToken;
-        }
-
-        /// <summary>
-        /// Parses out a sequence of expressions.  Both for the initializer section (the `for (initializer1,
-        /// initializer2, ...` section), as well as the incrementor section (the `for (;; incrementor1, incrementor2,
-        /// ...` section).
-        /// </summary>
-        private SeparatedSyntaxList<ExpressionSyntax> ParseForStatementExpressionList(
-            ref SyntaxToken startToken, bool allowSemicolonAsSeparator)
-        {
-            return ParseCommaSeparatedSyntaxList(
-                ref startToken,
-                SyntaxKind.CloseParenToken,
-                static @this => @this.IsPossibleExpression(),
-                static @this => @this.ParseExpressionCore(),
-                skipBadForStatementExpressionListTokens,
-                allowTrailingSeparator: false,
-                requireOneElement: false,
-                allowSemicolonAsSeparator);
+            // Parses out a sequence of expressions.  Both for the initializer section (the `for (initializer1,
+            // initializer2, ...` section), as well as the incrementor section (the `for (;; incrementor1, incrementor2,
+            // ...` section).
+            SeparatedSyntaxList<ExpressionSyntax> parseForStatementExpressionList(ref SyntaxToken startToken, bool allowSemicolonAsSeparator)
+                => ParseCommaSeparatedSyntaxList(
+                    ref startToken,
+                    SyntaxKind.CloseParenToken,
+                    static @this => @this.IsPossibleExpression(),
+                    static @this => @this.ParseExpressionCore(),
+                    skipBadForStatementExpressionListTokens,
+                    allowTrailingSeparator: false,
+                    requireOneElement: false,
+                    allowSemicolonAsSeparator);
 
             static PostSkipAction skipBadForStatementExpressionListTokens(
                 LanguageParser @this, ref SyntaxToken startToken, SeparatedSyntaxListBuilder<ExpressionSyntax> list, SyntaxKind expectedKind, SyntaxKind closeKind)
@@ -9313,6 +9303,11 @@ done:
                     static (p, closeKind) => p.CurrentToken.Kind == closeKind || p.CurrentToken.Kind == SyntaxKind.SemicolonToken,
                     expectedKind, closeKind);
             }
+        }
+
+        private bool IsEndOfForStatementArgument()
+        {
+            return this.CurrentToken.Kind is SyntaxKind.SemicolonToken or SyntaxKind.CloseParenToken or SyntaxKind.OpenBraceToken;
         }
 
         private CommonForEachStatementSyntax ParseForEachStatement(
