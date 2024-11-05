@@ -6,8 +6,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Immutable;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Reflection;
@@ -37,7 +39,6 @@ namespace Microsoft.CodeAnalysis
         private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
 
         private readonly ConcurrentDictionary<Guid, Task<string>> _mvidPathMap = new ConcurrentDictionary<Guid, Task<string>>();
-        private readonly ConcurrentDictionary<(Guid, string), Task<string>> _mvidSatelliteAssemblyPathMap = new ConcurrentDictionary<(Guid, string), Task<string>>();
 
         internal string BaseDirectory => _baseDirectory;
 
@@ -129,62 +130,22 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override string PreparePathToLoad(string originalAnalyzerPath)
+        protected override string PreparePathToLoad(string originalAnalyzerPath, ImmutableHashSet<string> cultureNames)
         {
             var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
-
-            return PrepareLoad(_mvidPathMap, mvid, copyAnalyzerContents);
-
-            string copyAnalyzerContents()
-            {
-                var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
-                var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
-                var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
-                CopyFile(originalAnalyzerPath, shadowAnalyzerPath);
-
-                return shadowAnalyzerPath;
-            }
-        }
-
-        protected override string PrepareSatelliteAssemblyToLoad(string originalAnalyzerPath, string cultureName)
-        {
-            var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
-
-            return PrepareLoad(_mvidSatelliteAssemblyPathMap, (mvid, cultureName), copyAnalyzerContents);
-
-            string copyAnalyzerContents()
-            {
-                var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
-                var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
-                var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
-
-                var originalDirectory = Path.GetDirectoryName(originalAnalyzerPath)!;
-                var satelliteFileName = GetSatelliteFileName(analyzerFileName);
-
-                var originalSatellitePath = Path.Combine(originalDirectory, cultureName, satelliteFileName);
-                var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
-                CopyFile(originalSatellitePath, shadowSatellitePath);
-
-                return shadowSatellitePath;
-            }
-        }
-
-        private static string PrepareLoad<TKey>(ConcurrentDictionary<TKey, Task<string>> mvidPathMap, TKey mvidKey, Func<string> copyContents)
-            where TKey : notnull
-        {
-            if (mvidPathMap.TryGetValue(mvidKey, out Task<string>? copyTask))
+            if (_mvidPathMap.TryGetValue(mvid, out Task<string>? copyTask))
             {
                 return copyTask.Result;
             }
 
             var tcs = new TaskCompletionSource<string>();
-            var task = mvidPathMap.GetOrAdd(mvidKey, tcs.Task);
+            var task = _mvidPathMap.GetOrAdd(mvid, tcs.Task);
             if (object.ReferenceEquals(task, tcs.Task))
             {
                 // This thread won and we need to do the copy.
                 try
                 {
-                    var shadowAnalyzerPath = copyContents();
+                    var shadowAnalyzerPath = copyAnalyzerContents();
                     tcs.SetResult(shadowAnalyzerPath);
                     return shadowAnalyzerPath;
                 }
@@ -199,19 +160,43 @@ namespace Microsoft.CodeAnalysis
                 // This thread lost and we need to wait for the winner to finish the copy.
                 return task.Result;
             }
-        }
 
-        private static void CopyFile(string originalPath, string shadowCopyPath)
-        {
-            var directory = Path.GetDirectoryName(shadowCopyPath);
-            if (directory is null)
+            string copyAnalyzerContents()
             {
-                throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
+                var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
+                var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
+                var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
+                copyFile(originalAnalyzerPath, shadowAnalyzerPath);
+
+                if (cultureNames.IsEmpty)
+                {
+                    return shadowAnalyzerPath;
+                }
+
+                var originalDirectory = Path.GetDirectoryName(originalAnalyzerPath)!;
+                var satelliteFileName = GetSatelliteFileName(analyzerFileName);
+                foreach (var cultureName in cultureNames)
+                {
+                    var originalSatellitePath = Path.Combine(originalDirectory, cultureName, satelliteFileName);
+                    var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
+                    copyFile(originalSatellitePath, shadowSatellitePath);
+                }
+
+                return shadowAnalyzerPath;
             }
 
-            _ = Directory.CreateDirectory(directory);
-            File.Copy(originalPath, shadowCopyPath);
-            ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
+            static void copyFile(string originalPath, string shadowCopyPath)
+            {
+                var directory = Path.GetDirectoryName(shadowCopyPath);
+                if (directory is null)
+                {
+                    throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
+                }
+
+                _ = Directory.CreateDirectory(directory);
+                File.Copy(originalPath, shadowCopyPath);
+                ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
+            }
         }
 
         private static void ClearReadOnlyFlagOnFiles(string directoryPath)

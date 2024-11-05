@@ -117,30 +117,11 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                const string resourcesExtension = ".resources";
                 var assemblyName = new AssemblyName(args.Name);
-                var simpleName = assemblyName.Name;
-                var isSatelliteAssembly =
-                    assemblyName.CultureInfo is not null &&
-                    simpleName.EndsWith(resourcesExtension, StringComparison.Ordinal);
-
-                if (isSatelliteAssembly)
+                string? bestPath = GetBestPath(assemblyName);
+                if (bestPath is not null)
                 {
-                    // Satellite assemblies should get the best path information using the
-                    // non-resource part of the assembly name. Once the path information is obtained
-                    // GetSatelliteInfoForPath will translate to the resource assembly path.
-                    assemblyName.Name = simpleName[..^resourcesExtension.Length];
-                }
-
-                var (originalPath, realPath) = GetBestPath(assemblyName);
-                if (isSatelliteAssembly && originalPath is not null)
-                {
-                    realPath = GetRealSatelliteLoadPath(originalPath, assemblyName.CultureInfo);
-                }
-
-                if (realPath is not null)
-                {
-                    return Assembly.LoadFrom(realPath);
+                    return Assembly.LoadFrom(bestPath);
                 }
 
                 return null;
