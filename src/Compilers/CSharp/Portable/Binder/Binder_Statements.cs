@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
+            // TODO2
             if (!argument.HasErrors && ((object)argument.Type == null || !argument.Type.IsErrorType()))
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
@@ -1482,11 +1483,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = op1.HasAnyErrors || op2.HasAnyErrors;
 
-            if (!op1.HasAnyErrors)
+            if (op1.Type is { } lhsType && !lhsType.IsErrorType())
             {
                 // Build bound conversion. The node might not be used if this is a dynamic conversion
                 // but diagnostics should be reported anyways.
-                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
+                var conversion = GenerateConversionForAssignment(lhsType, op2,
+                    hasErrors ? BindingDiagnosticBag.Discarded : diagnostics,
+                    isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
 
                 // If the result is a dynamic assignment operation (SetMember or SetIndex),
                 // don't generate the boxing conversion to the dynamic type.
@@ -3038,6 +3041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
             }
 
+            // TODO2
             if (hasErrors)
             {
                 return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), @checked: CheckOverflowAtRuntime, hasErrors: true);

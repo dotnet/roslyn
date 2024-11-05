@@ -4082,7 +4082,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [System.Int32 a]
@@ -4090,17 +4089,15 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a = 1;')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: var, IsInvalid) (Syntax: 'a = 1')
-                  Left: 
+                  Left:
                     ILocalReferenceOperation: a (OperationKind.LocalReference, Type: var, IsInvalid) (Syntax: 'a')
-                  Right: 
+                  Right:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
         Next (Regular) Block[B2]
             Leaving: {R1}
 }
-
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
