@@ -5,15 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-<<<<<<< HEAD
 using Microsoft.CodeAnalysis.ErrorReporting;
-=======
-using Microsoft.CodeAnalysis.PooledObjects;
->>>>>>> parent of 02069cef3ee (Reduce File I/O under the AnalyzerAssemblyLoader folder (#72412))
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
