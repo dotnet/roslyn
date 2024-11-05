@@ -132,6 +132,11 @@
         <target state="translated">'UnmanagedCallersOnly' 属性はサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</source>
+        <target state="new">Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">'{0}' にはコンパイラ機能 '{1}' が必要ですが、このバージョンのVisual Basic コンパイラではサポートされていません。</target>
@@ -160,6 +165,11 @@
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">バイナリ条件式での非制約型パラメーター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_UnmanagedConstraint">
+        <source>recognizing 'unmanaged' constraint</source>
+        <target state="new">recognizing 'unmanaged' constraint</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_VBCHelp">
