@@ -67,10 +67,11 @@ internal sealed class DataStringHolder : DefaultTypeDef, Cci.INamespaceTypeDefin
 
     public override Cci.INamespaceTypeReference AsNamespaceTypeReference => this;
 
-    // TODO: Needs unique field names if called more than once.
     public Cci.IFieldReference CreateDataField(ImmutableArray<byte> data)
     {
         Cci.ITypeReference type = _privateImplementationDetails.GetOrAddProxyType(data.Length, alignment: 1);
+
+        Debug.Assert(_mappedFields.IsEmpty, "We need to generate unique field names if we are synthesizing more than one.");
 
         (_, StringField stringField) = _mappedFields.GetOrAdd((data, Alignment: 1), key =>
         {
