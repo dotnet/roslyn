@@ -5041,11 +5041,15 @@ parse_member_name:;
 
                     if (flags.HasFlag(VariableFlags.ForStatement) && this.PeekToken(1).Kind != SyntaxKind.SemicolonToken)
                     {
-                        if (!IsTrueIdentifier(this.PeekToken(1)) ||
-                            this.PeekToken(2).Kind is not (SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken or SyntaxKind.CloseParenToken))
-                        {
+                        // `int i = 0, ...` where what follows is not an identifier.  Don't treat this as the start of a
+                        // second variable.
+                        if (!IsTrueIdentifier(this.PeekToken(1)))
                             break;
-                        }
+
+                        // `int i = 0, j ...` where what follows is not something that continues a variable declaration.
+                        // In this case, treat that `j` as the start of the condition expression instead.
+                        if (this.PeekToken(2).Kind is not (SyntaxKind.SemicolonToken or SyntaxKind.EqualsToken or SyntaxKind.CloseParenToken))
+                            break;
                     }
 
                     variables.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
