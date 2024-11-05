@@ -6,13 +6,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
-using System.Reflection;
 
 #if NET
 using System.Runtime.Loader;
