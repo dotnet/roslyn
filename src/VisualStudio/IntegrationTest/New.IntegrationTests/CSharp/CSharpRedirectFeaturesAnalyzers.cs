@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
@@ -143,7 +145,7 @@ public class CSharpRedirectFeaturesAnalyzers : AbstractEditorTest
                 FeatureAttribute.ErrorList
              ],
              cancellationToken);
-        return await TestServices.ErrorList.GetErrorsAsync(cancellationToken);
+        return await TestServices.ErrorList.GetErrorsAsync(ErrorSource.Other, __VSERRORCATEGORY.EC_MESSAGE, cancellationToken);
     }
 
     private async Task WaitForCodeActionListToPopulateAsync(CancellationToken cancellationToken)
