@@ -67,17 +67,33 @@ internal readonly struct PatternMatch : IComparable<PatternMatch>
 
     public int CompareTo(PatternMatch other, bool ignoreCase)
     {
+        // 1. In all scenarios, An case sensitive camel match (like CR against CreateRange) should beat a case
+        //    insensitive match (like 'CR' against 'Create').
+        //
+        // Other cases can be added here as necessary.
+
+        switch (this.IsCaseSensitive, this.Kind.IsCamelCaseKind(), other.IsCaseSensitive, other.Kind.IsCamelCaseKind())
+        {
+            case (true, true, false, false):
+                return -1;
+            case (false, false, true, true):
+                return 1;
+        }
+
         // Compare types
         var comparison = this.Kind - other.Kind;
         if (comparison != 0)
             return comparison;
 
-        // Compare cases
         if (!ignoreCase)
         {
-            comparison = (!this.IsCaseSensitive).CompareTo(!other.IsCaseSensitive);
-            if (comparison != 0)
-                return comparison;
+            switch (this.IsCaseSensitive, other.IsCaseSensitive)
+            {
+                case (true, false):
+                    return -1;
+                case (false, true):
+                    return 1;
+            }
         }
 
         // Consider a match to be better if it was successful without stripping punctuation
