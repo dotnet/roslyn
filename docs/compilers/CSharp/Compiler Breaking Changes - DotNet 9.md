@@ -1,4 +1,4 @@
-# Breaking changes in Roslyn from .NET 8.0.100 through .NET 9.0.100
+# Breaking changes in Roslyn after .NET 8.0.100 through .NET 9.0.100
 
 This document lists known breaking changes in Roslyn after .NET 8 general release (.NET SDK version 8.0.100) through .NET 9 general release (.NET SDK version 9.0.100).
 
