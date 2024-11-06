@@ -2003,6 +2003,8 @@ LoopExit:
                             {
                                 this.LexDirectiveAndExcludedTrivia(isFollowingToken, ref triviaList);
                             }
+
+                            onlyWhitespaceOnLine = true;
                             break;
                         }
                         else
