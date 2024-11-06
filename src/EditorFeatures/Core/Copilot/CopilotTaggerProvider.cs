@@ -58,7 +58,7 @@ internal sealed class CopilotTaggerProvider(TaggerHost taggerHost)
             result.Add(new SnapshotSpan(caret, 0));
 
         // Note: we report 'true' unconditionally here.  This is because we want to ensure that we still compute 'no tags'
-        // in the case that we don't have a caret point, as opposed to bailing out.
+        // in the case that we don't have a caret point, as opposed to bailing out and keeping the current set of tags.
         return true;
     }
 
