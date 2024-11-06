@@ -1,5 +1,7 @@
 # This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
 
+This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
+
 ## All locals of restricted types are disallowed in async methods 
 
 ***Introduced in Visual Studio 2022 version 17.6p1***
