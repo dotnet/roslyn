@@ -82,20 +82,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
         return Task.CompletedTask;
     }
 
-    //private async Task<Solution> ProcessResultAsync(
-    //    Solution solution, Diagnostic diagnostic, CancellationToken cancellationToken)
-    //{
-    //    var editor = new SolutionEditor(solution);
-    //    await ProcessResultAsync(editor, diagnostic, cancellationToken).ConfigureAwait(false);
-    //    return editor.GetChangedSolution();
-    //}    //private async Task<Solution> ProcessResultAsync(
-    //    Solution solution, Diagnostic diagnostic, CancellationToken cancellationToken)
-    //{
-    //    var editor = new SolutionEditor(solution);
-    //    await ProcessResultAsync(editor, diagnostic, cancellationToken).ConfigureAwait(false);
-    //    return editor.GetChangedSolution();
-    //}
-
     private async Task<Solution> ProcessResultAsync(
         Solution originalSolution, Solution currentSolution, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
@@ -106,19 +92,6 @@ internal abstract partial class AbstractUseAutoPropertyCodeFixProvider<TProvider
             return currentSolution;
 
         var locations = diagnostic.AdditionalLocations;
-
-        //var propertyLocation = locations[0];
-        //var declaratorLocation = locations[1];
-
-        //var declarator = (TVariableDeclarator)declaratorLocation.FindNode(cancellationToken);
-        //var fieldDocument = originalSolution.GetRequiredDocument(declarator.SyntaxTree);
-        //var fieldSemanticModel = await fieldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        //var fieldSymbol = (IFieldSymbol)fieldSemanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
-
-        //var property = GetPropertyDeclaration(propertyLocation.FindNode(cancellationToken));
-        //var propertyDocument = originalSolution.GetRequiredDocument(property.SyntaxTree);
-        //var propertySemanticModel = await propertyDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        //var propertySymbol = (IPropertySymbol)propertySemanticModel.GetRequiredDeclaredSymbol(property, cancellationToken);
 
         var fieldDocument = currentSolution.GetRequiredDocument(field.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SyntaxTree);
         var propertyDocument = currentSolution.GetRequiredDocument(property.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken).SyntaxTree);
