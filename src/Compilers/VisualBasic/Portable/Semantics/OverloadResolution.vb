@@ -939,6 +939,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim addedExtensionMethods As Boolean = False
 
             If ShouldConsiderExtensionMethods(candidates) Then
+                Debug.Assert(applicableInstanceCandidateCount = 0)
+
                 ' Request additional extension methods, if any available.
                 If methodGroup.ResultKind = LookupResultKind.Good Then
                     methods = methodGroup.AdditionalExtensionMethods(useSiteInfo)
