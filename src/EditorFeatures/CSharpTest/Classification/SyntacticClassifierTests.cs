@@ -258,6 +258,46 @@ class yield
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/40741")]
+    public async Task TestAwait(TestHost testHost)
+    {
+        await TestAsync(
+@"using System.Threading.Tasks;
+
+class X
+{
+    async Task M()
+    {
+        await M();
+    }
+}",
+            testHost,
+            Keyword("using"),
+            Identifier("System"),
+            Operators.Dot,
+            Identifier("Threading"),
+            Operators.Dot,
+            Identifier("Tasks"),
+            Punctuation.Semicolon,
+            Keyword("class"),
+            Class("X"),
+            Punctuation.OpenCurly,
+            Keyword("async"),
+            Identifier("Task"),
+            Method("M"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            ControlKeyword("await"),
+            Identifier("M"),
+            Punctuation.OpenParen,
+            Punctuation.CloseParen,
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly,
+            Punctuation.CloseCurly);
+    }
+
+    [Theory, CombinatorialData]
     public async Task PartialClass(TestHost testHost)
     {
         await TestAsync("public partial class Goo",
