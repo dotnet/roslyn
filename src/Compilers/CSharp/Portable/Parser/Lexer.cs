@@ -1989,7 +1989,9 @@ LoopExit:
 
                                 var savePosition = TextWindow.Position;
 
-                                this.ParseDirective(isActive: false, endIsActive: false, isFollowingToken);
+                                // All the `false` arguments affect only error reporting and the resulting node, both of which we discard.
+                                // However, passing `false` can skip some unnecessary checks.
+                                this.ParseDirective(isActive: false, endIsActive: false, isFollowingToken: false);
 
                                 var text = TextWindow.Text.GetSubText(TextSpan.FromBounds(savePosition, TextWindow.Position));
 
