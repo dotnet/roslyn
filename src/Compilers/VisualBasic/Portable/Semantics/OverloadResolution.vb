@@ -3953,7 +3953,7 @@ Bailout:
                 ' doesn't do the job for them because it relies on Conversions.ClassifyDirectCastConversion, which
                 ' disallows boxing conversion for restricted types.
                 If Not operatorResolution AndAlso ShadowBasedOnOverriding(existingCandidate, newCandidate, existingWins, newWins) Then
-                    GoTo DeterminedTheWinner
+                    'GoTo DeterminedTheWinner
                 End If
 
                 If existingCandidate.State = CandidateAnalysisResultState.TypeInferenceFailed OrElse existingCandidate.SomeInferenceFailed OrElse
