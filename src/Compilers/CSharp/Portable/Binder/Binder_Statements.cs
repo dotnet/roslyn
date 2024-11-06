@@ -3040,7 +3040,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= arg.HasErrors || ((object)arg.Type != null && arg.Type.IsErrorType());
             }
 
-            // TODO2
             if (hasErrors)
             {
                 return new BoundReturnStatement(syntax, refKind, BindToTypeForErrorRecovery(arg), @checked: CheckOverflowAtRuntime, hasErrors: true);
