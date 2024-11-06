@@ -16,18 +16,14 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAnonymousTypeToTuple), Shared]
-internal class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider()
     : AbstractConvertAnonymousTypeToTupleCodeRefactoringProvider<
         ExpressionSyntax,
         TupleExpressionSyntax,
         AnonymousObjectCreationExpressionSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider()
-    {
-    }
-
     protected override int GetInitializerCount(AnonymousObjectCreationExpressionSyntax anonymousType)
         => anonymousType.Initializers.Count;
 
