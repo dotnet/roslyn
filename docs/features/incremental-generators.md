@@ -2,8 +2,8 @@
 
 ## Summary
 
-Incremental generators are a new API that exists alongside
-[source generators](source-generators.md) to allow users to specify generation
+Incremental generators are a new API that replaces
+[v1 source generators](source-generators.md) to allow users to specify generation
 strategies that can be applied in a high performance way by the hosting layer.
 
 ### High Level Design Goals

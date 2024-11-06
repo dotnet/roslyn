@@ -34,7 +34,7 @@ using static SyntaxFactory;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
+internal sealed partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
     : AbstractUseCollectionExpressionCodeFixProvider<InvocationExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForFluentDiagnosticId)

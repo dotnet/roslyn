@@ -52,7 +52,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                      SyntaxKind.FloatingLiteralToken,
                      SyntaxKind.IntegerLiteralToken,
                      SyntaxKind.InterpolatedStringTextToken,
-                     SyntaxKind.StringLiteralToken
+                     SyntaxKind.StringLiteralToken,
+                     SyntaxKind.XmlTextLiteralToken,
+                     SyntaxKind.XmlNameToken
                     Return String.Equals(DirectCast(before, Green.SyntaxToken).Text,
                                          DirectCast(after, Green.SyntaxToken).Text,
                                          StringComparison.Ordinal)

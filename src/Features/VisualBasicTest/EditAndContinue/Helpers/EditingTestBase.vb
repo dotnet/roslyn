@@ -116,6 +116,20 @@ End Namespace
                     Return FeaturesResources.type_parameter
                 Case "withevents field"
                     Return VBFeaturesResources.WithEvents_field
+                Case "from clause"
+                    Return VBFeaturesResources.From_clause
+                Case "where clause"
+                    Return VBFeaturesResources.Where_clause
+                Case "join clause"
+                    Return VBFeaturesResources.Join_clause
+                Case "let clause"
+                    Return VBFeaturesResources.Let_clause
+                Case "orderby clause"
+                    Return VBFeaturesResources.Ordering_clause
+                Case "groupby clause"
+                    Return VBFeaturesResources.Group_By_clause
+                Case "select clause"
+                    Return VBFeaturesResources.Select_clause
                 Case Else
                     Return Nothing
             End Select
@@ -127,8 +141,17 @@ End Namespace
             Return New RudeEditDiagnosticDescription(rudeEditKind, squiggle, arguments, firstLine:=Nothing)
         End Function
 
-        Friend Shared Function RuntimeRudeEdit(marker As Integer, rudeEditKind As RudeEditKind, position As (displayLine As Integer, displayColumn As Integer), ParamArray arguments As String()) As RuntimeRudeEditDescription
-            Return New RuntimeRudeEditDescription(marker, rudeEditKind, New LinePosition(position.displayLine - 1, position.displayColumn - 1), arguments)
+        Friend Shared Function RuntimeRudeEdit(marker As Integer, rudeEditKind As RudeEditKind, position As LinePosition, ParamArray arguments As String()) As RuntimeRudeEditDescription
+            Return New RuntimeRudeEditDescription(marker, rudeEditKind, position, arguments)
+        End Function
+
+        Friend Shared Function SemanticEdit(kind As SemanticEditKind,
+                                            symbolProvider As Func(Of Compilation, ISymbol),
+                                            syntaxMap As SyntaxMapDescription.Mapping?,
+                                            Optional rudeEdits As IEnumerable(Of RuntimeRudeEditDescription) = Nothing,
+                                            Optional partialType As String = Nothing,
+                                            Optional deletedSymbolContainerProvider As Func(Of Compilation, ISymbol) = Nothing) As SemanticEditDescription
+            Return SemanticEdit(kind, symbolProvider, syntaxMap?.Spans, rudeEdits, partialType, deletedSymbolContainerProvider)
         End Function
 
         Friend Shared Function SemanticEdit(kind As SemanticEditKind,
@@ -184,7 +207,7 @@ End Namespace
                 path:=GetDocumentFilePath(documentIndex))
         End Function
 
-        Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer = 0) As EditScript(Of SyntaxNode)
+        Friend Shared Function GetTopEdits(src1 As String, src2 As String, Optional documentIndex As Integer = 0) As EditScriptDescription
             Dim tree1 = ParseSource(src1, documentIndex)
             Dim tree2 = ParseSource(src2, documentIndex)
 
@@ -192,19 +215,19 @@ End Namespace
             tree2.GetDiagnostics().Verify()
 
             Dim match = SyntaxComparer.TopLevel.ComputeMatch(tree1.GetRoot(), tree2.GetRoot())
-            Return match.GetTreeEdits()
+            Return New EditScriptDescription(src1, src2, match.GetTreeEdits())
         End Function
 
-        Public Shared Function GetTopEdits(methodEdits As EditScript(Of SyntaxNode)) As EditScript(Of SyntaxNode)
+        Friend Shared Function GetTopEdits(methodEdits As EditScriptDescription) As EditScriptDescription
             Dim oldMethodSource = methodEdits.Match.OldRoot.ToFullString()
             Dim newMethodSource = methodEdits.Match.NewRoot.ToFullString()
 
             Return GetTopEdits(WrapMethodBodyWithClass(oldMethodSource), WrapMethodBodyWithClass(newMethodSource))
         End Function
 
-        Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional methodKind As MethodKind = MethodKind.Regular) As EditScript(Of SyntaxNode)
+        Friend Shared Function GetMethodEdits(src1 As String, src2 As String, Optional methodKind As MethodKind = MethodKind.Regular) As EditScriptDescription
             Dim match = GetMethodMatch(src1, src2, methodKind)
-            Return match.GetTreeEdits()
+            Return New EditScriptDescription(src1, src2, match.GetTreeEdits())
         End Function
 
         Friend Shared Function GetMethodMatch(src1 As String, src2 As String, Optional methodKind As MethodKind = MethodKind.Regular) As Match(Of SyntaxNode)

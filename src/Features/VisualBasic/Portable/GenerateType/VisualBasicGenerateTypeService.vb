@@ -539,23 +539,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Return False
             End If
 
-            Dim node As SyntaxNode = expression
-            While node IsNot Nothing
-                If TypeOf node Is InheritsStatementSyntax Then
-                    If node.Parent IsNot Nothing AndAlso TypeOf node.Parent Is InterfaceBlockSyntax Then
-                        typeKindValue = TypeKindOptions.Interface
-                        Return True
-                    End If
-
-                    typeKindValue = TypeKindOptions.Class
-                    Return True
-                ElseIf TypeOf node Is ImplementsStatementSyntax Then
+            If TypeOf expression.Parent Is InheritsStatementSyntax Then
+                If expression.Parent.Parent IsNot Nothing AndAlso TypeOf expression.Parent.Parent Is InterfaceBlockSyntax Then
                     typeKindValue = TypeKindOptions.Interface
                     Return True
                 End If
 
-                node = node.Parent
-            End While
+                typeKindValue = TypeKindOptions.Class
+                Return True
+            ElseIf TypeOf expression.Parent Is ImplementsStatementSyntax Then
+                typeKindValue = TypeKindOptions.Interface
+                Return True
+            End If
 
             Return False
         End Function

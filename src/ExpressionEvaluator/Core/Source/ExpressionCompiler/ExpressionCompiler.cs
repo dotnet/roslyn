@@ -8,7 +8,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger;
 using Microsoft.VisualStudio.Debugger.CallStack;
@@ -23,6 +22,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     public abstract class ExpressionCompiler :
         IDkmClrExpressionCompiler,
         IDkmClrExpressionCompilerCallback,
+        IDkmMetaDataPointerInvalidatedNotification,
         IDkmModuleModifiedNotification,
         IDkmModuleInstanceUnloadNotification,
         IDkmLanguageFrameDecoder,
@@ -245,6 +245,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             return false;
+        }
+
+        void IDkmMetaDataPointerInvalidatedNotification.OnMetaDataPointerInvalidated(DkmClrModuleInstance moduleInstance)
+        {
+            RemoveDataItemIfNecessary(moduleInstance);
         }
 
         void IDkmModuleModifiedNotification.OnModuleModified(DkmModuleInstance moduleInstance)

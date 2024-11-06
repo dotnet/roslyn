@@ -993,7 +993,7 @@ class D
 {
     public int A { get; set; }
     public int B { get; set; }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact]
@@ -1023,7 +1023,7 @@ class D
             string s = o        as       string;
             bool b   = o        is       string;
         }
-    }", false, changingOptions);
+    }", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772298")]
@@ -1569,7 +1569,7 @@ class goo
         }
         void goo() { int xx = 0; int zz = 0;}
 }
-class goo{int x = 0;}", false, changingOptions);
+class goo{int x = 0;}", changingOptions);
         }
 
         [Fact]
@@ -1636,7 +1636,7 @@ class goo
 class goo
 {
     int x = 0;
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact]
@@ -1718,7 +1718,7 @@ class goo
             Del d = delegate(int k) { Console.WriteLine(); Console.WriteLine(); };
         }
 }
-class goo{int x = 0;}", false, changingOptions);
+class goo{int x = 0;}", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991480")]
@@ -1741,7 +1741,7 @@ class goo{int x = 0;}", false, changingOptions);
     {
         for (int d = 0; d < 10; ++d) { }
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751789")]
@@ -2000,7 +2000,7 @@ public class goo : System.Object
 
 {
 }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact]
@@ -2122,7 +2122,7 @@ else
     return 0;
 }
 }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33458")]
@@ -2288,7 +2288,7 @@ var obj = new {   X1 = 0,         Y1 = 1,
                   Y2 = 3
     };
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact]
@@ -6013,7 +6013,7 @@ goo:
         }
     }
 }";
-            await AssertFormatAsync(expected, code, false, changingOptions);
+            await AssertFormatAsync(expected, code, changingOptions);
         }
 
         [Fact, WorkItem(707064, "DevDiv_Projects/Roslyn")]
@@ -6518,7 +6518,7 @@ class C
     }
 }
 ";
-            await AssertFormatAsync(expected, code, false, changingOptions);
+            await AssertFormatAsync(expected, code, changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772311")]
@@ -8056,7 +8056,7 @@ class Program
     {
         Console.WriteLine("""");        // GooBar
     }
-}", false, optionSet);
+}", optionSet);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1151")]
@@ -8081,7 +8081,7 @@ class Program
     {
         Console.WriteLine("""");        /* GooBar */
     }
-}", false, optionSet);
+}", optionSet);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100920")]
@@ -8262,7 +8262,7 @@ class Program
     static void Main(string[] args)
     {
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/776")]
@@ -8784,7 +8784,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
@@ -8822,7 +8822,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849870")]
@@ -8861,7 +8861,7 @@ class Program
     {
         return 42; 
     }
-}", false, changingOptions);
+}", changingOptions);
         }
 
         [Fact, WorkItem(111079, "devdiv.visualstudio.com")]

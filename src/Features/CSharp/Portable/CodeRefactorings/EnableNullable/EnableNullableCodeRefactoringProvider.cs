@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 using static CSharpSyntaxTokens;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable), Shared]
-internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
 {
     private static readonly Func<DirectiveTriviaSyntax, bool> s_isNullableDirectiveTriviaPredicate =
         directive => directive.IsKind(SyntaxKind.NullableDirectiveTrivia);

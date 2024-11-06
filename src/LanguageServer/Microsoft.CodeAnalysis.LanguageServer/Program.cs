@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using Roslyn.Utilities;
+using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 // Setting the title can fail if the process is run without a window, such
 // as when launched detached from nodejs
@@ -43,16 +44,18 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     // Create a console logger as a fallback to use before the LSP server starts.
     using var loggerFactory = LoggerFactory.Create(builder =>
     {
-        builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
+        // The actual logger is responsible for deciding whether to log based on the current log level.
+        // The factory should be configured to log everything.
+        builder.SetMinimumLevel(LogLevel.Trace);
         builder.AddProvider(new LspLogMessageLoggerProvider(fallbackLoggerFactory:
             // Add a console logger as a fallback for when the LSP server has not finished initializing.
             LoggerFactory.Create(builder =>
             {
-                builder.SetMinimumLevel(serverConfiguration.MinimumLogLevel);
+                builder.SetMinimumLevel(LogLevel.Trace);
                 builder.AddConsole();
                 // The console logger outputs control characters on unix for colors which don't render correctly in VSCode.
                 builder.AddSimpleConsole(formatterOptions => formatterOptions.ColorBehavior = LoggerColorBehavior.Disabled);
-            })
+            }), serverConfiguration
         ));
     });
 
@@ -137,6 +140,7 @@ static async Task RunAsync(ServerConfiguration serverConfiguration, Cancellation
     server.Start();
 
     logger.LogInformation("Language server initialized");
+    RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Started, logLevel: RoslynLog.LogLevel.Information);
 
     try
     {
@@ -247,7 +251,7 @@ static CliRootCommand CreateCommandLineParser()
 
         var serverConfiguration = new ServerConfiguration(
             LaunchDebugger: launchDebugger,
-            MinimumLogLevel: logLevel,
+            LogConfiguration: new LogConfiguration(logLevel),
             StarredCompletionsPath: starredCompletionsPath,
             TelemetryLevel: telemetryLevel,
             SessionId: sessionId,

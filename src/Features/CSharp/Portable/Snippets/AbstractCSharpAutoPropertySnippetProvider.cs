@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,6 +30,8 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
 
     protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
         => (AccessorDeclarationSyntax)generator.SetAccessorDeclaration();
+
+    protected virtual SyntaxToken[] GetAdditionalPropertyModifiers(CSharpSyntaxContext? syntaxContext) => [];
 
     protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
@@ -58,13 +61,15 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
             modifiers = SyntaxTokenList.Create(PublicKeyword);
         }
 
+        modifiers = modifiers.AddRange(GetAdditionalPropertyModifiers(syntaxContext));
+
         return SyntaxFactory.PropertyDeclaration(
             attributeLists: default,
             modifiers: modifiers,
             type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
             explicitInterfaceSpecifier: null,
             identifier: identifierName.ToIdentifierToken(),
-            accessorList: SyntaxFactory.AccessorList([.. accessors.Where(a => a is not null)!]));
+            accessorList: SyntaxFactory.AccessorList([.. (IEnumerable<AccessorDeclarationSyntax>)accessors.Where(a => a is not null)]));
     }
 
     protected override int GetTargetCaretPosition(PropertyDeclarationSyntax propertyDeclaration, SourceText sourceText)

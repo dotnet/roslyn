@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
-internal partial class CSharpUseCollectionInitializerCodeFixProvider
+internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
 {
     /// <summary>
     /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref

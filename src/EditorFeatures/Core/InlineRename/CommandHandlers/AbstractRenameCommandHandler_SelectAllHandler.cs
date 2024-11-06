@@ -21,22 +21,19 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     private bool ExecuteSelectAll(ITextBuffer subjectBuffer, ITextView view)
     {
-        if (_renameService.ActiveSession == null)
+        if (renameService.ActiveSession == null)
         {
             return false;
         }
 
         var caretPoint = view.GetCaretPoint(subjectBuffer);
-        if (caretPoint.HasValue)
+        if (caretPoint.HasValue && renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var span))
         {
-            if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var span))
+            if (view.Selection.Start.Position != span.Start.Position ||
+                view.Selection.End.Position != span.End.Position)
             {
-                if (view.Selection.Start.Position != span.Start.Position ||
-                    view.Selection.End.Position != span.End.Position)
-                {
-                    view.SetSelection(span);
-                    return true;
-                }
+                view.SetSelection(span);
+                return true;
             }
         }
 

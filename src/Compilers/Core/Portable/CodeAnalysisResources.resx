@@ -507,6 +507,9 @@
   <data name="SymWriterDoesNotSupportSourceLink" xml:space="preserve">
     <value>Windows PDB writer doesn't support SourceLink feature: '{0}'</value>
   </data>
+  <data name="SymWriterMetadataOverLimit" xml:space="preserve">
+    <value>Cannot emit native PDB for method '{0}' because its debug metadata size {1} is over the limit {2}.</value>
+  </data>
   <data name="RuleSetBadAttributeValue" xml:space="preserve">
     <value>The attribute {0} has an invalid value of {1}.</value>
   </data>

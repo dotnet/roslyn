@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod;
 /// <summary>
 /// operation status paired with data
 /// </summary>
-internal class OperationStatus<T>(OperationStatus status, T data)
+internal sealed class OperationStatus<T>(OperationStatus status, T data)
 {
     public OperationStatus Status { get; } = status;
     public T Data { get; } = data;

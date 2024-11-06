@@ -420,8 +420,8 @@ internal partial class SyntacticClassificationTaggerProvider
 
             using var _ = Classifier.GetPooledList(out var classifiedSpans);
 
-            foreach (var span in spans)
-                AddClassifications(span);
+            for (var i = 0; i < spans.Count; i++)
+                AddClassifications(spans[i]);
 
             var typeMap = _taggerProvider._typeMap;
             foreach (var classifiedSpan in classifiedSpans)
