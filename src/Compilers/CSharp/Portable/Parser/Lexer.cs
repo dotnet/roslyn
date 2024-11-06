@@ -1990,10 +1990,7 @@ LoopExit:
 
                                 var text = TextWindow.Text.GetSubText(TextSpan.FromBounds(savePosition, TextWindow.Position));
 
-                                var error = new SyntaxDiagnosticInfo(
-                                    offset: 0,
-                                    width: Math.Min(1, text.Length),
-                                    code: ErrorCode.ERR_BadDirectivePlacement);
+                                var error = new SyntaxDiagnosticInfo(offset: 0, width: 1, code: ErrorCode.ERR_BadDirectivePlacement);
 
                                 var token = SyntaxFactory.BadToken(null, text.ToString(), null).WithDiagnosticsGreen([error]);
 
