@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -24,13 +25,46 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
 using static UseAutoPropertiesHelpers;
 
-internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
+
+internal abstract class AbstractUseAutoPropertyCodeFixProvider<TProvider, TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression>
+    : CodeFixProvider
+    where TProvider : AbstractUseAutoPropertyCodeFixProvider<TProvider, TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression>
     where TTypeDeclarationSyntax : SyntaxNode
     where TPropertyDeclaration : SyntaxNode
     where TVariableDeclarator : SyntaxNode
     where TConstructorDeclaration : SyntaxNode
     where TExpression : SyntaxNode
 {
+    private sealed class UseAutoPropertyFixAllProvider(TProvider provider) : FixAllProvider
+    {
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+        {
+            return DefaultFixAllProviderHelpers.GetFixAsync(
+                fixAllContext.GetDefaultFixAllTitle(), fixAllContext, FixAllContextsHelperAsync);
+        }
+
+        private async Task<Solution?> FixAllContextsHelperAsync(FixAllContext originalContext, ImmutableArray<FixAllContext> contexts)
+        {
+            var cancellationToken = originalContext.CancellationToken;
+
+            var solutionEditor = new SolutionEditor(originalContext.Solution);
+
+            foreach (var currentContext in contexts)
+            {
+                var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
+                foreach (var (_, diagnostics) in documentToDiagnostics)
+                {
+                    foreach (var diagnostic in diagnostics)
+                    {
+                        await provider.ProcessResultAsync(solutionEditor, diagnostic, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            return solutionEditor.GetChangedSolution();
+        }
+    }
+
     protected static SyntaxAnnotation SpecializedFormattingAnnotation = new();
 
     public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -60,6 +94,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var solution = context.Document.Project.Solution;
+
         foreach (var diagnostic in context.Diagnostics)
         {
             var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
@@ -68,7 +104,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
             context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                     AnalyzersResources.Use_auto_property,
-                    cancellationToken => ProcessResultAsync(context, diagnostic, cancellationToken),
+                    cancellationToken => ProcessResultAsync(solution, diagnostic, cancellationToken),
                     equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                     priority),
                 diagnostic);
@@ -77,14 +113,24 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         return Task.CompletedTask;
     }
 
-    private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
+    private async Task<Solution> ProcessResultAsync(
+        Solution solution, Diagnostic diagnostic, CancellationToken cancellationToken)
+    {
+        var editor = new SolutionEditor(solution);
+        await ProcessResultAsync(editor, diagnostic, cancellationToken).ConfigureAwait(false);
+        return editor.GetChangedSolution();
+    }
+
+    private async Task<Solution> ProcessResultAsync(
+        SolutionEditor solutionEditor, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var locations = diagnostic.AdditionalLocations;
 
         var propertyLocation = locations[0];
         var declaratorLocation = locations[1];
 
-        var solution = context.Document.Project.Solution;
+        var solution = solutionEditor.OriginalSolution;
+
         var declarator = (TVariableDeclarator)declaratorLocation.FindNode(cancellationToken);
         var fieldDocument = solution.GetRequiredDocument(declarator.SyntaxTree);
         var fieldSemanticModel = await fieldDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
