@@ -1,4 +1,10 @@
-# This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.
+**This document lists known breaking changes in Roslyn after .NET 6 all the way to .NET 7.**
+
+<!--
+*Breaking changes are formatted with a numerically delineated list so as to allow shorthand numerical references (e.g., "known break #1").
+
+Each entry should include a short description of the breaking change, followed by either a link to the issue describing the full details of the change or the full details inline.*
+-->
 
 ## All locals of restricted types are disallowed in async methods 
 
@@ -35,7 +41,7 @@ A usage such as `void Method(Alias a) ...` should be changed to `unsafe void Met
 The rule is unconditional, except for `using` alias declarations (which didn't allow an `unsafe` modifier before C# 12).  
 So for `using` declarations, the rule only takes effect if the language version is chosen as C# 12 or higher.
 
-## System.TypedReference considered managed
+## `System.TypedReference` considered managed
 
 ***Introduced in Visual Studio 2022 version 17.6***
 
@@ -49,11 +55,11 @@ unsafe
 }
 ```
 
-## Ref safety errors do not affect conversion from lambda expression to delegate
+## `ref` safety errors do not affect conversion from lambda expression to delegate
 
 ***Introduced in Visual Studio 2022 version 17.5***
 
-Ref safety errors reported in a lambda body no longer affect whether the lambda expression is convertible to a delegate type. This change can affect overload resolution.
+`ref` safety errors reported in a lambda body no longer affect whether the lambda expression is convertible to a `delegate` type. This change can affect overload resolution.
 
 In the example below, the call to `M(x => ...)` is ambiguous with Visual Studio 17.5 because both `M(D1)` and `M(D2)` are now considered applicable, even though the call to `F(ref x, ref y)` within the lambda body will result in a ref safety with `M(D1)` (see the examples in `d1` and `d2` for comparison). Previously, the call bound unambiguously to `M(D2)` because the `M(D1)` overload was considered not applicable.
 ```csharp
@@ -127,7 +133,6 @@ var x = $"""
 
 This violated the rule that the lines content (including where an interpolation starts) must start with same whitespace as the final `    """;` line.  It is now required that the above be written as:
 
-
 ```csharp
 var x = $"""
     Hello
@@ -136,12 +141,11 @@ var x = $"""
     """;
 ```
 
-
 ## Inferred delegate type for methods includes default parameter values and `params` modifier
 
 ***Introduced in Visual Studio 2022 version 17.5***
 
-In .NET SDK 7.0.100 or earlier, delegate types inferred from methods ignored default parameter values and `params` modifiers
+In .NET SDK 7.0.100 or earlier, `delegate` types inferred from methods ignored default parameter values and `params` modifiers
 as demonstrated in the following code:
 
 ```csharp
@@ -151,7 +155,7 @@ DoAction(action, 1); // ok
 void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
 ```
 
-In .NET SDK 7.0.200 or later, such methods are inferred as anonymous synthesized delegate types
+In .NET SDK 7.0.200 or later, such methods are inferred as anonymous synthesized `delegate` types
 with the same default parameter values and `params` modifiers.
 This change can break the code above as demonstrated below:
 
@@ -164,11 +168,11 @@ void DoAction(System.Action<int, int[]> a, int p) => a(p, new[] { p });
 
 You can learn more about this change in the associated [proposal](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-12.0/lambda-method-group-defaults.md#breaking-change).
 
-## For the purpose of definite assignment analysis, invocations of async local functions are no longer treated as being awaited
+## For the purpose of definite assignment analysis, invocations of `async` local functions are no longer treated as being awaited
 
 ***Introduced in Visual Studio 2022 version 17.5***
 
-For the purpose of definite assignment analysis, invocations of an async local function is
+For the purpose of definite assignment analysis, invocations of an `async` local function is
 no longer treated as being awaited and, therefore, the local function is not considered to
 be fully executed. See https://github.com/dotnet/roslyn/issues/43697 for the rationale.
 
@@ -203,8 +207,8 @@ We have added native support for attributes, which means that the root of the tr
 analyzers, including older versions of the .NET SDK analyzers, are not expecting this tree shape, and will incorrectly
 warn (or potentially fail to warn) when encountering it. The workarounds for this are:
 
-* Update your analyzer version, if possible. If using the .NET SDK or older versions of Microsoft.CodeAnalysis.FxCopAnalyzers,
-update to Microsoft.CodeAnalysis.NetAnalyzers 7.0.0-preview1.22464.1 or newer.
+* Update your analyzer version, if possible. If using the .NET SDK or older versions of `Microsoft.CodeAnalysis.FxCopAnalyzers`,
+update to `Microsoft.CodeAnalysis.NetAnalyzers` 7.0.0-preview1.22464.1 or newer.
 * Suppress any false-positives from the analyzers until they can be updated with a version that takes this change into
 account.
 
@@ -654,7 +658,7 @@ Workarounds include the following changes:
 1. Remove the receiver type from the interpolated string handler.
 1. Change the argument to the indexer to be a `string`
 
-## ref, readonly ref, in, out not allowed as parameters or return on methods with Unmanaged callers only
+## `ref`, `readonly ref`, `in`, `out` not allowed as parameters or return on methods with Unmanaged callers only
 
 ***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.*** `ref`/`ref readonly`/`in`/`out` are not allowed to be used on return/parameters of a method attributed with `UnmanagedCallersOnly`.
 
@@ -680,7 +684,7 @@ static void M5(out int o) => throw null; // error CS8977: Cannot use 'ref', 'in'
 
 The workaround is to remove the by reference modifier.
 
-## Length, Count assumed to be non-negative in patterns
+## `Length`, `Count` assumed to be non-negative in patterns
 
 ***Introduced in .NET SDK 6.0.200, Visual Studio 2022 version 17.1.*** `Length` and `Count` properties on countable and indexable types
 are assumed to be non-negative for purpose of subsumption and exhaustiveness analysis of patterns and switches.
