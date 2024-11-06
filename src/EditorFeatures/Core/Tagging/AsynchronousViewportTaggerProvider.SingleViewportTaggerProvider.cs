@@ -62,7 +62,7 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // This can save a lot of CPU time for things that may never even be looked at.
             => _viewPortToTag != ViewPortToTag.InView;
 
-        protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
+        protected override bool TryAddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
         {
             this.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(textView);
@@ -70,15 +70,14 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // if we're the current view, attempt to just get what's visible, plus 10 lines above and below.  This will
             // ensure that moving up/down a few lines tends to have immediate accurate results.
             var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
-            if (visibleSpanOpt is null)
-            {
-                // couldn't figure out the visible span.  So the InView tagger will need to tag everything, and the
-                // above/below tagger should tag nothing.
-                if (_viewPortToTag == ViewPortToTag.InView)
-                    base.AddSpansToTag(textView, subjectBuffer, ref result);
 
-                return;
-            }
+            // If we can't even determine what our visible span is, bail out immediately.  We may be in something like a
+            // layout pass, and we don't want to suddenly flip to tagging everything, then go back to tagging a small
+            // subset of the view afterwards.
+            //
+            // In this case we literally do not know what is visible, so we want to bail and try again later.
+            if (visibleSpanOpt is null)
+                return false;
 
             var visibleSpan = visibleSpanOpt.Value;
 
@@ -86,29 +85,34 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             if (_viewPortToTag is ViewPortToTag.InView)
             {
                 result.Add(visibleSpan);
-                return;
             }
-
-            // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
-            // subtract out the visible range.
-            var widenedSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
-            Contract.ThrowIfNull(widenedSpanOpt, "Should not ever fail getting the widened span as we were able to get the normal visible span");
-
-            var widenedSpan = widenedSpanOpt.Value;
-            Contract.ThrowIfFalse(widenedSpan.Span.Contains(visibleSpan.Span), "The widened span must be at least as large as the visible one.");
-
-            if (_viewPortToTag is ViewPortToTag.Above)
+            else
             {
-                var aboveSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(widenedSpan.Span.Start, visibleSpan.Span.Start));
-                if (!aboveSpan.IsEmpty)
-                    result.Add(aboveSpan);
+                // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
+                // subtract out the visible range.
+                var widenedSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
+                Contract.ThrowIfNull(widenedSpanOpt, "Should not ever fail getting the widened span as we were able to get the normal visible span");
+
+                var widenedSpan = widenedSpanOpt.Value;
+                Contract.ThrowIfFalse(widenedSpan.Span.Contains(visibleSpan.Span), "The widened span must be at least as large as the visible one.");
+
+                if (_viewPortToTag is ViewPortToTag.Above)
+                {
+                    var aboveSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(widenedSpan.Span.Start, visibleSpan.Span.Start));
+                    if (!aboveSpan.IsEmpty)
+                        result.Add(aboveSpan);
+                }
+                else if (_viewPortToTag is ViewPortToTag.Below)
+                {
+                    var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
+                    if (!belowSpan.IsEmpty)
+                        result.Add(belowSpan);
+                }
             }
-            else if (_viewPortToTag is ViewPortToTag.Below)
-            {
-                var belowSpan = new SnapshotSpan(visibleSpan.Snapshot, Span.FromBounds(visibleSpan.Span.End, widenedSpan.Span.End));
-                if (!belowSpan.IsEmpty)
-                    result.Add(belowSpan);
-            }
+
+            // Unilaterally return true here, even if we determine we don't have a span to tag.  In this case, we've
+            // computed that there really is nothing visible, in which case we *do* want to move to having no tags.
+            return true;
         }
 
         protected override async Task ProduceTagsAsync(

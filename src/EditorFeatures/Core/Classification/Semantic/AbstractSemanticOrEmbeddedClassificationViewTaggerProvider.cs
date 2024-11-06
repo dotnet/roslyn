@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -250,6 +251,11 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
                 {
                     throw ExceptionUtilities.UnexpectedValue(_type);
                 }
+
+                //if (span.IntersectsWith(407) && !classifiedSpans.Any(cs => cs.TextSpan.Start == 407))
+                //{
+                //    Console.WriteLine();
+                //}
 
                 foreach (var classifiedSpan in classifiedSpans)
                     context.AddTag(ClassificationUtilities.Convert(_typeMap, snapshot, classifiedSpan));

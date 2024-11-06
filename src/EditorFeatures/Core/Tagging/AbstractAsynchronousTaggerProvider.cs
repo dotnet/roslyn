@@ -215,11 +215,14 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> at some point in
     /// the future to produce tags for these spans.
     /// </summary>
-    protected virtual void AddSpansToTag(
+    /// <returns><see langword="false"/> if spans could not be added and if tagging should abort and wait until its next
+    /// run.</returns>
+    protected virtual bool TryAddSpansToTag(
         ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // For a standard tagger, the spans to tag is the span of the entire snapshot.
         result.Add(subjectBuffer.CurrentSnapshot.GetFullSpan());
+        return true;
     }
 
     /// <summary>

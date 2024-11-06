@@ -74,22 +74,25 @@ internal partial class InlineHintsDataTaggerProvider(
                 option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)));
     }
 
-    protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
+    protected override bool TryAddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         this.ThreadingContext.ThrowIfNotOnUIThread();
         Contract.ThrowIfNull(textView);
 
-        // Find the visible span some 100 lines +/- what's actually in view.  This way
-        // if the user scrolls up/down, we'll already have the results.
+        // Find the visible span some 100 lines +/- what's actually in view.  This way if the user scrolls up/down,
+        // we'll already have the results.
         var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
+
+        // If we can't even determine what our visible span is, bail out immediately.  We may be in something like a
+        // layout pass, and we don't want to suddenly flip to tagging everything, then go back to tagging a small
+        // subset of the view afterwards.
+        //
+        // In this case we literally do not know what is visible, so we want to bail and try again later.
         if (visibleSpanOpt == null)
-        {
-            // Couldn't find anything visible, just fall back to tagging all hint locations
-            base.AddSpansToTag(textView, subjectBuffer, ref result);
-            return;
-        }
+            return false;
 
         result.Add(visibleSpanOpt.Value);
+        return true;
     }
 
     protected override async Task ProduceTagsAsync(
