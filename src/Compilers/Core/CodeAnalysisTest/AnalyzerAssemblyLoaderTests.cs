@@ -1424,7 +1424,29 @@ Delta.2: Test D2
                 // dlls don't apply for this count.
                 VerifyDependencyAssemblies(loader, copyCount: 1, analyzerPath, analyzerResourcesPath);
             });
+        }
 
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_ResourcesInParent(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var analyzerPath = tempDir.CreateFile("AnalyzerWithLoc.dll").CopyContentFrom(testFixture.AnalyzerWithLoc).Path;
+                var analyzerResourcesPath = tempDir.CreateDirectory("es").CreateFile("AnalyzerWithLoc.resources.dll").CopyContentFrom(testFixture.AnalyzerWithLocResourceEnGB).Path;
+                loader.AddDependencyLocation(analyzerPath);
+                var assembly = loader.LoadFromPath(analyzerPath);
+                var methodInfo = assembly
+                    .GetType("AnalyzerWithLoc.Util")!
+                    .GetMethod("Exec", BindingFlags.Static | BindingFlags.Public)!;
+                methodInfo.Invoke(null, ["es-ES"]);
+
+                // The copy count is 1 here as only one real assembly was copied, the resource 
+                // dlls don't apply for this count.
+                VerifyDependencyAssemblies(loader, copyCount: 1, analyzerPath, analyzerResourcesPath);
+            });
         }
 #if NET
 
