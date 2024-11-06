@@ -239,8 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-            // TODO2
-            if (!argument.HasErrors && ((object)argument.Type == null || !argument.Type.IsErrorType()))
+            if (elementType is { } && node.Expression != null)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
