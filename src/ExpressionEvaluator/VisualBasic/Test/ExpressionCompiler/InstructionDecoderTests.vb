@@ -512,10 +512,10 @@ End Module"
             VerifyMethodName(compilation, containingType.GetMethod("set_Item"), "C.set_Item(i, Value)", "Item")
             VerifyMethodName(compilation, containingType.GetMethod("add_E"), "C.E(obj)", "E")
             VerifyMethodName(compilation, containingType.GetMethod("remove_E"), "C.E(obj)", "E")
-            VerifyMethodName(compilation, containingType.GetMethod(".cctor"), "C.New()", ".cctor")
-            VerifyMethodName(compilation, containingType.GetMethod(".ctor"), "C.New(x)", ".ctor")
-            VerifyMethodName(compilation, containingType.GetMethod("op_UnaryPlus"), "C.+(c)", "op_UnaryPlus")
-            VerifyMethodName(compilation, containingType.GetMethod("op_Implicit"), "C.CType(c)", "op_Implicit")
+            VerifyMethodName(compilation, containingType.GetMethod(".cctor"), "C.New()", "New")
+            VerifyMethodName(compilation, containingType.GetMethod(".ctor"), "C.New(x)", "New")
+            VerifyMethodName(compilation, containingType.GetMethod("op_UnaryPlus"), "C.+(c)", "+")
+            VerifyMethodName(compilation, containingType.GetMethod("op_Implicit"), "C.CType(c)", "CType")
             VerifyMethodName(compilation, compilation.GlobalNamespace.GetTypeMember("E").GetMethod("M"), "E.M(x)", "M")
         End Sub
 

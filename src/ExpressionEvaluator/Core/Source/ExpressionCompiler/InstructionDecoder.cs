@@ -24,6 +24,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeExplicitInterface,
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
+        internal static readonly SymbolDisplayFormat CompactNameFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+            genericsOptions: SymbolDisplayGenericsOptions.None,
+            memberOptions: SymbolDisplayMemberOptions.IncludeExplicitInterface,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
         private readonly bool _useReferencedAssembliesOnly;
 
         internal InstructionDecoder()

@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override string GetCompactName(MethodSymbol method)
         {
-            return (method.AssociatedSymbol ?? method).Name;
+            var symbol = method.AssociatedSymbol ?? method;
+            return symbol.ToDisplayString(CompactNameFormat);
         }
 
         internal override void AppendFullName(StringBuilder builder, MethodSymbol method)

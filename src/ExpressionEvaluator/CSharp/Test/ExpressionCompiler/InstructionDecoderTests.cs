@@ -437,17 +437,17 @@ class C
             VerifyMethodName(compilation, containingType.GetMethod("get_P1"), "C.P1.get()", "P1");
             VerifyMethodName(compilation, containingType.GetMethod("set_P2"), "C.P2.set(value)", "P2");
             VerifyMethodName(compilation, containingType.GetMethod("set_P3"), "C.P3.init(value)", "P3");
-            VerifyMethodName(compilation, containingType.GetMethod("get_Item"), "C.this[int].get(i)", "this[]");
-            VerifyMethodName(compilation, containingType.GetMethod("set_Item"), "C.this[int].set(i, value)", "this[]");
+            VerifyMethodName(compilation, containingType.GetMethod("get_Item"), "C.this[int].get(i)", "this");
+            VerifyMethodName(compilation, containingType.GetMethod("set_Item"), "C.this[int].set(i, value)", "this");
             VerifyMethodName(compilation, containingType.GetMethod("add_E"), "C.E.add(value)", "E");
             VerifyMethodName(compilation, containingType.GetMethod("remove_E"), "C.E.remove(value)", "E");
             VerifyMethodName(compilation, compilation.GlobalNamespace.GetTypeMember("E").GetMethod("M"), "E.M(x)", "M");
-            VerifyMethodName(compilation, containingType.GetMethod(".cctor"), "C.C()", ".cctor");
-            VerifyMethodName(compilation, containingType.GetMethod(".ctor"), "C.C(x)", ".ctor");
-            VerifyMethodName(compilation, containingType.GetMethod("Finalize"), "C.~C()", "Finalize");
-            VerifyMethodName(compilation, containingType.GetMethod("op_UnaryPlus"), "C.operator +(c)", "op_UnaryPlus");
-            VerifyMethodName(compilation, containingType.GetMethod("op_Implicit"), "C.implicit operator int(c)", "op_Implicit");
-            VerifyMethodName(compilation, containingType.GetMethod("op_Explicit"), "C.explicit operator string(c)", "op_Explicit");
+            VerifyMethodName(compilation, containingType.GetMethod(".cctor"), "C.C()", "C");
+            VerifyMethodName(compilation, containingType.GetMethod(".ctor"), "C.C(x)", "C");
+            VerifyMethodName(compilation, containingType.GetMethod("Finalize"), "C.~C()", "~C");
+            VerifyMethodName(compilation, containingType.GetMethod("op_UnaryPlus"), "C.operator +(c)", "operator +");
+            VerifyMethodName(compilation, containingType.GetMethod("op_Implicit"), "C.implicit operator int(c)", "implicit operator int");
+            VerifyMethodName(compilation, containingType.GetMethod("op_Explicit"), "C.explicit operator string(c)", "explicit operator string");
         }
 
         [Fact]

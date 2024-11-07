@@ -29,7 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Sub
 
         Friend Overrides Function GetCompactName(method As MethodSymbol) As String
-            Return If(method.AssociatedSymbol, method).Name
+            Dim symbol = If(method.AssociatedSymbol, method)
+            Return symbol.ToDisplayString(CompactNameFormat)
         End Function
 
         Friend Overrides Sub AppendFullName(builder As StringBuilder, method As MethodSymbol)
