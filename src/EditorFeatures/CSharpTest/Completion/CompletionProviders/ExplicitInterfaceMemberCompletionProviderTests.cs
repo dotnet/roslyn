@@ -1044,13 +1044,12 @@ class C : I
 
             class C : I
             {
-                void I.M(int x = 10)
+                void I.M(int x)
                 {
                     throw new System.NotImplementedException();
                 }
             }
             """;
-        // TODO: Consider adding the default value too.
         await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
     }
 
