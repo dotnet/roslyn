@@ -1575,7 +1575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // We only check if the left SafeContext is convertible to the right here
                         // in order to give a more useful diagnostic.
                         // Later on we check if right SafeContext is convertible to left,
-                        // which effectively means these lifetimes must be equal.
+                        // which effectively means these SafeContexts must be equal.
                         if (!leftEscape.IsConvertibleTo(rightEscape))
                         {
                             Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.

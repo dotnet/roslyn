@@ -9,11 +9,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A representation of the program region in which the *referent* of a `ref` is *live*.
     /// Limited to what is expressible in C#.
+    /// See also:
+    /// - https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/low-level-struct-improvements.md#detailed-design
+    /// - https://github.com/dotnet/csharpstandard/blob/draft-v8/standard/variables.md#972-ref-safe-contexts
+    /// - https://github.com/dotnet/csharpstandard/blob/draft-v8/standard/structs.md#16412-safe-context-constraint
     /// </summary>
     /// <remarks>
     /// - A *referent* is the variable being referenced by a `ref`.
     /// - Informally, a variable is *live* if it has storage allocated for it (either on heap or stack).
-    /// - In this design, all lifetimes have a known relationship to all other lifetimes.
+    /// - In this design, all SafeContexts have a known relationship to all other SafeContexts.
     /// </remarks>
     internal readonly struct SafeContext
     {
@@ -83,18 +87,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             => this._value <= other._value;
 
         /// <summary>
-        /// Returns the narrower of two lifetimes.
+        /// Returns the narrower of two SafeContexts.
         /// </summary>
         /// <remarks>
         /// In other words, this method returns the widest SafeContext which 'this' and 'other' are both convertible to.
-        /// If in future we added the concept of unrelated lifetimes (e.g. to implement 'ref scoped'), this method would perhaps return a Nullable,
-        /// for the case that no SafeContext exists which both input lifetimes are convertible to.
+        /// If in future we added the concept of unrelated SafeContexts (e.g. to implement 'ref scoped'), this method would perhaps return a Nullable,
+        /// for the case that no SafeContext exists which both input SafeContexts are convertible to.
         /// </remarks>
         public SafeContext Intersect(SafeContext other)
             => this.IsConvertibleTo(other) ? other : this;
 
         /// <summary>
-        /// Returns the wider of two lifetimes.
+        /// Returns the wider of two SafeContexts.
         /// </summary>
         /// <remarks>In other words, this method returns the narrowest SafeContext which can be converted to both 'this' and 'other'.</remarks>
         public SafeContext Union(SafeContext other)
