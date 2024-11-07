@@ -459,6 +459,39 @@ public class RawStringLiteralCommandHandlerTests
         testState.SendReturn(handled: false);
     }
 
+    [WpfFact]
+    public void TestReturnAfterStartQuotesInMultilineRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = """$$
+            """;
+            """");
+
+        testState.SendReturn(handled: false);
+    }
+
+    [WpfFact]
+    public void TestReturnBeforeEndQuotesInMultilineRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = """
+            $$""";
+            """");
+
+        testState.SendReturn(handled: false);
+    }
+
+    [WpfFact]
+    public void TestReturnWithinEndQuotesInMultilineRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = """
+            ""$$";
+            """");
+
+        testState.SendReturn(handled: false);
+    }
+
     #endregion
 
     #region generate initial empty raw string
