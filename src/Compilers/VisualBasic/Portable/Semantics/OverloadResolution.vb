@@ -4057,9 +4057,10 @@ Bailout:
                     ' param array than the other. The one using more, is then shadowed by the one using less.
 
                     '•	If M has fewer parameters from an expanded paramarray than N, eliminate N from the set.
-                    'If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
-                    '    GoTo DeterminedTheWinner
-                    'End If
+                    If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
+                        'GoTo DeterminedTheWinner
+                        GoTo ContinueCandidatesLoop
+                    End If
 
                 Else
                     ' The signatures of the two methods match (after generic parameter substitution).
