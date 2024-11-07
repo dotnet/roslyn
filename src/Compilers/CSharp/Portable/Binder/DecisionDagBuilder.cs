@@ -2371,6 +2371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // is indeed the test being negated by the `not`
                     static bool isRecognizedPartOfNegated(BoundDagTest test, Tests negated)
                     {
+                        return true;
                         // If we have something like `not A or ... or B` where the A test being true implies that the B test is false,
                         // so the B test could only be true when the `not A` test is true,
                         // then the user probably made a mistake having the `or B` condition
