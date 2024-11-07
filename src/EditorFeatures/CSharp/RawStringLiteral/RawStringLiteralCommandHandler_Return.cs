@@ -109,15 +109,15 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 return false;
         }
 
-        return MakeEdit(textView, subjectBuffer, position, document, parsedDocument, token, preferredIndentationToken, isEmpty: false, cancellationToken);
+        return MakeEdit(textView, subjectBuffer, position, document.Project, parsedDocument, token, preferredIndentationToken, isEmpty: false, cancellationToken);
     }
 
     private bool MakeEdit(
-        ITextView textView, ITextBuffer subjectBuffer, int position, Document document,
+        ITextView textView, ITextBuffer subjectBuffer, int position, Project project,
         ParsedDocument parsedDocument, SyntaxToken token, SyntaxToken preferredIndentationToken,
         bool isEmpty, CancellationToken cancellationToken)
     {
-        var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: false);
+        var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, project.GetFallbackAnalyzerOptions(), project.Services, explicitFormat: false);
         var indentation = preferredIndentationToken.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
 
         var newLine = indentationOptions.FormattingOptions.NewLine;
@@ -129,6 +129,8 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         var insertedLines = 1;
         if (isEmpty)
         {
+            // If the literal is empty, we just want to help the user transform it into a multiline raw string literal
+            // with the extra empty newline between the delimiters to place the caret at
             edit.Insert(position, newLine + newLine + indentation);
         }
         else
@@ -137,7 +139,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
             // Add a newline at the position of the end literal
             var closingStart = GetStartPositionOfClosingDelimiter(token);
             edit.Insert(closingStart, newLineAndIndentation);
-            // Add a newline at the caret's position
+            // Add a newline at the caret's position, to insert the newline that the user requested
             edit.Insert(position, newLineAndIndentation);
             // Also add a newline at the start of the text, only if there is text before the caret's position
             if (openingEnd != position)
@@ -146,6 +148,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 edit.Insert(openingEnd, newLineAndIndentation);
             }
         }
+
         var snapshot = edit.Apply();
 
         // move caret:
@@ -168,12 +171,17 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                     var tokenSpan = currentStringLiteralToken.Span;
                     var tokenStart = tokenSpan.Start;
                     var length = tokenSpan.Length;
+                    // Traverse through the literal's text to discover the first position that is not a double quote
                     var index = 0;
                     while (index < length)
                     {
                         var c = text[index];
                         if (c != '"')
                         {
+                            // If the literal is empty, we expect a continuous segment of double quotes
+                            // where in the worst case a single quote is missing in the end
+                            // So for example, """""" is an emtpy raw string literal where the user intends to delimit it
+                            // with 3 double quotes, where the contents would be placed after the first 3 quotes only
                             var quotes = isEmpty ? index / 2 : index;
                             return tokenStart + quotes;
                         }
@@ -228,6 +236,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                     var tokenSpan = currentStringLiteralToken.Span;
                     var tokenStart = tokenSpan.Start;
                     var index = tokenSpan.Length - 1;
+                    // Traverse through the literal's text from the end to discover the first position that is not a double quote
                     while (index > 0)
                     {
                         var c = text[index];
@@ -236,7 +245,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                         index--;
                     }
 
-                    // We have evaluated an emtpy raw string literal here and so we split the continuous double quotes into the start and end delimiters
+                    // We have evaluated an empty raw string literal here and so we split the continuous double quotes into the start and end delimiters
                     return tokenStart + tokenSpan.Length / 2;
                 }
 
@@ -321,6 +330,6 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
             return false;
         }
 
-        return MakeEdit(textView, subjectBuffer, position, document, parsedDocument, token, preferredIndentationToken: token, isEmpty, cancellationToken);
+        return MakeEdit(textView, subjectBuffer, position, document.Project, parsedDocument, token, preferredIndentationToken: token, isEmpty, cancellationToken);
     }
 }
