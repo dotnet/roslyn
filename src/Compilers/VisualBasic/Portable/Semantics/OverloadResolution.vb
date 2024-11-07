@@ -939,7 +939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim addedExtensionMethods As Boolean = False
 
             If ShouldConsiderExtensionMethods(candidates) Then
-                Debug.Assert(applicableInstanceCandidateCount = 0)
+                Debug.Assert(applicableInstanceCandidateCount = 0 OrElse applicableInstanceCandidateCount = applicableNarrowingCandidateCount)
 
                 ' Request additional extension methods, if any available.
                 If methodGroup.ResultKind = LookupResultKind.Good Then
@@ -979,6 +979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    applicableNarrowingCandidateCount As Integer,
                                                                    lateBindingIsAllowed As Boolean,
                                                                    asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression)) As OverloadResolutionResult
+            Debug.Assert(applicableNarrowingCandidateCount = 0)
             Dim isLateBound As Boolean = False
 
             If lateBindingIsAllowed Then
