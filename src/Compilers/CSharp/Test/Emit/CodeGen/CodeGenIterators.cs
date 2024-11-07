@@ -4133,10 +4133,10 @@ public class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "10 42 0").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "10 42 42").VerifyDiagnostics();
             verifier.VerifyIL("C.<M>d__0<T>.System.Collections.IEnumerator.MoveNext()", """
 {
-  // Code size      106 (0x6a)
+  // Code size       94 (0x5e)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -4152,7 +4152,7 @@ public class C
   IL_0010:  ldarg.0
   IL_0011:  ldc.i4.m1
   IL_0012:  stfld      "int C.<M>d__0<T>.<>1__state"
-  IL_0017:  br.s       IL_0060
+  IL_0017:  br.s       IL_0054
   IL_0019:  ldarg.0
   IL_001a:  ldarg.0
   IL_001b:  ldfld      "T C.<M>d__0<T>.t"
@@ -4176,13 +4176,10 @@ public class C
   IL_004a:  box        "T"
   IL_004f:  call       "void System.Console.Write(object)"
   IL_0054:  ldarg.0
-  IL_0055:  ldflda     "T C.<M>d__0<T>.<local>5__2"
-  IL_005a:  initobj    "T"
-  IL_0060:  ldarg.0
-  IL_0061:  ldfld      "bool C.<M>d__0<T>.b"
-  IL_0066:  brtrue.s   IL_0019
-  IL_0068:  ldc.i4.0
-  IL_0069:  ret
+  IL_0055:  ldfld      "bool C.<M>d__0<T>.b"
+  IL_005a:  brtrue.s   IL_0019
+  IL_005c:  ldc.i4.0
+  IL_005d:  ret
 }
 """);
             verifier.VerifyIL("C.<M>d__0<T>.System.IDisposable.Dispose()", """
@@ -4243,10 +4240,10 @@ public class C
 }
 """;
 
-            var verifier = CompileAndVerify(src, expectedOutput: "10 42 0", references: [libComp.EmitToImageReference()]).VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "10 42 42", references: [libComp.EmitToImageReference()]).VerifyDiagnostics();
             verifier.VerifyIL("C.<M>d__0.System.Collections.IEnumerator.MoveNext()", """
 {
-  // Code size      112 (0x70)
+  // Code size      100 (0x64)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
@@ -4262,7 +4259,7 @@ public class C
   IL_0010:  ldarg.0
   IL_0011:  ldc.i4.m1
   IL_0012:  stfld      "int C.<M>d__0.<>1__state"
-  IL_0017:  br.s       IL_0066
+  IL_0017:  br.s       IL_005a
   IL_0019:  ldarg.0
   IL_001a:  ldarg.0
   IL_001b:  ldfld      "S C.<M>d__0.s"
@@ -4287,13 +4284,10 @@ public class C
   IL_0050:  callvirt   "string object.ToString()"
   IL_0055:  call       "void System.Console.Write(string)"
   IL_005a:  ldarg.0
-  IL_005b:  ldflda     "S C.<M>d__0.<local>5__2"
-  IL_0060:  initobj    "S"
-  IL_0066:  ldarg.0
-  IL_0067:  ldfld      "bool C.<M>d__0.b"
-  IL_006c:  brtrue.s   IL_0019
-  IL_006e:  ldc.i4.0
-  IL_006f:  ret
+  IL_005b:  ldfld      "bool C.<M>d__0.b"
+  IL_0060:  brtrue.s   IL_0019
+  IL_0062:  ldc.i4.0
+  IL_0063:  ret
 }
 """);
             verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
