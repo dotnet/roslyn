@@ -4046,53 +4046,51 @@ Bailout:
                     GoTo ContinueCandidatesLoop
                 End If
 
-                If False Then
-                    If Not signatureMatch Then
-                        Debug.Assert(argumentNames.IsDefault)
+                If Not signatureMatch Then
+                    Debug.Assert(argumentNames.IsDefault)
 
-                        ' If we have gotten to this point it means that the 2 procedures have equal specificity,
-                        ' but signatures that do not match exactly (after generic substitution). This
-                        ' implies that we are dealing with differences in shape due to param arrays
-                        ' or optional arguments.
-                        ' So we look and see if one procedure maps fewer arguments to the
-                        ' param array than the other. The one using more, is then shadowed by the one using less.
+                    ' If we have gotten to this point it means that the 2 procedures have equal specificity,
+                    ' but signatures that do not match exactly (after generic substitution). This
+                    ' implies that we are dealing with differences in shape due to param arrays
+                    ' or optional arguments.
+                    ' So we look and see if one procedure maps fewer arguments to the
+                    ' param array than the other. The one using more, is then shadowed by the one using less.
 
-                        '•	If M has fewer parameters from an expanded paramarray than N, eliminate N from the set.
-                        If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
-                            GoTo DeterminedTheWinner
-                        End If
+                    '•	If M has fewer parameters from an expanded paramarray than N, eliminate N from the set.
+                    'If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
+                    '    GoTo DeterminedTheWinner
+                    'End If
 
-                    Else
-                        ' The signatures of the two methods match (after generic parameter substitution).
-                        ' This means that param array shadowing doesn't come into play.
-                        ' !!! Why? Where is this mentioned in the spec?
+                Else
+                    ' The signatures of the two methods match (after generic parameter substitution).
+                    ' This means that param array shadowing doesn't come into play.
+                    ' !!! Why? Where is this mentioned in the spec?
+                End If
+
+                Debug.Assert(argumentNames.IsDefault OrElse signatureMatch)
+
+                ' In presence of named arguments, the following shadowing rules
+                ' cannot be applied if any candidate is extension method because
+                ' full signature match doesn't guarantee equal applicability (in presence of named arguments)
+                ' and instance methods hide by signature regardless applicability rules do not apply to extension methods.
+                If argumentNames.IsDefault OrElse
+                   Not (existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) Then
+
+                    '7.1.	If M is defined in a more derived type than N, eliminate N from the set.
+                    '       This rule also applies to the types that extension methods are defined on.
+                    '7.2.	If M and N are extension methods and the target type of M is a class or
+                    '       structure and the target type of N is an interface, eliminate N from the set.
+                    If ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
+                        GoTo DeterminedTheWinner
                     End If
 
-                    Debug.Assert(argumentNames.IsDefault OrElse signatureMatch)
-
-                    ' In presence of named arguments, the following shadowing rules
-                    ' cannot be applied if any candidate is extension method because
-                    ' full signature match doesn't guarantee equal applicability (in presence of named arguments)
-                    ' and instance methods hide by signature regardless applicability rules do not apply to extension methods.
-                    If argumentNames.IsDefault OrElse
-                       Not (existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) Then
-
-                        '7.1.	If M is defined in a more derived type than N, eliminate N from the set.
-                        '       This rule also applies to the types that extension methods are defined on.
-                        '7.2.	If M and N are extension methods and the target type of M is a class or
-                        '       structure and the target type of N is an interface, eliminate N from the set.
-                        If ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
-                            GoTo DeterminedTheWinner
-                        End If
-
-                        '7.3.	If M and N are extension methods and the target type of M has fewer type
-                        '       parameters than the target type of N, eliminate N from the set.
-                        '       !!! Note that spec talks about "fewer type parameters", but it is not really about count.
-                        '       !!! It is about one refers to a type parameter and the other one doesn't.
-                        If ShadowBasedOnExtensionMethodTargetTypeGenericity(existingCandidate, newCandidate, existingWins, newWins) Then
-                            GoTo DeterminedTheWinner
-                        End If
-                    End If
+                    '7.3.	If M and N are extension methods and the target type of M has fewer type
+                    '       parameters than the target type of N, eliminate N from the set.
+                    '       !!! Note that spec talks about "fewer type parameters", but it is not really about count.
+                    '       !!! It is about one refers to a type parameter and the other one doesn't.
+                    'If ShadowBasedOnExtensionMethodTargetTypeGenericity(existingCandidate, newCandidate, existingWins, newWins) Then
+                    '    GoTo DeterminedTheWinner
+                    'End If
                 End If
 
 DeterminedTheWinner:
