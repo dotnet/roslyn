@@ -8,9 +8,9 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Primitives;
 using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
+using PostSharp.Engineering.BuildTools.ContinuousIntegration;
 using PostSharp.Engineering.BuildTools.Utilities;
 
 namespace Build
@@ -29,7 +29,8 @@ namespace Build
 
         private bool ExecuteScript(BuildContext context, BuildSettings settings, string args)
         {
-            var msBuildConfiguration = context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
+            var msBuildConfiguration =
+                context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
 
             var argsBuilder = new StringBuilder();
 
@@ -42,21 +43,22 @@ namespace Build
                 var revisionNumber = settings.BuildNumber ?? 1;
 
                 // The official build ID is assumed to have format "20yymmdd.r", where R is the revision number of the day.
-                // Metalama.Compiler uses the build nuber as the revision number regardless of the actual date.
+                // Metalama.Compiler uses the build number as the revision number regardless of the actual date.
                 // (See .packages\microsoft.dotnet.arcade.sdk\9.0.0-beta.24416.2\tools\Version.BeforeCommonTargets.targets.)
                 var officialBuildId = $"{DateTime.UtcNow:yyyyMMdd}.{revisionNumber}";
-                
+
                 var releaseBranch = context.Product.DependencyDefinition.ReleaseBranch;
-                
+
                 if (releaseBranch == null)
                 {
-                    context.Console.WriteError("Release branch must be specified when building a public configuration.");
+                    context.Console.WriteError(
+                        "Release branch must be specified when building a public configuration.");
                     return false;
                 }
 
                 // This parameter is not used by Metalama.Compiler, but it is required by the build script.
                 var officialVisualStudioDropAccessToken = "N/A";
-                
+
                 argsBuilder.Append(CultureInfo.InvariantCulture, $" -officialBuildId {officialBuildId}");
                 argsBuilder.Append(" -officialSkipTests true");
                 argsBuilder.Append(" -officialSkipApplyOptimizationData true");
@@ -70,15 +72,15 @@ namespace Build
                 BlockedEnvironmentVariables = ImmutableArray.Create("MSBuildSDKsPath", "MSBUILD_EXE_PATH"),
                 // Retry build when the file is locked by another process.
                 Retry = new ToolInvocationRetry(
-                    new Regex(".+The process cannot access the file.+because it is being used by another process."), 1 )
+                    new Regex(".+The process cannot access the file.+because it is being used by another process."), 1)
             };
 
             return ToolInvocationHelper.InvokePowershell(
-                           context.Console,
-                           Path.Combine(context.RepoDirectory, "eng", "build.ps1"),
-                           argsBuilder.ToString(),
-                           context.RepoDirectory,
-                           toolOptions);
+                context.Console,
+                Path.Combine(context.RepoDirectory, "eng", "build.ps1"),
+                argsBuilder.ToString(),
+                context.RepoDirectory,
+                toolOptions);
         }
 
         public override bool Pack(BuildContext context, BuildSettings settings)
@@ -103,14 +105,50 @@ namespace Build
 
             var filter = testAll ? "" : settings.TestsFilter ?? context.Product.DefaultTestsFilter;
 
-            var binaryLogFilePath = Path.Combine(
-               context.RepoDirectory,
-               context.Product.LogsDirectory.ToString(),
-               $"{this.Name}.test.binlog");
+            var configuration = context.Product.DependencyDefinition.MSBuildConfiguration[settings.BuildConfiguration];
 
             // We run Metalama's unit tests.
-            var project = Path.Combine(context.RepoDirectory, "src", "Metalama", "Metalama.Compiler.UnitTests", "Metalama.Compiler.UnitTests.csproj");
-            return DotNetHelper.Run(context, settings, project, "test", $"--no-restore --filter \"{filter}\" -bl:{binaryLogFilePath}");
+            var testsBinDirectory = Path.Combine("artifacts", "bin", "Metalama.Compiler.UnitTests", configuration);
+            var testFileName = "Metalama.Compiler.UnitTests.dll";
+            var testFiles = Directory.GetFiles(testsBinDirectory, testFileName, SearchOption.AllDirectories);
+            var actualTestFilesCount = testFiles.Length;
+
+            // Update when the number of target frameworks changes.
+            var expectedTestFilesCount = 2;
+
+            if (actualTestFilesCount != expectedTestFilesCount)
+            {
+                context.Console.WriteError(
+                    $"{actualTestFilesCount} files found instead of {expectedTestFilesCount} in {testsBinDirectory}.");
+                return false;
+            }
+
+            var resultsRelativeDirectory =
+                context.Product.TestResultsDirectory.ToString(new BuildInfo(null, settings.BuildConfiguration,
+                    context.Product, null));
+
+            var resultsDirectory = Path.Combine(context.RepoDirectory, resultsRelativeDirectory);
+
+            var args =
+                $"--filter \"{filter}\" --logger \"trx\" --logger \"console;verbosity=minimal\" --results-directory \"{resultsDirectory}\"";
+            var success = true;
+
+            foreach (var testFile in testFiles)
+            {
+                success &= DotNetHelper.Run(context, settings, testFile, "test", args);
+            }
+
+            if (TeamCityHelper.IsTeamCityBuild(settings))
+            {
+                // Export test result files to TeamCity.
+                TeamCityHelper.SendImportDataMessage(
+                    "vstest",
+                    Path.Combine(resultsRelativeDirectory, "*.trx").Replace(Path.DirectorySeparatorChar, '/'),
+                    Path.GetFileName(testFileName),
+                    false);
+            }
+
+            return success;
         }
     }
 }
