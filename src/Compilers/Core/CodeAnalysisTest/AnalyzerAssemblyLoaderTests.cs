@@ -1448,6 +1448,7 @@ Delta.2: Test D2
                 VerifyDependencyAssemblies(loader, copyCount: 1, analyzerPath, analyzerResourcesPath);
             });
         }
+
 #if NET
 
         [Theory]
