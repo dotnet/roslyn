@@ -3147,7 +3147,7 @@ Class C
 
         End Function
 
-        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
+        <ConditionalWpfFact(GetType(IsEnglishLocal)), WorkItem("https://github.com/dotnet/roslyn/issues/29938")>
         Public Async Function TestMatchWithTurkishIWorkaround9() As Task
             Using New CultureContext(New Globalization.CultureInfo("tr-TR", useUserOverride:=False))
                 Using state = TestStateFactory.CreateVisualBasicTestState(
