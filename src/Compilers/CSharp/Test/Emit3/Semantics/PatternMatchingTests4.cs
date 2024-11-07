@@ -5279,6 +5279,7 @@ _ = i switch
 int[]? i = null;
 _ = i is not null or []; // 1
 _ = i is (not null) or []; // 2
+_ = i is not (null or []);
 
 _ = i switch
 {
@@ -5295,9 +5296,9 @@ _ = i switch
                 // (4,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = i is (not null) or []; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "[]").WithLocation(4, 24),
-                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     [] => 43, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[]").WithLocation(9, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "[]").WithLocation(10, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
