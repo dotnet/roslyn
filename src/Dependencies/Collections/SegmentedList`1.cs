@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Collections
         private static readonly SegmentedArray<T> s_emptyArray = new(0);
         private static IEnumerator<T>? s_emptyEnumerator;
 
-        public static int SegmentGrowthShiftValue { get; set; } = 3;
-
         // Constructs a SegmentedList. The list is initially empty and has a capacity
         // of zero. Upon adding the first element to the list the capacity is
         // increased to DefaultCapacity, and then increased in multiples of two
@@ -514,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             Debug.Assert(_items.Length < capacity);
 
-            int newCapacity;
+            var newCapacity = 0;
 
             if (_items.Length < SegmentedArrayHelper.GetSegmentSize<T>() / 2)
             {
@@ -524,31 +522,38 @@ namespace Microsoft.CodeAnalysis.Collections
             }
             else
             {
-                var lastSegmentLength = _items.Length & SegmentedArrayHelper.GetOffsetMask<T>();
-                if (lastSegmentLength > 0)
+                // If the last segment is fully sized, increase the number of segments by the desired growth rate
+                if (0 == (_items.Length & SegmentedArrayHelper.GetOffsetMask<T>()))
                 {
-                    // The last segment isn't fully sized, increase the new capacity such that it will be.
-                    newCapacity = (_items.Length - lastSegmentLength) + SegmentedArrayHelper.GetSegmentSize<T>();
-                }
-                else
-                {
-                    // The last segment is fully sized, increase the number of segments by at least the desired growth factor (1.125)
+                    // This value determines the growth rate of the number of segments to use.
+                    // For a value of 3, this means the segment count will grow at a rate of
+                    // 1 + (1 >> 3) or 12.5%
+                    const int segmentGrowthShiftValue = 3;
+
                     var oldSegmentCount = (_items.Length + SegmentedArrayHelper.GetSegmentSize<T>() - 1) >> SegmentedArrayHelper.GetSegmentShift<T>();
-                    var newSegmentCount = oldSegmentCount + Math.Max(1, oldSegmentCount >> SegmentGrowthShiftValue);
+                    var newSegmentCount = oldSegmentCount + Math.Max(1, oldSegmentCount >> segmentGrowthShiftValue);
 
                     newCapacity = SegmentedArrayHelper.GetSegmentSize<T>() * newSegmentCount;
                 }
+            }
+
+            // If the computed capacity is less than specified, set to the original argument.
+            // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
+            if (newCapacity < capacity)
+                newCapacity = capacity;
+
+            if (newCapacity > SegmentedArrayHelper.GetSegmentSize<T>())
+            {
+                // If the last segment isn't fully sized, increase the new capacity such that it will be.
+                var lastSegmentLength = newCapacity & SegmentedArrayHelper.GetOffsetMask<T>();
+                if (lastSegmentLength > 0)
+                    newCapacity = (newCapacity - lastSegmentLength) + SegmentedArrayHelper.GetSegmentSize<T>();
 
                 // Allow the list to grow to maximum possible capacity (~2G elements) before encountering overflow.
                 // Note that this check works even when _items.Length overflowed thanks to the (uint) cast
                 if ((uint)newCapacity > MaxLength)
                     newCapacity = MaxLength;
             }
-
-            // If the computed capacity is still less than specified, set to the original argument.
-            // Capacities exceeding Array.MaxLength will be surfaced as OutOfMemoryException by Array.Resize.
-            if (newCapacity < capacity)
-                newCapacity = capacity;
 
             Capacity = newCapacity;
         }
