@@ -299,8 +299,8 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
         => typedChar switch
         {
             'n' => kind is SyntaxKind.RegionKeyword or SyntaxKind.EndRegionKeyword,
-            't' => kind == SyntaxKind.SelectKeyword,
-            'e' => kind == SyntaxKind.WhereKeyword,
+            't' => kind is SyntaxKind.SelectKeyword,
+            'e' => kind is SyntaxKind.WhereKeyword or SyntaxKind.ElseKeyword,
             _ => true,
         };
 
