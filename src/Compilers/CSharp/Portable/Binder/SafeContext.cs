@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static readonly SafeContext CurrentMethod = new SafeContext(CurrentMethodRaw);
 
         /// <summary>
-        /// Gets a lifetime which is "empty". i.e. which refers to a variable whose storage is never allocated.
+        /// Gets a SafeContext which is "empty". i.e. which refers to a variable whose storage is never allocated.
         /// </summary>
         public static readonly SafeContext Empty = new SafeContext(uint.MaxValue);
 
         /// <summary>
-        /// Gets a lifetime which is narrower than the given lifetime.
+        /// Gets a SafeContext which is narrower than the given SafeContext.
         /// Used to "enter" a nested local scope.
         /// </summary>
         public SafeContext Narrower()
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets a lifetime which is wider than the given lifetime.
+        /// Gets a SafeContext which is wider than the given SafeContext.
         /// Used to "exit" a nested local scope.
         /// </summary>
         public SafeContext Wider()
@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsReturnOnly => _value == ReturnOnlyRaw;
         public bool IsReturnable => _value is CallingMethodRaw or ReturnOnlyRaw;
 
-        /// <summary>Returns true if a 'ref' with this lifetime can be converted to the 'other' lifetime. Otherwise, returns false.</summary>
-        /// <remarks>Generally, a wider lifetime is convertible to a narrower lifetime.</remarks>
+        /// <summary>Returns true if a 'ref' with this SafeContext can be converted to the 'other' SafeContext. Otherwise, returns false.</summary>
+        /// <remarks>Generally, a wider SafeContext is convertible to a narrower SafeContext.</remarks>
         public bool IsConvertibleTo(SafeContext other)
             => this._value <= other._value;
 
@@ -86,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns the narrower of two lifetimes.
         /// </summary>
         /// <remarks>
-        /// In other words, this method returns the widest lifetime which 'this' and 'other' are both convertible to.
+        /// In other words, this method returns the widest SafeContext which 'this' and 'other' are both convertible to.
         /// If in future we added the concept of unrelated lifetimes (e.g. to implement 'ref scoped'), this method would perhaps return a Nullable,
-        /// for the case that no lifetime exists which both input lifetimes are convertible to.
+        /// for the case that no SafeContext exists which both input lifetimes are convertible to.
         /// </remarks>
         public SafeContext Intersect(SafeContext other)
             => this.IsConvertibleTo(other) ? other : this;
@@ -96,11 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns the wider of two lifetimes.
         /// </summary>
-        /// <remarks>In other words, this method returns the narrowest lifetime which can be converted to both 'this' and 'other'.</remarks>
+        /// <remarks>In other words, this method returns the narrowest SafeContext which can be converted to both 'this' and 'other'.</remarks>
         public SafeContext Union(SafeContext other)
             => this.IsConvertibleTo(other) ? this : other;
 
-        /// <summary>Returns true if this lifetime is the same as 'other' (i.e. for invariant nested conversion).</summary>
+        /// <summary>Returns true if this SafeContext is the same as 'other' (i.e. for invariant nested conversion).</summary>
         public bool Equals(SafeContext other)
             => this._value == other._value;
 

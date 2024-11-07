@@ -1572,9 +1572,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         Debug.Assert(leftEscape.Equals(rightEscape) || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
-                        // We only check if the left lifetime is convertible to the right here
+                        // We only check if the left SafeContext is convertible to the right here
                         // in order to give a more useful diagnostic.
-                        // Later on we check if right lifetime is convertible to left,
+                        // Later on we check if right SafeContext is convertible to left,
                         // which effectively means these lifetimes must be equal.
                         if (!leftEscape.IsConvertibleTo(rightEscape))
                         {

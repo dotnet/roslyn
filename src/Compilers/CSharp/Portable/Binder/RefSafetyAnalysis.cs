@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (_useUpdatedEscapeRules && localSymbol.Scope != ScopedKind.None)
                 {
-                    // If the local has a scoped modifier, then the lifetime is not inferred from
+                    // If the local has a scoped modifier, then the SafeContext is not inferred from
                     // the initializer. Validate the escape values for the initializer instead.
 
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
