@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
+using Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -36,11 +37,7 @@ public sealed class EntryPointFinderTests
         Assert.Equal("C", entryPoints.Single().Name);
     }
 
-    [Theory, CombinatorialData]
-    public void TestWrongName(
-        [CombinatorialValues("public", "private", "")] string accessibility,
-        [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
-        [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
+    private static void NegativeTest(string signature)
     {
         var compilation = CSharpCompilation.Create("Test").AddSyntaxTrees(CSharpSyntaxTree.ParseText($$"""
             using System;
@@ -48,7 +45,7 @@ public sealed class EntryPointFinderTests
 
             class C
             {
-                static {{accessibility}} {{returnType}} main({{parameters}})
+                {{signature}}
                 {
                 }
             }
@@ -56,6 +53,15 @@ public sealed class EntryPointFinderTests
 
         var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
         Assert.Empty(entryPoints);
+    }
+
+    [Theory, CombinatorialData]
+    public void TestWrongName(
+        [CombinatorialValues("public", "private", "")] string accessibility,
+        [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
+        [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
+    {
+        NegativeTest($"static {accessibility} {returnType} main({parameters})");
     }
 
     [Theory, CombinatorialData]
@@ -64,20 +70,7 @@ public sealed class EntryPointFinderTests
         [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
         [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
     {
-        var compilation = CSharpCompilation.Create("Test").AddSyntaxTrees(CSharpSyntaxTree.ParseText($$"""
-            using System;
-            using System.Threading.Tasks;
-
-            class C
-            {
-                {{accessibility}} {{returnType}} main({{parameters}})
-                {
-                }
-            }
-            """));
-
-        var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
-        Assert.Empty(entryPoints);
+        NegativeTest($"{accessibility} {returnType} main({parameters})");
     }
 
     [Theory, CombinatorialData]
@@ -86,41 +79,15 @@ public sealed class EntryPointFinderTests
         [CombinatorialValues("string", "Task<string>", "ValueTask<string>")] string returnType,
         [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
     {
-        var compilation = CSharpCompilation.Create("Test").AddSyntaxTrees(CSharpSyntaxTree.ParseText($$"""
-            using System;
-            using System.Threading.Tasks;
-
-            class C
-            {
-                static {{accessibility}} {{returnType}} Main({{parameters}})
-                {
-                }
-            }
-            """));
-
-        var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
-        Assert.Empty(entryPoints);
+        NegativeTest($"static {accessibility} {returnType} Main({parameters})");
     }
 
     [Theory, CombinatorialData]
-    public void TestInvalidArgumentType(
+    public void TestInvalidParameterTypes(
         [CombinatorialValues("public", "private", "")] string accessibility,
         [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
-        [CombinatorialValues("string args", "string* args", "int[] args")] string parameters)
+        [CombinatorialValues("string args", "string* args", "int[] args", "string[] args1, string[] args2")] string parameters)
     {
-        var compilation = CSharpCompilation.Create("Test").AddSyntaxTrees(CSharpSyntaxTree.ParseText($$"""
-            using System;
-            using System.Threading.Tasks;
-
-            class C
-            {
-                static {{accessibility}} {{returnType}} Main({{parameters}})
-                {
-                }
-            }
-            """));
-
-        var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
-        Assert.Empty(entryPoints);
+        NegativeTest($"static {accessibility} {returnType} Main({parameters})");
     }
 }
