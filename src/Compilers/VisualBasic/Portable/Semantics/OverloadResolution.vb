@@ -4047,7 +4047,7 @@ Bailout:
                 End If
 
                 If Not signatureMatch Then
-                    Debug.Assert(argumentNames.IsDefault)
+                    Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
 
                     ' If we have gotten to this point it means that the 2 procedures have equal specificity,
                     ' but signatures that do not match exactly (after generic substitution). This
@@ -4057,10 +4057,9 @@ Bailout:
                     ' param array than the other. The one using more, is then shadowed by the one using less.
 
                     '•	If M has fewer parameters from an expanded paramarray than N, eliminate N from the set.
-                    If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
-                        'GoTo DeterminedTheWinner
-                        GoTo ContinueCandidatesLoop
-                    End If
+                    'If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
+                    '    GoTo DeterminedTheWinner
+                    'End If
 
                 Else
                     ' The signatures of the two methods match (after generic parameter substitution).
@@ -4081,7 +4080,9 @@ Bailout:
                     '       This rule also applies to the types that extension methods are defined on.
                     '7.2.	If M and N are extension methods and the target type of M is a class or
                     '       structure and the target type of N is an interface, eliminate N from the set.
-                    If ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
+                    If signatureMatch AndAlso
+                       Not (existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) AndAlso
+                       ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
                         GoTo DeterminedTheWinner
                     End If
 
