@@ -34,7 +34,7 @@ internal abstract class AbstractEntryPointFinder(Compilation compilation) : Symb
         if (symbol.IsStatic &&
             MatchesMainMethodName(symbol.Name) &&
             HasValidReturnType(symbol) &&
-            symbol.Parameters is [IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_String }] or [])
+            symbol.Parameters is [{ Type: IArrayTypeSymbol { ElementType.SpecialType: SpecialType.System_String } }] or [])
         {
             EntryPoints.Add(symbol.ContainingType);
         }
@@ -53,20 +53,8 @@ internal abstract class AbstractEntryPointFinder(Compilation compilation) : Symb
             return true;
 
         // Task or ValueTask
-        if (returnType.OriginalDefinition.Equals(_knownTaskTypes.TaskType) ||
-            returnType.OriginalDefinition.Equals(_knownTaskTypes.ValueTaskType))
-        {
-            return true;
-        }
-
         // Task<int> or ValueTask<int>
-        if (returnType.OriginalDefinition.Equals(_knownTaskTypes.TaskOfTType) ||
-            returnType.OriginalDefinition.Equals(_knownTaskTypes.ValueTaskOfTType))
-        {
-            if (returnType.GetTypeArguments() is [ITypeSymbol { SpecialType: SpecialType.System_Int32 }])
-                return true;
-        }
-
-        return false;
+        return _knownTaskTypes.IsTaskLike(returnType) &&
+            returnType.GetTypeArguments() is [] or [{ SpecialType: SpecialType.System_Int32 }];
     }
 }
