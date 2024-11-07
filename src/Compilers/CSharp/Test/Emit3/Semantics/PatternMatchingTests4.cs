@@ -4836,6 +4836,7 @@ class D : A { }
             var source = """
 object o = null;
 _ = o is not A or B; // 1
+_ = o is not (A or B);
 _ = o is (not A) or B; // 2
 _ = o is (not A) or (not B); // 3
 _ = o is A or B;
@@ -4848,23 +4849,66 @@ _ = o switch
     _ => 44
 };
 
+_ = o switch
+{
+    not A => 42,
+    not B => 43,
+    _ => 44 // 5
+};
+
 class A { }
 class B { }
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,19): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,19): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not A or B; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(2, 19),
-                // (3,21): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (4,21): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is (not A) or B; // 2
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(3, 21),
-                // (4,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(4, 21),
+                // (5,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is (not A) or (not B); // 3
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is (not A) or (not B)").WithArguments("object").WithLocation(4, 5),
-                // (11,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is (not A) or (not B)").WithArguments("object").WithLocation(5, 5),
+                // (12,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     B => 43, // 4
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B").WithLocation(11, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B").WithLocation(12, 5),
+                // (20,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     _ => 44 // 5
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(20, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_NotAOrBPattern_Interfaces()
+        {
+            var source = """
+object o = null;
+_ = o is not A or B;
+_ = o is not (A or B);
+_ = o is (not A) or B;
+_ = o is (not A) or (not B);
+_ = o is A or B;
+_ = o is A or not B;
+
+_ = o switch
+{
+    not A => 42,
+    B => 43,
+    _ => 44
+};
+
+_ = o switch
+{
+    not A => 42,
+    not B => 43,
+    _ => 44
+};
+
+interface A { }
+interface B { }
+""";
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -4873,6 +4917,7 @@ class B { }
             var source = """
 object o = null;
 _ = o is not A or Derived;
+_ = o is not (A or Derived);
 _ = o is (not A) or Derived;
 _ = o is (not A) or (not Derived);
 _ = o is A or Derived;
@@ -4890,9 +4935,9 @@ class Derived : A { }
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                // (7,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 // _ = o is A or not Derived; // 1
-                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is A or not Derived").WithArguments("object").WithLocation(6, 5));
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is A or not Derived").WithArguments("object").WithLocation(7, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -4900,7 +4945,8 @@ class Derived : A { }
         {
             var source = """
 object o = null;
-_ = o is var x1 or not A or B; // 1
+_ = o is var x1 or not A or B; // 1, 2
+_ = o is var x2 or not (A or B); // 3, 4
 
 class A { }
 class B { }
@@ -4908,11 +4954,17 @@ class B { }
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (2,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
-                // _ = o is var x1 or not A or B; // 1
+                // _ = o is var x1 or not A or B; // 1, 2
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is var x1 or not A or B").WithArguments("object").WithLocation(2, 5),
                 // (2,14): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
-                // _ = o is var x1 or not A or B; // 1
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x1").WithLocation(2, 14));
+                // _ = o is var x1 or not A or B; // 1, 2
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x1").WithLocation(2, 14),
+                // (3,5): warning CS8794: An expression of type 'object' always matches the provided pattern.
+                // _ = o is var x2 or not (A or B); // 3, 4
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is var x2 or not (A or B)").WithArguments("object").WithLocation(3, 5),
+                // (3,14): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+                // _ = o is var x2 or not (A or B); // 3, 4
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x2").WithLocation(3, 14));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -4942,6 +4994,7 @@ class A { }
             var source = """
 object o = null;
 _ = o is not A or (B or C); // 1
+_ = o is not (A or (B or C));
 
 _ = o switch
 {
@@ -4956,15 +5009,15 @@ class C { }
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,20): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,20): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not A or (B or C); // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(2, 20),
-                // (2,25): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,25): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not A or (B or C); // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "C").WithLocation(2, 25),
-                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     B or C => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B or C").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B or C").WithLocation(8, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -4976,6 +5029,7 @@ object? o = null;
 _ = o is not null or string; // 1
 _ = o is (not null) or string; // 2
 _ = o is not null or (not not string); // 3
+_ = o is not (null or string);
 
 _ = o switch
 {
@@ -4986,18 +5040,18 @@ _ = o switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not null or string; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(3, 22),
-                // (4,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (4,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is (not null) or string; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(4, 24),
-                // (5,31): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (5,31): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not null or (not not string); // 3
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(5, 31),
-                // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (11,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     string => 43, // 4
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(10, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(11, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5008,25 +5062,26 @@ _ = o switch
 string? s = null;
 _ = s is not null or { Length: >0 }; // 1
 _ = s is (not null) or { Length: >0 }; // 2
+_ = s is not (null or { Length: >0 });
 
 _ = s switch
 {
     not null => 42,
-    "" => 43, // 2
+    "" => 43, // 3
     _ => 44
 };
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = s is not null or { Length: >0 }; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >0 }").WithLocation(3, 22),
-                // (4,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (4,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = s is (not null) or { Length: >0 }; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "{ Length: >0 }").WithLocation(4, 24),
-                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     "" => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(9, 5));
+                // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     "" => 43, // 3
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(10, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5037,6 +5092,7 @@ _ = s switch
 int? i = null;
 _ = i is not null or 0; // 1
 _ = i is (not null) or 0; // 2
+_ = i is not (null or 0);
 
 _ = i switch
 {
@@ -5047,15 +5103,15 @@ _ = i switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = i is not null or 0; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(3, 22),
-                // (4,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (4,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = i is (not null) or 0; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "0").WithLocation(4, 24),
-                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     0 => 43, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "0").WithLocation(9, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "0").WithLocation(10, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5142,6 +5198,8 @@ _ = b is not null or false; // 1
 _ = b is (not null) or false; // 2
 _ = b is not null or true; // 3
 _ = b is (not null) or true; // 4
+_ = b is not (null or false);
+_ = b is not (null or true);
 
 _ = b switch
 {
@@ -5158,24 +5216,24 @@ _ = b switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = b is not null or false; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "false").WithLocation(3, 22),
-                // (4,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (4,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = b is (not null) or false; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "false").WithLocation(4, 24),
-                // (5,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (5,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = b is not null or true; // 3
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "true").WithLocation(5, 22),
-                // (6,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (6,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = b is (not null) or true; // 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "true").WithLocation(6, 24),
-                // (11,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (13,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     false => 43, // 5
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "false").WithLocation(11, 5),
-                // (17,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "false").WithLocation(13, 5),
+                // (19,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     true => 43, // 6
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "true").WithLocation(17, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "true").WithLocation(19, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5199,13 +5257,13 @@ _ = i switch
                 // (3,22): error CS0029: Cannot implicitly convert type 'bool' to 'int?'
                 // _ = i is not null or false; // 1
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "false").WithArguments("bool", "int?").WithLocation(3, 22),
-                // (3,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = i is not null or false; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "false").WithLocation(3, 22),
                 // (4,24): error CS0029: Cannot implicitly convert type 'bool' to 'int?'
                 // _ = i is (not null) or false; // 2
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "false").WithArguments("bool", "int?").WithLocation(4, 24),
-                // (4,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (4,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = i is (not null) or false; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "false").WithLocation(4, 24),
                 // (9,5): error CS0029: Cannot implicitly convert type 'bool' to 'int?'
@@ -5231,10 +5289,10 @@ _ = i switch
 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (3,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = i is not null or []; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "[]").WithLocation(3, 22),
-                // (4,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (4,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = i is (not null) or []; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "[]").WithLocation(4, 24),
                 // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
@@ -5269,6 +5327,7 @@ _ = i is (not null) or _; // 2
 string? s = null;
 _ = s is not null or ""; // 1
 _ = s is (not null) or ""; // 2
+_ = s is not (null or "");
 
 _ = s switch
 {
@@ -5279,15 +5338,15 @@ _ = s switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = s is not null or ""; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""""").WithLocation(3, 22),
-                // (4,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (4,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = s is (not null) or ""; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""""").WithLocation(4, 24),
-                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     "" => 43, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(9, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(10, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5297,6 +5356,7 @@ _ = s switch
 object o = null;
 _ = o is not "A" or "B"; // 1
 _ = o is (not "A") or "B"; // 2
+_ = o is not ("A" or "B");
 
 _ = o switch
 {
@@ -5307,15 +5367,15 @@ _ = o switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,21): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,21): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not "A" or "B"; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""B""").WithLocation(2, 21),
-                // (3,23): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,23): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is (not "A") or "B"; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""B""").WithLocation(3, 23),
-                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     "B" => 43, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""B""").WithLocation(8, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""B""").WithLocation(9, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5323,37 +5383,38 @@ _ = o switch
         {
             var source = """
 object o = null;
-_ = o is not "A" or "B" or "C"; // 1
-_ = o is (not "A") or "B" or "C"; // 2
+_ = o is not "A" or "B" or "C"; // 1, 2
+_ = o is (not "A") or "B" or "C"; // 3, 4
+_ = o is not ("A" or "B" or "C");
 
 _ = o switch
 {
     not "A" => 42,
-    "B" => 43, // 3
-    "C" => 44, // 4
+    "B" => 43, // 5
+    "C" => 44, // 6
     _ => 45
 };
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,21): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is not "A" or "B" or "C"; // 1
+                // (2,21): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = o is not "A" or "B" or "C"; // 1, 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""B""").WithLocation(2, 21),
-                // (2,28): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is not "A" or "B" or "C"; // 1
+                // (2,28): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = o is not "A" or "B" or "C"; // 1, 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""C""").WithLocation(2, 28),
-                // (3,23): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is (not "A") or "B" or "C"; // 2
+                // (3,23): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = o is (not "A") or "B" or "C"; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""B""").WithLocation(3, 23),
-                // (3,30): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is (not "A") or "B" or "C"; // 2
+                // (3,30): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // _ = o is (not "A") or "B" or "C"; // 3, 4
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""C""").WithLocation(3, 30),
-                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     "B" => 43, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""B""").WithLocation(8, 5),
                 // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     "C" => 44, // 4
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""C""").WithLocation(9, 5));
+                //     "B" => 43, // 5
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""B""").WithLocation(9, 5),
+                // (10,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                //     "C" => 44, // 6
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""C""").WithLocation(10, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5363,6 +5424,7 @@ _ = o switch
 object o = null;
 _ = o is not "A" or null; // 1
 _ = o is (not "A") or null; // 2
+_ = o is not ("A" or null);
 
 _ = o switch
 {
@@ -5373,15 +5435,15 @@ _ = o switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,21): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,21): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not "A" or null; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(2, 21),
-                // (3,23): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,23): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is (not "A") or null; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(3, 23),
-                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     null => 43, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(8, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(9, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5391,6 +5453,7 @@ _ = o switch
 object o = null;
 _ = o is not 42 or 43; // 1
 _ = o is (not 42) or 43; // 2
+_ = o is not (42 or 43);
 
 _ = o switch
 {
@@ -5401,15 +5464,15 @@ _ = o switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,20): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,20): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not 42 or 43; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(2, 20),
-                // (3,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is (not 42) or 43; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "43").WithLocation(3, 22),
-                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     43 => 43, // 3
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "43").WithLocation(8, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "43").WithLocation(9, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5429,7 +5492,7 @@ _ = o switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,21): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (3,21): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not 42L or string; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(3, 21),
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
@@ -5443,6 +5506,7 @@ _ = o switch
             var source = """
 object o = null;
 _ = o is not string { Length: > 0 } or B; // 1
+_ = o is not (string { Length: > 0 } or B);
 
 _ = o switch
 {
@@ -5455,12 +5519,12 @@ class B { }
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,40): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,40): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not string { Length: > 0 } or B; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "B").WithLocation(2, 40),
-                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     B => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "B").WithLocation(8, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5487,6 +5551,7 @@ _ = o switch
             var source = """
 string o = null;
 _ = o is not { Length: > 0 } or null; // 1
+_ = o is not ({ Length: > 0 } or null);
 
 _ = o switch
 {
@@ -5500,9 +5565,9 @@ _ = o switch
                 // (2,33): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not { Length: > 0 } or null; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "null").WithLocation(2, 33),
-                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     null => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(8, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5511,6 +5576,7 @@ _ = o switch
             var source = """
 object o = null;
 _ = o is not null or not not "1" or "2"; // 1
+_ = o is not (null or not not "1" or "2");
 
 _ = o switch
 {
@@ -5521,15 +5587,15 @@ _ = o switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,30): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,30): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not null or not not "1" or "2"; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""1""").WithLocation(2, 30),
-                // (2,37): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,37): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = o is not null or not not "1" or "2"; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, @"""2""").WithLocation(2, 37),
-                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     not not "1" or "2" => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"not not ""1"" or ""2""").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"not not ""1"" or ""2""").WithLocation(8, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5538,6 +5604,7 @@ _ = o switch
             var source = """
 E? e = null;
 _ = e is not null or E.Zero; // 1
+_ = e is not (null or E.Zero);
 
 _ = e switch
 {
@@ -5549,12 +5616,12 @@ enum E { Zero = 0 }
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,22): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,22): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = e is not null or E.Zero; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "E.Zero").WithLocation(2, 22),
-                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     E.Zero => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E.Zero").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E.Zero").WithLocation(8, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5563,6 +5630,7 @@ enum E { Zero = 0 }
             var source = """
 E e = E.Zero;
 _ = e is not E.Zero or E.One; // 1
+_ = e is not (E.Zero or E.One);
 
 _ = e switch
 {
@@ -5574,12 +5642,12 @@ enum E { Zero = 0, One = 1 }
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,24): error CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                // (2,24): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = e is not E.Zero or E.One; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "E.One").WithLocation(2, 24),
-                // (7,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     E.One => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E.One").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "E.One").WithLocation(8, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5589,6 +5657,7 @@ enum E { Zero = 0, One = 1 }
 string s = null;
 
 _ = s is not { Length: 0 } or { Length: 10 }; // 1
+_ = s is not ({ Length: 0 } or { Length: 10 });
 
 _ = s switch
 {
@@ -5600,6 +5669,7 @@ _ = s switch
 object o = null;
 
 _ = s is not string { Length: 0 } or string { Length: 10 }; // 3
+_ = s is not (string { Length: 0 } or string { Length: 10 });
 
 _ = o switch
 {
@@ -5613,15 +5683,15 @@ _ = o switch
                 // (3,41): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = s is not { Length: 0 } or { Length: 10 }; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "10").WithLocation(3, 41),
-                // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                // (9,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     { Length: 10 } => 43, // 2
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: 10 }").WithLocation(8, 5),
-                // (14,55): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "{ Length: 10 }").WithLocation(9, 5),
+                // (15,55): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
                 // _ = s is not string { Length: 0 } or string { Length: 10 }; // 3
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "10").WithLocation(14, 55),
-                // (19,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "10").WithLocation(15, 55),
+                // (21,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //     string { Length: 10 } => 43, // 4
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string { Length: 10 }").WithLocation(19, 5));
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string { Length: 10 }").WithLocation(21, 5));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
@@ -5834,6 +5904,7 @@ _ = o switch
     _ => 43
 };
 """;
+            // Note: we should consider warning here too, but haven't observed this situation in the wild yet
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
