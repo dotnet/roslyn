@@ -341,7 +341,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         var partialProject = project.Documents.Single().WithFrozenPartialSemantics(forceFreeze, CancellationToken.None).Project;
 
-        // If we're forcing the freeze, we must get a difference project instance.  If we're not, we'll get the same
+        // If we're forcing the freeze, we must get a different project instance.  If we're not, we'll get the same
         // project since the compilation was already available.
         if (forceFreeze)
             Assert.NotSame(partialProject, project);
