@@ -4377,8 +4377,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var currentScope = _localScopeDepth;
 
             // val-escape must agree on both branches.
-            Lifetime whenTrueEscape = GetValEscape(trueExpr, currentScope);
-            Lifetime whenFalseEscape = GetValEscape(falseExpr, currentScope);
+            SafeContext whenTrueEscape = GetValEscape(trueExpr, currentScope);
+            SafeContext whenFalseEscape = GetValEscape(falseExpr, currentScope);
 
             if (!whenTrueEscape.Equals(whenFalseEscape))
             {

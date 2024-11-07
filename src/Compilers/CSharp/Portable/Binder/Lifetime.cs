@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// - Informally, a variable is *live* if it has storage allocated for it (either on heap or stack).
     /// - In this design, all lifetimes have a known relationship to all other lifetimes.
     /// </remarks>
-    internal readonly struct Lifetime
+    internal readonly struct SafeContext
     {
         private const uint CallingMethodRaw = 0;
         private const uint ReturnOnlyRaw = 1;
@@ -28,49 +28,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// escaping to a wider scope, we can use simple depth numbering without ambiguity.
         /// </summary>
         private readonly uint _value;
-        private Lifetime(uint value) => _value = value;
+        private SafeContext(uint value) => _value = value;
 
         /// <summary>
         /// The "calling method" scope that is outside of the containing method/lambda.
         /// If something can escape to this scope, it can escape to any scope in a given method through a ref parameter or return.
         /// </summary>
-        public static readonly Lifetime CallingMethod = new Lifetime(CallingMethodRaw);
+        public static readonly SafeContext CallingMethod = new SafeContext(CallingMethodRaw);
 
         /// <summary>
         /// The "return-only" scope that is outside of the containing method/lambda.
         /// If something can escape to this scope, it can escape to any scope in a given method or can be returned, but it can't escape through a ref parameter.
         /// </summary>
-        public static readonly Lifetime ReturnOnly = new Lifetime(ReturnOnlyRaw);
+        public static readonly SafeContext ReturnOnly = new SafeContext(ReturnOnlyRaw);
 
         /// <summary>
         /// The "current method" scope that is just inside the containing method/lambda.
         /// If something can escape to this scope, it can escape to any scope in a given method, but cannot be returned.
         /// </summary>
-        public static readonly Lifetime CurrentMethod = new Lifetime(CurrentMethodRaw);
+        public static readonly SafeContext CurrentMethod = new SafeContext(CurrentMethodRaw);
 
         /// <summary>
         /// Gets a lifetime which is "empty". i.e. which refers to a variable whose storage is never allocated.
         /// </summary>
-        public static readonly Lifetime Empty = new Lifetime(uint.MaxValue);
+        public static readonly SafeContext Empty = new SafeContext(uint.MaxValue);
 
         /// <summary>
         /// Gets a lifetime which is narrower than the given lifetime.
         /// Used to "enter" a nested local scope.
         /// </summary>
-        public Lifetime Narrower()
+        public SafeContext Narrower()
         {
             Debug.Assert(_value >= ReturnOnlyRaw);
-            return new Lifetime(_value + 1);
+            return new SafeContext(_value + 1);
         }
 
         /// <summary>
         /// Gets a lifetime which is wider than the given lifetime.
         /// Used to "exit" a nested local scope.
         /// </summary>
-        public Lifetime Wider()
+        public SafeContext Wider()
         {
             Debug.Assert(_value >= CurrentMethodRaw);
-            return new Lifetime(_value - 1);
+            return new SafeContext(_value - 1);
         }
 
         public bool IsCallingMethod => _value == CallingMethodRaw;
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>Returns true if a 'ref' with this lifetime can be converted to the 'other' lifetime. Otherwise, returns false.</summary>
         /// <remarks>Generally, a wider lifetime is convertible to a narrower lifetime.</remarks>
-        public bool IsConvertibleTo(Lifetime other)
+        public bool IsConvertibleTo(SafeContext other)
             => this._value <= other._value;
 
         /// <summary>
@@ -90,39 +90,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If in future we added the concept of unrelated lifetimes (e.g. to implement 'ref scoped'), this method would perhaps return a Nullable,
         /// for the case that no lifetime exists which both input lifetimes are convertible to.
         /// </remarks>
-        public Lifetime Intersect(Lifetime other)
+        public SafeContext Intersect(SafeContext other)
             => this.IsConvertibleTo(other) ? other : this;
 
         /// <summary>
         /// Returns the wider of two lifetimes.
         /// </summary>
         /// <remarks>In other words, this method returns the narrowest lifetime which can be converted to both 'this' and 'other'.</remarks>
-        public Lifetime Union(Lifetime other)
+        public SafeContext Union(SafeContext other)
             => this.IsConvertibleTo(other) ? this : other;
 
         /// <summary>Returns true if this lifetime is the same as 'other' (i.e. for invariant nested conversion).</summary>
-        public bool Equals(Lifetime other)
+        public bool Equals(SafeContext other)
             => this._value == other._value;
 
         public override bool Equals(object? obj)
-            => obj is Lifetime other && this.Equals(other);
+            => obj is SafeContext other && this.Equals(other);
 
         public override int GetHashCode()
             => unchecked((int)_value);
 
-        public static bool operator ==(Lifetime lhs, Lifetime rhs)
+        public static bool operator ==(SafeContext lhs, SafeContext rhs)
             => lhs._value == rhs._value;
 
-        public static bool operator !=(Lifetime lhs, Lifetime rhs)
+        public static bool operator !=(SafeContext lhs, SafeContext rhs)
             => lhs._value != rhs._value;
 
         public override string ToString()
             => _value switch
             {
-                CallingMethodRaw => "Lifetime<CallingMethod>",
-                ReturnOnlyRaw => "Lifetime<ReturnOnly>",
-                CurrentMethodRaw => "Lifetime<CurrentMethod>",
-                _ => $"Lifetime<{_value}>"
+                CallingMethodRaw => "SafeContext<CallingMethod>",
+                ReturnOnlyRaw => "SafeContext<ReturnOnly>",
+                CurrentMethodRaw => "SafeContext<CurrentMethod>",
+                _ => $"SafeContext<{_value}>"
             };
     }
 }

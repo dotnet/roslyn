@@ -39,7 +39,7 @@
   <ValueType Name="WellKnownMember"/>
   <ValueType Name="CollectionExpressionTypeKind"/>
   <ValueType Name="AccessorKind" />
-  <ValueType Name="Lifetime" />
+  <ValueType Name="SafeContext" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -109,7 +109,7 @@
   -->
   <Node Name="BoundCapturedReceiverPlaceholder" Base="BoundValuePlaceholderBase">
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="LocalScopeDepth" Type="Lifetime"/>
+    <Field Name="LocalScopeDepth" Type="SafeContext"/>
   </Node>
 
   <!--

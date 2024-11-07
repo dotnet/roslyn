@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class RefSafetyAnalysis
     {
-        private bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, Lifetime escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckLocalRefEscape(SyntaxNode node, BoundLocal local, SafeContext escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             LocalSymbol localSymbol = local.LocalSymbol;
 
@@ -1218,42 +1218,42 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class RefSafetyAnalysis
     {
-        private static EscapeLevel? EscapeLevelFromScope(Lifetime lifetime) => lifetime switch
+        private static EscapeLevel? EscapeLevelFromScope(SafeContext lifetime) => lifetime switch
         {
             { IsReturnOnly: true } => EscapeLevel.ReturnOnly,
             { IsCallingMethod: true } => EscapeLevel.CallingMethod,
             _ => null,
         };
 
-        private static Lifetime GetParameterValEscape(ParameterSymbol parameter)
+        private static SafeContext GetParameterValEscape(ParameterSymbol parameter)
         {
             return parameter switch
             {
-                { EffectiveScope: ScopedKind.ScopedValue } => Lifetime.CurrentMethod,
-                { RefKind: RefKind.Out, UseUpdatedEscapeRules: true } => Lifetime.ReturnOnly,
-                _ => Lifetime.CallingMethod
+                { EffectiveScope: ScopedKind.ScopedValue } => SafeContext.CurrentMethod,
+                { RefKind: RefKind.Out, UseUpdatedEscapeRules: true } => SafeContext.ReturnOnly,
+                _ => SafeContext.CallingMethod
             };
         }
 
         private static EscapeLevel? GetParameterValEscapeLevel(ParameterSymbol parameter) =>
             EscapeLevelFromScope(GetParameterValEscape(parameter));
 
-        private static Lifetime GetParameterRefEscape(ParameterSymbol parameter)
+        private static SafeContext GetParameterRefEscape(ParameterSymbol parameter)
         {
             return parameter switch
             {
-                { RefKind: RefKind.None } => Lifetime.CurrentMethod,
-                { EffectiveScope: ScopedKind.ScopedRef } => Lifetime.CurrentMethod,
-                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => Lifetime.ReturnOnly,
-                { HasUnscopedRefAttribute: true, IsThis: false } => Lifetime.CallingMethod,
-                _ => Lifetime.ReturnOnly
+                { RefKind: RefKind.None } => SafeContext.CurrentMethod,
+                { EffectiveScope: ScopedKind.ScopedRef } => SafeContext.CurrentMethod,
+                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => SafeContext.ReturnOnly,
+                { HasUnscopedRefAttribute: true, IsThis: false } => SafeContext.CallingMethod,
+                _ => SafeContext.ReturnOnly
             };
         }
 
         private static EscapeLevel? GetParameterRefEscapeLevel(ParameterSymbol parameter) =>
             EscapeLevelFromScope(GetParameterRefEscape(parameter));
 
-        private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, Lifetime escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckParameterValEscape(SyntaxNode node, ParameterSymbol parameter, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
         {
             if (_useUpdatedEscapeRules)
             {
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool CheckParameterRefEscape(SyntaxNode node, BoundExpression parameter, ParameterSymbol parameterSymbol, Lifetime escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        private bool CheckParameterRefEscape(SyntaxNode node, BoundExpression parameter, ParameterSymbol parameterSymbol, SafeContext escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
             var refSafeToEscape = GetParameterRefEscape(parameterSymbol);
             if (!refSafeToEscape.IsConvertibleTo(escapeTo))
@@ -1469,14 +1469,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class RefSafetyAnalysis
     {
-        private Lifetime GetFieldRefEscape(BoundFieldAccess fieldAccess, Lifetime scopeOfTheContainingExpression)
+        private SafeContext GetFieldRefEscape(BoundFieldAccess fieldAccess, SafeContext scopeOfTheContainingExpression)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
 
             // fields that are static or belong to reference types can ref escape anywhere
             if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
-                return Lifetime.CallingMethod;
+                return SafeContext.CallingMethod;
             }
 
             if (_useUpdatedEscapeRules)
@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetRefEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
         }
 
-        private bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, Lifetime escapeFrom, Lifetime escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
             // fields that are static or belong to reference types can ref escape anywhere
@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckRefEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
         }
 
-        private bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, Lifetime escapeFrom, Lifetime escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
         {
             var eventSymbol = eventAccess.EventSymbol;
 
@@ -1914,9 +1914,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class RefSafetyAnalysis
     {
-        internal Lifetime GetInterpolatedStringHandlerConversionEscapeScope(
+        internal SafeContext GetInterpolatedStringHandlerConversionEscapeScope(
             BoundExpression expression,
-            Lifetime scopeOfTheContainingExpression)
+            SafeContext scopeOfTheContainingExpression)
         {
             var data = expression.GetInterpolatedStringHandlerData();
 #if DEBUG
@@ -1926,7 +1926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var previousVisited = _visited;
             _visited = null;
 #endif
-            Lifetime escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
+            SafeContext escapeScope = GetValEscape(data.Construction, scopeOfTheContainingExpression);
 #if DEBUG
             _visited = previousVisited;
 #endif
@@ -1936,7 +1936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var argument in arguments)
             {
-                Lifetime argEscape = GetValEscape(argument, scopeOfTheContainingExpression);
+                SafeContext argEscape = GetValEscape(argument, scopeOfTheContainingExpression);
                 escapeScope = escapeScope.Intersect(argEscape);
             }
 
@@ -1954,7 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
-        private Lifetime GetInvocationEscapeScope(
+        private SafeContext GetInvocationEscapeScope(
             in MethodInfo methodInfo,
             BoundExpression? receiver,
             ThreeState receiverIsSubjectToCloning,
@@ -1962,7 +1962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            Lifetime scopeOfTheContainingExpression,
+            SafeContext scopeOfTheContainingExpression,
             bool isRefEscape
         )
         {
@@ -1987,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //•	the safe-to-escape of all argument expressions(including the receiver)
             //
 
-            Lifetime escapeScope = Lifetime.CallingMethod;
+            SafeContext escapeScope = SafeContext.CallingMethod;
             var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
             GetEscapeValuesForOldRules(
                 in methodInfo,
@@ -2014,7 +2014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // val escape scope is the narrowest of 
                     // - val escape of all byval arguments  (refs cannot be wrapped into values, so their ref escape is irrelevant, only use val escapes)
-                    Lifetime argumentEscape = (isRefEscape, argumentIsRefEscape) switch
+                    SafeContext argumentEscape = (isRefEscape, argumentIsRefEscape) switch
                     {
                         (true, true) => GetRefEscape(argument, scopeOfTheContainingExpression),
                         (false, false) => GetValEscape(argument, scopeOfTheContainingExpression),
@@ -2043,7 +2043,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return escapeScope;
         }
 
-        private Lifetime GetInvocationEscapeWithUpdatedRules(
+        private SafeContext GetInvocationEscapeWithUpdatedRules(
             in MethodInfo methodInfo,
             BoundExpression? receiver,
             ThreeState receiverIsSubjectToCloning,
@@ -2051,11 +2051,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            Lifetime scopeOfTheContainingExpression,
+            SafeContext scopeOfTheContainingExpression,
             bool isRefEscape)
         {
             //by default it is safe to escape
-            Lifetime escapeScope = Lifetime.CallingMethod;
+            SafeContext escapeScope = SafeContext.CallingMethod;
 
             var argsAndParamsAll = ArrayBuilder<EscapeValue>.GetInstance();
             GetFilteredInvocationArgumentsForEscapeWithUpdatedRules(
@@ -2082,7 +2082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          (param is { RefKind: not RefKind.None, Type: { } type } && type.IsRefLikeOrAllowsRefLikeType())) &&
                         isArgumentRefEscape == isRefEscape))
                 {
-                    Lifetime argEscape = isArgumentRefEscape ?
+                    SafeContext argEscape = isArgumentRefEscape ?
                         GetRefEscape(argument, scopeOfTheContainingExpression) :
                         GetValEscape(argument, scopeOfTheContainingExpression);
 
@@ -2117,8 +2117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             bool checkingReceiver,
-            Lifetime escapeFrom,
-            Lifetime escapeTo,
+            SafeContext escapeFrom,
+            SafeContext escapeTo,
             BindingDiagnosticBag diagnostics,
             bool isRefEscape
         )
@@ -2210,8 +2210,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
             bool checkingReceiver,
-            Lifetime escapeFrom,
-            Lifetime escapeTo,
+            SafeContext escapeFrom,
+            SafeContext escapeTo,
             BindingDiagnosticBag diagnostics,
             bool isRefEscape)
         {
@@ -2774,7 +2774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            Lifetime scopeOfTheContainingExpression,
+            SafeContext scopeOfTheContainingExpression,
             BindingDiagnosticBag diagnostics)
         {
             if (methodInfo.UseUpdatedEscapeRules)
@@ -2795,7 +2795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // widest possible escape via writeable ref-like receiver or ref/out argument.
-            Lifetime escapeTo = scopeOfTheContainingExpression;
+            SafeContext escapeTo = scopeOfTheContainingExpression;
 
             // collect all writeable ref-like arguments, including receiver
             var escapeArguments = ArrayBuilder<EscapeArgument>.GetInstance();
@@ -2835,7 +2835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // track the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.
-                var inferredDestinationValEscape = Lifetime.CallingMethod;
+                var inferredDestinationValEscape = SafeContext.CallingMethod;
                 foreach (var (parameter, argument, _) in escapeArguments)
                 {
                     // in the old rules, we assume that refs cannot escape into ref struct variables.
@@ -2874,7 +2874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> argsOpt,
             ImmutableArray<RefKind> argRefKindsOpt,
             ImmutableArray<int> argsToParamsOpt,
-            Lifetime scopeOfTheContainingExpression,
+            SafeContext scopeOfTheContainingExpression,
             BindingDiagnosticBag diagnostics)
         {
             var mixableArguments = ArrayBuilder<MixableDestination>.GetInstance();
@@ -2938,7 +2938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // find the widest scope that arguments could safely escape to.
                 // use this scope as the inferred STE of declaration expressions.
-                var inferredDestinationValEscape = Lifetime.CallingMethod;
+                var inferredDestinationValEscape = SafeContext.CallingMethod;
                 foreach (var (_, fromArg, _, isRefEscape) in escapeValues)
                 {
                     inferredDestinationValEscape = inferredDestinationValEscape.Intersect(isRefEscape
@@ -3212,7 +3212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class RefSafetyAnalysis
     {
-        private static ErrorCode GetStandardRValueRefEscapeError(Lifetime escapeTo)
+        private static ErrorCode GetStandardRValueRefEscapeError(SafeContext escapeTo)
         {
             if (escapeTo.IsReturnable)
             {
@@ -3296,7 +3296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>.
         /// </summary>
-        internal void ValidateEscape(BoundExpression expr, Lifetime escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
+        internal void ValidateEscape(BoundExpression expr, SafeContext escapeTo, bool isByRef, BindingDiagnosticBag diagnostics)
         {
             // The result of escape analysis is affected by the expression's type.
             // We can't do escape analysis on expressions which lack a type, such as 'target typed new()', until they are converted.
@@ -3319,7 +3319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///       There are few cases where RValues are permitted to be passed by reference which implies that a temporary local proxy is passed instead.
         ///       We reflect such behavior by constraining the escape value to the narrowest scope possible. 
         /// </summary>
-        internal Lifetime GetRefEscape(BoundExpression expr, Lifetime scopeOfTheContainingExpression)
+        internal SafeContext GetRefEscape(BoundExpression expr, SafeContext scopeOfTheContainingExpression)
         {
 #if DEBUG
             AssertVisited(expr);
@@ -3328,13 +3328,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
             {
-                return Lifetime.CallingMethod;
+                return SafeContext.CallingMethod;
             }
 
             // cannot infer anything from Void (broken code)
             if (expr.Type?.GetSpecialTypeSafe() == SpecialType.System_Void)
             {
-                return Lifetime.CallingMethod;
+                return SafeContext.CallingMethod;
             }
 
             // constants/literals cannot ref-escape current scope
@@ -3351,13 +3351,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.PointerElementAccess:
                     // array elements and pointer dereferencing are readwrite variables
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
 
                 case BoundKind.RefValueOperator:
                     // The undocumented __refvalue(tr, T) expression results in an lvalue of type T.
                     // for compat reasons it is not ref-returnable (since TypedReference is not val-returnable)
                     // it can, however, ref-escape to any other level (since TypedReference can val-escape to any other level)
-                    return Lifetime.CurrentMethod;
+                    return SafeContext.CurrentMethod;
 
                 case BoundKind.DiscardExpression:
                     // same as write-only byval local
@@ -3414,7 +3414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // field-like events that are static or belong to reference types can ref escape anywhere
                     if (eventSymbol.IsStatic || eventSymbol.ContainingType.IsReferenceType)
                     {
-                        return Lifetime.CallingMethod;
+                        return SafeContext.CallingMethod;
                     }
 
                     // for other events defer to the receiver.
@@ -3504,7 +3504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         case BoundArrayAccess:
                             // array elements are readwrite variables
-                            return Lifetime.CallingMethod;
+                            return SafeContext.CallingMethod;
 
                         case BoundCall call:
                             var methodSymbol = call.Method;
@@ -3627,7 +3627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
-        internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, Lifetime escapeFrom, Lifetime escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        internal bool CheckRefEscape(SyntaxNode node, BoundExpression expr, SafeContext escapeFrom, SafeContext escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
             AssertVisited(expr);
@@ -3996,12 +3996,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal Lifetime GetBroadestValEscape(BoundTupleExpression expr, Lifetime scopeOfTheContainingExpression)
+        internal SafeContext GetBroadestValEscape(BoundTupleExpression expr, SafeContext scopeOfTheContainingExpression)
         {
-            Lifetime broadest = scopeOfTheContainingExpression;
+            SafeContext broadest = scopeOfTheContainingExpression;
             foreach (var element in expr.Arguments)
             {
-                Lifetime valEscape;
+                SafeContext valEscape;
                 if (element is BoundTupleExpression te)
                 {
                     valEscape = GetBroadestValEscape(te, scopeOfTheContainingExpression);
@@ -4022,7 +4022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// 
         /// NOTE: unless the type of expression is ref-like, the result is Binder.ExternalScope since ordinary values can always be returned from methods. 
         /// </summary>
-        internal Lifetime GetValEscape(BoundExpression expr, Lifetime scopeOfTheContainingExpression)
+        internal SafeContext GetValEscape(BoundExpression expr, SafeContext scopeOfTheContainingExpression)
         {
 #if DEBUG
             AssertVisited(expr);
@@ -4031,19 +4031,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // cannot infer anything from errors
             if (expr.HasAnyErrors)
             {
-                return Lifetime.CallingMethod;
+                return SafeContext.CallingMethod;
             }
 
             // constants/literals cannot refer to local state
             if (expr.ConstantValueOpt != null)
             {
-                return Lifetime.CallingMethod;
+                return SafeContext.CallingMethod;
             }
 
             // to have local-referring values an expression must have a ref-like type
             if (expr.Type?.IsRefLikeOrAllowsRefLikeType() != true)
             {
-                return Lifetime.CallingMethod;
+                return SafeContext.CallingMethod;
             }
 
             // cover case that can refer to local state
@@ -4058,7 +4058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DefaultExpression:
                 case BoundKind.Utf8String:
                     // always returnable
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
 
                 case BoundKind.Parameter:
                     return GetParameterValEscape(((BoundParameter)expr).ParameterSymbol);
@@ -4066,7 +4066,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FromEndIndexExpression:
                     // We are going to call a constructor that takes an integer and a bool. Cannot leak any references through them.
                     // always returnable
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
@@ -4078,10 +4078,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // for compat reasons
                     // NB: it also means can`t assign stackalloc spans to a __refvalue
                     //     we are ok with that.
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
 
                 case BoundKind.DiscardExpression:
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
 
                 case BoundKind.DeconstructValuePlaceholder:
                 case BoundKind.InterpolatedStringArgumentPlaceholder:
@@ -4098,7 +4098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
-                    return Lifetime.CurrentMethod;
+                    return SafeContext.CurrentMethod;
 
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
@@ -4128,7 +4128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
                     {
                         // Already an error state.
-                        return Lifetime.CallingMethod;
+                        return SafeContext.CallingMethod;
                     }
 
                     // for ref-like fields defer to the receiver.
@@ -4287,7 +4287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var newT = (BoundNewT)expr;
                         // By default it is safe to escape
-                        var escape = Lifetime.CallingMethod;
+                        var escape = SafeContext.CallingMethod;
 
                         var initializerOpt = newT.InitializerExpressionOpt;
                         if (initializerOpt != null)
@@ -4334,8 +4334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
                         return HasLocalScope((BoundCollectionExpression)conversion.Operand) ?
-                            Lifetime.CurrentMethod :
-                            Lifetime.CallingMethod;
+                            SafeContext.CurrentMethod :
+                            SafeContext.CallingMethod;
                     }
 
                     if (conversion.Conversion.IsInlineArray)
@@ -4431,8 +4431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.RangeExpression:
                     var range = (BoundRangeExpression)expr;
 
-                    return (range.LeftOperandOpt is { } left ? GetValEscape(left, scopeOfTheContainingExpression) : Lifetime.CallingMethod)
-                        .Intersect(range.RightOperandOpt is { } right ? GetValEscape(right, scopeOfTheContainingExpression) : Lifetime.CallingMethod);
+                    return (range.LeftOperandOpt is { } left ? GetValEscape(left, scopeOfTheContainingExpression) : SafeContext.CallingMethod)
+                        .Intersect(range.RightOperandOpt is { } right ? GetValEscape(right, scopeOfTheContainingExpression) : SafeContext.CallingMethod);
 
                 case BoundKind.UserDefinedConditionalLogicalOperator:
                     var uo = (BoundUserDefinedConditionalLogicalOperator)expr;
@@ -4491,7 +4491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
 
                 case BoundKind.AsOperator:
                 case BoundKind.AwaitExpression:
@@ -4565,9 +4565,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private Lifetime GetTupleValEscape(ImmutableArray<BoundExpression> elements, Lifetime scopeOfTheContainingExpression)
+        private SafeContext GetTupleValEscape(ImmutableArray<BoundExpression> elements, SafeContext scopeOfTheContainingExpression)
         {
-            Lifetime narrowestScope = scopeOfTheContainingExpression;
+            SafeContext narrowestScope = scopeOfTheContainingExpression;
             foreach (var element in elements)
             {
                 narrowestScope = narrowestScope.Intersect(GetValEscape(element, scopeOfTheContainingExpression));
@@ -4582,9 +4582,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// passed to an indexer for example only matter if they can escape into the receiver
         /// as a stored field.
         /// </summary>
-        private Lifetime GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, Lifetime scopeOfTheContainingExpression)
+        private SafeContext GetValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, SafeContext scopeOfTheContainingExpression)
         {
-            var result = Lifetime.CallingMethod;
+            var result = SafeContext.CallingMethod;
             foreach (var expr in initExpr.Initializers)
             {
                 var exprResult = GetValEscapeOfObjectMemberInitializer(expr, scopeOfTheContainingExpression);
@@ -4594,9 +4594,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private Lifetime GetValEscapeOfObjectMemberInitializer(BoundExpression expr, Lifetime scopeOfTheContainingExpression)
+        private SafeContext GetValEscapeOfObjectMemberInitializer(BoundExpression expr, SafeContext scopeOfTheContainingExpression)
         {
-            Lifetime result;
+            SafeContext result;
             if (expr.Kind == BoundKind.AssignmentOperator)
             {
                 var assignment = (BoundAssignmentOperator)expr;
@@ -4619,23 +4619,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return result;
 
-            Lifetime getIndexerEscape(
+            SafeContext getIndexerEscape(
                 PropertySymbol indexer,
                 BoundObjectInitializerMember expr,
-                Lifetime rightEscapeScope)
+                SafeContext rightEscapeScope)
             {
                 Debug.Assert(expr.AccessorKind != AccessorKind.Unknown);
                 var methodInfo = MethodInfo.Create(indexer, expr.AccessorKind);
                 if (methodInfo.Method is null)
                 {
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
                 }
 
                 // If the indexer is readonly then none of the arguments can contribute to 
                 // the receiver escape
                 if (methodInfo.Method.IsEffectivelyReadOnly)
                 {
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
                 }
 
                 var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
@@ -4652,7 +4652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     mixableArguments: null,
                     escapeValues);
 
-                Lifetime receiverEscapeScope = Lifetime.CallingMethod;
+                SafeContext receiverEscapeScope = SafeContext.CallingMethod;
                 foreach (var escapeValue in escapeValues)
                 {
                     // This is a call to an indexer so the ref escape scope can only impact the escape value if it
@@ -4662,7 +4662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    Lifetime escapeScope = escapeValue.IsRefEscape
+                    SafeContext escapeScope = escapeValue.IsRefEscape
                         ? GetRefEscape(escapeValue.Argument, scopeOfTheContainingExpression)
                         : GetValEscape(escapeValue.Argument, scopeOfTheContainingExpression);
                     receiverEscapeScope = escapeScope.Intersect(receiverEscapeScope);
@@ -4672,15 +4672,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return receiverEscapeScope.Intersect(rightEscapeScope);
             }
 
-            Lifetime getPropertyEscape(
+            SafeContext getPropertyEscape(
                 PropertySymbol property,
-                Lifetime rightEscapeScope)
+                SafeContext rightEscapeScope)
             {
                 var accessorKind = property.RefKind == RefKind.None ? AccessorKind.Set : AccessorKind.Get;
                 var methodInfo = MethodInfo.Create(property, accessorKind);
                 if (methodInfo.Method is null || methodInfo.Method.IsEffectivelyReadOnly)
                 {
-                    return Lifetime.CallingMethod;
+                    return SafeContext.CallingMethod;
                 }
 
                 return rightEscapeScope;
@@ -4689,9 +4689,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable disable
 
-        private Lifetime GetValEscape(ImmutableArray<BoundExpression> expressions, Lifetime scopeOfTheContainingExpression)
+        private SafeContext GetValEscape(ImmutableArray<BoundExpression> expressions, SafeContext scopeOfTheContainingExpression)
         {
-            var result = Lifetime.CallingMethod;
+            var result = SafeContext.CallingMethod;
             foreach (var expression in expressions)
             {
                 result = result.Intersect(GetValEscape(expression, scopeOfTheContainingExpression));
@@ -4705,7 +4705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The result indicates whether the escape is possible.
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// </summary>
-        internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, Lifetime escapeFrom, Lifetime escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
+        internal bool CheckValEscape(SyntaxNode node, BoundExpression expr, SafeContext escapeFrom, SafeContext escapeTo, bool checkingReceiver, BindingDiagnosticBag diagnostics)
         {
 #if DEBUG
             AssertVisited(expr);
@@ -4795,7 +4795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.ConvertedStackAllocExpression:
-                    if (!Lifetime.CurrentMethod.IsConvertibleTo(escapeTo))
+                    if (!SafeContext.CurrentMethod.IsConvertibleTo(escapeTo))
                     {
                         Error(diagnostics, inUnsafeRegion ? ErrorCode.WRN_EscapeStackAlloc : ErrorCode.ERR_EscapeStackAlloc, node, expr.Type);
                         return inUnsafeRegion;
@@ -5104,7 +5104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (conversion.ConversionKind == ConversionKind.CollectionExpression)
                     {
-                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !Lifetime.CurrentMethod.IsConvertibleTo(escapeTo))
+                        if (HasLocalScope((BoundCollectionExpression)conversion.Operand) && !SafeContext.CurrentMethod.IsConvertibleTo(escapeTo))
                         {
                             Error(diagnostics, ErrorCode.ERR_CollectionExpressionEscape, node, expr.Type);
                             return false;
@@ -5537,7 +5537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return equivalentSignatureMethod;
         }
 
-        private bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, Lifetime escapeFrom, Lifetime escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckTupleValEscape(ImmutableArray<BoundExpression> elements, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
         {
             foreach (var element in elements)
             {
@@ -5552,7 +5552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
 
-        private bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, Lifetime escapeFrom, Lifetime escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckValEscapeOfObjectInitializer(BoundObjectInitializerExpression initExpr, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
         {
             foreach (var expr in initExpr.Initializers)
             {
@@ -5568,7 +5568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable disable
 
-        private bool CheckValEscape(ImmutableArray<BoundExpression> expressions, Lifetime escapeFrom, Lifetime escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckValEscape(ImmutableArray<BoundExpression> expressions, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
         {
             foreach (var expression in expressions)
             {
@@ -5581,7 +5581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool CheckInterpolatedStringHandlerConversionEscape(BoundExpression expression, Lifetime escapeFrom, Lifetime escapeTo, BindingDiagnosticBag diagnostics)
+        private bool CheckInterpolatedStringHandlerConversionEscape(BoundExpression expression, SafeContext escapeFrom, SafeContext escapeTo, BindingDiagnosticBag diagnostics)
         {
             var data = expression.GetInterpolatedStringHandlerData();
 
