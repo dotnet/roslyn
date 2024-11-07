@@ -325,7 +325,8 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData]
-    public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration(TestHost testHost)
+    public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration(
+        TestHost testHost, bool forceFreeze)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
         var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
@@ -338,8 +339,15 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         Assert.Equal(2, fullCompilation.SyntaxTrees.Count());
 
-        var partialProject = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None).Project;
-        Assert.NotSame(partialProject, project);
+        var partialProject = project.Documents.Single().WithFrozenPartialSemantics(forceFreeze, CancellationToken.None).Project;
+
+        // If we're forcing the freeze, we must get a difference project instance.  If we're not, we'll get the same
+        // project since the compilation was already available.
+        if (forceFreeze)
+            Assert.NotSame(partialProject, project);
+        else
+            Assert.Same(partialProject, project);
+
         var partialCompilation = await partialProject.GetRequiredCompilationAsync(CancellationToken.None);
 
         Assert.Same(fullCompilation, partialCompilation);
@@ -729,7 +737,36 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
-    public async Task ForkAfterFreezeNoLongerRunsGenerators(TestHost testHost)
+    public async Task ForkAfterForceFreezeNoLongerRunsGenerators(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+        generatorRan = false;
+
+        var document = project.Documents.Single().WithFrozenPartialSemantics(forceFreeze: true, CancellationToken.None);
+
+        // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will not
+        // run since we explicitly force froze.
+        document = document.WithText(SourceText.From("// Something else"));
+
+        var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Equal(2, compilation.SyntaxTrees.Count());
+        Assert.False(generatorRan);
+
+        Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    public async Task ForkAfterFreezeOfCompletedDocumentStillRunsGenerators(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
         var generatorRan = false;
@@ -746,12 +783,13 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
-        // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will still not be ran
+        // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will run
+        // since we didn't force freeze, and we got the frozen document after its compilation was already computed.
         document = document.WithText(SourceText.From("// Something else"));
 
         var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
         Assert.Equal(2, compilation.SyntaxTrees.Count());
-        Assert.False(generatorRan);
+        Assert.True(generatorRan);
 
         Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
     }

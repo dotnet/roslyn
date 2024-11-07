@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -80,9 +81,11 @@ internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPC
         var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var token = GetToken(completionItem, tree, cancellationToken);
         var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
-        // Make sure the new document is frozen before we try to get the semantic model. This is to 
-        // avoid trigger source generator, which is expensive and not needed for calculating the change.
-        document = document.WithSyntaxRoot(annotatedRoot).WithFrozenPartialSemantics(cancellationToken);
+
+        // Make sure the new document is frozen before we try to get the semantic model. This is to avoid trigger source
+        // generator, which is expensive and not needed for calculating the change.  Pass in 'forceFreeze: true' to
+        // ensure all further transformations we make do not run generators either.
+        document = document.WithSyntaxRoot(annotatedRoot).WithFrozenPartialSemantics(forceFreeze: true, cancellationToken);
 
         var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
         if (memberContainingDocument == null)
