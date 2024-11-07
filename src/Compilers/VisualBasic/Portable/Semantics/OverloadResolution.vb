@@ -939,7 +939,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim addedExtensionMethods As Boolean = False
 
             If ShouldConsiderExtensionMethods(candidates) Then
-                Debug.Assert(applicableInstanceCandidateCount = 0 OrElse applicableInstanceCandidateCount = applicableNarrowingCandidateCount)
+                Debug.Assert(candidates.All(Function(candidate) candidate.State <> CandidateAnalysisResultState.Applicable OrElse
+                                                                candidate.RequiresNarrowingConversion OrElse
+                                                                candidate.MaxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNarrowing))
 
                 ' Request additional extension methods, if any available.
                 If methodGroup.ResultKind = LookupResultKind.Good Then
