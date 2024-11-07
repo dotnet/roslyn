@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim;
 
+[WorkItem("https://github.com/dotnet/roslyn/issues/35376")]
 public sealed class EntryPointFinderTests
 {
     [Theory, CombinatorialData]
