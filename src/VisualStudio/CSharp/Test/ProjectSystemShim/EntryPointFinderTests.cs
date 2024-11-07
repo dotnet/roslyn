@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
-using Microsoft.VisualStudio.LanguageServices.Implementation.MoveStaticMembers;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -20,26 +22,19 @@ public sealed class EntryPointFinderTests
         [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
         [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
     {
-        var compilation = CSharpCompilation.Create("Test", references: [TestBase.MscorlibRef]).AddSyntaxTrees(CSharpSyntaxTree.ParseText($$"""
-            using System;
-            using System.Threading.Tasks;
-
-            class C
-            {
-                static {{accessibility}} {{returnType}} Main({{parameters}})
-                {
-                }
-            }
-            """));
-
-        var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
-        Assert.Single(entryPoints);
-        Assert.Equal("C", entryPoints.Single().Name);
+        Validate($"static {accessibility} {returnType} Main({parameters})", entryPoints =>
+        {
+            Assert.Single(entryPoints);
+            Assert.Equal("C", entryPoints.Single().Name);
+        });
     }
 
     private static void NegativeTest(string signature)
+        => Validate(signature, Assert.Empty);
+
+    private static void Validate(string signature, Action<IEnumerable<INamedTypeSymbol>> validate)
     {
-        var compilation = CSharpCompilation.Create("Test").AddSyntaxTrees(CSharpSyntaxTree.ParseText($$"""
+        var compilation = CSharpCompilation.Create("Test", references: [TestBase.MscorlibRef]).AddSyntaxTrees(CSharpSyntaxTree.ParseText($$"""
             using System;
             using System.Threading.Tasks;
 
@@ -52,7 +47,7 @@ public sealed class EntryPointFinderTests
             """));
 
         var entryPoints = CSharpEntryPointFinder.FindEntryPoints(compilation);
-        Assert.Empty(entryPoints);
+        validate(entryPoints);
     }
 
     [Theory, CombinatorialData]
