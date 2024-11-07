@@ -293,7 +293,7 @@ internal sealed partial class CSharpCodeGenerationService(LanguageServices langu
         var editor = new SyntaxEditor(destination, this.LanguageServices.SolutionServices);
         foreach (var parameter in parameters)
         {
-            var parameterSyntax = ParameterGenerator.GetParameter(parameter, info, isFirstParam: isFirstParam, seenOptional: seenOptional);
+            var parameterSyntax = ParameterGenerator.GetParameter(parameter, info, isExplicit: false, isFirstParam: isFirstParam, seenOptional: seenOptional);
 
             AddParameterEditor.AddParameter(
                 CSharpSyntaxFacts.Instance,

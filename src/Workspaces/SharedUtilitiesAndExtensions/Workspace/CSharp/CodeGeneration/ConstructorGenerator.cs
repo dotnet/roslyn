@@ -57,7 +57,7 @@ internal static class ConstructorGenerator
             attributeLists: AttributeGenerator.GenerateAttributeLists(constructor.GetAttributes(), info),
             modifiers: GenerateModifiers(constructor, info),
             identifier: CodeGenerationConstructorInfo.GetTypeName(constructor).ToIdentifierToken(),
-            parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, info: info),
+            parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, isExplicit: false, info: info),
             initializer: GenerateConstructorInitializer(constructor),
             body: hasNoBody ? null : GenerateBlock(constructor),
             semicolonToken: hasNoBody ? SemicolonToken : default);

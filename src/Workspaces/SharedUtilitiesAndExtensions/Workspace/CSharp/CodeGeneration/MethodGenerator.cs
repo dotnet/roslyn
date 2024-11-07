@@ -119,6 +119,7 @@ internal static class MethodGenerator
 
         var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
+        var isExplicit = explicitInterfaceSpecifier != null;
         var methodDeclaration = MethodDeclaration(
             attributeLists: GenerateAttributes(method, info),
             modifiers: GenerateModifiers(method, destination, info),
@@ -126,7 +127,7 @@ internal static class MethodGenerator
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
@@ -145,7 +146,7 @@ internal static class MethodGenerator
             returnType: method.GenerateReturnTypeSyntax(),
             identifier: method.Name.ToIdentifierToken(),
             typeParameterList: GenerateTypeParameterList(method, info),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: false, info),
             constraintClauses: GenerateConstraintClauses(method),
             body: StatementGenerator.GenerateBlock(method),
             expressionBody: null,

@@ -112,7 +112,7 @@ internal static class NamedTypeGenerator
         var primaryConstructor = members.OfType<IMethodSymbol>().FirstOrDefault(m => CodeGenerationConstructorInfo.GetIsPrimaryConstructor(m));
         if (primaryConstructor != null)
         {
-            var parameterList = ParameterGenerator.GenerateParameterList(primaryConstructor.Parameters, info);
+            var parameterList = ParameterGenerator.GenerateParameterList(primaryConstructor.Parameters, isExplicit: false, info);
             recordDeclaration = recordDeclaration.WithParameterList(parameterList);
 
             // remove the primary constructor from the list of members to generate.
@@ -236,7 +236,7 @@ internal static class NamedTypeGenerator
             invokeMethod.ReturnType.GenerateTypeSyntax(),
             namedType.Name.ToIdentifierToken(),
             TypeParameterGenerator.GenerateTypeParameterList(namedType.TypeParameters, info),
-            ParameterGenerator.GenerateParameterList(invokeMethod.Parameters, info: info),
+            ParameterGenerator.GenerateParameterList(invokeMethod.Parameters, isExplicit: false, info: info),
             namedType.TypeParameters.GenerateConstraintClauses());
     }
 

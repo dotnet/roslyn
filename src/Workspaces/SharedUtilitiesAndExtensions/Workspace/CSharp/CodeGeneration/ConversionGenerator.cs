@@ -64,6 +64,7 @@ internal static class ConversionGenerator
             ? CheckedKeyword
             : default;
 
+        var isExplicit = method.ExplicitInterfaceImplementations.Length > 0;
         var declaration = ConversionOperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
             modifiers: GenerateModifiers(method, destination),
@@ -72,7 +73,7 @@ internal static class ConversionGenerator
             operatorKeyword: OperatorKeyword,
             checkedKeyword: checkedToken,
             type: method.ReturnType.GenerateTypeSyntax(),
-            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, info: info),
+            parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, isExplicit: isExplicit, info: info),
             body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
             expressionBody: null,
             semicolonToken: hasNoBody ? SemicolonToken : new SyntaxToken());

@@ -99,7 +99,7 @@ internal static class PropertyGenerator
                 modifiers: GenerateModifiers(property, destination, info),
                 type: GenerateTypeSyntax(property),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
-                parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, info),
+                parameterList: ParameterGenerator.GenerateBracketedParameterList(property.Parameters, isExplicit: explicitInterfaceSpecifier != null, info),
                 accessorList: GenerateAccessorList(property, destination, info, cancellationToken));
         declaration = UseExpressionBodyIfDesired(info, declaration, cancellationToken);
 

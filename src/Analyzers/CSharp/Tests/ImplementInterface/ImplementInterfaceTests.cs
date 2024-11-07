@@ -4540,7 +4540,7 @@ codeAction: ("False;True;True:global::IGoo;Microsoft.CodeAnalysis.ImplementInter
 
             class Opt : IOptional
             {
-                int IOptional.Goo(int g = 0)
+                int IOptional.Goo(int g)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -4948,7 +4948,7 @@ class B : IGoo
 
             class c : d
             {
-                void d.m(b? x = null, b? y = null)
+                void d.m(b? x, b? y)
                 {
                     throw new System.NotImplementedException();
                 }
