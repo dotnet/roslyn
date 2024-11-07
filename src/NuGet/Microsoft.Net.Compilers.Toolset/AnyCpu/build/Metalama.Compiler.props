@@ -35,6 +35,14 @@
   <!-- <Metalama> -->
   <PropertyGroup>
     <WarningsAsErrors>$(WarningsAsErrors);LAMA0621</WarningsAsErrors>
+
+    <!--
+      Disable torn SDK handling (see https://github.com/dotnet/sdk/blob/main/documentation/general/torn-sdk.md).
+      When an older version of MSBuild is used with a newer .Net SDK 9+, the SDK will download and attempt to use its own version of Csc.
+      Metalama.Compiler takes priority (because its <UsingTask> is processed first), so torn SDK handling does nothing.
+      We disable it anyway, but it's just to avoid an unnecessary package download.
+      -->
+    <BuildWithNetFrameworkHostedCompiler>false</BuildWithNetFrameworkHostedCompiler>
   </PropertyGroup>
   
   <ItemGroup>

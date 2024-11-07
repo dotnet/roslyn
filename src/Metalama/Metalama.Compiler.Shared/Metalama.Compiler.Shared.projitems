@@ -9,7 +9,12 @@
     <Import_RootNamespace>Metalama.Compiler</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilterCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilterKey.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DiagnosticFilterRunner.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)InitializeServicesContext.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IsExternalInit.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ManagedResource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AttachedProperties.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MetalamaCompilerAnnotations.cs" />
@@ -22,11 +27,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\IExceptionReporter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\IDisposableServiceProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SourceGeneratedCodeTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SyntaxTreeTransformation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedFileMapping.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformedFilesMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TransformerOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TransformerOrderAttribute.cs" />
   </ItemGroup>
 </Project>

@@ -53,7 +53,11 @@ Never push the NuGet.config file with the original sources uncommented, so we kn
 
 See docs\updating-roslyn.md in the Metalama repo.
 
-## 10. Review
+## 10. Update LowestSupportedRoslynVersion
+
+When removing the support for the old Roslyn version, (which mainly involves removing projects for that version in the Metalama repo), also update the LowestSupportedRoslynVersion in Metalama.Compiler.Sdk.csproj.
+
+## 11. Review
 
 - Use gitk command.
 - Show the changes done in the merge commit.

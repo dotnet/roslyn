@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var inputResources = manifestResources.SelectAsArray(m => new ManagedResource(m));
             List<ManagedResource> addedResources = new();
-            var diagnosticFiltersBuilder = ImmutableArray.CreateBuilder<DiagnosticFilter>();
+            DiagnosticFilterCollection? diagnosticFilters = null;
 
             // Add tracking annotations to the input tree.
             var annotatedInputCompilation = inputCompilation;
@@ -527,8 +527,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         transformerDiagnostics,
                         assemblyLoader);
                     transformer.Execute(context);
+                    
+                    if ( diagnosticFilters == null )
+                    {
+                        diagnosticFilters = context.DiagnosticFilters;
+                    }
+                    else
+                    {
+                        diagnosticFilters.UnionWith(context.DiagnosticFilters);
+                    }
 
-                    diagnosticFiltersBuilder.AddRange(context.DiagnosticFilters);
                     addedResources.AddRange(context.AddedResources);
 
                     // Filter the diagnostics.
@@ -622,11 +630,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AttachedProperties.Add(resource.Resource, RefAssemblyResourceMarker.Instance);
             }
 
+            diagnosticFilters ??= new DiagnosticFilterCollection();
+            diagnosticFilters.Freeze(); ;
+
             return new TransformersResult(
                 annotatedInputCompilation,
                 outputCompilation,
                  replacements,
-                new DiagnosticFilters(diagnosticFiltersBuilder.ToImmutable()),
+                diagnosticFilters,
                 addedResources.SelectAsArray(m => m.Resource),
                 getMappedAnalyzerConfigOptionsProvider(analyzerConfigProvider));
         }
