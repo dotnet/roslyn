@@ -5818,13 +5818,13 @@ _ = o switch
         {
             var source = """
 object o = null;
-_ = o is (not (null or 42)) or string; // 1
+_ = o is (not (null or 42)) or string;
 _ = o is (not (not null or 42)) or string;
 
 _ = o switch
 {
     not (null or 42) => 41,
-    string => 42, // 2
+    string => 42, // 1
     _ => 43
 };
 _ = o switch
@@ -5836,11 +5836,8 @@ _ = o switch
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,32): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is (not (null or 42)) or string; // 1
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(2, 32),
                 // (8,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     string => 42, // 2
+                //     string => 42, // 1
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(8, 5));
         }
 
@@ -5849,58 +5846,52 @@ _ = o switch
         {
             var source = """
 object o = null;
-_ = o is (not (not null and 42)) or string; // 1, 2
+_ = o is (not (not null and 42)) or string;
 _ = o is not ((not null and 42) or string);
 
-_ = o is (not (int and int)) or string; // 3
+_ = o is (not (int and int)) or string; // 1
 _ = o is not ((int and int) or string);
 
-_ = o is (not int) or string; // 4
+_ = o is (not int) or string; // 2
 _ = o is not (int or string);
 
 _ = o switch
 {
     not (not null and 42) => 41,
-    string => 42, // 5
+    string => 42, // 3
     _ => 43
 };
 
 _ = o switch
 {
     not (int and int) => 41,
-    string => 42, // 6
+    string => 42, // 4
     _ => 43
 };
 
 _ = o switch
 {
     not int => 41,
-    string => 42, // 7
+    string => 42, // 5
     _ => 43
 };
 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (2,37): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is (not (not null and 42)) or string; // 1, 2
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(2, 37),
-                // (2,37): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is (not (not null and 42)) or string; // 1, 2
-                Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(2, 37),
                 // (5,33): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is (not (int and int)) or string; // 3
+                // _ = o is (not (int and int)) or string; // 1
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(5, 33),
                 // (8,23): warning CS9268: The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?
-                // _ = o is (not int) or string; // 4
+                // _ = o is (not int) or string; // 2
                 Diagnostic(ErrorCode.WRN_RedundantPattern, "string").WithLocation(8, 23),
                 // (14,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     string => 42, // 5
+                //     string => 42, // 3
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(14, 5),
                 // (21,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     string => 42, // 6
+                //     string => 42, // 4
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(21, 5),
                 // (28,5): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //     string => 42, // 7
+                //     string => 42, // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(28, 5));
         }
     }
