@@ -3165,7 +3165,10 @@ Class C
         $$]]></Document>)
                     state.SendTypeChars("IF")
                     Await state.WaitForAsynchronousOperationsAsync()
-                    Await state.AssertSelectedCompletionItem("If")
+
+                    ' ICustomFormatter is better than `if` as the user used full-caps, which makes it more likely that
+                    ' they wanted to camel case match
+                    Await state.AssertSelectedCompletionItem("ICustomFormatter")
                 End Using
             End Using
 
@@ -3190,7 +3193,10 @@ Class C
 ]]></Document>)
                     state.SendTypeChars("IF")
                     Await state.WaitForAsynchronousOperationsAsync()
-                    Await state.AssertSelectedCompletionItem("If")
+
+                    ' ICustomFormatter is better than `if` as the user used full-caps, which makes it more likely that
+                    ' they wanted to camel case match
+                    Await state.AssertSelectedCompletionItem("ICustomFormatter")
                 End Using
             End Using
         End Function
