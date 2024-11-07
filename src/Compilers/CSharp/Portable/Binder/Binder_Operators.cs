@@ -4380,7 +4380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SafeContext whenTrueEscape = GetValEscape(trueExpr, currentScope);
             SafeContext whenFalseEscape = GetValEscape(falseExpr, currentScope);
 
-            if (!whenTrueEscape.Equals(whenFalseEscape))
+            if (whenTrueEscape != whenFalseEscape)
             {
                 // ask the one with narrower escape, for the wider - hopefully the errors will make the violation easier to fix.
                 if (!whenFalseEscape.IsConvertibleTo(whenTrueEscape))
