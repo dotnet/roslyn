@@ -161,7 +161,7 @@ internal sealed partial class SolutionCompilationState
         TArg arg)
     {
         // If the solution didn't actually change, there's no need to change us.
-        if (stateChange.NewSolutionState == this.SolutionState && SourceGeneratorExecutionVersionMap == this.SourceGeneratorExecutionVersionMap)
+        if (stateChange.NewSolutionState == this.SolutionState)
             return this;
 
         return ForceForkProject(stateChange, translate.Invoke(stateChange, arg), forkTracker);
