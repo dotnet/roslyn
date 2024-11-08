@@ -829,14 +829,14 @@ public partial class Solution
         if (!oldProject.AnalyzerReferences.Contains(analyzerReference))
             throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
 
-        using var _ = ArrayBuilder<AnalyzerReference>.GetInstance(oldProject.AnalyzerReferences.Count - 1, out var builder);
+        var builder = new FixedSizeArrayBuilder<AnalyzerReference>(oldProject.AnalyzerReferences.Count - 1);
         foreach (var reference in oldProject.AnalyzerReferences)
         {
             if (!reference.Equals(analyzerReference))
                 builder.Add(reference);
         }
 
-        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, builder.ToImmutableAndClear()));
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, builder.MoveToImmutable()));
     }
 
     /// <summary>
