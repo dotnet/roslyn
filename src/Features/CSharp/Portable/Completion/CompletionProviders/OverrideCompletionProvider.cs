@@ -211,6 +211,6 @@ internal sealed partial class OverrideCompletionProvider : AbstractOverrideCompl
 
     protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
     {
-        return CompletionUtilities.GetTargetCaretPositionForInsertedMember(caretTarget);
+        return CompletionUtilities.GetTargetCaretNodeForInsertedMember(caretTarget).GetLocation().SourceSpan.End;
     }
 }

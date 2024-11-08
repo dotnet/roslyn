@@ -119,7 +119,8 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         var implementedMembers = await generator.GenerateExplicitlyImplementedMembersAsync(member, options.PropertyGenerationBehavior, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var singleImplemented = implementedMembers[0]!;
+        var singleImplemented = implementedMembers[0];
+        Contract.ThrowIfNull(singleImplemented);
 
         // Since non-indexer properties are the only symbols that get their implementing accessor symbols returned,
         // we have to process the created symbols and reduce to the single property wherein the accessors are contained
@@ -131,7 +132,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
                 if (implementedMember is IPropertySymbol implementedProperty)
                 {
                     commonContainer ??= implementedProperty;
-                    Debug.Assert(commonContainer == implementedProperty, "We should have a common property implemented");
+                    Contract.ThrowIfFalse(commonContainer == implementedProperty, "We should have a common property implemented");
                 }
                 else
                 {
@@ -139,15 +140,15 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
                     var containingProperty = implementedMember!.ContainingSymbol as IPropertySymbol;
                     Contract.ThrowIfNull(containingProperty);
                     commonContainer ??= containingProperty;
-                    Debug.Assert(commonContainer == containingProperty, "We should have a common property implemented");
+                    Contract.ThrowIfFalse(commonContainer == containingProperty, "We should have a common property implemented");
                 }
             }
             Contract.ThrowIfNull(commonContainer);
-            singleImplemented = commonContainer!;
+            singleImplemented = commonContainer;
         }
         else
         {
-            Debug.Assert(implementedMembers.Length == 1, "We missed another case that may return multiple symbols");
+            Contract.ThrowIfFalse(implementedMembers.Length == 1, "We missed another case that may return multiple symbols");
         }
 
         return singleImplemented;

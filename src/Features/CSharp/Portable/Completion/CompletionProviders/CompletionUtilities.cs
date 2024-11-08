@@ -174,43 +174,44 @@ internal static class CompletionUtilities
         return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
     }
 
-    public static int GetTargetCaretPositionForMethod(BaseMethodDeclarationSyntax methodDeclaration)
+    public static SyntaxNode GetTargetCaretPositionForMethod(BaseMethodDeclarationSyntax methodDeclaration)
     {
-        if (methodDeclaration.Body == null)
+        if (methodDeclaration.Body is null)
         {
-            return methodDeclaration.GetLocation().SourceSpan.End;
+            return methodDeclaration;
         }
         else
         {
             // move to the end of the last statement in the method
             var lastStatement = methodDeclaration.Body.Statements.Last();
-            return lastStatement.GetLocation().SourceSpan.End;
+            return lastStatement;
         }
     }
 
-    public static int GetTargetCaretPositionForInsertedMember(SyntaxNode caretTarget)
+    public static SyntaxNode GetTargetCaretNodeForInsertedMember(SyntaxNode caretTarget)
     {
-        // Inserted Event declarations are a single line, so move to the end of the line.
         switch (caretTarget)
         {
             case EventFieldDeclarationSyntax:
-                return caretTarget.GetLocation().SourceSpan.End;
+                // Inserted Event declarations are a single line, so move to the end of the line.
+                return caretTarget;
+
             case BaseMethodDeclarationSyntax methodDeclaration:
                 return GetTargetCaretPositionForMethod(methodDeclaration);
+
             case BasePropertyDeclarationSyntax propertyDeclaration:
                 {
                     // property: no accessors; move to the end of the declaration
-                    if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.Any())
+                    if (propertyDeclaration.AccessorList is { Accessors: [var firstAccessor, ..] })
                     {
                         // move to the end of the last statement of the first accessor
-                        var firstAccessor = propertyDeclaration.AccessorList.Accessors[0];
                         var firstAccessorStatement = (SyntaxNode)firstAccessor.Body?.Statements.LastOrDefault() ??
                             firstAccessor.ExpressionBody!.Expression;
-                        return firstAccessorStatement.GetLocation().SourceSpan.End;
+                        return firstAccessorStatement;
                     }
                     else
                     {
-                        return propertyDeclaration.GetLocation().SourceSpan.End;
+                        return propertyDeclaration;
                     }
                 }
 

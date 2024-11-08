@@ -38,21 +38,20 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
     {
         var implementInterfaceService = (AbstractImplementInterfaceService)newDocument.GetRequiredLanguageService<IImplementInterfaceService>();
 
-        var semanticModel = await newDocument.GetSemanticModelAsync(cancellationToken)
+        var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken)
             .ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        Debug.Assert(semanticModel != null);
 
         var baseMemberInterfaceType = member.ContainingType;
-        Debug.Assert(baseMemberInterfaceType.TypeKind is TypeKind.Interface);
+        Contract.ThrowIfFalse(baseMemberInterfaceType.TypeKind is TypeKind.Interface);
 
         var interfaceNode = await GetInterfaceNodeInCompletionAsync(newDocument, completionItem, baseMemberInterfaceType, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-        Debug.Assert(interfaceNode != null);
+        Contract.ThrowIfNull(interfaceNode);
 
         var state = AbstractImplementInterfaceService.State.Generate(implementInterfaceService, newDocument, semanticModel, interfaceNode, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        Debug.Assert(state != null);
+        Contract.ThrowIfNull(state);
 
         var options = await newDocument.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
         var implementedSymbol = await implementInterfaceService.ExplicitlyImplementSingleInterfaceMemberAsync(
@@ -64,16 +63,15 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
     private static async Task<SyntaxNode?> GetInterfaceNodeInCompletionAsync(Document document, CompletionItem item, INamedTypeSymbol baseMemberInterfaceType, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-        var documentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-        Debug.Assert(documentSemanticModel != null, "Expected a semantic model out of the document");
+        var documentSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var compilation = documentSemanticModel.Compilation;
-        var node = syntaxTree.FindNode(item.Span, false, true, cancellationToken);
+        var node = syntaxTree.FindNode(item.Span,findInTrivia: false, getInnermostNodeForTie: true, cancellationToken);
         var primaryTypeDeclaration = node.GetAncestor<BaseTypeDeclarationSyntax>();
-        Debug.Assert(primaryTypeDeclaration != null, "Expected a BaseTypeDeclarationSyntax to contain the implemented interface member");
+        Contract.ThrowIfNull(primaryTypeDeclaration, "Expected a BaseTypeDeclarationSyntax to contain the implemented interface member");
         var interfaceNode = NodeInDeclaration(primaryTypeDeclaration);
         if (interfaceNode != null)
         {
@@ -84,8 +82,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         foreach (var declaring in declaringSyntaxReferences)
         {
             var declaringSyntax = await declaring.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-            if (declaringSyntax == null)
+            if (declaringSyntax is null)
             {
                 continue;
             }
@@ -172,7 +169,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
     protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
     {
-        return CompletionUtilities.GetTargetCaretPositionForInsertedMember(caretTarget);
+        return CompletionUtilities.GetTargetCaretNodeForInsertedMember(caretTarget).GetLocation().SourceSpan.End;
     }
 
     public override async Task ProvideCompletionsAsync(CompletionContext context)

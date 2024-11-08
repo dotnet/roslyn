@@ -2,23 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Completion;
-using System;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using System.Linq;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
@@ -126,9 +126,12 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
 
                 bool FilterInterfaceMember(ISymbol member)
                 {
+                    // Explicitly implementable interface members are either abstract or virtual
+                    // Interfaces may contain non-overridable members, which we cannot explicitly implement
                     if (!member.IsAbstract && !member.IsVirtual)
                         return false;
 
+                    // We cannot explicitly implement inaccessible members
                     if (member.IsAccessor() ||
                         member.Kind == SymbolKind.NamedType ||
                         !semanticModel.IsAccessible(node.SpanStart, member))
@@ -153,8 +156,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                         rules: GetRules());
                 }
             }
-            catch (Exception e)
-            when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
                 return [];
@@ -167,7 +169,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                 IEventSymbol eventSymbol => ToDisplayString(eventSymbol),
                 IPropertySymbol propertySymbol => ToDisplayString(propertySymbol, semanticModel),
                 IMethodSymbol methodSymbol => ToDisplayString(methodSymbol, semanticModel),
-                _ => "" // This shouldn't happen.
+                _ => throw new ArgumentException("Unexpected interface member symbol kind")
             };
 
         private static string ToDisplayString(IEventSymbol symbol)
@@ -242,13 +244,26 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
         {
             builder.AppendJoinedValues(", ", parameters, (parameter, builder) =>
             {
-                builder.Append(parameter.RefKind switch
+                if (parameter.ScopedKind != ScopedKind.None)
                 {
-                    RefKind.Out => "out ",
-                    RefKind.Ref => "ref ",
-                    RefKind.In => "in ",
-                    _ => ""
-                });
+                    builder.Append(parameter.ScopedKind switch
+                    {
+                        ScopedKind.ScopedValue => "scoped ",
+                        ScopedKind.ScopedRef => "scoped ref ",
+                        _ => ""
+                    });
+                }
+                else
+                {
+                    builder.Append(parameter.RefKind switch
+                    {
+                        RefKind.Out => "out ",
+                        RefKind.Ref => "ref ",
+                        RefKind.In => "in ",
+                        RefKind.RefReadOnlyParameter => "ref readonly ",
+                        _ => ""
+                    });
+                }
 
                 if (parameter.IsParams)
                 {
