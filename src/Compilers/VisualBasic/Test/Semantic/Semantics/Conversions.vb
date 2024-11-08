@@ -5180,6 +5180,12 @@ BC30581: 'AddressOf' expression cannot be converted to 'C' because 'C' is not a 
         Dim x As C = DirectCast(AddressOf C.Test, C)
                                 ~~~~~~~~~~~~~~~~
 </expected>)
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of UnaryExpressionSyntax)().Single()
+            Assert.Null(model.GetSymbolInfo(syntax).Symbol)
+            Assert.Null(model.GetSymbolInfo(syntax.Operand).Symbol)
         End Sub
 
     End Class
