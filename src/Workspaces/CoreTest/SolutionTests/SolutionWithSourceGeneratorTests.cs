@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -1010,7 +1011,8 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)], TestHost.OutOfProcess);
 
         // Ensure the local and remote sides agree on how we're executing source generators.
-        var globalOptionService = ((VisualStudioMefHostServices)workspace.Services.HostServices).GetExportedValue<IGlobalOptionService>();
+        var mefServices = (VisualStudioMefHostServices)workspace.Services.HostServices;
+        var globalOptionService = mefServices.GetExportedValue<IGlobalOptionService>();
         globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
 
         using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
@@ -1062,6 +1064,19 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             // host side, this will simply instantiate a new reference.  But this will cause all the machinery to run
             // syncing this new reference to the oop side, which will load the analyzer reference in a dedicated ALC.
             project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, DoNotLoadAssemblyLoader.Instance)]);
+
+            // In balanced mode, emulate the project system notifying about the updated reference on disk, which will
+            // cause us to update source generators versions.
+            if (executionPreference is SourceGeneratorExecutionPreference.Balanced)
+            {
+                Assert.True(workspace.TryApplyChanges(project1.Solution));
+                workspace.EnqueueUpdateSourceGeneratorVersion(project1.Id, forceRegeneration: true);
+
+                var waiter = (IAsynchronousOperationWaiter)mefServices.GetExportedValue<IAsynchronousOperationListenerProvider>();
+                await waiter.ExpeditedWaitAsync();
+
+                project1 = workspace.CurrentSolution.GetRequiredProject(project1.Id);
+            }
 
             var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
             var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
