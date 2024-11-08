@@ -38,10 +38,6 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
     {
         var implementInterfaceService = newDocument.GetRequiredLanguageService<IImplementInterfaceService>();
 
-        var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken)
-            .ConfigureAwait(false);
-        cancellationToken.ThrowIfCancellationRequested();
-
         var baseMemberInterfaceType = member.ContainingType;
         Contract.ThrowIfFalse(baseMemberInterfaceType.TypeKind is TypeKind.Interface);
 
@@ -68,6 +64,16 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var documentSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+        // We have triggered this provider from a code that looks something like this:
+        // class Class : IInterface
+        // {
+        //     void IInterface.$$
+        // }
+        // where the type declaration can be of any kind except for a delegate and an enum
+        // We find the node that reflects the interface on the type's base list
+        // For a type to apply an explicit interface implementation, the implementing member's containing interface
+        // must be directly included in the base list, so we only need to find the corresponding node referencing the
+        // interface in the base list
         var compilation = documentSemanticModel.Compilation;
         var node = syntaxTree.FindNode(item.Span, findInTrivia: false, getInnermostNodeForTie: true, cancellationToken);
         var primaryTypeDeclaration = node.GetAncestor<BaseTypeDeclarationSyntax>();
@@ -78,6 +84,8 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
             return interfaceNode;
         }
 
+        // If we have not found the target interface in this declaration, it is possible we have other partial declarations
+        // whose base lists contain our interface
         var declaringSyntaxReferences = baseMemberInterfaceType.DeclaringSyntaxReferences;
         foreach (var declaring in declaringSyntaxReferences)
         {
@@ -105,12 +113,14 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
         SyntaxNode? NodeInDeclaration(BaseTypeDeclarationSyntax declaration)
         {
+            // Given a declaration, we traverse all the types in its base list
+            // to find the node that refers to the interface whose members we suggest
             var tree = declaration.SyntaxTree;
             var baseList = declaration.BaseList;
             if (baseList is null)
                 return null;
 
-            var semanticModel = compilation.GetSemanticModel(tree)!;
+            var semanticModel = compilation.GetSemanticModel(tree);
 
             foreach (var baseType in baseList.Types)
             {
@@ -119,13 +129,9 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
                 if (cancellationToken.IsCancellationRequested)
                     return null;
 
-                var type = typeInfo.Symbol as INamedTypeSymbol;
-                if (typeInfo.CandidateReason == CandidateReason.WrongArity)
-                {
-                    type = typeInfo.GetAnySymbol() as INamedTypeSymbol;
-                }
+                var symbol = typeInfo.CandidateReason == CandidateReason.WrongArity ? typeInfo.GetAnySymbol() : typeInfo.Symbol;
 
-                if (type is null)
+                if (symbol is not INamedTypeSymbol type)
                     continue;
 
                 if (type.Equals(baseMemberInterfaceType, SymbolEqualityComparer.Default))

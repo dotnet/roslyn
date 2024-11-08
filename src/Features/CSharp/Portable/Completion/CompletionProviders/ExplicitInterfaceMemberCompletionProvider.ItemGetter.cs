@@ -67,7 +67,8 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                 var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
                 var semanticFacts = Document.GetRequiredLanguageService<ISemanticFactsService>();
 
-                if (syntaxFacts.IsInNonUserCode(SyntaxTree, Position, CancellationToken) ||
+                if (!SyntaxTree.IsRightOfDot(Position, CancellationToken) ||
+                    syntaxFacts.IsInNonUserCode(SyntaxTree, Position, CancellationToken) ||
                     syntaxFacts.IsPreProcessorDirectiveContext(SyntaxTree, Position, CancellationToken))
                 {
                     return [];
@@ -76,9 +77,6 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
                 var targetToken = SyntaxTree
                     .FindTokenOnLeftOfPosition(Position, CancellationToken)
                     .GetPreviousTokenIfTouchingWord(Position);
-
-                if (!SyntaxTree.IsRightOfDotOrArrowOrColonColon(Position, targetToken, CancellationToken))
-                    return [];
 
                 var node = targetToken.Parent;
                 // Bind the interface name which is to the left of the dot
