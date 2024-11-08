@@ -106,14 +106,14 @@
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.21" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.40170" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.11.8" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.13.14" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.11.20" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20" />
-    <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.73" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
     <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageVersion Include="StreamJsonRpc" Version="2.18.48" />
