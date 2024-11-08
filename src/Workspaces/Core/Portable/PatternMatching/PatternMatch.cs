@@ -81,9 +81,11 @@ internal readonly struct PatternMatch : IComparable<PatternMatch>
         }
 
         // Compare types
-        var comparison = this.Kind - other.Kind;
-        if (comparison != 0)
-            return comparison;
+        {
+            var comparison = this.Kind - other.Kind;
+            if (comparison != 0)
+                return comparison;
+        }
 
         if (!ignoreCase)
         {
