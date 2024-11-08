@@ -2517,24 +2517,28 @@ BC30002: Type 'Unknown' is not defined.
                          ~~~~~~~
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
     'Public Overloads Sub New(name As XName)': Option Strict On disallows implicit conversions from 'Object' to 'XName'.
+    'Public Overloads Sub New(name As XName, ParamArray content As Object())': Option Strict On disallows implicit conversions from 'Object' to 'XName'.
     'Public Overloads Sub New(other As XElement)': Option Strict On disallows implicit conversions from 'Object' to 'XElement'.
     'Public Overloads Sub New(other As XStreamingElement)': Option Strict On disallows implicit conversions from 'Object' to 'XStreamingElement'.
         x = <<%= F1 %>/>
              ~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
     'Public Overloads Sub New(name As XName)': Value of type 'A' cannot be converted to 'XName'.
+    'Public Overloads Sub New(name As XName, ParamArray content As Object())': Value of type 'A' cannot be converted to 'XName'.
     'Public Overloads Sub New(other As XElement)': Value of type 'A' cannot be converted to 'XElement'.
     'Public Overloads Sub New(other As XStreamingElement)': Value of type 'A' cannot be converted to 'XStreamingElement'.
         x = <<%= F5 %>/>
              ~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
     'Public Overloads Sub New(name As XName)': Value of type 'S' cannot be converted to 'XName'.
+    'Public Overloads Sub New(name As XName, ParamArray content As Object())': Value of type 'S' cannot be converted to 'XName'.
     'Public Overloads Sub New(other As XElement)': Value of type 'S' cannot be converted to 'XElement'.
     'Public Overloads Sub New(other As XStreamingElement)': Value of type 'S' cannot be converted to 'XStreamingElement'.
         x = <<%= F6 %>/>
              ~~~~~~~~~
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
     'Public Overloads Sub New(name As XName)': Value of type 'T' cannot be converted to 'XName'.
+    'Public Overloads Sub New(name As XName, ParamArray content As Object())': Value of type 'T' cannot be converted to 'XName'.
     'Public Overloads Sub New(other As XElement)': Value of type 'T' cannot be converted to 'XElement'.
     'Public Overloads Sub New(other As XStreamingElement)': Value of type 'T' cannot be converted to 'XStreamingElement'.
         x = <<%= F7 %>/>
