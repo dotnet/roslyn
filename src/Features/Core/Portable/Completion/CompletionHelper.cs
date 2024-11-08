@@ -124,13 +124,13 @@ internal sealed class CompletionHelper(bool isCaseSensitive)
             return expandedDiff;
         }
 
-        // Then see how the two items compare in a case insensitive fashion.  Matches that 
-        // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
-        // a prefix match, that should always be better than a substring match.
+        // Then see how the two items compare in a case insensitive fashion.  Matches that are strictly better (ignoring
+        // case) should prioritize the item.  i.e. if we have a prefix match, that should always be better than a
+        // substring match.
         //
-        // The reason we ignore case is that it's very common for people to type expecting
-        // completion to fix up their casing.  i.e. 'false' will be written with the 
-        // expectation that it will get fixed by the completion list to 'False'.  
+        // The reason we ignore case is that it's very common for people to type expecting completion to fix up their
+        // casing.  i.e. 'false' will be written with the expectation that it will get fixed by the completion list to
+        // 'False'.  
         var caseInsensitiveComparison = match1.CompareTo(match2, ignoreCase: true);
         if (caseInsensitiveComparison != 0)
         {
@@ -139,17 +139,18 @@ internal sealed class CompletionHelper(bool isCaseSensitive)
 
         // Now we have two items match in case-insensitive manner,
         //
-        // 1. if we are in a case-insensitive language, we'd first check if either item has the MatchPriority set to one of
-        // the two special values ("Preselect" and "Deprioritize"). If so and these two items have different MatchPriority,
-        // then we'd select the one of "Preselect", or the one that's not of "Deprioritize". Otherwise we will prefer the one
-        // matches case-sensitively. This is to make sure common items in VB like "True" and "False" are prioritized for selection
-        // when user types "t" and "f" (see https://github.com/dotnet/roslyn/issues/4892)
+        // 1. if we are in a case-insensitive language, we'd first check if either item has the MatchPriority set to one
+        //    of the two special values ("Preselect" and "Deprioritize"). If so and these two items have different
+        //    MatchPriority, then we'd select the one of "Preselect", or the one that's not of "Deprioritize". Otherwise
+        //    we will prefer the one matches case-sensitively. This is to make sure common items in VB like "True" and
+        //    "False" are prioritized for selection when user types "t" and "f" (see
+        //    https://github.com/dotnet/roslyn/issues/4892)
         //
-        // 2. or similarly, if the filter text contains only lowercase letters, we want to relax our filtering standard a tiny
-        // bit to account for the sceanrio that users expect completion to fix the casing. This only happens if one of the item's
-        // MatchPriority is "Deprioritize". Otherwise we will always prefer the one matches case-sensitively.
-        // This is to make sure uncommon items like conversion "(short)" are not selected over `Should` when user types `sho`
-        // (see https://github.com/dotnet/roslyn/issues/55546)
+        // 2. or similarly, if the filter text contains only lowercase letters, we want to relax our filtering standard
+        //    a tiny bit to account for the scenario that users expect completion to fix the casing. This only happens
+        //    if one of the item's MatchPriority is "Deprioritize". Otherwise we will always prefer the one matches
+        //    case-sensitively. This is to make sure uncommon items like conversion "(short)" are not selected over
+        //    `Should` when user types `sho` (see https://github.com/dotnet/roslyn/issues/55546)
 
         var specialMatchPriorityValuesDiff = 0;
         if (!isCaseSensitive)
