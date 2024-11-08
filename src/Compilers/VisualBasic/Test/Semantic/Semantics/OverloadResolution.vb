@@ -1,4 +1,4 @@
-﻿' Licensed to the .NET Foundation under one or more agreements.
+' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -1365,14 +1365,17 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(2, result.Candidates.Length)
+            Assert.Equal(3, result.Candidates.Length)
             Assert.False(result.Candidates(0).IsExpandedParamArrayForm)
             Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(0).State)
             Assert.Same(TestClass1_M13(0), result.Candidates(0).Candidate.UnderlyingSymbol)
             Assert.True(result.Candidates(1).IsExpandedParamArrayForm)
-            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
-            Assert.Same(TestClass1_M13(1), result.Candidates(1).Candidate.UnderlyingSymbol)
-            Assert.Equal(result.BestResult.Value, result.Candidates(1))
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(1).State)
+            Assert.Same(TestClass1_M13(0), result.Candidates(1).Candidate.UnderlyingSymbol)
+            Assert.True(result.Candidates(2).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(2).State)
+            Assert.Same(TestClass1_M13(1), result.Candidates(2).Candidate.UnderlyingSymbol)
+            Assert.Equal(result.BestResult.Value, result.Candidates(2))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:={(TestClass1_M13(0)), (TestClass1_M13(1))}.AsImmutableOrNull(),
@@ -1406,10 +1409,13 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(2, result.Candidates.Length)
+            Assert.Equal(3, result.Candidates.Length)
             Assert.False(result.Candidates(1).IsExpandedParamArrayForm)
             Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(1).State)
             Assert.Same(TestClass1_M13(0), result.Candidates(1).Candidate.UnderlyingSymbol)
+            Assert.True(result.Candidates(2).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(2).State)
+            Assert.Same(TestClass1_M13(0), result.Candidates(2).Candidate.UnderlyingSymbol)
             Assert.True(result.Candidates(0).IsExpandedParamArrayForm)
             Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(TestClass1_M13(1), result.Candidates(0).Candidate.UnderlyingSymbol)
@@ -1426,14 +1432,17 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(2, result.Candidates.Length)
-            Assert.False(result.Candidates(0).IsExpandedParamArrayForm)
-            Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(0).State)
-            Assert.Same(TestClass1_M13(1), result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.True(result.Candidates(1).IsExpandedParamArrayForm)
-            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
+            Assert.Equal(3, result.Candidates.Length)
+            Assert.True(result.Candidates(0).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(0).State)
+            Assert.Same(TestClass1_M13(0), result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.False(result.Candidates(1).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(1).State)
             Assert.Same(TestClass1_M13(1), result.Candidates(1).Candidate.UnderlyingSymbol)
-            Assert.Equal(result.BestResult.Value, result.Candidates(1))
+            Assert.True(result.Candidates(2).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(2).State)
+            Assert.Same(TestClass1_M13(1), result.Candidates(2).Candidate.UnderlyingSymbol)
+            Assert.Equal(result.BestResult.Value, result.Candidates(2))
 
             'Derived.M1(intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
@@ -1446,11 +1455,14 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(1, result.Candidates.Length)
-            Assert.False(result.Candidates(0).IsExpandedParamArrayForm)
-            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
-            Assert.Same(base_M1, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.Equal(result.BestResult.Value, result.Candidates(0))
+            Assert.Equal(2, result.Candidates.Length)
+            Assert.True(result.Candidates(0).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(0).State)
+            Assert.Same(derived_M1, result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.False(result.Candidates(1).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
+            Assert.Same(base_M1, result.Candidates(1).Candidate.UnderlyingSymbol)
+            Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:={(base_M1), (derived_M1)}.AsImmutableOrNull(),
@@ -1462,10 +1474,13 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(1, result.Candidates.Length)
+            Assert.Equal(2, result.Candidates.Length)
             Assert.False(result.Candidates(0).IsExpandedParamArrayForm)
             Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(base_M1, result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.True(result.Candidates(1).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(1).State)
+            Assert.Same(derived_M1, result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             'Derived.M2(intVal, z:=stringVal) ' Should bind to Base.M2
@@ -1588,14 +1603,17 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(2, result.Candidates.Length)
+            Assert.Equal(3, result.Candidates.Length)
             Assert.False(result.Candidates(0).IsExpandedParamArrayForm)
             Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(0).State)
             Assert.Same(derived_M7, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.False(result.Candidates(1).IsExpandedParamArrayForm)
-            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
-            Assert.Same(base_M7, result.Candidates(1).Candidate.UnderlyingSymbol)
-            Assert.Equal(result.BestResult.Value, result.Candidates(1))
+            Assert.True(result.Candidates(1).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(1).State)
+            Assert.Same(derived_M7, result.Candidates(1).Candidate.UnderlyingSymbol)
+            Assert.False(result.Candidates(2).IsExpandedParamArrayForm)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(2).State)
+            Assert.Same(base_M7, result.Candidates(2).Candidate.UnderlyingSymbol)
+            Assert.Equal(result.BestResult.Value, result.Candidates(2))
 
             'derived.M8(objectVal, objectVal) ' Should bind to Derived.M8
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
@@ -1701,10 +1719,12 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(1, result.Candidates.Length)
-            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
-            Assert.Same(derived_M10_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.Equal(result.BestResult.Value, result.Candidates(0))
+            Assert.Equal(2, result.Candidates.Length)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(0).State)
+            Assert.Same(base_M10_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
+            Assert.Same(derived_M10_Candidate, result.Candidates(1).Candidate.UnderlyingSymbol)
+            Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
@@ -1716,9 +1736,11 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(1, result.Candidates.Length)
+            Assert.Equal(2, result.Candidates.Length)
             Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(derived_M10_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(1).State)
+            Assert.Same(base_M10_Candidate, result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             ' Calls Ext.M11(derived, ...), because Ext.M11(I1, ...) is hidden since it extends
@@ -1737,9 +1759,11 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(1, result.Candidates.Length)
+            Assert.Equal(2, result.Candidates.Length)
             Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(derived_M11_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(1).State)
+            Assert.Same(i1_M11_Candidate, result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
@@ -1752,10 +1776,12 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(1, result.Candidates.Length)
-            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
-            Assert.Same(derived_M11_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.Equal(result.BestResult.Value, result.Candidates(0))
+            Assert.Equal(2, result.Candidates.Length)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(0).State)
+            Assert.Same(i1_M11_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
+            Assert.Same(derived_M11_Candidate, result.Candidates(1).Candidate.UnderlyingSymbol)
+            Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             ' Calls derived.M12 since T.M12 target type is more generic.
             'd.M12(10)
@@ -1772,9 +1798,11 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(1, result.Candidates.Length)
+            Assert.Equal(2, result.Candidates.Length)
             Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(derived_M12_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(1).State)
+            Assert.Same(ext_M12_Candidate, result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
@@ -1787,10 +1815,12 @@ End Class
                 binder:=optionStrictOnBinder)
 
             Assert.False(result.ResolutionIsLateBound)
-            Assert.Equal(1, result.Candidates.Length)
-            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
-            Assert.Same(derived_M12_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.Equal(result.BestResult.Value, result.Candidates(0))
+            Assert.Equal(2, result.Candidates.Length)
+            Assert.Equal(CandidateAnalysisResultState.Shadowed, result.Candidates(0).State)
+            Assert.Same(ext_M12_Candidate, result.Candidates(0).Candidate.UnderlyingSymbol)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(1).State)
+            Assert.Same(derived_M12_Candidate, result.Candidates(1).Candidate.UnderlyingSymbol)
+            Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
