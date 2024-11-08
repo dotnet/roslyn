@@ -47,7 +47,7 @@ public partial class Workspace
             useAsync: true,
             oldSolution =>
             {
-                var updates = GetUpdatedSourceGeneratorVersions(oldSolution, projectIds);
+                var updates = SolutionCompilationState.GetUpdatedSourceGeneratorVersions(oldSolution.CompilationState, projectIds);
                 return oldSolution.UpdateSpecificSourceGeneratorExecutionVersions(updates);
             },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
@@ -56,72 +56,5 @@ public partial class Workspace
             cancellationToken).ConfigureAwait(false);
 
         return;
-
-        static SourceGeneratorExecutionVersionMap GetUpdatedSourceGeneratorVersions(
-            Solution solution, ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds)
-        {
-            // For all the projects explicitly requested, update their source generator version.  Do this for all
-            // projects that transitively depend on that project, so that their generators will run as well when next
-            // asked.
-            var dependencyGraph = solution.GetProjectDependencyGraph();
-            var result = ImmutableSortedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
-
-            // Determine if we want a major solution change, forcing regeneration of all projects.
-            var solutionMajor = projectIds.Any(t => t.projectId is null && t.forceRegeneration);
-
-            // If it's not a major solution change, then go update the versions for all projects requested.
-            if (!solutionMajor)
-            {
-                // Do a pass where we update minor versions if requested.
-                PopulateSourceGeneratorExecutionVersions(major: false);
-
-                // Then update major versions.  We do this after the minor-version pass so that major version updates
-                // overwrite minor-version updates.
-                PopulateSourceGeneratorExecutionVersions(major: true);
-            }
-
-            // Now, if we've been asked to do an entire solution update, get any projects we didn't already mark, and
-            // update their execution version as well.
-            if (projectIds.Any(t => t.projectId is null))
-            {
-                foreach (var projectId in solution.ProjectIds)
-                {
-                    if (!result.ContainsKey(projectId))
-                    {
-                        result.Add(
-                            projectId,
-                            Increment(solution.GetSourceGeneratorExecutionVersion(projectId), solutionMajor));
-                    }
-                }
-            }
-
-            return new(result.ToImmutable());
-
-            void PopulateSourceGeneratorExecutionVersions(bool major)
-            {
-                foreach (var (projectId, forceRegeneration) in projectIds)
-                {
-                    if (projectId is null)
-                        continue;
-
-                    if (forceRegeneration != major)
-                        continue;
-
-                    // We may have been asked to rerun generators for a project that is no longer around.  So make sure
-                    // we still have this project.
-                    var requestedProject = solution.GetProject(projectId);
-                    if (requestedProject != null)
-                    {
-                        result[projectId] = Increment(solution.GetSourceGeneratorExecutionVersion(projectId), major);
-
-                        foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
-                            result[transitiveProjectId] = Increment(solution.GetSourceGeneratorExecutionVersion(transitiveProjectId), major);
-                    }
-                }
-            }
-
-            static SourceGeneratorExecutionVersion Increment(SourceGeneratorExecutionVersion version, bool major)
-                => major ? version.IncrementMajorVersion() : version.IncrementMinorVersion();
-        }
     }
 }

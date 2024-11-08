@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -985,15 +989,38 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             => throw new InvalidOperationException("These tests should not be loading analyzer assemblies in those host workspace, only in the remote one.");
     }
 
-    [Fact]
-    public async Task UpdatingAnalyzerReferenceReloadsGenerators()
+    [PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), System.Composition.Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestWorkspaceConfigurationService(IGlobalOptionService globalOptionService) : IWorkspaceConfigurationService
+    {
+        public WorkspaceConfigurationOptions Options => globalOptionService.GetWorkspaceConfigurationOptions();
+    }
+
+    [Theory, CombinatorialData]
+    internal async Task UpdatingAnalyzerReferenceReloadsGenerators(
+        SourceGeneratorExecutionPreference executionPreference)
     {
         // We have two versions of the same source generator attached to this project as a resource.  Each creates a
         // 'HelloWorld' class, just with a different string it emits inside.
         const string AnalyzerResourceV1 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1";
         const string AnalyzerResourceV2 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2";
 
-        using var workspace = CreateWorkspace(testHost: TestHost.OutOfProcess);
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)], TestHost.OutOfProcess);
+
+        // Ensure the local and remote sides agree on how we're executing source generators.
+        var globalOptionService = ((VisualStudioMefHostServices)workspace.Services.HostServices).GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+
+        var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
         var solution = workspace.CurrentSolution;
 
         var project1 = solution.AddProject("P1", "P1", LanguageNames.CSharp);
