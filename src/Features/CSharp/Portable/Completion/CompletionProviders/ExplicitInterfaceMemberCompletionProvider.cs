@@ -69,7 +69,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         var documentSemanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var compilation = documentSemanticModel.Compilation;
-        var node = syntaxTree.FindNode(item.Span,findInTrivia: false, getInnermostNodeForTie: true, cancellationToken);
+        var node = syntaxTree.FindNode(item.Span, findInTrivia: false, getInnermostNodeForTie: true, cancellationToken);
         var primaryTypeDeclaration = node.GetAncestor<BaseTypeDeclarationSyntax>();
         Contract.ThrowIfNull(primaryTypeDeclaration, "Expected a BaseTypeDeclarationSyntax to contain the implemented interface member");
         var interfaceNode = NodeInDeclaration(primaryTypeDeclaration);
