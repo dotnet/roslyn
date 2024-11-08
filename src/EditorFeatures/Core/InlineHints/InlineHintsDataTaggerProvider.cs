@@ -12,14 +12,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints;
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 [VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 [method: ImportingConstructor]
-internal partial class InlineHintsDataTaggerProvider(
+internal sealed partial class InlineHintsDataTaggerProvider(
     TaggerHost taggerHost,
     [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor)
     : AsynchronousViewportTaggerProvider<InlineHintDataTag>(taggerHost, FeatureAttribute.InlineHints)
