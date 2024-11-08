@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -148,6 +149,10 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
 
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
             !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
+        {
+            return null;
+        }
+        if (document.IsRazorDocument())
         {
             return null;
         }
