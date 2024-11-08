@@ -32,7 +32,7 @@ internal sealed class CSharpFormattingInteractionService(EditorOptionsService ed
     /// immediately.  However, once they type <c>region</c> (which ends with 'n') we then want to indent it.  See <see
     /// cref="CSharpSyntaxFormattingService.ValidSingleOrMultiCharactersTokenKind"/> for those identifier cases.
     /// </summary>
-    private static ReadOnlySpan<char> s_supportedChars => ";{}#:)nte";
+    private const string s_supportedChars = ";{}#:)nte";
 
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
