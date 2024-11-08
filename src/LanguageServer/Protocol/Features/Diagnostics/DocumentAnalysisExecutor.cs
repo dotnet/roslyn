@@ -25,20 +25,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal sealed partial class DocumentAnalysisExecutor
     {
-        private readonly CompilationWithAnalyzers? _compilationWithAnalyzers;
+        private readonly CompilationWithAnalyzersPair? _compilationWithAnalyzers;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly bool _isExplicit;
         private readonly bool _logPerformanceInfo;
         private readonly Action? _onAnalysisException;
 
-        private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedAnalyzersInAnalysisScope;
+        private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedProjectAnalyzersInAnalysisScope;
+        private readonly ImmutableArray<DiagnosticAnalyzer> _compilationBasedHostAnalyzersInAnalysisScope;
 
         private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? _lazySyntaxDiagnostics;
         private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>? _lazySemanticDiagnostics;
 
         public DocumentAnalysisExecutor(
             DocumentAnalysisScope analysisScope,
-            CompilationWithAnalyzers? compilationWithAnalyzers,
+            CompilationWithAnalyzersPair? compilationWithAnalyzers,
             InProcOrRemoteHostAnalyzerRunner diagnosticAnalyzerRunner,
             bool isExplicit,
             bool logPerformanceInfo,
@@ -51,9 +52,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _logPerformanceInfo = logPerformanceInfo;
             _onAnalysisException = onAnalysisException;
 
-            var compilationBasedAnalyzers = compilationWithAnalyzers?.Analyzers.ToImmutableHashSet();
-            _compilationBasedAnalyzersInAnalysisScope = compilationBasedAnalyzers != null
-                ? analysisScope.Analyzers.WhereAsArray(compilationBasedAnalyzers.Contains)
+            var compilationBasedProjectAnalyzers = compilationWithAnalyzers?.ProjectAnalyzers.ToImmutableHashSet();
+            _compilationBasedProjectAnalyzersInAnalysisScope = compilationBasedProjectAnalyzers != null
+                ? analysisScope.ProjectAnalyzers.WhereAsArray(compilationBasedProjectAnalyzers.Contains)
+                : [];
+
+            var compilationBasedHostAnalyzers = compilationWithAnalyzers?.HostAnalyzers.ToImmutableHashSet();
+            _compilationBasedHostAnalyzersInAnalysisScope = compilationBasedHostAnalyzers != null
+                ? analysisScope.HostAnalyzers.WhereAsArray(compilationBasedHostAnalyzers.Contains)
                 : [];
         }
 
@@ -67,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public async Task<IEnumerable<DiagnosticData>> ComputeDiagnosticsAsync(DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(AnalysisScope.Analyzers.Contains(analyzer));
+            Contract.ThrowIfFalse(AnalysisScope.ProjectAnalyzers.Contains(analyzer) || AnalysisScope.HostAnalyzers.Contains(analyzer));
 
             var textDocument = AnalysisScope.TextDocument;
             var span = AnalysisScope.Span;
@@ -107,8 +113,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (document == null)
                     return [];
 
+                // DocumentDiagnosticAnalyzer is a host-only analyzer
                 var documentDiagnostics = await ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
-                    documentAnalyzer, document, kind, _compilationWithAnalyzers?.Compilation, cancellationToken).ConfigureAwait(false);
+                    documentAnalyzer, document, kind, _compilationWithAnalyzers?.HostCompilation, cancellationToken).ConfigureAwait(false);
 
                 return ConvertToLocalDiagnostics(documentDiagnostics, document, span);
             }
@@ -163,7 +170,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
 #if DEBUG
             var diags = await diagnostics.ToDiagnosticsAsync(textDocument.Project, cancellationToken).ConfigureAwait(false);
-            Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, _compilationWithAnalyzers.Compilation).Count());
+            var compilation = _compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer) ? _compilationWithAnalyzers.ProjectCompilation : _compilationWithAnalyzers.HostCompilation;
+            RoslynDebug.AssertNotNull(compilation);
+            Debug.Assert(diags.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diags, compilation).Count());
             Debug.Assert(diagnostics.Length == ConvertToLocalDiagnostics(diags, textDocument, span).Count());
 #endif
 
@@ -204,10 +213,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             RoslynDebug.Assert(analyzer.IsCompilerAnalyzer());
             RoslynDebug.Assert(_compilationWithAnalyzers != null);
-            RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));
+            RoslynDebug.Assert(_compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer) || _compilationBasedHostAnalyzersInAnalysisScope.Contains(analyzer));
             RoslynDebug.Assert(AnalysisScope.TextDocument is Document);
 
-            var analysisScope = AnalysisScope.WithAnalyzers([analyzer]).WithSpan(span);
+            var analysisScope = _compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer)
+                ? AnalysisScope.WithAnalyzers([analyzer], []).WithSpan(span)
+                : AnalysisScope.WithAnalyzers([], [analyzer]).WithSpan(span);
             var analysisResult = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
             if (!analysisResult.TryGetValue(analyzer, out var result))
             {
@@ -226,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //     for rest of the analyzers. This is needed to ensure faster refresh for compiler diagnostics while typing.
 
             RoslynDebug.Assert(_compilationWithAnalyzers != null);
-            RoslynDebug.Assert(_compilationBasedAnalyzersInAnalysisScope.Contains(analyzer));
+            RoslynDebug.Assert(_compilationBasedProjectAnalyzersInAnalysisScope.Contains(analyzer) || _compilationBasedHostAnalyzersInAnalysisScope.Contains(analyzer));
 
             if (isCompilerAnalyzer)
             {
@@ -242,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSyntaxDiagnosticsAsync)}.{nameof(GetAnalysisResultAsync)}");
 
-                var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);
+                var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedProjectAnalyzersInAnalysisScope, _compilationBasedHostAnalyzersInAnalysisScope);
                 var syntaxDiagnostics = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
                 Interlocked.CompareExchange(ref _lazySyntaxDiagnostics, syntaxDiagnostics, null);
             }
@@ -278,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 using var _ = TelemetryLogging.LogBlockTimeAggregatedHistogram(FunctionId.RequestDiagnostics_Summary, $"{nameof(GetSemanticDiagnosticsAsync)}.{nameof(GetAnalysisResultAsync)}");
 
-                var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedAnalyzersInAnalysisScope);
+                var analysisScope = AnalysisScope.WithAnalyzers(_compilationBasedProjectAnalyzersInAnalysisScope, _compilationBasedHostAnalyzersInAnalysisScope);
                 var semanticDiagnostics = await GetAnalysisResultAsync(analysisScope, cancellationToken).ConfigureAwait(false);
                 Interlocked.CompareExchange(ref _lazySemanticDiagnostics, semanticDiagnostics, null);
             }

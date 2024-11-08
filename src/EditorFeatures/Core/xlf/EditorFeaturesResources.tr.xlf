@@ -17,11 +17,6 @@
         <target state="translated">Değişiklikler uygulanıyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Giriş işareti altında sembole gidilemiyor.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">'Alanı Kapsülle' bilgileri hesaplanıyor</target>

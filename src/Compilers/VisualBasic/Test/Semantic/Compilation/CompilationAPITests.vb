@@ -2324,10 +2324,10 @@ End Class
         <Fact>
         Public Sub ReferenceManagerReuse_WithSyntaxTrees()
             Dim ta = Parse("Imports System")
-            Dim tb = Parse("Imports System", options:=TestOptions.Script)
+            Dim tb = Parse("Imports System", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
             Dim tc = Parse("#r ""bar""  ' error: #r in regular code")
-            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script)
-            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script)
+            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
+            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
 
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
 

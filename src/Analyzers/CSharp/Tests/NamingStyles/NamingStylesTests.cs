@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,14 +19,10 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles;
 
 [Trait(Traits.Feature, Traits.Features.NamingStyle)]
-public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class NamingStylesTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public NamingStylesTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
-    private static readonly NamingStylesTestOptionSets s_options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
+    private static readonly NamingStylesTestOptionSets s_options = new(LanguageNames.CSharp);
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpNamingStyleDiagnosticAnalyzer(), new NamingStyleCodeFixProvider());
@@ -1399,6 +1393,34 @@ public class NamingStylesTests : AbstractCSharpDiagnosticProviderBasedUserDiagno
             {
                 internal interface 
             [|}|]
+            """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
+    public async Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI1()
+    {
+        await TestInRegularAndScript1Async("""
+            interface [|InputStream|] { }
+            """, """
+            interface IInputStream { }
+            """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
+    public async Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI2()
+    {
+        await TestInRegularAndScript1Async("""
+            interface [|Stream|] { }
+            """, """
+            interface IStream { }
+            """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17656")]
+    public async Task TestInterfacesStartWithIOnTypeThatAlreadyStartsWithI3()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            interface [|IInputStream|] { }
             """, new TestParameters(options: s_options.InterfaceNamesStartWithI));
     }
 
