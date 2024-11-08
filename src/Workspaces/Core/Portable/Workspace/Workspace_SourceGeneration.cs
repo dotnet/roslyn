@@ -47,7 +47,7 @@ public partial class Workspace
             useAsync: true,
             oldSolution =>
             {
-                var updates = SolutionCompilationState.GetUpdatedSourceGeneratorVersions(oldSolution.CompilationState, projectIds);
+                var updates = GetUpdatedSourceGeneratorVersions(oldSolution.CompilationState, projectIds);
                 return oldSolution.UpdateSpecificSourceGeneratorExecutionVersions(updates);
             },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
@@ -56,5 +56,81 @@ public partial class Workspace
             cancellationToken).ConfigureAwait(false);
 
         return;
+
+        // <summary>
+        // Given the current state of a <paramref name="solution"/>, produced an updated version of the source generator
+        // execution map based on the changes in <paramref name="projectIds"/>.  Each item in <paramref
+        // name="projectIds"/> signifies a particular project (if <c>projectId</c> is non-null) or the solution as a
+        // whole (if it is null). The <c>forceRegeneration</c> signifies if generators should be rerun even if the
+        // contents of the solution are the same.  If a project is specified in <paramref name="projectIds"/> then both
+        // it and all dependent projects of it will have their source generator versions updated.  If the solution is
+        // specified, then all projects will have their versions updated.
+        // </summary>
+        static SourceGeneratorExecutionVersionMap GetUpdatedSourceGeneratorVersions(
+            SolutionCompilationState solution, ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds)
+        {
+            // For all the projects explicitly requested, update their source generator version.  Do this for all
+            // projects that transitively depend on that project, so that their generators will run as well when next
+            // asked.
+            var dependencyGraph = solution.SolutionState.GetProjectDependencyGraph();
+            var result = ImmutableSortedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
+
+            // Determine if we want a major solution change, forcing regeneration of all projects.
+            var solutionMajor = projectIds.Any(t => t.projectId is null && t.forceRegeneration);
+
+            // If it's not a major solution change, then go update the versions for all projects requested.
+            if (!solutionMajor)
+            {
+                // Do a pass where we update minor versions if requested.
+                PopulateSourceGeneratorExecutionVersions(major: false);
+
+                // Then update major versions.  We do this after the minor-version pass so that major version updates
+                // overwrite minor-version updates.
+                PopulateSourceGeneratorExecutionVersions(major: true);
+            }
+
+            // Now, if we've been asked to do an entire solution update, get any projects we didn't already mark, and
+            // update their execution version as well.
+            if (projectIds.Any(t => t.projectId is null))
+            {
+                foreach (var projectId in solution.SolutionState.ProjectIds)
+                {
+                    if (!result.ContainsKey(projectId))
+                    {
+                        result.Add(
+                            projectId,
+                            Increment(solution.SourceGeneratorExecutionVersionMap[projectId], solutionMajor));
+                    }
+                }
+            }
+
+            return new(result.ToImmutable());
+
+            void PopulateSourceGeneratorExecutionVersions(bool major)
+            {
+                foreach (var (projectId, forceRegeneration) in projectIds)
+                {
+                    if (projectId is null)
+                        continue;
+
+                    if (forceRegeneration != major)
+                        continue;
+
+                    // We may have been asked to rerun generators for a project that is no longer around.  So make sure
+                    // we still have this project.
+                    var requestedProject = solution.SolutionState.GetProjectState(projectId);
+                    if (requestedProject != null)
+                    {
+                        result[projectId] = Increment(solution.SourceGeneratorExecutionVersionMap[projectId], major);
+
+                        foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
+                            result[transitiveProjectId] = Increment(solution.SourceGeneratorExecutionVersionMap[transitiveProjectId], major);
+                    }
+                }
+            }
+
+            static SourceGeneratorExecutionVersion Increment(SourceGeneratorExecutionVersion version, bool major)
+                => major ? version.IncrementMajorVersion() : version.IncrementMinorVersion();
+        }
     }
 }
