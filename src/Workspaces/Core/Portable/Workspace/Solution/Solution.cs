@@ -806,7 +806,7 @@ public partial class Solution
             // Note: we guaranteed that analyzerReferences has no duplicates, and has no overlap with the existing
             // analyzer references above, so we can just concatenate them here safely.
             .. this.GetRequiredProjectState(projectId).AnalyzerReferences,
-            .. analyzerReferences,
+            .. collection,
         ]));
     }
 
