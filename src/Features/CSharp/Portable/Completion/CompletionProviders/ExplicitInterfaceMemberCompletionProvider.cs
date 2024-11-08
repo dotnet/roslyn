@@ -36,7 +36,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
 
     protected override async Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol implementingType, Document newDocument, CompletionItem completionItem, CancellationToken cancellationToken)
     {
-        var implementInterfaceService = (AbstractImplementInterfaceService)newDocument.GetRequiredLanguageService<IImplementInterfaceService>();
+        var implementInterfaceService = newDocument.GetRequiredLanguageService<IImplementInterfaceService>();
 
         var semanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -49,7 +49,7 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider() : Abst
         cancellationToken.ThrowIfCancellationRequested();
         Contract.ThrowIfNull(interfaceNode);
 
-        var state = AbstractImplementInterfaceService.State.Generate(implementInterfaceService, newDocument, semanticModel, interfaceNode, cancellationToken);
+        var state = await implementInterfaceService.AnalyzeAsync(newDocument, interfaceNode, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
         Contract.ThrowIfNull(state);
 
