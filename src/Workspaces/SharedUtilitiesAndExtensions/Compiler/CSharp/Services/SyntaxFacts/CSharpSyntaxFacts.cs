@@ -19,12 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
 internal class CSharpSyntaxFacts : ISyntaxFacts
@@ -540,6 +534,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node)
         => node is PostfixUnaryExpressionSyntax;
+
+    public bool IsElementBindingExpression([NotNullWhen(true)] SyntaxNode? node)
+        => node is ElementBindingExpressionSyntax;
 
     public bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
         => node is MemberBindingExpressionSyntax;

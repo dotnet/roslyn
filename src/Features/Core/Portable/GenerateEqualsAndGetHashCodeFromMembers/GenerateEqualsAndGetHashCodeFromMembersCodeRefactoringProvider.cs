@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
                 Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService) : AbstractGenerateFromMembersCodeRefactoringProvider
+internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService? pickMembersService) : AbstractGenerateFromMembersCodeRefactoringProvider
 {
     public const string GenerateOperatorsId = nameof(GenerateOperatorsId);
     public const string ImplementIEquatableId = nameof(ImplementIEquatableId);

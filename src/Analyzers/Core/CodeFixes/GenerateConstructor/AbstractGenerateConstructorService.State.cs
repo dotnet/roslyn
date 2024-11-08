@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 
 internal abstract partial class AbstractGenerateConstructorService<TService, TExpressionSyntax>
 {
-    protected internal class State
+    protected internal sealed class State
     {
         private readonly TService _service;
         private readonly SemanticDocument _document;
@@ -238,13 +238,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         }
 
         private TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
-        {
-#if CODE_STYLE
-            return _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(language).GetRequiredService<TLanguageService>();
-#else
-            return _document.Project.Solution.Services.GetRequiredLanguageService<TLanguageService>(language);
-#endif
-        }
+            => _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(language).GetRequiredService<TLanguageService>();
 
         private bool ClashesWithExistingConstructor()
         {

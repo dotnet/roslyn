@@ -287,11 +287,6 @@
         <target state="translated">Člen záznamu {0} musí být čitelná vlastnost instance nebo pole typu {1}, která se bude shodovat s pozičním parametrem {2}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">Výraz foreach nejde použít na enumerátorech typu {0} v asynchronních metodách nebo metodách iterátoru, protože {0} je ref struct nebo parametr typu umožňující struktury ref struct.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Parametry typu {0} nemůžou být deklarované v asynchronních metodách nebo asynchronních výrazech lambda.</target>
@@ -334,12 +329,12 @@
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <target state="translated">U tohoto členu nelze použít OverloadResolutionPriorityAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <target state="translated">U přepisujících členů nelze použít OverloadResolutionPriorityAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -507,6 +502,11 @@
         <target state="translated">Typ {0} nelze inicializovat pomocí výrazu kolekce, protože typ není konstruovatelný.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="translated">Inicializátor kolekce má za následek nekonečný řetězec vytváření instancí kolekce '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Parametr typu {1} má omezení unmanaged, takže není možné používat {1} jako omezení pro {0}.</target>
@@ -630,6 +630,11 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">Příkaz nemůže začínat na else.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot emit update; {0} '{1}' is missing.</source>
+        <target state="new">Cannot emit update; {0} '{1}' is missing.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -784,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <target state="translated">Funkce {0} není v jazyce C# 13.0 dostupná. Použijte prosím verzi jazyka {1} nebo vyšší.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1148,7 +1153,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
         <target state="translated">Experimentální funkce interceptors není v tomto oboru názvů povolená. Přidejte do projektu {0}.</target>
         <note />
       </trans-unit>
@@ -1322,6 +1327,11 @@
         <target state="translated">Metoda {0} s blokem iterátoru musí být asynchronní, aby vrátila {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IteratorRefLikeElementType">
+        <source>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="new">Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
         <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
         <target state="translated">Kontextové klíčové slovo var se nedá použít jako explicitní návratový typ lambda.</target>
@@ -1464,12 +1474,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">{0}: typ použitý v asynchronním příkazu using musí být implicitně převoditelný na System.IAsyncDisposable nebo musí implementovat odpovídající metodu DisposeAsync. Měli jste v úmyslu použít using nebo await using?</target>
+        <target state="translated">{0}: Typ použitý v asynchronním příkazu using musí implementovat rozhraní System.IAsyncDisposable nebo odpovídající metodu DisposeAsync. Nechtěli jste místo příkazu await using použít příkaz using?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">{0}: Typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable. Neměli jste v úmyslu použít await using místo using?</target>
+        <target state="translated">{0}: Typ použitý v příkazu using musí implementovat rozhraní System.IDisposable. Nechtěli jste místo příkazu using použít příkaz await using?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1617,11 +1627,6 @@
         <target state="translated">Metoda {0} určuje omezení struct pro parametr typu {1}, ale odpovídající parametr typu {2} přepsané nebo explicitně implementované metody {3} není typ, který nemůže mít hodnotu null.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">Funkce parameter null-checking se nepodporuje.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Konstruktor {0} ponechá požadovaný člen {1} neinicializovaný.</target>
@@ -1737,6 +1742,11 @@
         <target state="translated">Částečná vlastnost nesmí mít víc implementujících deklarací.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="translated">Částečná vlastnost nemůže mít inicializátor v definici i implementaci.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
         <target state="translated">Přístupový objekt vlastnosti {0} musí být {1}, aby odpovídal definiční části.</target>
@@ -1848,7 +1858,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Tento odkaz přiřazuje {1} k {0}, protože {1} má širší obor řídicích hodnot než {0}, který povoluje přiřazení prostřednictvím {0} hodnot s užšími řídicími obory než {1}.</target>
         <note />
       </trans-unit>
@@ -2399,7 +2409,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
-        <target state="new">field keyword</target>
+        <target state="translated">klíčové slovo pole</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2410,6 +2420,11 @@
       <trans-unit id="IDS_FeatureFileTypes">
         <source>file types</source>
         <target state="translated">typy souborů</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFirstClassSpan">
+        <source>first-class Span types</source>
+        <target state="new">first-class Span types</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
@@ -2604,7 +2619,7 @@
       </trans-unit>
       <trans-unit id="IDS_OverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">priorita řešení přetížení</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2632,11 +2647,6 @@
         <target state="translated">ukazatel</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">{0} je kontextové klíčové slovo v přístupových objektech vlastností počínaje jazykovou verzí {1}. Místo toho použijte @{0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
         <target state="translated">Identifikátor je kontextové klíčové slovo se specifickým významem v novější jazykové verzi.</target>
@@ -2655,6 +2665,16 @@
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} není platná operace šíření v jazyce C#</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField">
+        <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
+        <target state="new">The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
+        <source>Property accessor should use 'field' because the other accessor is using it.</source>
+        <target state="new">Property accessor should use 'field' because the other accessor is using it.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2927,6 +2947,16 @@
         <target state="translated">Použití proměnné v tomto kontextu může vystavit odkazované proměnné mimo rozsah jejich oboru.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="translated">V jazykové verzi {0}se klíčové slovo field váže na syntetizované zálohovací pole pro vlastnost. Pokud se chcete vyhnout generování syntetizovaného záložního pole a odkazovat na existujícího člena, použijte místo toho this.field nebo @field.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="translated">Klíčové slovo field se váže k syntetizovanému záložnímu poli pro vlastnost.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
         <target state="translated">Operátor převodu vloženého pole se nepoužije pro převod z výrazu deklarujícího typu.</target>
@@ -3193,7 +3223,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
-        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Tento odkaz přiřazuje {1} k {0}, ale {1} má širší obor řídicích hodnot než {0}, který povoluje přiřazení prostřednictvím {0} hodnot s užšími řídicími obory než {1}.</target>
         <note />
       </trans-unit>
@@ -5203,6 +5233,16 @@
         <target state="translated">Parametr typu má stejný typ jako parametr typu z vnější metody.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField">
+        <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="new">Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField_Title">
+        <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="new">Field is never ref-assigned to, and will always have its default value (null reference)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
         <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
         <target state="translated">Volajícímu se vrátí ovládací prvek před explicitním přiřazením automaticky implementované vlastnosti {0}, což způsobí předchozí implicitní přiřazení default.</target>
@@ -5271,6 +5311,16 @@
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
         <target state="translated">Člen asynchronního iterátoru má jeden nebo více parametrů typu CancellationToken, ale žádný z nich není dekorovaný atributem EnumeratorCancellation, takže parametr tokenu zrušení z vygenerovaného výrazu IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator se nespotřebuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="translated">Proměnná {0} {1}, která nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte přidání modifikátoru required, deklaraci {0} jako s možnou hodnotou null nebo přidání atributů [field: MaybeNull, AllowNull].</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="translated">Při ukončovacím konstruktoru musí vlastnost, která nemůže mít hodnotu null, obsahovat hodnotu, která není null. Zvažte přidání modifikátoru required, deklaraci vlastnosti jako s možnou hodnotou null nebo přidání atributů [field: MaybeNull, AllowNull].</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -7587,11 +7637,6 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">Pro metodu s deklarací static a extern musí být zadaný atribut DllImport.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">Nelze aktualizovat {0}; chybí atribut {1}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">
         <source>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</source>
         <target state="translated">Atribut DllImport se nedá použít u metody, která je obecná nebo obsažená v obecné metodě nebo typu.</target>
@@ -9578,7 +9623,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
-        <target state="needs-review-translation">{0}: Typ použitý v příkazu using musí být implicitně převeditelný na System.IDisposable.</target>
+        <target state="translated">{0}: Typ použitý v příkazu using musí implementovat rozhraní System.IDisposable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -12155,8 +12200,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">Jenom automaticky implementované vlastnosti můžou mít inicializátory.</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="translated">Inicializátory můžou mít jenom automaticky implementované vlastnosti nebo vlastnosti, které používají klíčové slovo field.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
@@ -12975,8 +13020,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</source>
-        <target state="translated">Informace o ladění metody {0} (token 0x{1:X8}) ze sestavení {2} nelze přečíst.</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">
@@ -13106,7 +13151,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">{0}: typ použitý v asynchronním příkazu using musí být implicitně převoditelný na System.IAsyncDisposable nebo musí implementovat odpovídající metodu DisposeAsync.</target>
+        <target state="translated">{0}: Typ použitý v asynchronním příkazu using musí implementovat rozhraní System.IAsyncDisposable nebo odpovídající metodu DisposeAsync.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

@@ -12,9 +12,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-    <ExportCompletionProvider(NameOf(AwaitCompletionProvider), LanguageNames.VisualBasic)>
+    <ExportCompletionProvider(NameOf(AwaitCompletionProvider), LanguageNames.VisualBasic), [Shared]>
     <ExtensionOrder(After:=NameOf(KeywordCompletionProvider))>
-    <[Shared]>
     Friend NotInheritable Class AwaitCompletionProvider
         Inherits AbstractAwaitCompletionProvider
 
@@ -47,8 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Function GetAsyncSupportingDeclaration(token As SyntaxToken) As SyntaxNode
-            Return token.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
+        Protected Overrides Function GetAsyncSupportingDeclaration(targetToken As SyntaxToken, position As Integer) As SyntaxNode
+            Return targetToken.GetAncestor(Function(node) node.IsAsyncSupportedFunctionSyntax())
         End Function
 
         Protected Overrides Function GetTypeSymbolOfExpression(semanticModel As SemanticModel, potentialAwaitableExpression As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol

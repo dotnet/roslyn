@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     using static TemporaryStorageService;
 
     [UseExportProvider]
-#if NETCOREAPP
+#if NET
     [SupportedOSPlatform("windows")]
 #endif
     [Trait(Traits.Feature, Traits.Features.Workspace)]

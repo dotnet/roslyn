@@ -5,10 +5,12 @@
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 #pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
@@ -21,6 +23,7 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
     private readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ProjectInitializationHandler _projectInitializationHandler;
     private readonly ILogger _logger;
+    private readonly ILoggerFactory _loggerFactory;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,6 +31,7 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
     {
         _workspaceFactory = workspaceFactory;
         _projectInitializationHandler = projectInitializationHandler;
+        _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger(nameof(WorkspaceProjectFactoryService));
     }
 
@@ -41,24 +45,31 @@ internal class WorkspaceProjectFactoryService : IWorkspaceProjectFactoryService,
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken _)
     {
         _logger.LogInformation(string.Format(LanguageServerResources.Project_0_loaded_by_CSharp_Dev_Kit, creationInfo.FilePath));
-
-        if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))
+        VSCodeRequestTelemetryLogger.ReportProjectLoadStarted();
+        try
         {
-            _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionPath;
+            if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))
+            {
+                _workspaceFactory.ProjectSystemProjectFactory.SolutionPath = solutionPath;
+            }
+
+            var project = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
+                creationInfo.DisplayName,
+                creationInfo.Language,
+                new Workspaces.ProjectSystem.ProjectSystemProjectCreationInfo { FilePath = creationInfo.FilePath },
+                _workspaceFactory.ProjectSystemHostInfo);
+
+            var workspaceProject = new WorkspaceProject(project, _workspaceFactory.Workspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager, _loggerFactory);
+
+            // We've created a new project, so initialize properties we have
+            await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);
+
+            return workspaceProject;
         }
-
-        var project = await _workspaceFactory.ProjectSystemProjectFactory.CreateAndAddToWorkspaceAsync(
-            creationInfo.DisplayName,
-            creationInfo.Language,
-            new Workspaces.ProjectSystem.ProjectSystemProjectCreationInfo { FilePath = creationInfo.FilePath },
-            _workspaceFactory.ProjectSystemHostInfo);
-
-        var workspaceProject = new WorkspaceProject(project, _workspaceFactory.Workspace.Services.SolutionServices, _workspaceFactory.TargetFrameworkManager);
-
-        // We've created a new project, so initialize properties we have
-        await workspaceProject.SetBuildSystemPropertiesAsync(creationInfo.BuildSystemProperties, CancellationToken.None);
-
-        return workspaceProject;
+        catch (Exception e) when (LanguageServerFatalError.ReportAndLogAndPropagate(e, _logger, $"Failed to create project {creationInfo.DisplayName}"))
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 
     public Task<IReadOnlyCollection<string>> GetSupportedBuildSystemPropertiesAsync(CancellationToken _)

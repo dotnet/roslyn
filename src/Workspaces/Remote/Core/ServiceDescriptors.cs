@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
+using Microsoft.CodeAnalysis.RelatedDocuments;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
             (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteProcessTelemetryService), null),
+            (typeof(IRemoteRelatedDocumentsService), typeof(IRemoteRelatedDocumentsService.ICallback)),
             (typeof(IRemoteRenamerService), null),
             (typeof(IRemoteSemanticClassificationService), null),
             (typeof(IRemoteSemanticSearchService), typeof(IRemoteSemanticSearchService.ICallback)),

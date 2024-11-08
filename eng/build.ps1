@@ -252,8 +252,8 @@ function BuildSolution() {
   # Workaround for some machines in the AzDO pool not allowing long paths
   $ibcDir = $RepoRoot
 
-  # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
-  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
+  # Set DotNetBuildSourceOnly to 'true' if we're simulating building for source-build.
+  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildSourceOnly=true" } else { "" }
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
@@ -394,7 +394,7 @@ function TestUsingRunTests() {
     $env:ROSLYN_TEST_USEDASSEMBLIES = "true"
   }
 
-  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net8.0"
+  $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net9.0"
 
   if (!(Test-Path $runTests)) {
     Write-Host "Test runner not found: '$runTests'. Run Build.cmd first." -ForegroundColor Red
@@ -546,7 +546,7 @@ function EnablePreviewSdks() {
 # deploying at build time.
 function Deploy-VsixViaTool() {
 
-  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net8.0\VSIXExpInstaller\VSIXExpInstaller.exe"
+  $vsixExe = Join-Path $ArtifactsDir "bin\RunTests\$configuration\net9.0\VSIXExpInstaller\VSIXExpInstaller.exe"
   Write-Host "VSIX EXE path: " $vsixExe
   if (-not (Test-Path $vsixExe)) {
     Write-Host "VSIX EXE not found: '$vsixExe'." -ForegroundColor Red

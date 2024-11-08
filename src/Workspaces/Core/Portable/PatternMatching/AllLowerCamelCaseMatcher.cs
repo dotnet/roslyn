@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
-internal partial class PatternMatcher
+internal abstract partial class PatternMatcher
 {
     /// <summary>
     /// Encapsulated matches responsible for matching an all lowercase pattern against

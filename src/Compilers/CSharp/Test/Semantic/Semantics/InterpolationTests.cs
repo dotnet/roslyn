@@ -1131,7 +1131,7 @@ class Program {
         }
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NETCOREAPP
+#if NET
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1238,7 +1238,7 @@ class App{
         }
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NETCOREAPP
+#if NET
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1341,7 +1341,7 @@ class App{
         }
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NETCOREAPP
+#if NET
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1397,7 +1397,7 @@ class App{
         }
 
         [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
-#if NETCOREAPP
+#if NET
         [InlineData(TargetFramework.Net60)]
         [InlineData(TargetFramework.Net50)]
 #endif
@@ -1618,6 +1618,35 @@ static class C
                 // (23,33): error CS0029: Cannot implicitly convert type 'FormattableString' to 'IFormattable'
                 //         System.IFormattable i = $"{""}";
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("System.FormattableString", "System.IFormattable").WithLocation(23, 33)
+                );
+        }
+
+        [Fact]
+        public void VoidReturningFactory()
+        {
+            var text =
+@"
+namespace System.Runtime.CompilerServices
+{
+    public static class FormattableStringFactory
+    {
+        public static void Create(string format, params object[] arguments)
+        {
+        }
+    }
+}
+
+static class C
+{
+    static void Main()
+    {
+        System.IFormattable i = $""{""""}"";
+    }
+}";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (16,33): error CS0029: Cannot implicitly convert type 'void' to 'IFormattable'
+                //         System.IFormattable i = $"{""}";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"$""{""""}""").WithArguments("void", "System.IFormattable").WithLocation(16, 33)
                 );
         }
 
@@ -18982,6 +19011,25 @@ literal:literal
                 //     public static implicit operator C1(System.IFormattable x) => new C1(x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C1").WithArguments("C1.implicit operator C1(System.IFormattable)").WithLocation(18, 37)
             );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74677")]
+        public void StackOverflow()
+        {
+            var source = """
+                using System;
+
+                [Obsolete($"{Test2}")]
+                class Test2
+                {
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,14): error CS0119: 'Test2' is a type, which is not valid in the given context
+                // [Obsolete($"{Test2}")]
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Test2").WithArguments("Test2", "type").WithLocation(3, 14)
+                );
         }
     }
 }

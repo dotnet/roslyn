@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -109,7 +111,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     VersionStamp.Default,
                     name: name,
                     assemblyName: name,
-                    language: languageName)).GetRequiredProject(id);
+                    language: languageName)
+                    .WithCompilationOutputInfo(new CompilationOutputInfo(
+                        assemblyPath: Path.Combine(TempRoot.Root, name),
+                        generatedFilesOutputDirectory: null)))
+                .GetRequiredProject(id);
         }
     }
 }

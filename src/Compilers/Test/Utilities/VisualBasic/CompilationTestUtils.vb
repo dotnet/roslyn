@@ -14,7 +14,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestBase
-Imports Roslyn.Test.Utilities.TestMetadata
 Imports Xunit
 
 Friend Module CompilationUtils
@@ -66,7 +65,7 @@ Friend Module CompilationUtils
         Dim trees = source.GetSyntaxTrees(parseOptions, assemblyName)
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(
-                                            If(assemblyName, GetUniqueName()),
+                                            If(String.IsNullOrEmpty(assemblyName), GetUniqueName(), assemblyName),
                                             trees,
                                             references,
                                             options)

@@ -8,12 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.LanguageService;
 
 /// <summary>
@@ -293,6 +287,7 @@ internal interface ISyntaxFacts
     SyntaxNode GetExpressionOfAttributeArgument(SyntaxNode node);
     SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
 
+    bool IsElementBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node);
     bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node);
 

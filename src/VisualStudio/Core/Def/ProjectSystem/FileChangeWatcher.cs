@@ -311,7 +311,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                     _cookies.Add(cookie);
 
                     if (_filter != null)
-                        await service.FilterDirectoryChangesAsync(cookie, new[] { _filter }, cancellationToken).ConfigureAwait(false);
+                        await service.FilterDirectoryChangesAsync(cookie, [_filter], cancellationToken).ConfigureAwait(false);
 
                     return;
 

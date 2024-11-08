@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationFieldSymbol(
+internal sealed class CodeGenerationFieldSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes,
     Accessibility accessibility,

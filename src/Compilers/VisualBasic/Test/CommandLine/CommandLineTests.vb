@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Private Shared ReadOnly s_basicCompilerExecutable As String = Path.Combine(
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
-        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMono, "mono", String.Empty)
+        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMonoDesktop, "mono", String.Empty)
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
@@ -10656,6 +10656,33 @@ End Class")
             parsedArgs = DefaultParse({$"/generatedfilesout:""{absPath}""", "a.cs"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory)
+        End Sub
+
+        <Fact>
+        Public Sub Compiler_DoesNot_RunHostOutputs()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+Class C
+End Class")
+            Dim hostOutputRan As Boolean = False
+            Dim sourceOutputRan As Boolean = False
+            Dim generator = New PipelineCallbackGenerator(Sub(ctx)
+#Disable Warning RSEXPERIMENTAL004
+                                                              ctx.RegisterHostOutput(ctx.CompilationProvider, Sub(hostCtx, value)
+                                                                                                                  hostOutputRan = True
+                                                                                                                  hostCtx.AddOutput("output", "value")
+                                                                                                              End Sub)
+#Enable Warning RSEXPERIMENTAL004
+                                                              ctx.RegisterSourceOutput(ctx.CompilationProvider, Sub(spc, po)
+                                                                                                                    sourceOutputRan = True
+                                                                                                                    spc.AddSource("output.vb", "'value")
+                                                                                                                End Sub)
+                                                          End Sub)
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, generators:={generator.AsSourceGenerator()})
+            Assert.[False](hostOutputRan)
+            Assert.[True](sourceOutputRan)
+            CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
         End Sub
 
         <Fact>
