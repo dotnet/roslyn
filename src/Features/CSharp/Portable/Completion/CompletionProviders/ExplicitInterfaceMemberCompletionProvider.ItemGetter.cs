@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -244,26 +245,23 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
         {
             builder.AppendJoinedValues(", ", parameters, (parameter, builder) =>
             {
-                if (parameter.ScopedKind != ScopedKind.None)
+                builder.Append(parameter.RefKind switch
                 {
-                    builder.Append(parameter.ScopedKind switch
+                    RefKind.Out => "out ",
+                    RefKind.Ref => parameter.ScopedKind switch
+                    {
+                        ScopedKind.ScopedRef => "scoped ref ",
+                        ScopedKind.None => "ref ",
+                        _ => throw new InvalidEnumArgumentException("Unexpected scoped kind with ref kind 'ref'"),
+                    },
+                    RefKind.In => "in ",
+                    RefKind.RefReadOnlyParameter => "ref readonly ",
+                    _ => parameter.ScopedKind switch
                     {
                         ScopedKind.ScopedValue => "scoped ",
-                        ScopedKind.ScopedRef => "scoped ref ",
-                        _ => ""
-                    });
-                }
-                else
-                {
-                    builder.Append(parameter.RefKind switch
-                    {
-                        RefKind.Out => "out ",
-                        RefKind.Ref => "ref ",
-                        RefKind.In => "in ",
-                        RefKind.RefReadOnlyParameter => "ref readonly ",
-                        _ => ""
-                    });
-                }
+                        _ => "",
+                    },
+                });
 
                 if (parameter.IsParams)
                 {

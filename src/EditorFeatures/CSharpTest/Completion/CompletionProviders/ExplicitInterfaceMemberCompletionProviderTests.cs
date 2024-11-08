@@ -681,6 +681,9 @@ public class ExplicitInterfaceMemberCompletionProviderTests : AbstractCSharpComp
     [InlineData("ref")]
     [InlineData("in")]
     [InlineData("out")]
+    [InlineData("ref readonly")]
+    [InlineData("scoped")]
+    [InlineData("scoped ref")]
     public async Task TestWithRefKind(string refKind)
     {
         var markup = $@"
