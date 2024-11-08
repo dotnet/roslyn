@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(3, 12));
         }
 
-
         [Fact]
         public void LangVersion_02()
         {
