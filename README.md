@@ -2,7 +2,7 @@
 <img width="450" src="https://user-images.githubusercontent.com/46729679/109719841-17b7dd00-7b5e-11eb-8f5e-87eb2d4d1be9.png" alt="Roslyn logo">
 </p>
 
-<h1 align="center">The .NET Compiler Platform</h1>
+<h1 align="center">The .NET Compyler Platform</h1>
 
 <p align="center"><a href="http://aka.ms/discord-csharp-roslyn" rel="nofollow"><img title="Chat on Discord" src="docs/img/discord-mark-white.png" /></a></p>
 
