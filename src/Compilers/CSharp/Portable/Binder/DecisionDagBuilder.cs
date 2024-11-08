@@ -1076,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out StateForCase whenFalse,
             ref bool foundExplicitNullTest)
         {
-            stateForCase.RemainingTests.Filter(this, test, state, whenTrueValues, whenFalseValues, out Tests whenTrueTests, out Tests whenFalseTests, ref foundExplicitNullTest, this._diagnostics);
+            stateForCase.RemainingTests.Filter(this, test, state, whenTrueValues, whenFalseValues, out Tests whenTrueTests, out Tests whenFalseTests, ref foundExplicitNullTest);
             whenTrue = stateForCase.WithRemainingTests(whenTrueTests);
             whenFalse = stateForCase.WithRemainingTests(whenFalseTests);
         }
@@ -2072,8 +2072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IValueSet? whenFalseValues,
                 out Tests whenTrue,
                 out Tests whenFalse,
-                ref bool foundExplicitNullTest,
-                BindingDiagnosticBag diagnostics);
+                ref bool foundExplicitNullTest);
             public virtual BoundDagTest ComputeSelectedTest() => throw ExceptionUtilities.Unreachable();
             public virtual Tests RemoveEvaluation(BoundDagEvaluation e) => this;
             /// <summary>
@@ -2097,8 +2096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest,
-                    BindingDiagnosticBag diagnostics)
+                    ref bool foundExplicitNullTest)
                 {
                     whenTrue = whenFalse = this;
                 }
@@ -2119,8 +2117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest,
-                    BindingDiagnosticBag diagnostics)
+                    ref bool foundExplicitNullTest)
                 {
                     whenTrue = whenFalse = this;
                 }
@@ -2144,8 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest,
-                    BindingDiagnosticBag diagnostics)
+                    ref bool foundExplicitNullTest)
                 {
                     SyntaxNode syntax = test.Syntax;
                     BoundDagTest other = this.Test;
@@ -2312,10 +2308,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest,
-                    BindingDiagnosticBag diagnostics)
+                    ref bool foundExplicitNullTest)
                 {
-                    Negated.Filter(builder, test, state, whenTrueValues, whenFalseValues, out var whenTestTrue, out var whenTestFalse, ref foundExplicitNullTest, diagnostics);
+                    Negated.Filter(builder, test, state, whenTrueValues, whenFalseValues, out var whenTestTrue, out var whenTestFalse, ref foundExplicitNullTest);
                     whenTrue = Not.Create(whenTestTrue);
                     whenFalse = Not.Create(whenTestFalse);
                 }
@@ -2340,94 +2335,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IValueSet? whenFalseValues,
                     out Tests whenTrue,
                     out Tests whenFalse,
-                    ref bool foundExplicitNullTest,
-                    BindingDiagnosticBag diagnostics)
+                    ref bool foundExplicitNullTest)
                 {
                     var trueBuilder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
                     var falseBuilder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
-                    for (int i = 0; i < RemainingTests.Length; i++)
+                    foreach (var other in RemainingTests)
                     {
-                        var other = RemainingTests[i];
-                        other.Filter(builder, test, state, whenTrueValues, whenFalseValues, out Tests oneTrue, out Tests oneFalse, ref foundExplicitNullTest, diagnostics);
+                        other.Filter(builder, test, state, whenTrueValues, whenFalseValues, out Tests oneTrue, out Tests oneFalse, ref foundExplicitNullTest);
                         trueBuilder.Add(oneTrue);
                         falseBuilder.Add(oneFalse);
-
-                        if (i > 0
-                            && oneTrue is False
-                            && this is OrSequence { RemainingTests: [Not { Negated: var negated }, ..] }
-                            && isRecognizedPartOfNegated(test, negated))
-                        {
-                            // We report a warning based on heuristic to catch a common mistake (`not ... or <redundant>` pattern)
-                            diagnostics.Add(ErrorCode.WRN_RedundantPattern, getSyntax(other));
-                        }
                     }
 
                     whenTrue = Update(trueBuilder);
                     whenFalse = Update(falseBuilder);
-
-                    return;
-
-                    // Check that the given test, which causes the `or` condition to become redundant,
-                    // is indeed the test being negated by the `not`
-                    static bool isRecognizedPartOfNegated(BoundDagTest test, Tests negated)
-                    {
-                        // If we have something like `not A or ... or B` where the A test being true implies that the B test is false,
-                        // so the B test could only be true when the `not A` test is true,
-                        // then the user probably made a mistake having the `or B` condition
-                        // Also handles `not "literal" or ...`
-                        if (negated is AndSequence { RemainingTests: [One { Test: BoundDagNonNullTest nonNullTest }, One { Test: BoundDagTypeTest typeTest }, ..] }
-                            && nonNullTest.Input == typeTest.Input
-                            && test == typeTest)
-                        {
-                            return true;
-                        }
-
-                        // If we have something like `... or not A or B`, by the time we get to process the `not A or B`,
-                        // the null test has already been removed
-                        if (negated is One { Test: BoundDagTypeTest typeTest2 }
-                            && test == typeTest2)
-                        {
-                            return true;
-                        }
-
-                        // Handles `not { ... } or null`
-                        if (negated is AndSequence { RemainingTests: [One { Test: BoundDagNonNullTest nonNullTest2 }, ..] }
-                            && test == nonNullTest2)
-                        {
-                            return true;
-                        }
-
-                        // If we have something like `not null or ... or C`,
-                        // the C test could only be true when the `not null` test is true,
-                        // then the user probably made a mistake having the `or C` condition
-                        if (negated is One { Test: BoundDagExplicitNullTest nonNullTest3 }
-                            && test == nonNullTest3)
-                        {
-                            return true;
-                        }
-
-                        // Handle `not 42 or ...`
-                        if (negated is One { Test: BoundDagValueTest valueTest }
-                            && test == valueTest)
-                        {
-                            return true;
-                        }
-
-                        return false;
-                    }
-
-                    static SyntaxNode getSyntax(Tests tests)
-                    {
-                        return tests switch
-                        {
-                            One { Test: var oneTest } => oneTest.Syntax,
-                            Not not => getSyntax(not.Negated),
-                            SequenceTests sequence => getSyntax(sequence.RemainingTests[0]),
-                            _ => throw ExceptionUtilities.UnexpectedValue(tests),
-                        };
-                    }
                 }
-
                 public sealed override Tests RemoveEvaluation(BoundDagEvaluation e)
                 {
                     var builder = ArrayBuilder<Tests>.GetInstance(RemainingTests.Length);
