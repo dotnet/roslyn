@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Console.Write(s?.P = 5); // 4
                         Console.Write(s?.RP = 6);
                     }
-                
+
                     static void M2(S s)
                     {
                         s?.f = 7; // 5

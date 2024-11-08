@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Increment_LeftMemberAccess()
         {
-            // TODO2: support increment/decrement?
+            // Increment/decrement of a conditional access is not supported.
             string source = "a?.b++";
             UsingExpression(source, TestOptions.Regular13);
             verify();
@@ -293,3 +293,4 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
     }
+}
