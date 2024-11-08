@@ -206,9 +206,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(SyntaxKind.BarEqualsToken)]
         [InlineData(SyntaxKind.AmpersandEqualsToken)]
         [InlineData(SyntaxKind.CaretEqualsToken)]
-        //[InlineData(SyntaxKind.LessThanLessThanEqualsToken)]
-        //[InlineData(SyntaxKind.GreaterThanGreaterThanEqualsToken)]
-        //[InlineData(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        [InlineData(SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
         [InlineData(SyntaxKind.PlusEqualsToken)]
         [InlineData(SyntaxKind.MinusEqualsToken)]
         [InlineData(SyntaxKind.AsteriskEqualsToken)]
@@ -292,5 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
+
+        // TODO2: valid case where RHS of assignment is ref-returning lambda
     }
 }
