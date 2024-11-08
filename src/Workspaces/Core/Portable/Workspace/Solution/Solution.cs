@@ -832,7 +832,7 @@ public partial class Solution
         using var _ = ArrayBuilder<AnalyzerReference>.GetInstance(oldProject.AnalyzerReferences.Count - 1, out var builder);
         foreach (var reference in oldProject.AnalyzerReferences)
         {
-            if (reference.Equals(analyzerReference))
+            if (!reference.Equals(analyzerReference))
                 builder.Add(reference);
         }
 
