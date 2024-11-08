@@ -11899,38 +11899,32 @@ done:
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 
-            while (true)
-            {
-                // Nullable suppression operators should only be consumed by a conditional access
-                // if there are further conditional operations performed after the suppression
-                if (isOptionalExclamationsFollowedByConditionalOperation())
-                {
-                    while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
-                }
+            while (tryExpandExpression(expr) is ExpressionSyntax expandedExpression)
+                expr = expandedExpression;
 
-                var (operatorTokenKind, operatorExpressionKind) = GetOperatorTokenAndExpressionKind();
-                switch (operatorTokenKind)
+            return expr;
+
+            ExpressionSyntax tryExpandExpression(ExpressionSyntax expr)
+            {
+                using var beforeSuppressionsResetPoint = GetDisposableResetPoint(resetOnDispose: false);
+
+                // consume any '!'s from the preceding conditional operation.
+                while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                    expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
+
+                switch (this.CurrentToken.Kind)
                 {
                     // a?.b()
                     case SyntaxKind.OpenParenToken:
-                        expr = _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
-                        continue;
+                        return _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
 
                     // a?.b[]
                     case SyntaxKind.OpenBracketToken:
-                        expr = _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
-                        continue;
+                        return _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
 
                     // a?.b.
                     case SyntaxKind.DotToken:
-                        expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
-                        continue;
-
-                    // a?.b =
-                    case var kind when IsExpectedAssignmentOperator(kind):
-                        expr = ParseAssignmentOperator(operatorExpressionKind, expr, this.EatOperatorToken(operatorTokenKind));
-                        break;
+                        return _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
 
                     // a?.b?
                     case SyntaxKind.QuestionToken:
@@ -11940,23 +11934,18 @@ done:
                                 expr,
                                 operatorToken: this.EatToken(),
                                 ParseConsequenceSyntax());
-
-                    default:
-                        return expr;
                 }
-            }
 
-            bool isOptionalExclamationsFollowedByConditionalOperation()
-            {
-                var index = 0;
-                while (this.PeekToken(index).Kind == SyntaxKind.ExclamationToken)
-                    index++;
+                var (operatorTokenKind, operatorExpressionKind) = GetOperatorTokenAndExpressionKind();
+                if (IsExpectedAssignmentOperator(operatorTokenKind))
+                {
+                    return ParseAssignmentOperator(operatorExpressionKind, expr, EatOperatorToken(operatorTokenKind));
+                }
 
-                return this.PeekToken(index).Kind
-                    is SyntaxKind.OpenParenToken
-                    or SyntaxKind.OpenBracketToken
-                    or SyntaxKind.DotToken
-                    or SyntaxKind.QuestionToken;
+                // Nullable suppression operators should only be consumed by a conditional access
+                // if there are further conditional operations performed after the suppression
+                beforeSuppressionsResetPoint.Reset();
+                return null;
             }
         }
 

@@ -411,7 +411,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RefAssignment_01()
         {
-            // TODO2: error recovery for ref assignment could be improved
             var source = """
                 using System;
 
@@ -435,18 +434,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (11,11): error CS0023: Operator '?' cannot be applied to operand of type 'RS'
                 //         rs?.RF = ref i; // 1
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "RS").WithLocation(11, 11),
-                // (11,18): error CS1525: Invalid expression term 'ref'
-                //         rs?.RF = ref i; // 1
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(11, 18),
                 // (13,9): error CS9244: The type 'RS' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         RS? nrs = rs; // 2
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "RS?").WithArguments("System.Nullable<T>", "T", "RS").WithLocation(13, 9),
                 // (14,13): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         nrs?.RF = ref i; // 3
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, ".RF").WithLocation(14, 13),
-                // (14,19): error CS1525: Invalid expression term 'ref'
-                //         nrs?.RF = ref i; // 3
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref i").WithArguments("ref").WithLocation(14, 19));
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, ".RF").WithLocation(14, 13));
         }
 
         [Fact]
@@ -473,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         c?.M() = 1;
                         Console.Write(c?.M() ?? 3);
                     }
-                
+
                     static void M2(C c)
                     {
                         Console.Write((c?.M() = 2) ?? 4);
@@ -751,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         c?.f += 1;
                         Console.Write(c?.f ?? 2);
                     }
-                
+
                     static void M2(C c)
                     {
                         Console.Write((c?.f += 3) ?? 4);
@@ -947,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = """
                 using System;
-                
+
                 class Program
                 {
                     public static void Main()
@@ -971,7 +964,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var verifier = CompileAndVerify(source, expectedOutput: "TrueTrue");
             verifier.VerifyDiagnostics();
-            // TODO2: verify IL
+            verifier.VerifyIL("C<T>.M", """
+                {
+                  // Code size       80 (0x50)
+                  .maxstack  3
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  brfalse.s  IL_000f
+                  IL_0003:  ldarg.0
+                  IL_0004:  ldflda     "T C<T>.t"
+                  IL_0009:  initobj    "T"
+                  IL_000f:  ldarg.0
+                  IL_0010:  brtrue.s   IL_001d
+                  IL_0012:  ldloca.s   V_0
+                  IL_0014:  initobj    "T"
+                  IL_001a:  ldloc.0
+                  IL_001b:  br.s       IL_002f
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldloca.s   V_0
+                  IL_0020:  initobj    "T"
+                  IL_0026:  ldloc.0
+                  IL_0027:  dup
+                  IL_0028:  stloc.0
+                  IL_0029:  stfld      "T C<T>.t"
+                  IL_002e:  ldloc.0
+                  IL_002f:  ldarg.0
+                  IL_0030:  ldfld      "T C<T>.t"
+                  IL_0035:  box        "T"
+                  IL_003a:  ldnull
+                  IL_003b:  ceq
+                  IL_003d:  call       "void System.Console.Write(bool)"
+                  IL_0042:  box        "T"
+                  IL_0047:  ldnull
+                  IL_0048:  ceq
+                  IL_004a:  call       "void System.Console.Write(bool)"
+                  IL_004f:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -979,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = """
                 using System;
-                
+
                 class Program
                 {
                     public static void Main()
@@ -1003,7 +1032,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var verifier = CompileAndVerify(source, expectedOutput: "11");
             verifier.VerifyDiagnostics();
-            // TODO2: verify IL
+            verifier.VerifyIL("C<T>.M", """
+                {
+                  // Code size       85 (0x55)
+                  .maxstack  3
+                  .locals init (T? V_0,
+                                T V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  brfalse.s  IL_000a
+                  IL_0003:  ldarg.0
+                  IL_0004:  ldarg.1
+                  IL_0005:  stfld      "T C<T>.t"
+                  IL_000a:  ldarg.0
+                  IL_000b:  brtrue.s   IL_0018
+                  IL_000d:  ldloca.s   V_0
+                  IL_000f:  initobj    "T?"
+                  IL_0015:  ldloc.0
+                  IL_0016:  br.s       IL_0027
+                  IL_0018:  ldarg.0
+                  IL_0019:  ldarg.1
+                  IL_001a:  dup
+                  IL_001b:  stloc.1
+                  IL_001c:  stfld      "T C<T>.t"
+                  IL_0021:  ldloc.1
+                  IL_0022:  newobj     "T?..ctor(T)"
+                  IL_0027:  ldarg.0
+                  IL_0028:  brtrue.s   IL_0035
+                  IL_002a:  ldloca.s   V_0
+                  IL_002c:  initobj    "T?"
+                  IL_0032:  ldloc.0
+                  IL_0033:  br.s       IL_0040
+                  IL_0035:  ldarg.0
+                  IL_0036:  ldfld      "T C<T>.t"
+                  IL_003b:  newobj     "T?..ctor(T)"
+                  IL_0040:  box        "T?"
+                  IL_0045:  call       "void System.Console.Write(object)"
+                  IL_004a:  box        "T?"
+                  IL_004f:  call       "void System.Console.Write(object)"
+                  IL_0054:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1011,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = """
                 using System;
-                
+
                 class C
                 {
                     int F;
