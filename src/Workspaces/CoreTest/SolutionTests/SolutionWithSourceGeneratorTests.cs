@@ -1072,7 +1072,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
                 Assert.True(workspace.TryApplyChanges(project1.Solution));
                 workspace.EnqueueUpdateSourceGeneratorVersion(project1.Id, forceRegeneration: true);
 
-                var waiter = (IAsynchronousOperationWaiter)mefServices.GetExportedValue<IAsynchronousOperationListenerProvider>();
+                var waiter = (IAsynchronousOperationWaiter)mefServices.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.SourceGenerators);
                 await waiter.ExpeditedWaitAsync();
 
                 project1 = workspace.CurrentSolution.GetRequiredProject(project1.Id);
