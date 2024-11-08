@@ -374,4 +374,78 @@ public sealed class ForStatementParsingTest(ITestOutputHelper output) : ParsingT
         }
         EOF();
     }
+
+    [Fact]
+    public void TestVariableDeclaratorVersusCondition1()
+    {
+        UsingStatement("for (int i = 0, i++; i < 10; i++) ;",
+            // (1,15): error CS1002: ; expected
+            // for (int i = 0, i++; i < 10; i++) ;
+            Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(1, 15),
+            // (1,28): error CS1003: Syntax error, ',' expected
+            // for (int i = 0, i++; i < 10; i++) ;
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(1, 28));
+
+        N(SyntaxKind.ForStatement);
+        {
+            N(SyntaxKind.ForKeyword);
+            N(SyntaxKind.OpenParenToken);
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.IntKeyword);
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.NumericLiteralExpression);
+                        {
+                            N(SyntaxKind.NumericLiteralToken, "0");
+                        }
+                    }
+                }
+            }
+            M(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.PostIncrementExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+                N(SyntaxKind.PlusPlusToken);
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.LessThanExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+                N(SyntaxKind.LessThanToken);
+                N(SyntaxKind.NumericLiteralExpression);
+                {
+                    N(SyntaxKind.NumericLiteralToken, "10");
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+            N(SyntaxKind.PostIncrementExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "i");
+                }
+                N(SyntaxKind.PlusPlusToken);
+            }
+            N(SyntaxKind.CloseParenToken);
+            N(SyntaxKind.EmptyStatement);
+            {
+                N(SyntaxKind.SemicolonToken);
+            }
+        }
+        EOF();
+    }
 }
