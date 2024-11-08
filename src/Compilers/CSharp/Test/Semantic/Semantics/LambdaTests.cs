@@ -5363,15 +5363,9 @@ class Program
                 // (7,18): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref void () => { });
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(7, 18),
-                // (7,26): error CS8917: The delegate type could not be inferred.
-                //         d = (ref void () => { });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(7, 26),
                 // (8,27): error CS1547: Keyword 'void' cannot be used in this context
                 //         d = (ref readonly void () => { });
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27),
-                // (8,35): error CS8917: The delegate type could not be inferred.
-                //         d = (ref readonly void () => { });
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "=>").WithLocation(8, 35));
+                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(8, 27));
         }
 
         [WorkItem(55217, "https://github.com/dotnet/roslyn/issues/55217")]

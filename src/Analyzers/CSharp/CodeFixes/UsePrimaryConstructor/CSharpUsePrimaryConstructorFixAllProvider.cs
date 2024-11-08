@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
-internal partial class CSharpUsePrimaryConstructorCodeFixProvider
+internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider
 {
 #if !CODE_STYLE // Currently depends on helpers only available in workspace layer.
 

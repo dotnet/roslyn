@@ -87,6 +87,10 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             "where clause" => CSharpFeaturesResources.where_clause,
             "select clause" => CSharpFeaturesResources.select_clause,
             "groupby clause" => CSharpFeaturesResources.groupby_clause,
+            "orderby clause" => CSharpFeaturesResources.orderby_clause,
+            "join clause" => CSharpFeaturesResources.join_clause,
+            "from clause" => CSharpFeaturesResources.from_clause,
+            "let clause" => CSharpFeaturesResources.let_clause,
             "top-level statement" => CSharpFeaturesResources.top_level_statement,
             "top-level code" => CSharpFeaturesResources.top_level_code,
             "class with explicit or sequential layout" => string.Format(FeaturesResources.class_with_explicit_or_sequential_layout),
@@ -98,8 +102,11 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     internal static RudeEditDiagnosticDescription Diagnostic(RudeEditKind rudeEditKind, string squiggle, params string[] arguments)
         => new(rudeEditKind, squiggle, arguments, firstLine: null);
 
-    internal static RuntimeRudeEditDescription RuntimeRudeEdit(int marker, RudeEditKind rudeEditKind, (int displayLine, int displayColumn) position, params string[] arguments)
-        => new(marker, rudeEditKind, new LinePosition(position.displayLine - 1, position.displayColumn - 1), arguments);
+    internal static RuntimeRudeEditDescription RuntimeRudeEdit(int marker, RudeEditKind rudeEditKind, LinePosition position, params string[] arguments)
+        => new(marker, rudeEditKind, position, arguments);
+
+    internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, SyntaxMapDescription.Mapping? syntaxMap, IEnumerable<RuntimeRudeEditDescription>? rudeEdits = null, string? partialType = null)
+        => SemanticEdit(kind, symbolProvider, syntaxMap?.Spans, rudeEdits, partialType);
 
     internal static SemanticEditDescription SemanticEdit(SemanticEditKind kind, Func<Compilation, ISymbol> symbolProvider, IEnumerable<(TextSpan, TextSpan)>? syntaxMap, IEnumerable<RuntimeRudeEditDescription>? rudeEdits = null, string? partialType = null)
         => new(kind, symbolProvider, (partialType != null) ? c => c.GetMember<INamedTypeSymbol>(partialType) : null, syntaxMap, rudeEdits, hasSyntaxMap: syntaxMap != null, deletedSymbolContainerProvider: null);
@@ -125,7 +132,10 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
             path: GetDocumentFilePath(documentIndex));
 
-    internal static EditScript<SyntaxNode> GetTopEdits(string src1, string src2, int documentIndex = 0)
+    internal static EditScriptDescription GetTopEdits(string methodBody1, string methodBody2, MethodKind kind)
+        => GetTopEdits(WrapMethodBodyWithClass(methodBody1, kind), WrapMethodBodyWithClass(methodBody2, kind));
+
+    internal static EditScriptDescription GetTopEdits(string src1, string src2, int documentIndex = 0)
     {
         var tree1 = ParseSource(src1, documentIndex);
         var tree2 = ParseSource(src2, documentIndex);
@@ -134,10 +144,10 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
         tree2.GetDiagnostics().Verify();
 
         var match = SyntaxComparer.TopLevel.ComputeMatch(tree1.GetRoot(), tree2.GetRoot());
-        return match.GetTreeEdits();
+        return new(src1, src2, match.GetTreeEdits());
     }
 
-    public static EditScript<SyntaxNode> GetTopEdits(EditScript<SyntaxNode> methodEdits)
+    internal static EditScriptDescription GetTopEdits(EditScriptDescription methodEdits)
     {
         var oldMethodSource = methodEdits.Match.OldRoot.ToFullString();
         var newMethodSource = methodEdits.Match.NewRoot.ToFullString();
@@ -148,10 +158,10 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     /// <summary>
     /// Gets method edits on the current level of the source hierarchy. This means that edits on lower labeled levels of the hierarchy are not expected to be returned.
     /// </summary>
-    internal static EditScript<SyntaxNode> GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular)
+    internal static EditScriptDescription GetMethodEdits(string src1, string src2, MethodKind kind = MethodKind.Regular)
     {
         var match = GetMethodMatch(src1, src2, kind);
-        return match.GetTreeEdits();
+        return new(src1, src2, match.GetTreeEdits());
     }
 
     internal static Match<SyntaxNode> GetMethodMatch(string src1, string src2, MethodKind kind = MethodKind.Regular)
@@ -227,7 +237,7 @@ namespace System.Runtime.CompilerServices { class CreateNewOnMetadataUpdateAttri
     internal static SyntaxMapDescription GetSyntaxMap(string oldSource, string newSource)
         => new(oldSource, newSource);
 
-    internal static void VerifyPreserveLocalVariables(EditScript<SyntaxNode> edits, bool preserveLocalVariables)
+    internal static void VerifyPreserveLocalVariables(EditScriptDescription edits, bool preserveLocalVariables)
     {
         var oldDeclaration = (MethodDeclarationSyntax)((ClassDeclarationSyntax)((CompilationUnitSyntax)edits.Match.OldRoot).Members[0]).Members[0];
         var oldBody = SyntaxUtilities.TryGetDeclarationBody(oldDeclaration, symbol: null);

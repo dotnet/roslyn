@@ -990,6 +990,7 @@ outerDefault:
                 ignoreOpenTypes: false,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: false,
+                isMethodGroupConversion: false,
                 useSiteInfo: ref useSiteInfo);
         }
 
@@ -1034,6 +1035,7 @@ outerDefault:
                 ignoreOpenTypes: false,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: false,
+                isMethodGroupConversion: false,
                 useSiteInfo: ref useSiteInfo);
 
             Debug.Assert(!result.IsValid || result.Kind == MemberResolutionKind.ApplicableInExpandedForm);
@@ -1054,6 +1056,7 @@ outerDefault:
             where TMember : Symbol
         {
             Debug.Assert(checkOverriddenOrHidden || containingTypeMapOpt is null);
+            Debug.Assert((options & Options.IgnoreNormalFormIfHasValidParamsParameter) == 0 || (options & Options.IsMethodGroupConversion) == 0);
 
             // SPEC VIOLATION:
             //
@@ -1158,7 +1161,8 @@ outerDefault:
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
             bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
-            var normalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out _))
+            bool skipNormalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out _));
+            var normalResult = skipNormalResult
                 ? default(MemberResolutionResult<TMember>)
                 : IsMemberApplicableInNormalForm(
                     member,
@@ -1188,9 +1192,10 @@ outerDefault:
                         options,
                         completeResults: completeResults,
                         dynamicConvertsToAnything: (options & Options.DynamicConvertsToAnything) != 0,
+                        isMethodGroupConversion: (options & Options.IsMethodGroupConversion) != 0,
                         useSiteInfo: ref useSiteInfo);
 
-                    if (PreferExpandedFormOverNormalForm(normalResult, expandedResult))
+                    if (skipNormalResult || PreferExpandedFormOverNormalForm(normalResult, expandedResult))
                     {
                         result = expandedResult;
                     }
@@ -2964,6 +2969,16 @@ outerDefault:
                 return BetterCollectionExpressionConversion((BoundUnconvertedCollectionExpression)node, t1, conv1, t2, conv2, ref useSiteInfo);
             }
 
+            switch ((conv1.Kind, conv2.Kind))
+            {
+                case (ConversionKind.ImplicitSpan, ConversionKind.ImplicitSpan):
+                    break;
+                case (_, ConversionKind.ImplicitSpan):
+                    return BetterResult.Right;
+                case (ConversionKind.ImplicitSpan, _):
+                    return BetterResult.Left;
+            }
+
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
             //   conversions or neither is a conditional expression conversion.
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
@@ -4048,6 +4063,7 @@ outerDefault:
                 inferWithDynamic: (options & Options.InferWithDynamic) != 0,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: (options & Options.DynamicConvertsToAnything) != 0,
+                isMethodGroupConversion: (options & Options.IsMethodGroupConversion) != 0,
                 useSiteInfo: ref useSiteInfo);
 
             // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
@@ -4069,6 +4085,7 @@ outerDefault:
             Options options,
             bool completeResults,
             bool dynamicConvertsToAnything,
+            bool isMethodGroupConversion,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
@@ -4115,6 +4132,7 @@ outerDefault:
                 inferWithDynamic: false,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: dynamicConvertsToAnything,
+                isMethodGroupConversion: isMethodGroupConversion,
                 useSiteInfo: ref useSiteInfo);
 
             Debug.Assert(!result.Result.IsValid || result.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm);
@@ -4135,6 +4153,7 @@ outerDefault:
             bool inferWithDynamic,
             bool completeResults,
             bool dynamicConvertsToAnything,
+            bool isMethodGroupConversion,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             where TMember : Symbol
         {
@@ -4256,6 +4275,7 @@ outerDefault:
                 ignoreOpenTypes: ignoreOpenTypes,
                 completeResults: completeResults,
                 dynamicConvertsToAnything: dynamicConvertsToAnything,
+                isMethodGroupConversion: isMethodGroupConversion,
                 useSiteInfo: ref useSiteInfo);
             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, applicableResult, hasTypeArgumentsInferredFromFunctionType);
         }
@@ -4327,6 +4347,7 @@ outerDefault:
             bool ignoreOpenTypes,
             bool completeResults,
             bool dynamicConvertsToAnything,
+            bool isMethodGroupConversion,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             TypeWithAnnotations paramsElementTypeOpt;
@@ -4440,7 +4461,8 @@ outerDefault:
                         ref useSiteInfo,
                         forExtensionMethodThisArg,
                         hasInterpolatedStringRefMismatch,
-                        dynamicConvertsToAnything);
+                        dynamicConvertsToAnything,
+                        isMethodGroupConversion: isMethodGroupConversion);
 
                     Debug.Assert(
                         !forExtensionMethodThisArg ||
@@ -4522,7 +4544,8 @@ outerDefault:
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             bool forExtensionMethodThisArg,
             bool hasInterpolatedStringRefMismatch,
-            bool dynamicConvertsToAnything)
+            bool dynamicConvertsToAnything,
+            bool isMethodGroupConversion)
         {
             // Spec 7.5.3.1
             // For each argument in A, the parameter passing mode of the argument (i.e., value, ref, or out) is identical
@@ -4562,7 +4585,7 @@ outerDefault:
             if (argRefKind == RefKind.None || hasInterpolatedStringRefMismatch)
             {
                 var conversion = forExtensionMethodThisArg ?
-                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteInfo) :
+                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteInfo, isMethodGroupConversion: isMethodGroupConversion) :
                     ((!dynamicConvertsToAnything || !argument.Type.IsDynamic()) ?
                          Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteInfo) :
                          Conversion.ImplicitDynamic);

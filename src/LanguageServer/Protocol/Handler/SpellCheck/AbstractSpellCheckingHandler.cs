@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         /// significance changed. The version key is produced by combining the checksums for project options <see
         /// cref="ProjectState.GetParseOptionsChecksum"/> and <see cref="DocumentStateChecksums.Text"/>
         /// </summary>
-        private readonly VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)?> _versionedCache;
+        private readonly SpellCheckPullCache _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -74,12 +76,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
-            HandleRemovedDocuments(context, previousResults, progress);
+            await HandleRemovedDocumentsAsync(context, previousResults, progress, cancellationToken).ConfigureAwait(false);
 
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
             // the updated spans are.
-            var documentToPreviousParams = GetDocumentToPreviousParams(context, previousResults);
+            var documentToPreviousParams = await GetDocumentToPreviousParamsAsync(context, previousResults, cancellationToken).ConfigureAwait(false);
 
             // Next process each file in priority order. Determine if spans are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
@@ -97,16 +99,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     continue;
                 }
 
-                var newResultId = await _versionedCache.GetNewResultIdAsync(
-                    documentToPreviousParams,
-                    document,
-                    computeVersionAsync: async () => await ComputeChecksumsAsync(document, cancellationToken).ConfigureAwait(false),
+                var documentToPreviousDiagnosticParams = documentToPreviousParams.ToDictionary(kvp => new ProjectOrDocumentId(kvp.Key.Id), kvp => kvp.Value);
+                var newResult = await _versionedCache.GetOrComputeNewDataAsync(
+                    documentToPreviousDiagnosticParams,
+                    new ProjectOrDocumentId(document.Id),
+                    document.Project,
+                    new SpellCheckState(languageService, document),
                     cancellationToken).ConfigureAwait(false);
-                if (newResultId != null)
+                if (newResult != null)
                 {
+                    var (newResultId, spans) = newResult.Value;
                     context.TraceInformation($"Spans were changed for document: {document.FilePath}");
-                    await foreach (var report in ComputeAndReportCurrentSpansAsync(
-                        document, languageService, newResultId, cancellationToken).ConfigureAwait(false))
+                    foreach (var report in ReportCurrentSpans(
+                        document, spans, newResultId))
                     {
                         progress.Report(report);
                     }
@@ -129,8 +134,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             return progress.GetFlattenedValues();
         }
 
-        private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousParams(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults)
+        private static async Task<Dictionary<Document, PreviousPullResult>> GetDocumentToPreviousParamsAsync(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -139,7 +144,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             {
                 if (requestParams.TextDocument != null)
                 {
-                    var document = context.Solution.GetDocument(requestParams.TextDocument);
+                    var document = await context.Solution.GetDocumentAsync(requestParams.TextDocument, cancellationToken).ConfigureAwait(false);
                     if (document != null)
                         result[document] = requestParams;
                 }
@@ -148,15 +153,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             return result;
         }
 
-        private async IAsyncEnumerable<TReport> ComputeAndReportCurrentSpansAsync(
+        private IEnumerable<TReport> ReportCurrentSpans(
             Document document,
-            ISpellCheckSpanService service,
-            string resultId,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            ImmutableArray<SpellCheckSpan> spans,
+            string resultId)
         {
             var textDocumentIdentifier = ProtocolConversions.DocumentToTextDocumentIdentifier(document);
-
-            var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
             // protocol requires the results be in sorted order
             spans = spans.Sort(static (s1, s2) => s1.TextSpan.CompareTo(s2.TextSpan));
@@ -199,8 +201,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             }
         }
 
-        private void HandleRemovedDocuments(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport[]> progress)
+        private async Task HandleRemovedDocumentsAsync(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport[]> progress, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -209,7 +211,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 var textDocument = previousResult.TextDocument;
                 if (textDocument != null)
                 {
-                    var document = context.Solution.GetDocument(textDocument);
+                    var document = await context.Solution.GetTextDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
                     if (document == null)
                     {
                         context.TraceInformation($"Clearing spans for removed document: {textDocument.Uri}");
@@ -222,17 +224,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     }
                 }
             }
-        }
-
-        private static async Task<(Checksum parseOptionsChecksum, Checksum textChecksum)> ComputeChecksumsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var project = document.Project;
-            var parseOptionsChecksum = project.State.GetParseOptionsChecksum();
-
-            var documentChecksumState = await document.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var textChecksum = documentChecksumState.Text;
-
-            return (parseOptionsChecksum, textChecksum);
         }
     }
 }

@@ -4,7 +4,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
@@ -63,6 +65,38 @@ public sealed partial class UseAutoPropertyTests
                         return field.Trim();
                     }
                 }
+            }
+            """, parseOptions: Preview);
+    }
+
+    [Fact]
+    public async Task TestFieldWithInitializer()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s = ""|];
+
+                string P
+                {
+                    get
+                    {
+                        return s.Trim();
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                string P
+                {
+                    get
+                    {
+                        return field.Trim();
+                    }
+                } = "";
             }
             """, parseOptions: Preview);
     }
@@ -1395,5 +1429,114 @@ public sealed partial class UseAutoPropertyTests
                 public string Prop { get => prop; set => prop = value; }
             }
             """, new(parseOptions: Preview));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75516")]
+    public async Task TestBackingFieldUsedAsArgument1()
+    {
+        await TestInRegularAndScriptAsync("""
+            class C
+            {
+                [|int _i;|]
+                int P
+                {
+                    get => _i;
+                    set
+                    {
+                        M(_i);
+                        _i = value;
+                    }
+                }
+
+                void M(int i) { }
+            }
+            """, """
+            class C
+            {
+                int P
+                {
+                    get;
+                    set
+                    {
+                        M(field);
+                        field = value;
+                    }
+                }
+
+                void M(int i) { }
+            }
+            """, parseOptions: Preview);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75516")]
+    public async Task TestBackingFieldUsedAsArgument2()
+    {
+        await TestInRegularAndScriptAsync("""
+            class C
+            {
+                [|int _i;|]
+                int P
+                {
+                    get => _i;
+                    set
+                    {
+                        M(ref _i);
+                        _i = value;
+                    }
+                }
+
+                void M(ref int i) { }
+            }
+            """, """
+            class C
+            {
+                int P
+                {
+                    get;
+                    set
+                    {
+                        M(ref field);
+                        field = value;
+                    }
+                }
+
+                void M(ref int i) { }
+            }
+            """, parseOptions: Preview);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26527")]
+    public async Task TestFixAllInDocument3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            public sealed class SomeViewModel
+            {
+                private bool {|FixAllInDocument:a|} = true;
+                public bool A { get => a; set => Set(ref a, value); }
+
+                private bool b = true;
+                public bool B { get => b; set => Set(ref b, value); }
+
+                private bool c = true;
+                public bool C { get => c; set => Set(ref c, value); }
+
+                private void Set<T>(ref T field, T value) => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+            
+            public sealed class SomeViewModel
+            {
+                public bool A { get; set => Set(ref field, value); } = true;
+                public bool B { get; set => Set(ref field, value); } = true;
+                public bool C { get; set => Set(ref field, value); } = true;
+            
+                private void Set<T>(ref T field, T value) => throw new NotImplementedException();
+            }
+            """, new TestParameters(parseOptions: Preview));
     }
 }

@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specifiedLanguageVersion"": ""VisualBasic15"",
       ""preprocessorSymbols"": {
         ""TARGET"": ""exe"",
-        ""VBC_VER"": ""16.9""
+        ""VBC_VER"": ""17.13""
       }
     }
   }
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         ""specifiedLanguageVersion"": ""Default"",
         ""preprocessorSymbols"": {{
           ""TARGET"": ""library"",
-          ""VBC_VER"": ""16.9"",
+          ""VBC_VER"": ""17.13"",
           ""_MYTYPE"": ""Empty""
         }}
       }}
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""specifiedLanguageVersion"": ""Default"",
           ""preprocessorSymbols"": {{
             ""TARGET"": ""library"",
-            ""VBC_VER"": ""16.9"",
+            ""VBC_VER"": ""17.13"",
             ""_MYTYPE"": ""Empty""
           }}
         }}

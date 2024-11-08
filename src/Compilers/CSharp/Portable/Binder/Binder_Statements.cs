@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-            if (!argument.HasAnyErrors)
+            if (elementType is { } && node.Expression != null)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
@@ -1482,11 +1482,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = op1.HasAnyErrors || op2.HasAnyErrors;
 
-            if (!op1.HasAnyErrors)
+            if (op1.Type is { } lhsType && !lhsType.IsErrorType())
             {
                 // Build bound conversion. The node might not be used if this is a dynamic conversion
                 // but diagnostics should be reported anyways.
-                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
+                var conversion = GenerateConversionForAssignment(lhsType, op2,
+                    hasErrors ? BindingDiagnosticBag.Discarded : diagnostics,
+                    isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
 
                 // If the result is a dynamic assignment operation (SetMember or SetIndex),
                 // don't generate the boxing conversion to the dynamic type.
@@ -1911,6 +1913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IncrementAssignment = 1 << 2,
             CompoundAssignment = 1 << 3,
             PredefinedOperator = 1 << 4,
+            InterpolatedString = 1 << 5,
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, ConversionForAssignmentFlags flags = ConversionForAssignmentFlags.None)
@@ -1936,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            conversion = (flags & ConversionForAssignmentFlags.IncrementAssignment) == 0 ?
+            conversion = (flags & (ConversionForAssignmentFlags.IncrementAssignment | ConversionForAssignmentFlags.InterpolatedString)) == 0 ?
                                  this.Conversions.ClassifyConversionFromExpression(expression, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo) :
                                  this.Conversions.ClassifyConversionFromType(expression.Type, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
@@ -1964,7 +1967,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((flags & ConversionForAssignmentFlags.DefaultParameter) == 0)
                 {
-                    GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
+                    if ((flags & ConversionForAssignmentFlags.InterpolatedString) != 0)
+                    {
+                        // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
+                        diagnostics.Add(
+                            ErrorCode.ERR_NoImplicitConv,
+                            expression.Syntax,
+                            expression.Type,
+                            targetType);
+                    }
+                    else
+                    {
+                        GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
+                    }
                 }
 
                 // Suppress any additional diagnostics
@@ -2540,6 +2555,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var b = binder.GetBinder(ifStatementSyntax);
                         Debug.Assert(b != null);
+
+                        if (b.TryGetBoundElseIfStatement(ifStatementSyntax, out alternative))
+                        {
+                            break;
+                        }
+
                         binder = b;
                         node = ifStatementSyntax;
                     }
@@ -2569,6 +2590,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return result;
             }
+        }
+
+        protected virtual bool TryGetBoundElseIfStatement(IfStatementSyntax node, out BoundStatement? alternative)
+        {
+            alternative = null;
+            return false;
         }
 #nullable disable
 
@@ -3129,7 +3156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(syntax, useSiteInfo);
 
-            if (!argument.HasAnyErrors)
+            if (!argument.HasAnyErrors || argument.Kind == BoundKind.UnboundLambda)
             {
                 if (returnRefKind != RefKind.None)
                 {

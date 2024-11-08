@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
         <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
-        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
+        <target state="translated">El inicializador de colecciones produce una cadena infinita de instancias de la colección "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</target>
+        <target state="translated">La función "interceptores" no está habilitada en este espacio de nombres. Agregue "{0}" al proyecto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1325,6 +1325,11 @@
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
         <target state="translated">El método "{0}" con un bloqueo de iterador debe ser "asincrónico" para devolver "{1}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_IteratorRefLikeElementType">
+        <source>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</source>
+        <target state="new">Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
@@ -1622,11 +1627,6 @@
         <target state="translated">El método "{0}" especifica una restricción "struct" para el parámetro de tipo "{1}", pero el parámetro de tipo correspondiente "{2}" de los métodos invalidados o implementados explícitamente "{3}" no es un tipo de valor que acepta valores NULL.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParameterNullCheckingNotSupported">
-        <source>The 'parameter null-checking' feature is not supported.</source>
-        <target state="translated">No se admite la característica "parameter null-checking".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">El constructor "{0}" deja el miembro requerido "{1}" sin inicializar.</target>
@@ -1744,7 +1744,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
         <source>A partial property cannot have an initializer on both the definition and implementation.</source>
-        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
+        <target state="translated">Una propiedad parcial no puede tener un inicializador tanto en la definición como en la implementación.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -1858,7 +1858,7 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignValEscapeWider">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">No se puede asignar referencia de “{1}” a “{0}” porque “{1}” tiene un ámbito de escape de valor más amplio que “{0}” lo que permite la asignación mediante “{0}” de valores con ámbitos de escape más estrechos que “{1}”.</target>
         <note />
       </trans-unit>
@@ -2422,6 +2422,11 @@
         <target state="translated">tipos de archivo</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureFirstClassSpan">
+        <source>first-class Span types</source>
+        <target state="new">first-class Span types</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureGenericAttributes">
         <source>generic attributes</source>
         <target state="translated">atributos genéricos</target>
@@ -2660,6 +2665,16 @@
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
         <source>{0} is not a valid C# spread operation</source>
         <target state="translated">{0} no es una operación de propagación de C# válida</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField">
+        <source>The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</source>
+        <target state="new">The '{0}' accessor of property '{1}' should use 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
+        <source>Property accessor should use 'field' because the other accessor is using it.</source>
+        <target state="new">Property accessor should use 'field' because the other accessor is using it.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
@@ -2934,12 +2949,12 @@
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
         <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
-        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</target>
+        <target state="translated">En la versión del lenguaje {0}, la palabra clave "campo" se vincula a un campo de respaldo sintetizado para la propiedad. Para evitar generar un campo de respaldo sintetizado y hacer referencia a la suscripción existente, utilice en su lugar "this.field" o "@field".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous_Title">
         <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
-        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
+        <target state="translated">La palabra clave "campo" se vincula a un campo de respaldo sintetizado para la propiedad.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -3208,7 +3223,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignValEscapeWider">
-        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escapes scopes than '{1}'.</source>
+        <source>This ref-assigns '{1}' to '{0}' but '{1}' has a wider value escape scope than '{0}' allowing assignment through '{0}' of values with narrower escape scopes than '{1}'.</source>
         <target state="translated">Esta referencia asigna “{1}” a “{0}” pero “{1}” tiene un ámbito de escape de valor más amplio que “{0}” lo que permite la asignación mediante “{0}” de valores con ámbitos de escape más estrechos que “{1}”.</target>
         <note />
       </trans-unit>
@@ -5218,6 +5233,16 @@
         <target state="translated">El parámetro de tipo tiene el mismo tipo que el parámetro de tipo del método externo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField">
+        <source>Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="new">Field '{0}' is never ref-assigned to, and will always have its default value (null reference)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UnassignedInternalRefField_Title">
+        <source>Field is never ref-assigned to, and will always have its default value (null reference)</source>
+        <target state="new">Field is never ref-assigned to, and will always have its default value (null reference)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UnassignedThisAutoPropertySupportedVersion">
         <source>Control is returned to caller before auto-implemented property '{0}' is explicitly assigned, causing a preceding implicit assignment of 'default'.</source>
         <target state="translated">El control se devuelve al autor de la llamada antes de que la propiedad implementada automáticamente '{0}' se asigne explícitamente, lo que provoca una asignación implícita anterior de 'default'.</target>
@@ -5290,12 +5315,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <target state="translated">El elemento {0} "{1}" que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere agregar el modificador "requerido", o declarar {0} como anulable, o agregar atributos "[campo: MaybeNull, AllowNull]".</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
-        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <target state="translated">La propiedad no anulable debe contener un valor no nulo al salir del constructor. Considere agregar el modificador "requerido", o declarar la propiedad como anulable, o agregar atributos "[campo: MaybeNull, AllowNull]".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -12176,7 +12201,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
         <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
-        <target state="new">Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</target>
+        <target state="translated">Solo las propiedades auto-implementadas, o las propiedades que utilizan la palabra clave "campo", pueden tener inicializadores.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">

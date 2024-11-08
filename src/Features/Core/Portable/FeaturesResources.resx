@@ -348,6 +348,9 @@
   <data name="Changing_the_return_type_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the return type of {0} requires restarting the application.</value>
   </data>
+  <data name="Changing_the_signature_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the signature of {0} requires restarting the application.</value>
+  </data>
   <data name="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</value>
   </data>
@@ -948,7 +951,7 @@ This version used in: {2}</value>
     <value>Initialize property '{0}'</value>
   </data>
   <data name="Add_null_checks" xml:space="preserve">
-    <value>Add null checks</value>
+    <value>Add _null checks</value>
   </data>
   <data name="Generate_operators" xml:space="preserve">
     <value>Generate operators</value>
@@ -1153,8 +1156,8 @@ This version used in: {2}</value>
   <data name="Merge_with_next_0_statement" xml:space="preserve">
     <value>Merge with next '{0}' statement</value>
   </data>
-  <data name="Pull_0_up" xml:space="preserve">
-    <value>Pull '{0}' up</value>
+  <data name="Pull_0_up_to" xml:space="preserve">
+    <value>Pull '{0}' up to ...</value>
   </data>
   <data name="Pull_members_up_to_base_type" xml:space="preserve">
     <value>Pull members up to base type...</value>
@@ -1167,9 +1170,6 @@ This version used in: {2}</value>
   </data>
   <data name="Wrap_long_call_chain" xml:space="preserve">
     <value>Wrap long call chain</value>
-  </data>
-  <data name="Pull_0_up_to_1" xml:space="preserve">
-    <value>Pull '{0}' up to '{1}'</value>
   </data>
   <data name="Wrap_and_align_expression" xml:space="preserve">
     <value>Wrap and align expression</value>
