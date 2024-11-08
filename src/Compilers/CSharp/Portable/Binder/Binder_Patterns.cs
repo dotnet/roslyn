@@ -1792,7 +1792,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectCandidates(right, narrowedTypeCandidates);
                     var narrowedType = leastSpecificType(node, narrowedTypeCandidates, binder, diagnostics) ?? inputType;
 
-                    return new BoundBinaryPattern(node, disjunction: isDisjunction, preboundLeft, right, inputType: inputType, narrowedType: narrowedType, hasErrors);
+                    var result = new BoundBinaryPattern(node, disjunction: isDisjunction, preboundLeft, right, inputType: inputType, narrowedType: narrowedType, hasErrors);
+                    reportRedundantPatternIfNeeded(result);
+                    return result;
                 }
                 else
                 {
@@ -1871,6 +1873,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     candidates.Add(pat.NarrowedType);
                 }
+            }
+
+            static void reportRedundantPatternIfNeeded(BoundBinaryPattern pattern)
+            {
+                Debug.Assert(pattern.Disjunction);
+                if (pattern.Left is not BoundNegatedPattern negated)
+                {
+                    return;
+                }
+                // TODO2 need to recurse on the right
+                switch (negated, pattern.Right)
+                {
+                }
+                // TODO2
             }
         }
     }
