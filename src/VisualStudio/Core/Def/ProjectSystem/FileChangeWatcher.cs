@@ -44,10 +44,10 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
     {
         _fileChangeService = fileChangeService;
 
-        // 📝 Empirical testing during high activity (e.g. solution close) showed strong batching performance even
-        // though the batching delay is 0.
+        // 📝 Empirical testing during high activity (e.g. solution open/close) showed strong batching performance
+        // with batching delay of 500 ms.
         _taskQueue = new AsyncBatchingWorkQueue<WatcherOperation>(
-            TimeSpan.Zero,
+            TimeSpan.FromMilliseconds(500),
             ProcessBatchAsync,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
             CancellationToken.None);
