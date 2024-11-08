@@ -1,6 +1,6 @@
 # Runtime Async Design
 
-See also the ECMA-335 specification change for this feature: https://github.com/dotnet/runtime/pull/104063, https://github.com/dotnet/runtime/blob/main/docs/design/specs/runtime-async.md (when the PR completes).
+See also the ECMA-335 specification change for this feature: https://github.com/dotnet/runtime/pull/104063, https://github.com/dotnet/runtime/blob/main/docs/design/specs/runtime-async.md (when the PR completes). https://github.com/dotnet/runtime/issues/109632 tracks open issues for the feature in the runtime.
 
 This document goes over the general design of how Roslyn works with the Runtime Async feature to produce IL. In general, we try to avoid exposing this feature at the user level; initial binding is almost entirely
 unaffected by runtime async. Exposed symbols do not give direct information about whether they were compiled with runtime async, and indeed the compiler has no idea whether a method from a referenced assembly is
@@ -18,7 +18,7 @@ namespace System.Runtime.CompilerServices;
 
 public static class RuntimeFeature
 {
-    public const string RuntimeAsync = nameof(RuntimeAsync);
+    public const string Async = nameof(Async);
 }
 ```
 
@@ -27,11 +27,16 @@ We use the following helper APIs to indicate suspension points to the runtime, i
 ```cs
 namespace System.Runtime.CompilerServices;
 
-// TODO: We need to determine what type contains these methods
-// These methods are used to await things that cannot use runtime async signature form, whether that's a local/parameter/field/etc of type `Task`/`ValueTask`, or a method that returns an awaitable that is
-// not `Task` or `ValueTask`.
-public static Task AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion
-public static Task UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion
+// These methods are used to await things that cannot use runtime async signature form
+namespace System.Runtime.CompilerServices;
+
+public static class RuntimeHelpers
+{
+    [RuntimeAsyncMethod]
+    public static Task AwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : INotifyCompletion;
+    [RuntimeAsyncMethod]
+    public static Task UnsafeAwaitAwaiterFromRuntimeAsync<TAwaiter>(TAwaiter awaiter) where TAwaiter : ICriticalNotifyCompletion;
+}
 ```
 
 Additionally, we use the following helper attributes to indicate information to the runtime. If these attributes are not present in the reference assemblies, we will generate them; the runtime matches by full
@@ -70,6 +75,7 @@ perform the `await` outside of the `catch`/`finally` region, and then have the e
 TODO: Go over `IAsyncEnumerable` and confirm that the initial rewrite to a `Task`-based method produces code that can then be implemented with runtime async, rather than a full compiler state machine.
 
 TODO: Clarify with the debugger team where NOPs need to be inserted for debugging/ENC scenarios.
+    We will likely need to insert AwaitYieldPoint and AwaitResumePoints for the scenarios where we emit calls to `RuntimeHelpers` async helpers, but can we avoid them for calls in runtime async form?
 
 ### Example transformations
 
@@ -109,7 +115,7 @@ newobj instance void C::.ctor()
 callvirt instance modreq(class [System.Runtime]System.Threading.Tasks.Task) void C::M()
 ```
 
-#### Await a `Task<T>`-returning method
+#### Await a concrete `T` `Task<T>`-returning method
 
 ```cs
 class C
@@ -153,11 +159,157 @@ var local = M();
 await local;
 ```
 
+Translated C#:
+
+```cs
+var local = C.M();
+{
+    var awaiter = local.GetAwaiter();
+    if (!awaiter.IsComplete)
+    {
+        /* Runtime-Async Call */ System.Runtime.CompilerServices.RuntimeHelpers.AwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.TaskAwaiter>(awaiter);
+    }
+    awaiter.GetResult()
+}
+```
+
 ```il
-call class [System.Runtime]System.Threading.Tasks.Task C::M()
-callvirt instance valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter class [System.Runtime]System.Threading.Tasks.Task::GetAwaiter()
-call modreq([System.Runtime]System.Threading.Tasks.Task) void <TODO>::AwaitAwaiterFromRuntimeAsync<valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter>(!0)
-ret
+{
+    .locals init (
+        [0] valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter awaiter
+    )
+
+    IL_0000: call class [System.Runtime]System.Threading.Tasks.Task C::M()
+    IL_0005: callvirt instance valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter [System.Runtime]System.Threading.Tasks.Task::GetAwaiter()
+    IL_000a: stloc.0
+    IL_000b: ldloca.s 0
+    IL_000d: call instance bool [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter::get_IsCompleted()
+    IL_0012: brtrue.s IL_001b
+
+    IL_0014: ldloc.0
+    IL_0015: call class [System.Runtime]System.Threading.Tasks.Task System.Runtime.CompilerServices.RuntimeHelpers::AwaitAwaiterFromRuntimeAsync<valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter>(!!0)
+    IL_001a: pop
+
+    IL_001b: ldloca.s 0
+    IL_001d: call instance void [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter::GetResult()
+    IL_0022: ret
+}
+```
+
+#### Await local of concrete type `Task<T>`
+
+```cs
+class C
+{
+    static Task<int> M();
+}
+
+var local = M();
+var i = await local;
+```
+
+Translated C#:
+
+```cs
+var local = C.M();
+var i =
+{
+    var awaiter = local.GetAwaiter();
+    if (!awaiter.IsComplete)
+    {
+        /* Runtime-Async Call */ System.Runtime.CompilerServices.RuntimeHelpers.AwaitAwaiterFromRuntimeAsync<System.Runtime.CompilerServices.TaskAwaiter>(awaiter);
+    }
+    awaiter.GetResult()
+};
+```
+
+```il
+{
+    .locals init (
+        [0] valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter`1<int32> awaiter
+    )
+
+    IL_0000: call class [System.Runtime]System.Threading.Tasks.Task`1<int32> C::M()
+    IL_0005: callvirt instance valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter`1<!0> class [System.Runtime]System.Threading.Tasks.Task`1<int32>::GetAwaiter()
+    IL_000a: stloc.0
+    IL_000b: ldloca.s 0
+    IL_000d: call instance bool valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter`1<int32>::get_IsCompleted()
+    IL_0012: brtrue.s IL_001b
+
+    IL_0014: ldloc.0
+    IL_0015: call class [System.Runtime]System.Threading.Tasks.Task System.Runtime.CompilerServices.RuntimeHelpers::AwaitAwaiterFromRuntimeAsync<valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter`1<int32>>(!!0)
+    IL_001a: pop
+
+    IL_001b: ldloca.s 0
+    IL_001d: call instance !0 valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter`1<int32>::GetResult()
+    IL_0022: pop
+    IL_0023: ret
+}
+```
+
+#### Await a `T`-returning method
+
+```cs
+class C
+{
+    static T M<T>();
+}
+
+await C.M<Task>();
+```
+
+```il
+TODO: https://github.com/dotnet/runtime/issues/109632
+```
+
+#### Await a generic `T` `Task<T>`-returning method
+
+```cs
+class C
+{
+    static Task<T> M<T>();
+}
+
+await C.M<int>();
+```
+
+```il
+TODO: https://github.com/dotnet/runtime/issues/109632
+```
+
+#### Await a `Task`-returning delegate
+
+```cs
+delegate Task AsyncDelegate();
+
+class C
+{
+    static Task M();
+}
+
+AsyncDelegate d = C.M;
+await d;
+```
+
+```il
+TODO: https://github.com/dotnet/runtime/issues/109632
+```
+
+#### Await a `T`-returning delegate
+
+```cs
+
+class C
+{
+    static Task M();
+}
+
+Func<Task> d = C.M;
+await d;
+```
+
+```il
+TODO: https://github.com/dotnet/runtime/issues/109632
 ```
 
 #### Awaiting in a `catch` block
