@@ -6,13 +6,14 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
-    Friend Class EntryPointFinder
+    Friend NotInheritable Class VisualBasicEntryPointFinder
         Inherits AbstractEntryPointFinder
 
         Private ReadOnly _findFormsOnly As Boolean
 
-        Public Sub New(findFormsOnly As Boolean)
-            Me._findFormsOnly = findFormsOnly
+        Public Sub New(compilation As Compilation, findFormsOnly As Boolean)
+            MyBase.New(compilation)
+            _findFormsOnly = findFormsOnly
         End Sub
 
         Protected Overrides Function MatchesMainMethodName(name As String) As Boolean
@@ -23,8 +24,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             Return String.Equals(name, "Main", StringComparison.OrdinalIgnoreCase)
         End Function
 
-        Public Shared Function FindEntryPoints(symbol As INamespaceSymbol, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
-            Dim visitor = New EntryPointFinder(findFormsOnly)
+        Public Shared Function FindEntryPoints(compilation As Compilation, findFormsOnly As Boolean) As IEnumerable(Of INamedTypeSymbol)
+            Dim visitor = New VisualBasicEntryPointFinder(compilation, findFormsOnly)
+            Dim symbol = compilation.SourceModule.GlobalNamespace
+
             ' Attempt to only search source symbols
             ' Some callers will give a symbol that is not part of a compilation
             If symbol.ContainingCompilation IsNot Nothing Then
@@ -49,6 +52,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             MyBase.VisitNamedType(symbol)
         End Sub
-
     End Class
 End Namespace
