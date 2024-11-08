@@ -198,7 +198,7 @@ internal class DefinitionContextTracker : ITextViewConnectionListener
         // Try IFindDefinitionService first. Until partners implement this, it could fail to find a service, so fall back if it's null.
         var findDefinitionService = document.GetLanguageService<INavigableItemsService>();
         return findDefinitionService != null
-            ? await findDefinitionService.GetNavigableItemsAsync(document, position, forSymbolType: false, cancellationToken).ConfigureAwait(false)
+            ? await findDefinitionService.GetNavigableItemsAsync(document, position, cancellationToken).ConfigureAwait(false)
             : [];
     }
 }

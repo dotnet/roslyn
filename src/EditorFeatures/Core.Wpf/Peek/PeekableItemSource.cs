@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                 if (service == null)
                     return;
 
-                var navigableItems = await service.GetNavigableItemsAsync(document, triggerPoint.Position, forSymbolType: false, cancellationToken).ConfigureAwait(false);
+                var navigableItems = await service.GetNavigableItemsAsync(document, triggerPoint.Position, cancellationToken).ConfigureAwait(false);
                 await foreach (var item in GetPeekableItemsForNavigableItemsAsync(
                     navigableItems, document.Project, _peekResultFactory, cancellationToken).ConfigureAwait(false))
                 {

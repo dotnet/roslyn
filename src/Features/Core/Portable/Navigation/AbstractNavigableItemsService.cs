@@ -14,6 +14,12 @@ namespace Microsoft.CodeAnalysis.Navigation;
 
 internal abstract class AbstractNavigableItemsService : INavigableItemsService
 {
+    public Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(
+        Document document, int position, CancellationToken cancellationToken)
+    {
+        return GetNavigableItemsAsync(document, position, forSymbolType: false, cancellationToken);
+    }
+
     public async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(
         Document document, int position, bool forSymbolType, CancellationToken cancellationToken)
     {

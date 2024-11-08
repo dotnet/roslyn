@@ -18,6 +18,11 @@ namespace Microsoft.CodeAnalysis.Navigation;
 internal interface INavigableItemsService : ILanguageService
 {
     /// <summary>
+    /// Finds the definitions for the symbol at the specific position in the document.
+    /// </summary>
+    Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Finds the definitions for the symbol or its type at the specific position in the document.
     /// </summary>
     Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(Document document, int position, bool forSymbolType, CancellationToken cancellationToken);
