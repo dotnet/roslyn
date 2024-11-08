@@ -332,6 +332,28 @@ catch (Exception ex)
 }
 ```
 
+Translated C#:
+
+```cs
+int pendingCatch = 0;
+Exception pendingException;
+try
+{
+    throw new Exception();
+}
+catch (Exception e)
+{
+    pendingCatch = 1;
+    pendingException = e;
+}
+
+if (pendingCatch == 1)
+{
+    /* Runtime-Async Call */ C.M();
+    throw pendingException;
+}
+```
+
 ```il
 {
     .locals init (
@@ -380,6 +402,27 @@ try
 finally
 {
     await C.M();
+}
+```
+
+Translated C#:
+
+```cs
+Exception pendingException;
+try
+{
+    throw new Exception();
+}
+catch (Exception e)
+{
+    pendingException = e;
+}
+
+/* Runtime-Async Call */ C.M();
+
+if (pendingException != null)
+{
+    throw pendingException;
 }
 ```
 
