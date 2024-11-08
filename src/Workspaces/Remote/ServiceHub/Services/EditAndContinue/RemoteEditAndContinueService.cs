@@ -141,7 +141,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     /// Remote API.
     /// </summary>
     public ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
-        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, CancellationToken cancellationToken)
+        Checksum solutionChecksum, RemoteServiceCallbackId callbackId, DebuggingSessionId sessionId, IImmutableSet<ProjectId> runningProjects, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
@@ -149,7 +149,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
 
             try
             {
-                return (await service.EmitSolutionUpdateAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false)).Dehydrate();
+                return (await service.EmitSolutionUpdateAsync(sessionId, solution, runningProjects, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -159,6 +159,8 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
                     Diagnostics = GetUnexpectedUpdateError(solution, e),
                     RudeEdits = [],
                     SyntaxError = null,
+                    ProjectsToRebuild = [],
+                    ProjectsToRestart = [],
                 };
             }
         }, cancellationToken);
@@ -191,6 +193,18 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
         return RunServiceAsync(cancellationToken =>
         {
             GetService().DiscardSolutionUpdate(sessionId);
+            return default;
+        }, cancellationToken);
+    }
+
+    /// <summary>
+    /// Remote API.
+    /// </summary>
+    public ValueTask UpdateBaselinesAsync(Checksum solutionChecksum, DebuggingSessionId sessionId, ImmutableArray<ProjectId> rebuiltProjects, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, solution =>
+        {
+            GetService().UpdateBaselines(sessionId, solution, rebuiltProjects);
             return default;
         }, cancellationToken);
     }

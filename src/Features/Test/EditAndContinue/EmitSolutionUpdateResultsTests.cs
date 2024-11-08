@@ -54,6 +54,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             RudeEdits = [.. rudeEdits.Select(id => new ProjectDiagnostics(id, [Diagnostic.Create(EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError), location: null)]))],
             Diagnostics = [],
             SyntaxError = null,
+            ProjectsToRebuild = [],
+            ProjectsToRestart = [],
         };
 
         [Fact]
@@ -135,7 +137,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Diagnostics = diagnostics,
                 RudeEdits = rudeEdits,
                 SyntaxError = syntaxError,
-                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, Updates: [])
+                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, Updates: []),
+                ProjectsToRebuild = [],
+                ProjectsToRestart = [],
             };
 
             var actual = data.GetAllDiagnostics();
@@ -161,13 +165,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
                 .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
-            var runningProjects = new[] { a, b };
+            var runningProjects = new[] { a, b }.ToImmutableHashSet();
             var results = CreateMockResults(solution, updates: [c, d], rudeEdits: []);
 
-            var projectsToRestart = new HashSet<Project>();
-            var projectsToRebuild = new HashSet<Project>();
-
-            results.GetProjectsToRebuildAndRestart(solution, p => runningProjects.Contains(p.Id), projectsToRestart, projectsToRebuild);
+            EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+                solution,
+                results.ModuleUpdates,
+                results.RudeEdits,
+                runningProjects,
+                out var projectsToRestart,
+                out var projectsToRebuild);
 
             Assert.Empty(projectsToRestart);
             Assert.Empty(projectsToRebuild);
@@ -184,19 +191,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
                 .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
-            var runningProjects = new[] { a, b };
+            var runningProjects = new[] { a, b }.ToImmutableHashSet();
             var results = CreateMockResults(solution, updates: [], rudeEdits: [d]);
 
-            var projectsToRestart = new HashSet<Project>();
-            var projectsToRebuild = new HashSet<Project>();
-
-            results.GetProjectsToRebuildAndRestart(solution, p => runningProjects.Contains(p.Id), projectsToRestart, projectsToRebuild);
+            EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+                solution,
+                results.ModuleUpdates,
+                results.RudeEdits,
+                runningProjects,
+                out var projectsToRestart,
+                out var projectsToRebuild);
 
             // D has rude edit ==> B has to restart
-            AssertEx.SetEqual([b], projectsToRestart.Select(p => p.Id));
+            AssertEx.SetEqual([b], projectsToRestart);
 
             // D has rude edit:
-            AssertEx.SetEqual([d], projectsToRebuild.Select(p => p.Id));
+            AssertEx.SetEqual([d], projectsToRebuild);
         }
 
         [Fact]
@@ -210,13 +220,16 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
                 .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
-            var runningProjects = new[] { a };
+            var runningProjects = new[] { a }.ToImmutableHashSet();
             var results = CreateMockResults(solution, updates: [], rudeEdits: [d]);
 
-            var projectsToRestart = new HashSet<Project>();
-            var projectsToRebuild = new HashSet<Project>();
-
-            results.GetProjectsToRebuildAndRestart(solution, p => runningProjects.Contains(p.Id), projectsToRestart, projectsToRebuild);
+            EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+                solution,
+                results.ModuleUpdates,
+                results.RudeEdits,
+                runningProjects,
+                out var projectsToRestart,
+                out var projectsToRebuild);
 
             Assert.Empty(projectsToRestart);
             Assert.Empty(projectsToRebuild);
@@ -233,20 +246,23 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
                 .AddTestProject("B", out var b).AddProjectReferences([new(c), new(d)]).Solution;
 
-            var runningProjects = new[] { a, b };
+            var runningProjects = new[] { a, b }.ToImmutableHashSet();
             var results = CreateMockResults(solution, updates: [c], rudeEdits: [d]);
 
-            var projectsToRestart = new HashSet<Project>();
-            var projectsToRebuild = new HashSet<Project>();
-
-            results.GetProjectsToRebuildAndRestart(solution, p => runningProjects.Contains(p.Id), projectsToRestart, projectsToRebuild);
+            EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+                solution,
+                results.ModuleUpdates,
+                results.RudeEdits,
+                runningProjects,
+                out var projectsToRestart,
+                out var projectsToRebuild);
 
             // D has rude edit => B has to restart
             // C has update, B -> C and A -> C ==> A has to restart
-            AssertEx.SetEqual([a, b], projectsToRestart.Select(p => p.Id));
+            AssertEx.SetEqual([a, b], projectsToRestart);
 
             // D has rude edit, C has update that impacts restart set:
-            AssertEx.SetEqual([c, d], projectsToRebuild.Select(p => p.Id));
+            AssertEx.SetEqual([c, d], projectsToRebuild);
         }
 
         [Fact]
@@ -260,19 +276,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("A", out var a).AddProjectReferences([new(c)]).Solution
                 .AddTestProject("B", out var b).AddProjectReferences([new(d)]).Solution;
 
-            var runningProjects = new[] { a, b };
+            var runningProjects = new[] { a, b }.ToImmutableHashSet();
             var results = CreateMockResults(solution, updates: [c], rudeEdits: [d]);
 
-            var projectsToRestart = new HashSet<Project>();
-            var projectsToRebuild = new HashSet<Project>();
-
-            results.GetProjectsToRebuildAndRestart(solution, p => runningProjects.Contains(p.Id), projectsToRestart, projectsToRebuild);
+            EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+                solution,
+                results.ModuleUpdates,
+                results.RudeEdits,
+                runningProjects,
+                out var projectsToRestart,
+                out var projectsToRebuild);
 
             // D has rude edit => B has to restart
-            AssertEx.SetEqual([b], projectsToRestart.Select(p => p.Id));
+            AssertEx.SetEqual([b], projectsToRestart);
 
             // D has rude edit, C has update that does not impacts restart set:
-            AssertEx.SetEqual([d], projectsToRebuild.Select(p => p.Id));
+            AssertEx.SetEqual([d], projectsToRebuild);
         }
 
         [Theory]
@@ -291,16 +310,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 .AddTestProject("R3", out var r3).AddProjectReferences([new(p3), new(p4)]).Solution
                 .AddTestProject("R4", out var r4).AddProjectReferences([new(p4)]).Solution;
 
-            var runningProjects = new[] { r1, r2, r3, r4 };
+            var runningProjects = new[] { r1, r2, r3, r4 }.ToImmutableHashSet();
             var results = CreateMockResults(solution, updates: reverse ? [p4, p3, p2] : [p2, p3, p4], rudeEdits: [p1]);
 
-            var projectsToRestart = new HashSet<Project>();
-            var projectsToRebuild = new HashSet<Project>();
+            EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+                solution,
+                results.ModuleUpdates,
+                results.RudeEdits,
+                runningProjects,
+                out var projectsToRestart,
+                out var projectsToRebuild);
 
-            results.GetProjectsToRebuildAndRestart(solution, p => runningProjects.Contains(p.Id), projectsToRestart, projectsToRebuild);
-
-            AssertEx.SetEqual([r1, r2, r3, r4], projectsToRestart.Select(p => p.Id));
-            AssertEx.SetEqual([p1, p2, p3, p4], projectsToRebuild.Select(p => p.Id));
+            AssertEx.SetEqual([r1, r2, r3, r4], projectsToRestart);
+            AssertEx.SetEqual([p1, p2, p3, p4], projectsToRebuild);
         }
     }
 }
