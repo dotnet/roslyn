@@ -30,16 +30,16 @@ internal sealed class DelegatingFileChangeWatcher(
     : IFileChangeWatcher
 {
     private readonly Lazy<IFileChangeWatcher> _underlyingFileWatcher = new(() =>
-    {
-        // Do we already have an LSP client that we can confirm works for us?
-        var instance = LanguageServerHost.Instance;
+        {
+            // Do we already have an LSP client that we can confirm works for us?
+            var instance = LanguageServerHost.Instance;
 
-        if (instance != null && LspFileChangeWatcher.SupportsLanguageServerHost(instance))
-            return new LspFileChangeWatcher(instance, asynchronousOperationListenerProvider);
+            if (instance != null && LspFileChangeWatcher.SupportsLanguageServerHost(instance))
+                return new LspFileChangeWatcher(instance, asynchronousOperationListenerProvider);
 
-        loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
-        return new SimpleFileChangeWatcher();
-    });
+            loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
+            return new SimpleFileChangeWatcher();
+        });
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         => _underlyingFileWatcher.Value.CreateContext(watchedDirectories);

@@ -70,8 +70,8 @@ internal class AlwaysActivateInProcLanguageClient(
 
         serverCapabilities.SupportsDiagnosticRequests = true;
 
-        serverCapabilities.DiagnosticOptions ??= new();
-        serverCapabilities.DiagnosticOptions.WorkspaceDiagnostics = true;
+        var diagnosticOptions = (serverCapabilities.DiagnosticOptions ??= new DiagnosticOptions());
+        diagnosticOptions.Unify().WorkspaceDiagnostics = true;
 
         serverCapabilities.DiagnosticProvider ??= new();
 

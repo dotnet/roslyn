@@ -38,7 +38,9 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_sourceExtension != DummySourceExtension);
 
             GeneratorInitializationContext generatorInitContext = new GeneratorInitializationContext(CancellationToken.None);
+#pragma warning disable CS0618 // Type or member is obsolete
             SourceGenerator.Initialize(generatorInitContext);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             if (generatorInitContext.Callbacks.PostInitCallback is object)
             {
@@ -62,7 +64,9 @@ namespace Microsoft.CodeAnalysis
             context.RegisterSourceOutput(contextBuilderSource, (productionContext, contextBuilder) =>
             {
                 var generatorExecutionContext = contextBuilder.ToExecutionContext(_sourceExtension, productionContext.CancellationToken);
+#pragma warning disable CS0618 // Type or member is obsolete
                 SourceGenerator.Execute(generatorExecutionContext);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 // copy the contents of the old context to the new
                 generatorExecutionContext.CopyToProductionContext(productionContext);

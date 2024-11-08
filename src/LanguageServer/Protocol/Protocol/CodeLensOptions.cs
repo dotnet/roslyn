@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the options for code lens support.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeLensOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class CodeLensOptions : IWorkDoneProgressOptions
     {

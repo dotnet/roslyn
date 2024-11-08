@@ -221,6 +221,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             : _commandLineArgumentsForCommandLine.OutputFileName;
 
         _project.CompilationOutputAssemblyFilePath = fullOutputFilePath ?? _project.CompilationOutputAssemblyFilePath;
+        _project.GeneratedFilesOutputDirectory = _commandLineArgumentsForCommandLine.GeneratedFilesOutputDirectory;
         _project.ParseOptions = parseOptions;
         _project.ChecksumAlgorithm = _commandLineArgumentsForCommandLine.ChecksumAlgorithm;
     }
@@ -256,7 +257,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         static IEnumerable<string> EnumerateLines(
             ITemporaryStorageStreamHandle storageHandle)
         {
-            using var stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
+            using var stream = storageHandle.ReadFromTemporaryStorage();
             using var reader = new StreamReader(stream);
 
             while (reader.ReadLine() is string line)

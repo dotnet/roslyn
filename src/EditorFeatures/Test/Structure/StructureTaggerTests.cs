@@ -359,6 +359,39 @@ End Module";
         });
     }
 
+    [WpfFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2112145")]
+    public async Task LambdaShouldBeCollapsed()
+    {
+        var code = """
+            public class MyClass
+            {
+                public void MyMethod() => System.Linq.Enumerable.Range(10, 100).Any(x =>
+                {
+                    return x == 10;
+                });
+            }
+            """;
+
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+        var tags = await GetTagsFromWorkspaceAsync(workspace);
+
+        Assert.Collection(tags, programTag =>
+        {
+            Assert.Equal("public class MyClass", GetHeaderText(programTag));
+            Assert.Equal(7, GetCollapsedHintLineCount(programTag));
+        },
+        mainTag =>
+        {
+            Assert.Equal("public void MyMethod()", GetHeaderText(mainTag));
+            Assert.Equal(4, GetCollapsedHintLineCount(mainTag));
+        },
+        IfTag =>
+        {
+            Assert.Equal("x =>", GetHeaderText(IfTag));
+            Assert.Equal(4, GetCollapsedHintLineCount(IfTag));
+        });
+    }
+
 #pragma warning disable CS0618 // Type or member is obsolete
     private static async Task<List<IContainerStructureTag>> GetTagsFromWorkspaceAsync(EditorTestWorkspace workspace)
     {

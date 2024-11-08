@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-internal partial class UnnamedSymbolCompletionProvider
+internal sealed partial class UnnamedSymbolCompletionProvider
 {
     private readonly ImmutableArray<KeyValuePair<string, string>> IndexerProperties =
         [KeyValuePairUtil.Create(KindName, IndexerKindName)];

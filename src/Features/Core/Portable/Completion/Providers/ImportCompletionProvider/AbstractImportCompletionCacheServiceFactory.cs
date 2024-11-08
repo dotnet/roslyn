@@ -63,7 +63,7 @@ internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCach
         _projectItemsCache.Clear();
     }
 
-    private class ImportCompletionCacheService(
+    private sealed class ImportCompletionCacheService(
         ConcurrentDictionary<string, TMetadataCacheEntry> peCache,
         ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache,
         AsyncBatchingWorkQueue<Project> workQueue) : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>

@@ -4,8 +4,7 @@
 
 Imports System.IO
 Imports System.Text
-Imports System.Text.Json.Nodes
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -58,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Dim contents = Encoding.UTF8.GetString(Convert.FromBase64String(contentBase64Encoded))
 
                 Dim compilation = Await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()
-                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) "source-generated:///" + t.FilePath.Replace("\"c, "/"c) = generatedDocumentVertex.Uri.OriginalString)
+                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) generatedDocumentVertex.Uri.OriginalString.Contains(Path.GetFileName(t.FilePath)))
 
                 Assert.Equal(tree.GetText().ToString(), contents)
             Next
@@ -77,8 +76,9 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             Await TestLsifOutput.GenerateForWorkspaceAsync(workspace, New LineModeLsifJsonWriter(stringWriter))
 
             Dim generatedDocument = Assert.Single(Await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync())
+            Dim uri = SourceGeneratedDocumentUri.Create(generatedDocument.Identity)
             Dim outputText = stringWriter.ToString()
-            Assert.Contains($"""uri"":""source-generated:///{generatedDocument.FilePath.Replace("\", "/")}""", outputText)
+            Assert.Contains(uri.AbsoluteUri, outputText)
         End Function
     End Class
 End Namespace

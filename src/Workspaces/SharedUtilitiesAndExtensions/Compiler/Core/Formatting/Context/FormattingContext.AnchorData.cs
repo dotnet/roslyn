@@ -8,12 +8,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-internal partial class FormattingContext
+internal sealed partial class FormattingContext
 {
     /// <summary>
     /// data that will be used in an interval tree related to Anchor.
     /// </summary>
-    private class AnchorData(AnchorIndentationOperation operation, SyntaxToken anchorToken, int originalColumn)
+    private sealed class AnchorData(AnchorIndentationOperation operation, SyntaxToken anchorToken, int originalColumn)
     {
         public TextSpan TextSpan => operation.TextSpan;
 

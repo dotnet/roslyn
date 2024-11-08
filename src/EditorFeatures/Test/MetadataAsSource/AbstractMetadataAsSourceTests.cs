@@ -28,11 +28,11 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MscorlibRef_v46, "mscorlib.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.mscorlib.ImageBytes));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRef_v46, "System.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.System.ImageBytes));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemCoreRef_v46, "System.Core.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.SystemCore.ImageBytes));
-        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.ValueTupleRef, "System.ValueTuple.dll", ImmutableArray.Create(TestResources.NetFX.ValueTuple.tuplelib));
-        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRuntimeFacadeRef, "System.Runtime.dll", ImmutableArray.Create(TestMetadata.ResourcesNet451.SystemRuntime));
-        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MsvbRef, "Microsoft.VisualBasic.dll", ImmutableArray.Create(TestMetadata.ResourcesNet451.MicrosoftVisualBasic));
-        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemXmlRef, "System.Xml.v4_0_30319.dll", ImmutableArray.Create(TestMetadata.ResourcesNet451.SystemXml));
-        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemXmlLinqRef, "System.Xml.Linq.v4_0_30319.dll", ImmutableArray.Create(TestMetadata.ResourcesNet451.SystemXmlLinq));
+        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.ValueTupleRef, "System.ValueTuple.dll", ImmutableArray.Create(Net461.ExtraReferenceInfos.SystemValueTuple.ImageBytes));
+        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRuntimeFacadeRef, "System.Runtime.dll", ImmutableArray.Create(Net461.Resources.SystemRuntime));
+        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MsvbRef, "Microsoft.VisualBasic.dll", ImmutableArray.Create(Net461.Resources.MicrosoftVisualBasic));
+        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemXmlRef, "System.Xml.v4_0_30319.dll", ImmutableArray.Create(Net461.Resources.SystemXml));
+        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemXmlLinqRef, "System.Xml.Linq.v4_0_30319.dll", ImmutableArray.Create(Net461.Resources.SystemXmlLinq));
 
         return Task.CompletedTask;
     }
@@ -76,7 +76,7 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
         var projectId = ProjectId.CreateNewId();
         var metadataProject = context.CurrentSolution
             .AddProject(projectId, "Metadata", "Metadata", LanguageNames.CSharp).GetProject(projectId)
-            .AddMetadataReference(TestMetadata.Net451.mscorlib)
+            .AddMetadataReference(NetFramework.mscorlib)
             .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release));
 
         var references = new List<MetadataReference>();

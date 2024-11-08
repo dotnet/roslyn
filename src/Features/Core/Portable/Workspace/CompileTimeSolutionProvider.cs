@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Cached compile-time solution corresponding to an existing design-time solution.
         /// </summary>
-#if NETCOREAPP
+#if NET
         private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = [];
 #else
         private ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     lock (_gate)
                     {
-#if NETCOREAPP
+#if NET
                         _designTimeToCompileTimeSolution.Clear();
 #else
                         _designTimeToCompileTimeSolution = new();

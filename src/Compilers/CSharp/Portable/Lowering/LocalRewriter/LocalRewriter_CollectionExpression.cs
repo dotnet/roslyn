@@ -43,9 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        if (useListOptimization(_compilation, node, out var listElementType))
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
-                            return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
+                            if (TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
+                            {
+                                return result;
+                            }
+
+                            if (useListOptimization(_compilation, node))
+                            {
+                                return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
+                            }
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.Array:
@@ -88,12 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the collection type is List<T> and items are added using the expected List<T>.Add(T) method,
             // then construction can be optimized to use CollectionsMarshal methods.
-            static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node, out TypeWithAnnotations elementType)
+            static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node)
             {
-                if (!ConversionsBase.IsSpanOrListType(compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out elementType))
-                {
-                    return false;
-                }
                 var elements = node.Elements;
                 if (elements.Length == 0)
                 {
@@ -149,6 +153,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
             }
+        }
+
+        // If we have something like `List<int> l = [.. someEnumerable]`
+        // try rewrite it using `Enumerable.ToList` member if possible
+        private bool TryRewriteSingleElementSpreadToList(BoundCollectionExpression node, TypeWithAnnotations listElementType, [NotNullWhen(true)] out BoundExpression? result)
+        {
+            result = null;
+
+            if (node.Elements is not [BoundCollectionExpressionSpreadElement singleSpread])
+            {
+                return false;
+            }
+
+            if (!TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Linq_Enumerable__ToList, out MethodSymbol? toListGeneric, isOptional: true))
+            {
+                return false;
+            }
+
+            var toListOfElementType = toListGeneric.Construct([listElementType]);
+
+            Debug.Assert(singleSpread.Expression.Type is not null);
+
+            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type, toListOfElementType.Parameters[0].Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
+            {
+                return false;
+            }
+
+            var rewrittenSpreadExpression = VisitExpression(singleSpread.Expression);
+            result = _factory.Call(receiver: null, toListOfElementType, rewrittenSpreadExpression);
+            return true;
+        }
+
+        private bool ShouldUseAddRangeOrToListMethod(TypeSymbol spreadType, TypeSymbol targetEnumerableType, MethodSymbol? getEnumeratorMethod)
+        {
+            Debug.Assert(targetEnumerableType.OriginalDefinition == (object)_compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T));
+
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            Conversion conversion;
+
+            // If collection has a struct enumerator but doesn't implement ICollection<T>
+            // then manual `foreach` is always more efficient then using `ToList` or `AddRange` methods
+            if (getEnumeratorMethod?.ReturnType.IsValueType == true)
+            {
+                var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
+                var iCollectionOfElementType = iCollectionOfTType.Construct(((NamedTypeSymbol)targetEnumerableType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+
+                conversion = _compilation.Conversions.ClassifyBuiltInConversion(spreadType, iCollectionOfElementType, isChecked: false, ref discardedUseSiteInfo);
+                if (conversion.Kind is not (ConversionKind.Identity or ConversionKind.ImplicitReference))
+                {
+                    return false;
+                }
+            }
+
+            conversion = _compilation.Conversions.ClassifyImplicitConversionFromType(spreadType, targetEnumerableType, ref discardedUseSiteInfo);
+            return conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference;
         }
 
         private static bool CanOptimizeSingleSpreadAsCollectionBuilderArgument(BoundCollectionExpression node, [NotNullWhen(true)] out BoundExpression? spreadExpression)
@@ -412,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and that span cannot be captured in a returned ref struct
             // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
             BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
-                ? spreadExpression
+                ? VisitExpression(spreadExpression)
                 : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
             var invocation = new BoundCall(
@@ -678,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 localsBuilder,
                 numberIncludingLastSpread,
                 sideEffects,
-                addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue) =>
+                addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression arrayTemp, BoundExpression rewrittenValue, bool isLastElement) =>
                 {
                     Debug.Assert(arrayTemp.Type is ArrayTypeSymbol);
                     Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
@@ -694,14 +754,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenValue,
                             isRef: false,
                             elementType));
-                    // index = index + 1;
-                    expressions.Add(
-                        new BoundAssignmentOperator(
-                            expressionSyntax,
-                            indexTemp,
-                            _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
-                            isRef: false,
-                            indexTemp.Type));
+                    if (!isLastElement)
+                    {
+                        // index = index + 1;
+                        expressions.Add(
+                            new BoundAssignmentOperator(
+                                expressionSyntax,
+                                indexTemp,
+                                _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                                isRef: false,
+                                indexTemp.Type));
+                    }
                 },
                 tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression arrayTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                 {
@@ -1012,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder,
                     numberIncludingLastSpread,
                     sideEffects,
-                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue) =>
+                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression spanTemp, BoundExpression rewrittenValue, bool isLastElement) =>
                     {
                         Debug.Assert(spanTemp.Type is NamedTypeSymbol);
                         Debug.Assert(indexTemp.Type is { SpecialType: SpecialType.System_Int32 });
@@ -1028,14 +1091,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 rewrittenValue,
                                 isRef: false,
                                 elementType));
-                        // index = index + 1;
-                        expressions.Add(
-                            new BoundAssignmentOperator(
-                                expressionSyntax,
-                                indexTemp,
-                                _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
-                                isRef: false,
-                                indexTemp.Type));
+                        if (!isLastElement)
+                        {
+                            // index = index + 1;
+                            expressions.Add(
+                                new BoundAssignmentOperator(
+                                    expressionSyntax,
+                                    indexTemp,
+                                    _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
+                                    isRef: false,
+                                    indexTemp.Type));
+                        }
                     },
                     tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression spanTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
@@ -1056,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder,
                     numberIncludingLastSpread,
                     sideEffects,
-                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue) =>
+                    addElement: (ArrayBuilder<BoundExpression> expressions, BoundExpression listTemp, BoundExpression rewrittenValue, bool isLastElement) =>
                     {
                         // list.Add(element);
                         expressions.Add(
@@ -1064,37 +1130,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     },
                     tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
+                        Debug.Assert(rewrittenSpreadOperand.Type is not null);
+
                         if (addRangeMethod is null)
                             return false;
 
-                        if (spreadElement.EnumeratorInfoOpt is { } enumeratorInfo)
+                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type, addRangeMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
                         {
-                            var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
-                            var iCollectionOfElementType = iCollectionOfTType.Construct(enumeratorInfo.ElementType);
-                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
-                            // If collection has a struct enumerator but doesn't implement ICollection<T>
-                            // then manual `foreach` is always more efficient then using `AddRange` method
-                            if (enumeratorInfo.GetEnumeratorInfo.Method.ReturnType.IsValueType &&
-                                !enumeratorInfo.CollectionType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
-                            {
-                                return false;
-                            }
+                            return false;
                         }
 
-                        var type = rewrittenSpreadOperand.Type!;
-
-                        var useSiteInfo = GetNewCompoundUseSiteInfo();
-                        var conversion = _compilation.Conversions.ClassifyConversionFromType(type, addRangeMethod.Parameters[0].Type, isChecked: false, ref useSiteInfo);
-                        _diagnostics.Add(rewrittenSpreadOperand.Syntax, useSiteInfo);
-                        if (conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference))
-                        {
-                            conversion.MarkUnderlyingConversionsCheckedRecursive();
-                            sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
-                            return true;
-                        }
-
-                        return false;
+                        sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
+                        return true;
                     });
             }
 
@@ -1139,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundLocal> rewrittenExpressions,
             int numberIncludingLastSpread,
             ArrayBuilder<BoundExpression> sideEffects,
-            Action<ArrayBuilder<BoundExpression>, BoundExpression, BoundExpression> addElement,
+            Action<ArrayBuilder<BoundExpression>, BoundExpression, BoundExpression, bool> addElement,
             Func<ArrayBuilder<BoundExpression>, BoundExpression, BoundCollectionExpressionSpreadElement, BoundExpression, bool> tryOptimizeSpreadElement)
         {
             for (int i = 0; i < elements.Length; i++)
@@ -1161,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var rewrittenValue = VisitExpression(((BoundExpressionStatement)iteratorBody).Expression);
                             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-                            addElement(builder, rewrittenReceiver, rewrittenValue);
+                            addElement(builder, rewrittenReceiver, rewrittenValue, false);
                             var statements = builder.SelectAsArray(expr => (BoundStatement)new BoundExpressionStatement(expr.Syntax, expr));
                             builder.Free();
                             Debug.Assert(statements.Length > 0);
@@ -1173,7 +1220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    addElement(sideEffects, rewrittenReceiver, rewrittenExpression);
+                    var isLastElement = i == (elements.Length - 1);
+                    addElement(sideEffects, rewrittenReceiver, rewrittenExpression, isLastElement);
                 }
             }
         }
@@ -1285,6 +1333,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continueLabel,
                         rewrittenBody);
                 }
+            }
+            else if (enumeratorInfo is { InlineArraySpanType: not WellKnownType.Unknown })
+            {
+                statement = RewriteForEachStatementAsFor(
+                    node,
+                    getPreamble: GetInlineArrayForEachStatementPreambleDelegate(),
+                    getItem: GetInlineArrayForEachStatementGetItemDelegate(),
+                    getLength: GetInlineArrayForEachStatementGetLengthDelegate(),
+                    arg: null,
+                    convertedExpression.Operand,
+                    enumeratorInfo,
+                    elementPlaceholder: null,
+                    elementConversion: null,
+                    iterationVariables,
+                    deconstructionOpt: null,
+                    breakLabel,
+                    continueLabel,
+                    rewrittenBody);
             }
             else
             {

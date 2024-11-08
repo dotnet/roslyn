@@ -23,19 +23,23 @@ internal partial class StreamingFindUsagesPresenter
     /// This context will not group entries by definition, and will instead just create
     /// entries for the definitions themselves.
     /// </summary>
-    private sealed class WithoutReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
+    private sealed class WithoutReferencesFindUsagesContext(
+        StreamingFindUsagesPresenter presenter,
+        IFindAllReferencesWindow findReferencesWindow,
+        ImmutableArray<ITableColumnDefinition> customColumns,
+        IGlobalOptionService globalOptions,
+        bool includeContainingTypeAndMemberColumns,
+        bool includeKindColumn,
+        IThreadingContext threadingContext)
+        : AbstractTableDataSourceFindUsagesContext(
+            presenter,
+            findReferencesWindow,
+            customColumns,
+            globalOptions,
+            includeContainingTypeAndMemberColumns,
+            includeKindColumn,
+            threadingContext)
     {
-        public WithoutReferencesFindUsagesContext(
-            StreamingFindUsagesPresenter presenter,
-            IFindAllReferencesWindow findReferencesWindow,
-            ImmutableArray<ITableColumnDefinition> customColumns,
-            IGlobalOptionService globalOptions,
-            bool includeContainingTypeAndMemberColumns,
-            bool includeKindColumn,
-            IThreadingContext threadingContext)
-            : base(presenter, findReferencesWindow, customColumns, globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, threadingContext)
-        {
-        }
 
         // We should never be called in a context where we get references.
         protected override ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
@@ -60,10 +64,13 @@ internal partial class StreamingFindUsagesPresenter
             var definitionBucket = GetOrCreateDefinitionBucket(CreateNoResultsDefinitionItem(message), expandedByDefault: true);
             var entry = await SimpleMessageEntry.CreateAsync(definitionBucket, navigationBucket: null, message).ConfigureAwait(false);
 
+            var isPrimary = IsPrimary(definitionBucket.DefinitionItem);
+
             lock (Gate)
             {
-                EntriesWhenGroupingByDefinition.Add(entry);
-                EntriesWhenNotGroupingByDefinition.Add(entry);
+                Add(EntriesWhenGroupingByDefinition, entry, isPrimary);
+                Add(EntriesWhenNotGroupingByDefinition, entry, isPrimary);
+
                 CurrentVersionNumber++;
             }
 
@@ -105,10 +112,12 @@ internal partial class StreamingFindUsagesPresenter
 
             if (entries.Count > 0)
             {
+                var isPrimary = IsPrimary(definition);
+
                 lock (Gate)
                 {
-                    AddRange(EntriesWhenGroupingByDefinition, entries);
-                    AddRange(EntriesWhenNotGroupingByDefinition, entries);
+                    AddRange(EntriesWhenGroupingByDefinition, entries, isPrimary);
+                    AddRange(EntriesWhenNotGroupingByDefinition, entries, isPrimary);
                     CurrentVersionNumber++;
                 }
 

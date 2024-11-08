@@ -78,7 +78,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// </summary>
     // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
 #pragma warning disable RS0030 // Do not use banned APIs
-    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
 #pragma warning restore RS0030 // Do not use banned APIs
 
     private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
@@ -127,7 +127,8 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
 
-        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
+        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
+            this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
 
         InitializeUIAffinitizedServicesAsync(asyncServiceProvider).Forget();
 

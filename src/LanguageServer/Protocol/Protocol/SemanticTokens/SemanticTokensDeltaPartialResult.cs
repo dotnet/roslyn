@@ -8,14 +8,15 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Represents a response from a semantic tokens Document provider Edits request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensDeltaPartialResult">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class SemanticTokensDeltaPartialResult
     {
         /// <summary>
-        /// Gets or sets an array of edits to apply to a previous response from a
-        /// semantic tokens Document provider.
+        /// The semantic token edits to transform a previous result into a new result.
         /// </summary>
         [JsonPropertyName("edits")]
         [JsonRequired]

@@ -85,16 +85,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">在活动语句周围添加 {0} 需要重新启动应用程序。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Adding_0_into_a_1_requires_restarting_the_application">
-        <source>Adding {0} into a {1} requires restarting the application.</source>
-        <target state="translated">将 {0} 添加进 {1} 中需要重新启动应用程序。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application">
-        <source>Adding {0} into a class with explicit or sequential layout requires restarting the application.</source>
-        <target state="translated">将 {0} 添加到具有显式或顺序布局的类中需要重新启动应用程序。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_0_into_an_interface_method_requires_restarting_the_application">
         <source>Adding {0} into an interface method requires restarting the application.</source>
         <target state="translated">将 {0} 添加到接口方法中需要重新启动应用程序。</target>
@@ -153,6 +143,21 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Adding_an_imported_method_requires_restarting_the_application">
         <source>Adding an imported method requires restarting the application.</source>
         <target state="translated">添加导入的方法需要重新启动应用程序。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_or_moving_0_of_1_requires_restarting_the_application">
+        <source>Adding or moving {0} of {1} requires restarting the application.</source>
+        <target state="new">Adding or moving {0} of {1} requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application">
+        <source>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</source>
+        <target state="new">Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application">
+        <source>Adding or moving {0} of a COM interface requires restarting the application.</source>
+        <target state="new">Adding or moving {0} of a COM interface requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -460,9 +465,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">更改 {0} 的返回类型需要重启应用程序。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application">
+        <source>Changing the signature of {0} requires restarting the application.</source>
+        <target state="new">Changing the signature of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="translated">更改 {0} 的签名需要重新启动应用程序，因为不受运行时支持。</target>
+        <target state="new">Changing the signature of {0} requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -1192,7 +1202,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="NET_Code_Actions">
         <source>.NET Code Actions</source>
-        <target state="new">.NET Code Actions</target>
+        <target state="translated">.NET 代码操作</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -1280,14 +1290,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">无法更新属性引用</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pull_0_up">
-        <source>Pull '{0}' up</source>
-        <target state="translated">向上拉 "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pull_0_up_to_1">
-        <source>Pull '{0}' up to '{1}'</source>
-        <target state="translated">将 "{0}" 拉到 "{1}"</target>
+      <trans-unit id="Pull_0_up_to">
+        <source>Pull '{0}' up to ...</source>
+        <target state="new">Pull '{0}' up to ...</target>
         <note />
       </trans-unit>
       <trans-unit id="Pull_members_up_to_base_type">
@@ -2632,7 +2637,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Symbol_search">
         <source>Symbol search</source>
-        <target state="new">Symbol search</target>
+        <target state="translated">符号搜索</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbols">
@@ -2922,7 +2927,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <target state="translated">更新活动语句周围 {0} 的类型(从 '{1}' 到 '{2}')需要重启应用程序。</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
@@ -4761,8 +4766,8 @@ This version used in: {2}</source>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks">
-        <source>Add null checks</source>
-        <target state="translated">添加 null 检查</target>
+        <source>Add _null checks</source>
+        <target state="needs-review-translation">添加 null 检查</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">

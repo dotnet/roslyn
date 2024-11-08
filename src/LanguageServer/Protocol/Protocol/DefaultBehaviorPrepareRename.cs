@@ -8,9 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents a possible result value of the 'textDocument/prepareRename' request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_prepareRename">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class DefaultBehaviorPrepareRename
     {
         /// <summary>

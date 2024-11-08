@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Add a type parameter
                     AnonymousTypeParameterSymbol typeParameter =
-                        new AnonymousTypeParameterSymbol(this, fieldIndex, GeneratedNames.MakeAnonymousTypeParameterName(field.Name));
+                        new AnonymousTypeParameterSymbol(this, fieldIndex, GeneratedNames.MakeAnonymousTypeParameterName(field.Name), allowsRefLikeType: false);
                     typeParametersBuilder.Add(typeParameter);
 
                     // Add a property

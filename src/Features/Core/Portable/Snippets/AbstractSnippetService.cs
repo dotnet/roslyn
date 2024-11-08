@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -37,26 +36,27 @@ internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider
     /// Iterates through all providers and determines if the snippet 
     /// can be added to the Completion list at the corresponding position.
     /// </summary>
-    public async Task<ImmutableArray<SnippetData>> GetSnippetsAsync(SnippetContext context, CancellationToken cancellationToken)
+    public ImmutableArray<SnippetData> GetSnippets(SnippetContext context, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
-        foreach (var provider in GetSnippetProviders(context.Document))
+        EnsureSnippetsLoaded(context.Document.Project.Language);
+        foreach (var provider in _snippetProviders)
         {
-            if (await provider.IsValidSnippetLocationAsync(in context, cancellationToken).ConfigureAwait(false))
+            if (provider.IsValidSnippetLocation(context, cancellationToken))
                 arrayBuilder.Add(new(provider.Identifier, provider.Description, provider.AdditionalFilterTexts));
         }
 
         return arrayBuilder.ToImmutableAndClear();
     }
 
-    private ImmutableArray<ISnippetProvider> GetSnippetProviders(Document document)
+    internal void EnsureSnippetsLoaded(string language)
     {
         lock (_snippetProvidersLock)
         {
             if (_snippetProviders.IsDefault)
             {
                 using var _ = ArrayBuilder<ISnippetProvider>.GetInstance(out var arrayBuilder);
-                foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
+                foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == language))
                 {
                     var providerData = provider.Value;
                     Debug.Assert(!_identifierToProviderMap.TryGetValue(providerData.Identifier, out var _));
@@ -67,7 +67,5 @@ internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider
                 _snippetProviders = arrayBuilder.ToImmutable();
             }
         }
-
-        return _snippetProviders;
     }
 }

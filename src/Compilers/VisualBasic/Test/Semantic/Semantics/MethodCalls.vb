@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -4869,7 +4870,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4909,7 +4910,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5238,7 +5239,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=

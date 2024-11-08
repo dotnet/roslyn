@@ -28,7 +28,7 @@ internal interface ISnippetProvider
     /// <summary>
     /// Determines if a snippet can exist at a particular location.
     /// </summary>
-    ValueTask<bool> IsValidSnippetLocationAsync(in SnippetContext context, CancellationToken cancellationToken);
+    bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the Snippet change from the corresponding snippet provider.

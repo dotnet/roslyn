@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal partial class CSharpIntroduceVariableService
+internal sealed partial class CSharpIntroduceVariableService
 {
     protected override async Task<Document> IntroduceLocalAsync(
         SemanticDocument document,

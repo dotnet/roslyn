@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var toVisit = ArrayBuilder<NamespaceOrTypeSymbol>.GetInstance();
 
                 // Search the namespaces which were indicated to contain interceptors.
-                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsPreviewNamespaces;
+                ImmutableArray<ImmutableArray<string>> interceptorsNamespaces = ((CSharpParseOptions)location.SourceTree.Options).InterceptorsNamespaces;
                 foreach (ImmutableArray<string> namespaceParts in interceptorsNamespaces)
                 {
                     if (namespaceParts is ["global"])

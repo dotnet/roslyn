@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal class VariableStyle
+internal sealed class VariableStyle
 {
     public ParameterStyle ParameterStyle { get; private set; }
     public ReturnStyle ReturnStyle { get; private set; }

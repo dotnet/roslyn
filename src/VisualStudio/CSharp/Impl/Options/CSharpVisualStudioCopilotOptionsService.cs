@@ -40,9 +40,11 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private const string GitHubAccountStatusIsCopilotEntitled = "3DE3FA6E-91B2-46C1-9E9E-DD04975BB890";
 
     private const string CopilotOptionNamePrefix = "Microsoft.VisualStudio.Conversations";
-    private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
-    private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
-    private const string CopilotOnTheFlyDocsOptionName = "EnableOnTheFlyDocs";
+
+    // Default value must reflect their default values in ConversationsOptions in Copilot repo.
+    private readonly CopilotOption _copilotCodeAnalysisOption = new("EnableCSharpCodeAnalysis", false);
+    private readonly CopilotOption _copilotRefineOption = new("EnableCSharpRefineQuickActionSuggestion", false);
+    private readonly CopilotOption _copilotOnTheFlyDocsOption = new("EnableOnTheFlyDocs", true);
 
     private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
     private static readonly UIContext s_gitHubAccountStatusDeterminedContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusDetermined));
@@ -69,23 +71,26 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
         _settingsManagerTask = settingsManagerService.GetValueAsync(threadingContext.DisposalToken);
     }
 
-    public async Task<bool> IsCopilotOptionEnabledAsync(string optionName)
+    private async Task<bool> IsCopilotOptionEnabledAsync(CopilotOption option)
     {
         if (!IsGithubCopilotLoadedAndSignedIn)
             return false;
 
         var settingManager = await _settingsManagerTask.ConfigureAwait(false);
         // The bool setting is persisted as 0=None, 1=True, 2=False, so it needs to be retrieved as an int.
-        return settingManager.TryGetValue($"{CopilotOptionNamePrefix}.{optionName}", out int isEnabled) == GetValueResult.Success
-            && isEnabled == 1;
+        // If isEnabled is 0 or the value is not persisted, we should return the default value for the option.
+        var isEnabled = settingManager.GetValueOrDefault($"{CopilotOptionNamePrefix}.{option.Name}", 0);
+        return isEnabled == 1 || (isEnabled == 0 && option.DefaultValue);
     }
 
     public Task<bool> IsCodeAnalysisOptionEnabledAsync()
-        => IsCopilotOptionEnabledAsync(CopilotCodeAnalysisOptionName);
+        => IsCopilotOptionEnabledAsync(_copilotCodeAnalysisOption);
 
     public Task<bool> IsRefineOptionEnabledAsync()
-        => IsCopilotOptionEnabledAsync(CopilotRefineOptionName);
+        => IsCopilotOptionEnabledAsync(_copilotRefineOption);
 
     public Task<bool> IsOnTheFlyDocsOptionEnabledAsync()
-        => IsCopilotOptionEnabledAsync(CopilotOnTheFlyDocsOptionName);
+        => IsCopilotOptionEnabledAsync(_copilotOnTheFlyDocsOption);
+
+    private record struct CopilotOption(string Name, bool DefaultValue);
 }

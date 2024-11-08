@@ -4,24 +4,15 @@
 
 using System;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.ServiceHub.Client;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {

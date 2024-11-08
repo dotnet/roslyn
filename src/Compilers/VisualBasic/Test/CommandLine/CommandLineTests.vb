@@ -29,6 +29,7 @@ Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Test.Utilities.TestGenerators
 Imports Roslyn.Utilities
 Imports TestResources.Analyzers
+Imports Basic.Reference.Assemblies
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
@@ -38,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Private Shared ReadOnly s_basicCompilerExecutable As String = Path.Combine(
             Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
             Path.Combine("dependency", "vbc.exe"))
-        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMono, "mono", String.Empty)
+        Private Shared ReadOnly s_DotnetCscRun As String = If(ExecutionConditionUtil.IsMonoDesktop, "mono", String.Empty)
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
@@ -1529,6 +1530,10 @@ End Module").Path
             parsedArgs.Errors.Verify()
             Assert.Equal(LanguageVersion.VisualBasic16_9, parsedArgs.ParseOptions.LanguageVersion)
 
+            parsedArgs = DefaultParse({"/langVERSION:17.13", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(LanguageVersion.VisualBasic17_13, parsedArgs.ParseOptions.LanguageVersion)
+
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
 
@@ -2054,7 +2059,7 @@ End Module").Path
             ' - update the "UpgradeProject" codefixer (not yet supported in VB)
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
-            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "latest"},
+            AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.5", "16", "16.9", "17.13", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
         End Sub
@@ -2076,7 +2081,8 @@ End Module").Path
                 "15.3",
                 "15.5",
                 "16",
-                "16.9"
+                "16.9",
+                "17.13"
              }
 
             AssertEx.SetEqual(versions, errorCodes)
@@ -2097,6 +2103,7 @@ End Module").Path
             Assert.Equal(LanguageVersion.VisualBasic15_5, LanguageVersion.VisualBasic15_5.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16, LanguageVersion.VisualBasic16.MapSpecifiedToEffectiveVersion())
             Assert.Equal(LanguageVersion.VisualBasic16_9, LanguageVersion.VisualBasic16_9.MapSpecifiedToEffectiveVersion())
+            Assert.Equal(LanguageVersion.VisualBasic17_13, LanguageVersion.VisualBasic17_13.MapSpecifiedToEffectiveVersion())
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary()
@@ -2120,6 +2127,7 @@ End Module").Path
             InlineData("16", True, LanguageVersion.VisualBasic16),
             InlineData("16.0", True, LanguageVersion.VisualBasic16),
             InlineData("16.9", True, LanguageVersion.VisualBasic16_9),
+            InlineData("17.13", True, LanguageVersion.VisualBasic17_13),
             InlineData("DEFAULT", True, LanguageVersion.Default),
             InlineData("default", True, LanguageVersion.Default),
             InlineData("LATEST", True, LanguageVersion.Latest),
@@ -4937,7 +4945,7 @@ End Class
 
         <Fact()>
         Public Sub BinaryFile()
-            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestMetadata.ResourcesNet451.mscorlib).Path
+            Dim binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", binaryPath}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
@@ -10655,6 +10663,33 @@ End Class")
             parsedArgs = DefaultParse({$"/generatedfilesout:""{absPath}""", "a.cs"}, baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(absPath, parsedArgs.GeneratedFilesOutputDirectory)
+        End Sub
+
+        <Fact>
+        Public Sub Compiler_DoesNot_RunHostOutputs()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+Class C
+End Class")
+            Dim hostOutputRan As Boolean = False
+            Dim sourceOutputRan As Boolean = False
+            Dim generator = New PipelineCallbackGenerator(Sub(ctx)
+#Disable Warning RSEXPERIMENTAL004
+                                                              ctx.RegisterHostOutput(ctx.CompilationProvider, Sub(hostCtx, value)
+                                                                                                                  hostOutputRan = True
+                                                                                                                  hostCtx.AddOutput("output", "value")
+                                                                                                              End Sub)
+#Enable Warning RSEXPERIMENTAL004
+                                                              ctx.RegisterSourceOutput(ctx.CompilationProvider, Sub(spc, po)
+                                                                                                                    sourceOutputRan = True
+                                                                                                                    spc.AddSource("output.vb", "'value")
+                                                                                                                End Sub)
+                                                          End Sub)
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, generators:={generator.AsSourceGenerator()})
+            Assert.[False](hostOutputRan)
+            Assert.[True](sourceOutputRan)
+            CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
         End Sub
 
         <Fact>

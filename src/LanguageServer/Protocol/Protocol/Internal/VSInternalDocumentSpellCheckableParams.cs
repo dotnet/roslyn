@@ -8,13 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Parameter for tD/_vs_spellCheckableRanges.
+    /// Parameter for textDocument/_vs_spellCheckableRanges.
     /// </summary>
-    internal class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
+    internal sealed class VSInternalDocumentSpellCheckableParams : VSInternalStreamingParams, IPartialResultParams<VSInternalSpellCheckableRangeReport[]>
     {
-        /// <summary>
-        /// Gets or sets an optional token that a server can use to report partial results (e.g. streaming) to the client.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<VSInternalSpellCheckableRangeReport[]>? PartialResultToken
