@@ -397,7 +397,7 @@ internal sealed partial class SolutionCompilationState
                 return compilationFactory.CreateGeneratorDriver(
                     projectState.ParseOptions!,
                     GetSourceGenerators(projectState),
-                    projectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
+                    projectState.ProjectAnalyzerOptions.AnalyzerConfigOptionsProvider,
                     additionalTexts,
                     generatedFilesBaseDirectory);
             }

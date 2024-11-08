@@ -9540,7 +9540,10 @@ class C1 (int p1)
             comp1.VerifyEmitDiagnostics(
                 // (4,38): error CS1041: Identifier expected; 'delegate' is a keyword
                 //     public System.Func<int> M21() => delegate => p1;
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38)
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "delegate").WithArguments("", "delegate").WithLocation(4, 38),
+                // (4,47): error CS1593: Delegate 'Func<int>' does not take 1 arguments
+                //     public System.Func<int> M21() => delegate => p1;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.Func<int>", "1").WithLocation(4, 47)
                 );
 
             var source = @"
