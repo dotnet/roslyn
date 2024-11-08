@@ -81,17 +81,20 @@ internal partial class InlineHintsDataTaggerProvider(
 
         // Find the visible span some 100 lines +/- what's actually in view.  This way if the user scrolls up/down,
         // we'll already have the results.
-        var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
+        var (visibility, span) = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
 
         // If we can't even determine what our visible span is, bail out immediately.  We may be in something like a
         // layout pass, and we don't want to suddenly flip to tagging everything, then go back to tagging a small
         // subset of the view afterwards.
         //
         // In this case we literally do not know what is visible, so we want to bail and try again later.
-        if (visibleSpanOpt == null)
+        if (visibility == ITextViewExtensions.TextViewLinesVisibility.InLayout)
             return false;
 
-        result.Add(visibleSpanOpt.Value);
+        // If we have a visible span, tag that.  If we don't have anything visible, remove all tags.
+        if (visibility == ITextViewExtensions.TextViewLinesVisibility.Visible)
+            result.Add(span);
+
         return true;
     }
 

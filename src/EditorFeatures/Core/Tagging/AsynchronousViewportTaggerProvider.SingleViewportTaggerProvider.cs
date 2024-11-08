@@ -69,17 +69,22 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
 
             // if we're the current view, attempt to just get what's visible, plus 10 lines above and below.  This will
             // ensure that moving up/down a few lines tends to have immediate accurate results.
-            var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
+            var (visibility, visibleSpan) = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
 
-            // If we can't even determine what our visible span is, bail out immediately.  We may be in something like a
-            // layout pass, and we don't want to suddenly flip to tagging everything, then go back to tagging a small
-            // subset of the view afterwards.
+            // If we're in a layout, then we can't even determine what our visible span is. Bail out immediately as qe
+            // don't want to suddenly flip to tagging everything, then go back to tagging a small subset of the view
+            // afterwards.
             //
             // In this case we literally do not know what is visible, so we want to bail and try again later.
-            if (visibleSpanOpt is null)
+            if (visibility is ITextViewExtensions.TextViewLinesVisibility.InLayout)
                 return false;
 
-            var visibleSpan = visibleSpanOpt.Value;
+            // The text view is fine, but there's no Roslyn content visible. In this case, don't add any spans so we can
+            // remove all tags
+            if (visibility is ITextViewExtensions.TextViewLinesVisibility.NotVisible)
+                return true;
+
+            Contract.ThrowIfFalse(visibility is ITextViewExtensions.TextViewLinesVisibility.Visible);
 
             // If we're the 'InView' tagger, tag what was visible. 
             if (_viewPortToTag is ViewPortToTag.InView)
@@ -90,10 +95,9 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             {
                 // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
                 // subtract out the visible range.
-                var widenedSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
-                Contract.ThrowIfNull(widenedSpanOpt, "Should not ever fail getting the widened span as we were able to get the normal visible span");
+                var (widenedVisibility, widenedSpan) = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
 
-                var widenedSpan = widenedSpanOpt.Value;
+                Contract.ThrowIfFalse(widenedVisibility is ITextViewExtensions.TextViewLinesVisibility.Visible, "Should not ever fail getting the widened span as we were able to get the normal visible span");
                 Contract.ThrowIfFalse(widenedSpan.Span.Contains(visibleSpan.Span), "The widened span must be at least as large as the visible one.");
 
                 if (_viewPortToTag is ViewPortToTag.Above)

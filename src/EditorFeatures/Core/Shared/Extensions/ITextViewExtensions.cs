@@ -320,41 +320,40 @@ internal static partial class ITextViewExtensions
         return false;
     }
 
+    public enum TextViewLinesVisibility
+    {
+        NotVisible,
+        Visible,
+        InLayout,
+    }
+
     /// <summary>
     /// Returns the span of the lines in subjectBuffer that is currently visible in the provided
     /// view.  "extraLines" can be provided to get a span that encompasses some number of lines
     /// before and after the actual visible lines.
     /// </summary>
-    public static SnapshotSpan? GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
+    public static (TextViewLinesVisibility visibility, SnapshotSpan span) GetVisibleLinesSpan(this ITextView textView, ITextBuffer subjectBuffer, int extraLines = 0)
     {
         // No point in continuing if the text view has been closed.
         if (textView.IsClosed)
-        {
-            return null;
-        }
+            return (TextViewLinesVisibility.NotVisible, default);
 
         // If we're being called while the textview is actually in the middle of a layout, then we can't proceed.  Much
         // of the text view state is unsafe to access (and will throw).
         if (textView.InLayout)
-        {
-            return null;
-        }
+            return (TextViewLinesVisibility.InLayout, default);
 
         // During text view initialization the TextViewLines may be null.  In that case we can't get an appropriate
         // visible span.
         if (textView.TextViewLines == null)
-        {
-            return null;
-        }
+            return (TextViewLinesVisibility.NotVisible, default);
 
         // Determine the range of text that is visible in the view.  Then map this down to the buffer passed in.  From
         // that, determine the start/end line for the buffer that is in view.
         var visibleSpan = textView.TextViewLines.FormattedSpan;
         var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
         if (visibleSpansInBuffer.Count == 0)
-        {
-            return null;
-        }
+            return (TextViewLinesVisibility.NotVisible, default);
 
         var visibleStart = visibleSpansInBuffer.First().Start;
         var visibleEnd = visibleSpansInBuffer.Last().End;
@@ -371,7 +370,7 @@ internal static partial class ITextViewExtensions
 
         var span = new SnapshotSpan(snapshot, Span.FromBounds(start, end));
 
-        return span;
+        return (TextViewLinesVisibility.Visible, span);
     }
 
     /// <summary>
