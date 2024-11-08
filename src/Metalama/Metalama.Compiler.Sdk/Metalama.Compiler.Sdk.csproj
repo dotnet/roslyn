@@ -10,6 +10,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <!-- Enable portable PDB so it can be included in the symbols NuGet package (.snupkg). -->
     <DebugType>Portable</DebugType>
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>

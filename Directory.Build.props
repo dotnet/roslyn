@@ -22,6 +22,9 @@
 
     <!-- If this is not set, build fails with: "<SymbolPackageFormat>snupkg</SymbolPackageFormat> is not supported by the Arcade SDK." -->
     <SuppressSymbolPackageFormatValidation>true</SuppressSymbolPackageFormatValidation>
+
+    <!-- Disable warnings about vulnerabilities of transitive packages. -->
+    <NoWarn>$(NoWarn);NU1902;NU1903;NU1904</NoWarn>
   </PropertyGroup>
   
   <Import Sdk="PostSharp.Engineering.Sdk" Project="SourceLink.props"/>
