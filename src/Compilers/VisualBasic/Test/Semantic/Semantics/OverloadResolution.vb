@@ -3050,7 +3050,7 @@ Class OptionStrictOff
 End Class
 </file>
 
-            Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value)
+            Dim optionStrictOffTree = VisualBasicSyntaxTree.ParseText(optionStrictOff.Value, options:=TestOptions.RegularLatest)
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
                 syntaxTrees:={Parse(SemanticResourceUtil.OverloadResolutionTestSource), optionStrictOffTree},

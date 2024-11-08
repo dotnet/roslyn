@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -149,6 +150,30 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 _ = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
 
                 Assert.Equal(expectedRunAnalyzers, environment.Workspace.CurrentSolution.Projects.Single().State.RunAnalyzers);
+            }
+        }
+
+        [WpfFact]
+        public async Task SetProperty_CompilerGeneratedFilesOutputPath_CPS()
+        {
+            using (var environment = new TestEnvironment())
+            using (var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
+            {
+                Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+                // relative path is relative to the project dir:
+                project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "generated");
+                AssertEx.AreEqual(
+                    Path.Combine(Path.GetDirectoryName(project.ProjectFilePath), "generated"),
+                    environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+                var path = Path.Combine(TempRoot.Root, "generated");
+                project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, path);
+                AssertEx.AreEqual(path, environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+                // empty path:
+                project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "");
+                Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
             }
         }
     }
