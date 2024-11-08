@@ -28,6 +28,7 @@ We use the following helper APIs to indicate suspension points to the runtime, i
 namespace System.Runtime.CompilerServices;
 
 // These methods are used to await things that cannot use runtime async signature form
+// TODO: Clarify which of these should be preferred? Should we always emit the `Unsafe` version when awaiting something that implements `ICriticalNotifyCompletion`?
 namespace System.Runtime.CompilerServices;
 
 public static class RuntimeHelpers
