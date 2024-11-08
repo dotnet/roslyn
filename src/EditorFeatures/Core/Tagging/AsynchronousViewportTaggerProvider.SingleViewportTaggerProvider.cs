@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -62,29 +64,69 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             // This can save a lot of CPU time for things that may never even be looked at.
             => _viewPortToTag != ViewPortToTag.InView;
 
+        /// <summary>
+        /// Returns the span of the lines in subjectBuffer that is currently visible in the provided
+        /// view.  "extraLines" can be provided to get a span that encompasses some number of lines
+        /// before and after the actual visible lines.
+        /// </summary>
+        private static SnapshotSpan? GetVisibleLinesSpan(ITextView textView, ITextBuffer subjectBuffer, int extraLines)
+        {
+            // Determine the range of text that is visible in the view.  Then map this down to the buffer passed in.  From
+            // that, determine the start/end line for the buffer that is in view.
+            var visibleSpan = textView.TextViewLines.FormattedSpan;
+            var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
+            if (visibleSpansInBuffer.Count == 0)
+                return null;
+
+            var visibleStart = visibleSpansInBuffer.First().Start;
+            var visibleEnd = visibleSpansInBuffer.Last().End;
+
+            var snapshot = subjectBuffer.CurrentSnapshot;
+            var startLine = visibleStart.GetContainingLineNumber();
+            var endLine = visibleEnd.GetContainingLineNumber();
+
+            startLine = Math.Max(startLine - extraLines, 0);
+            endLine = Math.Min(endLine + extraLines, snapshot.LineCount - 1);
+
+            var start = snapshot.GetLineFromLineNumber(startLine).Start;
+            var end = snapshot.GetLineFromLineNumber(endLine).EndIncludingLineBreak;
+
+            var span = new SnapshotSpan(snapshot, Span.FromBounds(start, end));
+
+            return span;
+        }
+
         protected override bool TryAddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
         {
             this.ThreadingContext.ThrowIfNotOnUIThread();
             Contract.ThrowIfNull(textView);
 
-            // if we're the current view, attempt to just get what's visible, plus 10 lines above and below.  This will
-            // ensure that moving up/down a few lines tends to have immediate accurate results.
-            var (visibility, visibleSpan) = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
+            // View is closed.  Return no spans so we can remove all tags.
+            if (textView.IsClosed)
+                return true;
 
             // If we're in a layout, then we can't even determine what our visible span is. Bail out immediately as qe
             // don't want to suddenly flip to tagging everything, then go back to tagging a small subset of the view
             // afterwards.
             //
             // In this case we literally do not know what is visible, so we want to bail and try again later.
-            if (visibility is ITextViewExtensions.TextViewLinesVisibility.InLayout)
+            if (textView.InLayout)
                 return false;
 
-            // The text view is fine, but there's no Roslyn content visible. In this case, don't add any spans so we can
-            // remove all tags
-            if (visibility is ITextViewExtensions.TextViewLinesVisibility.NotVisible)
+            // During text view initialization the TextViewLines may be null.  In that case nothing is really visible.
+            // So return no spans so we can remove all tags.
+            if (textView.TextViewLines == null)
                 return true;
 
-            Contract.ThrowIfFalse(visibility is ITextViewExtensions.TextViewLinesVisibility.Visible);
+            // if we're the current view, attempt to just get what's visible, plus 10 lines above and below.  This will
+            // ensure that moving up/down a few lines tends to have immediate accurate results.
+            var visibleSpanOpt = GetVisibleLinesSpan(textView, subjectBuffer, extraLines: s_standardLineCountAroundViewportToTag);
+
+            // Nothing was visible at all.  Return no spans so we can remove all tags.
+            if (visibleSpanOpt is null)
+                return true;
+
+            var visibleSpan = visibleSpanOpt.Value;
 
             // If we're the 'InView' tagger, tag what was visible. 
             if (_viewPortToTag is ViewPortToTag.InView)
@@ -95,9 +137,10 @@ internal abstract partial class AsynchronousViewportTaggerProvider<TTag> where T
             {
                 // For the above/below tagger, broaden the span to to the requested portion above/below what's visible, then
                 // subtract out the visible range.
-                var (widenedVisibility, widenedSpan) = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
+                var widenedSpanOpt = GetVisibleLinesSpan(textView, subjectBuffer, extraLines: _callback._extraLinesAroundViewportToTag);
+                Contract.ThrowIfNull(widenedSpanOpt, "Should not ever fail getting the widened span as we were able to get the normal visible span");
 
-                Contract.ThrowIfFalse(widenedVisibility is ITextViewExtensions.TextViewLinesVisibility.Visible, "Should not ever fail getting the widened span as we were able to get the normal visible span");
+                var widenedSpan = widenedSpanOpt.Value;
                 Contract.ThrowIfFalse(widenedSpan.Span.Contains(visibleSpan.Span), "The widened span must be at least as large as the visible one.");
 
                 if (_viewPortToTag is ViewPortToTag.Above)
