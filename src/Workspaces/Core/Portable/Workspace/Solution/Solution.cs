@@ -801,13 +801,13 @@ public partial class Solution
                 throw new InvalidOperationException(WorkspacesResources.The_project_already_contains_the_specified_reference);
         }
 
-        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId,
-        [
+        var boxedReferences = Roslyn.Utilities.EnumerableExtensions.ToBoxedImmutableArray([
             // Note: we guaranteed that analyzerReferences has no duplicates, and has no overlap with the existing
             // analyzer references above, so we can just concatenate them here safely.
             .. this.GetRequiredProjectState(projectId).AnalyzerReferences,
             .. collection,
-        ]));
+        ]);
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, boxedReferences));
     }
 
     /// <summary>
