@@ -4,10 +4,12 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
         }
 
         [Theory, CombinatorialData]
-        public async Task TestGotoTypeDefinitionAsync(bool mutatingLspWorkspace)
+        public async Task TestGotoTypeDefinitionAsync_WithTypeSymbol(bool mutatingLspWorkspace)
         {
             var markup =
 @"class {|definition:A|}
@@ -30,6 +32,79 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 class B
 {
     {|caret:|}A classA;
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_WithPropertySymbol(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class {|definition:A|}
+{
+}
+class B
+{
+    A class{|caret:|}A {;
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_WithFieldSymbol(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class {|definition:A|}
+{
+}
+class B
+{
+    A class{|caret:|}A;
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_WithLocalSymbol(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class {|definition:A|}
+{
+}
+class B
+{
+    void Method()
+    {
+        var class{|caret:|}A = new A();
+    }
+}";
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_WithParameterSymbol(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class {|definition:A|}
+{
+}
+class B
+{
+    void Method(A class{|caret:|}A)
+    {
+    }
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
@@ -52,7 +127,7 @@ class B
 {
     class B
     {
-        {|caret:|}A classA;
+        A class{|caret:|}A;
     }
 }"
             };
@@ -79,6 +154,96 @@ class B
 
             var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_MappedFile(bool mutatingLspWorkspace)
+        {
+            var source =
+                """
+                namespace M
+                {
+                    class A
+                    {
+                        public B b{|caret:|};
+                    }
+                }
+                """;
+            var mapped =
+                """
+                namespace M
+                {
+                    class B
+                    {
+                    }
+                }
+                """;
+
+            await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+
+            AddMappedDocument(testLspServer.TestWorkspace, mapped);
+
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            var result = Assert.Single(results);
+            AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_SourceGeneratedDocument(bool mutatingLspWorkspace)
+        {
+            var source =
+                """
+                namespace M
+                {
+                    class A
+                    {
+                        public B b{|caret:|};
+                    }
+                }
+                """;
+            var generated =
+                """
+                namespace M
+                {
+                    class B
+                    {
+                    }
+                }
+                """;
+
+            await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+            await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            var result = Assert.Single(results);
+            Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.Scheme);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_CrossLanguage(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"<Workspace>
+    <Project Language=""C#"" Name=""Definition"" CommonReferences=""true"" FilePath=""C:\CSProj1.csproj"">
+        <Document FilePath=""C:\A.cs"">
+            public class {|definition:A|}
+            {
+            }
+        </Document>
+    </Project>
+    <Project Language=""Visual Basic"" CommonReferences=""true"" FilePath=""C:\CSProj2.csproj"">
+        <ProjectReference>Definition</ProjectReference>
+        <Document FilePath=""C:\C.cs"">
+            Class C
+                Dim {|caret:a|} As A
+            End Class
+        </Document>
+    </Project>
+</Workspace>";
+            await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
         private static async Task<LSP.Location[]> RunGotoTypeDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
