@@ -4409,6 +4409,7 @@ End Module
 <expected><![CDATA[
 BC30518: Overload resolution failed because no accessible 'New' can be called with these arguments:
     'Public Overloads Sub New(name As XName)': Option Strict On disallows implicit conversions from 'Object' to 'XName'.
+    'Public Overloads Sub New(name As XName, ParamArray content As Object())': Option Strict On disallows implicit conversions from 'Object' to 'XName'.
     'Public Overloads Sub New(other As XElement)': Option Strict On disallows implicit conversions from 'Object' to 'XElement'.
     'Public Overloads Sub New(other As XStreamingElement)': Option Strict On disallows implicit conversions from 'Object' to 'XStreamingElement'.
         Dim y2 = <<%= o2 %>></>
