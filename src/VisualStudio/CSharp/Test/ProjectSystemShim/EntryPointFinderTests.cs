@@ -65,7 +65,7 @@ public sealed class EntryPointFinderTests
         [CombinatorialValues("void", "int", "System.Int32", "Int32", "ValueTask", "Task", "ValueTask<int>", "Task<int>")] string returnType,
         [CombinatorialValues("string[] args", "string[] args1", "")] string parameters)
     {
-        NegativeTest($"{accessibility} {returnType} main({parameters})");
+        NegativeTest($"{accessibility} {returnType} Main({parameters})");
     }
 
     [Theory, CombinatorialData]
