@@ -47,7 +47,7 @@ public partial class Workspace
             useAsync: true,
             oldSolution =>
             {
-                var updates = GetUpdatedSourceGeneratorVersions(oldSolution.CompilationState, projectIds);
+                var updates = GetUpdatedSourceGeneratorVersions(oldSolution, projectIds);
                 return oldSolution.UpdateSpecificSourceGeneratorExecutionVersions(updates);
             },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
@@ -67,12 +67,12 @@ public partial class Workspace
         // specified, then all projects will have their versions updated.
         // </summary>
         static SourceGeneratorExecutionVersionMap GetUpdatedSourceGeneratorVersions(
-            SolutionCompilationState solution, ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds)
+            Solution solution, ImmutableSegmentedList<(ProjectId? projectId, bool forceRegeneration)> projectIds)
         {
             // For all the projects explicitly requested, update their source generator version.  Do this for all
             // projects that transitively depend on that project, so that their generators will run as well when next
             // asked.
-            var dependencyGraph = solution.SolutionState.GetProjectDependencyGraph();
+            var dependencyGraph = solution.GetProjectDependencyGraph();
             var result = ImmutableSortedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
 
             // Determine if we want a major solution change, forcing regeneration of all projects.
@@ -93,13 +93,13 @@ public partial class Workspace
             // update their execution version as well.
             if (projectIds.Any(t => t.projectId is null))
             {
-                foreach (var projectId in solution.SolutionState.ProjectIds)
+                foreach (var projectId in solution.ProjectIds)
                 {
                     if (!result.ContainsKey(projectId))
                     {
                         result.Add(
                             projectId,
-                            Increment(solution.SourceGeneratorExecutionVersionMap[projectId], solutionMajor));
+                            Increment(solution.GetSourceGeneratorExecutionVersion(projectId), solutionMajor));
                     }
                 }
             }
@@ -118,13 +118,13 @@ public partial class Workspace
 
                     // We may have been asked to rerun generators for a project that is no longer around.  So make sure
                     // we still have this project.
-                    var requestedProject = solution.SolutionState.GetProjectState(projectId);
+                    var requestedProject = solution.GetProject(projectId);
                     if (requestedProject != null)
                     {
-                        result[projectId] = Increment(solution.SourceGeneratorExecutionVersionMap[projectId], major);
+                        result[projectId] = Increment(solution.GetSourceGeneratorExecutionVersion(projectId), major);
 
                         foreach (var transitiveProjectId in dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(projectId))
-                            result[transitiveProjectId] = Increment(solution.SourceGeneratorExecutionVersionMap[transitiveProjectId], major);
+                            result[transitiveProjectId] = Increment(solution.GetSourceGeneratorExecutionVersion(transitiveProjectId), major);
                     }
                 }
             }
