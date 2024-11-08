@@ -23,25 +23,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, ISyntaxFormattingService
+internal sealed class CSharpSyntaxFormattingService(LanguageServices languageServices)
+    : CSharpSyntaxFormatting, ISyntaxFormattingService
 {
-    private readonly LanguageServices _services;
+    private readonly LanguageServices _services = languageServices;
 
     [ExportLanguageServiceFactory(typeof(ISyntaxFormattingService), LanguageNames.CSharp), Shared]
-    internal sealed class Factory : ILanguageServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class Factory() : ILanguageServiceFactory
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public Factory()
-        {
-        }
-
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
             => new CSharpSyntaxFormattingService(languageServices.LanguageServices);
     }
-
-    private CSharpSyntaxFormattingService(LanguageServices languageServices)
-        => _services = languageServices;
 
     public bool ShouldFormatOnTypedCharacter(
         ParsedDocument documentSyntax,
@@ -293,14 +287,18 @@ internal sealed class CSharpSyntaxFormattingService : CSharpSyntaxFormatting, IS
         return true;
     }
 
-    // We'll autoformat on n, t, e, only if they are the last character of the below
-    // keywords.  
-    private static bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
+    /// <summary>
+    /// We'll autoformat on 'n', 't', 'e', only if they are the last character of the below keywords.  
+    /// </summary>
+    internal static bool ValidSingleOrMultiCharactersTokenKind(char typedChar, SyntaxKind kind)
         => typedChar switch
         {
             'n' => kind is SyntaxKind.RegionKeyword or SyntaxKind.EndRegionKeyword,
             't' => kind == SyntaxKind.SelectKeyword,
             'e' => kind == SyntaxKind.WhereKeyword,
+            // Note: we only got here because CSharpFormattingInteractionService.SupportsFormattingOnTypedCharacter
+            // already determined that the user typed a character that should cause formatting.  So all other characters
+            // that get here are things we want to format on (like `;` or `}`).
             _ => true,
         };
 
