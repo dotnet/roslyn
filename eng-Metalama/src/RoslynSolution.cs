@@ -59,7 +59,7 @@ namespace Build
                 // This parameter is not used by Metalama.Compiler, but it is required by the build script.
                 var officialVisualStudioDropAccessToken = "N/A";
 
-                argsBuilder.Append(CultureInfo.InvariantCulture, $" -officialBuildId {officialBuildId}");
+                argsBuilder.Append($" -officialBuildId {officialBuildId}");
                 argsBuilder.Append(" -officialSkipTests true");
                 argsBuilder.Append(" -officialSkipApplyOptimizationData true");
                 argsBuilder.Append($" -officialSourceBranchName {releaseBranch}");
