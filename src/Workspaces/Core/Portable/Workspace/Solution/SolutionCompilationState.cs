@@ -767,6 +767,9 @@ internal sealed partial class SolutionCompilationState
             },
             forkTracker: true);
 
+        if (newCompilationState == this)
+            return this;
+
         // As we're changing the references for a project we want to force generators to rerun for it.  This way the
         // user automatically sees the new generators values without having to take any more explicit steps.
         var updatedMap = GetUpdatedSourceGeneratorVersions(this,
