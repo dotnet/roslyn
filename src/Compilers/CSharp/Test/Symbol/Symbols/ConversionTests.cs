@@ -454,8 +454,8 @@ public class C
             Assert.Equal("System.Int32 C.Test()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
         }
 
-        [Fact]
-        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75833")]
+        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_InLocalDeclaration()
         {
             var src = """
 public class C
@@ -482,15 +482,15 @@ public class C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
-            Assert.Equal("C C.op_Implicit(System.Func<System.Int32> intDelegate)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());  // Unexpected: Should be "void C.Test()"
+            Assert.Equal("C C.op_Implicit(System.Func<System.Int32> intDelegate)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());  // Unexpected: Should be null
             var conversion = model.GetConversion(memberAccess);
-            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind);
+            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind); // Unexpected: Should be NoConversion or possibly Identity for error case
             Assert.Equal(ConversionKind.MethodGroup, conversion.UserDefinedFromConversion.Kind);
             Assert.Equal(ConversionKind.Identity, conversion.UserDefinedToConversion.Kind);
         }
 
-        [Fact]
-        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_WithToConversion()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75833")]
+        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_WithToConversion_InLocalDeclaration()
         {
             var src = """
 public struct C
@@ -517,11 +517,150 @@ public struct C
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
-            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol); // Unexpected: Should be "void C.Test()"
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
             var conversion = model.GetConversion(memberAccess);
-            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind);
+            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind); // Unexpected: Should be NoConversion or possibly Identity for error case
             Assert.Equal(ConversionKind.MethodGroup, conversion.UserDefinedFromConversion.Kind);
-            Assert.Equal(ConversionKind.Identity, conversion.UserDefinedToConversion.Kind); // Unexpected: Should be a ImplicitNullable conversion
+            Assert.Equal(ConversionKind.Identity, conversion.UserDefinedToConversion.Kind);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75833")]
+        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_InAssignemnt()
+        {
+            var src = """
+public class C
+{
+    public static void M()
+    {
+        C x;
+        x = C.Test;
+    }
+
+    public static int Test() => 1;
+
+    public static implicit operator C(System.Func<int> intDelegate)
+    {
+        return new C();
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0428: Cannot convert method group 'Test' to non-delegate type 'C'. Did you intend to invoke the method?
+                //         x = C.Test;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Test").WithArguments("Test", "C").WithLocation(6, 15));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
+            Assert.Equal("C C.op_Implicit(System.Func<System.Int32> intDelegate)", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());  // Unexpected: Should be null
+            var conversion = model.GetConversion(memberAccess);
+            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind); // Unexpected: Should be NoConversion or possibly Identity for error case
+            Assert.Equal(ConversionKind.MethodGroup, conversion.UserDefinedFromConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, conversion.UserDefinedToConversion.Kind);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75833")]
+        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_WithToConversion_InAssignment()
+        {
+            var src = """
+public struct C
+{
+    public static void M()
+    {
+        C? x;
+        x = C.Test;
+    }
+
+    public static int Test() => 1;
+
+    public static implicit operator C(System.Func<int> intDelegate)
+    {
+        return new C();
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (6,15): error CS0428: Cannot convert method group 'Test' to non-delegate type 'C?'. Did you intend to invoke the method?
+                //         x = C.Test;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Test").WithArguments("Test", "C?").WithLocation(6, 15));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol); // Unexpected: Should be null
+            var conversion = model.GetConversion(memberAccess);
+            Assert.Equal(ConversionKind.ExplicitUserDefined, conversion.Kind); // Unexpected: Should be NoConversion or possibly Identity for error case
+            Assert.Equal(ConversionKind.MethodGroup, conversion.UserDefinedFromConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, conversion.UserDefinedToConversion.Kind);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75833")]
+        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_InInvocationArgument()
+        {
+            var src = """
+public class C
+{
+    public static void M()
+    {
+        M2(C.Test);
+    }
+
+    public static void M2(C c) { }
+
+    public static int Test() => 1;
+
+    public static implicit operator C(System.Func<int> intDelegate) => throw null;
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS1503: Argument 1: cannot convert from 'method group' to 'C'
+                //         M2(C.Test);
+                Diagnostic(ErrorCode.ERR_BadArgType, "C.Test").WithArguments("1", "method group", "C").WithLocation(5, 12));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            var conversion = model.GetConversion(memberAccess);
+            Assert.Equal(ConversionKind.Identity, conversion.Kind);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75833")]
+        public void GetSymbolInfo_ImplicitUserDefinedConversionOnMethodGroup_WithToConversion_InInvocationArgument()
+        {
+            var src = """
+public struct C
+{
+    public static void M()
+    {
+        M2(C.Test);
+    }
+
+    public static void M2(C? c) { }
+
+    public static int Test() => 1;
+
+    public static implicit operator C(System.Func<int> intDelegate)
+    {
+        return new C();
+    }
+}
+""";
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS1503: Argument 1: cannot convert from 'method group' to 'C?'
+                //         M2(C.Test);
+                Diagnostic(ErrorCode.ERR_BadArgType, "C.Test").WithArguments("1", "method group", "C?").WithLocation(5, 12));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
+            Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
+            var conversion = model.GetConversion(memberAccess);
+            Assert.Equal(ConversionKind.Identity, conversion.Kind);
         }
 
         [Fact]
