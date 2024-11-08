@@ -154,18 +154,10 @@ await local;
 ```
 
 ```il
-{
-    .locals init (
-        [0] valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter
-    )
-
-    IL_0000: call class [System.Runtime]System.Threading.Tasks.Task C::M()
-    IL_0005: callvirt instance valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter class [System.Runtime]System.Threading.Tasks.Task::GetAwaiter()
-    IL_000a: stloc.0
-    IL_000b: ldloca.s 0
-    IL_000d: call modreq([System.Runtime]System.Threading.Tasks.Task) void <TODO>::AwaitAwaiterFromRuntimeAsync<valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter>(!0)
-    IL_0012: ret
-}
+call class [System.Runtime]System.Threading.Tasks.Task C::M()
+callvirt instance valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter class [System.Runtime]System.Threading.Tasks.Task::GetAwaiter()
+call modreq([System.Runtime]System.Threading.Tasks.Task) void <TODO>::AwaitAwaiterFromRuntimeAsync<valuetype [System.Runtime]System.Runtime.CompilerServices.TaskAwaiter>(!0)
+ret
 ```
 
 #### Awaiting in a `catch` block
