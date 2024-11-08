@@ -333,23 +333,22 @@ internal static partial class ITextViewExtensions
             return null;
         }
 
-        // If we're being called while the textview is actually in the middle of a layout, then 
-        // we can't proceed.  Much of the text view state is unsafe to access (and will throw).
+        // If we're being called while the textview is actually in the middle of a layout, then we can't proceed.  Much
+        // of the text view state is unsafe to access (and will throw).
         if (textView.InLayout)
         {
             return null;
         }
 
-        // During text view initialization the TextViewLines may be null.  In that case we can't
-        // get an appropriate visisble span.
+        // During text view initialization the TextViewLines may be null.  In that case we can't get an appropriate
+        // visible span.
         if (textView.TextViewLines == null)
         {
             return null;
         }
 
-        // Determine the range of text that is visible in the view.  Then map this down to the
-        // bufffer passed in.  From that, determine the start/end line for the buffer that is in
-        // view.
+        // Determine the range of text that is visible in the view.  Then map this down to the buffer passed in.  From
+        // that, determine the start/end line for the buffer that is in view.
         var visibleSpan = textView.TextViewLines.FormattedSpan;
         var visibleSpansInBuffer = textView.BufferGraph.MapDownToBuffer(visibleSpan, SpanTrackingMode.EdgeInclusive, subjectBuffer);
         if (visibleSpansInBuffer.Count == 0)
