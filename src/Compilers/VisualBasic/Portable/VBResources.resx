@@ -2784,6 +2784,9 @@
   <data name="ERR_BadTypeArgForStructConstraint2" xml:space="preserve">
     <value>Type argument '{0}' does not satisfy the 'Structure' constraint for type parameter '{1}'.</value>
   </data>
+  <data name="ERR_UnmanagedConstraintNotSatisfied" xml:space="preserve">
+    <value>Type argument '{0}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as type parameter '{1}'.</value>
+  </data>
   <data name="ERR_BadTypeArgForRefConstraint2" xml:space="preserve">
     <value>Type argument '{0}' does not satisfy the 'Class' constraint for type parameter '{1}'.</value>
   </data>
@@ -5625,6 +5628,9 @@
   </data>
   <data name="FEATURE_InitOnlySettersUsage" xml:space="preserve">
     <value>assigning to or passing 'ByRef' properties with init-only setters</value>
+  </data>
+  <data name="FEATURE_UnmanagedConstraint" xml:space="preserve">
+    <value>recognizing 'unmanaged' constraint</value>
   </data>
   <data name="ERR_AssignmentInitOnly" xml:space="preserve">
     <value>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</value>
