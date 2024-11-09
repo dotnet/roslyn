@@ -45,7 +45,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
         _fileChangeService = fileChangeService;
 
         // 📝 Empirical testing during high activity (e.g. solution open/close) showed strong batching performance
-        // with batching delay of 500 ms.
+        // with delay of 500 ms, batching over 95% of the calls.
         _taskQueue = new AsyncBatchingWorkQueue<WatcherOperation>(
             TimeSpan.FromMilliseconds(500),
             ProcessBatchAsync,
@@ -291,6 +291,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             if (_kind == Kind.WatchDirectory)
                 return false;
 
+            // Don't allow combining if either the kind or sink differ
             return _kind == other._kind && _sink == other._sink;
         }
 

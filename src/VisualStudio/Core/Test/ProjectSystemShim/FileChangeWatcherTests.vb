@@ -13,7 +13,7 @@ Imports IVsAsyncFileChangeEx2 = Microsoft.VisualStudio.Shell.IVsAsyncFileChangeE
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <UseExportProvider>
-    Public Class FileChangeWatcherTests
+    Public NotInheritable Class FileChangeWatcherTests
         Implements IDisposable
 
         Private ReadOnly _tempPath As String
