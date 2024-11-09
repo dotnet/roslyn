@@ -11020,7 +11020,7 @@ done:
                 // precedence level.  Examples include binary operator, assignment operators, range operators `..`, as
                 // well as `switch` and `with` clauses.
 
-                var (operatorTokenKind, operatorExpressionKind) = GetOperatorTokenAndExpressionKind();
+                var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
 
                 if (operatorTokenKind == SyntaxKind.None)
                     return null;
@@ -11038,7 +11038,7 @@ done:
                     return null;
 
                 // Now consume the operator (including consuming multiple tokens in the case of merged operator tokens)
-                var operatorToken = EatOperatorToken(operatorTokenKind);
+                var operatorToken = EatExpressionOperatorToken(operatorTokenKind);
 
                 if (newPrecedence > GetPrecedence(leftOperand.Kind))
                 {
@@ -11187,7 +11187,7 @@ done:
             }
         }
 
-        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetOperatorTokenAndExpressionKind()
+        private (SyntaxKind operatorTokenKind, SyntaxKind operatorExpressionKind) GetExpressionOperatorTokenKindAndExpressionKind()
         {
             // If the set of expression continuations is updated here, please review ParseStatementAttributeDeclarations
             // to see if it may need a similar look-ahead check to determine if something is a collection expression versus
@@ -11247,7 +11247,7 @@ done:
             return (SyntaxKind.None, SyntaxKind.None);
         }
 
-        private SyntaxToken EatOperatorToken(SyntaxKind operatorTokenKind)
+        private SyntaxToken EatExpressionOperatorToken(SyntaxKind operatorTokenKind)
         {
             // Combine tokens into a single token if needed
 
@@ -11294,6 +11294,7 @@ done:
             Debug.Assert(GetPrecedence(operatorExpressionKind) == Precedence.Assignment);
 
             ExpressionSyntax rhs;
+
             if (operatorExpressionKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword &&
                 // check for lambda expression with explicit ref return type: `ref int () => { ... }`
                 !this.IsPossibleLambdaExpression(Precedence.Assignment))
@@ -11811,10 +11812,10 @@ done:
                                 ParseConsequenceSyntax());
                 }
 
-                var (operatorTokenKind, operatorExpressionKind) = GetOperatorTokenAndExpressionKind();
+                var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
                 if (IsExpectedAssignmentOperator(operatorTokenKind))
                 {
-                    return ParseAssignmentOperator(operatorExpressionKind, expr, EatOperatorToken(operatorTokenKind));
+                    return ParseAssignmentOperator(operatorExpressionKind, expr, EatExpressionOperatorToken(operatorTokenKind));
                 }
 
                 // Nullable suppression operators should only be consumed by a conditional access
