@@ -3612,8 +3612,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.CollectionExpression);
                 {
                     N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.ExpressionElement);
+                    N(SyntaxKind.KeyValuePairElement);
                     {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "return");
+                        }
+                        N(SyntaxKind.ColonToken);
                         N(SyntaxKind.IdentifierName);
                         {
                             N(SyntaxKind.IdentifierToken, "A");

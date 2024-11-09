@@ -12699,14 +12699,37 @@ done:
 
         private bool IsPossibleCollectionElement()
         {
-            return this.IsPossibleExpression();
+            if (this.IsPossibleExpression())
+                return true;
+
+            // Checking for ':' is for error recovery when someone has a dictionary element and is missing the key part.
+            if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
+                return true;
+
+            // Checking for `keyword:` is for error recovery when typing a dictionary element, but the partial
+            // identifier happens to match a keyword.
+            if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
+                return true;
+
+            return false;
         }
 
         private CollectionElementSyntax ParseCollectionElement()
         {
-            return IsAtDotDotToken()
-                ? _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore())
-                : _syntaxFactory.ExpressionElement(this.ParseExpressionCore());
+            var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
+            if (dotDotToken != null)
+                return _syntaxFactory.SpreadElement(dotDotToken, this.ParseExpressionCore());
+
+            // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
+            var expression = SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
+                ? _syntaxFactory.IdentifierName(ConvertToIdentifier(this.EatTokenWithPrejudice(SyntaxKind.IdentifierToken)))
+                : this.ParseExpressionCore();
+
+            var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
+            if (colonToken != null)
+                return _syntaxFactory.KeyValuePairElement(expression, colonToken, this.ParseExpressionCore());
+
+            return _syntaxFactory.ExpressionElement(expression);
         }
 
         private bool IsAnonymousType()
