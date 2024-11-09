@@ -11805,13 +11805,11 @@ done:
                         return _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
 
                     // a?.b?
-                    case SyntaxKind.QuestionToken:
-                        return !CanStartConsequenceExpression()
-                            ? expr
-                            : _syntaxFactory.ConditionalAccessExpression(
-                                expr,
-                                operatorToken: this.EatToken(),
-                                ParseConsequenceSyntax());
+                    case SyntaxKind.QuestionToken when CanStartConsequenceExpression():
+                        return _syntaxFactory.ConditionalAccessExpression(
+                            expr,
+                            operatorToken: this.EatToken(),
+                            ParseConsequenceSyntax());
                 }
 
                 // a?.b = c
