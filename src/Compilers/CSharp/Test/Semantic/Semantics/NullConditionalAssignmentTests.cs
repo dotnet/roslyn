@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (3,12): warning CS0414: The field 'C.f' is assigned but its value is never used
                 //     string f;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "f").WithArguments("C.f").WithLocation(3, 12),
-                // (6,11): error CS8652: The feature 'null-conditional assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,11): error CS8652: The feature 'null conditional assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         c?.f = "a";
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @".f = ""a""").WithArguments("null-conditional assignment").WithLocation(6, 11));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @".f = ""a""").WithArguments("null conditional assignment").WithLocation(6, 11));
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,16): warning CS0219: The variable 's' is assigned but its value is never used
                 //         string s = "a";
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 16),
-                // (9,11): error CS8652: The feature 'null-conditional assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (9,11): error CS8652: The feature 'null conditional assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         c?[s = "b"] = "c"; // 1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"[s = ""b""] = ""c""").WithArguments("null-conditional assignment").WithLocation(9, 11));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"[s = ""b""] = ""c""").WithArguments("null conditional assignment").WithLocation(9, 11));
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(

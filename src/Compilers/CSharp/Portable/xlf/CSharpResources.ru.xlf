@@ -2503,8 +2503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullConditionalAssignment">
-        <source>null-conditional assignment</source>
-        <target state="new">null-conditional assignment</target>
+        <source>null conditional assignment</source>
+        <target state="new">null conditional assignment</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
