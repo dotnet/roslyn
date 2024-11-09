@@ -3114,7 +3114,7 @@ public class C
     }
 }
 """;
-            // Note: nested hoisted local does not get cleared when exiting normally
+            // Note: nested hoisted local gets cleared when exiting normally
             CompileAndVerify(src, expectedOutput: "42 value True").VerifyDiagnostics();
         }
 
@@ -3322,6 +3322,53 @@ public class C
   IL_0000:  ret
 }
 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedUnmanagedWithGenericsLocal()
+        {
+            var src = """
+using System.Reflection;
+
+var enumerable = C.M(true, 42);
+var enumerator = enumerable.GetEnumerator();
+try
+{
+    assert(enumerator.MoveNext());
+    System.Console.Write($"{enumerator.Current} ");
+    assert(!enumerator.MoveNext());
+    System.Console.Write(((S<int>)enumerator.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)).field);
+}
+finally
+{
+    enumerator.Dispose();
+}
+
+void assert(bool b)
+{
+    if (!b) throw new System.Exception();
+}
+
+public struct S<T> where T : unmanaged // UnmanagedWithGenerics
+{
+    public T field;
+}
+
+public class C
+{
+    public static System.Collections.Generic.IEnumerable<int> M<T>(bool b, T t) where T : unmanaged
+    {
+        while (b)
+        {
+            S<T> s = new S<T> { field = t };
+            yield return 42;
+            b = false;
+            System.Console.Write(s.field);
+        }
+    }
+}
+""";
+            CompileAndVerify(src, expectedOutput: "42 4242").VerifyDiagnostics();
         }
     }
 }

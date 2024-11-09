@@ -6089,6 +6089,7 @@ class C
     }
 }
 """;
+            // Note: nested hoisted local gets cleared when exiting nested scope normally
             CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), targetFramework: TargetFramework.Net90, verify: Verification.Skipped).VerifyDiagnostics();
         }
 
