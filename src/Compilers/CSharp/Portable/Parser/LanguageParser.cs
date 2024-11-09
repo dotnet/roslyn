@@ -11767,7 +11767,6 @@ done:
 
         internal ExpressionSyntax ParseConsequenceSyntax()
         {
-            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.DotToken or SyntaxKind.OpenBracketToken);
             ExpressionSyntax expr = this.CurrentToken.Kind switch
             {
                 SyntaxKind.DotToken => _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
@@ -11775,6 +11774,8 @@ done:
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 
+            // https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#1288-null-conditional-member-access
+            // Repeatedly consume a single *dependent-access*, such that 'expr' becomes the left operand of 'expandedExpression'.
             while (tryExpandExpression(expr) is ExpressionSyntax expandedExpression)
                 expr = expandedExpression;
 
@@ -11782,19 +11783,20 @@ done:
 
             ExpressionSyntax tryExpandExpression(ExpressionSyntax expr)
             {
+                // We should consume suppression '!'s which are in the middle of the consequence, but not at the end.
+                // For example, 'a?.b!.c' should be a cond-access whose RHS is '.b!.c',
+                // while 'a?.b!' should be a suppression-expr containing a cond-access 'a?.b'.
                 using var beforeSuppressionsResetPoint = GetDisposableResetPoint(resetOnDispose: false);
-
-                // consume any '!'s from the preceding conditional operation.
                 while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
                     expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
 
                 switch (this.CurrentToken.Kind)
                 {
-                    // a?.b()
+                    // a?.b(...)
                     case SyntaxKind.OpenParenToken:
                         return _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
 
-                    // a?.b[]
+                    // a?.b[...]
                     case SyntaxKind.OpenBracketToken:
                         return _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
 
@@ -11812,14 +11814,15 @@ done:
                                 ParseConsequenceSyntax());
                 }
 
+                // a?.b = c
                 var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
                 if (IsExpectedAssignmentOperator(operatorTokenKind))
                 {
                     return ParseAssignmentOperator(operatorExpressionKind, expr, EatExpressionOperatorToken(operatorTokenKind));
                 }
 
-                // Nullable suppression operators should only be consumed by a conditional access
-                // if there are further conditional operations performed after the suppression
+                // a?.b! (at the end of the cond-access).
+                // The '!'s are not a child of the cond-access, rather the cond-access is a child of the '!' expression.
                 beforeSuppressionsResetPoint.Reset();
                 return null;
             }
