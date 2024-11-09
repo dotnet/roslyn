@@ -12704,12 +12704,12 @@ done:
             if (this.IsPossibleExpression())
                 return true;
 
-            // Checking for ':' is for error recovery when someone has a dictionary element and is missing the key part.
+            // Checking for ':' is for error recovery when someone has a key-value-pair-element and is missing the key part.
             if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
                 return true;
 
-            // Checking for `keyword:` is for error recovery when typing a dictionary element, but the partial
-            // identifier happens to match a keyword.
+            // Checking for `keyword:` is for error recovery when typing a key-value-pair-element element, but the
+            // partial identifier happens to match a keyword.
             if (SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
                 return true;
 
