@@ -5202,8 +5202,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
             foreach (var element in syntax.Elements)
             {
-                builder.Add(bindElement(element, diagnostics, this, nestingLevel));
+                if (element is KeyValuePairElementSyntax keyValuePairElement)
+                {
+                    MessageID.IDS_FeatureDictionaryExpressions.CheckFeatureAvailability(diagnostics, syntax, keyValuePairElement.ColonToken.GetLocation());
+                    builder.Add(new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType()));
+                }
+                else
+                {
+                    builder.Add(bindElement(element, diagnostics, this, nestingLevel));
+                }
             }
+
             return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
             static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)

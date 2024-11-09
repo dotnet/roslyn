@@ -2392,6 +2392,11 @@
         <target state="translated">공변(covariant) 반환</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDictionaryExpressions">
+        <source>dictionary expressions</source>
+        <target state="new">dictionary expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">무시 항목</target>
