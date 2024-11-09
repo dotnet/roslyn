@@ -596,15 +596,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 
             N(SyntaxKind.ConditionalExpression);
             {
-                N(SyntaxKind.ConditionalAccessExpression);
+                N(SyntaxKind.SuppressNullableWarningExpression);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.ConditionalAccessExpression);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.QuestionToken);
-                    N(SyntaxKind.SuppressNullableWarningExpression);
-                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.QuestionToken);
                         N(SyntaxKind.MemberBindingExpression);
                         {
                             N(SyntaxKind.DotToken);
@@ -613,8 +613,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
                                 N(SyntaxKind.IdentifierToken, "y");
                             }
                         }
-                        N(SyntaxKind.ExclamationToken);
                     }
+                    N(SyntaxKind.ExclamationToken);
                 }
                 N(SyntaxKind.QuestionToken);
                 N(SyntaxKind.LogicalNotExpression);
