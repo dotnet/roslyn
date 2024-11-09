@@ -243,7 +243,6 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             using var _1 = ArrayBuilder<Context.RegularWatchedFile>.GetInstance(out var tokensBuilder);
             using var _2 = ArrayBuilder<string>.GetInstance(out var fileNamesBuilder);
             using var _3 = ArrayBuilder<uint>.GetInstance(out var cookiesBuilder);
-            using var _4 = ArrayBuilder<string>.GetInstance(out var filtersBuilder);
 
             for (; start <= end; start++)
             {
@@ -264,13 +263,6 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                             tokensBuilder.Add(op._tokens[i]);
                         break;
 
-                    case Kind.WatchDirectory:
-                        for (var i = 0; i < op._filters.Length; i++)
-                            filtersBuilder.Add(op._filters[i]);
-
-                        cookiesBuilder.AddRange(op._cookies);
-                        break;
-
                     case Kind.UnwatchDirectories:
                         cookiesBuilder.AddRange(op._cookies);
                         break;
@@ -280,39 +272,26 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                 }
             }
 
-            switch (firstOp._kind)
+            return firstOp._kind switch
             {
-                case Kind.WatchFiles:
-                    return WatchFiles(fileNamesBuilder.ToImmutable(), firstOp._fileChangeFlags, firstOp._sink, tokensBuilder.ToImmutable());
-                case Kind.UnwatchFiles:
-                    return UnwatchFiles(tokensBuilder.ToImmutable());
-                case Kind.WatchDirectory:
-                    filtersBuilder.RemoveDuplicates();
-                    return WatchDirectory(firstOp._paths[0], filtersBuilder.ToImmutable(), firstOp._sink, cookiesBuilder.ToList());
-                case Kind.UnwatchDirectories:
-                    return UnwatchDirectories(cookiesBuilder.ToList());
-            }
-
-            throw ExceptionUtilities.Unreachable();
+                Kind.WatchFiles =>
+                    WatchFiles(fileNamesBuilder.ToImmutable(), firstOp._fileChangeFlags, firstOp._sink, tokensBuilder.ToImmutable()),
+                Kind.UnwatchFiles =>
+                    UnwatchFiles(tokensBuilder.ToImmutable()),
+                Kind.UnwatchDirectories =>
+                    UnwatchDirectories(cookiesBuilder.ToList()),
+                _ =>
+                    throw ExceptionUtilities.Unreachable()
+            };
         }
 
         public bool CanCombineWith(in WatcherOperation other)
         {
-            if (_kind != other._kind)
+            // Watching directory operation cannot be combined
+            if (_kind == Kind.WatchDirectory)
                 return false;
 
-            if (_kind == Kind.WatchFiles)
-            {
-                return other._sink == _sink;
-            }
-            else if (_kind == Kind.WatchDirectory)
-            {
-                // WatchDirectory operations can only be combined for the same directory and sink
-                return other._sink == _sink
-                    && _paths.SequenceEqual(other._paths);
-            }
-
-            return true;
+            return _kind == other._kind && _sink == other._sink;
         }
 
         public async ValueTask ApplyAsync(IVsAsyncFileChangeEx2 service, CancellationToken cancellationToken)
@@ -382,14 +361,13 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
 
             foreach (var watchedDirectory in watchedDirectories)
             {
-                var items = watchedDirectories.Select(
-                    watchedDirectory => WatcherOperation.WatchDirectory(
-                        watchedDirectory.Path,
-                        watchedDirectory.ExtensionFilter != null ? [watchedDirectory.ExtensionFilter] : ImmutableArray<string>.Empty,
-                        this,
-                        _directoryWatchCookies));
+                var item = WatcherOperation.WatchDirectory(
+                    watchedDirectory.Path,
+                    watchedDirectory.ExtensionFilters,
+                    this,
+                    _directoryWatchCookies);
 
-                _fileChangeWatcher._taskQueue.AddWork(items);
+                _fileChangeWatcher._taskQueue.AddWork(item);
             }
         }
 
