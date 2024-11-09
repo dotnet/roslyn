@@ -45,21 +45,13 @@ public class DiagnosticAnalyzerDriverTests
         var missingSyntaxNodes = new HashSet<SyntaxKind>
         {
             // https://github.com/dotnet/roslyn/issues/44682 - Add to all in one
-<<<<<<< HEAD
             SyntaxKind.WithExpression,
             SyntaxKind.RecordDeclaration,
             SyntaxKind.CollectionExpression,
             SyntaxKind.ExpressionElement,
-            SyntaxKind.SpreadElement
+            SyntaxKind.SpreadElement,
+            SyntaxKind.KeyValuePairElement,
         };
-=======
-            missingSyntaxNodes.Add(SyntaxKind.WithExpression);
-            missingSyntaxNodes.Add(SyntaxKind.RecordDeclaration);
-            missingSyntaxNodes.Add(SyntaxKind.CollectionExpression);
-            missingSyntaxNodes.Add(SyntaxKind.ExpressionElement);
-            missingSyntaxNodes.Add(SyntaxKind.SpreadElement);
-            missingSyntaxNodes.Add(SyntaxKind.DictionaryElement);
->>>>>>> parent of 3720edc0a1b (Collection literals: remove DictionaryElementSyntax (#68752))
 
         var analyzer = new CSharpTrackingDiagnosticAnalyzer();
         using var workspace = EditorTestWorkspace.CreateCSharp(source, TestOptions.Regular, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
