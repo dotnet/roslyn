@@ -12699,6 +12699,8 @@ done:
 
         private bool IsPossibleCollectionElement()
         {
+            // Note: this handles spread elements as well (`.. expr`) as `..` is the start of a range-expression, which
+            // IsPossibleExpression detects.
             if (this.IsPossibleExpression())
                 return true;
 
