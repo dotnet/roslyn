@@ -12716,9 +12716,8 @@ done:
 
         private CollectionElementSyntax ParseCollectionElement()
         {
-            var dotDotToken = this.TryEatToken(SyntaxKind.DotDotToken);
-            if (dotDotToken != null)
-                return _syntaxFactory.SpreadElement(dotDotToken, this.ParseExpressionCore());
+            if (this.IsAtDotDotToken())
+                return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
 
             // Be resilient to `keyword:val` if the user hits that while typing out a full identifier.
             var expression = SyntaxFacts.IsReservedKeyword(this.CurrentToken.Kind) && this.PeekToken(1).Kind == SyntaxKind.ColonToken
