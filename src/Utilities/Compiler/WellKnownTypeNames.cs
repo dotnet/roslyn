@@ -267,6 +267,7 @@ namespace Analyzer.Utilities
         public const string SystemIOMemoryStream = "System.IO.MemoryStream";
         public const string SystemIOPath = "System.IO.Path";
         public const string SystemIOStream = "System.IO.Stream";
+        public const string SystemIOStreamReader = "System.IO.StreamReader";
         public const string SystemIOStringReader = "System.IO.StringReader";
         public const string SystemIOUnmanagedMemoryStream = "System.IO.UnmanagedMemoryStream";
         public const string SystemIParsable1 = "System.IParsable`1";
