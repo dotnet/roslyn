@@ -76,11 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private int _nextHoistedFieldId = 1;
 
         /// <summary>
-        /// Used to enumerate the instance fields of a struct.
-        /// </summary>
-        private readonly EmptyStructTypeCache _emptyStructTypeCache = EmptyStructTypeCache.CreateNeverEmpty();
-
-        /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
         /// </summary>
         private readonly IReadOnlySet<Symbol> _hoistedVariables;

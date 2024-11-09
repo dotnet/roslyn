@@ -9438,7 +9438,135 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("42"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("42"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      294 (0x126)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<Produce>d__0 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_00b7,
+        IL_0024,
+        IL_0024,
+        IL_0024,
+        IL_007c)
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_002a:  brfalse.s  IL_0031
+    IL_002c:  leave      IL_00f2
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.m1
+    IL_0033:  dup
+    IL_0034:  stloc.0
+    IL_0035:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_003a:  ldarg.0
+    IL_003b:  ldc.i4.s   42
+    IL_003d:  stfld      "int C.<Produce>d__0.<values2>5__2"
+    IL_0042:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0047:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_004c:  stloc.1
+    IL_004d:  ldloca.s   V_1
+    IL_004f:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0054:  brtrue.s   IL_0098
+    IL_0056:  ldarg.0
+    IL_0057:  ldc.i4.0
+    IL_0058:  dup
+    IL_0059:  stloc.0
+    IL_005a:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_005f:  ldarg.0
+    IL_0060:  ldloc.1
+    IL_0061:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0066:  ldarg.0
+    IL_0067:  stloc.2
+    IL_0068:  ldarg.0
+    IL_0069:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_006e:  ldloca.s   V_1
+    IL_0070:  ldloca.s   V_2
+    IL_0072:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Produce>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Produce>d__0)"
+    IL_0077:  leave      IL_0125
+    IL_007c:  ldarg.0
+    IL_007d:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0082:  stloc.1
+    IL_0083:  ldarg.0
+    IL_0084:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0089:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_008f:  ldarg.0
+    IL_0090:  ldc.i4.m1
+    IL_0091:  dup
+    IL_0092:  stloc.0
+    IL_0093:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0098:  ldloca.s   V_1
+    IL_009a:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_009f:  ldarg.0
+    IL_00a0:  ldarg.0
+    IL_00a1:  ldfld      "int C.<Produce>d__0.<values2>5__2"
+    IL_00a6:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldc.i4.s   -4
+    IL_00ae:  dup
+    IL_00af:  stloc.0
+    IL_00b0:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00b5:  leave.s    IL_0119
+    IL_00b7:  ldarg.0
+    IL_00b8:  ldc.i4.m1
+    IL_00b9:  dup
+    IL_00ba:  stloc.0
+    IL_00bb:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00c0:  ldarg.0
+    IL_00c1:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_00c6:  pop
+    IL_00c7:  leave.s    IL_00f2
+  }
+  catch System.Exception
+  {
+    IL_00c9:  stloc.3
+    IL_00ca:  ldarg.0
+    IL_00cb:  ldc.i4.s   -2
+    IL_00cd:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00d2:  ldarg.0
+    IL_00d3:  ldc.i4.0
+    IL_00d4:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_00d9:  ldarg.0
+    IL_00da:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_00df:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_00e4:  ldarg.0
+    IL_00e5:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+    IL_00ea:  ldloc.3
+    IL_00eb:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_00f0:  leave.s    IL_0125
+  }
+  IL_00f2:  ldarg.0
+  IL_00f3:  ldc.i4.s   -2
+  IL_00f5:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_00fa:  ldarg.0
+  IL_00fb:  ldc.i4.0
+  IL_00fc:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_0101:  ldarg.0
+  IL_0102:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+  IL_0107:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_010c:  ldarg.0
+  IL_010d:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_0112:  ldc.i4.0
+  IL_0113:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0118:  ret
+  IL_0119:  ldarg.0
+  IL_011a:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_011f:  ldc.i4.1
+  IL_0120:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0125:  ret
+}
+""");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9463,7 +9591,450 @@ class C
 }
 """;
             // Note: hoisted top-level local does not get cleared when exiting normally
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      306 (0x132)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<Produce>d__0 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_00b5,
+        IL_0024,
+        IL_0024,
+        IL_0024,
+        IL_007f)
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_002a:  brfalse.s  IL_0031
+    IL_002c:  leave      IL_00fe
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.m1
+    IL_0033:  dup
+    IL_0034:  stloc.0
+    IL_0035:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_003a:  ldarg.0
+    IL_003b:  ldstr      "value "
+    IL_0040:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0045:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_004a:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_004f:  stloc.1
+    IL_0050:  ldloca.s   V_1
+    IL_0052:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0057:  brtrue.s   IL_009b
+    IL_0059:  ldarg.0
+    IL_005a:  ldc.i4.0
+    IL_005b:  dup
+    IL_005c:  stloc.0
+    IL_005d:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0062:  ldarg.0
+    IL_0063:  ldloc.1
+    IL_0064:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0069:  ldarg.0
+    IL_006a:  stloc.2
+    IL_006b:  ldarg.0
+    IL_006c:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_0071:  ldloca.s   V_1
+    IL_0073:  ldloca.s   V_2
+    IL_0075:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Produce>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Produce>d__0)"
+    IL_007a:  leave      IL_0131
+    IL_007f:  ldarg.0
+    IL_0080:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0085:  stloc.1
+    IL_0086:  ldarg.0
+    IL_0087:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_008c:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_0092:  ldarg.0
+    IL_0093:  ldc.i4.m1
+    IL_0094:  dup
+    IL_0095:  stloc.0
+    IL_0096:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_009b:  ldloca.s   V_1
+    IL_009d:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldc.i4.1
+    IL_00a4:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_00a9:  ldarg.0
+    IL_00aa:  ldc.i4.s   -4
+    IL_00ac:  dup
+    IL_00ad:  stloc.0
+    IL_00ae:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00b3:  leave.s    IL_0125
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldc.i4.m1
+    IL_00b7:  dup
+    IL_00b8:  stloc.0
+    IL_00b9:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00be:  ldarg.0
+    IL_00bf:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_00c4:  brfalse.s  IL_00c8
+    IL_00c6:  leave.s    IL_00fe
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_00ce:  call       "void System.Console.Write(string)"
+    IL_00d3:  leave.s    IL_00fe
+  }
+  catch System.Exception
+  {
+    IL_00d5:  stloc.3
+    IL_00d6:  ldarg.0
+    IL_00d7:  ldc.i4.s   -2
+    IL_00d9:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00de:  ldarg.0
+    IL_00df:  ldc.i4.0
+    IL_00e0:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_00e5:  ldarg.0
+    IL_00e6:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_00eb:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_00f0:  ldarg.0
+    IL_00f1:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+    IL_00f6:  ldloc.3
+    IL_00f7:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_00fc:  leave.s    IL_0131
+  }
+  IL_00fe:  ldarg.0
+  IL_00ff:  ldc.i4.s   -2
+  IL_0101:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0106:  ldarg.0
+  IL_0107:  ldc.i4.0
+  IL_0108:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_010d:  ldarg.0
+  IL_010e:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+  IL_0113:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_0118:  ldarg.0
+  IL_0119:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_011e:  ldc.i4.0
+  IL_011f:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0124:  ret
+  IL_0125:  ldarg.0
+  IL_0126:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_012b:  ldc.i4.1
+  IL_012c:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0131:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_StringLocal_YieldBreak()
+        {
+            string src = """
+using System.Reflection;
+
+var values = C.Produce(true);
+await foreach (int value in values) { }
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        string values2 = "value ";
+        await System.Threading.Tasks.Task.CompletedTask;
+        System.Console.Write(values2);
+        if (b) yield break;
+        throw null;
+    }
+}
+""";
+            // Note: hoisted top-level local does not get cleared when exiting with yield break
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      252 (0xfc)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<Produce>d__0 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -3
+    IL_000a:  beq.s      IL_000f
+    IL_000c:  ldloc.0
+    IL_000d:  brfalse.s  IL_006a
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_0015:  brfalse.s  IL_001c
+    IL_0017:  leave      IL_00d4
+    IL_001c:  ldarg.0
+    IL_001d:  ldc.i4.m1
+    IL_001e:  dup
+    IL_001f:  stloc.0
+    IL_0020:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0025:  ldarg.0
+    IL_0026:  ldstr      "value "
+    IL_002b:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0030:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0035:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_003a:  stloc.1
+    IL_003b:  ldloca.s   V_1
+    IL_003d:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0042:  brtrue.s   IL_0086
+    IL_0044:  ldarg.0
+    IL_0045:  ldc.i4.0
+    IL_0046:  dup
+    IL_0047:  stloc.0
+    IL_0048:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_004d:  ldarg.0
+    IL_004e:  ldloc.1
+    IL_004f:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0054:  ldarg.0
+    IL_0055:  stloc.2
+    IL_0056:  ldarg.0
+    IL_0057:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_005c:  ldloca.s   V_1
+    IL_005e:  ldloca.s   V_2
+    IL_0060:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Produce>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Produce>d__0)"
+    IL_0065:  leave      IL_00fb
+    IL_006a:  ldarg.0
+    IL_006b:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0070:  stloc.1
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0077:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_007d:  ldarg.0
+    IL_007e:  ldc.i4.m1
+    IL_007f:  dup
+    IL_0080:  stloc.0
+    IL_0081:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0086:  ldloca.s   V_1
+    IL_0088:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_008d:  ldarg.0
+    IL_008e:  ldfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0093:  call       "void System.Console.Write(string)"
+    IL_0098:  ldarg.0
+    IL_0099:  ldfld      "bool C.<Produce>d__0.b"
+    IL_009e:  brfalse.s  IL_00a9
+    IL_00a0:  ldarg.0
+    IL_00a1:  ldc.i4.1
+    IL_00a2:  stfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_00a7:  leave.s    IL_00d4
+    IL_00a9:  ldnull
+    IL_00aa:  throw
+  }
+  catch System.Exception
+  {
+    IL_00ab:  stloc.3
+    IL_00ac:  ldarg.0
+    IL_00ad:  ldc.i4.s   -2
+    IL_00af:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00b4:  ldarg.0
+    IL_00b5:  ldc.i4.0
+    IL_00b6:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_00c1:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+    IL_00cc:  ldloc.3
+    IL_00cd:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_00d2:  leave.s    IL_00fb
+  }
+  IL_00d4:  ldarg.0
+  IL_00d5:  ldc.i4.s   -2
+  IL_00d7:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_00dc:  ldarg.0
+  IL_00dd:  ldc.i4.0
+  IL_00de:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_00e3:  ldarg.0
+  IL_00e4:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+  IL_00e9:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_00ee:  ldarg.0
+  IL_00ef:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_00f4:  ldc.i4.0
+  IL_00f5:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_00fa:  ret
+  IL_00fb:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_StringLocal_ThrownException()
+        {
+            string src = """
+using System.Reflection;
+
+var values = C.Produce(true);
+try
+{
+    await foreach (int value in values) { }
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        string values2 = "value ";
+        await System.Threading.Tasks.Task.CompletedTask;
+        System.Console.Write(values2);
+        if (b) throw new System.Exception("exception ");
+        yield break;
+    }
+}
+""";
+            // Note: hoisted top-level local does not get cleared when exiting from thrown exception
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value exception value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      261 (0x105)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<Produce>d__0 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -3
+    IL_000a:  beq.s      IL_000f
+    IL_000c:  ldloc.0
+    IL_000d:  brfalse.s  IL_006a
+    IL_000f:  ldarg.0
+    IL_0010:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_0015:  brfalse.s  IL_001c
+    IL_0017:  leave      IL_00dd
+    IL_001c:  ldarg.0
+    IL_001d:  ldc.i4.m1
+    IL_001e:  dup
+    IL_001f:  stloc.0
+    IL_0020:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0025:  ldarg.0
+    IL_0026:  ldstr      "value "
+    IL_002b:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0030:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0035:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_003a:  stloc.1
+    IL_003b:  ldloca.s   V_1
+    IL_003d:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0042:  brtrue.s   IL_0086
+    IL_0044:  ldarg.0
+    IL_0045:  ldc.i4.0
+    IL_0046:  dup
+    IL_0047:  stloc.0
+    IL_0048:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_004d:  ldarg.0
+    IL_004e:  ldloc.1
+    IL_004f:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0054:  ldarg.0
+    IL_0055:  stloc.2
+    IL_0056:  ldarg.0
+    IL_0057:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_005c:  ldloca.s   V_1
+    IL_005e:  ldloca.s   V_2
+    IL_0060:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Produce>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Produce>d__0)"
+    IL_0065:  leave      IL_0104
+    IL_006a:  ldarg.0
+    IL_006b:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0070:  stloc.1
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0077:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_007d:  ldarg.0
+    IL_007e:  ldc.i4.m1
+    IL_007f:  dup
+    IL_0080:  stloc.0
+    IL_0081:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0086:  ldloca.s   V_1
+    IL_0088:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_008d:  ldarg.0
+    IL_008e:  ldfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0093:  call       "void System.Console.Write(string)"
+    IL_0098:  ldarg.0
+    IL_0099:  ldfld      "bool C.<Produce>d__0.b"
+    IL_009e:  brfalse.s  IL_00ab
+    IL_00a0:  ldstr      "exception "
+    IL_00a5:  newobj     "System.Exception..ctor(string)"
+    IL_00aa:  throw
+    IL_00ab:  ldarg.0
+    IL_00ac:  ldc.i4.1
+    IL_00ad:  stfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_00b2:  leave.s    IL_00dd
+  }
+  catch System.Exception
+  {
+    IL_00b4:  stloc.3
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldc.i4.s   -2
+    IL_00b8:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00bd:  ldarg.0
+    IL_00be:  ldc.i4.0
+    IL_00bf:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_00c4:  ldarg.0
+    IL_00c5:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_00ca:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_00cf:  ldarg.0
+    IL_00d0:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+    IL_00d5:  ldloc.3
+    IL_00d6:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_00db:  leave.s    IL_0104
+  }
+  IL_00dd:  ldarg.0
+  IL_00de:  ldc.i4.s   -2
+  IL_00e0:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_00e5:  ldarg.0
+  IL_00e6:  ldc.i4.0
+  IL_00e7:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_00ec:  ldarg.0
+  IL_00ed:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+  IL_00f2:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_00f7:  ldarg.0
+  IL_00f8:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_00fd:  ldc.i4.0
+  IL_00fe:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0103:  ret
+  IL_0104:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_StringLocal_EarlyIterationExit()
+        {
+            string src = """
+using System.Reflection;
+
+var values = C.Produce(true);
+await foreach (var value in values) { break; }
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        string values2 = "value ";
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return 42;
+        System.Console.Write(values2);
+    }
+}
+""";
+            // Note: hoisted top-level local does not get cleared when exiting loop early
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9506,7 +10077,592 @@ class C
 }
 """;
             // Note: hoisted nested local gets cleared when exiting nested scope normally
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      424 (0x1a8)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<Produce>d__0 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -6
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_0139,
+        IL_00b2,
+        IL_0065,
+        IL_002c,
+        IL_002c,
+        IL_002c,
+        IL_0103)
+    IL_002c:  ldarg.0
+    IL_002d:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_0032:  brfalse.s  IL_0039
+    IL_0034:  leave      IL_0174
+    IL_0039:  ldarg.0
+    IL_003a:  ldc.i4.m1
+    IL_003b:  dup
+    IL_003c:  stloc.0
+    IL_003d:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0042:  br.s       IL_0094
+    IL_0044:  ldarg.0
+    IL_0045:  ldstr      "value "
+    IL_004a:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_004f:  ldarg.0
+    IL_0050:  ldc.i4.1
+    IL_0051:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_0056:  ldarg.0
+    IL_0057:  ldc.i4.s   -4
+    IL_0059:  dup
+    IL_005a:  stloc.0
+    IL_005b:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0060:  leave      IL_019b
+    IL_0065:  ldarg.0
+    IL_0066:  ldc.i4.m1
+    IL_0067:  dup
+    IL_0068:  stloc.0
+    IL_0069:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_006e:  ldarg.0
+    IL_006f:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_0074:  brfalse.s  IL_007b
+    IL_0076:  leave      IL_0174
+    IL_007b:  ldarg.0
+    IL_007c:  ldfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0081:  call       "void System.Console.Write(string)"
+    IL_0086:  ldarg.0
+    IL_0087:  ldc.i4.0
+    IL_0088:  stfld      "bool C.<Produce>d__0.b"
+    IL_008d:  ldarg.0
+    IL_008e:  ldnull
+    IL_008f:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0094:  ldarg.0
+    IL_0095:  ldfld      "bool C.<Produce>d__0.b"
+    IL_009a:  brtrue.s   IL_0044
+    IL_009c:  ldarg.0
+    IL_009d:  ldc.i4.2
+    IL_009e:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_00a3:  ldarg.0
+    IL_00a4:  ldc.i4.s   -5
+    IL_00a6:  dup
+    IL_00a7:  stloc.0
+    IL_00a8:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00ad:  leave      IL_019b
+    IL_00b2:  ldarg.0
+    IL_00b3:  ldc.i4.m1
+    IL_00b4:  dup
+    IL_00b5:  stloc.0
+    IL_00b6:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_00c1:  brfalse.s  IL_00c8
+    IL_00c3:  leave      IL_0174
+    IL_00c8:  ldarg.0
+    IL_00c9:  ldfld      "System.Threading.Tasks.Task C.<Produce>d__0.task"
+    IL_00ce:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_00d3:  stloc.1
+    IL_00d4:  ldloca.s   V_1
+    IL_00d6:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_00db:  brtrue.s   IL_011f
+    IL_00dd:  ldarg.0
+    IL_00de:  ldc.i4.0
+    IL_00df:  dup
+    IL_00e0:  stloc.0
+    IL_00e1:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00e6:  ldarg.0
+    IL_00e7:  ldloc.1
+    IL_00e8:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_00ed:  ldarg.0
+    IL_00ee:  stloc.2
+    IL_00ef:  ldarg.0
+    IL_00f0:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_00f5:  ldloca.s   V_1
+    IL_00f7:  ldloca.s   V_2
+    IL_00f9:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Produce>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Produce>d__0)"
+    IL_00fe:  leave      IL_01a7
+    IL_0103:  ldarg.0
+    IL_0104:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0109:  stloc.1
+    IL_010a:  ldarg.0
+    IL_010b:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_0110:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_0116:  ldarg.0
+    IL_0117:  ldc.i4.m1
+    IL_0118:  dup
+    IL_0119:  stloc.0
+    IL_011a:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_011f:  ldloca.s   V_1
+    IL_0121:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_0126:  ldarg.0
+    IL_0127:  ldc.i4.3
+    IL_0128:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_012d:  ldarg.0
+    IL_012e:  ldc.i4.s   -6
+    IL_0130:  dup
+    IL_0131:  stloc.0
+    IL_0132:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0137:  leave.s    IL_019b
+    IL_0139:  ldarg.0
+    IL_013a:  ldc.i4.m1
+    IL_013b:  dup
+    IL_013c:  stloc.0
+    IL_013d:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0142:  ldarg.0
+    IL_0143:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_0148:  pop
+    IL_0149:  leave.s    IL_0174
+  }
+  catch System.Exception
+  {
+    IL_014b:  stloc.3
+    IL_014c:  ldarg.0
+    IL_014d:  ldc.i4.s   -2
+    IL_014f:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0154:  ldarg.0
+    IL_0155:  ldc.i4.0
+    IL_0156:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_015b:  ldarg.0
+    IL_015c:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_0161:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_0166:  ldarg.0
+    IL_0167:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+    IL_016c:  ldloc.3
+    IL_016d:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_0172:  leave.s    IL_01a7
+  }
+  IL_0174:  ldarg.0
+  IL_0175:  ldc.i4.s   -2
+  IL_0177:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_017c:  ldarg.0
+  IL_017d:  ldc.i4.0
+  IL_017e:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_0183:  ldarg.0
+  IL_0184:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+  IL_0189:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_018e:  ldarg.0
+  IL_018f:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_0194:  ldc.i4.0
+  IL_0195:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_019a:  ret
+  IL_019b:  ldarg.0
+  IL_019c:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_01a1:  ldc.i4.1
+  IL_01a2:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_01a7:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedStringLocal_YieldBreak()
+        {
+            string src = """
+using System.Reflection;
+
+var values = C.Produce(true);
+var enumerator = values.GetAsyncEnumerator();
+assert(await enumerator.MoveNextAsync());
+assert(enumerator.Current == 1);
+assert(!(await enumerator.MoveNextAsync()));
+
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+
+void assert(bool b)
+{
+    if (!b) throw new System.Exception();
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        while (b)
+        {
+            string values2 = "value ";
+            yield return 1;
+            System.Console.Write(values2);
+            await System.Threading.Tasks.Task.CompletedTask;
+            if (b) yield break;
+        }
+        throw null;
+    }
+}
+""";
+            // Note: hoisted nested local does not get cleared when exiting nested scope with yield break
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      352 (0x160)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<Produce>d__0 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_0060,
+        IL_0024,
+        IL_0024,
+        IL_0024,
+        IL_00bb)
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_002a:  brfalse.s  IL_0031
+    IL_002c:  leave      IL_012c
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.m1
+    IL_0033:  dup
+    IL_0034:  stloc.0
+    IL_0035:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_003a:  br         IL_00f6
+    IL_003f:  ldarg.0
+    IL_0040:  ldstr      "value "
+    IL_0045:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_004a:  ldarg.0
+    IL_004b:  ldc.i4.1
+    IL_004c:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_0051:  ldarg.0
+    IL_0052:  ldc.i4.s   -4
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_005b:  leave      IL_0153
+    IL_0060:  ldarg.0
+    IL_0061:  ldc.i4.m1
+    IL_0062:  dup
+    IL_0063:  stloc.0
+    IL_0064:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0069:  ldarg.0
+    IL_006a:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_006f:  brfalse.s  IL_0076
+    IL_0071:  leave      IL_012c
+    IL_0076:  ldarg.0
+    IL_0077:  ldfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_007c:  call       "void System.Console.Write(string)"
+    IL_0081:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0086:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_008b:  stloc.1
+    IL_008c:  ldloca.s   V_1
+    IL_008e:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0093:  brtrue.s   IL_00d7
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.0
+    IL_0097:  dup
+    IL_0098:  stloc.0
+    IL_0099:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_009e:  ldarg.0
+    IL_009f:  ldloc.1
+    IL_00a0:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_00a5:  ldarg.0
+    IL_00a6:  stloc.2
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_00ad:  ldloca.s   V_1
+    IL_00af:  ldloca.s   V_2
+    IL_00b1:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Produce>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Produce>d__0)"
+    IL_00b6:  leave      IL_015f
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_00c1:  stloc.1
+    IL_00c2:  ldarg.0
+    IL_00c3:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_00c8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldc.i4.m1
+    IL_00d0:  dup
+    IL_00d1:  stloc.0
+    IL_00d2:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00d7:  ldloca.s   V_1
+    IL_00d9:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_00de:  ldarg.0
+    IL_00df:  ldfld      "bool C.<Produce>d__0.b"
+    IL_00e4:  brfalse.s  IL_00ef
+    IL_00e6:  ldarg.0
+    IL_00e7:  ldc.i4.1
+    IL_00e8:  stfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_00ed:  leave.s    IL_012c
+    IL_00ef:  ldarg.0
+    IL_00f0:  ldnull
+    IL_00f1:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_00f6:  ldarg.0
+    IL_00f7:  ldfld      "bool C.<Produce>d__0.b"
+    IL_00fc:  brtrue     IL_003f
+    IL_0101:  ldnull
+    IL_0102:  throw
+  }
+  catch System.Exception
+  {
+    IL_0103:  stloc.3
+    IL_0104:  ldarg.0
+    IL_0105:  ldc.i4.s   -2
+    IL_0107:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_010c:  ldarg.0
+    IL_010d:  ldc.i4.0
+    IL_010e:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_0113:  ldarg.0
+    IL_0114:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_0119:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_011e:  ldarg.0
+    IL_011f:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+    IL_0124:  ldloc.3
+    IL_0125:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_012a:  leave.s    IL_015f
+  }
+  IL_012c:  ldarg.0
+  IL_012d:  ldc.i4.s   -2
+  IL_012f:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0134:  ldarg.0
+  IL_0135:  ldc.i4.0
+  IL_0136:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_013b:  ldarg.0
+  IL_013c:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+  IL_0141:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_0146:  ldarg.0
+  IL_0147:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_014c:  ldc.i4.0
+  IL_014d:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0152:  ret
+  IL_0153:  ldarg.0
+  IL_0154:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_0159:  ldc.i4.1
+  IL_015a:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_015f:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedStringLocal_ThrownException()
+        {
+            string src = """
+using System.Reflection;
+
+var values = C.Produce(true);
+var enumerator = values.GetAsyncEnumerator();
+assert(await enumerator.MoveNextAsync());
+assert(enumerator.Current == 1);
+try
+{
+    assert(!(await enumerator.MoveNextAsync()));
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+
+void assert(bool b)
+{
+    if (!b) throw new System.Exception();
+}
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        while (b)
+        {
+            string values2 = "value ";
+            yield return 1;
+            System.Console.Write(values2);
+            await System.Threading.Tasks.Task.CompletedTask;
+            if (b) throw new System.Exception("exception ");
+        }
+        throw null;
+    }
+}
+""";
+            // Note: hoisted nested local does not get cleared when exiting nested scope with thrown exception
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value exception value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      354 (0x162)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<Produce>d__0 V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<Produce>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -4
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_0060,
+        IL_0024,
+        IL_0024,
+        IL_0024,
+        IL_00bb)
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_002a:  brfalse.s  IL_0031
+    IL_002c:  leave      IL_012e
+    IL_0031:  ldarg.0
+    IL_0032:  ldc.i4.m1
+    IL_0033:  dup
+    IL_0034:  stloc.0
+    IL_0035:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_003a:  br         IL_00f8
+    IL_003f:  ldarg.0
+    IL_0040:  ldstr      "value "
+    IL_0045:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_004a:  ldarg.0
+    IL_004b:  ldc.i4.1
+    IL_004c:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_0051:  ldarg.0
+    IL_0052:  ldc.i4.s   -4
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_005b:  leave      IL_0155
+    IL_0060:  ldarg.0
+    IL_0061:  ldc.i4.m1
+    IL_0062:  dup
+    IL_0063:  stloc.0
+    IL_0064:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_0069:  ldarg.0
+    IL_006a:  ldfld      "bool C.<Produce>d__0.<>w__disposeMode"
+    IL_006f:  brfalse.s  IL_0076
+    IL_0071:  leave      IL_012e
+    IL_0076:  ldarg.0
+    IL_0077:  ldfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_007c:  call       "void System.Console.Write(string)"
+    IL_0081:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+    IL_0086:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_008b:  stloc.1
+    IL_008c:  ldloca.s   V_1
+    IL_008e:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_0093:  brtrue.s   IL_00d7
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.0
+    IL_0097:  dup
+    IL_0098:  stloc.0
+    IL_0099:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_009e:  ldarg.0
+    IL_009f:  ldloc.1
+    IL_00a0:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_00a5:  ldarg.0
+    IL_00a6:  stloc.2
+    IL_00a7:  ldarg.0
+    IL_00a8:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_00ad:  ldloca.s   V_1
+    IL_00af:  ldloca.s   V_2
+    IL_00b1:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<Produce>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<Produce>d__0)"
+    IL_00b6:  leave      IL_0161
+    IL_00bb:  ldarg.0
+    IL_00bc:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_00c1:  stloc.1
+    IL_00c2:  ldarg.0
+    IL_00c3:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<Produce>d__0.<>u__1"
+    IL_00c8:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_00ce:  ldarg.0
+    IL_00cf:  ldc.i4.m1
+    IL_00d0:  dup
+    IL_00d1:  stloc.0
+    IL_00d2:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_00d7:  ldloca.s   V_1
+    IL_00d9:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_00de:  ldarg.0
+    IL_00df:  ldfld      "bool C.<Produce>d__0.b"
+    IL_00e4:  brfalse.s  IL_00f1
+    IL_00e6:  ldstr      "exception "
+    IL_00eb:  newobj     "System.Exception..ctor(string)"
+    IL_00f0:  throw
+    IL_00f1:  ldarg.0
+    IL_00f2:  ldnull
+    IL_00f3:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_00f8:  ldarg.0
+    IL_00f9:  ldfld      "bool C.<Produce>d__0.b"
+    IL_00fe:  brtrue     IL_003f
+    IL_0103:  ldnull
+    IL_0104:  throw
+  }
+  catch System.Exception
+  {
+    IL_0105:  stloc.3
+    IL_0106:  ldarg.0
+    IL_0107:  ldc.i4.s   -2
+    IL_0109:  stfld      "int C.<Produce>d__0.<>1__state"
+    IL_010e:  ldarg.0
+    IL_010f:  ldc.i4.0
+    IL_0110:  stfld      "int C.<Produce>d__0.<>2__current"
+    IL_0115:  ldarg.0
+    IL_0116:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+    IL_011b:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_0120:  ldarg.0
+    IL_0121:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+    IL_0126:  ldloc.3
+    IL_0127:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_012c:  leave.s    IL_0161
+  }
+  IL_012e:  ldarg.0
+  IL_012f:  ldc.i4.s   -2
+  IL_0131:  stfld      "int C.<Produce>d__0.<>1__state"
+  IL_0136:  ldarg.0
+  IL_0137:  ldc.i4.0
+  IL_0138:  stfld      "int C.<Produce>d__0.<>2__current"
+  IL_013d:  ldarg.0
+  IL_013e:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<Produce>d__0.<>t__builder"
+  IL_0143:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_0148:  ldarg.0
+  IL_0149:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_014e:  ldc.i4.0
+  IL_014f:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0154:  ret
+  IL_0155:  ldarg.0
+  IL_0156:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<Produce>d__0.<>v__promiseOfValueOrEnd"
+  IL_015b:  ldc.i4.1
+  IL_015c:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0161:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedStringLocal_EarlyIterationExit()
+        {
+            string src = """
+using System.Reflection;
+
+var values = C.Produce(true);
+await foreach (var value in values) { break; }
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        while (b)
+        {
+            string values2 = "value ";
+            yield return 1;
+            System.Console.Write(values2);
+            await System.Threading.Tasks.Task.CompletedTask;
+            throw null;
+        }
+        throw null;
+    }
+}
+""";
+            // Note: hoisted nested local does not get cleared when exiting nested scope with early exit
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9743,5 +10899,47 @@ class C
 }
 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_NestedStringLocal_InTryFinally_WithThrow_EarlyIterationExit()
+        {
+            string src = """
+using System.Reflection;
+
+var values = C.Produce(true);
+try
+{
+    await foreach (var value in values) { break; } // we interrupt the iteration early
+}
+catch (System.Exception e)
+{
+    System.Console.Write(e.Message);
+}
+
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
+    {
+        try
+        {
+            string values2 = "value ";
+            await System.Threading.Tasks.Task.CompletedTask;
+            yield return 42;
+            values2.ToString();
+            throw null;
+        }
+        finally
+        {
+            throw new System.Exception("exception ");
+        }
+    }
+}
+""";
+            // Note: hoisted nested local does not get cleared when exiting loop early
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("exception value"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+        }
+        // TODO2 test that variables aren't clear too soon
     }
 }
