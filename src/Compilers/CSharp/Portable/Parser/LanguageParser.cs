@@ -11628,12 +11628,9 @@ done:
                             continue;
 
                         case SyntaxKind.QuestionToken:
-                            if (CanStartConsequenceExpression())
+                            if (TryParseConditionalAccessExpression(expr, out var conditionalAccess))
                             {
-                                expr = _syntaxFactory.ConditionalAccessExpression(
-                                    expr,
-                                    this.EatToken(),
-                                    ParseConsequenceSyntax());
+                                expr = conditionalAccess;
                                 continue;
                             }
 
@@ -11730,45 +11727,14 @@ done:
                 this.PeekToken(tokenIndex + 1).Kind != SyntaxKind.AsteriskToken;
         }
 
-        private bool CanStartConsequenceExpression()
-        {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
-            var nextToken = this.PeekToken(1);
-            var nextTokenKind = nextToken.Kind;
-
-            // ?.   is always the start of of a consequence expression.
-            //
-            // ?..  is a ternary with a range expression as it's 'whenTrue' clause.
-            if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
-                return true;
-
-            if (nextTokenKind == SyntaxKind.OpenBracketToken)
-            {
-                // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
-
-                // Caller only wants us to parse ?[ how it was originally parsed before collection expressions.
-                if (this.ForceConditionalAccessExpression)
-                    return true;
-
-                using var _ = GetDisposableResetPoint(resetOnDispose: true);
-
-                // Move past the '?'. Parse what comes next the same way that conditional expressions are parsed.
-                this.EatToken();
-                this.ParsePossibleRefExpression();
-
-                // If we see a colon, then do not parse this as a conditional-access-expression, pop up to the caller
-                // and have it reparse this as a conditional-expression instead.
-                return this.CurrentToken.Kind != SyntaxKind.ColonToken;
-            }
-
-            // Anything else is just a normal ? and indicates the start of a ternary expression.
-            return false;
-        }
-
 #nullable enable
 
-        private ExpressionSyntax ParseConsequenceSyntax()
+        private bool TryParseConditionalAccessExpression(
+            ExpressionSyntax primaryExpression,
+            [NotNullWhen(true)] out ConditionalAccessExpressionSyntax? conditionalAccessExpression)
         {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
+
             // From 
             // https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#1288-null-conditional-member-access
             // https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#12812-null-conditional-element-access
@@ -11787,54 +11753,97 @@ done:
             //      | '(' argument_list ? ')'                // invocation
             //      ;
 
-            // We get into here after parsing the expression and the `?` that follows it in
-            // null_conditional_member_access and null_conditional_element_access.
-
-            // Caller needs to have checked this before calling into us.
-            Debug.Assert(CanStartConsequenceExpression());
-
-            ExpressionSyntax expr = this.CurrentToken.Kind switch
+            var (questionToken, bindingExpression) = tryEatQuestionAndBindingExpression();
+            if (questionToken is null || bindingExpression is null)
             {
-                SyntaxKind.DotToken => _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
-                SyntaxKind.OpenBracketToken => _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()),
-                _ => throw ExceptionUtilities.Unreachable(),
-            };
+                conditionalAccessExpression = null;
+                return false;
+            }
 
-            while (true)
+            Debug.Assert(questionToken.Kind == SyntaxKind.QuestionToken);
+
+            conditionalAccessExpression = _syntaxFactory.ConditionalAccessExpression(
+                primaryExpression, questionToken, parseConsequenceSyntax(bindingExpression));
+            return true;
+
+            (SyntaxToken? questionToken, ExpressionSyntax? bindingExpression) tryEatQuestionAndBindingExpression()
             {
-                // Nullable suppression operators should only be consumed by a conditional access
-                // if there are further conditional operations performed after the suppression
-                if (isOptionalExclamationsFollowedByConditionalOperation())
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
+                var nextToken = this.PeekToken(1);
+                var nextTokenKind = nextToken.Kind;
+
+                // ?.   is always the start of of a consequence expression.
+                //
+                // ?..  is a ternary with a range expression as it's 'whenTrue' clause.
+                if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
+                    return (EatToken(), _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)));
+
+                if (isStartOfElementBindingExpression())
+                    return (EatToken(), _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()));
+
+                // Anything else is just a normal ? and indicates the start of a ternary expression.
+                return default;
+            }
+
+            bool isStartOfElementBindingExpression()
+            {
+                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
+                var nextToken = this.PeekToken(1);
+                var nextTokenKind = nextToken.Kind;
+
+                if (nextTokenKind != SyntaxKind.OpenBracketToken)
+                    return false;
+
+                // could simply be `x?[0]`, or could be `x ? [0] : [1]`.
+
+                // Caller only wants us to parse ?[ how it was originally parsed before collection expressions.
+                if (this.ForceConditionalAccessExpression)
+                    return true;
+
+                using var _ = GetDisposableResetPoint(resetOnDispose: true);
+
+                // Move past the '?'. Parse what comes next the same way that conditional expressions are parsed.
+                this.EatToken();
+                this.ParsePossibleRefExpression();
+
+                // If we see a colon, then do not parse this as a conditional-access-expression, pop up to the caller
+                // and have it reparse this as a conditional-expression instead.
+                return this.CurrentToken.Kind != SyntaxKind.ColonToken;
+            }
+
+            ExpressionSyntax parseConsequenceSyntax(ExpressionSyntax expr)
+            {
+                while (true)
                 {
-                    while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
-                }
-
-                // Expand to consume the `dependent_access *` continuations.
-                while (tryParseDependentAccess(expr) is ExpressionSyntax expandedExpression)
-                    expr = expandedExpression;
-
-                return expr;
-
-                ExpressionSyntax? tryParseDependentAccess(ExpressionSyntax expr)
-                {
-                    return this.CurrentToken.Kind switch
+                    // Nullable suppression operators should only be consumed by a conditional access
+                    // if there are further conditional operations performed after the suppression
+                    if (isOptionalExclamationsFollowedByConditionalOperation())
                     {
-                        SyntaxKind.OpenParenToken
-                            => _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList()),
-                        SyntaxKind.OpenBracketToken
-                            => _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList()),
-                        SyntaxKind.DotToken
-                            => _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
-                        SyntaxKind.QuestionToken
-                            => !CanStartConsequenceExpression()
-                                ? expr
-                                : _syntaxFactory.ConditionalAccessExpression(
-                                    expr,
-                                    operatorToken: this.EatToken(),
-                                    ParseConsequenceSyntax()),
-                        _ => null,
-                    };
+                        while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                            expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
+                    }
+
+                    // Expand to consume the `dependent_access *` continuations.
+                    while (tryParseDependentAccess(expr) is ExpressionSyntax expandedExpression)
+                        expr = expandedExpression;
+
+                    return expr;
+
+                    ExpressionSyntax? tryParseDependentAccess(ExpressionSyntax expr)
+                    {
+                        return this.CurrentToken.Kind switch
+                        {
+                            SyntaxKind.OpenParenToken
+                                => _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList()),
+                            SyntaxKind.OpenBracketToken
+                                => _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList()),
+                            SyntaxKind.DotToken
+                                => _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
+                            SyntaxKind.QuestionToken
+                                => TryParseConditionalAccessExpression(expr, out var conditionalAccess) ? conditionalAccess : expr,
+                            _ => null,
+                        };
+                    }
                 }
             }
 
