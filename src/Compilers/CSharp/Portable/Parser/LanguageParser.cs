@@ -11745,7 +11745,7 @@ done:
             // https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#12812-null-conditional-element-access
 
             // null_conditional_member_access
-            //      : primary_expression '?' '.' identifier type_argument_list? dependent_access *
+            //      : primary_expression '?' '.' identifier type_argument_list? dependent_access*
             //      ;
             //
             // null_conditional_element_access
