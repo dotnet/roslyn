@@ -11767,8 +11767,6 @@ done:
                 return false;
             }
 
-            Debug.Assert(questionToken.Kind == SyntaxKind.QuestionToken);
-
             conditionalAccessExpression = _syntaxFactory.ConditionalAccessExpression(
                 primaryExpression, questionToken, parseWhenNotNull(bindingExpression));
             return true;
