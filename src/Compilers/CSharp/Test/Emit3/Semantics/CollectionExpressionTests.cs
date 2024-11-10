@@ -9427,6 +9427,22 @@ static class Program
                       IL_0013:  ret
                     }
                     """,
+                ("IEnumerable<int>", "Span<int>") =>
+                    """
+                    {
+                      // Code size       25 (0x19)
+                      .maxstack  1
+                      .locals init (System.ReadOnlySpan<int> V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "int[] System.Linq.Enumerable.ToArray<int>(System.Collections.Generic.IEnumerable<int>)"
+                      IL_0006:  newobj     "System.Span<int>..ctor(int[])"
+                      IL_000b:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                      IL_0010:  stloc.0
+                      IL_0011:  ldloca.s   V_0
+                      IL_0013:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                      IL_0018:  ret
+                    }
+                    """,
                 ("int[]", "int[]") =>
                     """
                     {
