@@ -11729,6 +11729,11 @@ done:
 
 #nullable enable
 
+        /// <summary>
+        /// Called when at a <c>?</c> that could start a <see cref="ConditionalAccessExpressionSyntax"/> or a <see
+        /// cref="ConditionalExpressionSyntax"/>.  Returns <see langword="true"/> if this succeeds at parsing the
+        /// former, and <see langword="null"/> if it fails and the caller should parse the latter.
+        /// </summary>
         private bool TryParseConditionalAccessExpression(
             ExpressionSyntax primaryExpression,
             [NotNullWhen(true)] out ConditionalAccessExpressionSyntax? conditionalAccessExpression)
