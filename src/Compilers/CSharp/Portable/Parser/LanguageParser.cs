@@ -11838,7 +11838,7 @@ done:
                             SyntaxKind.DotToken
                                 => _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
                             SyntaxKind.QuestionToken
-                                => TryParseConditionalAccessExpression(expr, out var conditionalAccess) ? conditionalAccess : expr,
+                                => TryParseConditionalAccessExpression(expr, out var conditionalAccess) ? conditionalAccess : null,
                             _ => null,
                         };
                     }
