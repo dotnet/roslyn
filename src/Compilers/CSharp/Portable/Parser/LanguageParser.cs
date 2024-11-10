@@ -11750,8 +11750,10 @@ done:
             // dependent_access
             //      : '.' identifier type_argument_list?    // member access
             //      | '[' argument_list ']'                 // element access
-            //      | '(' argument_list ? ')'                // invocation
+            //      | '(' argument_list ? ')'               // invocation
             //      ;
+
+            // We get in here after parsing out the initial primary expression and seeing a `?` follow.
 
             var (questionToken, bindingExpression) = tryEatQuestionAndBindingExpression();
             if (questionToken is null || bindingExpression is null)
@@ -11778,19 +11780,15 @@ done:
                 if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
                     return (EatToken(), _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)));
 
-                if (isStartOfElementBindingExpression())
+                if (isStartOfElementBindingExpression(nextTokenKind))
                     return (EatToken(), _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()));
 
                 // Anything else is just a normal ? and indicates the start of a ternary expression.
                 return default;
             }
 
-            bool isStartOfElementBindingExpression()
+            bool isStartOfElementBindingExpression(SyntaxKind nextTokenKind)
             {
-                Debug.Assert(this.CurrentToken.Kind == SyntaxKind.QuestionToken);
-                var nextToken = this.PeekToken(1);
-                var nextTokenKind = nextToken.Kind;
-
                 if (nextTokenKind != SyntaxKind.OpenBracketToken)
                     return false;
 
