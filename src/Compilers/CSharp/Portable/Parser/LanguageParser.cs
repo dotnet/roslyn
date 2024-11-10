@@ -11770,7 +11770,7 @@ done:
             Debug.Assert(questionToken.Kind == SyntaxKind.QuestionToken);
 
             conditionalAccessExpression = _syntaxFactory.ConditionalAccessExpression(
-                primaryExpression, questionToken, parseConsequenceSyntax(bindingExpression));
+                primaryExpression, questionToken, parseWhenNotNull(bindingExpression));
             return true;
 
             (SyntaxToken? questionToken, ExpressionSyntax? bindingExpression) tryEatQuestionAndBindingExpression()
@@ -11814,7 +11814,7 @@ done:
                 return this.CurrentToken.Kind != SyntaxKind.ColonToken;
             }
 
-            ExpressionSyntax parseConsequenceSyntax(ExpressionSyntax expr)
+            ExpressionSyntax parseWhenNotNull(ExpressionSyntax expr)
             {
                 while (true)
                 {
