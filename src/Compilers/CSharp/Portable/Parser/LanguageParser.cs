@@ -11085,7 +11085,7 @@ done:
                 }
 
                 if (IsExpectedAssignmentOperator(operatorToken.Kind))
-                    return ParseAssignmentOperator(operatorExpressionKind, leftOperand, operatorToken);
+                    return ParseAssignmentExpression(operatorExpressionKind, leftOperand, operatorToken);
 
                 if (IsExpectedBinaryOperator(operatorToken.Kind))
                     return _syntaxFactory.BinaryExpression(operatorExpressionKind, leftOperand, operatorToken, this.ParseSubExpression(newPrecedence));
@@ -11288,7 +11288,7 @@ done:
             }
         }
 
-        private AssignmentExpressionSyntax ParseAssignmentOperator(SyntaxKind operatorExpressionKind, ExpressionSyntax leftOperand, SyntaxToken operatorToken)
+        private AssignmentExpressionSyntax ParseAssignmentExpression(SyntaxKind operatorExpressionKind, ExpressionSyntax leftOperand, SyntaxToken operatorToken)
         {
             Debug.Assert(IsExpectedAssignmentOperator(operatorToken.Kind));
             Debug.Assert(GetPrecedence(operatorExpressionKind) == Precedence.Assignment);
