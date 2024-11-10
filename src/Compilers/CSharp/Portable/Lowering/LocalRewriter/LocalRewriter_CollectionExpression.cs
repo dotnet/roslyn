@@ -296,7 +296,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression array;
-            if (ShouldUseKnownLength(node, out _))
+            if (TryOptimizeSingleSpreadToArray(node, arrayType) is { } optimizedArray)
+            {
+                array = optimizedArray;
+            }
+            else if (ShouldUseKnownLength(node, out _))
             {
                 array = CreateAndPopulateArray(node, arrayType);
             }
@@ -432,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // fieldValue = e1;
                         SynthesizedReadOnlyListKind.SingleElement => this.VisitExpression((BoundExpression)elements.Single()),
                         // fieldValue = new ElementType[] { e1, ..., eN };
-                        SynthesizedReadOnlyListKind.Array => CreateAndPopulateArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
+                        SynthesizedReadOnlyListKind.Array => createArray(node, ArrayTypeSymbol.CreateSZArray(_compilation.Assembly, elementType)),
                         // fieldValue = new List<ElementType> { e1, ..., eN };
                         SynthesizedReadOnlyListKind.List => CreateAndPopulateList(node, elementType, elements),
                         var v => throw ExceptionUtilities.UnexpectedValue(v)
@@ -448,6 +452,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _factory.Convert(collectionType, arrayOrList);
+
+            BoundExpression createArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
+            {
+                if (TryOptimizeSingleSpreadToArray(node, arrayType) is { } optimizedArray)
+                    return optimizedArray;
+
+                return CreateAndPopulateArray(node, arrayType);
+            }
         }
 
         private BoundExpression VisitCollectionBuilderCollectionExpression(BoundCollectionExpression node)
@@ -632,22 +644,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        /// <summary>
-        /// Create and populate an array from a collection expression where the
-        /// collection has a known length, although possibly including spreads.
-        /// </summary>
-        private BoundExpression CreateAndPopulateArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
+        /// <summary>Attempt to optimize conversion of a single-spread collection expr to array, even if the spread length is not known.</summary>
+        private BoundExpression? TryOptimizeSingleSpreadToArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
         {
-            var syntax = node.Syntax;
-            var elements = node.Elements;
-
-            int numberIncludingLastSpread;
-            if (!ShouldUseKnownLength(node, out numberIncludingLastSpread))
-            {
-                // Should have been handled by the caller.
-                throw ExceptionUtilities.UnexpectedValue(node);
-            }
-
             // Collection-expr is of the form `[..spreadExpression]`, where 'spreadExpression' has same element type as the target collection.
             // Optimize to `spreadExpression.ToArray()` if possible.
             if (node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { } spreadExpression } spreadElement] }
@@ -659,6 +658,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var rewrittenSpreadExpression = VisitExpression(spreadExpression);
                     return _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
+                }
+                else if (IsConvertibleToObject(arrayType.ElementType)
+                    && _factory.WellKnownMethod(WellKnownMember.System_Linq_Enumerable__ToArray) is { } linqToArrayMethodGeneric)
+                {
+                    var linqToArrayMethod = linqToArrayMethodGeneric.Construct([arrayType.ElementTypeWithAnnotations]);
+                    if (ShouldUseAddRangeOrToListMethod(spreadExpression.Type!, linqToArrayMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
+                    {
+                        return _factory.Call(receiver: null, linqToArrayMethod, VisitExpression(spreadExpression));
+                    }
                 }
 
                 if (TryGetSpanConversion(spreadExpression.Type, writableOnly: false, out var asSpanMethod))
@@ -684,6 +692,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
             }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Create and populate an array from a collection expression where the
+        /// collection has a known length, although possibly including spreads.
+        /// </summary>
+        private BoundExpression CreateAndPopulateArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
+        {
+            var syntax = node.Syntax;
+            var elements = node.Elements;
+
+            int numberIncludingLastSpread;
+            if (!ShouldUseKnownLength(node, out numberIncludingLastSpread))
+            {
+                // Should have been handled by the caller.
+                throw ExceptionUtilities.UnexpectedValue(node);
+            }
+
+            // Shouldn't call this method if the single spread optimization would work.
+            Debug.Assert(TryOptimizeSingleSpreadToArray(node, arrayType) is null);
 
             if (numberIncludingLastSpread == 0)
             {
@@ -791,6 +821,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arrayType);
         }
 
+        private bool IsConvertibleToObject(TypeSymbol type)
+        {
+            // conversion to 'object' will fail if, for example, 'arrayType.ElementType' is a pointer.
+            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return _compilation.Conversions.ClassifyConversionFromType(
+                source: type,
+                destination: _compilation.GetSpecialType(SpecialType.System_Object),
+                isChecked: false,
+                ref useSiteInfo).IsImplicit;
+        }
+
         /// <summary>
         /// For the purpose of optimization, conversions to ReadOnlySpan and/or Span are known on the following types:
         /// System.Array, System.Span, System.ReadOnlySpan, System.Collections.Immutable.ImmutableArray, and System.Collections.Generic.List.
@@ -812,9 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType
                 && _factory.WellKnownMethod(writableOnly ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
-                // conversion to 'object' will fail if, for example, 'arrayType.ElementType' is a pointer.
-                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                if (_compilation.Conversions.ClassifyConversionFromType(source: arrayType.ElementType, destination: _compilation.GetSpecialType(SpecialType.System_Object), isChecked: false, ref useSiteInfo).IsImplicit)
+                if (IsConvertibleToObject(arrayType.ElementType))
                 {
                     asSpanMethod = spanCtorArray.AsMember(spanCtorArray.ContainingType.Construct(arrayType.ElementType));
                     return true;
