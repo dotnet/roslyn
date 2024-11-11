@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpression;
@@ -527,7 +528,7 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
         await VerifyCS.VerifyAnalyzerAsync(source);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52283")]
     public static async Task TestTrivia1()
     {
         await new VerifyCS.Test
