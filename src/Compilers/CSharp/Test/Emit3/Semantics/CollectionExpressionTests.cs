@@ -34904,11 +34904,116 @@ partial class Program
             var verifier = CompileAndVerify(source, expectedOutput: "a");
             verifier.VerifyIL("C.M", """
                 {
-                  // Code size        7 (0x7)
-                  .maxstack  1
+                  // Code size       66 (0x42)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                object[] V_1,
+                                System.Collections.Generic.List<string>.Enumerator V_2,
+                                string V_3)
                   IL_0000:  ldarg.0
-                  IL_0001:  call       "object[] System.Linq.Enumerable.ToArray<object>(System.Collections.Generic.IEnumerable<object>)"
-                  IL_0006:  ret
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  callvirt   "int System.Collections.Generic.List<string>.Count.get"
+                  IL_0009:  newarr     "object"
+                  IL_000e:  stloc.1
+                  IL_000f:  callvirt   "System.Collections.Generic.List<string>.Enumerator System.Collections.Generic.List<string>.GetEnumerator()"
+                  IL_0014:  stloc.2
+                  .try
+                  {
+                    IL_0015:  br.s       IL_0027
+                    IL_0017:  ldloca.s   V_2
+                    IL_0019:  call       "string System.Collections.Generic.List<string>.Enumerator.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldloc.1
+                    IL_0020:  ldloc.0
+                    IL_0021:  ldloc.3
+                    IL_0022:  stelem.ref
+                    IL_0023:  ldloc.0
+                    IL_0024:  ldc.i4.1
+                    IL_0025:  add
+                    IL_0026:  stloc.0
+                    IL_0027:  ldloca.s   V_2
+                    IL_0029:  call       "bool System.Collections.Generic.List<string>.Enumerator.MoveNext()"
+                    IL_002e:  brtrue.s   IL_0017
+                    IL_0030:  leave.s    IL_0040
+                  }
+                  finally
+                  {
+                    IL_0032:  ldloca.s   V_2
+                    IL_0034:  constrained. "System.Collections.Generic.List<string>.Enumerator"
+                    IL_003a:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003f:  endfinally
+                  }
+                  IL_0040:  ldloc.1
+                  IL_0041:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SingleSpread_ListToIEnumerable_Covariant()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                foreach (var item in C.M(["a"]))
+                    Console.Write(item);
+
+                class C
+                {
+                    public static IEnumerable<object> M(List<string> list) => [..list];
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       71 (0x47)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                object[] V_1,
+                                System.Collections.Generic.List<string>.Enumerator V_2,
+                                string V_3)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  callvirt   "int System.Collections.Generic.List<string>.Count.get"
+                  IL_0009:  newarr     "object"
+                  IL_000e:  stloc.1
+                  IL_000f:  callvirt   "System.Collections.Generic.List<string>.Enumerator System.Collections.Generic.List<string>.GetEnumerator()"
+                  IL_0014:  stloc.2
+                  .try
+                  {
+                    IL_0015:  br.s       IL_0027
+                    IL_0017:  ldloca.s   V_2
+                    IL_0019:  call       "string System.Collections.Generic.List<string>.Enumerator.Current.get"
+                    IL_001e:  stloc.3
+                    IL_001f:  ldloc.1
+                    IL_0020:  ldloc.0
+                    IL_0021:  ldloc.3
+                    IL_0022:  stelem.ref
+                    IL_0023:  ldloc.0
+                    IL_0024:  ldc.i4.1
+                    IL_0025:  add
+                    IL_0026:  stloc.0
+                    IL_0027:  ldloca.s   V_2
+                    IL_0029:  call       "bool System.Collections.Generic.List<string>.Enumerator.MoveNext()"
+                    IL_002e:  brtrue.s   IL_0017
+                    IL_0030:  leave.s    IL_0040
+                  }
+                  finally
+                  {
+                    IL_0032:  ldloca.s   V_2
+                    IL_0034:  constrained. "System.Collections.Generic.List<string>.Enumerator"
+                    IL_003a:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003f:  endfinally
+                  }
+                  IL_0040:  ldloc.1
+                  IL_0041:  newobj     "<>z__ReadOnlyArray<object>..ctor(object[])"
+                  IL_0046:  ret
                 }
                 """);
         }
@@ -34973,6 +35078,68 @@ partial class Program
                   IL_002c:  blt.s      IL_0011
                   IL_002e:  ldloc.1
                   IL_002f:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SingleSpread_ArrayToIEnumerable_Covariant()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                foreach (var item in C.M(["a"]))
+                    Console.Write(item);
+
+                class C
+                {
+                    public static IEnumerable<object> M(string[] arr) => [..arr];
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "object[] System.Linq.Enumerable.ToArray<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0006:  newobj     "<>z__ReadOnlyArray<object>..ctor(object[])"
+                  IL_000b:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SingleSpread_IEnumerableToIEnumerable_Covariant()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                foreach (var item in C.M(["a"]))
+                    Console.Write(item);
+
+                class C
+                {
+                    public static IEnumerable<object> M(IEnumerable<string> enumerable) => [..enumerable];
+                }
+                """;
+
+            // Note: We could use the Linq ToArray method here and save an allocation compared to making a List.
+            // However, it's not that significant, since the current codegen doesn't redundantly copy the elements themselves.
+            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  3
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<object>.AddRange(System.Collections.Generic.IEnumerable<object>)"
+                  IL_000c:  newobj     "<>z__ReadOnlyList<object>..ctor(System.Collections.Generic.List<object>)"
+                  IL_0011:  ret
                 }
                 """);
         }
