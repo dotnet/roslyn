@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -12,10 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
-    CSharpSimplifyLinqExpressionCodeFixProvider>;
+    SimplifyLinqExpressionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)]
-public partial class CSharpSimplifyLinqExpressionTests
+public sealed partial class CSharpSimplifyLinqExpressionTests
 {
     [Theory, CombinatorialData]
     public static async Task TestAllowedMethodTypes(
@@ -524,5 +525,41 @@ public partial class CSharpSimplifyLinqExpressionTests
             }
             """;
         await VerifyCS.VerifyAnalyzerAsync(source);
+    }
+
+    [Fact]
+    public static async Task TestTrivia1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = args.Skip(1)
+                            [|.Where(a => a.Length == 1).Count();|]
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                using System.Linq;
+                using System.Collections.Generic;
+                
+                class C
+                {
+                    static void Main(string[] args)
+                    {
+                        var v = args.Skip(1)
+                            .Count(a => a.Length == 1);
+                    }
+                }
+                """
+        }.RunAsync();
     }
 }
