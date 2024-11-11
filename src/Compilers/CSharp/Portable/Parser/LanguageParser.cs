@@ -11825,26 +11825,24 @@ done:
                     }
 
                     // Expand to consume the `dependent_access *` continuations.
-                    while (tryParseDependentAccess(expr) is ExpressionSyntax expandedExpression)
-                        expr = expandedExpression;
+
+                    switch (this.CurrentToken.Kind)
+                    {
+                        case SyntaxKind.OpenParenToken:
+                            expr = _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList());
+                            continue;
+                        case SyntaxKind.OpenBracketToken:
+                            expr = _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList());
+                            continue;
+                        case SyntaxKind.DotToken:
+                            expr = _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression));
+                            continue;
+                    }
+
+                    if (this.CurrentToken.Kind == SyntaxKind.QuestionToken && TryParseConditionalAccessExpression(expr, out var conditionalAccess))
+                        return conditionalAccess;
 
                     return expr;
-
-                    ExpressionSyntax? tryParseDependentAccess(ExpressionSyntax expr)
-                    {
-                        return this.CurrentToken.Kind switch
-                        {
-                            SyntaxKind.OpenParenToken
-                                => _syntaxFactory.InvocationExpression(expr, this.ParseParenthesizedArgumentList()),
-                            SyntaxKind.OpenBracketToken
-                                => _syntaxFactory.ElementAccessExpression(expr, this.ParseBracketedArgumentList()),
-                            SyntaxKind.DotToken
-                                => _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
-                            SyntaxKind.QuestionToken
-                                => TryParseConditionalAccessExpression(expr, out var conditionalAccess) ? conditionalAccess : null,
-                            _ => null,
-                        };
-                    }
                 }
             }
 
