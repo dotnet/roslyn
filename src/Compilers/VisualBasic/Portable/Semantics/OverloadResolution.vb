@@ -88,6 +88,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public MustOverride ReadOnly Property Arity As Integer
             Public MustOverride ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
+            Public MustOverride ReadOnly Property OverloadResolutionPriority As Integer
+
+            Public MustOverride Function GetOverloadResolutionPriorityInfo() As (Source As NamedTypeSymbol, Priority As Integer)
+
             Friend Sub GetAllParameterCounts(
                 ByRef requiredCount As Integer,
                 ByRef maxCount As Integer,
@@ -226,6 +230,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return False
+            End Function
+
+            Public Overrides ReadOnly Property OverloadResolutionPriority As Integer
+                Get
+                    Return m_Method.OriginalDefinition.OverloadResolutionPriority
+                End Get
+            End Property
+
+            Public Overrides Function GetOverloadResolutionPriorityInfo() As (Source As NamedTypeSymbol, Priority As Integer)
+                Dim leastOverriddenDefinition As MethodSymbol = m_Method.OriginalDefinition
+
+                While leastOverriddenDefinition.IsOverrides
+                    Dim overridden As MethodSymbol = leastOverriddenDefinition.OverriddenMethod
+
+                    If overridden Is Nothing Then
+                        Exit While
+                    End If
+
+                    leastOverriddenDefinition = overridden.OriginalDefinition
+                End While
+
+                Return (leastOverriddenDefinition.ContainingType, leastOverriddenDefinition.OverloadResolutionPriority)
             End Function
         End Class
 
@@ -443,6 +469,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return False
+            End Function
+
+            Public Overrides ReadOnly Property OverloadResolutionPriority As Integer
+                Get
+                    Return 0 ' PROTOTYPE(Priority): implement for real
+                End Get
+            End Property
+
+            Public Overrides Function GetOverloadResolutionPriorityInfo() As (Source As NamedTypeSymbol, Priority As Integer)
+                Return (_property.OriginalDefinition.ContainingType, 0) ' PROTOTYPE(Priority): implement for real
             End Function
         End Class
 
@@ -915,13 +951,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim applicableNarrowingCandidateCount As Integer = 0
             Dim applicableInstanceCandidateCount As Integer = 0
+            Dim someCandidatesHaveOverloadResolutionPriority As Boolean = False
 
             ' First collect instance methods.
             If instanceCandidates.Count > 0 Then
 
+                someCandidatesHaveOverloadResolutionPriority = instanceCandidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
+
                 CollectOverloadedCandidates(
                     binder, candidates, instanceCandidates, typeArguments,
-                    arguments, argumentNames, delegateReturnType, delegateReturnTypeReferenceBoundNode,
+                    arguments, argumentNames,
+                    someCandidatesHaveOverloadResolutionPriority,
+                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                     includeEliminatedCandidates, isQueryOperatorInvocation, forceExpandedForm, asyncLambdaSubToFunctionMismatch,
                     useSiteInfo)
 
@@ -939,6 +980,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim addedExtensionMethods As Boolean = False
 
             If ShouldConsiderExtensionMethods(candidates) Then
+                Debug.Assert(candidates.All(Function(candidate) candidate.State <> CandidateAnalysisResultState.Applicable OrElse
+                                                                candidate.RequiresNarrowingConversion OrElse
+                                                                candidate.MaxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNarrowing))
+
                 ' Request additional extension methods, if any available.
                 If methodGroup.ResultKind = LookupResultKind.Good Then
                     methods = methodGroup.AdditionalExtensionMethods(useSiteInfo)
@@ -951,9 +996,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If curriedCandidates.Count > 0 Then
                     addedExtensionMethods = True
 
+                    someCandidatesHaveOverloadResolutionPriority = someCandidatesHaveOverloadResolutionPriority OrElse
+                                                                   curriedCandidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
+
                     CollectOverloadedCandidates(
                         binder, candidates, curriedCandidates, typeArguments,
-                        arguments, argumentNames, delegateReturnType, delegateReturnTypeReferenceBoundNode,
+                        arguments, argumentNames,
+                        someCandidatesHaveOverloadResolutionPriority,
+                        delegateReturnType, delegateReturnTypeReferenceBoundNode,
                         includeEliminatedCandidates, isQueryOperatorInvocation, forceExpandedForm, asyncLambdaSubToFunctionMismatch,
                         useSiteInfo)
                 End If
@@ -965,7 +1015,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If applicableInstanceCandidateCount = 0 AndAlso Not addedExtensionMethods Then
                 result = ReportOverloadResolutionFailedOrLateBound(candidates, applicableInstanceCandidateCount, lateBindingIsAllowed AndAlso binder.OptionStrict <> OptionStrict.On, asyncLambdaSubToFunctionMismatch)
             Else
-                result = ResolveOverloading(methodGroup, candidates, arguments, argumentNames, delegateReturnType, lateBindingIsAllowed, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt, forceExpandedForm,
+                result = ResolveOverloading(methodGroup, candidates, arguments, argumentNames,
+                                            someCandidatesHaveOverloadResolutionPriority,
+                                            delegateReturnType, lateBindingIsAllowed, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt, forceExpandedForm,
                                             useSiteInfo)
             End If
 
@@ -977,6 +1029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    applicableNarrowingCandidateCount As Integer,
                                                                    lateBindingIsAllowed As Boolean,
                                                                    asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression)) As OverloadResolutionResult
+            Debug.Assert(applicableNarrowingCandidateCount = 0)
             Dim isLateBound As Boolean = False
 
             If lateBindingIsAllowed Then
@@ -1023,13 +1076,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression) = Nothing
 
             CollectOverloadedCandidates(binder, results, candidates, ImmutableArray(Of TypeSymbol).Empty,
-                                        arguments, argumentNames, Nothing, Nothing, includeEliminatedCandidates,
+                                        arguments, argumentNames,
+                                        someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                        Nothing, Nothing, includeEliminatedCandidates,
                                         isQueryOperatorInvocation:=False, forceExpandedForm:=False, asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch,
                                         useSiteInfo:=useSiteInfo)
             Debug.Assert(asyncLambdaSubToFunctionMismatch Is Nothing)
             candidates.Free()
 
-            Dim result = ResolveOverloading(propertyGroup, results, arguments, argumentNames, delegateReturnType:=Nothing, lateBindingIsAllowed:=True, binder:=binder,
+            Dim result = ResolveOverloading(propertyGroup, results, arguments, argumentNames,
+                                            someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                            delegateReturnType:=Nothing, lateBindingIsAllowed:=True, binder:=binder,
                                             asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch, callerInfoOpt:=callerInfoOpt, forceExpandedForm:=False,
                                             useSiteInfo:=useSiteInfo)
             results.Free()
@@ -1064,6 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             candidates As ArrayBuilder(Of CandidateAnalysisResult),
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
+            someCandidatesHaveOverloadResolutionPriority As Boolean,
             delegateReturnType As TypeSymbol,
             lateBindingIsAllowed As Boolean,
             binder As Binder,
@@ -1099,6 +1157,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If applicableCandidates < 2 Then
                 narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
                 GoTo ResolutionComplete
+            End If
+
+            If someCandidatesHaveOverloadResolutionPriority Then
+                RemoveLowerPriorityMembers(candidates, applicableCandidates, applicableNarrowingCandidates)
+                If applicableCandidates < 2 Then
+                    narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
+                    GoTo ResolutionComplete
+                End If
+
+                ApplyTieBreakingRulesSkippedByCombineCandidates(candidates, applicableCandidates, applicableNarrowingCandidates, arguments.Length, argumentNames, useSiteInfo)
+                If applicableCandidates < 2 Then
+                    narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
+                    GoTo ResolutionComplete
+                End If
             End If
 
             ' §11.8.1 Overloaded Method Resolution.
@@ -1185,6 +1257,248 @@ ResolutionComplete:
             End If
 
             Return New OverloadResolutionResult(candidates.ToImmutable(), resolutionIsLateBound, narrowingCandidatesRemainInTheSet, asyncLambdaSubToFunctionMismatch)
+        End Function
+
+        Private Shared ReadOnly s_poolInstance As ObjectPool(Of PooledDictionary(Of NamedTypeSymbol, NamedTypeSymbol)) =
+            PooledDictionary(Of NamedTypeSymbol, NamedTypeSymbol).CreatePool(SymbolEqualityComparer.IgnoreAll)
+
+        Private Shared Sub RemoveLowerPriorityMembers(
+            candidates As ArrayBuilder(Of CandidateAnalysisResult),
+            ByRef applicableCandidates As Integer,
+            ByRef applicableNarrowingCandidates As Integer
+        )
+            ' PROTOTYPE(Priority): Check feature support
+
+            Dim candidateInfoByDeclaringType = PooledDictionary(Of NamedTypeSymbol, OneOrMany(Of (Index As Integer, Priority As Integer))).GetInstance()
+
+            For i As Integer = 0 To candidates.Count - 1 Step 1
+
+                Dim current As CandidateAnalysisResult = candidates(i)
+
+                If current.State <> CandidateAnalysisResultState.Applicable Then
+                    Continue For
+                End If
+
+                Dim priorityInfo As (Source As NamedTypeSymbol, Priority As Integer) = current.Candidate.GetOverloadResolutionPriorityInfo()
+
+                Dim siblings As OneOrMany(Of (Index As Integer, Priority As Integer)) = Nothing
+
+                If candidateInfoByDeclaringType.TryGetValue(priorityInfo.Source, siblings) Then
+                    candidateInfoByDeclaringType(priorityInfo.Source) = siblings.Add((i, priorityInfo.Priority))
+                Else
+                    candidateInfoByDeclaringType.Add(priorityInfo.Source, OneOrMany.Create((i, priorityInfo.Priority)))
+                End If
+            Next
+
+            For Each siblings In candidateInfoByDeclaringType.Values
+                If siblings.Count = 1 Then
+                    Continue For
+                End If
+
+                Dim maxPriority = Integer.MinValue
+
+                For Each info In siblings
+                    If maxPriority < info.Priority Then
+                        maxPriority = info.Priority
+                    End If
+                Next
+
+                For Each info In siblings
+                    If maxPriority <> info.Priority Then
+                        Dim toDeprioritize = candidates(info.Index)
+                        applicableCandidates -= 1
+                        If toDeprioritize.RequiresNarrowingConversion Then
+                            applicableNarrowingCandidates -= 1
+                        End If
+                        toDeprioritize.State = CandidateAnalysisResultState.LessApplicable
+                        candidates(info.Index) = toDeprioritize
+                    End If
+                Next
+            Next
+
+            candidateInfoByDeclaringType.Free()
+        End Sub
+
+        Private Shared Sub ApplyTieBreakingRulesSkippedByCombineCandidates(
+            candidates As ArrayBuilder(Of CandidateAnalysisResult),
+            ByRef applicableCandidates As Integer,
+            ByRef applicableNarrowingCandidates As Integer,
+            argumentCount As Integer,
+            argumentNames As ImmutableArray(Of String),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
+        )
+            For i As Integer = 0 To candidates.Count - 1 Step 1
+
+                Dim existingCandidate As CandidateAnalysisResult = candidates(i)
+
+                ' Skip over some eliminated candidates, which we will be unable to match signature against.
+                If existingCandidate.State = CandidateAnalysisResultState.ArgumentCountMismatch OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.BadGenericArity OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.Ambiguous OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.TypeInferenceFailed OrElse existingCandidate.SomeInferenceFailed OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.HasUseSiteError OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.HasUnsupportedMetadata OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.LessApplicable OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.Shadowed Then
+                    Continue For
+                End If
+
+                For j As Integer = i + 1 To candidates.Count - 1 Step 1
+
+                    Dim newCandidate As CandidateAnalysisResult = candidates(j)
+
+                    If newCandidate.State <> CandidateAnalysisResultState.Applicable Then
+                        Continue For
+                    End If
+
+                    ' Candidate can't hide another form of itself
+                    If existingCandidate.Candidate Is newCandidate.Candidate Then
+                        Continue For
+                    End If
+
+                    Dim existingWins As Boolean = False
+                    Dim newWins As Boolean = False
+
+                    If ApplyTieBreakingRulesSkippedByCombineCandidates(existingCandidate, newCandidate, argumentCount, argumentNames, useSiteInfo, existingWins, newWins) Then
+                        Debug.Assert(existingWins Xor newWins) ' Both cannot win!
+                        Dim lost As Integer = If(existingWins, j, i)
+
+                        Dim toShadow = candidates(lost)
+
+                        If toShadow.State = CandidateAnalysisResultState.Applicable Then
+                            applicableCandidates -= 1
+                            If toShadow.RequiresNarrowingConversion Then
+                                applicableNarrowingCandidates -= 1
+                            End If
+                        End If
+
+                        toShadow.State = CandidateAnalysisResultState.Shadowed
+                        candidates(lost) = toShadow
+
+                        If lost = i Then
+                            Exit For
+                        End If
+                    End If
+                Next
+            Next
+        End Sub
+
+        Private Shared Function ApplyTieBreakingRulesSkippedByCombineCandidates(
+            existingCandidate As CandidateAnalysisResult, newCandidate As CandidateAnalysisResult,
+            argumentCount As Integer,
+            argumentNames As ImmutableArray(Of String),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
+            ByRef existingWins As Boolean, ByRef newWins As Boolean
+        ) As Boolean
+            Debug.Assert(newCandidate.State = CandidateAnalysisResultState.Applicable)
+
+            Dim operatorResolution As Boolean = newCandidate.Candidate.IsOperator
+
+            Debug.Assert(newCandidate.Candidate.ParameterCount >= argumentCount OrElse newCandidate.IsExpandedParamArrayForm)
+            Debug.Assert(argumentNames.IsDefault OrElse argumentNames.Length > 0)
+            Debug.Assert(Not operatorResolution OrElse argumentNames.IsDefault)
+
+            ' It looks like the following code is applying some tie-breaking rules from section 7 of
+            ' §11.8.1 Overloaded Method Resolution, but not all of them and even skips ParamArrays tie-breaking
+            ' rule in some scenarios. I couldn't find an explanation of this behavior in the spec and
+            ' simply tried to keep this code close to Dev10.
+
+            ' Spec says that the tie-breaking rules should be applied only for members equally applicable to the argument list.
+            ' [§11.8.1.1 Applicability] defines equally applicable members as follows:
+            ' A member M is considered equally applicable as N if
+            ' 1) their signatures are the same or
+            ' 2) if each parameter type in M is the same as the corresponding parameter type in N.
+
+            ' We can always check if signature is the same, but we cannot check the second condition in presence
+            ' of named arguments because for them we don't know yet which parameter in M corresponds to which
+            ' parameter in N.
+
+            Debug.Assert(existingCandidate.Candidate.ParameterCount >= argumentCount OrElse existingCandidate.IsExpandedParamArrayForm)
+
+            ' Check if the shadowing below can be applied in theory
+            If Not existingCandidate.IsExpandedParamArrayForm AndAlso Not newCandidate.IsExpandedParamArrayForm AndAlso
+               Not argumentNames.IsDefault AndAlso
+               (existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) Then
+                Return False
+            End If
+
+            If argumentNames.IsDefault Then
+                If Not CombineCandidatesCompareVirtualSignature(newCandidate, existingCandidate, argumentCount) Then
+                    ' Signatures are different, shadowing rules do not apply
+                    Return False
+                End If
+            Else
+                Debug.Assert(Not operatorResolution)
+            End If
+
+            Dim signatureMatch As Boolean
+
+            ' Compare complete signature, with no regard to arguments
+            If existingCandidate.Candidate.ParameterCount <> newCandidate.Candidate.ParameterCount Then
+                Debug.Assert(Not operatorResolution)
+                signatureMatch = False
+            ElseIf operatorResolution Then
+                Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
+                Debug.Assert(argumentCount = existingCandidate.Candidate.ParameterCount)
+                signatureMatch = True
+            Else
+                signatureMatch = CombineCandidatesCompareDeclaredSignature(newCandidate, existingCandidate)
+            End If
+
+            If Not argumentNames.IsDefault AndAlso Not signatureMatch Then
+                ' Signatures are different, shadowing rules do not apply
+                Return False
+            End If
+
+            If Not signatureMatch Then
+                Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
+
+                ' If we have gotten to this point it means that the 2 procedures have equal specificity,
+                ' but signatures that do not match exactly (after generic substitution). This
+                ' implies that we are dealing with differences in shape due to param arrays
+                ' or optional arguments.
+                ' So we look and see if one procedure maps fewer arguments to the
+                ' param array than the other. The one using more, is then shadowed by the one using less.
+
+                '•	If M has fewer parameters from an expanded paramarray than N, eliminate N from the set.
+                If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
+                    Return True
+                End If
+
+            Else
+                ' The signatures of the two methods match (after generic parameter substitution).
+                ' This means that param array shadowing doesn't come into play.
+                ' !!! Why? Where is this mentioned in the spec?
+            End If
+
+            Debug.Assert(argumentNames.IsDefault OrElse signatureMatch)
+
+            ' In presence of named arguments, the following shadowing rules
+            ' cannot be applied if any candidate is extension method because
+            ' full signature match doesn't guarantee equal applicability (in presence of named arguments)
+            ' and instance methods hide by signature regardless applicability rules do not apply to extension methods.
+            If argumentNames.IsDefault OrElse
+               Not (existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) Then
+
+                '7.1.	If M is defined in a more derived type than N, eliminate N from the set.
+                '       This rule also applies to the types that extension methods are defined on.
+                '7.2.	If M and N are extension methods and the target type of M is a class or
+                '       structure and the target type of N is an interface, eliminate N from the set.
+                If (Not signatureMatch OrElse existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) AndAlso
+                       ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
+                    Return True
+                End If
+
+                '7.3.	If M and N are extension methods and the target type of M has fewer type
+                '       parameters than the target type of N, eliminate N from the set.
+                '       !!! Note that spec talks about "fewer type parameters", but it is not really about count.
+                '       !!! It is about one refers to a type parameter and the other one doesn't.
+                If ShadowBasedOnExtensionMethodTargetTypeGenericity(existingCandidate, newCandidate, existingWins, newWins) Then
+                    Return True
+                End If
+            End If
+
+            Return False
         End Function
 
         Private Shared Function EliminateNarrowingCandidates(
@@ -3490,6 +3804,7 @@ Bailout:
             typeArguments As ImmutableArray(Of TypeSymbol),
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
+            someCandidatesHaveOverloadResolutionPriority As Boolean,
             delegateReturnType As TypeSymbol,
             delegateReturnTypeReferenceBoundNode As BoundNode,
             includeEliminatedCandidates As Boolean,
@@ -3519,6 +3834,7 @@ Bailout:
                 If info.Candidate.UnderlyingSymbol.ContainingModule Is sourceModule OrElse
                    info.Candidate.IsExtensionMethod Then
                     CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
+                                               someCandidatesHaveOverloadResolutionPriority,
                                                delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                useSiteInfo)
@@ -3635,11 +3951,13 @@ Bailout:
 
                     If info.State <> CandidateAnalysisResultState.Ambiguous Then
                         CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
+                                                   someCandidatesHaveOverloadResolutionPriority,
                                                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                    includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                    useSiteInfo)
                     ElseIf includeEliminatedCandidates Then
                         CollectOverloadedCandidate(results, info, typeArguments, arguments, argumentNames,
+                                                   someCandidatesHaveOverloadResolutionPriority,
                                                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                    includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                    useSiteInfo)
@@ -3650,6 +3968,7 @@ Bailout:
                             If info2.Candidate IsNot Nothing AndAlso info2.State = CandidateAnalysisResultState.Ambiguous Then
                                 quickInfo(l) = Nothing
                                 CollectOverloadedCandidate(results, info2, typeArguments, arguments, argumentNames,
+                                                           someCandidatesHaveOverloadResolutionPriority,
                                                            delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                            includeEliminatedCandidates, binder, asyncLambdaSubToFunctionMismatch,
                                                            useSiteInfo)
@@ -3780,6 +4099,7 @@ Bailout:
             typeArguments As ImmutableArray(Of TypeSymbol),
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
+            someCandidatesHaveOverloadResolutionPriority As Boolean,
             delegateReturnType As TypeSymbol,
             delegateReturnTypeReferenceBoundNode As BoundNode,
             includeEliminatedCandidates As Boolean,
@@ -3835,7 +4155,7 @@ Bailout:
                         triedToAddSomething = True
 #End If
                         InferTypeArgumentsIfNeedToAndCombineWithExistingCandidates(results, candidateAnalysis, typeArguments,
-                                                                                   arguments, argumentNames,
+                                                                                   arguments, argumentNames, someCandidatesHaveOverloadResolutionPriority,
                                                                                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                                                    binder, asyncLambdaSubToFunctionMismatch,
                                                                                    useSiteInfo)
@@ -3851,7 +4171,7 @@ Bailout:
                         candidateAnalysis.SetIsExpandedParamArrayForm()
                         candidateAnalysis.ExpandedParamArrayArgumentsUsed = Math.Max(arguments.Length - candidate.Candidate.ParameterCount + 1, 0)
                         InferTypeArgumentsIfNeedToAndCombineWithExistingCandidates(results, candidateAnalysis, typeArguments,
-                                                                                   arguments, argumentNames,
+                                                                                   arguments, argumentNames, someCandidatesHaveOverloadResolutionPriority,
                                                                                    delegateReturnType, delegateReturnTypeReferenceBoundNode,
                                                                                    binder, asyncLambdaSubToFunctionMismatch,
                                                                                    useSiteInfo)
@@ -3877,6 +4197,7 @@ Bailout:
             typeArguments As ImmutableArray(Of TypeSymbol),
             arguments As ImmutableArray(Of BoundExpression),
             argumentNames As ImmutableArray(Of String),
+            someCandidatesHaveOverloadResolutionPriority As Boolean,
             delegateReturnType As TypeSymbol,
             delegateReturnTypeReferenceBoundNode As BoundNode,
             binder As Binder,
@@ -3900,7 +4221,7 @@ Bailout:
                 End If
             End If
 
-            CombineCandidates(results, newCandidate, arguments.Length, argumentNames, useSiteInfo)
+            CombineCandidates(results, newCandidate, arguments.Length, argumentNames, someCandidatesHaveOverloadResolutionPriority, useSiteInfo)
         End Sub
 
         ''' <summary>
@@ -3913,6 +4234,7 @@ Bailout:
             newCandidate As CandidateAnalysisResult,
             argumentCount As Integer,
             argumentNames As ImmutableArray(Of String),
+            someCandidatesHaveOverloadResolutionPriority As Boolean,
             <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
         )
             Debug.Assert(newCandidate.State = CandidateAnalysisResultState.Applicable)
@@ -3981,33 +4303,15 @@ Bailout:
                 Debug.Assert(existingCandidate.Candidate.ParameterCount >= argumentCount OrElse existingCandidate.IsExpandedParamArrayForm)
 
                 If argumentNames.IsDefault Then
-                    Dim existingParamIndex As Integer = 0
-                    Dim newParamIndex As Integer = 0
-
-                    'CONSIDER: Can we somehow merge this with the complete signature comparison?
-                    For j As Integer = 0 To argumentCount - 1 Step 1
-
-                        Dim existingType As TypeSymbol = GetParameterTypeFromVirtualSignature(existingCandidate, existingParamIndex)
-                        Dim newType As TypeSymbol = GetParameterTypeFromVirtualSignature(newCandidate, newParamIndex)
-
-                        If Not existingType.IsSameTypeIgnoringAll(newType) Then
-                            ' Signatures are different, shadowing rules do not apply
-                            GoTo ContinueCandidatesLoop
-                        End If
-
-                        ' Advance to the next parameter in the existing candidate,
-                        ' unless we are on the expanded ParamArray parameter.
-                        AdvanceParameterInVirtualSignature(existingCandidate, existingParamIndex)
-
-                        ' Advance to the next parameter in the new candidate,
-                        ' unless we are on the expanded ParamArray parameter.
-                        AdvanceParameterInVirtualSignature(newCandidate, newParamIndex)
-                    Next
+                    If Not CombineCandidatesCompareVirtualSignature(newCandidate, existingCandidate, argumentCount) Then
+                        ' Signatures are different, shadowing rules do not apply
+                        GoTo ContinueCandidatesLoop
+                    End If
                 Else
                     Debug.Assert(Not operatorResolution)
                 End If
 
-                Dim signatureMatch As Boolean = True
+                Dim signatureMatch As Boolean
 
                 ' Compare complete signature, with no regard to arguments
                 If existingCandidate.Candidate.ParameterCount <> newCandidate.Candidate.ParameterCount Then
@@ -4015,7 +4319,10 @@ Bailout:
                     signatureMatch = False
                 ElseIf operatorResolution Then
                     Debug.Assert(argumentCount = existingCandidate.Candidate.ParameterCount)
-                    Debug.Assert(signatureMatch)
+                    Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
+                    signatureMatch = True
+
+                    ' PROTOTYPE(Priority): Should this shadowing be disabled?
 
                     ' Not lifted operators are preferred over lifted.
                     If existingCandidate.Candidate.IsLifted Then
@@ -4029,16 +4336,7 @@ Bailout:
                         GoTo DeterminedTheWinner
                     End If
                 Else
-                    For j As Integer = 0 To existingCandidate.Candidate.ParameterCount - 1 Step 1
-
-                        Dim existingType As TypeSymbol = existingCandidate.Candidate.Parameters(j).Type
-                        Dim newType As TypeSymbol = newCandidate.Candidate.Parameters(j).Type
-
-                        If Not existingType.IsSameTypeIgnoringAll(newType) Then
-                            signatureMatch = False
-                            Exit For
-                        End If
-                    Next
+                    signatureMatch = CombineCandidatesCompareDeclaredSignature(newCandidate, existingCandidate)
                 End If
 
                 If Not argumentNames.IsDefault AndAlso Not signatureMatch Then
@@ -4047,7 +4345,7 @@ Bailout:
                 End If
 
                 If Not signatureMatch Then
-                    Debug.Assert(argumentNames.IsDefault)
+                    Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
 
                     ' If we have gotten to this point it means that the 2 procedures have equal specificity,
                     ' but signatures that do not match exactly (after generic substitution). This
@@ -4057,7 +4355,7 @@ Bailout:
                     ' param array than the other. The one using more, is then shadowed by the one using less.
 
                     '•	If M has fewer parameters from an expanded paramarray than N, eliminate N from the set.
-                    If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
+                    If Not someCandidatesHaveOverloadResolutionPriority AndAlso ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
                         GoTo DeterminedTheWinner
                     End If
 
@@ -4080,7 +4378,9 @@ Bailout:
                     '       This rule also applies to the types that extension methods are defined on.
                     '7.2.	If M and N are extension methods and the target type of M is a class or
                     '       structure and the target type of N is an interface, eliminate N from the set.
-                    If ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
+                    If (Not someCandidatesHaveOverloadResolutionPriority OrElse
+                        (signatureMatch AndAlso Not (existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod))) AndAlso
+                       ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
                         GoTo DeterminedTheWinner
                     End If
 
@@ -4088,7 +4388,7 @@ Bailout:
                     '       parameters than the target type of N, eliminate N from the set.
                     '       !!! Note that spec talks about "fewer type parameters", but it is not really about count.
                     '       !!! It is about one refers to a type parameter and the other one doesn't.
-                    If ShadowBasedOnExtensionMethodTargetTypeGenericity(existingCandidate, newCandidate, existingWins, newWins) Then
+                    If Not someCandidatesHaveOverloadResolutionPriority AndAlso ShadowBasedOnExtensionMethodTargetTypeGenericity(existingCandidate, newCandidate, existingWins, newWins) Then
                         GoTo DeterminedTheWinner
                     End If
                 End If
@@ -4117,6 +4417,47 @@ ContinueCandidatesLoop:
 
             results.Add(newCandidate)
         End Sub
+
+        Private Shared Function CombineCandidatesCompareVirtualSignature(newCandidate As CandidateAnalysisResult, existingCandidate As CandidateAnalysisResult, argumentCount As Integer) As Boolean
+            Dim existingParamIndex As Integer = 0
+            Dim newParamIndex As Integer = 0
+
+            'CONSIDER: Can we somehow merge this with the complete signature comparison?
+            For j As Integer = 0 To argumentCount - 1 Step 1
+
+                Dim existingType As TypeSymbol = GetParameterTypeFromVirtualSignature(existingCandidate, existingParamIndex)
+                Dim newType As TypeSymbol = GetParameterTypeFromVirtualSignature(newCandidate, newParamIndex)
+
+                If Not existingType.IsSameTypeIgnoringAll(newType) Then
+                    ' Signatures are different, shadowing rules do not apply
+                    Return False
+                End If
+
+                ' Advance to the next parameter in the existing candidate,
+                ' unless we are on the expanded ParamArray parameter.
+                AdvanceParameterInVirtualSignature(existingCandidate, existingParamIndex)
+
+                ' Advance to the next parameter in the new candidate,
+                ' unless we are on the expanded ParamArray parameter.
+                AdvanceParameterInVirtualSignature(newCandidate, newParamIndex)
+            Next
+
+            Return True
+        End Function
+
+        Private Shared Function CombineCandidatesCompareDeclaredSignature(newCandidate As CandidateAnalysisResult, existingCandidate As CandidateAnalysisResult) As Boolean
+            For j As Integer = 0 To existingCandidate.Candidate.ParameterCount - 1 Step 1
+
+                Dim existingType As TypeSymbol = existingCandidate.Candidate.Parameters(j).Type
+                Dim newType As TypeSymbol = newCandidate.Candidate.Parameters(j).Type
+
+                If Not existingType.IsSameTypeIgnoringAll(newType) Then
+                    Return False
+                End If
+            Next
+
+            Return True
+        End Function
 
         Private Shared Function ShadowBasedOnOverriding(
             existingCandidate As CandidateAnalysisResult, newCandidate As CandidateAnalysisResult,
