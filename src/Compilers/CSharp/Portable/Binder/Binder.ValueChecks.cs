@@ -3400,6 +3400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SafeContext.CurrentMethod;
 
                 case BoundKind.DeconstructValuePlaceholder:
+                case BoundKind.InterpolatedStringArgumentPlaceholder:
                 case BoundKind.DiscardExpression:
                     // same as write-only byval local
                     return scopeOfTheContainingExpression;
