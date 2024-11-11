@@ -9388,12 +9388,12 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                    // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                    //         d = [default];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
-                    // (8,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
-                    //         d = [new KeyValuePair<int, int>(1, 2)];
-                    Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(8, 13));
+                // (7,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         d = [default];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[default]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(7, 13),
+                // (8,13): error CS9215: Collection expression type 'Dictionary<int, int>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         d = [new KeyValuePair<int, int>(1, 2)];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[new KeyValuePair<int, int>(1, 2)]").WithArguments("System.Collections.Generic.Dictionary<int, int>").WithLocation(8, 13));
         }
 
         [Fact]
