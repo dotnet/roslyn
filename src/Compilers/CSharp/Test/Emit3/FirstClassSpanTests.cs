@@ -8010,6 +8010,31 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_04()
+    {
+        var source = """
+            using System;
+
+            C.M1(new object[0]);
+            C.M1(new string[0]);
+
+            C.M2(new object[0]);
+            C.M2(new string[0]);
+
+            static class C
+            {
+                public static void M1(Span<string> arg) => Console.Write(1);
+                public static void M1(ReadOnlySpan<object> arg) => Console.Write(2);
+
+                public static void M2(Span<object> arg) => Console.Write(1);
+                public static void M2(ReadOnlySpan<string> arg) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: "2212").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_01()
     {
         var source = """
@@ -8118,6 +8143,31 @@ public class FirstClassSpanTests : CSharpTestBase
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_05()
+    {
+        var source = """
+            using System;
+
+            (new object[0]).M1();
+            (new string[0]).M1();
+
+            (new object[0]).M2();
+            (new string[0]).M2();
+
+            static class E
+            {
+                public static void M1(this Span<string> arg) => Console.Write(1);
+                public static void M1(this ReadOnlySpan<object> arg) => Console.Write(2);
+
+                public static void M2(this Span<object> arg) => Console.Write(1);
+                public static void M2(this ReadOnlySpan<string> arg) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: "2212").VerifyDiagnostics();
     }
 
     [Fact]
