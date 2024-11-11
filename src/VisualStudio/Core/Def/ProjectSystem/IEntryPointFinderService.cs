@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
 /// <summary>
-/// Note: This type is exposed through IVT to WebTools.
+/// Note: This type is exposed through IVT to dotnet-project-system.
 /// </summary>
 internal interface IEntryPointFinderService : ILanguageService
 {
