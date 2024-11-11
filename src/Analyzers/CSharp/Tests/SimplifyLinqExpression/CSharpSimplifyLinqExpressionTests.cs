@@ -532,7 +532,7 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
     {
         await new VerifyCS.Test
         {
-            TestCode = $$"""
+            TestCode = """
                 using System;
                 using System.Linq;
                 using System.Collections.Generic;
@@ -541,12 +541,12 @@ public sealed partial class CSharpSimplifyLinqExpressionTests
                 {
                     static void Main(string[] args)
                     {
-                        var v = args.Skip(1)
-                            [|.Where(a => a.Length == 1).Count();|]
+                        var v = [|args.Skip(1)
+                            .Where(a => a.Length == 1).Count()|];
                     }
                 }
                 """,
-            FixedCode = $$"""
+            FixedCode = """
                 using System;
                 using System.Linq;
                 using System.Collections.Generic;

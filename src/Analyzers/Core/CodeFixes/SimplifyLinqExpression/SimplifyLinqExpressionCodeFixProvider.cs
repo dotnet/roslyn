@@ -45,15 +45,25 @@ internal sealed class SimplifyLinqExpressionCodeFixProvider() : SyntaxEditorBase
 
             editor.ReplaceNode(invocation, (current, generator) =>
             {
-                var memberAccess = syntaxFacts.GetExpressionOfInvocationExpression(current);
-                var name = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
-                var whereExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess)!;
-                var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(whereExpression);
-                var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(syntaxFacts.GetExpressionOfInvocationExpression(whereExpression))!;
+                // 'current' is the original full expression.  like x.Where(...).Count();
 
-                return generator.InvocationExpression(
-                    generator.MemberAccessExpression(expression, name),
-                    arguments).WithLeadingTrivia(current.GetLeadingTrivia());
+                // 'x.Where(...).Count' in the above expression
+                var memberAccess = syntaxFacts.GetExpressionOfInvocationExpression(current);
+
+                // 'Count' in the above expression
+                var outerName = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
+
+                // 'x.Where(...)' in the above expression.
+                var innerInvocationExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess)!;
+
+                // 'x.Where' in the above expression.
+                var innerMemberAccessExpression = syntaxFacts.GetExpressionOfInvocationExpression(innerInvocationExpression);
+
+                // 'Where' in the above expression.
+                var innerName = syntaxFacts.GetNameOfMemberAccessExpression(innerMemberAccessExpression);
+
+                // trim down to the 'x.Where(...)', except with 'Where' replaced with 'Count'.
+                return innerInvocationExpression.ReplaceNode(innerName, outerName.WithTriviaFrom(innerName)).WithTrailingTrivia(current.GetTrailingTrivia());
             });
         }
 
