@@ -34906,7 +34906,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: "[a], [b], ", targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[a], [b], "), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             var expectedIL = """
                 {
                   // Code size       25 (0x19)
@@ -34950,7 +34950,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: "[a], [b], ", targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[a], [b], "), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             var expectedIL = """
                 {
                   // Code size       21 (0x15)
