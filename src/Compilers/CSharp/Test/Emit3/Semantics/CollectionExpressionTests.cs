@@ -34883,6 +34883,93 @@ partial class Program
         }
 
         [Fact]
+        public void SingleSpread_ArrayToSpan_CovariantVersusInvariant()
+        {
+            var source = """
+                using System;
+
+                C.M1(["a"]);
+                C.M2(["b"]);
+
+                class C
+                {
+                    public static void M1(string[] arr)
+                    {
+                        Span<object> span = [..arr];
+                        span.Report();
+                    }
+                    public static void M2(object[] arr)
+                    {
+                        Span<object> span = [..arr];
+                        span.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: "[a], [b], ", targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var expectedIL = """
+                {
+                  // Code size       25 (0x19)
+                  .maxstack  1
+                  .locals init (System.ReadOnlySpan<object> V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "object[] System.Linq.Enumerable.ToArray<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0006:  newobj     "System.Span<object>..ctor(object[])"
+                  IL_000b:  call       "System.ReadOnlySpan<object> System.Span<object>.op_Implicit(System.Span<object>)"
+                  IL_0010:  stloc.0
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
+                  IL_0018:  ret
+                }
+                """;
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Fact]
+        public void SingleSpread_ArrayToReadOnlySpan_CovariantVersusInvariant()
+        {
+            var source = """
+                using System;
+
+                C.M1(["a"]);
+                C.M2(["b"]);
+
+                class C
+                {
+                    public static void M1(string[] arr)
+                    {
+                        ReadOnlySpan<object> span = [..arr];
+                        span.Report();
+                    }
+                    public static void M2(object[] arr)
+                    {
+                        ReadOnlySpan<object> span = [..arr];
+                        span.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: "[a], [b], ", targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var expectedIL = """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  2
+                  .locals init (System.ReadOnlySpan<object> V_0) //span
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldarg.0
+                  IL_0003:  call       "object[] System.Linq.Enumerable.ToArray<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0008:  call       "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_000d:  ldloca.s   V_0
+                  IL_000f:  call       "void CollectionExtensions.Report<object>(in System.ReadOnlySpan<object>)"
+                  IL_0014:  ret
+                }
+                """;
+            verifier.VerifyIL("C.M1", expectedIL);
+            verifier.VerifyIL("C.M2", expectedIL);
+        }
+
+        [Fact]
         public void SingleSpread_ListToArray_Covariant()
         {
             // Linq ToArray method is applicable, but we do not use it in this case,
