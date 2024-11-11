@@ -318,6 +318,126 @@ struct Z
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_04()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    A<A<T>> x;
+}
+
+struct C<T>
+{
+    C<C<T>> x;
+}
+
+struct B<T>
+{
+    A<B<T>> x;
+    C<B<T>> y;
+    B<T> z;
+}
+
+struct D
+{
+    B<int> x;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (16,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(16, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_05()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    A<A<T>> x;
+}
+
+struct C<T>
+{
+    C<C<T>> x;
+}
+
+struct B<T>
+{
+    B<T> z;
+    A<B<T>> x;
+    C<B<T>> y;
+}
+
+struct D
+{
+    B<int> x;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (14,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(14, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
+        public void InstanceMemberExplosion_06()
+        {
+            string program = @"#pragma warning disable CS0169 // The field is never used
+struct A<T>
+{
+    A<A<T>> x;
+}
+
+struct C<T>
+{
+    C<C<T>> x;
+}
+
+struct B<T>
+{
+    A<B<T>> x;
+    B<T> z;
+    C<B<T>> y;
+}
+
+struct D
+{
+    B<int> x;
+}
+";
+            CreateCompilation(program).VerifyDiagnostics(
+                // (4,13): error CS0523: Struct member 'A<T>.x' of type 'A<A<T>>' causes a cycle in the struct layout
+                //     A<A<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("A<T>.x", "A<A<T>>").WithLocation(4, 13),
+                // (9,13): error CS0523: Struct member 'C<T>.x' of type 'C<C<T>>' causes a cycle in the struct layout
+                //     C<C<T>> x;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "x").WithArguments("C<T>.x", "C<C<T>>").WithLocation(9, 13),
+                // (15,10): error CS0523: Struct member 'B<T>.z' of type 'B<T>' causes a cycle in the struct layout
+                //     B<T> z;
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "z").WithArguments("B<T>.z", "B<T>").WithLocation(15, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66844")]
         public void StaticMemberExplosion_01()
         {
             string program = @"#pragma warning disable CS0169 // The field is never used
