@@ -7919,8 +7919,8 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_SpanVsReadOnlySpan_01(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_01()
     {
         var source = """
             using System;
@@ -7935,8 +7935,16 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M(ReadOnlySpan<int> arg) => Console.Write(2);
             }
             """;
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: "112").VerifyDiagnostics();
+
+        var expectedOutput = "212";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Fact]
@@ -7960,7 +7968,7 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "1123" : "1121").VerifyDiagnostics();
 
-        var expectedOutput = "1122";
+        var expectedOutput = "2122";
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -8020,7 +8028,7 @@ public class FirstClassSpanTests : CSharpTestBase
             // (new int[0]).E();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new int[0]").WithArguments("int[]", "E", "C.E(System.Span<int>)", "System.Span<int>").WithLocation(3, 2));
 
-        var expectedOutput = "1";
+        var expectedOutput = "2";
 
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -8071,7 +8079,7 @@ public class FirstClassSpanTests : CSharpTestBase
             // (new string[0]).E();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new object[0]").WithArguments("object[]", "E", "C.E(System.Span<object>)", "System.Span<object>").WithLocation(4, 2));
 
-        var expectedOutput = "21";
+        var expectedOutput = "22";
 
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
