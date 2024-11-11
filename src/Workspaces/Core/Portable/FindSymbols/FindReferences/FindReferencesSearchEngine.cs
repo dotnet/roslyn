@@ -19,7 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-using Reference = (SymbolGroup group, ISymbol symbol, ReferenceLocation location);
+// <Metalama> Changed from C# 12 using for a tuple to direct usages of the tuple type in this file, so avoid breaking .Net 6 JSON source generator
+// using Reference = (SymbolGroup group, ISymbol symbol, ReferenceLocation location);
 
 internal partial class FindReferencesSearchEngine(
     Solution solution,
@@ -66,7 +67,7 @@ internal partial class FindReferencesSearchEngine(
         await _progress.OnStartedAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            await ProducerConsumer<Reference>.RunAsync(
+            await ProducerConsumer<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.RunAsync(
                 ProducerConsumerOptions.SingleReaderOptions,
                 produceItems: static (onItemFound, args, cancellationToken) => args.@this.PerformSearchAsync(args.symbols, onItemFound, cancellationToken),
                 consumeItems: static async (references, args, cancellationToken) => await args.@this._progress.OnReferencesFoundAsync(references, cancellationToken).ConfigureAwait(false),
@@ -80,7 +81,7 @@ internal partial class FindReferencesSearchEngine(
     }
 
     private async Task PerformSearchAsync(
-        ImmutableArray<ISymbol> symbols, Action<Reference> onReferenceFound, CancellationToken cancellationToken)
+        ImmutableArray<ISymbol> symbols, Action<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> onReferenceFound, CancellationToken cancellationToken)
     {
         // Mapping from symbols (unified across metadata/retargeting) and the set of symbols that was produced for 
         // them in the case of linked files across projects.  This allows references to be found to any of the unified
@@ -214,7 +215,7 @@ internal partial class FindReferencesSearchEngine(
     }
 
     private async ValueTask ProcessProjectAsync(
-        Project project, ImmutableArray<(ISymbol symbol, SymbolGroup group)> allSymbols, Action<Reference> onReferenceFound, CancellationToken cancellationToken)
+        Project project, ImmutableArray<(ISymbol symbol, SymbolGroup group)> allSymbols, Action<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> onReferenceFound, CancellationToken cancellationToken)
     {
         using var _1 = PooledDictionary<ISymbol, PooledHashSet<string>>.GetInstance(out var symbolToGlobalAliases);
         using var _2 = PooledDictionary<Document, Dictionary<ISymbol, SymbolGroup>>.GetInstance(out var documentToSymbolsWithin);
@@ -274,7 +275,7 @@ internal partial class FindReferencesSearchEngine(
         Document document,
         Dictionary<ISymbol, SymbolGroup> symbolsToSearchFor,
         Dictionary<ISymbol, PooledHashSet<string>> symbolToGlobalAliases,
-        Action<Reference> onReferenceFound,
+        Action<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> onReferenceFound,
         CancellationToken cancellationToken)
     {
         // We're doing to do all of our processing of this document at once.  This will necessitate all the
@@ -317,7 +318,7 @@ internal partial class FindReferencesSearchEngine(
         return;
 
         void ProcessDocument(
-            ISymbol symbolToSearchFor, SymbolGroup symbolGroup, FindReferencesDocumentState state, Action<Reference> onReferenceFound)
+            ISymbol symbolToSearchFor, SymbolGroup symbolGroup, FindReferencesDocumentState state, Action<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> onReferenceFound)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
