@@ -36,6 +36,9 @@ internal partial class CodeGenerator
     /// Checks if expression directly or indirectly represents a value with its own home. In
     /// such cases it is possible to get a reference without loading into a temporary.
     /// </summary>
+    /// <param name="expression">
+    /// This should be a lowered node. This method does NOT expect nodes from initial binding.
+    /// </param>
     internal static bool HasHome(
         BoundExpression expression,
         AddressKind addressKind,
