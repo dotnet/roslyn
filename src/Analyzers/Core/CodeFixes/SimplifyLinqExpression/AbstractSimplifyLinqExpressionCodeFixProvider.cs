@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,10 +16,10 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.SimplifyLinqExpression;
 
-internal abstract class AbstractSimplifyLinqExpressionCodeFixProvider<TInvocationExpressionSyntax, TSimpleNameSyntax, TExpressionSyntax> : SyntaxEditorBasedCodeFixProvider
-    where TExpressionSyntax : SyntaxNode
-    where TInvocationExpressionSyntax : TExpressionSyntax
-    where TSimpleNameSyntax : TExpressionSyntax
+[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.SimplifyLinqExpression), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class SimplifyLinqExpressionCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds
        => [IDEDiagnosticIds.SimplifyLinqExpressionDiagnosticId];
@@ -39,21 +41,19 @@ internal abstract class AbstractSimplifyLinqExpressionCodeFixProvider<TInvocatio
 
         foreach (var diagnostic in diagnostics.OrderByDescending(diagnostics => diagnostics.Location.SourceSpan.Start))
         {
-            var invocation = (TInvocationExpressionSyntax)root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+            var invocation = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
             editor.ReplaceNode(invocation, (current, generator) =>
             {
-                var invocation = (TInvocationExpressionSyntax)current;
-
                 var memberAccess = syntaxFacts.GetExpressionOfInvocationExpression(current);
-                var name = (TSimpleNameSyntax)syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
-                var whereExpression = (TInvocationExpressionSyntax)syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess)!;
+                var name = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
+                var whereExpression = syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess)!;
                 var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(whereExpression);
-                var expression = (TExpressionSyntax)syntaxFacts.GetExpressionOfMemberAccessExpression(syntaxFacts.GetExpressionOfInvocationExpression(whereExpression))!;
+                var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(syntaxFacts.GetExpressionOfInvocationExpression(whereExpression))!;
 
                 return generator.InvocationExpression(
                     generator.MemberAccessExpression(expression, name),
-                    arguments).WithTriviaFrom(current);
+                    arguments).WithLeadingTrivia(current.GetLeadingTrivia());
             });
         }
 
