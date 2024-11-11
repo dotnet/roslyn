@@ -20,7 +20,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
-
-        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
     End Class
 End Namespace

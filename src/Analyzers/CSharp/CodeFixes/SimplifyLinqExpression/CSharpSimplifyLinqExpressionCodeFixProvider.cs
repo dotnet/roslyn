@@ -15,7 +15,4 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyLinqExpression), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class CSharpSimplifyLinqExpressionCodeFixProvider() : AbstractSimplifyLinqExpressionCodeFixProvider<InvocationExpressionSyntax, SimpleNameSyntax, ExpressionSyntax>
-{
-    protected override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
-}
+internal sealed class CSharpSimplifyLinqExpressionCodeFixProvider() : AbstractSimplifyLinqExpressionCodeFixProvider<InvocationExpressionSyntax, SimpleNameSyntax, ExpressionSyntax>;
