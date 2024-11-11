@@ -1101,6 +1101,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 GoTo ResolutionComplete
             End If
 
+            ApplyTieBreakingRulesSkippedByCombineCandidates(candidates, applicableCandidates, applicableNarrowingCandidates, arguments.Length, argumentNames, useSiteInfo)
+            If applicableCandidates < 2 Then
+                narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
+                GoTo ResolutionComplete
+            End If
+
             ' §11.8.1 Overloaded Method Resolution.
             ' 7.8.	If one or more arguments are AddressOf or lambda expressions, and all of the corresponding
             '         delegate types in M match exactly, but not all do in N, eliminate N from the set.
@@ -1185,6 +1191,214 @@ ResolutionComplete:
             End If
 
             Return New OverloadResolutionResult(candidates.ToImmutable(), resolutionIsLateBound, narrowingCandidatesRemainInTheSet, asyncLambdaSubToFunctionMismatch)
+        End Function
+
+        Private Shared Sub ApplyTieBreakingRulesSkippedByCombineCandidates(
+            candidates As ArrayBuilder(Of CandidateAnalysisResult),
+            ByRef applicableCandidates As Integer,
+            ByRef applicableNarrowingCandidates As Integer,
+            argumentCount As Integer,
+            argumentNames As ImmutableArray(Of String),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
+        )
+            For i As Integer = 0 To candidates.Count - 1 Step 1
+
+                Dim existingCandidate As CandidateAnalysisResult = candidates(i)
+
+                ' Skip over some eliminated candidates, which we will be unable to match signature against.
+                If existingCandidate.State = CandidateAnalysisResultState.ArgumentCountMismatch OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.BadGenericArity OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.Ambiguous OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.TypeInferenceFailed OrElse existingCandidate.SomeInferenceFailed OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.HasUseSiteError OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.HasUnsupportedMetadata OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.LessApplicable OrElse
+                   existingCandidate.State = CandidateAnalysisResultState.Shadowed Then
+                    Continue For
+                End If
+
+                For j As Integer = i + 1 To candidates.Count - 1 Step 1
+
+                    Dim newCandidate As CandidateAnalysisResult = candidates(j)
+
+                    If newCandidate.State <> CandidateAnalysisResultState.Applicable Then
+                        Continue For
+                    End If
+
+                    ' Candidate can't hide another form of itself
+                    If existingCandidate.Candidate Is newCandidate.Candidate Then
+                        Continue For
+                    End If
+
+                    Dim existingWins As Boolean = False
+                    Dim newWins As Boolean = False
+
+                    If ApplyTieBreakingRulesSkippedByCombineCandidates(existingCandidate, newCandidate, argumentCount, argumentNames, useSiteInfo, existingWins, newWins) Then
+                        Debug.Assert(existingWins Xor newWins) ' Both cannot win!
+                        Dim lost As Integer = If(existingWins, j, i)
+
+                        Dim toShadow = candidates(lost)
+
+                        If toShadow.State = CandidateAnalysisResultState.Applicable Then
+                            applicableCandidates -= 1
+                            If toShadow.RequiresNarrowingConversion Then
+                                applicableNarrowingCandidates -= 1
+                            End If
+                        End If
+
+                        toShadow.State = CandidateAnalysisResultState.Shadowed
+                        candidates(lost) = toShadow
+
+                        If lost = i Then
+                            Exit For
+                        End If
+                    End If
+                Next
+            Next
+        End Sub
+
+        Private Shared Function ApplyTieBreakingRulesSkippedByCombineCandidates(
+            existingCandidate As CandidateAnalysisResult, newCandidate As CandidateAnalysisResult,
+            argumentCount As Integer,
+            argumentNames As ImmutableArray(Of String),
+            <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
+            ByRef existingWins As Boolean, ByRef newWins As Boolean
+        ) As Boolean
+            Debug.Assert(newCandidate.State = CandidateAnalysisResultState.Applicable)
+
+            Dim operatorResolution As Boolean = newCandidate.Candidate.IsOperator
+
+            Debug.Assert(newCandidate.Candidate.ParameterCount >= argumentCount OrElse newCandidate.IsExpandedParamArrayForm)
+            Debug.Assert(argumentNames.IsDefault OrElse argumentNames.Length > 0)
+            Debug.Assert(Not operatorResolution OrElse argumentNames.IsDefault)
+
+            ' It looks like the following code is applying some tie-breaking rules from section 7 of
+            ' §11.8.1 Overloaded Method Resolution, but not all of them and even skips ParamArrays tie-breaking
+            ' rule in some scenarios. I couldn't find an explanation of this behavior in the spec and
+            ' simply tried to keep this code close to Dev10.
+
+            ' Spec says that the tie-breaking rules should be applied only for members equally applicable to the argument list.
+            ' [§11.8.1.1 Applicability] defines equally applicable members as follows:
+            ' A member M is considered equally applicable as N if
+            ' 1) their signatures are the same or
+            ' 2) if each parameter type in M is the same as the corresponding parameter type in N.
+
+            ' We can always check if signature is the same, but we cannot check the second condition in presence
+            ' of named arguments because for them we don't know yet which parameter in M corresponds to which
+            ' parameter in N.
+
+            Debug.Assert(existingCandidate.Candidate.ParameterCount >= argumentCount OrElse existingCandidate.IsExpandedParamArrayForm)
+
+            ' Check if the shadowing below can be applied in theory
+            If Not existingCandidate.IsExpandedParamArrayForm AndAlso Not newCandidate.IsExpandedParamArrayForm AndAlso
+               Not argumentNames.IsDefault AndAlso
+               (existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) Then
+                Return False
+            End If
+
+            If argumentNames.IsDefault Then
+                Dim existingParamIndex As Integer = 0
+                Dim newParamIndex As Integer = 0
+
+                'CONSIDER: Can we somehow merge this with the complete signature comparison?
+                For j As Integer = 0 To argumentCount - 1 Step 1
+
+                    Dim existingType As TypeSymbol = GetParameterTypeFromVirtualSignature(existingCandidate, existingParamIndex)
+                    Dim newType As TypeSymbol = GetParameterTypeFromVirtualSignature(newCandidate, newParamIndex)
+
+                    If Not existingType.IsSameTypeIgnoringAll(newType) Then
+                        ' Signatures are different, shadowing rules do not apply
+                        Return False
+                    End If
+
+                    ' Advance to the next parameter in the existing candidate,
+                    ' unless we are on the expanded ParamArray parameter.
+                    AdvanceParameterInVirtualSignature(existingCandidate, existingParamIndex)
+
+                    ' Advance to the next parameter in the new candidate,
+                    ' unless we are on the expanded ParamArray parameter.
+                    AdvanceParameterInVirtualSignature(newCandidate, newParamIndex)
+                Next
+            Else
+                Debug.Assert(Not operatorResolution)
+            End If
+
+            Dim signatureMatch As Boolean = True
+
+            ' Compare complete signature, with no regard to arguments
+            If existingCandidate.Candidate.ParameterCount <> newCandidate.Candidate.ParameterCount Then
+                Debug.Assert(Not operatorResolution)
+                signatureMatch = False
+            ElseIf operatorResolution Then
+                Debug.Assert(argumentCount = existingCandidate.Candidate.ParameterCount)
+                Debug.Assert(signatureMatch)
+            Else
+                For j As Integer = 0 To existingCandidate.Candidate.ParameterCount - 1 Step 1
+
+                    Dim existingType As TypeSymbol = existingCandidate.Candidate.Parameters(j).Type
+                    Dim newType As TypeSymbol = newCandidate.Candidate.Parameters(j).Type
+
+                    If Not existingType.IsSameTypeIgnoringAll(newType) Then
+                        signatureMatch = False
+                        Exit For
+                    End If
+                Next
+            End If
+
+            If Not argumentNames.IsDefault AndAlso Not signatureMatch Then
+                ' Signatures are different, shadowing rules do not apply
+                Return False
+            End If
+
+            If Not signatureMatch Then
+                Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
+
+                ' If we have gotten to this point it means that the 2 procedures have equal specificity,
+                ' but signatures that do not match exactly (after generic substitution). This
+                ' implies that we are dealing with differences in shape due to param arrays
+                ' or optional arguments.
+                ' So we look and see if one procedure maps fewer arguments to the
+                ' param array than the other. The one using more, is then shadowed by the one using less.
+
+                '•	If M has fewer parameters from an expanded paramarray than N, eliminate N from the set.
+                If ShadowBasedOnParamArrayUsage(existingCandidate, newCandidate, existingWins, newWins) Then
+                    Return True
+                End If
+
+            Else
+                ' The signatures of the two methods match (after generic parameter substitution).
+                ' This means that param array shadowing doesn't come into play.
+                ' !!! Why? Where is this mentioned in the spec?
+            End If
+
+            Debug.Assert(argumentNames.IsDefault OrElse signatureMatch)
+
+            ' In presence of named arguments, the following shadowing rules
+            ' cannot be applied if any candidate is extension method because
+            ' full signature match doesn't guarantee equal applicability (in presence of named arguments)
+            ' and instance methods hide by signature regardless applicability rules do not apply to extension methods.
+            If argumentNames.IsDefault OrElse
+                   Not (existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) Then
+
+                '7.1.	If M is defined in a more derived type than N, eliminate N from the set.
+                '       This rule also applies to the types that extension methods are defined on.
+                '7.2.	If M and N are extension methods and the target type of M is a class or
+                '       structure and the target type of N is an interface, eliminate N from the set.
+                If (Not signatureMatch OrElse existingCandidate.Candidate.IsExtensionMethod OrElse newCandidate.Candidate.IsExtensionMethod) AndAlso
+                       ShadowBasedOnReceiverType(existingCandidate, newCandidate, existingWins, newWins, useSiteInfo) Then
+                    Return True
+                End If
+
+                '7.3.	If M and N are extension methods and the target type of M has fewer type
+                '       parameters than the target type of N, eliminate N from the set.
+                '       !!! Note that spec talks about "fewer type parameters", but it is not really about count.
+                '       !!! It is about one refers to a type parameter and the other one doesn't.
+                If ShadowBasedOnExtensionMethodTargetTypeGenericity(existingCandidate, newCandidate, existingWins, newWins) Then
+                    Return True
+                End If
+            End If
+
+            Return False
         End Function
 
         Private Shared Function EliminateNarrowingCandidates(
