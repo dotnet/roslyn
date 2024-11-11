@@ -34888,8 +34888,9 @@ partial class Program
             var source = """
                 using System;
 
-                C.M1(["a"]);
-                C.M2(["b"]);
+                string[] arr = ["a"];
+                C.M1(arr);
+                C.M2(arr);
 
                 class C
                 {
@@ -34906,7 +34907,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[a], [b], "), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[a], [a], "), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             var expectedIL = """
                 {
                   // Code size       25 (0x19)
@@ -34932,8 +34933,9 @@ partial class Program
             var source = """
                 using System;
 
-                C.M1(["a"]);
-                C.M2(["b"]);
+                string[] arr = ["a"];
+                C.M1(arr);
+                C.M2(arr);
 
                 class C
                 {
@@ -34950,7 +34952,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[a], [b], "), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[a], [a], "), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             var expectedIL = """
                 {
                   // Code size       21 (0x15)
