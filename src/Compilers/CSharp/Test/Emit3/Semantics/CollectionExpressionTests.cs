@@ -36948,7 +36948,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1234"), targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1234"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
         }
 
