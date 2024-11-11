@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(singleSpread.Expression.Type is not null);
 
-            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type, toListOfElementType.Parameters[0].Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
+            if (!ShouldUseIEnumerableBulkAddMethod(singleSpread.Expression.Type, toListOfElementType.Parameters[0].Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
             {
                 return false;
             }
@@ -185,7 +185,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool ShouldUseAddRangeOrToListMethod(TypeSymbol spreadType, TypeSymbol targetEnumerableType, MethodSymbol? getEnumeratorMethod)
+        /// <summary>
+        /// Decides if a bulk-add method such as AddRange, ToList, ToArray, etc. is suitable for copying a spread value with type 'spreadType' to the destination collection.
+        /// </summary>
+        private bool ShouldUseIEnumerableBulkAddMethod(TypeSymbol spreadType, TypeSymbol targetEnumerableType, MethodSymbol? getEnumeratorMethod)
         {
             Debug.Assert(targetEnumerableType.OriginalDefinition == (object)_compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T));
 
@@ -660,10 +663,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
                 }
                 else if (IsConvertibleToObject(arrayType.ElementType)
-                    && _factory.WellKnownMethod(WellKnownMember.System_Linq_Enumerable__ToArray) is { } linqToArrayMethodGeneric)
+                    && _factory.WellKnownMethod(WellKnownMember.System_Linq_Enumerable__ToArray, isOptional: true) is { } linqToArrayMethodGeneric)
                 {
                     var linqToArrayMethod = linqToArrayMethodGeneric.Construct([arrayType.ElementTypeWithAnnotations]);
-                    if (ShouldUseAddRangeOrToListMethod(spreadExpression.Type!, linqToArrayMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
+                    if (ShouldUseIEnumerableBulkAddMethod(spreadExpression.Type!, linqToArrayMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
                     {
                         return _factory.Call(receiver: null, linqToArrayMethod, VisitExpression(spreadExpression));
                     }
@@ -823,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsConvertibleToObject(TypeSymbol type)
         {
-            // conversion to 'object' will fail if, for example, 'arrayType.ElementType' is a pointer.
+            // conversion to 'object' will fail if, for example, 'type' is a pointer.
             var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             return _compilation.Conversions.ClassifyConversionFromType(
                 source: type,
@@ -1174,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (addRangeMethod is null)
                             return false;
 
-                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type, addRangeMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
+                        if (!ShouldUseIEnumerableBulkAddMethod(rewrittenSpreadOperand.Type, addRangeMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
                         {
                             return false;
                         }

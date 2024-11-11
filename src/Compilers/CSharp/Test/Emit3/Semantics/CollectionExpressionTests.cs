@@ -34724,7 +34724,7 @@ partial class Program
 
         [Theory]
         [CombinatorialData]
-        public void SingleSpread_WellKnownMemberMissing(bool readOnlySpanMembersMissing)
+        public void SingleSpread_ArrayToArray_WellKnownMemberMissing_01(bool readOnlySpanMembersMissing)
         {
             var source = """
                 class C
@@ -34766,6 +34766,195 @@ partial class Program
                   IL_0023:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void SingleSpread_ArrayToArray_WellKnownMemberMissing_02()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        int[] arr = [1, 2, 3];
+                        arr.Report();
+                        int[] arr1 = [..arr];
+                        arr1.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Linq_Enumerable__ToArray);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0)
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_0011:  dup
+                  IL_0012:  ldc.i4.0
+                  IL_0013:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0018:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                  IL_001d:  stloc.0
+                  IL_001e:  ldloca.s   V_0
+                  IL_0020:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
+                  IL_0025:  ldc.i4.0
+                  IL_0026:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_002b:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SingleSpread_ArrayToArray_WellKnownMemberMissing_03()
+        {
+            var source = """
+                class C
+                {
+                    static void Main()
+                    {
+                        int[] arr = [1, 2, 3];
+                        arr.Report();
+                        int[] arr1 = [..arr];
+                        arr1.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Linq_Enumerable__ToArray);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ToArray);
+
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C.Main", """
+                {
+                  // Code size       72 (0x48)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                int[] V_1,
+                                int[] V_2,
+                                int V_3,
+                                int V_4)
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_0011:  dup
+                  IL_0012:  ldc.i4.0
+                  IL_0013:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  stloc.0
+                  IL_001a:  dup
+                  IL_001b:  ldlen
+                  IL_001c:  conv.i4
+                  IL_001d:  newarr     "int"
+                  IL_0022:  stloc.1
+                  IL_0023:  stloc.2
+                  IL_0024:  ldc.i4.0
+                  IL_0025:  stloc.3
+                  IL_0026:  br.s       IL_003a
+                  IL_0028:  ldloc.2
+                  IL_0029:  ldloc.3
+                  IL_002a:  ldelem.i4
+                  IL_002b:  stloc.s    V_4
+                  IL_002d:  ldloc.1
+                  IL_002e:  ldloc.0
+                  IL_002f:  ldloc.s    V_4
+                  IL_0031:  stelem.i4
+                  IL_0032:  ldloc.0
+                  IL_0033:  ldc.i4.1
+                  IL_0034:  add
+                  IL_0035:  stloc.0
+                  IL_0036:  ldloc.3
+                  IL_0037:  ldc.i4.1
+                  IL_0038:  add
+                  IL_0039:  stloc.3
+                  IL_003a:  ldloc.3
+                  IL_003b:  ldloc.2
+                  IL_003c:  ldlen
+                  IL_003d:  conv.i4
+                  IL_003e:  blt.s      IL_0028
+                  IL_0040:  ldloc.1
+                  IL_0041:  ldc.i4.0
+                  IL_0042:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0047:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SingleSpread_ArrayToArray_Covariant()
+        {
+            var source = """
+                using System;
+
+                Console.Write(C.M(["a"])[0]);
+
+                class C
+                {
+                    public static object[] M(string[] arr) => [..arr];
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                object[] V_1,
+                                string[] V_2,
+                                int V_3,
+                                string V_4)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  dup
+                  IL_0004:  ldlen
+                  IL_0005:  conv.i4
+                  IL_0006:  newarr     "object"
+                  IL_000b:  stloc.1
+                  IL_000c:  stloc.2
+                  IL_000d:  ldc.i4.0
+                  IL_000e:  stloc.3
+                  IL_000f:  br.s       IL_0023
+                  IL_0011:  ldloc.2
+                  IL_0012:  ldloc.3
+                  IL_0013:  ldelem.ref
+                  IL_0014:  stloc.s    V_4
+                  IL_0016:  ldloc.1
+                  IL_0017:  ldloc.0
+                  IL_0018:  ldloc.s    V_4
+                  IL_001a:  stelem.ref
+                  IL_001b:  ldloc.0
+                  IL_001c:  ldc.i4.1
+                  IL_001d:  add
+                  IL_001e:  stloc.0
+                  IL_001f:  ldloc.3
+                  IL_0020:  ldc.i4.1
+                  IL_0021:  add
+                  IL_0022:  stloc.3
+                  IL_0023:  ldloc.3
+                  IL_0024:  ldloc.2
+                  IL_0025:  ldlen
+                  IL_0026:  conv.i4
+                  IL_0027:  blt.s      IL_0011
+                  IL_0029:  ldloc.1
+                  IL_002a:  ret
+                }
+                """);
+
         }
 
         [Fact]
@@ -36531,6 +36720,49 @@ partial class Program
                   IL_003d:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        public void SingleSpread_ToArray_MustLowerSpreadOperand()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static Action[] M1()
+                    {
+                        return [..new[] { () => Console.Write(1) }];
+                    }
+
+                    static Action[] M2()
+                    {
+                        return [..new List<Action> { () => Console.Write(2) }];
+                    }
+
+                    static Action[] M3()
+                    {
+                        return [..new Span<Action>(new[] { () => Console.Write(3) })];
+                    }
+
+                    static Action[] M4()
+                    {
+                        return [..new ReadOnlySpan<Action>(new[] { () => Console.Write(4) })];
+                    }
+
+                    static void Main()
+                    {
+                        M1()[0]();
+                        M2()[0]();
+                        M3()[0]();
+                        M4()[0]();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: IncludeExpectedOutput("1234"), targetFramework: TargetFramework.Net80);
+            verifier.VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74615")]
