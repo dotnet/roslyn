@@ -11747,7 +11747,7 @@ done:
             //      ;
             //
             // null_conditional_element_access
-            //      : primary_no_array_creation_expression '?' '[' argument_list ']' dependent_access *
+            //      : primary_no_array_creation_expression '?' '[' argument_list ']' dependent_access*
             //      ;
             //
             // dependent_access
