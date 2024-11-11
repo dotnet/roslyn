@@ -57,14 +57,14 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
 
     public string DisplayName => EditorFeaturesResources.Documentation_Comment;
 
-    private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options, cancellationToken);
+    private static DocumentationCommentSnippet? InsertOnCharacterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
+        => service.GetDocumentationCommentSnippetOnCharacterTyped(document, position, options, cancellationToken);
 
-    private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options, cancellationToken);
+    private static DocumentationCommentSnippet? InsertOnEnterTyped(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
+        => service.GetDocumentationCommentSnippetOnEnterTyped(document, position, options, cancellationToken);
 
-    private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, SyntaxTree syntaxTree, SourceText text, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
-        => service.GetDocumentationCommentSnippetOnCommandInvoke(syntaxTree, text, position, options, cancellationToken);
+    private static DocumentationCommentSnippet? InsertOnCommandInvoke(IDocumentationCommentSnippetService service, ParsedDocument document, int position, DocumentationCommentOptions options, CancellationToken cancellationToken)
+        => service.GetDocumentationCommentSnippetOnCommandInvoke(document, position, options, cancellationToken);
 
     private static void ApplySnippet(DocumentationCommentSnippet snippet, ITextBuffer subjectBuffer, ITextView textView)
     {
@@ -76,7 +76,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
     private bool CompleteComment(
         ITextBuffer subjectBuffer,
         ITextView textView,
-        Func<IDocumentationCommentSnippetService, SyntaxTree, SourceText, int, DocumentationCommentOptions, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
+        Func<IDocumentationCommentSnippetService, ParsedDocument, int, DocumentationCommentOptions, CancellationToken, DocumentationCommentSnippet?> getSnippetAction,
         CancellationToken cancellationToken)
     {
         var caretPosition = textView.GetCaretPoint(subjectBuffer) ?? -1;
@@ -100,7 +100,7 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         var returnValue = false;
         foreach (var snapshot in snapshots)
         {
-            var snippet = getSnippetAction(service, parsedDocument.SyntaxTree, parsedDocument.Text, snapshot.Span.Start, options, cancellationToken);
+            var snippet = getSnippetAction(service, parsedDocument, snapshot.Span.Start, options, cancellationToken);
             if (snippet != null)
             {
                 ApplySnippet(snippet, subjectBuffer, textView);
@@ -209,9 +209,8 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         var isValidTargetMember = false;
         _uiThreadOperationExecutor.Execute("IntelliSense", defaultDescription: "", allowCancellation: true, showProgress: false, action: c =>
         {
-            var syntaxTree = document.GetRequiredSyntaxTreeSynchronously(c.UserCancellationToken);
-            var text = syntaxTree.GetText(c.UserCancellationToken);
-            isValidTargetMember = service.IsValidTargetMember(syntaxTree, text, caretPosition, c.UserCancellationToken);
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, c.UserCancellationToken);
+            isValidTargetMember = service.IsValidTargetMember(parsedDocument, caretPosition, c.UserCancellationToken);
         });
 
         return isValidTargetMember

@@ -121,8 +121,9 @@ internal sealed class SolutionChecksumUpdater
         // progress to synchronize the solution.
         lock (_gate)
         {
+            // We only pause expensive work (like updating the full solution checksum).  Cheaper work (like sending over
+            // text edits and active doc changes can proceed).
             _synchronizeWorkspaceQueue.CancelExistingWork();
-            _synchronizeActiveDocumentQueue.CancelExistingWork();
             _isPaused = true;
         }
     }
@@ -132,7 +133,6 @@ internal sealed class SolutionChecksumUpdater
         lock (_gate)
         {
             _isPaused = false;
-            _synchronizeActiveDocumentQueue.AddWork();
             _synchronizeWorkspaceQueue.AddWork();
         }
     }
