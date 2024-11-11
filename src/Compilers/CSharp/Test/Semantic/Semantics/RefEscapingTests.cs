@@ -6123,6 +6123,54 @@ public static class Extensions
         }
 
         [Fact]
+        public void Deconstruction_UnscopedRef_Assignment_RefReturnableReceiver()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M(ref S s)
+                    {
+                        (var x, _) = s;
+                        return x;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            // This should not be an error: https://github.com/dotnet/roslyn/issues/75850
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (7,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         return x;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 16));
+        }
+
+        [Fact]
+        public void Deconstruction_UnscopedRef_RefReturnableReceiver()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M(ref S s)
+                    {
+                        s.Deconstruct(out var x, out _);
+                        return x;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Deconstruction_UnscopedRef_Assignment_ExtensionMethod()
         {
             var source = """
@@ -6157,6 +6205,33 @@ public static class Extensions
                     R M()
                     {
                         if (new S() is (var x, _))
+                            return x;
+                        return default;
+                    }
+                }
+                struct S
+                {
+                    [UnscopedRef] public void Deconstruct(out R x, out int y) => throw null;
+                }
+                ref struct R;
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(
+                // (7,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //             return x;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75484")]
+        public void Deconstruction_UnscopedRef_PatternMatching_RefReturnableReceiver()
+        {
+            // Note that pattern matching emits a copy of the receiver `s` here, so the error is expected.
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    R M(ref S s)
+                    {
+                        if (s is (var x, _))
                             return x;
                         return default;
                     }
