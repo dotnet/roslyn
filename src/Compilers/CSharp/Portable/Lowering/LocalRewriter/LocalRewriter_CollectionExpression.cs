@@ -650,19 +650,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Attempt to optimize conversion of a single-spread collection expr to array, even if the spread length is not known.</summary>
         private BoundExpression? TryOptimizeSingleSpreadToArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
         {
-            // Collection-expr is of the form `[..spreadExpression]`, where 'spreadExpression' has same element type as the target collection.
+            // Collection-expr is of the form `[..spreadExpression]`.
             // Optimize to `spreadExpression.ToArray()` if possible.
             if (node is { Elements: [BoundCollectionExpressionSpreadElement { Expression: { } spreadExpression } spreadElement] }
-                && spreadElement.IteratorBody is BoundExpressionStatement expressionStatement
-                && expressionStatement.Expression is not BoundConversion)
+                && spreadElement.IteratorBody is BoundExpressionStatement expressionStatement)
             {
+                var spreadElementHasIdentityConversion = expressionStatement.Expression is not BoundConversion;
                 var spreadTypeOriginalDefinition = spreadExpression.Type!.OriginalDefinition;
-                if (tryGetToArrayMethod(spreadTypeOriginalDefinition, WellKnownType.System_Collections_Generic_List_T, WellKnownMember.System_Collections_Generic_List_T__ToArray, out MethodSymbol? listToArrayMethod))
+
+                if (spreadElementHasIdentityConversion
+                    && tryGetToArrayMethod(spreadTypeOriginalDefinition, WellKnownType.System_Collections_Generic_List_T, WellKnownMember.System_Collections_Generic_List_T__ToArray, out MethodSymbol? listToArrayMethod))
                 {
                     var rewrittenSpreadExpression = VisitExpression(spreadExpression);
                     return _factory.Call(rewrittenSpreadExpression, listToArrayMethod.AsMember((NamedTypeSymbol)spreadExpression.Type!));
                 }
-                else if (IsConvertibleToObject(arrayType.ElementType)
+
+                // See if 'Enumerable.ToArray<T>(IEnumerable<T>)' will work, possibly due to a covariant conversion on the spread value.
+                if (IsConvertibleToObject(arrayType.ElementType)
                     && _factory.WellKnownMethod(WellKnownMember.System_Linq_Enumerable__ToArray, isOptional: true) is { } linqToArrayMethodGeneric)
                 {
                     var linqToArrayMethod = linqToArrayMethodGeneric.Construct([arrayType.ElementTypeWithAnnotations]);
@@ -672,7 +676,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (TryGetSpanConversion(spreadExpression.Type, writableOnly: false, out var asSpanMethod))
+                if (spreadElementHasIdentityConversion
+                    && TryGetSpanConversion(spreadExpression.Type, writableOnly: false, out var asSpanMethod))
                 {
                     var spanType = CallAsSpanMethod(spreadExpression, asSpanMethod).Type!.OriginalDefinition;
                     if (tryGetToArrayMethod(spanType, WellKnownType.System_ReadOnlySpan_T, WellKnownMember.System_ReadOnlySpan_T__ToArray, out var toArrayMethod)

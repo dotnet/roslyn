@@ -11318,14 +11318,11 @@ static class Program
 
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size      158 (0x9e)
+                  // Code size       96 (0x60)
                   .maxstack  3
                   .locals init (int V_0,
                                 System.Span<dynamic> V_1,
-                                int V_2,
-                                object[] V_3,
-                                System.Collections.Generic.List<dynamic>.Enumerator V_4,
-                                object V_5)
+                                int V_2)
                   IL_0000:  ldc.i4.3
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
@@ -11367,44 +11364,10 @@ static class Program
                   IL_004d:  dup
                   IL_004e:  ldc.i4.0
                   IL_004f:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0054:  ldc.i4.0
-                  IL_0055:  stloc.2
-                  IL_0056:  dup
-                  IL_0057:  callvirt   "int System.Collections.Generic.List<dynamic>.Count.get"
-                  IL_005c:  newarr     "object"
-                  IL_0061:  stloc.3
-                  IL_0062:  callvirt   "System.Collections.Generic.List<dynamic>.Enumerator System.Collections.Generic.List<dynamic>.GetEnumerator()"
-                  IL_0067:  stloc.s    V_4
-                  .try
-                  {
-                    IL_0069:  br.s       IL_007d
-                    IL_006b:  ldloca.s   V_4
-                    IL_006d:  call       "dynamic System.Collections.Generic.List<dynamic>.Enumerator.Current.get"
-                    IL_0072:  stloc.s    V_5
-                    IL_0074:  ldloc.3
-                    IL_0075:  ldloc.2
-                    IL_0076:  ldloc.s    V_5
-                    IL_0078:  stelem.ref
-                    IL_0079:  ldloc.2
-                    IL_007a:  ldc.i4.1
-                    IL_007b:  add
-                    IL_007c:  stloc.2
-                    IL_007d:  ldloca.s   V_4
-                    IL_007f:  call       "bool System.Collections.Generic.List<dynamic>.Enumerator.MoveNext()"
-                    IL_0084:  brtrue.s   IL_006b
-                    IL_0086:  leave.s    IL_0096
-                  }
-                  finally
-                  {
-                    IL_0088:  ldloca.s   V_4
-                    IL_008a:  constrained. "System.Collections.Generic.List<dynamic>.Enumerator"
-                    IL_0090:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_0095:  endfinally
-                  }
-                  IL_0096:  ldloc.3
-                  IL_0097:  ldc.i4.0
-                  IL_0098:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_009d:  ret
+                  IL_0054:  call       "object[] System.Linq.Enumerable.ToArray<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0059:  ldc.i4.0
+                  IL_005a:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_005f:  ret
                 }
                 """);
         }
@@ -34910,13 +34873,70 @@ partial class Program
             var verifier = CompileAndVerify(source, expectedOutput: "a");
             verifier.VerifyIL("C.M", """
                 {
-                  // Code size       43 (0x2b)
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "object[] System.Linq.Enumerable.ToArray<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SingleSpread_ListToArray_Covariant()
+        {
+            // Linq ToArray method is applicable, but we do not use it in this case,
+            // because the List<string> has a struct enumerator and doesn't implement ICollection<object>.
+            // If we could get a Span<string> out of the List, then covariant-convert, we could use ReadOnlySpan<object>.ToArray() here.
+            // https://github.com/dotnet/roslyn/issues/71106
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                Console.Write(C.M(["a"])[0]);
+
+                class C
+                {
+                    public static object[] M(List<string> list) => [..list];
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "object[] System.Linq.Enumerable.ToArray<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SingleSpread_ArrayToArray_Boxing()
+        {
+            var source = """
+                using System;
+
+                Console.Write(C.M([1])[0]);
+
+                class C
+                {
+                    public static object[] M(int[] arr) => [..arr];
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       48 (0x30)
                   .maxstack  3
                   .locals init (int V_0,
                                 object[] V_1,
-                                string[] V_2,
+                                int[] V_2,
                                 int V_3,
-                                string V_4)
+                                int V_4)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
                   IL_0002:  stloc.0
@@ -34928,33 +34948,33 @@ partial class Program
                   IL_000c:  stloc.2
                   IL_000d:  ldc.i4.0
                   IL_000e:  stloc.3
-                  IL_000f:  br.s       IL_0023
+                  IL_000f:  br.s       IL_0028
                   IL_0011:  ldloc.2
                   IL_0012:  ldloc.3
-                  IL_0013:  ldelem.ref
+                  IL_0013:  ldelem.i4
                   IL_0014:  stloc.s    V_4
                   IL_0016:  ldloc.1
                   IL_0017:  ldloc.0
                   IL_0018:  ldloc.s    V_4
-                  IL_001a:  stelem.ref
-                  IL_001b:  ldloc.0
-                  IL_001c:  ldc.i4.1
-                  IL_001d:  add
-                  IL_001e:  stloc.0
-                  IL_001f:  ldloc.3
-                  IL_0020:  ldc.i4.1
-                  IL_0021:  add
-                  IL_0022:  stloc.3
-                  IL_0023:  ldloc.3
-                  IL_0024:  ldloc.2
-                  IL_0025:  ldlen
-                  IL_0026:  conv.i4
-                  IL_0027:  blt.s      IL_0011
-                  IL_0029:  ldloc.1
-                  IL_002a:  ret
+                  IL_001a:  box        "int"
+                  IL_001f:  stelem.ref
+                  IL_0020:  ldloc.0
+                  IL_0021:  ldc.i4.1
+                  IL_0022:  add
+                  IL_0023:  stloc.0
+                  IL_0024:  ldloc.3
+                  IL_0025:  ldc.i4.1
+                  IL_0026:  add
+                  IL_0027:  stloc.3
+                  IL_0028:  ldloc.3
+                  IL_0029:  ldloc.2
+                  IL_002a:  ldlen
+                  IL_002b:  conv.i4
+                  IL_002c:  blt.s      IL_0011
+                  IL_002e:  ldloc.1
+                  IL_002f:  ret
                 }
                 """);
-
         }
 
         [Fact]
