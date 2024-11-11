@@ -459,6 +459,37 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
+    public void BreakingChange_TypeInference_SpanVsIEnumerable_02_BothSpanAndReadOnlySpan()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            string[] s = new[] { "a" };
+            object[] o = s;
+
+            C.R(o);
+
+            static class C
+            {
+                public static void R<T>(IEnumerable<T> e) => Console.Write(1);
+                public static void R<T>(ReadOnlySpan<T> s) => Console.Write(2);
+                public static void R<T>(Span<T> s) => Console.Write(3);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var expectedOutput = "2";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void BreakingChange_Conversion_SpanVsIEnumerable()
     {
         var source = """
@@ -504,6 +535,37 @@ public class FirstClassSpanTests : CSharpTestBase
             {
                 public static void R<T>(this IEnumerable<T> e) => Console.Write(1);
                 public static void R<T>(this ReadOnlySpan<T> s) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var expectedOutput = "2";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void BreakingChange_Conversion_SpanVsIEnumerable_BothSpanAndReadOnlySpan()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            string[] s = new[] { "a" };
+            object[] o = s;
+
+            o.R<object>();
+
+            static class E
+            {
+                public static void R<T>(this IEnumerable<T> e) => Console.Write(1);
+                public static void R<T>(this ReadOnlySpan<T> s) => Console.Write(2);
+                public static void R<T>(this Span<T> s) => Console.Write(3);
             }
             """;
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
