@@ -131,8 +131,9 @@ internal sealed partial class CSharpSymbolDisplayService
             var displayPartsSpans = displayParts.AsSpan();
             while (displayPartsSpans is [var firstSpan, ..])
             {
-                // Look for `where T :` and add a line break before it.
+                // Look for ` where T :` and add a line break before it.
                 if (displayPartsSpans is [
+                    { Kind: SymbolDisplayPartKind.Space },
                     { Kind: SymbolDisplayPartKind.Keyword } keyword,
                     { Kind: SymbolDisplayPartKind.Space },
                     { Kind: SymbolDisplayPartKind.TypeParameterName },
@@ -142,12 +143,17 @@ internal sealed partial class CSharpSymbolDisplayService
                     keyword.ToString() == "where" &&
                     punctuation.ToString() == ":")
                 {
+                    // Intentionally do not this initial space.  We want to replace it with a newline and 4 spaces instead.
+
                     builder.AddRange(LineBreak());
                     builder.AddRange(Space(4));
                     wrappedConstraints++;
                 }
+                else
+                {
+                    builder.Add(firstSpan);
+                }
 
-                builder.Add(firstSpan);
                 displayPartsSpans = displayPartsSpans[1..];
             }
 

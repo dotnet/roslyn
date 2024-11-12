@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -728,7 +729,7 @@ internal abstract partial class AbstractSymbolDisplayService
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             List<ITypeSymbol> typeArguments)
         {
-            var parts = new List<SymbolDisplayPart>();
+            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var parts);
 
             var count = typeParameters.Length;
             for (var i = 0; i < count; i++)

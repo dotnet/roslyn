@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security;
 using System.Threading;
@@ -23,15 +24,21 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo;
 
 [Trait(Traits.Feature, Traits.Features.QuickInfo)]
-public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
+public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
 {
-    private static async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
+    private static async Task TestWithOptionsAsync(
+        CSharpParseOptions options,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(markup, options);
         await TestWithOptionsAsync(workspace, expectedResults);
     }
 
-    private static async Task TestWithOptionsAsync(CSharpCompilationOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
+    private static async Task TestWithOptionsAsync(
+        CSharpCompilationOptions options,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(markup, compilationOptions: options);
         await TestWithOptionsAsync(workspace, expectedResults);
@@ -83,7 +90,9 @@ public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
         }
     }
 
-    private static async Task VerifyWithMscorlib45Async(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private static async Task VerifyWithMscorlib45Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var xmlString = string.Format("""
             <Workspace>
@@ -98,7 +107,9 @@ public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
         await VerifyWithMarkupAsync(xmlString, expectedResults);
     }
 
-    private static async Task VerifyWithNet8Async(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private static async Task VerifyWithNet8Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var xmlString = string.Format("""
             <Workspace>
@@ -141,13 +152,17 @@ public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
         }
     }
 
-    protected override async Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+    protected override async Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
         await TestWithOptionsAsync(Options.Script, markup, expectedResults);
     }
 
-    private async Task TestWithUsingsAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private async Task TestWithUsingsAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var markupWithUsings =
 @"using System;
@@ -158,25 +173,33 @@ using System.Linq;
         await TestAsync(markupWithUsings, expectedResults);
     }
 
-    private Task TestInClassAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private Task TestInClassAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var markupInClass = "class C { " + markup + " }";
         return TestWithUsingsAsync(markupInClass, expectedResults);
     }
 
-    private Task TestInMethodAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private Task TestInMethodAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var markupInMethod = "class C { void M() { " + markup + " } }";
         return TestWithUsingsAsync(markupInMethod, expectedResults);
     }
 
-    private Task TestInMethodAsync(string markup, string extraSource, params Action<QuickInfoItem>[] expectedResults)
+    private Task TestInMethodAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string extraSource,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var markupInMethod = "class C { void M() { " + markup + " } }" + extraSource;
         return TestWithUsingsAsync(markupInMethod, expectedResults);
     }
 
-    private static async Task TestWithReferenceAsync(string sourceCode,
+    private static async Task TestWithReferenceAsync(
+        string sourceCode,
         string referencedCode,
         string sourceLanguage,
         string referencedLanguage,
@@ -293,7 +316,7 @@ using System.Linq;
         }
     }
 
-    protected async Task TestInvalidTypeInClassAsync(string code)
+    private async Task TestInvalidTypeInClassAsync(string code)
     {
         var codeInClass = "class C { " + code + " }";
         await TestAsync(codeInClass);
@@ -6880,6 +6903,37 @@ class X
     void $$M<T>() where T : notnull { }
 }",
             MainDescription("void X.M<T>() where T : notnull"));
+    }
+
+    [Fact]
+    public async Task MultipleConstraints_Type()
+    {
+        await TestAsync(
+@"
+class $$X<T, U> where T : notnull where U : notnull
+{
+}",
+            MainDescription("""
+                class X<T, U>
+                    where T : notnull
+                    where U : notnull
+                """));
+    }
+
+    [Fact]
+    public async Task MultipleConstraints_Method()
+    {
+        await TestAsync(
+@"
+class X
+{
+    void $$M<T, U>() where T : notnull where U : notnull { }
+}",
+            MainDescription("""
+                void X.M<T, U>()
+                    where T : notnull
+                    where U : notnull
+                """));
     }
 
     [Fact]
