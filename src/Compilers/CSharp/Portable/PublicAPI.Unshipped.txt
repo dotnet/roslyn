@@ -1,5 +1,21 @@
 Microsoft.CodeAnalysis.CSharp.Conversion.IsSpan.get -> bool
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp13 = 1300 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.ColonToken.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.KeyExpression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression, Microsoft.CodeAnalysis.SyntaxToken colonToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.ValueExpression.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken colonToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithKeyExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.WithValueExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.KeyValuePairElement = 9079 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+override Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.KeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.KeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression, Microsoft.CodeAnalysis.SyntaxToken colonToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax! node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax! node) -> TResult?
 [RSEXPERIMENTAL002]Microsoft.CodeAnalysis.CSharp.InterceptableLocation
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Data.get -> string!
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetDisplayLocation() -> string!

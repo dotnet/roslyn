@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
             MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int _);
 
             var actual = view.TextSnapshot.GetText();
-            Assert.Equal(expectedCode, actual);
+            AssertEx.Equal(expectedCode, actual);
 
             var endCaretPosition = view.Caret.Position.BufferPosition.Position;
             var actualWithCaret = actual.Insert(endCaretPosition, "$$");
