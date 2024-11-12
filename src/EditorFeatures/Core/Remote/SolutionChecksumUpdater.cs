@@ -48,7 +48,7 @@ internal sealed class SolutionChecksumUpdater
     private readonly AsyncBatchingWorkQueue _synchronizeActiveDocumentQueue;
 
     private readonly object _gate = new();
-    private bool _isPaused;
+    private bool _isSynchronizeWorkspacePaused;
 
     public SolutionChecksumUpdater(
         Workspace workspace,
@@ -91,13 +91,13 @@ internal sealed class SolutionChecksumUpdater
         }
 
         // Enqueue the work to sync the initial solution.
-        ResumeWork();
+        ResumeSynchronizingPrimaryWorkspace();
     }
 
     public void Shutdown()
     {
         // Try to stop any work that is in progress.
-        PauseWork();
+        PauseSynchronizingPrimaryWorkspace();
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
         _workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -110,49 +110,47 @@ internal sealed class SolutionChecksumUpdater
     }
 
     private void OnGlobalOperationStarted(object? sender, EventArgs e)
-        => PauseWork();
+        => PauseSynchronizingPrimaryWorkspace();
 
     private void OnGlobalOperationStopped(object? sender, EventArgs e)
-        => ResumeWork();
+        => ResumeSynchronizingPrimaryWorkspace();
 
-    private void PauseWork()
+    private void PauseSynchronizingPrimaryWorkspace()
     {
         // An expensive global operation started (like a build).  Pause ourselves and cancel any outstanding work in
         // progress to synchronize the solution.
         lock (_gate)
         {
             _synchronizeWorkspaceQueue.CancelExistingWork();
-            _synchronizeActiveDocumentQueue.CancelExistingWork();
-            _isPaused = true;
+            _isSynchronizeWorkspacePaused = true;
         }
     }
 
-    private void ResumeWork()
+    private void ResumeSynchronizingPrimaryWorkspace()
     {
         lock (_gate)
         {
-            _isPaused = false;
-            _synchronizeActiveDocumentQueue.AddWork();
+            _isSynchronizeWorkspacePaused = false;
             _synchronizeWorkspaceQueue.AddWork();
         }
     }
 
     private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
     {
-        // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
-        // to whatever the workspace is doing.
-        lock (_gate)
-        {
-            if (_isPaused)
-                return;
-        }
-
         if (e.Kind == WorkspaceChangeKind.DocumentChanged)
         {
             var oldDocument = e.OldSolution.GetDocument(e.DocumentId);
             var newDocument = e.NewSolution.GetDocument(e.DocumentId);
             if (oldDocument != null && newDocument != null)
                 _textChangeQueue.AddWork((oldDocument, newDocument));
+        }
+
+        // Check if we're currently paused.  If so ignore this notification.  We don't want to any work in response
+        // to whatever the workspace is doing.
+        lock (_gate)
+        {
+            if (_isSynchronizeWorkspacePaused)
+                return;
         }
 
         _synchronizeWorkspaceQueue.AddWork();
