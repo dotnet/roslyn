@@ -242,13 +242,11 @@ internal readonly struct EmbeddedLanguageDetector(
             if (syntaxFacts.IsSimpleAssignmentStatement(statement))
             {
                 syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-                if (container == right)
+                if (container == right &&
+                    IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, left, cancellationToken, out identifier))
                 {
-                    if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, left, cancellationToken, out identifier))
-                        return true;
+                    return true;
                 }
-
-                return false;
             }
 
             if (syntaxFacts.IsEqualsValueClause(container.Parent))
