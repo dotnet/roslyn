@@ -25,6 +25,7 @@ public partial class Solution
     {
         var service = this.Services.GetRequiredService<IDocumentTrackingService>();
 
+        // Operate on a local reference to the immutable array to ensure a consistent view of it.
         var localArray = _activeSemanticModels;
 
         // No need to do anything if we're already caching this pair.
