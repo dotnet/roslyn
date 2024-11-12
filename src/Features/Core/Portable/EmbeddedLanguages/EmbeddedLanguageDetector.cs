@@ -216,8 +216,8 @@ internal readonly struct EmbeddedLanguageDetector(
         Debug.Assert(syntaxFacts.IsLiteralExpression(token.Parent));
         Debug.Assert(!HasLanguageComment(token, syntaxFacts, out identifier, out _));
 
-        // If we're a string used in a collection initializer, treat this as a lang string if the collection itself is
-        // properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
+        // If we're a string used in a collection initializer, treat this as a lang string if the collection itself
+        // is properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
         var container = TryFindContainer(token);
         if (container is null)
             return false;
