@@ -5216,7 +5216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 builder.Add(bindElement(element, diagnostics, this, nestingLevel));
             }
-
             return new BoundUnconvertedCollectionExpression(syntax, builder.ToImmutableAndFree());
 
             static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
