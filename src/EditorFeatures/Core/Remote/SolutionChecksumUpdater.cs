@@ -132,6 +132,7 @@ internal sealed class SolutionChecksumUpdater
         {
             _isSynchronizeWorkspacePaused = false;
             _synchronizeWorkspaceQueue.AddWork();
+            _synchronizeActiveDocumentQueue.AddWork();
         }
     }
 
