@@ -216,58 +216,147 @@ internal readonly struct EmbeddedLanguageDetector(
 
         // If we're a string used in a collection initializer, treat this as a lang string if the collection itself
         // is properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
-        var container = TryFindContainer(token);
-        if (container is null)
+        var tokenParent = TryFindContainer(token);
+        if (tokenParent is null)
             return false;
 
-        if (syntaxFacts.IsArgument(container.Parent))
+        // Check for direct usage of this token that indicates it's an embedded language string.  Like passing it to an
+        // argument which has the StringSyntax attribute on it.
+        if (IsEmbeddedLanguageStringLiteralToken_Direct(
+                token, semanticModel, cancellationToken, out identifier))
         {
-            if (IsArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
-                return true;
+            return true;
         }
-        else if (syntaxFacts.IsAttributeArgument(container.Parent))
+
+        // Now check for if the literal was assigned to a local that we then see is passed along to something that
+        // indicates an embedded language string.
+
+        var statement = tokenParent.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+        if (syntaxFacts.IsSimpleAssignmentStatement(statement))
         {
-            if (IsAttributeArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
-                return true;
+            syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
+            return tokenParent == right &&
+                IsLocalConsumedByApiWithStringSyntaxAttribute(
+                    semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol(), tokenParent, semanticModel, cancellationToken, out identifier);
         }
-        else if (syntaxFacts.IsNamedMemberInitializer(container.Parent))
+
+        if (syntaxFacts.IsEqualsValueClause(tokenParent.Parent) &&
+            syntaxFacts.IsVariableDeclarator(tokenParent.Parent.Parent))
         {
-            syntaxFacts.GetPartsOfNamedMemberInitializer(container.Parent, out var name, out _);
-            if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, name, cancellationToken, out identifier))
-                return true;
+            var variableDeclarator = tokenParent.Parent.Parent;
+            var symbol =
+                semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
+                semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
+
+            return IsLocalConsumedByApiWithStringSyntaxAttribute(symbol, tokenParent, semanticModel, cancellationToken, out identifier);
         }
-        else
+
+        return false;
+    }
+
+    private bool IsEmbeddedLanguageStringLiteralToken_Direct(
+        SyntaxToken token,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out string? identifier)
+    {
+        identifier = null;
+        var syntaxFacts = Info.SyntaxFacts;
+
+        var tokenParent = TryFindContainer(token);
+        if (tokenParent is null)
+            return false;
+
+        if (syntaxFacts.IsArgument(tokenParent.Parent))
+            return IsArgumentWithMatchingStringSyntaxAttribute(semanticModel, tokenParent.Parent, cancellationToken, out identifier);
+
+        if (syntaxFacts.IsAttributeArgument(tokenParent.Parent))
+            return IsAttributeArgumentWithMatchingStringSyntaxAttribute(semanticModel, tokenParent.Parent, cancellationToken, out identifier);
+
+        if (syntaxFacts.IsNamedMemberInitializer(tokenParent.Parent))
         {
-            var statement = container.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
-            if (syntaxFacts.IsSimpleAssignmentStatement(statement))
+            syntaxFacts.GetPartsOfNamedMemberInitializer(tokenParent.Parent, out var name, out _);
+            return IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, name, cancellationToken, out identifier);
+        }
+
+        var statement = tokenParent.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+        if (syntaxFacts.IsSimpleAssignmentStatement(statement))
+        {
+            syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
+            if (tokenParent == right)
             {
-                syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-                if (container == right &&
-                    IsFieldOrPropertyWithMatchingStringSyntaxAttribute(
-                        semanticModel, left, cancellationToken, out identifier))
-                {
+                if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, left, cancellationToken, out identifier))
                     return true;
-                }
             }
 
-            if (syntaxFacts.IsEqualsValueClause(container.Parent))
+            return false;
+        }
+
+        if (syntaxFacts.IsEqualsValueClause(tokenParent.Parent))
+        {
+            if (syntaxFacts.IsVariableDeclarator(tokenParent.Parent.Parent))
             {
-                if (syntaxFacts.IsVariableDeclarator(container.Parent.Parent))
-                {
-                    var variableDeclarator = container.Parent.Parent;
-                    var symbol =
-                        semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
-                        semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
+                var variableDeclarator = tokenParent.Parent.Parent;
+                var symbol =
+                    semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
+                    semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
 
-                    if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
-                        return true;
-                }
-                else if (syntaxFacts.IsEqualsValueOfPropertyDeclaration(container.Parent))
-                {
-                    var property = container.Parent.GetRequiredParent();
-                    var symbol = semanticModel.GetDeclaredSymbol(property, cancellationToken);
+                if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                    return true;
+            }
+            else if (syntaxFacts.IsEqualsValueOfPropertyDeclaration(tokenParent.Parent))
+            {
+                var property = tokenParent.Parent.GetRequiredParent();
+                var symbol = semanticModel.GetDeclaredSymbol(property, cancellationToken);
 
-                    if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsLocalConsumedByApiWithStringSyntaxAttribute(
+        ISymbol? symbol,
+        SyntaxNode tokenParent,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out string? identifier)
+    {
+        identifier = null;
+        if (symbol is not ILocalSymbol localSymbol)
+            return false;
+
+        var blockFacts = this.Info.BlockFacts;
+        var syntaxFacts = this.Info.SyntaxFacts;
+
+        var block = tokenParent.AncestorsAndSelf().FirstOrDefault(blockFacts.IsExecutableBlock);
+        if (block is null)
+            return false;
+
+        var localName = localSymbol.Name;
+        if (localName == "")
+            return false;
+
+        // Now look at the next statements that follow for usages of this local variable.
+        foreach (var statement in blockFacts.GetExecutableBlockStatements(block))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            foreach (var descendent in statement.DescendantNodesAndSelf())
+            {
+                if (!syntaxFacts.IsIdentifierName(descendent))
+                    continue;
+
+                var identifierToken = syntaxFacts.GetIdentifierOfIdentifierName(descendent);
+                if (identifierToken.ValueText != localName)
+                    continue;
+
+                var otherSymbol = semanticModel.GetSymbolInfo(descendent, cancellationToken).GetAnySymbol();
+                if (localSymbol.Equals(otherSymbol))
+                {
+                    if (IsEmbeddedLanguageStringLiteralToken_Direct(identifierToken, semanticModel, cancellationToken, out identifier))
                         return true;
                 }
             }
