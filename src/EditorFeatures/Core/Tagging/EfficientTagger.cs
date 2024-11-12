@@ -30,12 +30,20 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
         => GetTags(spans);
 
     /// <summary>
-    /// Default impl of the core <see cref="ITagger{T}"/> interface.  Forces an allocation.
+    /// Default impl of the core <see cref="ITagger{T}"/> interface.
     /// </summary>
-    public IReadOnlyList<TagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-        => SegmentedListPool<TagSpan<TTag>>.ComputeList(
-            static (args, tags) => args.@this.AddTags(args.spans, tags),
-            (@this: this, spans));
+    public IEnumerable<TagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+    {
+        using var pooledObject = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var list);
+
+        AddTags(spans, list);
+
+        // Use yield return mechanism to allow the segmented list to get returned back to the
+        // pool after usage. This does cause an allocation for the yield state machinery, but
+        // that is better than not freeing a potentially large segmented list back to the pool.
+        foreach (var item in list)
+            yield return item;
+    }
 
     public virtual event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
