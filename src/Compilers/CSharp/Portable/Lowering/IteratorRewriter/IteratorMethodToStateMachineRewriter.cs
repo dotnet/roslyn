@@ -160,7 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rootFrame.knownStates == null)
             {
                 // nothing to finalize
-                F.CloseMethod(F.Return());
+                var disposeBody = F.Block(
+                                    GenerateAllHoistedLocalsCleanup(),
+                                    F.Return());
+
+                F.CloseMethod(disposeBody);
             }
             else
             {
@@ -171,6 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ImmutableArray.Create<LocalSymbol>(stateLocal),
                                     F.Assignment(F.Local(stateLocal), F.Field(F.This(), stateField)),
                                     EmitFinallyFrame(rootFrame, state),
+                                    GenerateAllHoistedLocalsCleanup(),
                                     F.Return());
 
                 F.CloseMethod(disposeBody);

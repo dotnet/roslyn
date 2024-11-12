@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Note that there is a dispatch occurring at every try-finally statement, so this
         /// variable takes on a new set of values inside each try block.
         /// </summary>
-        private Dictionary<LabelSymbol, List<StateMachineState>> _dispatches = new();
+        private Dictionary<LabelSymbol, List<StateMachineState>> _dispatches = new Dictionary<LabelSymbol, List<StateMachineState>>();
 
         /// <summary>
         /// A pool of fields used to hoist locals. They appear in this set when not in scope,
@@ -428,6 +428,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
             }
         }
+
+#nullable enable
+        protected BoundBlock GenerateAllHoistedLocalsCleanup()
+        {
+            var variableCleanup = ArrayBuilder<BoundExpression>.GetInstance();
+            var alreadyCleaned = PooledHashSet<string>.GetInstance();
+            foreach (var symbol in HoistedVariables)
+            {
+                if (symbol is LocalSymbol
+                    && proxies.TryGetValue(symbol, out CapturedSymbolReplacement? replacement))
+                {
+                    Debug.Assert(replacement is CapturedToStateMachineFieldReplacement or CapturedToExpressionSymbolReplacement);
+
+                    if (replacement is CapturedToStateMachineFieldReplacement fieldReplacement)
+                    {
+                        addVariableCleanupOnce(variableCleanup, fieldReplacement.HoistedField, alreadyCleaned);
+                    }
+                    else if (replacement is CapturedToExpressionSymbolReplacement expressionReplacement)
+                    {
+                        foreach (var field in expressionReplacement.HoistedFields)
+                        {
+                            addVariableCleanupOnce(variableCleanup, field, alreadyCleaned);
+                        }
+                    }
+                }
+            }
+
+            var result = F.Block(variableCleanup.SelectAsArray((e, f) => (BoundStatement)f.ExpressionStatement(e), F));
+
+            variableCleanup.Free();
+            alreadyCleaned.Free();
+
+            return result;
+
+            void addVariableCleanupOnce(ArrayBuilder<BoundExpression> variableCleanup, FieldSymbol field, PooledHashSet<string> alreadyCleaned)
+            {
+                // Hoisted fields may be re-used, so we can skip those that were cleaed already
+                if (alreadyCleaned.Add(field.Name))
+                {
+                    AddVariableCleanup(variableCleanup, field);
+                }
+            }
+        }
+#nullable disable
 
         private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)
         {

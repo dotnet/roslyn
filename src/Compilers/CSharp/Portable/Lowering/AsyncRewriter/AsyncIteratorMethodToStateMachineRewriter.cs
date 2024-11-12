@@ -88,11 +88,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (asyncDispatch != null) ? F.Block(asyncDispatch, iteratorDispatch) : iteratorDispatch;
         }
+
+        protected override BoundStatement GenerateHoistedLocalsCleanup(ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        {
+            // We need to clean nested hoisted local variables too (not just top-level ones)
+            // as they are not cleaned when exiting a block if we exit using a `yield break`
+            // or if the caller interrupts the enumeration after we reached a `yield return`.
+            // So we clean both top-level and nested hoisted local variables
+            return GenerateAllHoistedLocalsCleanup();
+        }
 #nullable disable
+
         protected override BoundStatement GenerateSetResultCall()
         {
             // ... _exprReturnLabel: ...
             // ... this.state = FinishedState; ...
+            // ... hoisted locals cleanup ...
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             // _current = default;

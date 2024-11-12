@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -258,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isSynthesizedAsyncCatchAll: true);
         }
 
-        protected BoundStatement GenerateHoistedLocalsCleanup(ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        protected virtual BoundStatement GenerateHoistedLocalsCleanup(ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
         {
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
