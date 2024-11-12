@@ -34,9 +34,11 @@ public partial class Solution
         var activeDocumentId = service.TryGetActiveDocument();
         var relatedDocumentIds = activeDocumentId is null ? [] : this.GetRelatedDocumentIds(activeDocumentId);
 
+        // Remove any cached values for documents that are no longer the active document.
         localArray = localArray.RemoveAll(
             tuple => !relatedDocumentIds.Contains(tuple.documentId));
 
+        // Now cache this doc/semantic model pair if it's in the related document set.
         if (relatedDocumentIds.Contains(documentId))
             localArray = localArray.Add((documentId, semanticModel));
 
