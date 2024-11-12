@@ -131,8 +131,8 @@ internal sealed class SolutionChecksumUpdater
         lock (_gate)
         {
             _isSynchronizeWorkspacePaused = false;
-            _synchronizeWorkspaceQueue.AddWork();
             _synchronizeActiveDocumentQueue.AddWork();
+            _synchronizeWorkspaceQueue.AddWork();
         }
     }
 
