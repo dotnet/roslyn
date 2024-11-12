@@ -5966,5 +5966,29 @@ _ = o switch
                 //     string => 42, // 5
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "string").WithLocation(28, 5));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void RedundantPattern_InSwitch()
+        {
+            var source = """
+object o = null;
+_ = o switch
+{
+    string { Length: 0 } => 41,
+    not int or string => 42,
+    _ => 43
+};
+
+_ = o switch
+{
+    string { Length: 0 } => 41,
+    not string or int => 42,
+    _ => 43
+};
+""";
+            // TODO2 we should be warning here
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
