@@ -155,11 +155,9 @@ internal sealed class SolutionChecksumUpdater
         // to whatever the workspace is doing.
         lock (_gate)
         {
-            if (_isSynchronizeWorkspacePaused)
-                return;
+            if (!_isSynchronizeWorkspacePaused)
+                _synchronizeWorkspaceQueue.AddWork();
         }
-
-        _synchronizeWorkspaceQueue.AddWork();
     }
 
     private void OnActiveDocumentChanged(object? sender, DocumentId? e)
