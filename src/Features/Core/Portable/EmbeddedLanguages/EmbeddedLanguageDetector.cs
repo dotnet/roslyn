@@ -198,62 +198,10 @@ internal readonly struct EmbeddedLanguageDetector(
         return HasMatchingStringSyntaxAttribute(method.Parameters[0], out identifier);
     }
 
-    private bool IsEmbeddedLanguageStringLiteralToken(
-        SyntaxToken token,
-        SemanticModel semanticModel,
-        CancellationToken cancellationToken,
-        [NotNullWhen(true)] out string? identifier,
-        out IEnumerable<string>? options)
-    {
-        identifier = null;
-        options = null;
-        var syntaxFacts = Info.SyntaxFacts;
-        if (!syntaxFacts.IsLiteralExpression(token.Parent))
-            return false;
-
-        if (HasLanguageComment(token, syntaxFacts, out identifier, out options))
-            return true;
-
-        // If we're a string used in a collection initializer, treat this as a lang string if the collection itself
-        // is properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
-        var tokenParent = TryFindContainer(token);
-        if (tokenParent is null)
-            return false;
-
-        // Check for direct usage of this token that indicates it's an embedded language string.  Like passing it to an
-        // argument which has the StringSyntax attribute on it.
-        if (IsEmbeddedLanguageStringLiteralToken_Direct(
-                token, semanticModel, cancellationToken, out identifier))
-        {
-            return true;
-        }
-
-        // Now check for if the literal was assigned to a local that we then see is passed along to something that
-        // indicates an embedded language string.
-
-        var statement = tokenParent.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
-        if (syntaxFacts.IsSimpleAssignmentStatement(statement))
-        {
-            syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-            return tokenParent == right &&
-                IsLocalConsumedByApiWithStringSyntaxAttribute(
-                    semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol(), tokenParent, semanticModel, cancellationToken, out identifier);
-        }
-
-        if (syntaxFacts.IsEqualsValueClause(tokenParent.Parent) &&
-            syntaxFacts.IsVariableDeclarator(tokenParent.Parent.Parent))
-        {
-            var variableDeclarator = tokenParent.Parent.Parent;
-            var symbol =
-                semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
-                semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
-
-            return IsLocalConsumedByApiWithStringSyntaxAttribute(symbol, tokenParent, semanticModel, cancellationToken, out identifier);
-        }
-
-        return false;
-    }
-
+    /// <summary>
+    /// Checks for a string literal <em>directly</em> used in a location we can tell is controlled by a
+    /// <c>[StringSyntax]</c> attribute.
+    /// </summary>
     private bool IsEmbeddedLanguageStringLiteralToken_Direct(
         SyntaxToken token,
         SemanticModel semanticModel,
@@ -312,6 +260,62 @@ internal readonly struct EmbeddedLanguageDetector(
                 if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
                     return true;
             }
+        }
+
+        return false;
+    }
+
+    private bool IsEmbeddedLanguageStringLiteralToken(
+        SyntaxToken token,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out string? identifier,
+        out IEnumerable<string>? options)
+    {
+        identifier = null;
+        options = null;
+        var syntaxFacts = Info.SyntaxFacts;
+        if (!syntaxFacts.IsLiteralExpression(token.Parent))
+            return false;
+
+        if (HasLanguageComment(token, syntaxFacts, out identifier, out options))
+            return true;
+
+        // If we're a string used in a collection initializer, treat this as a lang string if the collection itself
+        // is properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
+        var tokenParent = TryFindContainer(token);
+        if (tokenParent is null)
+            return false;
+
+        // Check for direct usage of this token that indicates it's an embedded language string.  Like passing it to an
+        // argument which has the StringSyntax attribute on it.
+        if (IsEmbeddedLanguageStringLiteralToken_Direct(
+                token, semanticModel, cancellationToken, out identifier))
+        {
+            return true;
+        }
+
+        // Now check for if the literal was assigned to a local that we then see is passed along to something that
+        // indicates an embedded language string at some later point.
+
+        var statement = tokenParent.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+        if (syntaxFacts.IsSimpleAssignmentStatement(statement))
+        {
+            syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
+            return tokenParent == right &&
+                IsLocalConsumedByApiWithStringSyntaxAttribute(
+                    semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol(), tokenParent, semanticModel, cancellationToken, out identifier);
+        }
+
+        if (syntaxFacts.IsEqualsValueClause(tokenParent.Parent) &&
+            syntaxFacts.IsVariableDeclarator(tokenParent.Parent.Parent))
+        {
+            var variableDeclarator = tokenParent.Parent.Parent;
+            var symbol =
+                semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
+                semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
+
+            return IsLocalConsumedByApiWithStringSyntaxAttribute(symbol, tokenParent, semanticModel, cancellationToken, out identifier);
         }
 
         return false;
