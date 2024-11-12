@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -13,14 +14,14 @@ public partial class Solution
 {
     /// <summary>
     /// Strongly held reference to the semantic models for the active document (and its related documents linked into
-    /// other projects).  By strongly holding onto then, we ensure that it won't be GC'ed between feature requests from
-    /// multiple features that care about it.  As the active document has the most features running on it continuously,
-    /// we definitely do not want to drop this.  Note: this cached value is only to help with performance.  Not with
-    /// correctness.  Importantly, the concept of 'active document' is itself fundamentally racy.  That's ok though as
-    /// we simply want to settle on these semantic models settling into a stable state over time.  We don't need to be
-    /// perfect about it.
+    /// other projects).  By strongly holding onto then, we ensure that they won't be GC'ed between feature requests
+    /// from multiple features that care about it.  As the active document has the most features running on it
+    /// continuously, we definitely do not want to drop this.  Note: this cached value is only to help with performance.
+    /// Not with correctness.  Importantly, the concept of 'active document' is itself fundamentally racy.  That's ok
+    /// though as we simply want to settle on these semantic models settling into a stable state over time.  We don't
+    /// need to be perfect about it.
     /// </summary>
-    private readonly ConcurrentDictionary<DocumentId, ConcurrentSet<SemanticModel>> _activeSemanticModels = [];
+    private ImmutableDictionary<DocumentId, ImmutableHashSet<SemanticModel>> _activeSemanticModels = ImmutableDictionary<DocumentId, ImmutableHashSet<SemanticModel>>.Empty;
 
     internal void OnSemanticModelObtained(
         DocumentId documentId, SemanticModel semanticModel)
@@ -31,7 +32,7 @@ public partial class Solution
         if (activeDocumentId is null)
         {
             // No known active document.  Clear out any cached semantic models we have.
-            _activeSemanticModels.Clear();
+            _activeSemanticModels = _activeSemanticModels.Clear();
             return;
         }
 
@@ -42,11 +43,17 @@ public partial class Solution
         foreach (var (existingDocId, _) in _activeSemanticModels)
         {
             if (!relatedDocumentIdsSet.Contains(existingDocId))
-                _activeSemanticModels.TryRemove(existingDocId, out _);
+                ImmutableInterlocked.TryRemove(ref _activeSemanticModels, existingDocId, out _);
         }
 
         // If this is a semantic model for the active document (or any of its related documents), cache it.
         if (relatedDocumentIdsSet.Contains(documentId))
-            _activeSemanticModels.GetOrAdd(documentId, static _ => []).Add(semanticModel);
+        {
+            ImmutableInterlocked.AddOrUpdate(
+                ref _activeSemanticModels,
+                documentId,
+                addValueFactory: documentId => [semanticModel],
+                updateValueFactory: (_, set) => set.Add(semanticModel));
+        }
     }
 }
