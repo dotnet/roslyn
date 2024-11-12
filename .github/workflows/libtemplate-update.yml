@@ -39,7 +39,7 @@ jobs:
 
         if ((git rev-list FETCH_HEAD ^HEAD --count) -eq 0) {
           Write-Host "There are no Library.Template updates to merge."
-          echo "::set-output name=uptodate::true"
+          echo "uptodate=true" >> $env:GITHUB_OUTPUT
           exit 0
         }
 
