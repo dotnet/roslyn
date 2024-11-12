@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.SQLite.Interop;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 

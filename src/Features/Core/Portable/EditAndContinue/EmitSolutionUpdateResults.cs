@@ -138,8 +138,6 @@ internal readonly struct EmitSolutionUpdateResults
         return DiagnosticData.Create(SyntaxError, Solution.GetRequiredDocument(SyntaxError.Location.SourceTree));
     }
 
-
-
     /// <summary>
     /// Returns projects that need to be rebuilt and/or restarted due to blocking rude edits in order to apply changes.
     /// </summary>
