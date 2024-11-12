@@ -18,7 +18,7 @@ public partial class Solution
     /// though as we simply want to settle on these semantic models settling into a stable state over time.  We don't
     /// need to be perfect about it.
     /// </summary>
-    private ImmutableDictionary<DocumentId, ImmutableHashSet<SemanticModel>> _activeSemanticModels = ImmutableDictionary<DocumentId, ImmutableHashSet<SemanticModel>>.Empty;
+    private ImmutableArray<(DocumentId documentId, SemanticModel semanticModel)> _activeSemanticModels = [];
 
     internal void OnSemanticModelObtained(
         DocumentId documentId, SemanticModel semanticModel)
@@ -36,20 +36,12 @@ public partial class Solution
         var relatedDocumentIds = this.GetRelatedDocumentIds(activeDocumentId);
 
         // Clear out any entries for cached documents that are no longer active.
-        foreach (var (existingDocId, _) in _activeSemanticModels)
-        {
-            if (!relatedDocumentIds.Contains(existingDocId))
-                ImmutableInterlocked.TryRemove(ref _activeSemanticModels, existingDocId, out _);
-        }
+        _activeSemanticModels = _activeSemanticModels.RemoveAll(
+            tuple => !relatedDocumentIds.Contains(tuple.documentId));
 
-        // If this is a semantic model for the active document (or any of its related documents), cache it.
-        if (relatedDocumentIds.Contains(documentId))
-        {
-            ImmutableInterlocked.AddOrUpdate(
-                ref _activeSemanticModels,
-                documentId,
-                addValueFactory: documentId => [semanticModel],
-                updateValueFactory: (_, set) => set.Add(semanticModel));
-        }
+        // If this is a semantic model for the active document (or any of its related documents), and we haven't already
+        // cached it, then do so.
+        if (!_activeSemanticModels.Contains((documentId, semanticModel)))
+            _activeSemanticModels = _activeSemanticModels.Add((documentId, semanticModel));
     }
 }
