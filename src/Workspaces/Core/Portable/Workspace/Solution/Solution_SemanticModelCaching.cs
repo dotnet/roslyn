@@ -35,7 +35,7 @@ public partial class Solution
         if (activeDocumentId is null)
         {
             // No known active document.  Clear out any cached semantic models we have.
-            localArray = localArray.Clear();
+            localArray = [];
         }
         else
         {
