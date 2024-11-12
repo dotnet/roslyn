@@ -25,8 +25,8 @@ internal interface IRemoteAssetSynchronizationService
     /// new solution snapshot, it can hopefully just pluck that text out of the cache without having to sync the
     /// <em>entire</em> contents of the file over.
     /// </summary>
-    ValueTask SynchronizeTextAsync(
-        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges)>,
+    ValueTask SynchronizeTextChangesAsync(
+        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges)> changes,
         CancellationToken cancellationToken);
 
     /// <summary>

@@ -253,7 +253,7 @@ internal sealed class SolutionChecksumUpdater
             return;
 
         await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-            (service, cancellationToken) => service.SynchronizeTextAsync(builder.ToImmutableAndClear(), cancellationToken),
+            (service, cancellationToken) => service.SynchronizeTextChangesAsync(builder.ToImmutableAndClear(), cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 }
