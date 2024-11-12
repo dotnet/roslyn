@@ -36,13 +36,12 @@ public partial class Solution
             return;
         }
 
-        using var _1 = PooledHashSet<DocumentId>.GetInstance(out var relatedDocumentIdsSet);
-        relatedDocumentIdsSet.AddRange(this.GetRelatedDocumentIds(activeDocumentId));
+        var relatedDocumentIds = this.GetRelatedDocumentIds(activeDocumentId);
 
         // Clear out any entries for cached documents that are no longer active.
         foreach (var (existingDocId, _) in _activeSemanticModels)
         {
-            if (!relatedDocumentIdsSet.Contains(existingDocId))
+            if (!relatedDocumentIds.Contains(existingDocId))
                 ImmutableInterlocked.TryRemove(ref _activeSemanticModels, existingDocId, out _);
         }
 
