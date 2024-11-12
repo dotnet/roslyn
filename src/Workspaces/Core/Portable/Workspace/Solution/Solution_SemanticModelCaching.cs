@@ -11,7 +11,7 @@ public partial class Solution
 {
     /// <summary>
     /// Strongly held reference to the semantic models for the active document (and its related documents linked into
-    /// other projects).  By strongly holding onto then, we ensure that they won't be GC'ed between feature requests
+    /// other projects).  By strongly holding onto them, we ensure that they won't be GC'ed between feature requests
     /// from multiple features that care about it.  As the active document has the most features running on it
     /// continuously, we definitely do not want to drop this.  Note: this cached value is only to help with performance.
     /// Not with correctness.  Importantly, the concept of 'active document' is itself fundamentally racy.  That's ok
