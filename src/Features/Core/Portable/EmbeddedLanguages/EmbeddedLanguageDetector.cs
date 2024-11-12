@@ -356,10 +356,11 @@ internal readonly struct EmbeddedLanguageDetector(
         // Now look at the next statements that follow for usages of this local variable.
         foreach (var statement in blockFacts.GetExecutableBlockStatements(block))
         {
-            cancellationToken.ThrowIfCancellationRequested();
 
             foreach (var descendent in statement.DescendantNodesAndSelf())
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (!syntaxFacts.IsIdentifierName(descendent))
                     continue;
 
@@ -368,13 +369,13 @@ internal readonly struct EmbeddedLanguageDetector(
                     continue;
 
                 var otherSymbol = semanticModel.GetSymbolInfo(descendent, cancellationToken).GetAnySymbol();
-                if (localSymbol.Equals(otherSymbol))
+
+                // Only do a direct check here.  We don't want to continually do indirect checks where a string literal
+                // is assigned to one local, assigned to another local, assigned to another local, and so on.
+                if (localSymbol.Equals(otherSymbol) &&
+                    IsEmbeddedLanguageStringLiteralToken_Direct(identifierToken, semanticModel, cancellationToken, out identifier))
                 {
-                    // Only do a direct check here.  We don't want to continually do indirect checks where a string
-                    // literal is assigned to one local, assigned to another local, assigned to another local, and so
-                    // on.
-                    if (IsEmbeddedLanguageStringLiteralToken_Direct(identifierToken, semanticModel, cancellationToken, out identifier))
-                        return true;
+                    return true;
                 }
             }
         }
