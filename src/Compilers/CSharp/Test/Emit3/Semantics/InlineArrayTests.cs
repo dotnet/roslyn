@@ -4676,7 +4676,10 @@ class Program
 }
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "111", verify: Verification.Fails).VerifyDiagnostics(
+                // (6,45): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<Buffer10<int>> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(6, 45));
 
             verifier.VerifyIL("Program.<M1>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
@@ -4832,6 +4835,9 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
+                // (8,45): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<Buffer10<int>> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(8, 45),
                 // (20,12): error CS4007: Instance of type 'System.ReadOnlySpan<Buffer10<int>>' cannot be preserved across 'await' or 'yield' boundary.
                 //         => MemoryMarshal.CreateReadOnlySpan(
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"MemoryMarshal.CreateReadOnlySpan(
@@ -4887,6 +4893,9 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
+                // (8,45): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<Buffer10<int>> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(8, 45),
                 // (20,12): error CS4007: Instance of type 'System.ReadOnlySpan<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         => MemoryMarshal.CreateReadOnlySpan(
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"MemoryMarshal.CreateReadOnlySpan(
@@ -4940,6 +4949,9 @@ class Program
 ";
             var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
+                // (8,45): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 
+                //     public readonly Buffer10<Buffer10<int>> F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "").WithLocation(8, 45),
                 // (20,12): error CS8178: A reference returned by a call to 'Program.GetItem(ReadOnlySpan<Buffer10<int>>, int)' cannot be preserved across 'await' or 'yield' boundary.
                 //         => GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())[await FromResult(Get02(x))];
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GetItem(MemoryMarshal.CreateReadOnlySpan(ref Unsafe.As<Buffer10<Buffer10<int>>, Buffer10<int>>(ref Unsafe.AsRef(in GetC(x).F)),10), Get01())").WithArguments("Program.GetItem(System.ReadOnlySpan<Buffer10<int>>, int)").WithLocation(20, 12)
@@ -17019,12 +17031,22 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (16,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
                 //         System.Console.Write(((C)b).F);
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(C)b").WithArguments("C.implicit operator C(System.ReadOnlySpan<int>)", "C.implicit operator C(System.Span<int>)", "Buffer10<int>", "C").WithLocation(16, 31)
                 );
+
+            // NOTE: No longer ambiguous because there is a standard implicit span conversion from Span to ReadOnlySpan which makes the Span operator better.
+
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "110" : null;
+
+            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+
+            comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -17054,12 +17076,27 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (21,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
                 //         System.Console.Write(((C)b).F);
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(C)b").WithArguments("C.implicit operator C(System.ReadOnlySpan<int>)", "C.implicit operator C(System.Span<int>)", "Buffer10<int>", "C").WithLocation(21, 31)
                 );
+
+            // NOTE: No longer ambiguous because there is a standard implicit span conversion from Span to ReadOnlySpan which makes the Span operator better.
+
+            var expectedDiagnostics = new[]
+            {
+                // (21,34): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //         System.Console.Write(((C)b).F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "b").WithArguments("System.Span<int>").WithLocation(21, 34)
+            };
+
+            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

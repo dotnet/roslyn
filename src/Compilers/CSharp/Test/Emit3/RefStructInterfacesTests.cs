@@ -26477,6 +26477,40 @@ class Program<S> where S : allows ref struct
 
             var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyEmitDiagnostics(
+                // (12,26): error CS8350: This combination of arguments to 'Program<S>.F1(ref S)' is disallowed because it may expose variables referenced by parameter 'x1' outside of their declaration scope
+                //         ref var y2 = ref F1(ref x2);
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "F1(ref x2)").WithArguments("Program<S>.F1(ref S)", "x1").WithLocation(12, 26),
+                // (12,33): error CS8166: Cannot return a parameter by reference 'x2' because it is not a ref parameter
+                //         ref var y2 = ref F1(ref x2);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x2").WithArguments("x2").WithLocation(12, 33),
+                // (13,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
+                //         return ref y2; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(13, 20)
+                );
+        }
+
+        [Fact]
+        public void ReturnRefToByValueParameter_02()
+        {
+            var source =
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program<S> where S : allows ref struct
+{
+    static ref S F1(ref S x1)
+    {
+        return ref x1;
+    }
+    static ref S F2(S x2)
+    {
+        ref var y2 = ref F1(ref x2);
+        return ref y2; // 1
+    }
+}";
+
+            var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics(
                 // (13,20): error CS8157: Cannot return 'y2' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref y2; // 1
                 Diagnostic(ErrorCode.ERR_RefReturnNonreturnableLocal, "y2").WithArguments("y2").WithLocation(13, 20)
@@ -26917,7 +26951,7 @@ class Program<S> where S : allows ref struct
 ";
             var comp = CreateCompilation(source, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyEmitDiagnostics(
-                // (11,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escapes scopes than 'r1'.
+                // (11,9): error CS9096: Cannot ref-assign 'r1' to 'r2' because 'r1' has a wider value escape scope than 'r2' allowing assignment through 'r2' of values with narrower escape scopes than 'r1'.
                 //         r2 = ref r1; // 1
                 Diagnostic(ErrorCode.ERR_RefAssignValEscapeWider, "r2 = ref r1").WithArguments("r2", "r1").WithLocation(11, 9)
                 );
@@ -28990,6 +29024,177 @@ struct TestStruct<T>
                 // (2000,16): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return directBuffer.Data;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "directBuffer").WithLocation(2000, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_01()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    public static IEnumerable<ReadOnlySpan<char>> Lines(string data)
+    {
+        yield break;
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (7,51): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     public static IEnumerable<ReadOnlySpan<char>> Lines(string data)
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "Lines").WithLocation(7, 51)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_02()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static IEnumerable<A> B()
+    {
+        yield break; 
+    }
+
+    ref struct A;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (6,27): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static IEnumerable<A> B()
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_03()
+        {
+            var source =
+@"
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static IEnumerator<A> B
+    {
+        get
+        {
+            yield break; 
+        }
+    }
+
+    ref struct A;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (8,9): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //         get
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "get").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_04()
+        {
+            var source =
+@"
+#pragma warning disable CS1998 // This async method lacks 'await' operators
+
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static async IAsyncEnumerable<RefStructA> B()
+    {
+        yield return default;
+        yield break; 
+    }
+
+    ref struct RefStructA;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (8,47): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static async IAsyncEnumerable<RefStructA> B()
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(8, 47)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_05()
+        {
+            var source =
+@"
+#pragma warning disable CS1998 // This async method lacks 'await' operators
+
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static async IAsyncEnumerator<RefStructA> B()
+    {
+        yield return default;
+        yield break; 
+    }
+
+    ref struct RefStructA;
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (8,47): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static async IAsyncEnumerator<RefStructA> B()
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(8, 47)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75569")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75577")]
+        public void Iterator_06()
+        {
+            var source =
+@"
+#pragma warning disable CS1998 // This async method lacks 'await' operators
+
+using System.Collections.Generic;
+
+static class CSharpCompilerCrash
+{
+    static async IAsyncEnumerator<T> B<T>() where T : allows ref struct
+    {
+        yield return default;
+        yield break; 
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+            comp.VerifyDiagnostics(
+                // (8,38): error CS9266: Element type of an iterator may not be a ref struct or a type parameter allowing ref structs
+                //     static async IAsyncEnumerator<T> B<T>() where T : allows ref struct
+                Diagnostic(ErrorCode.ERR_IteratorRefLikeElementType, "B").WithLocation(8, 38)
                 );
         }
     }

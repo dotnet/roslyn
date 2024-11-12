@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BadExpression(node).MakeCompilerGenerated()
                 : BindValue(node.Expression, diagnostics, BindValueKind.RValue);
 
-            if (!argument.HasAnyErrors)
+            if (elementType is { } && node.Expression != null)
             {
                 argument = GenerateConversionForAssignment(elementType, argument, diagnostics);
             }
@@ -1482,11 +1482,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool hasErrors = op1.HasAnyErrors || op2.HasAnyErrors;
 
-            if (!op1.HasAnyErrors)
+            if (op1.Type is { } lhsType && !lhsType.IsErrorType())
             {
                 // Build bound conversion. The node might not be used if this is a dynamic conversion
                 // but diagnostics should be reported anyways.
-                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
+                var conversion = GenerateConversionForAssignment(lhsType, op2,
+                    hasErrors ? BindingDiagnosticBag.Discarded : diagnostics,
+                    isRef ? ConversionForAssignmentFlags.RefAssignment : ConversionForAssignmentFlags.None);
 
                 // If the result is a dynamic assignment operation (SetMember or SetIndex),
                 // don't generate the boxing conversion to the dynamic type.
@@ -1549,12 +1551,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var leftEscape = GetRefEscape(op1, _localScopeDepth);
                     var rightEscape = GetRefEscape(op2, _localScopeDepth);
-                    if (leftEscape < rightEscape)
+                    if (!rightEscape.IsConvertibleTo(leftEscape))
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
                         {
-                            (ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
-                            (ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                            ({ IsReturnOnly: true }, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                            ({ IsReturnOnly: true }, true) => ErrorCode.WRN_RefAssignReturnOnly,
                             (_, false) => ErrorCode.ERR_RefAssignNarrower,
                             (_, true) => ErrorCode.WRN_RefAssignNarrower
                         };
@@ -1570,12 +1572,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftEscape = GetValEscape(op1, _localScopeDepth);
                         rightEscape = GetValEscape(op2, _localScopeDepth);
 
-                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeOrAllowsRefLikeType());
+                        Debug.Assert(leftEscape.Equals(rightEscape) || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
-                        // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
-                        // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
-                        // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
-                        if (leftEscape > rightEscape)
+                        // We only check if the left SafeContext is convertible to the right here
+                        // in order to give a more useful diagnostic.
+                        // Later on we check if right SafeContext is convertible to left,
+                        // which effectively means these SafeContexts must be equal.
+                        if (!leftEscape.IsConvertibleTo(rightEscape))
                         {
                             Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
 
@@ -1911,6 +1914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             IncrementAssignment = 1 << 2,
             CompoundAssignment = 1 << 3,
             PredefinedOperator = 1 << 4,
+            InterpolatedString = 1 << 5,
         }
 
         internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, BindingDiagnosticBag diagnostics, ConversionForAssignmentFlags flags = ConversionForAssignmentFlags.None)
@@ -1936,7 +1940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
-            conversion = (flags & ConversionForAssignmentFlags.IncrementAssignment) == 0 ?
+            conversion = (flags & (ConversionForAssignmentFlags.IncrementAssignment | ConversionForAssignmentFlags.InterpolatedString)) == 0 ?
                                  this.Conversions.ClassifyConversionFromExpression(expression, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo) :
                                  this.Conversions.ClassifyConversionFromType(expression.Type, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
 
@@ -1964,7 +1968,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((flags & ConversionForAssignmentFlags.DefaultParameter) == 0)
                 {
-                    GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
+                    if ((flags & ConversionForAssignmentFlags.InterpolatedString) != 0)
+                    {
+                        // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
+                        diagnostics.Add(
+                            ErrorCode.ERR_NoImplicitConv,
+                            expression.Syntax,
+                            expression.Type,
+                            targetType);
+                    }
+                    else
+                    {
+                        GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
+                    }
                 }
 
                 // Suppress any additional diagnostics
@@ -2540,6 +2556,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var b = binder.GetBinder(ifStatementSyntax);
                         Debug.Assert(b != null);
+
+                        if (b.TryGetBoundElseIfStatement(ifStatementSyntax, out alternative))
+                        {
+                            break;
+                        }
+
                         binder = b;
                         node = ifStatementSyntax;
                     }
@@ -2569,6 +2591,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return result;
             }
+        }
+
+        protected virtual bool TryGetBoundElseIfStatement(IfStatementSyntax node, out BoundStatement? alternative)
+        {
+            alternative = null;
+            return false;
         }
 #nullable disable
 
@@ -3129,7 +3157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             diagnostics.Add(syntax, useSiteInfo);
 
-            if (!argument.HasAnyErrors)
+            if (!argument.HasAnyErrors || argument.Kind == BoundKind.UnboundLambda)
             {
                 if (returnRefKind != RefKind.None)
                 {

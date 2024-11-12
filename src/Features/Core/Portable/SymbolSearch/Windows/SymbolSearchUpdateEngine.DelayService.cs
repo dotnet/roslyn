@@ -8,9 +8,9 @@ using System;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
 
-internal partial class SymbolSearchUpdateEngine
+internal sealed partial class SymbolSearchUpdateEngine
 {
-    private class DelayService : IDelayService
+    private sealed class DelayService : IDelayService
     {
         public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
         public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);

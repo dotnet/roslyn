@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis;
 // document edits.
 using AnalyzerReferenceMap = ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, AsyncLazy<bool>>;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     private sealed record SourceGeneratorMap(
         ImmutableArray<ISourceGenerator> SourceGenerators,

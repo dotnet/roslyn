@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class TypeGenerator : ITypeGenerator
+internal sealed class TypeGenerator : ITypeGenerator
 {
     public TypeGenerator()
     {

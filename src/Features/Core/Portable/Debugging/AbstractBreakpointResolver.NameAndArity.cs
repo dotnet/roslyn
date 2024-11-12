@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.Debugging;
 
-internal partial class AbstractBreakpointResolver
+internal abstract partial class AbstractBreakpointResolver
 {
     protected struct NameAndArity(string name, int arity)
     {

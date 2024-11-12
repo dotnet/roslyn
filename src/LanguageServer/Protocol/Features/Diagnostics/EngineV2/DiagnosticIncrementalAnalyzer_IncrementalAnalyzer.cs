@@ -26,12 +26,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // PERF: get analyzers that are not suppressed and marked as open file only
                 // this is perf optimization. we cache these result since we know the result. (no diagnostics)
-                var activeAnalyzers = stateSets.SelectAsArray(s => s.Analyzer);
+                var activeProjectAnalyzers = stateSets.SelectAsArray(s => !s.IsHostAnalyzer, s => s.Analyzer);
+                var activeHostAnalyzers = stateSets.SelectAsArray(s => s.IsHostAnalyzer, s => s.Analyzer);
 
-                CompilationWithAnalyzers? compilationWithAnalyzers = null;
+                CompilationWithAnalyzersPair? compilationWithAnalyzers = null;
 
                 compilationWithAnalyzers = await DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(
-                    project, activeAnalyzers, includeSuppressedDiagnostics: true, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
+                    project, activeProjectAnalyzers, activeHostAnalyzers, includeSuppressedDiagnostics: true, AnalyzerService.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
 
                 var result = await GetProjectAnalysisDataAsync(compilationWithAnalyzers, project, stateSets, cancellationToken).ConfigureAwait(false);
 
@@ -100,10 +101,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             // Include only analyzers we want to run for full solution analysis.
             // Analyzers not included here will never be saved because result is unknown.
-            return stateSets.WhereAsArray(s => IsCandidateForFullSolutionAnalysis(s.Analyzer, project));
+            return stateSets.WhereAsArray(static (s, arg) => arg.self.IsCandidateForFullSolutionAnalysis(s.Analyzer, s.IsHostAnalyzer, arg.project), (self: this, project));
         }
 
-        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, Project project)
+        private bool IsCandidateForFullSolutionAnalysis(DiagnosticAnalyzer analyzer, bool isHostAnalyzer, Project project)
         {
             // PERF: Don't query descriptors for compiler analyzer or workspace load analyzer, always execute them.
             if (analyzer == FileContentLoadAnalyzer.Instance ||
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.analyzerConfigOptions?.ConfigOptions, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, analyzerConfigOptions));
+            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.isHostAnalyzer ? arg.analyzerConfigOptions?.ConfigOptionsWithFallback : arg.analyzerConfigOptions?.ConfigOptionsWithoutFallback, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, isHostAnalyzer, analyzerConfigOptions));
         }
 
         public TestAccessor GetTestAccessor()

@@ -619,4 +619,7 @@
     <value>do-while loop</value>
     <comment>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</comment>
   </data>
+  <data name="required_property" xml:space="preserve">
+    <value>required property</value>
+  </data>
 </root>

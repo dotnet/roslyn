@@ -4,13 +4,21 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -33,9 +41,13 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         // This test is just the sanity test to make sure generators work at all. There's not a special scenario being
         // tested.
 
+        var generatedFilesOutputDir = Path.Combine(TempRoot.Root, "gendir");
+        var assemblyPath = Path.Combine(TempRoot.Root, "assemblyDir", "assembly.dll");
+
         using var workspace = CreateWorkspace(testHost: testHost);
         var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
         var project = AddEmptyProject(workspace.CurrentSolution)
+            .WithCompilationOutputInfo(new CompilationOutputInfo(assemblyPath, generatedFilesOutputDir))
             .AddAnalyzerReference(analyzerReference);
 
         // Optionally fetch the compilation first, which validates that we handle both running the generator
@@ -55,7 +67,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         var generatedTree = Assert.Single(newCompilation.SyntaxTrees);
         var generatorType = typeof(GenerateFileForEachAdditionalFileWithContentsCommented);
 
-        Assert.Equal($"{generatorType.Assembly.GetName().Name}\\{generatorType.FullName}\\Test.generated.cs", generatedTree.FilePath);
+        Assert.Equal(Path.Combine(generatedFilesOutputDir, generatorType.Assembly.GetName().Name!, generatorType.FullName!, "Test.generated.cs"), generatedTree.FilePath);
 
         var generatedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
         Assert.Same(generatedTree, await generatedDocument.GetSyntaxTreeAsync());
@@ -318,7 +330,8 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData]
-    public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration(TestHost testHost)
+    public async Task PartialCompilationsIncludeGeneratedFilesAfterFullGeneration(
+        TestHost testHost, bool forceFreeze)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
         var analyzerReference = new TestGeneratorReference(new GenerateFileForEachAdditionalFileWithContentsCommented());
@@ -331,8 +344,15 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         Assert.Equal(2, fullCompilation.SyntaxTrees.Count());
 
-        var partialProject = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None).Project;
-        Assert.NotSame(partialProject, project);
+        var partialProject = project.Documents.Single().WithFrozenPartialSemantics(forceFreeze, CancellationToken.None).Project;
+
+        // If we're forcing the freeze, we must get a different project instance.  If we're not, we'll get the same
+        // project since the compilation was already available.
+        if (forceFreeze)
+            Assert.NotSame(partialProject, project);
+        else
+            Assert.Same(partialProject, project);
+
         var partialCompilation = await partialProject.GetRequiredCompilationAsync(CancellationToken.None);
 
         Assert.Same(fullCompilation, partialCompilation);
@@ -383,6 +403,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         static Solution AddProjectWithReference(Solution solution, TestGeneratorReference analyzerReference)
         {
             var project = AddEmptyProject(solution);
+
             project = project.AddAnalyzerReference(analyzerReference);
             project = project.AddAdditionalDocument("Test.txt", "Hello, world!").Project;
 
@@ -721,7 +742,36 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
-    public async Task ForkAfterFreezeNoLongerRunsGenerators(TestHost testHost)
+    public async Task ForkAfterForceFreezeNoLongerRunsGenerators(TestHost testHost)
+    {
+        using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
+        var generatorRan = false;
+        var analyzerReference = new TestGeneratorReference(new CallbackGenerator(_ => { }, onExecute: _ => { generatorRan = true; }, source: "// Hello World!"));
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReference(analyzerReference)
+            .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+        // Ensure generators are ran
+        var objectReference = await project.GetCompilationAsync();
+
+        Assert.True(generatorRan);
+        generatorRan = false;
+
+        var document = project.Documents.Single().WithFrozenPartialSemantics(forceFreeze: true, CancellationToken.None);
+
+        // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will not
+        // run since we explicitly force froze.
+        document = document.WithText(SourceText.From("// Something else"));
+
+        var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Equal(2, compilation.SyntaxTrees.Count());
+        Assert.False(generatorRan);
+
+        Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/56702")]
+    public async Task ForkAfterFreezeOfCompletedDocumentStillRunsGenerators(TestHost testHost)
     {
         using var workspace = CreateWorkspaceWithPartialSemantics(testHost);
         var generatorRan = false;
@@ -738,12 +788,13 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         var document = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
 
-        // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will still not be ran
+        // And fork with new contents; we'll ensure the contents of this tree are different, but the generator will run
+        // since we didn't force freeze, and we got the frozen document after its compilation was already computed.
         document = document.WithText(SourceText.From("// Something else"));
 
         var compilation = await document.Project.GetRequiredCompilationAsync(CancellationToken.None);
         Assert.Equal(2, compilation.SyntaxTrees.Count());
-        Assert.False(generatorRan);
+        Assert.True(generatorRan);
 
         Assert.Equal("// Something else", (await document.GetRequiredSyntaxRootAsync(CancellationToken.None)).ToFullString());
     }
@@ -924,4 +975,119 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.NotEqual(checksum1, checksum3);
         Assert.NotEqual(checksum2, checksum3);
     }
+
+#if NET
+
+    private sealed class DoNotLoadAssemblyLoader : IAnalyzerAssemblyLoader
+    {
+        public static readonly IAnalyzerAssemblyLoader Instance = new DoNotLoadAssemblyLoader();
+
+        public void AddDependencyLocation(string fullPath)
+        {
+        }
+
+        public Assembly LoadFromPath(string fullPath)
+            => throw new InvalidOperationException("These tests should not be loading analyzer assemblies in those host workspace, only in the remote one.");
+    }
+
+    [PartNotDiscoverable]
+    [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Test), System.Composition.Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private sealed class TestWorkspaceConfigurationService(IGlobalOptionService globalOptionService) : IWorkspaceConfigurationService
+    {
+        public WorkspaceConfigurationOptions Options => globalOptionService.GetWorkspaceConfigurationOptions();
+    }
+
+    [Theory, CombinatorialData]
+    internal async Task UpdatingAnalyzerReferenceReloadsGenerators(
+        SourceGeneratorExecutionPreference executionPreference)
+    {
+        // We have two versions of the same source generator attached to this project as a resource.  Each creates a
+        // 'HelloWorld' class, just with a different string it emits inside.
+        const string AnalyzerResourceV1 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1";
+        const string AnalyzerResourceV2 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2";
+
+        using var workspace = CreateWorkspace([typeof(TestWorkspaceConfigurationService)], TestHost.OutOfProcess);
+
+        // Ensure the local and remote sides agree on how we're executing source generators.
+        var mefServices = (VisualStudioMefHostServices)workspace.Services.HostServices;
+        var globalOptionService = mefServices.GetExportedValue<IGlobalOptionService>();
+        globalOptionService.SetGlobalOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, executionPreference);
+
+        using var client = await InProcRemoteHostClient.GetTestClientAsync(workspace).ConfigureAwait(false);
+
+        var workspaceConfigurationService = workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
+
+        var remoteProcessId = await client.TryInvokeAsync<IRemoteProcessTelemetryService, int>(
+            (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options with { SourceGeneratorExecution = executionPreference }, cancellationToken),
+            CancellationToken.None).ConfigureAwait(false);
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.AddProject("P1", "P1", LanguageNames.CSharp);
+
+        using var tempRoot = new TempRoot();
+        var tempDirectory = tempRoot.CreateDirectory();
+
+        var analyzerPath = Path.Combine(tempDirectory.Path, "Microsoft.CodeAnalysis.TestAnalyzerReference.dll");
+
+        var analyzerAssemblyLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
+        // Add and test the v1 generator first.
+        {
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AnalyzerResourceV1))
+            using (var destination = File.OpenWrite(analyzerPath))
+            {
+                stream!.CopyTo(destination);
+            }
+
+            // Pass in an always throwing assembly loader so we can be sure that no loading happens on the host side.
+            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, DoNotLoadAssemblyLoader.Instance)]);
+
+            var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
+            var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
+
+            var contents = await helloWorldDoc.GetTextAsync();
+            Assert.True(contents.ToString().Contains("Hello, World 1!"));
+        }
+
+        // Now, overwrite the analyzer reference with a new version that generates different contents
+        {
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AnalyzerResourceV2))
+            using (var destination = File.OpenWrite(analyzerPath))
+            {
+                stream!.CopyTo(destination);
+            }
+
+            // Make a new analyzer reference to that location (note: with the same throwing assembly loader).  on the
+            // host side, this will simply instantiate a new reference.  But this will cause all the machinery to run
+            // syncing this new reference to the oop side, which will load the analyzer reference in a dedicated ALC.
+            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, DoNotLoadAssemblyLoader.Instance)]);
+
+            // In balanced mode, emulate the project system notifying about the updated reference on disk, which will
+            // cause us to update source generators versions.
+            if (executionPreference is SourceGeneratorExecutionPreference.Balanced)
+            {
+                Assert.True(workspace.TryApplyChanges(project1.Solution));
+                workspace.EnqueueUpdateSourceGeneratorVersion(project1.Id, forceRegeneration: true);
+
+                var waiter = (IAsynchronousOperationWaiter)mefServices.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.SourceGenerators);
+                await waiter.ExpeditedWaitAsync();
+
+                project1 = workspace.CurrentSolution.GetRequiredProject(project1.Id);
+            }
+
+            var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
+            var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
+
+            // Note that the contents are now different than what we saw before.  This is with an analyzer at the same path,
+            // with the same assembly name and type name for the generator.  Because there is a dedicated ALC, this reloads
+            // fine.
+            var contents = await helloWorldDoc.GetTextAsync();
+            Assert.True(contents.ToString().Contains("Hello, World 2!"));
+        }
+    }
+
+#endif
 }

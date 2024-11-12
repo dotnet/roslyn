@@ -316,9 +316,6 @@
   <data name="Show_procedure_line_separators" xml:space="preserve">
     <value>_Show procedure line separators</value>
   </data>
-  <data name="Don_t_put_ref_or_out_on_custom_struct" xml:space="preserve">
-    <value>_Don't put ref or out on custom struct</value>
-  </data>
   <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
   </data>

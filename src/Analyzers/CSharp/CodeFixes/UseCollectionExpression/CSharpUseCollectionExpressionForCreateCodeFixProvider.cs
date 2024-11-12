@@ -25,7 +25,7 @@ using static SyntaxFactory;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForCreate), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider()
+internal sealed partial class CSharpUseCollectionExpressionForCreateCodeFixProvider()
     : AbstractUseCollectionExpressionCodeFixProvider<InvocationExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId)

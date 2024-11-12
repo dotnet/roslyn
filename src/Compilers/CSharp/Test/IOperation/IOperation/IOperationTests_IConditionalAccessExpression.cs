@@ -993,7 +993,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -1004,61 +1003,58 @@ Block[B0] - Entry
             Predecessors: [B0]
             Statements (1)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-                  Value: 
+                  Value:
                     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: S1?, IsInvalid) (Syntax: 'x')
-
             Jump if True (Regular) to Block[B3]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
-                  Operand: 
+                  Operand:
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
                 Leaving: {R2}
-
             Next (Regular) Block[B2]
         Block[B2] - Block
             Predecessors: [B1]
             Statements (1)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
-                  Value: 
+                  Value:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.P1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (ImplicitNullable)
-                      Operand: 
+                      Operand:
                         IPropertyReferenceOperation: System.Int32 S1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                              Instance Receiver: 
+                              Instance Receiver:
                                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
                               Arguments(0)
-
             Next (Regular) Block[B4]
                 Leaving: {R2}
     }
-
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-              Value: 
+              Value:
                 IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x')
-
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x?.P1 = 0;')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsInvalid) (Syntax: 'x?.P1 = 0')
-                  Left: 
+                  Left:
                     IInvalidOperation (OperationKind.Invalid, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
                       Children(1):
                           IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '0')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitNullable)
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Next (Regular) Block[B5]
             Leaving: {R1}
 }
-
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
@@ -1094,7 +1090,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1} {R2}
-
 .locals {R1}
 {
     CaptureIds: [0]
@@ -1105,61 +1100,58 @@ Block[B0] - Entry
             Predecessors: [B0]
             Statements (1)
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-                  Value: 
+                  Value:
                     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: S1?, IsInvalid) (Syntax: 'x')
-
             Jump if True (Regular) to Block[B3]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x')
-                  Operand: 
+                  Operand:
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
                 Leaving: {R2}
-
             Next (Regular) Block[B2]
         Block[B2] - Block
             Predecessors: [B1]
             Statements (1)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
-                  Value: 
+                  Value:
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.P1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (ImplicitNullable)
-                      Operand: 
+                      Operand:
                         IFieldReferenceOperation: System.Int32 S1.P1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
-                          Instance Receiver: 
+                          Instance Receiver:
                             IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                              Instance Receiver: 
+                              Instance Receiver:
                                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
                               Arguments(0)
-
             Next (Regular) Block[B4]
                 Leaving: {R2}
     }
-
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
-              Value: 
+              Value:
                 IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x')
-
         Next (Regular) Block[B4]
     Block[B4] - Block
         Predecessors: [B2] [B3]
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'x?.P1 = 0;')
-              Expression: 
+              Expression:
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsInvalid) (Syntax: 'x?.P1 = 0')
-                  Left: 
+                  Left:
                     IInvalidOperation (OperationKind.Invalid, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
                       Children(1):
                           IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-
+                  Right:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '0')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (ImplicitNullable)
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Next (Regular) Block[B5]
             Leaving: {R1}
 }
-
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)

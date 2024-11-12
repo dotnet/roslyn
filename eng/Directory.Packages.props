@@ -18,8 +18,8 @@
 
       We should try to keep this version in sync with the version of app-local runtime in VS.
     -->
-    <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.0</MicrosoftNetCoreAppRuntimePackagesVersion>
-    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.0</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
+    <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.10</MicrosoftNetCoreAppRuntimePackagesVersion>
+    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.10</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.6.6</_xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
     <MicrosoftVisualStudioExtensibilityVersion>17.10.2079</MicrosoftVisualStudioExtensibilityVersion>
@@ -64,7 +64,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" Version="$(MicrosoftVisualStudioExtensibilityVersion)" />
-    <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.0.1051901-preview" />
+    <PackageVersion Include="Microsoft.VSSDK.Debugger.VSDConfigTool" Version="17.13.1100801-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.0.77-pre-g62a6cb5699" />
     <PackageVersion Include="Microsoft.VisualStudio.Progression.CodeSchema" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Progression.Common" Version="15.8.27812-alpha" />
@@ -106,14 +106,14 @@
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="17.10.21" />
     <PackageVersion Include="Microsoft.VisualStudio.Shell.15.0" Version="17.10.40170" />
-    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.11.8" />
+    <PackageVersion Include="Microsoft.VisualStudio.Telemetry" Version="17.13.14" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Data" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.11.20" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20" />
-    <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.73" />
+    <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.90" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
     <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageVersion Include="StreamJsonRpc" Version="2.18.48" />
@@ -122,8 +122,8 @@
       VS Debugger
     -->
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.12.0-beta.24403.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.13.1100701-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.13.1100701-preview" />
 
     <!--
       VS .NET Runtime
@@ -144,7 +144,7 @@
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(_MicrosoftTestPlatformVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(_MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24476.3" />
+    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24528.3" />
 
     <!--
       Analyzers

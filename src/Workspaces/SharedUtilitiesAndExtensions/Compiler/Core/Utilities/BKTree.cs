@@ -70,25 +70,20 @@ internal readonly partial struct BKTree
         if (_nodes.Length == 0)
             return;
 
-        var lowerCaseCharacters = ArrayPool<char>.GetArray(value.Length);
-        try
-        {
-            for (var i = 0; i < value.Length; i++)
-                lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
+        Span<char> lowerCaseCharacters = value.Length < 512
+            ? stackalloc char[value.Length]
+            : new char[value.Length];
 
-            threshold ??= WordSimilarityChecker.GetThreshold(value);
-            Lookup(_nodes[0], lowerCaseCharacters, value.Length, threshold.Value, ref result, recursionCount: 0);
-        }
-        finally
-        {
-            ArrayPool<char>.ReleaseArray(lowerCaseCharacters);
-        }
+        for (var i = 0; i < value.Length; i++)
+            lowerCaseCharacters[i] = CaseInsensitiveComparison.ToLower(value[i]);
+
+        threshold ??= WordSimilarityChecker.GetThreshold(value);
+        Lookup(_nodes[0], lowerCaseCharacters, threshold.Value, ref result, recursionCount: 0);
     }
 
     private void Lookup(
         Node currentNode,
-        char[] queryCharacters,
-        int queryLength,
+        Span<char> queryCharacters,
         int threshold,
         ref TemporaryArray<string> result,
         int recursionCount)
@@ -122,7 +117,7 @@ internal readonly partial struct BKTree
         var edgesExist = currentNode.EdgeCount > 0;
         var editDistance = EditDistance.GetEditDistance(
             _concatenatedLowerCaseWords.AsSpan(characterSpan.Start, characterSpan.Length),
-            queryCharacters.AsSpan(0, queryLength),
+            queryCharacters,
             edgesExist ? int.MaxValue : threshold);
 
         // Case 1
@@ -146,7 +141,7 @@ internal readonly partial struct BKTree
                 if (min <= childEditDistance && childEditDistance <= max)
                 {
                     Lookup(_nodes[_edges[i].ChildNodeIndex],
-                        queryCharacters, queryLength, threshold, ref result,
+                        queryCharacters, threshold, ref result,
                         recursionCount + 1);
                 }
             }

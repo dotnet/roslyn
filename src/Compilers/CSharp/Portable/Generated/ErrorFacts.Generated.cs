@@ -341,6 +341,8 @@
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
+                case ErrorCode.WRN_UnassignedInternalRefField:
+                case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                     return true;
                 default:
                     return false;

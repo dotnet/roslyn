@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
-internal partial class PooledHashSet<T> : IPooled, IReadOnlySet<T>
+internal sealed partial class PooledHashSet<T> : IPooled, IReadOnlySet<T>
 {
     public static PooledDisposer<PooledHashSet<T>> GetInstance(out PooledHashSet<T> instance)
     {
