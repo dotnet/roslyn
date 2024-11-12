@@ -43,7 +43,7 @@ if ($IsMacOS -or $IsLinux) {
     chmod u+x $installerScript
 }
 
-& $installerScript -Force:$Force -AddNetfx -InstallNet6
+& $installerScript -Force:$Force -AddNetfx -InstallNet8
 
 if ($AccessToken) {
     $endpoints = @()
