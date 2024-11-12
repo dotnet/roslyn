@@ -693,6 +693,36 @@ public class FirstClassSpanTests : CSharpTestBase
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
+    [Fact]
+    public void BreakingChange_OverloadResolution_Betterness_01()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            var x = new int[0];
+            C.M(x, x);
+
+            static class C
+            {
+                public static void M(IEnumerable<int> a, ReadOnlySpan<int> b) => Console.Write(1);
+                public static void M(Span<int> a, Span<int> b) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(IEnumerable<int>, ReadOnlySpan<int>)' and 'C.M(Span<int>, Span<int>)'
+            // C.M(x, x);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(System.Collections.Generic.IEnumerable<int>, System.ReadOnlySpan<int>)", "C.M(System.Span<int>, System.Span<int>)").WithLocation(5, 3)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
     [Theory, CombinatorialData]
     public void Conversion_Array_Span_Implicit(
         [CombinatorialLangVersions] LanguageVersion langVersion,
