@@ -4,6 +4,7 @@
 // See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more details
 {
   "properties": {
+    // SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption
     "textEditor.csharp.advanced.analysis.analyzerDiagnosticsScope": {
       "title": "@Run_background_code_analysis_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
@@ -38,6 +39,7 @@
         }
       }
     },
+    // SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption
     "textEditor.csharp.advanced.analysis.compilerDiagnosticsScope": {
       "title": "@Show_compiler_errors_and_warnings_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
@@ -72,6 +74,7 @@
         }
       }
     },
+    // InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics
     "textEditor.csharp.advanced.analysis.enableInlineDiagnostics": {
       "title": "@Display_diagnostics_inline_experimental;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -86,6 +89,7 @@
         }
       }
     },
+    // InlineDiagnosticsOptionsStorage.Location
     "textEditor.csharp.advanced.analysis.inlineDiagnosticsLocation": {
       "title": "@Inline_diagnostics_location;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
@@ -113,6 +117,7 @@
         }
       }
     },
+    // GenerationOptions.PlaceSystemNamespaceFirst
     "textEditor.csharp.advanced.usingDirectives.sortSystemDirectivesFirst": {
       "title": "@Place_System_directives_first_when_sorting_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -127,6 +132,7 @@
         }
       }
     },
+    // GenerationOptions.SeparateImportDirectiveGroups
     "textEditor.csharp.advanced.usingDirectives.separateImportDirectiveGroups": {
       "title": "@Separate_using_directive_groups;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -141,6 +147,7 @@
         }
       }
     },
+    // SymbolSearchOptionsStorage.SearchReferenceAssemblies
     "textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies": {
       "title": "@Suggest_usings_for_types_in_dotnet_framework_assemblies;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -155,6 +162,7 @@
         }
       }
     },
+    // SymbolSearchOptionsStorage.SearchNuGetPackages
     "textEditor.csharp.advanced.usingDirectives.unsupportedSearchNugetPackages": {
       "title": "@Suggest_usings_for_types_in_NuGet_packages;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -169,6 +177,7 @@
         }
       }
     },
+    // AddImportOnPasteOptionsStorage.AddImportsOnPaste
     "textEditor.csharp.advanced.usingDirectives.addImportsOnPaste": {
       "title": "@Add_missing_using_directives_on_paste;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -183,6 +192,7 @@
         }
       }
     },
+    // ReferenceHighlightingOptionsStorage.ReferenceHighlighting
     "textEditor.csharp.advanced.highlighting.highlightReferences": {
       "title": "@Highlight_references_to_symbol_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -197,6 +207,7 @@
         }
       }
     },
+    // KeywordHighlightingOptionsStorage.KeywordHighlighting
     "textEditor.csharp.advanced.highlighting.highlightKeywords": {
       "title": "@Highlight_related_keywords_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -211,6 +222,7 @@
         }
       }
     },
+    // OutliningOptionsStorage.Outlining
     "textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen": {
       "title": "@Enter_outlining_mode_when_files_open;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -225,6 +237,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened
     "textEditor.csharp.advanced.outlining.collapseRegionsWhenFirstOpened": {
       "title": "@Collapse_regions_on_file_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
@@ -240,6 +253,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened
     "textEditor.csharp.advanced.outlining.collapseImportsWhenFirstOpened": {
       "title": "@Collapse_usings_on_file_open;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
@@ -255,6 +269,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened
     "textEditor.csharp.advanced.outlining.collapseMetadataImplementationsWhenFirstOpened": {
       "title": "@Collapse_sourcelink_embedded_decompiled_files_on_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
@@ -270,6 +285,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened
     "textEditor.csharp.advanced.outlining.collapseEmptyMetadataImplementationsWhenFirstOpened": {
       "title": "@Collapse_metadata_signature_files_on_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
@@ -285,6 +301,7 @@
         }
       }
     },
+    // LineSeparatorsOptionsStorage.LineSeparator
     "textEditor.csharp.advanced.outlining.displayLineSeparators": {
       "title": "@Show_procedure_line_separators;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -299,6 +316,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs
     "textEditor.csharp.advanced.outlining.showOutliningForDeclarationLevelConstructs": {
       "title": "@Show_outlining_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -313,6 +331,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs
     "textEditor.csharp.advanced.outlining.showOutliningForCodeLevelConstructs": {
       "title": "@Show_outlining_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -327,6 +346,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions
     "textEditor.csharp.advanced.outlining.showOutliningForCommentsAndPreprocessorRegions": {
       "title": "@Show_outlining_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -341,6 +361,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions
     "textEditor.csharp.advanced.outlining.collapseRegionsWhenCollapsingToDefinitions": {
       "title": "@Collapse_regions_when_collapsing_to_definitions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -355,6 +376,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions
     "textEditor.csharp.advanced.outlining.collapseLocalFunctionsWhenCollapsingToDefinitions": {
       "title": "@Collapse_local_functions_when_collapsing_to_definitions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -369,6 +391,7 @@
         }
       }
     },
+    // FadingOptions.FadeOutUnusedImports
     "textEditor.csharp.advanced.fading.fadeOutUnusedImports": {
       "title": "@Fade_out_unused_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -383,6 +406,7 @@
         }
       }
     },
+    // FadingOptions.FadeOutUnreachableCode
     "textEditor.csharp.advanced.fading.fadeOutUnreachableCode": {
       "title": "@Fade_out_unreachable_code;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -397,6 +421,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs
     "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForDeclarationLevelConstructs": {
       "title": "@Show_guides_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -411,6 +436,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs
     "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForCodeLevelConstructs": {
       "title": "@Show_guides_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -425,6 +451,7 @@
         }
       }
     },
+    // BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions
     "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions": {
       "title": "@Show_guides_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -439,6 +466,7 @@
         }
       }
     },
+    // DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration
     "textEditor.csharp.advanced.comments.autoXmlDocCommentGeneration": {
       "title": "@Generate_XML_documentation_comments_for;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -453,6 +481,7 @@
         }
       }
     },
+    // SplitCommentOptionsStorage.Enabled
     "textEditor.csharp.advanced.comments.splitComments": {
       "title": "@Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -467,6 +496,7 @@
         }
       }
     },
+    // BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString
     "textEditor.csharp.advanced.comments.insertBlockCommentStartString": {
       "title": "@Insert_at_the_start_of_new_lines_when_writing_comments;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -481,6 +511,7 @@
         }
       }
     },
+    // StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste
     "textEditor.csharp.advanced.editorHelp.fixStringContentsOnPaste": {
       "title": "@Fix_text_pasted_into_string_literals_experimental;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -495,6 +526,7 @@
         }
       }
     },
+    // QuickInfoOptionsStorage.ShowRemarksInQuickInfo
     "textEditor.csharp.advanced.editorHelp.showRemarksInQuickInfo": {
       "title": "@Show_remarks_in_Quick_Info;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -509,6 +541,7 @@
         }
       }
     },
+    // RenameTrackingOptionsStorage.RenameTrackingPreview
     "textEditor.csharp.advanced.editorHelp.showPreviewForRenameTracking": {
       "title": "@Show_preview_for_rename_tracking;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
@@ -523,7 +556,8 @@
         }
       }
     },
-    "textEditor.csharp.advanced.editorHelp.dotnetUnsupportedReportInvalidPlaceholdersInStringDotFormatCalls": {
+    // FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls
+    "textEditor.csharp.advanced.editorHelp.UnsupportedReportInvalidPlaceholdersInStringDotFormatCalls": {
       "title": "@Report_invalid_placeholders_in_string_dot_format_calls;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "defaultValue": true,
@@ -537,6 +571,7 @@
         }
       }
     },
+    // ClassificationOptionsStorage.ClassifyReassignedVariables
     "textEditor.csharp.advanced.editorHelp.classifyReassignedVariables": {
       "title": "@Underline_reassigned_variables;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -551,6 +586,7 @@
         }
       }
     },
+    // ClassificationOptionsStorage.ClassifyObsoleteSymbols
     "textEditor.csharp.advanced.editorHelp.classifyObsoleteSymbols": {
       "title": "@Strike_out_obsolete_symbols;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -565,6 +601,7 @@
         }
       }
     },
+    // ClassificationOptionsStorage.ColorizeRegexPatterns
     "textEditor.csharp.advanced.regularExpression.colorizeRegexPatterns": {
       "title": "@Colorize_regular_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -579,6 +616,7 @@
         }
       }
     },
+    // RegexOptionsStorage.ReportInvalidRegexPatterns
     "textEditor.csharp.advanced.regularExpression.unsupportedReportInvalidRegexPatterns": {
       "title": "@Report_invalid_regular_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -593,6 +631,7 @@
         }
       }
     },
+    // HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor
     "textEditor.csharp.advanced.regularExpression.highlightRelatedRegexComponents": {
       "title": "@Highlight_related_components_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -607,6 +646,7 @@
         }
       }
     },
+    // CompletionOptionsStorage.ProvideRegexCompletions
     "textEditor.csharp.advanced.regularExpression.provideRegexCompletions": {
       "title": "@Show_completion_list;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -621,6 +661,7 @@
         }
       }
     },
+    // ClassificationOptionsStorage.ColorizeJsonPatterns
     "textEditor.csharp.advanced.jsonStrings.colorizeJsonPatterns": {
       "title": "@Colorize_JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -635,6 +676,7 @@
         }
       }
     },
+    // JsonDetectionOptionsStorage.ReportInvalidJsonPatterns
     "textEditor.csharp.advanced.jsonStrings.unsupportedReportInvalidJsonPatterns": {
       "title": "@Report_invalid_JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -649,6 +691,7 @@
         }
       }
     },
+    // HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor
     "textEditor.csharp.advanced.jsonStrings.highlightRelatedJsonComponents": {
       "title": "@Highlight_related_components_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -663,6 +706,7 @@
         }
       }
     },
+    // ImplementTypeOptionsStorage.InsertionBehavior
     "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.memberInsertionLocation": {
       "title": "@When_inserting_properties_events_and_methods_place_them;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
@@ -689,6 +733,7 @@
         }
       }
     },
+    // ImplementTypeOptionsStorage.PropertyGenerationBehavior
     "textEditor.csharp.advanced.implementInterfaceOrAbstractClass.propertyGenerationBehavior": {
       "title": "@When_generating_properties;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
@@ -715,6 +760,7 @@
         }
       }
     },
+    // InlineHintsViewOptionsStorage.ColorHints
     "textEditor.csharp.advanced.inlayHints.colorizeInlineHints": {
       "title": "@Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -729,6 +775,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.EnabledForParameters
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters": {
       "title": "@Display_inline_parameter_name_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -743,6 +790,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.ForLiteralParameters
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForLiteralParameters": {
       "title": "@Show_hints_for_literals;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
@@ -758,6 +806,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.ForObjectCreationParameters
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForObjectCreationParameters": {
       "title": "@Show_hints_for_new_expressions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
@@ -773,6 +822,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.ForOtherParameters
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForOtherParameters": {
       "title": "@Show_hints_for_everything_else;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
@@ -788,6 +838,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.ForIndexerParameters
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForIndexerParameters": {
       "title": "@Show_hints_for_indexers;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
@@ -803,6 +854,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent
     "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatMatchMethodIntent": {
       "title": "@Suppress_hints_when_parameter_name_matches_the_method_s_intent;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
@@ -818,6 +870,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix
     "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatDifferOnlyBySuffix": {
       "title": "@Suppress_hints_when_parameter_names_differ_only_by_suffix;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
@@ -833,6 +886,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName
     "textEditor.csharp.advanced.inlayHints.suppressInlayHintsForParametersThatMatchArgumentName": {
       "title": "@Suppress_hints_when_argument_matches_parameter_name;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
@@ -848,6 +902,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.EnabledForTypes
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes": {
       "title": "@Display_inline_type_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -862,6 +917,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.ForImplicitVariableTypes
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForImplicitVariableTypes": {
       "title": "@Show_hints_for_variables_with_inferred_types;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
@@ -877,6 +933,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.ForLambdaParameterTypes
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForLambdaParameterTypes": {
       "title": "@Show_hints_for_lambda_parameter_types;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
@@ -892,6 +949,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.ForImplicitObjectCreation
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForImplicitObjectCreation": {
       "title": "@Show_hints_for_implicit_object_creation;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
@@ -907,6 +965,7 @@
         }
       }
     },
+    // InlineHintsOptionsStorage.ForCollectionExpressions
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForCollectionExpressions": {
       "title": "@Show_hints_for_collection_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
@@ -922,6 +981,7 @@
         }
       }
     },
+    // InheritanceMarginOptionsStorage.ShowInheritanceMargin
     "textEditor.csharp.advanced.inheritanceMargin.showInheritanceMargin": {
       "title": "@Show_inheritance_margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -936,6 +996,7 @@
         }
       }
     },
+    // InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports
     "textEditor.csharp.advanced.inheritanceMargin.showGlobalImportsInInheritanceMargin": {
       "title": "@Include_global_imports;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
