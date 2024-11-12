@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,10 +20,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class AdditionalPropertiesTests
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public async Task SetProperty_RootNamespace_CPS()
         {
             using (var environment = new TestEnvironment())
@@ -31,7 +32,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.Null(DefaultNamespaceOfSingleProject(environment));
 
                 var rootNamespace = "Foo.Bar";
-                project.SetProperty(AdditionalPropertyNames.RootNamespace, rootNamespace);
+                project.SetProperty(BuildPropertyNames.RootNamespace, rootNamespace);
                 Assert.Equal(rootNamespace, DefaultNamespaceOfSingleProject(environment));
             }
 
@@ -40,7 +41,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         }
 
         [WpfTheory]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [InlineData(LanguageVersion.CSharp7_3)]
         [InlineData(LanguageVersion.CSharp8)]
         [InlineData(LanguageVersion.CSharp9)]
@@ -52,27 +52,25 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         {
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
-            using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
-            using (var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
+            using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+            var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+
+            cpsProject.SetProperty(BuildPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion?.ToDisplayString());
+
+            var canApply = environment.Workspace.CanApplyParseOptionChange(
+                oldParseOptions,
+                oldParseOptions.WithLanguageVersion(attemptedVersion),
+                project);
+
+            if (maxSupportedLangVersion.HasValue)
             {
-                var project = environment.Workspace.CurrentSolution.Projects.Single();
-                var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
-
-                cpsProject.SetProperty(AdditionalPropertyNames.MaxSupportedLangVersion, maxSupportedLangVersion?.ToDisplayString());
-
-                var canApply = environment.Workspace.CanApplyParseOptionChange(
-                    oldParseOptions,
-                    oldParseOptions.WithLanguageVersion(attemptedVersion),
-                    project);
-
-                if (maxSupportedLangVersion.HasValue)
-                {
-                    Assert.Equal(attemptedVersion <= maxSupportedLangVersion.Value, canApply);
-                }
-                else
-                {
-                    Assert.True(canApply);
-                }
+                Assert.Equal(attemptedVersion <= maxSupportedLangVersion.Value, canApply);
+            }
+            else
+            {
+                Assert.True(canApply);
             }
         }
 
@@ -81,23 +79,20 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
         {
             const LanguageVersion attemptedVersion = LanguageVersion.CSharp8;
 
-            using (var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService)))
-            using (var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
-            {
-                var project = environment.Workspace.CurrentSolution.Projects.Single();
-                var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
+            using var environment = new TestEnvironment(typeof(CSharpParseOptionsChangingService));
+            using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
+            var project = environment.Workspace.CurrentSolution.Projects.Single();
+            var oldParseOptions = (CSharpParseOptions)project.ParseOptions;
 
-                var canApply = environment.Workspace.CanApplyParseOptionChange(
-                    oldParseOptions,
-                    oldParseOptions.WithLanguageVersion(attemptedVersion),
-                    project);
+            var canApply = environment.Workspace.CanApplyParseOptionChange(
+                oldParseOptions,
+                oldParseOptions.WithLanguageVersion(attemptedVersion),
+                project);
 
-                Assert.True(canApply);
-            }
+            Assert.True(canApply);
         }
 
         [WpfTheory]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         // RunAnalyzers: Not set, RunAnalyzersDuringLiveAnalysis: Not set, ExpectedRunAnalyzers = true
         [InlineData("", "", true)]
         // RunAnalyzers: true, RunAnalyzersDuringLiveAnalysis: Not set, ExpectedRunAnalyzers = true
@@ -131,8 +126,8 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 using var environment = new TestEnvironment();
                 using var cpsProject = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test");
 
-                cpsProject.SetProperty(AdditionalPropertyNames.RunAnalyzers, runAnalyzers);
-                cpsProject.SetProperty(AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, runAnalyzersDuringLiveAnalysis);
+                cpsProject.SetProperty(BuildPropertyNames.RunAnalyzers, runAnalyzers);
+                cpsProject.SetProperty(BuildPropertyNames.RunAnalyzersDuringLiveAnalysis, runAnalyzersDuringLiveAnalysis);
 
                 Assert.Equal(expectedRunAnalyzers, environment.Workspace.CurrentSolution.Projects.Single().State.RunAnalyzers);
             }
@@ -146,15 +141,39 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 
                 Assert.True(ErrorHandler.Succeeded(
                     storage.SetPropertyValue(
-                        AdditionalPropertyNames.RunAnalyzers, null, (uint)_PersistStorageType.PST_PROJECT_FILE, runAnalyzers)));
+                        BuildPropertyNames.RunAnalyzers, null, (uint)_PersistStorageType.PST_PROJECT_FILE, runAnalyzers)));
 
                 Assert.True(ErrorHandler.Succeeded(
                     storage.SetPropertyValue(
-                        AdditionalPropertyNames.RunAnalyzersDuringLiveAnalysis, null, (uint)_PersistStorageType.PST_PROJECT_FILE, runAnalyzersDuringLiveAnalysis)));
+                        BuildPropertyNames.RunAnalyzersDuringLiveAnalysis, null, (uint)_PersistStorageType.PST_PROJECT_FILE, runAnalyzersDuringLiveAnalysis)));
 
                 _ = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
 
                 Assert.Equal(expectedRunAnalyzers, environment.Workspace.CurrentSolution.Projects.Single().State.RunAnalyzers);
+            }
+        }
+
+        [WpfFact]
+        public async Task SetProperty_CompilerGeneratedFilesOutputPath_CPS()
+        {
+            using (var environment = new TestEnvironment())
+            using (var project = await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test"))
+            {
+                Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+                // relative path is relative to the project dir:
+                project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "generated");
+                AssertEx.AreEqual(
+                    Path.Combine(Path.GetDirectoryName(project.ProjectFilePath), "generated"),
+                    environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+                var path = Path.Combine(TempRoot.Root, "generated");
+                project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, path);
+                AssertEx.AreEqual(path, environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
+
+                // empty path:
+                project.SetProperty(BuildPropertyNames.CompilerGeneratedFilesOutputPath, "");
+                Assert.Null(environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.GeneratedFilesOutputDirectory);
             }
         }
     }

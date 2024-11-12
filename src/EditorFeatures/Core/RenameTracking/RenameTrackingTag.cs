@@ -6,17 +6,16 @@
 
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
+namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+
+internal class RenameTrackingTag : TextMarkerTag
 {
-    internal class RenameTrackingTag : TextMarkerTag
+    internal const string TagId = "RenameTrackingTag";
+
+    public static readonly RenameTrackingTag Instance = new();
+
+    private RenameTrackingTag()
+        : base(TagId)
     {
-        internal const string TagId = "RenameTrackingTag";
-
-        public static readonly RenameTrackingTag Instance = new();
-
-        private RenameTrackingTag()
-            : base(TagId)
-        {
-        }
     }
 }

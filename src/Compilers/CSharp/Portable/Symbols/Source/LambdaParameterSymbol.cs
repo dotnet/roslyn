@@ -8,45 +8,33 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LambdaParameterSymbol : SourceComplexParameterSymbol
+    internal sealed class LambdaParameterSymbol : SourceComplexParameterSymbolBase
     {
+        private readonly TypeWithAnnotations _parameterType;
         private readonly SyntaxList<AttributeListSyntax> _attributeLists;
 
         public LambdaParameterSymbol(
            LambdaSymbol owner,
+           SyntaxReference? syntaxRef,
            SyntaxList<AttributeListSyntax> attributeLists,
            TypeWithAnnotations parameterType,
            int ordinal,
            RefKind refKind,
+           ScopedKind scope,
            string name,
            bool isDiscard,
-           bool isNullChecked,
-           ImmutableArray<Location> locations)
-           : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef: null, isParams: false, isExtensionMethodThis: false)
+           bool hasParamsModifier,
+           Location location)
+           : base(owner, ordinal, refKind, name, location, syntaxRef, hasParamsModifier: hasParamsModifier, isParams: hasParamsModifier, isExtensionMethodThis: false, scope)
         {
+            _parameterType = parameterType;
             _attributeLists = attributeLists;
             IsDiscard = isDiscard;
-            IsNullChecked = isNullChecked;
         }
+
+        public override TypeWithAnnotations TypeWithAnnotations => _parameterType;
 
         public override bool IsDiscard { get; }
-
-        public override bool IsNullChecked { get; }
-
-        internal override bool IsMetadataOptional
-        {
-            get { return false; }
-        }
-
-        public override bool IsParams
-        {
-            get { return false; }
-        }
-
-        internal override bool HasDefaultArgumentSyntax
-        {
-            get { return false; }
-        }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

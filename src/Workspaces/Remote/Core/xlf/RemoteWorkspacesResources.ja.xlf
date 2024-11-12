@@ -67,6 +67,11 @@
         <target state="translated">使用状況の検索</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">完全修飾</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
         <source>Global notification delivery</source>
         <target state="translated">グローバル通知の配信</target>
@@ -75,6 +80,16 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">継承の余白</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">キープ アライブ サービス</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">ソリューション イベント</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
@@ -102,6 +117,11 @@
         <target state="translated">プロジェクト テレメトリ コレクション</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_RelatedDocuments">
+        <source>Related documents</source>
+        <target state="translated">関連ドキュメント</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
         <target state="translated">名前の変更</target>
@@ -112,9 +132,19 @@
         <target state="translated">セマンティック分類</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">セマンティック検索</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">資産プロバイダー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">ソースの生成</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
@@ -132,9 +162,14 @@
         <target state="translated">シンボルの検索</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_TodoCommentsDiscovery">
-        <source>TODO comments discovery</source>
-        <target state="translated">TODO コメント検出</target>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">タスク一覧</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">単体テストの検索</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">

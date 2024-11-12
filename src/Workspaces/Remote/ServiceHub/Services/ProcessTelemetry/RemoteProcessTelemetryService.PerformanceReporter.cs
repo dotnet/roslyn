@@ -2,124 +2,76 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Telemetry;
+using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal partial class RemoteProcessTelemetryService
 {
-    internal partial class RemoteProcessTelemetryService
+    /// <summary>
+    /// Track when last time report has sent and send new report if there is update after given internal
+    /// </summary>
+    private sealed class PerformanceReporter
     {
-        /// <summary>
-        /// Track when last time report has sent and send new report if there is update after given internal
-        /// </summary>
-        private class PerformanceReporter : GlobalOperationAwareIdleProcessor
+        private readonly IPerformanceTrackerService _diagnosticAnalyzerPerformanceTracker;
+        private readonly TelemetrySession _telemetrySession;
+        private readonly AsyncBatchingWorkQueue _workQueue;
+
+        public PerformanceReporter(
+            TelemetrySession telemetrySession,
+            IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker,
+            CancellationToken shutdownToken)
         {
-            private readonly SemaphoreSlim _event;
-            private readonly HashSet<string> _reported;
+            _telemetrySession = telemetrySession;
+            _diagnosticAnalyzerPerformanceTracker = diagnosticAnalyzerPerformanceTracker;
 
-            private readonly IPerformanceTrackerService _diagnosticAnalyzerPerformanceTracker;
-            private readonly TraceSource _logger;
-            private readonly TelemetrySession _telemetrySession;
+            _workQueue = new AsyncBatchingWorkQueue(
+                TimeSpan.FromMinutes(2),
+                ProcessWorkAsync,
+                AsynchronousOperationListenerProvider.NullListener,
+                shutdownToken);
 
-            public PerformanceReporter(
-                TraceSource logger,
-                TelemetrySession telemetrySession,
-                IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker,
-                IGlobalOperationNotificationService globalOperationNotificationService,
-                CancellationToken shutdownToken)
-                : base(
-                    AsynchronousOperationListenerProvider.NullListener,
-                    globalOperationNotificationService,
-                    backOffTimeSpan: TimeSpan.FromMinutes(2),
-                    shutdownToken)
+            _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += (_, _) => _workQueue.AddWork();
+        }
+
+        private ValueTask ProcessWorkAsync(CancellationToken cancellationToken)
+        {
+            if (!_telemetrySession.IsOptedIn)
+                return ValueTaskFactory.CompletedTask;
+
+            using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, cancellationToken))
             {
-                _event = new SemaphoreSlim(initialCount: 0);
-                _reported = new HashSet<string>();
-
-                _logger = logger;
-                _telemetrySession = telemetrySession;
-                _diagnosticAnalyzerPerformanceTracker = diagnosticAnalyzerPerformanceTracker;
-                _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += OnSnapshotAdded;
-                Start();
-            }
-
-            protected override void PauseOnGlobalOperation()
-            {
-                // we won't cancel report already running. we will just prevent
-                // new one from starting.
-            }
-
-            protected override async Task ExecuteAsync()
-            {
-                // wait for global operation such as build
-                await GlobalOperationTask.ConfigureAwait(false);
-
-                using (var pooledObject = SharedPools.Default<List<ExpensiveAnalyzerInfo>>().GetPooledObject())
-                using (RoslynLogger.LogBlock(FunctionId.Diagnostics_GeneratePerformaceReport, CancellationToken))
+                foreach (var forSpanAnalysis in new[] { false, true })
                 {
-                    _diagnosticAnalyzerPerformanceTracker.GenerateReport(pooledObject.Object);
+                    using var pooledObject = SharedPools.Default<List<AnalyzerInfoForPerformanceReporting>>().GetPooledObject();
+                    _diagnosticAnalyzerPerformanceTracker.GenerateReport(pooledObject.Object, forSpanAnalysis);
+                    var isInternalUser = _telemetrySession.IsUserMicrosoftInternal;
 
                     foreach (var analyzerInfo in pooledObject.Object)
                     {
-                        var newAnalyzer = _reported.Add(analyzerInfo.AnalyzerId);
-
-                        var isInternalUser = _telemetrySession.IsUserMicrosoftInternal;
-
-                        // we only report same analyzer once unless it is internal user
-                        if (isInternalUser || newAnalyzer)
+                        // this will report telemetry under VS. this will let us see how accurate our performance tracking is
+                        RoslynLogger.Log(FunctionId.Diagnostics_AnalyzerPerformanceInfo2, KeyValueLogMessage.Create(m =>
                         {
-                            // this will report telemetry under VS. this will let us see how accurate our performance tracking is
-                            RoslynLogger.Log(FunctionId.Diagnostics_BadAnalyzer, KeyValueLogMessage.Create(m =>
-                            {
-                                // since it is telemetry, we hash analyzer name if it is not builtin analyzer
-                                m[nameof(analyzerInfo.AnalyzerId)] = isInternalUser ? analyzerInfo.AnalyzerId : analyzerInfo.PIISafeAnalyzerId;
-                                m[nameof(analyzerInfo.LocalOutlierFactor)] = analyzerInfo.LocalOutlierFactor;
-                                m[nameof(analyzerInfo.Average)] = analyzerInfo.Average;
-                                m[nameof(analyzerInfo.AdjustedStandardDeviation)] = analyzerInfo.AdjustedStandardDeviation;
-                            }));
-                        }
-
-                        // for logging, we only log once. we log here so that we can ask users to provide this log to us
-                        // when we want to find out VS performance issue that could be caused by analyzer
-                        if (newAnalyzer)
-                        {
-                            _logger.TraceEvent(TraceEventType.Warning, 0,
-                                $"Analyzer perf indicators exceeded threshold for '{analyzerInfo.AnalyzerId}' ({analyzerInfo.AnalyzerIdHash}): " +
-                                $"LOF: {analyzerInfo.LocalOutlierFactor}, Avg: {analyzerInfo.Average}, Stddev: {analyzerInfo.AdjustedStandardDeviation}");
-                        }
+                            // since it is telemetry, we hash analyzer name if it is not builtin analyzer
+                            m[nameof(analyzerInfo.AnalyzerId)] = isInternalUser ? analyzerInfo.AnalyzerId : analyzerInfo.PIISafeAnalyzerId;
+                            m[nameof(analyzerInfo.Average)] = analyzerInfo.Average;
+                            m[nameof(analyzerInfo.AdjustedStandardDeviation)] = analyzerInfo.AdjustedStandardDeviation;
+                            m[nameof(forSpanAnalysis)] = forSpanAnalysis;
+                        }, LogLevel.Debug));
                     }
                 }
             }
 
-            protected override Task WaitAsync(CancellationToken cancellationToken)
-            {
-                return _event.WaitAsync(cancellationToken);
-            }
-
-            private void OnSnapshotAdded(object sender, EventArgs e)
-            {
-                // this acts like Monitor.Pulse. (wake up event if it is currently waiting
-                // if not, ignore. this can have race, but that's fine for this usage case)
-                // not using Monitor.Pulse since that doesn't support WaitAsync
-                if (_event.CurrentCount > 0)
-                {
-                    return;
-                }
-
-                _event.Release();
-            }
+            return ValueTaskFactory.CompletedTask;
         }
     }
 }

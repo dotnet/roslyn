@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -47,7 +48,48 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(value != null);
                 Debug.Assert(!value.IsUninitialized);
 
+                if (PEModule.IsMoreImportantObsoleteKind(_obsoleteAttributeData.Kind, value.Kind))
+                    return;
+
                 _obsoleteAttributeData = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region SetsRequiredMembers
+        private bool _hasSetsRequiredMembers = false;
+        public bool HasSetsRequiredMembersAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasSetsRequiredMembers;
+            }
+            set
+            {
+                VerifySealed(false);
+                _hasSetsRequiredMembers = value;
+                SetDataStored();
+            }
+        }
+        #endregion
+
+        #region OverloadResolutionPriorityAttribute
+        private int? _overloadResolutionPriority = null;
+        [DisallowNull]
+        public int? OverloadResolutionPriority
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _overloadResolutionPriority;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                Debug.Assert(value != null);
+                _overloadResolutionPriority = value;
                 SetDataStored();
             }
         }

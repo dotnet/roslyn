@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal abstract class FunctionResolver :
         FunctionResolverBase<DkmProcess, DkmClrModuleInstance, DkmRuntimeFunctionResolutionRequest>,
         IDkmRuntimeFunctionResolver,
+        IDkmMetaDataPointerInvalidatedNotification,
         IDkmModuleInstanceLoadNotification,
         IDkmModuleInstanceUnloadNotification,
         IDkmModuleModifiedNotification,
@@ -54,6 +55,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             // caller from modifying modules while binding.
         }
 
+        void IDkmMetaDataPointerInvalidatedNotification.OnMetaDataPointerInvalidated(DkmClrModuleInstance moduleInstance)
+        {
+            // Implementing IDkmMetaDataPointerInvalidatedNotification
+            // (with Synchronized="true" in .vsdconfigxml) prevents
+            // caller from modifying modules while binding.
+        }
+
         void IDkmModuleSymbolsLoadedNotification.OnModuleSymbolsLoaded(DkmModuleInstance moduleInstance, DkmModule module, bool isReload, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
         {
             OnModuleLoad(moduleInstance, workList);
@@ -66,12 +74,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (module == null)
             {
                 // Only interested in managed modules.
-                return;
-            }
-
-            if (module.Module == null)
-            {
-                // Only resolve breakpoints if symbols have been loaded.
                 return;
             }
 

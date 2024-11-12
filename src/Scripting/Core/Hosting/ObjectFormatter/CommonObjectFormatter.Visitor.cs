@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.Cci;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
@@ -36,10 +37,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 get
                 {
-                    if (_lazyVisitedObjects == null)
-                    {
-                        _lazyVisitedObjects = new HashSet<object>(ReferenceEqualityComparer.Instance);
-                    }
+                    _lazyVisitedObjects ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
 
                     return _lazyVisitedObjects;
                 }
@@ -604,10 +602,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     }
                     finally
                     {
-                        if (disposable != null)
-                        {
-                            disposable.Dispose();
-                        }
+                        disposable?.Dispose();
                     }
                 }
                 catch (Exception e)
@@ -702,7 +697,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     string _;
                     FormatObjectRecursive(result, array.GetValue(indices), isRoot: false, debuggerDisplayName: out _);
 
-                    indices[indices.Length - 1]++;
+                    indices[^1]++;
                     flatIndex++;
                 }
             }

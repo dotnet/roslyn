@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal struct DynamicAnalysisDocument
+    internal readonly struct DynamicAnalysisDocument
     {
         public readonly BlobHandle Name;
         public readonly GuidHandle HashAlgorithm;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal struct DynamicAnalysisMethod
+    internal readonly struct DynamicAnalysisMethod
     {
         public readonly BlobHandle Blob;
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal struct DynamicAnalysisSpan
+    internal readonly struct DynamicAnalysisSpan
     {
         public readonly int DocumentRowId;
         public readonly int StartLine;
@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             byte* resourceStart = peImage.Pointer + start;
-            int resourceSize = *(int*)resourceStart;
+            BlobReader tmpresource = peImage.GetReader(start, peImage.Length - start);
+            int resourceSize = tmpresource.ReadInt32();
             if (resourceSize > resourcesDir.Size - sizeof(int))
             {
                 throw new BadImageFormatException();
@@ -252,7 +253,7 @@ namespace Microsoft.CodeAnalysis
 
         //TODO: some of the helpers below should be provided by System.Reflection.Metadata
 
-        private unsafe struct Blob
+        private readonly unsafe struct Blob
         {
             public readonly byte* Pointer;
             public readonly int Length;

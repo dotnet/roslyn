@@ -7,13 +7,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.IntroduceVariable
+namespace Microsoft.CodeAnalysis.IntroduceVariable;
+
+internal interface IIntroduceVariableService : ILanguageService
 {
-    internal interface IIntroduceVariableService : ILanguageService
-    {
-        Task<CodeAction> IntroduceVariableAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-    }
+    Task<CodeAction> IntroduceVariableAsync(Document document, TextSpan textSpan, CodeCleanupOptions options, CancellationToken cancellationToken);
 }

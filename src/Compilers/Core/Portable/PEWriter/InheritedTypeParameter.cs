@@ -49,6 +49,11 @@ namespace Microsoft.Cci
             get { return _parentParameter.MustBeValueType; }
         }
 
+        public bool AllowsRefLikeType
+        {
+            get { return _parentParameter.AllowsRefLikeType; }
+        }
+
         public bool MustHaveDefaultConstructor
         {
             get { return _parentParameter.MustHaveDefaultConstructor; }
@@ -62,6 +67,9 @@ namespace Microsoft.Cci
         #endregion
 
         #region ITypeDefinition Members
+
+        public bool IsEncDeleted
+            => false;
 
         public ushort Alignment
         {
@@ -225,7 +233,7 @@ namespace Microsoft.Cci
 
         public ITypeDefinition GetResolvedType(EmitContext context)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public PrimitiveTypeCode TypeCode
@@ -273,39 +281,39 @@ namespace Microsoft.Cci
 
         public bool IsNested
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public bool IsSpecializedNested
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public ITypeReference UnspecializedVersion
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public bool IsNamespaceTypeReference
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public bool IsGenericTypeInstance
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public sealed override bool Equals(object? obj)
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
 
         public sealed override int GetHashCode()
         {
             // It is not supported to rely on default equality of these Cci objects, an explicit way to compare and hash them should be used.
-            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable();
         }
     }
 }

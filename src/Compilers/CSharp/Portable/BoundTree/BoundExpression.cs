@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System;
 
@@ -12,6 +13,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
+        public SimpleNameSyntax? InterceptableNameSyntax
+        {
+            get
+            {
+                // When this assertion fails, it means a new syntax is being used which corresponds to a BoundCall.
+                // The developer needs to determine how this new syntax should interact with interceptors (produce an error, permit intercepting the call, etc...)
+                Debug.Assert(this.WasCompilerGenerated || this.Syntax is InvocationExpressionSyntax or ConstructorInitializerSyntax or PrimaryConstructorBaseTypeSyntax { ArgumentList: { } },
+                    $"Unexpected syntax kind for BoundCall: {this.Syntax.Kind()}");
+
+                if (this.WasCompilerGenerated || this.Syntax is not InvocationExpressionSyntax syntax)
+                {
+                    return null;
+                }
+
+                return syntax.GetInterceptableNameSyntax();
+            }
+        }
+
         internal BoundExpression WithSuppression(bool suppress = true)
         {
             if (this.IsSuppressed == suppress)
@@ -60,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnconvertedConditionalOperator:
                 case BoundKind.DefaultLiteral:
                 case BoundKind.UnconvertedInterpolatedString:
+                case BoundKind.UnconvertedCollectionExpression:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a
@@ -78,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public virtual ConstantValue? ConstantValue
+        public virtual ConstantValue? ConstantValueOpt
         {
             get
             {
@@ -134,10 +154,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundValuePlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
     internal partial class BoundInterpolatedStringHandlerPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundCollectionExpressionSpreadExpressionPlaceholder
     {
         public sealed override bool IsEquivalentToThisReference => false;
     }
@@ -149,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundTupleOperandPlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
     internal partial class BoundAwaitableValuePlaceholder
@@ -169,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundImplicitIndexerValuePlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
     internal partial class BoundListPatternReceiverPlaceholder
@@ -179,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundListPatternIndexPlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
     }
 
     internal partial class BoundSlicePatternReceiverPlaceholder
@@ -189,7 +214,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundSlicePatternRangePlaceholder
     {
-        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable();
+    }
+
+    internal partial class BoundCapturedReceiverPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference
+        {
+            get
+            {
+                Debug.Assert(false); // Getting here is unexpected.
+                return false;
+            }
+        }
     }
 
     internal partial class BoundThisReference
@@ -199,11 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundPassByCopy
     {
-        public override ConstantValue? ConstantValue
+        public override ConstantValue? ConstantValueOpt
         {
             get
             {
-                Debug.Assert(Expression.ConstantValue == null);
+                Debug.Assert(Expression.ConstantValueOpt == null);
                 return null;
             }
         }
@@ -258,11 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundLocal
     {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
-
         public override Symbol ExpressionSymbol
         {
             get { return this.LocalSymbol; }
@@ -281,11 +313,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundFieldAccess
     {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
-
         public override Symbol? ExpressionSymbol
         {
             get { return this.FieldSymbol; }
@@ -298,6 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.PropertySymbol; }
         }
+    }
+
+    internal enum AccessorKind : byte
+    {
+        Unknown,
+        Get,
+        Set,
+        Both
     }
 
     internal partial class BoundIndexerAccess
@@ -313,6 +348,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return !this.OriginalIndexersOpt.IsDefault ? LookupResultKind.OverloadResolutionFailure : base.ResultKind;
             }
+        }
+
+        public BoundIndexerAccess Update(AccessorKind accessorKind)
+        {
+            return this.Update(
+                ReceiverOpt,
+                InitialBindingReceiverIsSubjectToCloning,
+                Indexer,
+                Arguments,
+                ArgumentNamesOpt,
+                ArgumentRefKindsOpt,
+                Expanded,
+                accessorKind,
+                ArgsToParamsOpt,
+                DefaultArguments,
+                Type);
         }
     }
 
@@ -350,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBinaryOperator
     {
-        public override ConstantValue? ConstantValue => Data?.ConstantValue;
+        public override ConstantValue? ConstantValueOpt => Data?.ConstantValue;
 
         public override Symbol? ExpressionSymbol => this.Method;
 
@@ -365,14 +416,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt => Data?.OriginalUserDefinedOperatorsOpt ?? default(ImmutableArray<MethodSymbol>);
     }
 
-    internal partial class BoundInterpolatedStringBase
-    {
-        public sealed override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
-    }
-
     internal partial class BoundUserDefinedConditionalLogicalOperator
     {
         public override Symbol ExpressionSymbol
@@ -383,11 +426,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundUnaryOperator
     {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
-
         public override Symbol? ExpressionSymbol
         {
             get { return this.MethodOpt; }
@@ -410,21 +448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundLiteral
-    {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
-    }
-
     internal partial class BoundConversion
     {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
-
         public ConversionKind ConversionKind
         {
             get { return this.Conversion.Kind; }
@@ -452,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion UpdateOperand(BoundExpression operand)
         {
-            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValue, this.ConversionGroupOpt, this.OriginalUserDefinedConversionsOpt, this.Type);
+            return this.Update(operand: operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.OriginalUserDefinedConversionsOpt, this.Type);
         }
 
         /// <summary>
@@ -484,15 +509,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return true;
         }
+
+        public new bool IsParamsArrayOrCollection
+        {
+            get
+            {
+                return base.IsParamsArrayOrCollection;
+            }
+            init
+            {
+                base.IsParamsArrayOrCollection = value;
+            }
+        }
     }
 
     internal partial class BoundObjectCreationExpression
     {
-        public override ConstantValue? ConstantValue
-        {
-            get { return this.ConstantValueOpt; }
-        }
-
         public override Symbol ExpressionSymbol
         {
             get { return this.Constructor; }
@@ -501,16 +533,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Build an object creation expression without performing any rewriting
         /// </summary>
-        internal BoundObjectCreationExpression UpdateArgumentsAndInitializer(
+        internal BoundObjectCreationExpression Update(
+            MethodSymbol constructor,
             ImmutableArray<BoundExpression> newArguments,
             ImmutableArray<RefKind> newRefKinds,
             BoundObjectInitializerExpressionBase? newInitializerExpression,
             TypeSymbol? changeTypeOpt = null)
         {
             return Update(
-                constructor: Constructor,
+                constructor: constructor,
                 arguments: newArguments,
-                argumentNamesOpt: default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
@@ -555,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundDefaultLiteral
     {
-        public override ConstantValue? ConstantValue
+        public override ConstantValue? ConstantValueOpt
         {
             get { return null; }
         }
@@ -563,14 +596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundConditionalOperator
     {
-        public override ConstantValue? ConstantValue
-        {
-            get
-            {
-                return this.ConstantValueOpt;
-            }
-        }
-
         public bool IsDynamic
         {
             get
@@ -578,28 +603,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsTrue dynamic operator is invoked at runtime if the condition is of the type dynamic.
                 // The type of the operator itself is Boolean, so we need to check its kind.
                 return this.Condition.Kind == BoundKind.UnaryOperator && ((BoundUnaryOperator)this.Condition).OperatorKind.IsDynamic();
-            }
-        }
-    }
-
-    internal partial class BoundUnconvertedConditionalOperator
-    {
-        public override ConstantValue? ConstantValue
-        {
-            get
-            {
-                return this.ConstantValueOpt;
-            }
-        }
-    }
-
-    internal partial class BoundSizeOfOperator
-    {
-        public override ConstantValue? ConstantValue
-        {
-            get
-            {
-                return this.ConstantValueOpt;
             }
         }
     }
@@ -656,36 +659,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundNameOfOperator
-    {
-        public override ConstantValue ConstantValue
-        {
-            get
-            {
-                return this.ConstantValueOpt;
-            }
-        }
-    }
-
     // NOTE: this type exists in order to hide the presence of {Value,Type}Expression inside of a
     //       BoundTypeOrValueExpression from the bound tree generator, which would otherwise generate
     //       a constructor that may spuriously set hasErrors to true if either field had errors.
     //       A BoundTypeOrValueExpression should never have errors if it is present in the tree.
-    internal struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
+    internal readonly struct BoundTypeOrValueData : System.IEquatable<BoundTypeOrValueData>
     {
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }
-        public BindingDiagnosticBag ValueDiagnostics { get; }
+        public ReadOnlyBindingDiagnostic<AssemblySymbol> ValueDiagnostics { get; }
         public BoundExpression TypeExpression { get; }
-        public BindingDiagnosticBag TypeDiagnostics { get; }
+        public ReadOnlyBindingDiagnostic<AssemblySymbol> TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, BindingDiagnosticBag valueDiagnostics, BoundExpression typeExpression, BindingDiagnosticBag typeDiagnostics)
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, ReadOnlyBindingDiagnostic<AssemblySymbol> valueDiagnostics, BoundExpression typeExpression, ReadOnlyBindingDiagnostic<AssemblySymbol> typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(valueDiagnostics != null, "Field 'valueDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(typeExpression != null, "Field 'typeExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert(typeDiagnostics != null, "Field 'typeDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.ValueSymbol = valueSymbol;
             this.ValueExpression = valueExpression;
@@ -700,9 +690,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (object)a.ValueSymbol == (object)b.ValueSymbol &&
                 (object)a.ValueExpression == (object)b.ValueExpression &&
-                (object)a.ValueDiagnostics == (object)b.ValueDiagnostics &&
+                a.ValueDiagnostics == b.ValueDiagnostics &&
                 (object)a.TypeExpression == (object)b.TypeExpression &&
-                (object)a.TypeDiagnostics == (object)b.TypeDiagnostics;
+                a.TypeDiagnostics == b.TypeDiagnostics;
         }
 
         public static bool operator !=(BoundTypeOrValueData a, BoundTypeOrValueData b)

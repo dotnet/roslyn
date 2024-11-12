@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Initializes an instance of <see cref="SourceText"/> from the provided stream. This version differs
         /// from <see cref="SourceText.From(Stream, Encoding, SourceHashAlgorithm, bool)"/> in two ways:
         /// 1. It attempts to minimize allocations by trying to read the stream into a byte array.
-        /// 2. If <paramref name="defaultEncoding"/> is null, it will first try UTF8 and, if that fails, it will
+        /// 2. If <paramref name="defaultEncoding"/> is null, it will first try UTF-8 and, if that fails, it will
         ///    try CodePage 1252. If CodePage 1252 is not available on the system, then it will try Latin1.
         /// </summary>
         /// <param name="stream">The stream containing encoded text.</param>
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Text
                 data.Seek(0, SeekOrigin.Begin);
 
                 // For small streams, see if we can read the byte buffer directly.
-                if (encoding.GetMaxCharCountOrThrowIfHuge(data) < LargeObjectHeapLimitInChars)
+                if (encoding.TryGetMaxCharCount(data.Length, out int maxCharCount) && maxCharCount < LargeObjectHeapLimitInChars)
                 {
                     if (TryGetBytesFromStream(data, out ArraySegment<byte> bytes) && bytes.Offset == 0 && bytes.Array is object)
                     {

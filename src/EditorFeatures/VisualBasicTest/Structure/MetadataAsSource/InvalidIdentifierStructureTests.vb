@@ -13,7 +13,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
     ''' Identifiers coming from IL can be just about any valid string and since VB doesn't have a way to escape all possible
     ''' IL identifiers, we have to account for the possibility that an item's metadata name could lead to unparseable code.
     ''' </summary>
-    Public Class InvalidIdentifierTests
+    <Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+    Public Class InvalidIdentifierStructureTests
         Inherits AbstractSyntaxStructureProviderTests
 
         Protected Overrides ReadOnly Property LanguageName As String
@@ -28,15 +29,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
             End Get
         End Property
 
-        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
+        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, options As BlockStructureOptions, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
             Dim outliningService = document.GetLanguageService(Of BlockStructureService)()
-            Dim options = GetOptions()
 
             Return (Await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans
         End Function
 
-        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function PrependDollarSign() As Task
             Const code = "
 {|hint:{|textspan:$$Class C
@@ -47,8 +46,7 @@ End Class|}|}
                 Region("textspan", "hint", "Class C " & Ellipsis, autoCollapse:=False))
         End Function
 
-        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function SymbolsAndPunctuation() As Task
             Const code = "
 $$Class C
@@ -58,8 +56,7 @@ End Class
             Await VerifyNoBlockSpansAsync(code)
         End Function
 
-        <WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
-        <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")>
         Public Async Function IdentifierThatLooksLikeCode() As Task
             Const code = "
 {|hint1:{|textspan1:$$Class C
@@ -67,8 +64,8 @@ End Class
 End Class
 "
             Await VerifyBlockSpansAsync(code,
-                Region("textspan1", "hint1", "Class C " & Ellipsis, autoCollapse:=False),
-                Region("textspan2", "hint2", "Public Sub  " & Ellipsis, autoCollapse:=True))
+                Region("textspan2", "hint2", "Public Sub  " & Ellipsis, autoCollapse:=True),
+                Region("textspan1", "hint1", "Class C " & Ellipsis, autoCollapse:=False))
         End Function
 
     End Class

@@ -27,18 +27,18 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator)
+        public static RunTimer CreateSingleGeneratorRunTimer(this CodeAnalysisEventSource eventSource, ISourceGenerator generator, Func<TimeSpan, TimeSpan> adjustRunTime)
         {
             if (eventSource.IsEnabled(EventLevel.Informational, Keywords.Performance))
             {
                 var id = Guid.NewGuid().ToString();
                 var type = generator.GetGeneratorType();
                 eventSource.StartSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, id);
-                return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id));
+                return new RunTimer(t => eventSource.StopSingleGeneratorRunTime(type.FullName!, type.Assembly.Location, t.Ticks, id), adjustRunTime);
             }
             else
             {
-                return new RunTimer();
+                return new RunTimer(adjustRunTime);
             }
         }
 
@@ -46,17 +46,25 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly SharedStopwatch _timer;
             private readonly Action<TimeSpan>? _callback;
+            private readonly Func<TimeSpan, TimeSpan>? _adjustRunTime;
 
-            public TimeSpan Elapsed => _timer.Elapsed;
+            public TimeSpan Elapsed => _adjustRunTime is not null ? _adjustRunTime(_timer.Elapsed) : _timer.Elapsed;
 
             public RunTimer()
             {
                 _timer = SharedStopwatch.StartNew();
                 _callback = null;
+                _adjustRunTime = null;
             }
 
-            public RunTimer(Action<TimeSpan> callback)
+            public RunTimer(Func<TimeSpan, TimeSpan>? adjustRunTime)
                 : this()
+            {
+                _adjustRunTime = adjustRunTime;
+            }
+
+            public RunTimer(Action<TimeSpan> callback, Func<TimeSpan, TimeSpan>? adjustRunTime = null)
+                : this(adjustRunTime)
             {
                 _callback = callback;
             }
@@ -65,8 +73,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_callback is not null)
                 {
-                    var elapsed = _timer.Elapsed;
-                    _callback(elapsed);
+                    _callback(Elapsed);
                 }
             }
         }

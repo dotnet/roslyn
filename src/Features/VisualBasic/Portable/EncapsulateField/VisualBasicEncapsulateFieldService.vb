@@ -12,20 +12,21 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
-    <ExportLanguageService(GetType(AbstractEncapsulateFieldService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicEncapsulateFieldService
-        Inherits AbstractEncapsulateFieldService
+    <ExportLanguageService(GetType(IEncapsulateFieldService), LanguageNames.VisualBasic), [Shared]>
+    Friend NotInheritable Class VisualBasicEncapsulateFieldService
+        Inherits AbstractEncapsulateFieldService(Of ConstructorBlockSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides Async Function RewriteFieldNameAndAccessibilityAsync(originalFieldName As String,
-                                                        makePrivate As Boolean,
-                                                        document As Document,
-                                                        declarationAnnotation As SyntaxAnnotation,
-                                                        cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Protected Overrides Async Function RewriteFieldNameAndAccessibilityAsync(
+                originalFieldName As String,
+                makePrivate As Boolean,
+                document As Document,
+                declarationAnnotation As SyntaxAnnotation,
+                cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
@@ -127,11 +128,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Return NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.ToSet(), StringComparer.OrdinalIgnoreCase)
         End Function
 
-        Friend Overrides Function GetConstructorNodes(containingType As INamedTypeSymbol) As IEnumerable(Of SyntaxNode)
-            Return containingType.Constructors.SelectMany(Function(c As IMethodSymbol)
-                                                              Return c.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax().Parent)
-                                                          End Function)
+        Protected Overrides Function GetConstructorNodes(containingType As INamedTypeSymbol) As IEnumerable(Of ConstructorBlockSyntax)
+            Return containingType.Constructors.
+                SelectMany(Function(c As IMethodSymbol) c.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax().Parent)).
+                OfType(Of ConstructorBlockSyntax)()
         End Function
-
     End Class
 End Namespace

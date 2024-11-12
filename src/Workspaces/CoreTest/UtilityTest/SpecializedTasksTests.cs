@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void WhenAll_Null()
         {
 #pragma warning disable CA2012 // Use ValueTasks correctly (the instance is never created)
-            Assert.Throws<ArgumentNullException>(() => SpecializedTasks.WhenAll<int>(null!));
+            Assert.Throws<ArgumentNullException>(() => SpecializedTasks.WhenAll<int>((IEnumerable<ValueTask<int>>)null!));
 #pragma warning restore CA2012 // Use ValueTasks correctly
         }
 
@@ -41,31 +42,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void WhenAll_AllCompletedSuccessfully()
         {
-            var whenAll = SpecializedTasks.WhenAll(new[] { new ValueTask<int>(0), new ValueTask<int>(1) });
+            var whenAll = SpecializedTasks.WhenAll([new ValueTask<int>(0), new ValueTask<int>(1)]);
             Debug.Assert(whenAll.IsCompleted);
             Assert.True(whenAll.IsCompletedSuccessfully);
-            Assert.Equal(new[] { 0, 1 }, whenAll.Result);
+            Assert.Equal((int[])[0, 1], whenAll.Result);
         }
 
         [Fact]
-        public void WhenAll_CompletedButCanceled()
+        public async Task WhenAll_CompletedButCanceled()
         {
-            var whenAll = SpecializedTasks.WhenAll(new[] { new ValueTask<int>(Task.FromCanceled<int>(new CancellationToken(true))) });
+            var whenAll = SpecializedTasks.WhenAll([new ValueTask<int>(Task.FromCanceled<int>(new CancellationToken(true)))]);
             Assert.True(whenAll.IsCompleted);
             Assert.False(whenAll.IsCompletedSuccessfully);
-            Assert.ThrowsAsync<OperationCanceledException>(async () => await whenAll);
+            await Assert.ThrowsAsync<TaskCanceledException>(async () => await whenAll);
         }
 
         [Fact]
         public void WhenAll_NotYetCompleted()
         {
             var completionSource = new TaskCompletionSource<int>();
-            var whenAll = SpecializedTasks.WhenAll(new[] { new ValueTask<int>(completionSource.Task) });
+            var whenAll = SpecializedTasks.WhenAll([new ValueTask<int>(completionSource.Task)]);
             Assert.False(whenAll.IsCompleted);
             completionSource.SetResult(0);
             Assert.True(whenAll.IsCompleted);
             Debug.Assert(whenAll.IsCompleted);
-            Assert.Equal(new[] { 0 }, whenAll.Result);
+            Assert.Equal((int[])[0], whenAll.Result);
         }
 
         [Fact]
@@ -211,7 +212,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 await Task.Yield();
                 gate.Wait(CancellationToken.None);
                 cts.Token.ThrowIfCancellationRequested();
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             };
             Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
             {
@@ -271,7 +272,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 await Task.Yield();
                 gate.Wait(CancellationToken.None);
                 unexpectedCts.Token.ThrowIfCancellationRequested();
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             };
             Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
             {
@@ -338,7 +339,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 await Task.Yield();
                 gate.Wait(CancellationToken.None);
                 unexpectedCts.Token.ThrowIfCancellationRequested();
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             };
             Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
             {
@@ -362,7 +363,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var executedTransform = false;
 
-            var fault = ExceptionUtilities.Unreachable;
+            var fault = ExceptionUtilities.Unreachable();
             var cancellationToken = new CancellationToken(canceled: false);
             Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => throw fault;
             Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var executedTransform = false;
 
-            var fault = ExceptionUtilities.Unreachable;
+            var fault = ExceptionUtilities.Unreachable();
             var cancellationToken = new CancellationToken(canceled: false);
             Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(Task.FromException<IntermediateType>(fault));
             Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
@@ -406,7 +407,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var executedTransform = false;
 
-            var fault = ExceptionUtilities.Unreachable;
+            var fault = ExceptionUtilities.Unreachable();
             var cancellationToken = new CancellationToken(canceled: false);
             var gate = new ManualResetEventSlim();
             Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) =>
@@ -439,7 +440,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var executedTransform = false;
 
-            var fault = ExceptionUtilities.Unreachable;
+            var fault = ExceptionUtilities.Unreachable();
             var cancellationToken = cts.Token;
             Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => throw fault;
             Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
@@ -464,7 +465,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var executedTransform = false;
 
-            var fault = ExceptionUtilities.Unreachable;
+            var fault = ExceptionUtilities.Unreachable();
             var cancellationToken = cts.Token;
             Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(Task.FromException<IntermediateType>(fault));
             Func<IntermediateType, StateType, ResultType> transform = (_, _) =>
@@ -489,7 +490,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var executedTransform = false;
 
-            var fault = ExceptionUtilities.Unreachable;
+            var fault = ExceptionUtilities.Unreachable();
             var cancellationToken = cts.Token;
             var gate = new ManualResetEventSlim();
             Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) =>
@@ -518,7 +519,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Transform_SyncCompletedFunction_FaultedTransform()
         {
-            var fault = ExceptionUtilities.Unreachable;
+            var fault = ExceptionUtilities.Unreachable();
             Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = (_, _) => new(new IntermediateType());
             Func<IntermediateType, StateType, ResultType> transform = (_, _) => throw fault;
             var arg = new StateType();
@@ -533,7 +534,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task Transform_AsyncCompletedFunction_FaultedTransform()
         {
-            var fault = ExceptionUtilities.Unreachable;
+            var fault = ExceptionUtilities.Unreachable();
             var gate = new ManualResetEventSlim();
             Func<StateType, CancellationToken, ValueTask<IntermediateType>> func = async (_, _) =>
             {

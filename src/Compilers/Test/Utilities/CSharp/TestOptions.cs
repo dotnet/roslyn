@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -17,6 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     {
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
         public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
+        public static readonly CSharpParseOptions Regular1 = Regular.WithLanguageVersion(LanguageVersion.CSharp1);
+        public static readonly CSharpParseOptions Regular2 = Regular.WithLanguageVersion(LanguageVersion.CSharp2);
+        public static readonly CSharpParseOptions Regular3 = Regular.WithLanguageVersion(LanguageVersion.CSharp3);
+        public static readonly CSharpParseOptions Regular4 = Regular.WithLanguageVersion(LanguageVersion.CSharp4);
+        public static readonly CSharpParseOptions Regular5 = Regular.WithLanguageVersion(LanguageVersion.CSharp5);
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions Regular7 = Regular.WithLanguageVersion(LanguageVersion.CSharp7);
         public static readonly CSharpParseOptions Regular7_1 = Regular.WithLanguageVersion(LanguageVersion.CSharp7_1);
@@ -34,7 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Regular8 = Regular.WithLanguageVersion(LanguageVersion.CSharp8);
         public static readonly CSharpParseOptions Regular9 = Regular.WithLanguageVersion(LanguageVersion.CSharp9);
         public static readonly CSharpParseOptions Regular10 = Regular.WithLanguageVersion(LanguageVersion.CSharp10);
+        public static readonly CSharpParseOptions Regular11 = Regular.WithLanguageVersion(LanguageVersion.CSharp11);
+        public static readonly CSharpParseOptions Regular12 = Regular.WithLanguageVersion(LanguageVersion.CSharp12);
+        public static readonly CSharpParseOptions Regular13 = Regular.WithLanguageVersion(LanguageVersion.CSharp13);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
+        public static readonly CSharpParseOptions RegularPreviewWithDocumentationComments = RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose);
         public static readonly CSharpParseOptions RegularWithLegacyStrongName = Regular.WithFeature("UseLegacyStrongNameProvider");
         public static readonly CSharpParseOptions WithoutImprovedOverloadCandidates = Regular.WithLanguageVersion(MessageID.IDS_FeatureImprovedOverloadCandidates.RequiredVersion() - 1);
         public static readonly CSharpParseOptions WithCovariantReturns = Regular.WithLanguageVersion(MessageID.IDS_FeatureCovariantReturnsForOverrides.RequiredVersion());
@@ -69,6 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions DebugDll = CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, OptimizationLevel.Debug);
         public static readonly CSharpCompilationOptions DebugExe = CreateTestOptions(OutputKind.ConsoleApplication, OptimizationLevel.Debug);
 
+        public static readonly CSharpCompilationOptions DebugDllThrowing = DebugDll.WithMetadataReferenceResolver(new ThrowingMetadataReferenceResolver());
+        public static readonly CSharpCompilationOptions DebugExeThrowing = DebugExe.WithMetadataReferenceResolver(new ThrowingMetadataReferenceResolver());
+
         public static readonly CSharpCompilationOptions ReleaseWinMD = CreateTestOptions(OutputKind.WindowsRuntimeMetadata, OptimizationLevel.Release);
         public static readonly CSharpCompilationOptions DebugWinMD = CreateTestOptions(OutputKind.WindowsRuntimeMetadata, OptimizationLevel.Debug);
 
@@ -87,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpCompilationOptions SigningDebugDll = DebugDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
 
         public static readonly EmitOptions NativePdbEmit = EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb);
+
+        public static readonly GeneratorDriverOptions GeneratorDriverOptions = new GeneratorDriverOptions(trackIncrementalGeneratorSteps: true, baseDirectory: TempRoot.Root);
 
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
@@ -116,6 +131,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithNullablePublicOnly(this CSharpParseOptions options)
         {
             return options.WithFeature("nullablePublicOnly");
+        }
+
+        public static CSharpParseOptions WithNoRefSafetyRulesAttribute(this CSharpParseOptions options)
+        {
+            return options.WithFeature("noRefSafetyRulesAttribute");
+        }
+
+        public static CSharpParseOptions WithDisableLengthBasedSwitch(this CSharpParseOptions options)
+        {
+            return options.WithFeature("disable-length-based-switch");
         }
 
         public static CSharpParseOptions WithFeature(this CSharpParseOptions options, string feature, string value = "true")

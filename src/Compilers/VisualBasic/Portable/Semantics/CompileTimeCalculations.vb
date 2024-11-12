@@ -135,24 +135,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return x \ y
         End Function
 
-        Private Function UncheckedAdd(x As Integer, y As Integer) As Integer
-            Return x + y
-        End Function
-
         Private Function UncheckedAdd(x As Long, y As Long) As Long
             Return x + y
-        End Function
-
-        Private Function UncheckedAdd(x As ULong, y As ULong) As ULong
-            Return x + y
-        End Function
-
-        Private Function UncheckedSub(x As Long, y As Long) As Long
-            Return x - y
-        End Function
-
-        Private Function UncheckedSub(x As UInteger, y As UInteger) As UInteger
-            Return x - y
         End Function
 
         Private Function UncheckedNegate(x As Long) As Long
@@ -619,7 +603,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If sourceValue > &H7000000000000000L Then
                         Dim temporary As Double = (sourceValue - &H7000000000000000L)
 
-                        If temporary < &H7000000000000000L AndAlso UncheckedCLng(temporary) > &H1000000000000000L Then
+                        If temporary < &H7000000000000000L AndAlso UncheckedCLng(temporary) < &H1000000000000000L Then
                             Return False
                         End If
                     Else
@@ -788,5 +772,4 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Module
 
 End Namespace
-
 

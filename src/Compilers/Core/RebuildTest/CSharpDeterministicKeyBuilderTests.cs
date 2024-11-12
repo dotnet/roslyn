@@ -9,19 +9,13 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Newtonsoft;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 using Newtonsoft.Json;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.VisualBasic.UnitTests;
 using System;
-using System.IO;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
@@ -61,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void VerifyUpToDate()
         {
             verifyCount<ParseOptions>(11);
-            verifyCount<CSharpParseOptions>(10);
-            verifyCount<CompilationOptions>(62);
+            verifyCount<CSharpParseOptions>(12);
+            verifyCount<CompilationOptions>(63);
             verifyCount<CSharpCompilationOptions>(9);
 
             static void verifyCount<T>(int expected)
@@ -80,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void Simple()
         {
             var compilation = CSharpTestBase.CreateCompilation(
-                @"System.Console.WriteLine(""Hello World"");",
+                CSharpTestSource.Parse(@"System.Console.WriteLine(""Hello World"");", checksumAlgorithm: SourceHashAlgorithm.Sha1),
                 targetFramework: TargetFramework.NetCoreApp,
                 options: Options);
 
@@ -353,13 +347,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""TRACE""
 ]", "DEBUG", "TRACE");
 
-
             assert(@"
 [
   ""DEBUG"",
   ""TRACE""
 ]", "TRACE", "DEBUG");
-
 
             void assert(string expected, params string[] values)
             {
@@ -375,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [InlineData(@"e:\long\path\src\code.cs", @"e:\long\path\src\", @"/pathmap:e:\long\path\=c:\")]
         public void CSharpPathMapWindows(string filePath, string workingDirectory, string? pathMap)
         {
-            var args = new List<string>(new[] { filePath, "/nostdlib", "/langversion:9" });
+            var args = new List<string>(new[] { filePath, "/nostdlib", "/langversion:9", "/checksumalgorithm:sha256" });
             if (pathMap is not null)
             {
                 args.Add(pathMap);
@@ -413,10 +405,11 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [ConditionalFact(typeof(WindowsOnly))]
         public void CSharpPublicKey()
         {
+            using var temp = new TempRoot();
             var keyFilePath = @"c:\windows\key.snk";
             var publicKey = TestResources.General.snPublicKey;
             var publicKeyStr = DeterministicKeyBuilder.EncodeByteArrayValue(publicKey);
-            var fileSystem = new TestStrongNameFileSystem();
+            var fileSystem = new TestStrongNameFileSystem(temp.CreateDirectory().Path);
             fileSystem.ReadAllBytesFunc = _ => publicKey;
             var options = Options
                 .WithCryptoKeyFile(keyFilePath)
@@ -497,7 +490,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         [Fact]
         public void FeatureFlag()
         {
-            var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", "-debug:portable");
+            var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", "-debug:portable", "-checksumalgorithm:sha256");
             var sourceFile = compiler.AddSourceFile("test.cs", @"// this is a test file");
             compiler.AddOutputFile("test.dll");
             var pdbFile = compiler.AddOutputFile("test.pdb");
@@ -552,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""features"": {{
             ""debug-determinism"": ""true""
           }},
-          ""languageVersion"": ""CSharp10"",
+          ""languageVersion"": ""CSharp13"",
           ""specifiedLanguageVersion"": ""Default"",
           ""preprocessorSymbols"": []
         }}

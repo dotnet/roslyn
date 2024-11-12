@@ -16,99 +16,90 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.MakeFieldReadonly
+namespace Microsoft.CodeAnalysis.MakeFieldReadonly;
+
+internal abstract class AbstractMakeFieldReadonlyCodeFixProvider<TSymbolSyntax, TFieldDeclarationSyntax>
+    : SyntaxEditorBasedCodeFixProvider
+    where TSymbolSyntax : SyntaxNode
+    where TFieldDeclarationSyntax : SyntaxNode
 {
-    internal abstract class AbstractMakeFieldReadonlyCodeFixProvider<TSymbolSyntax, TFieldDeclarationSyntax>
-        : SyntaxEditorBasedCodeFixProvider
-        where TSymbolSyntax : SyntaxNode
-        where TFieldDeclarationSyntax : SyntaxNode
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId];
+
+    protected abstract SyntaxNode? GetInitializerNode(TSymbolSyntax declaration);
+    protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId);
+        RegisterCodeFix(context, AnalyzersResources.Add_readonly_modifier, nameof(AnalyzersResources.Add_readonly_modifier));
+        return Task.CompletedTask;
+    }
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeQuality;
-
-        protected abstract SyntaxNode GetInitializerNode(TSymbolSyntax declaration);
-        protected abstract ImmutableList<TSymbolSyntax> GetVariableDeclarators(TFieldDeclarationSyntax declaration);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override async Task FixAllAsync(
+        Document document,
+        ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor,
+        CancellationToken cancellationToken)
+    {
+        var declarators = new List<TSymbolSyntax>();
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        foreach (var diagnostic in diagnostics)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-            return Task.CompletedTask;
+            var diagnosticSpan = diagnostic.Location.SourceSpan;
+
+            declarators.Add(root.FindNode(diagnosticSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<TSymbolSyntax>()!);
         }
 
-        protected override async Task FixAllAsync(
-            Document document,
-            ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor,
-            CancellationToken cancellationToken)
-        {
-            var declarators = new List<TSymbolSyntax>();
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var diagnostic in diagnostics)
-            {
-                var diagnosticSpan = diagnostic.Location.SourceSpan;
+        await MakeFieldReadonlyAsync(document, editor, declarators, cancellationToken).ConfigureAwait(false);
+    }
 
-                declarators.Add(root.FindNode(diagnosticSpan, getInnermostNodeForTie: true).FirstAncestorOrSelf<TSymbolSyntax>()!);
+    private async Task MakeFieldReadonlyAsync(
+        Document document, SyntaxEditor editor, List<TSymbolSyntax> declarators, CancellationToken cancellationToken)
+    {
+        var generator = editor.Generator;
+        var declaratorsByField = declarators.GroupBy(g => g.FirstAncestorOrSelf<TFieldDeclarationSyntax>()!);
+
+        foreach (var fieldDeclarators in declaratorsByField)
+        {
+            var fieldDeclaration = fieldDeclarators.Key;
+            var declarationDeclarators = GetVariableDeclarators(fieldDeclaration);
+
+            if (declarationDeclarators.Count == fieldDeclarators.Count())
+            {
+                var modifiers = WithReadOnly(editor.Generator.GetModifiers(fieldDeclaration));
+                editor.ReplaceNode(
+                    fieldDeclaration,
+                    generator.WithModifiers(fieldDeclaration.WithoutTrivia(), modifiers).WithTriviaFrom(fieldDeclaration));
             }
-
-            await MakeFieldReadonlyAsync(document, editor, declarators, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task MakeFieldReadonlyAsync(
-            Document document, SyntaxEditor editor, List<TSymbolSyntax> declarators, CancellationToken cancellationToken)
-        {
-            var declaratorsByField = declarators.GroupBy(g => g.FirstAncestorOrSelf<TFieldDeclarationSyntax>()!);
-
-            foreach (var fieldDeclarators in declaratorsByField)
+            else
             {
-                var declarationDeclarators = GetVariableDeclarators(fieldDeclarators.Key);
+                var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                if (declarationDeclarators.Count == fieldDeclarators.Count())
+                foreach (var declarator in declarationDeclarators.Reverse())
                 {
-                    var modifiers = WithReadOnly(editor.Generator.GetModifiers(fieldDeclarators.Key));
+                    var symbol = (IFieldSymbol?)model.GetDeclaredSymbol(declarator, cancellationToken);
+                    Contract.ThrowIfNull(symbol);
+                    var modifiers = generator.GetModifiers(fieldDeclaration);
 
-                    editor.SetModifiers(fieldDeclarators.Key, modifiers);
+                    var newDeclaration = generator
+                        .FieldDeclaration(
+                            symbol.Name,
+                            generator.TypeExpression(symbol.Type),
+                            Accessibility.Private,
+                            fieldDeclarators.Contains(declarator)
+                                ? WithReadOnly(modifiers)
+                                : modifiers,
+                            GetInitializerNode(declarator))
+                        .WithAdditionalAnnotations(Formatter.Annotation);
+
+                    editor.InsertAfter(fieldDeclaration, newDeclaration);
                 }
-                else
-                {
-                    var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var generator = editor.Generator;
 
-                    foreach (var declarator in declarationDeclarators.Reverse())
-                    {
-                        var symbol = (IFieldSymbol?)model.GetDeclaredSymbol(declarator, cancellationToken);
-                        Contract.ThrowIfNull(symbol);
-                        var modifiers = generator.GetModifiers(fieldDeclarators.Key);
-
-                        var newDeclaration = generator.FieldDeclaration(symbol.Name,
-                                                                        generator.TypeExpression(symbol.Type),
-                                                                        Accessibility.Private,
-                                                                        fieldDeclarators.Contains(declarator)
-                                                                            ? WithReadOnly(modifiers)
-                                                                            : modifiers,
-                                                                        GetInitializerNode(declarator))
-                                                      .WithAdditionalAnnotations(Formatter.Annotation);
-
-                        editor.InsertAfter(fieldDeclarators.Key, newDeclaration);
-                    }
-
-                    editor.RemoveNode(fieldDeclarators.Key, SyntaxRemoveOptions.KeepLeadingTrivia);
-                }
-            }
-        }
-
-        private static DeclarationModifiers WithReadOnly(DeclarationModifiers modifiers)
-            => (modifiers - DeclarationModifiers.Volatile) | DeclarationModifiers.ReadOnly;
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Add_readonly_modifier, createChangedDocument, nameof(AnalyzersResources.Add_readonly_modifier))
-            {
+                editor.RemoveNode(fieldDeclaration, SyntaxRemoveOptions.KeepLeadingTrivia);
             }
         }
     }
+
+    private static DeclarationModifiers WithReadOnly(DeclarationModifiers modifiers)
+        => (modifiers - DeclarationModifiers.Volatile) | DeclarationModifiers.ReadOnly;
 }

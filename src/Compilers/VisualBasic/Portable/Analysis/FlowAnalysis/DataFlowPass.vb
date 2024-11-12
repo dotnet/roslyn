@@ -437,7 +437,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         result.Append(GetOrCreateSlot(local))
                     End If
 
-
                 Case BoundKind.RangeVariable
                     result.Append(GetOrCreateSlot(DirectCast(node, BoundRangeVariable).RangeVariable))
 
@@ -484,7 +483,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns></returns>
         Protected Function GetOrCreateSlot(symbol As Symbol, Optional containingSlot As Integer = 0) As Integer
             containingSlot = DescendThroughTupleRestFields(symbol, containingSlot, forceContainingSlotsToExist:=True)
-
 
             If containingSlot = SlotKind.NotTracked Then
                 Return SlotKind.NotTracked
@@ -558,7 +556,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return containingSlot
         End Function
-
 
         ' In C#, we moved this cache to a separate cache held onto by the compilation, so we didn't
         ' recompute it each time.
@@ -1025,6 +1022,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.Local
                     Dim local As LocalSymbol = DirectCast(node, BoundLocal).LocalSymbol
+
+                    If local.IsCompilerGenerated AndAlso Not Me.ProcessCompilerGeneratedLocals Then
+                        ' For consistency with Assign behavior, which does not process compiler generated temporary locals.
+                        Return True
+                    End If
+
                     If local.DeclarationKind <> LocalDeclarationKind.AmbiguousLocals Then
                         unassignedSlot = VariableSlot(local)
 

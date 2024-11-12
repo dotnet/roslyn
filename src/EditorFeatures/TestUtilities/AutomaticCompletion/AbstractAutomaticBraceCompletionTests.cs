@@ -5,12 +5,10 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
@@ -139,31 +137,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             var buffer = session.SubjectBuffer;
             var caret = session.TextView.GetCaretPoint(buffer).Value;
 
-            using (var edit = buffer.CreateEdit())
-            {
-                edit.Insert(caret.Position, text);
-                edit.Apply();
-            }
+            using var edit = buffer.CreateEdit();
+            edit.Insert(caret.Position, text);
+            edit.Apply();
         }
 
-        internal static Holder CreateSession(TestWorkspace workspace, char opening, char closing, Dictionary<OptionKey2, object> changedOptionSet = null)
+        internal static Holder CreateSession(EditorTestWorkspace workspace, char opening, char closing, OptionsCollection globalOptions = null)
         {
-            if (changedOptionSet != null)
-            {
-                var options = workspace.Options;
-                foreach (var entry in changedOptionSet)
-                {
-                    options = options.WithChangedOption(entry.Key, entry.Value);
-                }
-
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(options));
-            }
+            workspace.SetAnalyzerFallbackAndGlobalOptions(globalOptions);
 
             var document = workspace.Documents.First();
 
-            var provider = Assert.IsType<BraceCompletionSessionProvider>(workspace.ExportProvider.GetExportedValue<IBraceCompletionSessionProvider>());
+            var provider = Assert.IsType<BraceCompletionSessionProvider>(workspace.GetService<IBraceCompletionSessionProvider>());
+
             var openingPoint = new SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value);
-            if (provider.TryCreateSession(document.GetTextView(), openingPoint, opening, closing, out var session))
+            var textView = document.GetTextView();
+
+            workspace.GlobalOptions.SetEditorOptions(textView.Options.GlobalOptions, document.Project.Language);
+
+            if (provider.TryCreateSession(textView, openingPoint, opening, closing, out var session))
             {
                 return new Holder(workspace, session);
             }
@@ -174,10 +166,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal class Holder : IDisposable
         {
-            public TestWorkspace Workspace { get; }
+            public EditorTestWorkspace Workspace { get; }
             public IBraceCompletionSession Session { get; }
 
-            public Holder(TestWorkspace workspace, IBraceCompletionSession session)
+            public Holder(EditorTestWorkspace workspace, IBraceCompletionSession session)
             {
                 this.Workspace = workspace;
                 this.Session = session;

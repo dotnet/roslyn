@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a constant value used as an argument to a custom attribute.
     /// </summary>
-    public struct TypedConstant : IEquatable<TypedConstant>
+    public readonly struct TypedConstant : IEquatable<TypedConstant>
     {
         private readonly TypedConstantKind _kind;
         private readonly ITypeSymbolInternal? _type;
@@ -104,7 +104,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The value for a <see cref="TypedConstant"/> array. 
+        /// The value for a <see cref="TypedConstant"/> array.
+        /// Returns a <see langword="default" /> <c>ImmutableArray</c> if <see langword="null"/> was passed as the array value;
+        /// <see cref="IsNull"/> can be used to check for this.
         /// </summary>
         public ImmutableArray<TypedConstant> Values
         {

@@ -9,52 +9,41 @@ using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal readonly struct TokenSemanticInfo(
+    ISymbol declaredSymbol,
+    IAliasSymbol aliasSymbol,
+    ImmutableArray<ISymbol> referencedSymbols,
+    ITypeSymbol type,
+    ITypeSymbol convertedType,
+    TextSpan span)
 {
-    internal struct TokenSemanticInfo
+    public static readonly TokenSemanticInfo Empty = new(
+        null, null, [], null, null, default);
+
+    public readonly ISymbol DeclaredSymbol = declaredSymbol;
+    public readonly IAliasSymbol AliasSymbol = aliasSymbol;
+    public readonly ImmutableArray<ISymbol> ReferencedSymbols = referencedSymbols;
+    public readonly ITypeSymbol Type = type;
+    public readonly ITypeSymbol ConvertedType = convertedType;
+    public readonly TextSpan Span = span;
+
+    public ImmutableArray<ISymbol> GetSymbols(bool includeType)
     {
-        public static readonly TokenSemanticInfo Empty = new(
-            null, null, ImmutableArray<ISymbol>.Empty, null, null, default);
+        var result = ArrayBuilder<ISymbol>.GetInstance();
+        result.AddIfNotNull(DeclaredSymbol);
+        result.AddIfNotNull(AliasSymbol);
+        result.AddRange(ReferencedSymbols);
 
-        public readonly ISymbol DeclaredSymbol;
-        public readonly IAliasSymbol AliasSymbol;
-        public readonly ImmutableArray<ISymbol> ReferencedSymbols;
-        public readonly ITypeSymbol Type;
-        public readonly ITypeSymbol ConvertedType;
-        public readonly TextSpan Span;
-
-        public TokenSemanticInfo(
-            ISymbol declaredSymbol,
-            IAliasSymbol aliasSymbol,
-            ImmutableArray<ISymbol> referencedSymbols,
-            ITypeSymbol type,
-            ITypeSymbol convertedType,
-            TextSpan span)
+        if (includeType)
         {
-            DeclaredSymbol = declaredSymbol;
-            AliasSymbol = aliasSymbol;
-            ReferencedSymbols = referencedSymbols;
-            Type = type;
-            ConvertedType = convertedType;
-            Span = span;
+            result.AddIfNotNull(Type ?? ConvertedType);
         }
 
-        public ImmutableArray<ISymbol> GetSymbols(bool includeType)
-        {
-            var result = ArrayBuilder<ISymbol>.GetInstance();
-            result.AddIfNotNull(DeclaredSymbol);
-            result.AddIfNotNull(AliasSymbol);
-            result.AddRange(ReferencedSymbols);
-
-            if (includeType)
-            {
-                result.AddIfNotNull(Type ?? ConvertedType);
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-        public ISymbol GetAnySymbol(bool includeType)
-            => GetSymbols(includeType).FirstOrDefault();
+        return result.ToImmutableAndFree();
     }
+
+    public ISymbol GetAnySymbol(bool includeType)
+        => GetSymbols(includeType).FirstOrDefault();
 }

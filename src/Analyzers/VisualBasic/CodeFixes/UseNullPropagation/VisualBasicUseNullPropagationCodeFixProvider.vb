@@ -14,19 +14,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation
         Inherits AbstractUseNullPropagationCodeFixProvider(Of
             SyntaxKind,
             ExpressionSyntax,
+            ExecutableStatementSyntax,
             TernaryConditionalExpressionSyntax,
             BinaryExpressionSyntax,
             InvocationExpressionSyntax,
-            MemberAccessExpressionSyntax,
             ConditionalAccessExpressionSyntax,
             InvocationExpressionSyntax,
+            MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
+            MultiLineIfBlockSyntax,
+            ExpressionStatementSyntax,
             ArgumentListSyntax)
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides Function TryGetBlock(node As SyntaxNode, ByRef block As ExecutableStatementSyntax) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function ReplaceBlockStatements(block As ExecutableStatementSyntax, newInnerStatement As ExecutableStatementSyntax) As ExecutableStatementSyntax
+            Throw ExceptionUtilities.Unreachable()
+        End Function
+
+        Protected Overrides Function PostProcessElseIf(ifStatement As MultiLineIfBlockSyntax, newWhenTrueStatement As ExecutableStatementSyntax) As SyntaxNode
+            Throw ExceptionUtilities.Unreachable()
+        End Function
 
         Protected Overrides Function ElementBindingExpression(argumentList As ArgumentListSyntax) As InvocationExpressionSyntax
             Return SyntaxFactory.InvocationExpression(Nothing, argumentList)

@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -15,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         private partial class SuggestedActionsSource
         {
-            protected sealed class State : IDisposable
+            private sealed class State : IDisposable
             {
                 private readonly SuggestedActionsSource _source;
 
@@ -24,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 public readonly ITextBuffer SubjectBuffer;
                 public readonly WorkspaceRegistration Registration;
 
-                // mutable state
-                public Workspace? Workspace { get; set; }
-                public int LastSolutionVersionReported;
+                public Workspace? Workspace => Registration.Workspace;
 
                 public State(SuggestedActionsSource source, SuggestedActionsSourceProvider owner, ITextView textView, ITextBuffer textBuffer)
                 {
@@ -36,26 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     TextView = textView;
                     SubjectBuffer = textBuffer;
                     Registration = Workspace.GetWorkspaceRegistration(textBuffer.AsTextContainer());
-                    LastSolutionVersionReported = InvalidSolutionVersion;
                 }
 
                 void IDisposable.Dispose()
                 {
-                    if (Owner != null)
-                    {
-                        var updateSource = (IDiagnosticUpdateSource)Owner._diagnosticService;
-                        updateSource.DiagnosticsUpdated -= _source.OnDiagnosticsUpdated;
-                    }
-
-                    if (Workspace != null)
-                    {
-                        Workspace.Services.GetRequiredService<IWorkspaceStatusService>().StatusChanged -= _source.OnWorkspaceStatusChanged;
-                        Workspace.DocumentActiveContextChanged -= _source.OnActiveContextChanged;
-                    }
-
-                    if (Registration != null)
-                        Registration.WorkspaceChanged -= _source.OnWorkspaceChanged;
-
                     if (TextView != null)
                         TextView.Closed -= _source.OnTextViewClosed;
                 }

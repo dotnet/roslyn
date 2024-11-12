@@ -53,7 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasConverted = 1 << 8,
 
-            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted,
+            ParamsArrayOrCollection = 1 << 9,
+
+            /// <summary>
+            /// Set after checking if the property access should use the backing field directly.
+            /// </summary>
+            WasPropertyBackingFieldAccessChecked = 1 << 10,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
         }
 
         protected new BoundNode MemberwiseClone()
@@ -149,6 +156,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+
+            if (original.IsParamsArrayOrCollection)
+            {
+                this.IsParamsArrayOrCollection = true;
+            }
+
 #if DEBUG
             this.WasConverted = original.WasConverted;
 #endif
@@ -317,7 +330,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        public bool WasPropertyBackingFieldAccessChecked
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.WasPropertyBackingFieldAccessChecked) != 0;
+            }
+            set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.WasPropertyBackingFieldAccessChecked) == 0, "should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasPropertyBackingFieldAccessChecked;
+                }
+            }
+        }
 #endif
+
+        public bool IsParamsArrayOrCollection
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.ParamsArrayOrCollection) != 0;
+            }
+            protected set
+            {
+                RoslynDebug.Assert((_attributes & BoundNodeAttributes.ParamsArrayOrCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsArrayOrCollection)} flag should not be set twice or reset");
+                Debug.Assert(value || !IsParamsArrayOrCollection);
+                Debug.Assert(!value ||
+                             this is BoundArrayCreation { Bounds: [BoundLiteral { WasCompilerGenerated: true }], InitializerOpt: BoundArrayInitialization { WasCompilerGenerated: true }, WasCompilerGenerated: true } or
+                                     BoundUnconvertedCollectionExpression { WasCompilerGenerated: true } or
+                                     BoundCollectionExpression { WasCompilerGenerated: true, UnconvertedCollectionExpression.IsParamsArrayOrCollection: true } or
+                                     BoundConversion { Operand: BoundCollectionExpression { IsParamsArrayOrCollection: true } });
+                Debug.Assert(!value ||
+                             this is not BoundUnconvertedCollectionExpression collection ||
+                             ImmutableArray<BoundNode>.CastUp(collection.Elements.CastArray<BoundExpression>()) == collection.Elements);
+
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.ParamsArrayOrCollection;
+                }
+            }
+        }
 
         public BoundKind Kind
         {
@@ -498,9 +553,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitBlock(BoundBlock node)
             {
+                var instrumentation = node.Instrumentation;
+                if (instrumentation != null)
+                {
+                    foreach (var local in instrumentation.Locals)
+                    {
+                        var added = DeclaredLocals.Add(local);
+                        Debug.Assert(added);
+                    }
+
+                    _ = Visit(instrumentation.Prologue);
+                }
+
                 AddAll(node.Locals);
                 base.VisitBlock(node);
                 RemoveAll(node.Locals);
+
+                if (instrumentation != null)
+                {
+                    _ = Visit(instrumentation.Epilogue);
+
+                    foreach (var local in instrumentation.Locals)
+                    {
+                        var removed = DeclaredLocals.Remove(local);
+                        Debug.Assert(removed);
+                    }
+                }
+
                 return null;
             }
 

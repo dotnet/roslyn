@@ -35,7 +35,6 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         End Get
     End Property
 
-
 #Region "Helpers"
 
     Public Sub New()
@@ -45,6 +44,9 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
     Private Shared ReadOnly s_keyPairFile As String = SigningTestHelpers.KeyPairFile
     Private Shared ReadOnly s_publicKeyFile As String = SigningTestHelpers.PublicKeyFile
     Private Shared ReadOnly s_publicKey As ImmutableArray(Of Byte) = SigningTestHelpers.PublicKey
+    Private Shared ReadOnly s_providerNoSigningTempPath As StrongNameProvider = New DesktopStrongNameProvider(
+        ImmutableArray(Of String).Empty,
+        New VirtualizedStrongNameFileSystem(tempPath:=Nothing))
 
     Private Shared Function GetDesktopProviderWithPath(keyFilePath As String) As StrongNameProvider
         Return New DesktopStrongNameProvider(ImmutableArray.Create(keyFilePath), New VirtualizedStrongNameFileSystem())
@@ -298,6 +300,35 @@ End Class
 BC36980: Error extracting public key from file 'goo': <%= CodeAnalysisResources.FileNotFound %>
             </errors>)
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
+    End Sub
+
+    <ConditionalFact(GetType(WindowsOnly))>
+    Public Sub PubKeyFileSigningTempPathMissing()
+        Dim options = TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_providerNoSigningTempPath)
+        Dim compilation As VisualBasicCompilation = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Public Class C
+ Friend Sub Goo()
+ End Sub
+End Class
+]]>
+    </file>
+</compilation>,
+        options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_providerNoSigningTempPath), parseOptions:=TestOptions.RegularWithLegacyStrongName)
+
+        CompilationUtils.AssertTheseEmitDiagnostics(compilation,
+            <errors>
+BC36980: Error extracting public key from file '<%= s_keyPairFile %>': <%= CodeAnalysisResources.SigningTempPathUnavailable %>
+            </errors>)
+
+        ' Once the temp path is available this will succeed.
+        options = options.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider)
+        compilation = compilation.WithOptions(options)
+        CompilationUtils.AssertTheseEmitDiagnostics(compilation,
+            <errors>
+            </errors>)
+
     End Sub
 
     <Theory>
@@ -1109,7 +1140,7 @@ End Class
         Assert.True(comp.IsRealSigned)
         VerifySigned(comp)
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp.Assembly.Identity.PublicKey)
-        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken)
+        AssertEx.Equal(Of Byte)(pubKeyTokenBytes, comp.Assembly.Identity.PublicKeyToken)
 
         Dim src =
 <compilation name="MaxSizeComp2">
@@ -1127,14 +1158,14 @@ End Class
 
         CompileAndVerify(comp2, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp2.Assembly.Identity.PublicKey)
-        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
+        AssertEx.Equal(Of Byte)(pubKeyTokenBytes, comp2.Assembly.Identity.PublicKeyToken)
 
         Dim comp3 = CreateCompilation(src, references:={comp.EmitToImageReference()},
             options:=TestOptions.SigningReleaseExe.WithCryptoKeyFile(SigningTestHelpers.MaxSizeKeyFile), parseOptions:=parseOptions)
 
         CompileAndVerify(comp3, expectedOutput:="Called M")
         Assert.Equal(TestResources.General.snMaxSizePublicKey, comp3.Assembly.Identity.PublicKey)
-        Assert.Equal(Of Byte)(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken)
+        AssertEx.Equal(Of Byte)(pubKeyTokenBytes, comp3.Assembly.Identity.PublicKeyToken)
     End Sub
 
     <Theory>

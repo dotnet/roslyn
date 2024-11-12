@@ -3,7 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Xml.Linq
+Imports System.Text
 Imports Microsoft.CodeAnalysis.Text
+Imports System.IO
 
 Public Structure BasicTestSource
 
@@ -12,6 +14,17 @@ Public Structure BasicTestSource
     Private Sub New(value As Object)
         Me.Value = value
     End Sub
+
+    Public Shared Function Parse(text As String,
+                                 Optional path As String = "",
+                                 Optional options As VisualBasicParseOptions = Nothing,
+                                 Optional encoding As Encoding = Nothing,
+                                 Optional checksumAlgorithm As SourceHashAlgorithm = SourceHashAlgorithms.Default) As SyntaxTree
+
+        Dim sourceTest = SourceText.From(text, If(encoding, Encoding.UTF8), checksumAlgorithm)
+        Dim tree = SyntaxFactory.ParseSyntaxTree(sourceTest, If(options, TestOptions.RegularLatest), path)
+        Return tree
+    End Function
 
     Public Function GetSyntaxTrees(
         Optional parseOptions As VisualBasicParseOptions = Nothing,
@@ -30,12 +43,17 @@ Public Structure BasicTestSource
 
         Dim source = TryCast(Value, String)
         If source IsNot Nothing Then
-            Return New SyntaxTree() {VisualBasicSyntaxTree.ParseText(source, parseOptions)}
+            Return New SyntaxTree() _
+            {
+                VisualBasicSyntaxTree.ParseText(
+                    SourceText.From(source, encoding:=Nothing, SourceHashAlgorithms.Default),
+                    If(parseOptions, TestOptions.RegularLatest))
+            }
         End If
 
         Dim sources = TryCast(Value, String())
         If sources IsNot Nothing Then
-            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)).ToArray()
+            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(SourceText.From(s, encoding:=Nothing, SourceHashAlgorithms.Default), If(parseOptions, TestOptions.RegularLatest))).ToArray()
         End If
 
         Dim tree = TryCast(Value, SyntaxTree)

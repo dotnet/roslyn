@@ -22,10 +22,9 @@
         "*.yml": "azure-pipelines"
     },
     // ms-dotnettools.csharp settings
-    "omnisharp.defaultLaunchSolution": "Compilers.sln",
+    "omnisharp.defaultLaunchSolution": "Roslyn.sln",
     "omnisharp.disableMSBuildDiagnosticWarning": true,
     "omnisharp.enableEditorConfigSupport": true,
-    "omnisharp.enableImportCompletion": true,
     "omnisharp.useModernNet": true,
     "omnisharp.enableAsyncCompletion": true,
     // ms-vscode.powershell settings
@@ -33,5 +32,16 @@
     "powershell.integratedConsole.showOnStartup": false,
     "powershell.startAutomatically": false,
     // ms-azure-devops.azure-pipelines settings
-    "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json"
+    "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json",
+    "dotnet.defaultSolution": "Roslyn.sln",
+    "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+    "dotnet.testWindow.disableAutoDiscovery": true,
+    "dotnet.testWindow.disableBuildOnRefresh": true,
+    "cSpell.words": [
+        "Nerdbank",
+        "NETCOREAPP",
+        "Unregistration",
+        "Unregistrations",
+        "Xunit"
+    ]
 }

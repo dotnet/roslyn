@@ -7,14 +7,16 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class IncrementalParsingTests : TestBase
+    public sealed class IncrementalParsingTests(ITestOutputHelper output) : ParsingTests(output)
     {
         private CSharpParseOptions GetOptions(string[] defines)
         {
@@ -63,13 +65,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"#nullable enable
 
 public class C {
-    public void M(string? x  !!) { // no error.
+    public void M(string? x  !!) {
     }
 }";
             var oldTree = this.ParsePreview(text);
             var newTree = oldTree.WithReplaceFirst("?", "");
-            Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
-            Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
+            oldTree.GetDiagnostics().Verify(
+                // (4,30): error CS1003: Syntax error, ',' expected
+                //     public void M(string? x  !!) {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(4, 30));
+            newTree.GetDiagnostics().Verify(
+                // (4,29): error CS1003: Syntax error, ',' expected
+                //     public void M(string x  !!) {
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments(",").WithLocation(4, 29));
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
@@ -79,7 +87,8 @@ public class C {
                             SyntaxKind.ParameterList,
                             SyntaxKind.Parameter,
                             SyntaxKind.PredefinedType,
-                            SyntaxKind.StringKeyword);
+                            SyntaxKind.StringKeyword,
+                            SyntaxKind.IdentifierToken);
         }
 
         [Fact]
@@ -462,6 +471,379 @@ class C { void c() { } }
                             SyntaxKind.IdentifierName,
                             SyntaxKind.IdentifierName,
                             SyntaxKind.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestAttributeToCollectionExpression1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        [A] Method();
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
+
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf("]") + 1, length: 1);
+            var change = new TextChange(span, ".");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void TestCollectionExpressionToAttribute1()
+        {
+            var source = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        [A].Method();
+    }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
+
+            var text = tree.GetText();
+            var span = new TextSpan(source.IndexOf("."), length: 1);
+            var change = new TextChange(span, " ");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+
+            Assert.True(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is AttributeSyntax));
+            Assert.False(tree.GetRoot().DescendantNodesAndSelf().Any(n => n is CollectionExpressionSyntax));
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        public void TestLocalFunctionCollectionVsAccessParsing()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var v = a ? b?[() =>
+                            {
+                                var v = whatever();
+                                int LocalFunc()
+                                {
+                                    var v = a ? [b] : c;
+                                }
+                                var v = whatever();
+                            }] : d;
+                    }
+                }
+                """;
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            Assert.Empty(tree.GetDiagnostics());
+
+            var localFunc1 = tree.GetRoot().DescendantNodesAndSelf().Single(n => n is LocalFunctionStatementSyntax);
+            var innerConditionalExpr1 = localFunc1.DescendantNodesAndSelf().Single(n => n is ConditionalExpressionSyntax);
+
+            var text = tree.GetText();
+
+            var prefix = "var v = a ? b?[() =>";
+            var suffix = "] : d;";
+
+            var prefixSpan = new TextSpan(source.IndexOf(prefix), length: prefix.Length);
+            var suffixSpan = new TextSpan(source.IndexOf(suffix), length: suffix.Length);
+            text = text.WithChanges(new TextChange(prefixSpan, ""), new TextChange(suffixSpan, ""));
+            tree = tree.WithChangedText(text);
+            Assert.Empty(tree.GetDiagnostics());
+
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            Assert.Empty(fullTree.GetDiagnostics());
+
+            var localFunc2 = tree.GetRoot().DescendantNodesAndSelf().Single(n => n is LocalFunctionStatementSyntax);
+            var innerConditionalExpr2 = localFunc2.DescendantNodesAndSelf().Single(n => n is ConditionalExpressionSyntax);
+
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74456")]
+        public void TestCollectionExpressionSpreadVsDeletingTopLevelBrace()
+        {
+            const string valueSetterLine = "x[1] = 312;";
+            var initialSource = $$"""
+                public class Program
+                {
+                    public void M2()
+                    {
+                        if (true)
+                        {
+                            {
+                                if (true)
+                                {
+                                    {{valueSetterLine}}
+                                }
+                            }
+                        }
+                        if (true)
+                        {
+                            y = [.. z];
+                        }
+                    }
+                }
+                """;
+            var initialTree = SyntaxFactory.ParseSyntaxTree(initialSource);
+
+            // Initial code is fully legal and should have no parse errors.
+            Assert.Empty(initialTree.GetDiagnostics());
+
+            // Delete '{' (and end of line) before 'values[1] = 312;'
+            var initialText = initialTree.GetText();
+            var valueSetterLinePosition = initialSource.IndexOf(valueSetterLine);
+            var initialLines = initialText.Lines;
+
+            int valueSetterLineIndex = initialLines.IndexOf(valueSetterLinePosition);
+            var openBraceLine = initialText.Lines[valueSetterLineIndex - 1];
+            Assert.EndsWith("{", openBraceLine.ToString());
+
+            var withOpenBraceDeletedText = initialText.WithChanges(new TextChange(openBraceLine.SpanIncludingLineBreak, ""));
+            var withOpenBraceDeletedTree = initialTree.WithChangedText(withOpenBraceDeletedText);
+
+            // Deletion of the open brace causes the method body to close early with the close brace before the `if`
+            // statement.  This will lead to a ton of cascading errors for what follows.  In particular, the `[.. values]`
+            // will be parsed as a very broken attribute on an incomplete member.
+            {
+                UsingTree(withOpenBraceDeletedTree,
+                    // (13,9): error CS1519: Invalid token 'if' in class, record, struct, or interface member declaration
+                    //         if (true)
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "if").WithArguments("if").WithLocation(13, 9),
+                    // (13,13): error CS1031: Type expected
+                    //         if (true)
+                    Diagnostic(ErrorCode.ERR_TypeExpected, "true").WithLocation(13, 13),
+                    // (13,13): error CS8124: Tuple must contain at least two elements.
+                    //         if (true)
+                    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "true").WithLocation(13, 13),
+                    // (13,13): error CS1026: ) expected
+                    //         if (true)
+                    Diagnostic(ErrorCode.ERR_CloseParenExpected, "true").WithLocation(13, 13),
+                    // (13,13): error CS1519: Invalid token 'true' in class, record, struct, or interface member declaration
+                    //         if (true)
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "true").WithArguments("true").WithLocation(13, 13),
+                    // (15,15): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
+                    //             y = [.. z];
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(15, 15),
+                    // (15,15): error CS1519: Invalid token '=' in class, record, struct, or interface member declaration
+                    //             y = [.. z];
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(15, 15),
+                    // (15,18): error CS1001: Identifier expected
+                    //             y = [.. z];
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(15, 18),
+                    // (15,19): error CS1001: Identifier expected
+                    //             y = [.. z];
+                    Diagnostic(ErrorCode.ERR_IdentifierExpected, ".").WithLocation(15, 19),
+                    // (15,23): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
+                    //             y = [.. z];
+                    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(15, 23),
+                    // (17,5): error CS1022: Type or namespace definition, or end-of-file expected
+                    //     }
+                    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(17, 5),
+                    // (18,1): error CS1022: Type or namespace definition, or end-of-file expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(18, 1));
+
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Program");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M2");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.IfStatement);
+                                {
+                                    N(SyntaxKind.IfKeyword);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.TrueLiteralExpression);
+                                    {
+                                        N(SyntaxKind.TrueKeyword);
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.IfStatement);
+                                            {
+                                                N(SyntaxKind.IfKeyword);
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.TrueLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.TrueKeyword);
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
+                                                N(SyntaxKind.ExpressionStatement);
+                                                {
+                                                    N(SyntaxKind.SimpleAssignmentExpression);
+                                                    {
+                                                        N(SyntaxKind.ElementAccessExpression);
+                                                        {
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "x");
+                                                            }
+                                                            N(SyntaxKind.BracketedArgumentList);
+                                                            {
+                                                                N(SyntaxKind.OpenBracketToken);
+                                                                N(SyntaxKind.Argument);
+                                                                {
+                                                                    N(SyntaxKind.NumericLiteralExpression);
+                                                                    {
+                                                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                                                    }
+                                                                }
+                                                                N(SyntaxKind.CloseBracketToken);
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.EqualsToken);
+                                                        N(SyntaxKind.NumericLiteralExpression);
+                                                        {
+                                                            N(SyntaxKind.NumericLiteralToken, "312");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.SemicolonToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        // Here is where we go off the rails.  This corresponds to the `if (true) ...` part after the method
+                        N(SyntaxKind.IncompleteMember);
+                        {
+                            N(SyntaxKind.TupleType);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                M(SyntaxKind.TupleElement);
+                                {
+                                    M(SyntaxKind.IdentifierName);
+                                    {
+                                        M(SyntaxKind.IdentifierToken);
+                                    }
+                                }
+                                M(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        // this corresponds to 'y' in 'y = [.. z];'
+                        N(SyntaxKind.IncompleteMember);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        // This corresponds to `[.. z]` which parser thinks is an attribute with an invalid dotted name.
+                        N(SyntaxKind.IncompleteMember);
+                        {
+                            N(SyntaxKind.AttributeList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Attribute);
+                                {
+                                    N(SyntaxKind.QualifiedName);
+                                    {
+                                        N(SyntaxKind.QualifiedName);
+                                        {
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                            N(SyntaxKind.DotToken);
+                                            M(SyntaxKind.IdentifierName);
+                                            {
+                                                M(SyntaxKind.IdentifierToken);
+                                            }
+                                        }
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "z");
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+
+            // Now delete '}' after 'values[1] = 312;'.  This should result in no diagnostics.
+            //
+            // Note: because we deleted the end of line after the '{', the line that is now on the line where `values...` was
+            // will be the line that was originally after it (the } line).
+            var withOpenBraceDeletedLines = withOpenBraceDeletedText.Lines;
+            var closeBraceLine = withOpenBraceDeletedLines[valueSetterLineIndex];
+            Assert.EndsWith("}", closeBraceLine.ToString());
+            var withCloseBraceDeletedText = withOpenBraceDeletedText.WithChanges(new TextChange(closeBraceLine.SpanIncludingLineBreak, ""));
+            var withCloseBraceDeletedTree = withOpenBraceDeletedTree.WithChangedText(withCloseBraceDeletedText);
+
+            Assert.Empty(withCloseBraceDeletedTree.GetDiagnostics());
+
+            var fullTree = SyntaxFactory.ParseSyntaxTree(withCloseBraceDeletedText.ToString());
+            Assert.Empty(fullTree.GetDiagnostics());
+
+            WalkTreeAndVerify(withCloseBraceDeletedTree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
 
         #region "Regression"
@@ -2678,7 +3060,6 @@ class D { }
                 var oldTree = SyntaxFactory.SyntaxTree(oldRoot, options: tempTree.Options, path: tempTree.FilePath);
                 var newTree = oldTree.WithInsertAt(text.Length, " ");
 
-
                 var oldClassC = extractGreenClassC(oldTree);
                 var newClassC = extractGreenClassC(newTree);
 
@@ -2689,7 +3070,6 @@ class D { }
                 Assert.NotSame(oldClassC, newClassC);
                 // ...even though the text is the same.
                 Assert.Equal(oldClassC.ToFullString(), newClassC.ToFullString());
-
 
                 var oldToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)oldClassC).Identifier;
                 var newToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)newClassC).Identifier;
@@ -2729,7 +3109,6 @@ class D { }
 
             WalkTreeAndVerify(incrTree.GetRoot(), fullTree.GetRoot());
         }
-
 
         [Fact]
         public void TestRescanInterpolatedString()
@@ -3244,6 +3623,43 @@ if (b) { }
             var substring = "Goo[Goo]";
             var span = new TextSpan(start: source.IndexOf(substring), length: 3); // Goo[Goo] -> [Goo]
             var change = new TextChange(span, "");
+            text = text.WithChanges(change);
+            tree = tree.WithChangedText(text);
+            var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());
+            WalkTreeAndVerify(tree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
+        }
+
+        [Fact]
+        [WorkItem(62126, "https://github.com/dotnet/roslyn/issues/62126")]
+        public void StartAttributeOnABlock()
+        {
+            var source = @"
+using System;
+
+switch (getVirtualKey())
+{
+	case VirtualKey.Up or VirtualKey.Down or VirtualKey.Left or VirtualKey.Right:
+	{
+
+	}
+}
+
+// A local function to simulate get operation.
+static VirtualKey getVirtualKey() => VirtualKey.Up;
+
+
+enum VirtualKey
+{
+	Up,
+	Down,
+	Left,
+	Right
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source);
+            var text = tree.GetText();
+            var span = new TextSpan(start: source.IndexOf(":") + 1, length: 0);
+            var change = new TextChange(span, "[");
             text = text.WithChanges(change);
             tree = tree.WithChangedText(text);
             var fullTree = SyntaxFactory.ParseSyntaxTree(text.ToString());

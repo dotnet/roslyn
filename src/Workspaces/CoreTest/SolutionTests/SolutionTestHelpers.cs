@@ -5,39 +5,26 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     internal static class SolutionTestHelpers
     {
-        public static Workspace CreateWorkspace(Type[]? additionalParts = null)
-            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+        public static Workspace CreateWorkspace(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
+            => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
 
-        public static Workspace CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations()
-            => CreateWorkspace(new[]
-            {
-                typeof(TestProjectCacheService),
-                typeof(TestTemporaryStorageServiceFactory)
-            });
-
-        public static Workspace CreateWorkspaceWithRecoverableTextAndSyntaxTreesAndWeakCompilations()
-            => CreateWorkspace(new[]
-            {
-                typeof(TestProjectCacheService),
-            });
-
-        public static Workspace CreateWorkspaceWithPartialSemanticsAndWeakCompilations()
-            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageServiceFactory) });
+        public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(testHost: testHost);
 
 #nullable disable
 
         public static void TestProperty<T, TValue>(T instance, Func<T, TValue, T> factory, Func<T, TValue> getter, TValue validNonDefaultValue, bool defaultThrows = false)
             where T : class
         {
-            Assert.NotEqual<TValue>(default, validNonDefaultValue);
+            Assert.NotEqual(getter(instance), validNonDefaultValue);
 
             var instanceWithValue = factory(instance, validNonDefaultValue);
             Assert.Equal(validNonDefaultValue, getter(instanceWithValue));
@@ -71,8 +58,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(boxedItems, getter(instanceWithItem));
 
             Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, null));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, Array.Empty<TValue>()));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, ImmutableArray<TValue>.Empty));
+            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, []));
+            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, []));
 
             // the factory makes an immutable copy if given a mutable list:
             var mutableItems = new[] { item };

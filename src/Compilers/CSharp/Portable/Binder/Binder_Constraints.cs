@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Bind and return a single type parameter constraint clause along with syntax nodes corresponding to type constraints.
         /// </summary>
-        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, BindingDiagnosticBag diagnostics)
+        private (TypeParameterConstraintClause, ArrayBuilder<TypeConstraintSyntax>?) BindTypeParameterConstraints(
+            TypeParameterSyntax typeParameterSyntax, TypeParameterConstraintClauseSyntax constraintClauseSyntax, bool isForOverride, BindingDiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
             ArrayBuilder<TypeWithAnnotations>? constraintTypes = null;
@@ -204,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_NewBoundWithUnmanaged, syntax.GetFirstToken().GetLocation());
                         }
 
-                        if (i != n - 1)
+                        if (i != n - 1 && constraintsSyntax[i + 1].Kind() != SyntaxKind.AllowsConstraintClause)
                         {
                             diagnostics.Add(ErrorCode.ERR_NewBoundMustBeLast, syntax.GetFirstToken().GetLocation());
                         }
@@ -212,6 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         constraints |= TypeParameterConstraintKind.Constructor;
                         continue;
                     case SyntaxKind.DefaultConstraint:
+                        CheckFeatureAvailability(syntax, MessageID.IDS_FeatureDefaultTypeParameterConstraint, diagnostics);
+
                         if (!isForOverride)
                         {
                             diagnostics.Add(ErrorCode.ERR_DefaultConstraintOverrideOnly, syntax.GetLocation());
@@ -287,6 +290,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntaxBuilder!.Add(typeConstraintSyntax);
                         }
                         continue;
+
+                    case SyntaxKind.AllowsConstraintClause:
+
+                        if (isForOverride)
+                        {
+                            reportOverrideWithConstraints(ref reportedOverrideWithConstraints, syntax, diagnostics);
+                            continue;
+                        }
+
+                        if (i != n - 1)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_AllowsClauseMustBeLast, syntax.GetFirstToken().GetLocation());
+                        }
+
+                        bool hasRefStructConstraint = false;
+
+                        foreach (var allowsConstraint in ((AllowsConstraintClauseSyntax)syntax).Constraints)
+                        {
+                            if (allowsConstraint.Kind() == SyntaxKind.RefStructConstraint)
+                            {
+                                if (hasRefStructConstraint)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_RefStructConstraintAlreadySpecified, allowsConstraint);
+                                }
+                                else
+                                {
+                                    CheckFeatureAvailability(allowsConstraint, MessageID.IDS_FeatureAllowsRefStructConstraint, diagnostics);
+
+                                    if (!Compilation.Assembly.RuntimeSupportsByRefLikeGenerics)
+                                    {
+                                        Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, allowsConstraint);
+                                    }
+
+                                    constraints |= TypeParameterConstraintKind.AllowByRefLike;
+                                    hasRefStructConstraint = true;
+                                }
+                            }
+                        }
+
+                        continue;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                 }
@@ -410,6 +454,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // "Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'"
                 diagnostics.Add(ErrorCode.ERR_BadVisBound, location, containingSymbol, constraintType.Type);
             }
+
+            if (constraintType.Type.HasFileLocalTypes())
+            {
+                // if the containing symbol of the constraint is a member, we need to ensure the nearest containing type is a file-local type.
+                var possibleFileType = containingSymbol switch
+                {
+                    TypeSymbol typeSymbol => typeSymbol,
+                    LocalFunctionSymbol => null,
+                    MethodSymbol method => (TypeSymbol)method.ContainingSymbol,
+                    _ => throw ExceptionUtilities.UnexpectedValue(containingSymbol)
+                };
+                Debug.Assert(possibleFileType?.IsDefinition != false);
+                if (possibleFileType?.HasFileLocalTypes() == false)
+                {
+                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, location, constraintType.Type, containingSymbol);
+                }
+            }
+
             diagnostics.Add(location, useSiteInfo);
         }
 

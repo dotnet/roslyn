@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis
 
         internal DesktopStrongNameProvider(ImmutableArray<string> keyFileSearchPaths, StrongNameFileSystem strongNameFileSystem)
         {
-            if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(path => !PathUtilities.IsAbsolute(path)))
+            if (!keyFileSearchPaths.IsDefault && keyFileSearchPaths.Any(static path => !PathUtilities.IsAbsolute(path)))
             {
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(keyFileSearchPaths));
             }
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var other = (DesktopStrongNameProvider)obj;
-            if (FileSystem != other.FileSystem)
+            if (!FileSystem.Equals(other.FileSystem))
             {
                 return false;
             }

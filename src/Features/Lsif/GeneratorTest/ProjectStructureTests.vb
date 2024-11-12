@@ -4,8 +4,7 @@
 
 Imports System.IO
 Imports System.Text
-Imports System.Text.Json.Nodes
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -16,13 +15,12 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <Fact>
         Public Async Function ProjectContainsDocuments() As Task
             Dim lsif = Await TestLsifOutput.GenerateForWorkspaceAsync(
-                TestWorkspace.CreateWorkspace(
-                    <Workspace>
-                        <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
-                            <Document Name="A.cs" FilePath="Z:\A.cs"/>
-                            <Document Name="B.cs" FilePath="Z:\B.cs"/>
-                        </Project>
-                    </Workspace>))
+                <Workspace>
+                    <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj">
+                        <Document Name="A.cs" FilePath="Z:\A.cs"/>
+                        <Document Name="B.cs" FilePath="Z:\B.cs"/>
+                    </Project>
+                </Workspace>)
 
             Dim projectVertex = Assert.Single(lsif.Vertices.OfType(Of Graph.LsifProject))
             Dim documentVertices = lsif.GetLinkedVertices(Of Graph.LsifDocument)(projectVertex, "contains")
@@ -37,11 +35,11 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
 
         <Fact>
         Public Async Function SourceGeneratedDocumentsIncludeContent() As Task
-            Dim workspace = TestWorkspace.CreateWorkspace(
+            Dim workspace = EditorTestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj" CommonReferences="true">
                         </Project>
-                    </Workspace>)
+                    </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
 
             workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(),
                                                New TestGeneratorReference(New TestSourceGenerator.HelloWorldGenerator()))
@@ -59,28 +57,28 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
                 Dim contents = Encoding.UTF8.GetString(Convert.FromBase64String(contentBase64Encoded))
 
                 Dim compilation = Await workspace.CurrentSolution.Projects.Single().GetCompilationAsync()
-                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) "source-generated:///" + t.FilePath.Replace("\"c, "/"c) = generatedDocumentVertex.Uri.OriginalString)
+                Dim tree = Assert.Single(compilation.SyntaxTrees, Function(t) generatedDocumentVertex.Uri.OriginalString.Contains(Path.GetFileName(t.FilePath)))
 
                 Assert.Equal(tree.GetText().ToString(), contents)
             Next
         End Function
 
-        <Fact>
-        <WorkItem(59692, "https://github.com/dotnet/roslyn/issues/59692")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59692")>
         Public Async Function SourceGeneratedDocumentHasUriInJson() As Task
-            Dim workspace = TestWorkspace.CreateWorkspace(
+            Dim workspace = EditorTestWorkspace.CreateWorkspace(
                     <Workspace>
                         <Project Language="C#" Name="TestProject" FilePath="Z:\TestProject.csproj" CommonReferences="true">
                             <DocumentFromSourceGenerator></DocumentFromSourceGenerator>
                         </Project>
-                    </Workspace>)
+                    </Workspace>, openDocuments:=False, composition:=TestLsifOutput.TestComposition)
 
             Dim stringWriter = New StringWriter
             Await TestLsifOutput.GenerateForWorkspaceAsync(workspace, New LineModeLsifJsonWriter(stringWriter))
 
             Dim generatedDocument = Assert.Single(Await workspace.CurrentSolution.Projects.Single().GetSourceGeneratedDocumentsAsync())
+            Dim uri = SourceGeneratedDocumentUri.Create(generatedDocument.Identity)
             Dim outputText = stringWriter.ToString()
-            Assert.Contains($"""uri"":""source-generated:///{generatedDocument.FilePath.Replace("\", "/")}""", outputText)
+            Assert.Contains(uri.AbsoluteUri, outputText)
         End Function
     End Class
 End Namespace

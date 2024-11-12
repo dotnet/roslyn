@@ -4,9 +4,10 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Completion)>
     Public Class CSharpCompletionCommandHandlerTests_XmlDoc
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitSummary(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -27,7 +28,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitSummaryOnTab(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -51,7 +52,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitSummaryOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -75,7 +76,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitSummary(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -99,7 +100,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitSummaryOnTab(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -123,7 +124,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitSummaryOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -147,7 +148,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitRemarksOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -171,7 +172,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitRemarksOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -195,7 +196,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitReturnsOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -219,7 +220,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitReturnsOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -243,7 +244,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitExampleOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -267,7 +268,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitExampleOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -291,7 +292,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitExceptionNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -315,7 +316,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitExceptionOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -339,7 +340,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitCommentNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -362,7 +363,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitCommentOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -384,7 +385,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitCdataNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -407,7 +408,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitCdataOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -430,7 +431,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitIncludeNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -454,7 +455,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitIncludeOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -478,7 +479,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitPermissionNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -502,7 +503,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitPermissionOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -526,7 +527,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitSeeNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -550,7 +551,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitSeeOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -574,8 +575,8 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
-        <WorkItem(22789, "https://github.com/dotnet/roslyn/issues/22789")>
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/22789")>
         Public Async Function InvokeWithOpenAngleCommitSeeOnTab(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -599,7 +600,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitSeeOnSpace(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -624,52 +625,122 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
+        Public Async Function InvokeWithOpenAngleSeeCommitSeeWithEqualsQuotes(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// <summary>
+    /// <see $$=""
+    /// </summary>
+    void goo() { }
+}
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                state.AssertItemsInOrder({"!--", "![CDATA[", "inheritdoc", "see", "seealso"})
+                state.SendTypeChars("see")
+                Await state.AssertSelectedCompletionItem(displayText:="see")
+                state.SendReturn()
+
+                ' /// <see <see cref=""/$$>=""
+                Await state.AssertLineTextAroundCaret("    /// <see <see cref=""""/", ">=""""")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function InvokeWithOpenAngleSeeCommitLangwordWithEqualsQuotes(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// <summary>
+    /// <see $$=""
+    /// </summary>
+    void goo() { }
+}
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("l")
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="langword")
+                state.SendReturn()
+
+                ' /// <see langword="$$"
+                Await state.AssertLineTextAroundCaret("    /// <see langword=""", """")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function InvokeWithOpenAngleSeeCommitLangwordWithSpaceEqualsQuotes(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+class c
+{
+    /// <summary>
+    /// <see $$ =""
+    /// </summary>
+    void goo() { }
+}
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("l")
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="langword")
+                state.SendReturn()
+
+                ' /// <see langword="$$" =""
+                Await state.AssertLineTextAroundCaret("    /// <see langword=""", """ =""""")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithNullKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
             Return InvokeWithKeywordCommitSeeLangword("null", showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithStaticKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
             Return InvokeWithKeywordCommitSeeLangword("static", showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithVirtualKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
             Return InvokeWithKeywordCommitSeeLangword("virtual", showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithTrueKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
-            Return InvokeWithKeywordCommitSeeLangword("true", showCompletionInArgumentLists)
+            Return InvokeWithKeywordCommitSeeLangword("true", showCompletionInArgumentLists, unique:=False)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithFalseKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
             Return InvokeWithKeywordCommitSeeLangword("false", showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithAbstractKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
             Return InvokeWithKeywordCommitSeeLangword("abstract", showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithSealedKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
             Return InvokeWithKeywordCommitSeeLangword("sealed", showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithAsyncKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
             Return InvokeWithKeywordCommitSeeLangword("async", showCompletionInArgumentLists)
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Function InvokeWithAwaitKeywordCommitSeeLangword(showCompletionInArgumentLists As Boolean) As Task
             Return InvokeWithKeywordCommitSeeLangword("await", showCompletionInArgumentLists)
         End Function
 
-        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean) As Task
+        Private Shared Async Function InvokeWithKeywordCommitSeeLangword(keyword As String, showCompletionInArgumentLists As Boolean, Optional unique As Boolean = True) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 class c
@@ -685,7 +756,13 @@ class c
                 ' or did not insert text at all).
                 state.SendTypeChars(keyword.Substring(0, keyword.Length - 1))
                 state.SendInvokeCompletionList()
-                Await state.SendCommitUniqueCompletionListItemAsync()
+                If unique Then
+                    Await state.SendCommitUniqueCompletionListItemAsync()
+                Else
+                    Await state.AssertSelectedCompletionItem(displayText:=keyword)
+                    state.SendTab()
+                End If
+
                 Await state.AssertNoCompletionSession()
 
                 ' /// <see langword="keyword"/>$$
@@ -693,7 +770,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitSeealsoNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -717,7 +794,7 @@ class c
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitSeealsoOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -741,9 +818,9 @@ class c
             End Using
         End Function
 
-        <WorkItem(623219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
-        <WorkItem(746919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623219")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746919")>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitParam(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -765,7 +842,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitParam_Record(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -784,7 +861,45 @@ record R(int I);
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
+        Public Async Function CommitParam_Class(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+/// <param$$
+class R(int I);
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""I""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="I"$$
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function CommitParam_Struct(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+/// <param$$
+struct R(int I);
+            ]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="param name=""I""")
+                state.SendReturn()
+                Await state.AssertNoCompletionSession()
+
+                ' /// <param name="I"$$
+                Await state.AssertLineTextAroundCaret("/// <param name=""I""", "")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitParamNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -808,7 +923,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitParamNoOpenAngleOnTab(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -832,7 +947,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitParamNoOpenAngleOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -856,7 +971,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitParam(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -880,7 +995,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitParamOnTab(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -904,7 +1019,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitParamOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -928,7 +1043,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitTypeparamNoOpenAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -952,7 +1067,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitTypeparamNoOpenAngleOnTab(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -976,7 +1091,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitTypeparamNoOpenAngleOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1000,7 +1115,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitTypeparam(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1024,7 +1139,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitTypeparamOnTab(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1048,7 +1163,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithOpenAngleCommitTypeparamOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1072,7 +1187,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitList(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1098,7 +1213,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function CommitListOnCloseAngle(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1124,7 +1239,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTagCompletion1(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1149,7 +1264,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTagCompletion2(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1175,7 +1290,7 @@ class c<T>
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfTheory, CombinatorialData>
         Public Async Function TestTagCompletion3(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -1201,8 +1316,8 @@ class c<T>
             End Using
         End Function
 
-        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/21481"), CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/21481"), CombinatorialData>
         Public Async Function AllowTypingDoubleQuote(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1227,8 +1342,8 @@ class c
             End Using
         End Function
 
-        <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
+        <WpfTheory, CombinatorialData>
         Public Async Function AllowTypingSpace(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1253,8 +1368,8 @@ class c
             End Using
         End Function
 
-        <WorkItem(44472, "https://github.com/dotnet/roslyn/issues/44472")>
-        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/44472")>
+        <WpfTheory, CombinatorialData>
         Public Async Function InvokeWithAliasAndImportedNamespace(showCompletionInArgumentLists As Boolean) As Task
 
             Using state = TestStateFactory.CreateTestStateFromWorkspace(

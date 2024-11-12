@@ -16,8 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         TildeToken = 8193,
         /// <summary>Represents <c>!</c> token.</summary>
         ExclamationToken = 8194,
-        /// <summary>Represents <c>$</c> token.</summary>
-        /// <remarks>This is a debugger special punctuation and not related to string interpolation.</remarks>
+        /// <summary>Represents <c>$</c> token.
+        /// <para>
+        /// This is a debugger special punctuation and not related to string interpolation.
+        /// </para>
+        /// </summary>
         DollarToken = 8195,
         /// <summary>Represents <c>%</c> token.</summary>
         PercentToken = 8196,
@@ -74,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <c>..</c> token.</summary>
         DotDotToken = 8222,
 
+        // Values ranging from 8193 (TildeToken) to 8287 (GreaterThanGreaterThanGreaterThanEqualsToken) are reserved for punctuation kinds.
+        // This gap is included within that range. So if you add a value here make sure `SyntaxFacts.GetPunctuationKinds` includes it in the returned enumeration
+
         // additional xml tokens
         /// <summary>Represents <c>/&gt;</c> token.</summary>
         SlashGreaterThanToken = 8232, // xml empty element end
@@ -91,6 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlProcessingInstructionStartToken = 8238, // <?
         /// <summary>Represents <c>?&gt;</c> token.</summary>
         XmlProcessingInstructionEndToken = 8239, // ?>
+
+        // Values ranging from 8193 (TildeToken) to 8287 (GreaterThanGreaterThanGreaterThanEqualsToken) are reserved for punctuation kinds.
+        // This gap is included within that range. So if you add a value here make sure `SyntaxFacts.GetPunctuationKinds` includes it in the returned enumeration
 
         // compound punctuation
         /// <summary>Represents <c>||</c> token.</summary>
@@ -143,8 +152,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         PercentEqualsToken = 8283,
         /// <summary>Represents <c>??=</c> token.</summary>
         QuestionQuestionEqualsToken = 8284,
-        /// <summary>Represents <c>!!</c> token.</summary>
-        ExclamationExclamationToken = 8285,
+        // Don't use 8285. It corresponds to the deleted kind ExclamationExclamationToken which was previously shipped.
+
+        /// <summary>Represents <c>&gt;&gt;&gt;</c> token.</summary>
+        GreaterThanGreaterThanGreaterThanToken = 8286,
+        /// <summary>Represents <c>&gt;&gt;&gt;=</c> token.</summary>
+        GreaterThanGreaterThanGreaterThanEqualsToken = 8287,
+
+        // When adding punctuation, the following functions must be adapted:
+        // <see cref="SyntaxFacts.IsPunctuation"/>
+        // <see cref="SyntaxFacts.GetPunctuationKinds"/>
 
         // Keywords
         /// <summary>Represents <see langword="bool"/>.</summary>
@@ -396,9 +413,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         ManagedKeyword = 8445,
         /// <summary>Represents <see langword="unmanaged"/>.</summary>
         UnmanagedKeyword = 8446,
+        /// <summary>Represents <see langword="required"/>.</summary>
+        RequiredKeyword = 8447,
+        /// <summary>Represents <see langword="scoped"/>.</summary>
+        ScopedKeyword = 8448,
+        /// <summary>Represents <see langword="file"/>.</summary>
+        FileKeyword = 8449,
+        /// <summary>Represents <see langword="allows"/>.</summary>
+        AllowsKeyword = 8450,
 
         // when adding a contextual keyword following functions must be adapted:
-        // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
+        // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
         // <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
         // <see cref="SyntaxFacts.GetContextualKeywordKind(string)"/>
         // <see cref="SyntaxFacts.GetText(SyntaxKind)"/>
@@ -462,11 +487,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         VarKeyword = 8490,
         /// <summary>Represents <c>_</c> token.</summary>
         UnderscoreToken = 8491,
-        /// <summary>Represents that nothing was specified as a type argument.</summary>
-        /// <remarks>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
+        /// <summary>Represents that nothing was specified as a type argument.
+        /// <para>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of
+        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.
+        /// </para>
+        /// </summary>
         OmittedTypeArgumentToken = 8492,
-        /// <summary>Represents that nothing was specified as an array size.</summary>
-        /// <remarks>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
+        /// <summary>Represents that nothing was specified as an array size.
+        /// <para>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of
+        /// <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.
+        /// </para>
+        /// </summary>
         OmittedArraySizeExpressionToken = 8493,
         /// <summary>Represents a token that comes after the end of a directive such as <c>#endif</c>.</summary>
         EndOfDirectiveToken = 8494,
@@ -493,6 +524,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         SingleLineRawStringLiteralToken = 8518,
         MultiLineRawStringLiteralToken = 8519,
+
+        Utf8StringLiteralToken = 8520,
+        Utf8SingleLineRawStringLiteralToken = 8521,
+        Utf8MultiLineRawStringLiteralToken = 8522,
+        RazorContentToken = 8523,
 
         // trivia
         EndOfLineTrivia = 8539,
@@ -616,6 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         SimpleMemberAccessExpression = 8689,  // dot access:   a.b
         PointerMemberAccessExpression = 8690,  // arrow access:   a->b
         ConditionalAccessExpression = 8691,    // question mark access:   a?.b , a?[1]
+        UnsignedRightShiftExpression = 8692,
 
         // binding expressions
         MemberBindingExpression = 8707,
@@ -634,6 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         LeftShiftAssignmentExpression = 8723,
         RightShiftAssignmentExpression = 8724,
         CoalesceAssignmentExpression = 8725,
+        UnsignedRightShiftAssignmentExpression = 8726,
 
         // unary expressions
         UnaryPlusExpression = 8730,
@@ -660,6 +698,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         FalseLiteralExpression = 8753,
         NullLiteralExpression = 8754,
         DefaultLiteralExpression = 8755,
+        Utf8StringLiteralExpression = 8756,
+        FieldExpression = 8757,
 
         // primary function expressions
         TypeOfExpression = 8760,
@@ -774,6 +814,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperatorDeclaration = 8876,
         ConversionOperatorDeclaration = 8877,
         ConstructorDeclaration = 8878,
+        AllowsConstraintClause = 8879,
+        RefStructConstraint = 8880,
 
         BaseConstructorInitializer = 8889,
         ThisConstructorInitializer = 8890,
@@ -877,5 +919,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedSingleLineRawStringStartToken = 9072,   // $"""
         InterpolatedMultiLineRawStringStartToken = 9073,    // $""" (whitespace and newline are included in the Text for this token)
         InterpolatedRawStringEndToken = 9074,               // """ (preceding whitespace and newline are included in the Text for this token)
+
+        ScopedType = 9075,
+
+        CollectionExpression = 9076,
+        ExpressionElement = 9077,
+        SpreadElement = 9078,
     }
 }

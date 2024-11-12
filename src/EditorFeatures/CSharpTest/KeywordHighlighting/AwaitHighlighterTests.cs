@@ -11,326 +11,353 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
+
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    public class AwaitHighlighterTests : AbstractCSharpKeywordHighlighterTests
-    {
-        internal override Type GetHighlighterType()
-            => typeof(AsyncAwaitHighlighter);
+    internal override Type GetHighlighterType()
+        => typeof(AsyncAwaitHighlighter);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample2_2()
-        {
-            await TestAsync(
-@"using System;
-using System.Threading.Tasks;
-
-class AsyncExample
-{
-    async Task<int> AsyncMethod()
+    [Fact]
+    public async Task TestExample2_2()
     {
-        int hours = 24;
-        return hours;
+        await TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class AsyncExample
+            {
+                async Task<int> AsyncMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
+
+                [|async|] Task UseAsync()
+                {
+                    Func<Task<int>> lambda = async () =>
+                    {
+                        return await AsyncMethod();
+                    };
+                    int result = {|Cursor:[|await|]|} AsyncMethod();
+                    Task<int> resultTask = AsyncMethod();
+                    result = [|await|] resultTask;
+                    result = [|await|] lambda();
+                }
+            }
+            """);
     }
 
-    [|async|] Task UseAsync()
+    [Fact]
+    public async Task TestExample2_3()
     {
-        Func<Task<int>> lambda = async () =>
-        {
-            return await AsyncMethod();
-        };
-        int result = {|Cursor:[|await|]|} AsyncMethod();
-        Task<int> resultTask = AsyncMethod();
-        result = [|await|] resultTask;
-        result = [|await|] lambda();
-    }
-}");
-        }
+        await TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample2_3()
-        {
-            await TestAsync(
-@"using System;
-using System.Threading.Tasks;
+            class AsyncExample
+            {
+                async Task<int> AsyncMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
 
-class AsyncExample
-{
-    async Task<int> AsyncMethod()
-    {
-        int hours = 24;
-        return hours;
-    }
-
-    [|async|] Task UseAsync()
-    {
-        Func<Task<int>> lambda = async () =>
-        {
-            return await AsyncMethod();
-        };
-        int result = [|await|] AsyncMethod();
-        Task<int> resultTask = AsyncMethod();
-        result = {|Cursor:[|await|]|} resultTask;
-        result = [|await|] lambda();
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample2_4()
-        {
-            await TestAsync(
-@"using System;
-using System.Threading.Tasks;
-
-class AsyncExample
-{
-    async Task<int> AsyncMethod()
-    {
-        int hours = 24;
-        return hours;
+                [|async|] Task UseAsync()
+                {
+                    Func<Task<int>> lambda = async () =>
+                    {
+                        return await AsyncMethod();
+                    };
+                    int result = [|await|] AsyncMethod();
+                    Task<int> resultTask = AsyncMethod();
+                    result = {|Cursor:[|await|]|} resultTask;
+                    result = [|await|] lambda();
+                }
+            }
+            """);
     }
 
-    [|async|] Task UseAsync()
+    [Fact]
+    public async Task TestExample2_4()
     {
-        Func<Task<int>> lambda = async () =>
-        {
-            return await AsyncMethod();
-        };
-        int result = [|await|] AsyncMethod();
-        Task<int> resultTask = AsyncMethod();
-        result = [|await|] resultTask;
-        result = {|Cursor:[|await|]|} lambda();
-    }
-}");
-        }
+        await TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample3_2()
-        {
-            await TestAsync(
-@"using System;
-using System.Threading.Tasks;
+            class AsyncExample
+            {
+                async Task<int> AsyncMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
 
-class AsyncExample
-{
-    async Task<int> AsyncMethod()
-    {
-        int hours = 24;
-        return hours;
-    }
-
-    async Task UseAsync()
-    {
-        Func<Task<int>> lambda = [|async|] () =>
-        {
-            return {|Cursor:[|await|]|} AsyncMethod();
-        };
-        int result = await AsyncMethod();
-        Task<int> resultTask = AsyncMethod();
-        result = await resultTask;
-        result = await lambda();
-    }
-}");
-        }
-
-        [WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedAwaits1()
-        {
-            await TestAsync(
-@"using System;
-using System.Threading.Tasks;
-
-class AsyncExample
-{
-    async Task<Task<int>> AsyncMethod()
-    {
-        return NewMethod();
+                [|async|] Task UseAsync()
+                {
+                    Func<Task<int>> lambda = async () =>
+                    {
+                        return await AsyncMethod();
+                    };
+                    int result = [|await|] AsyncMethod();
+                    Task<int> resultTask = AsyncMethod();
+                    result = [|await|] resultTask;
+                    result = {|Cursor:[|await|]|} lambda();
+                }
+            }
+            """);
     }
 
-    private static Task<int> NewMethod()
+    [Fact]
+    public async Task TestExample3_2()
     {
-        int hours = 24;
-        return hours;
+        await TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class AsyncExample
+            {
+                async Task<int> AsyncMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
+
+                async Task UseAsync()
+                {
+                    Func<Task<int>> lambda = [|async|] () =>
+                    {
+                        return {|Cursor:[|await|]|} AsyncMethod();
+                    };
+                    int result = await AsyncMethod();
+                    Task<int> resultTask = AsyncMethod();
+                    result = await resultTask;
+                    result = await lambda();
+                }
+            }
+            """);
     }
 
-    async Task UseAsync()
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
+    public async Task TestNestedAwaits1()
     {
-        Func<Task<int>> lambda = [|async|] () =>
-        {
-            return {|Cursor:[|await await|]|} AsyncMethod();
-        };
-        int result = await await AsyncMethod();
-        Task<Task<int>> resultTask = AsyncMethod();
-        result = await await resultTask;
-        result = await lambda();
+        await TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class AsyncExample
+            {
+                async Task<Task<int>> AsyncMethod()
+                {
+                    return NewMethod();
+                }
+
+                private static Task<int> NewMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
+
+                async Task UseAsync()
+                {
+                    Func<Task<int>> lambda = [|async|] () =>
+                    {
+                        return {|Cursor:[|await await|]|} AsyncMethod();
+                    };
+                    int result = await await AsyncMethod();
+                    Task<Task<int>> resultTask = AsyncMethod();
+                    result = await await resultTask;
+                    result = await lambda();
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [WorkItem(573625, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestNestedAwaits2()
-        {
-            await TestAsync(
-@"using System;
-using System.Threading.Tasks;
-
-class AsyncExample
-{
-    async Task<Task<int>> AsyncMethod()
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/573625")]
+    public async Task TestNestedAwaits2()
     {
-        return NewMethod();
+        await TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class AsyncExample
+            {
+                async Task<Task<int>> AsyncMethod()
+                {
+                    return NewMethod();
+                }
+
+                private static Task<int> NewMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
+
+                [|async|] Task UseAsync()
+                {
+                    Func<Task<int>> lambda = async () =>
+                    {
+                        return await await AsyncMethod();
+                    };
+                    int result = {|Cursor:[|await await|]|} AsyncMethod();
+                    Task<Task<int>> resultTask = AsyncMethod();
+                    result = [|await await|] resultTask;
+                    result = [|await|] lambda();
+                }
+            }
+            """);
     }
 
-    private static Task<int> NewMethod()
+    [Fact]
+    public async Task TestAwaitUsing_OnAsync()
     {
-        int hours = 24;
-        return hours;
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|Cursor:[|async|]|} Task M()
+                {
+                    [|await|] using (var x = new object());
+                }
+            }
+            """);
     }
 
-    [|async|] Task UseAsync()
+    [Fact]
+    public async Task TestAwaitUsing_OnAwait()
     {
-        Func<Task<int>> lambda = async () =>
-        {
-            return await await AsyncMethod();
-        };
-        int result = {|Cursor:[|await await|]|} AsyncMethod();
-        Task<Task<int>> resultTask = AsyncMethod();
-        result = [|await await|] resultTask;
-        result = [|await|] lambda();
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                [|async|] Task M()
+                {
+                    {|Cursor:[|await|]|} using (var x = new object());
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestAwaitUsing_OnAsync()
-        {
-            await TestAsync(
-@"using System.Threading.Tasks;
-
-class C
-{
-    {|Cursor:[|async|]|} Task M()
+    [Fact]
+    public async Task TestAwaitUsingDeclaration_OnAsync()
     {
-        [|await|] using (var x = new object());
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|Cursor:[|async|]|} Task M()
+                {
+                    [|await|] using var x = new object();
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestAwaitUsing_OnAwait()
-        {
-            await TestAsync(
-@"using System.Threading.Tasks;
-
-class C
-{
-    [|async|] Task M()
+    [Fact]
+    public async Task TestAwaitUsingDeclaration_OnAwait()
     {
-        {|Cursor:[|await|]|} using (var x = new object());
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                [|async|] Task M()
+                {
+                    {|Cursor:[|await|]|} using var x = new object();
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestAwaitUsingDeclaration_OnAsync()
-        {
-            await TestAsync(
-@"using System.Threading.Tasks;
-
-class C
-{
-    {|Cursor:[|async|]|} Task M()
+    [Fact]
+    public async Task TestAwaitForEach_OnAsync()
     {
-        [|await|] using var x = new object();
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|Cursor:[|async|]|} Task M()
+                {
+                    foreach [|await|] (var n in new int[] { });
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestAwaitUsingDeclaration_OnAwait()
-        {
-            await TestAsync(
-@"using System.Threading.Tasks;
-
-class C
-{
-    [|async|] Task M()
+    [Fact]
+    public async Task TestAwaitForEach_OnAwait()
     {
-        {|Cursor:[|await|]|} using var x = new object();
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                [|async|] Task M()
+                {
+                    foreach {|Cursor:[|await|]|} (var n in new int[] { });
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestAwaitForEach_OnAsync()
-        {
-            await TestAsync(
-@"using System.Threading.Tasks;
-
-class C
-{
-    {|Cursor:[|async|]|} Task M()
+    [Fact]
+    public async Task TestForEachVariableAwait_OnAsync()
     {
-        foreach [|await|] (var n in new int[] { });
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                {|Cursor:[|async|]|} Task M()
+                {
+                    foreach [|await|] (var (a, b) in new (int, int)[] { });
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestAwaitForEach_OnAwait()
-        {
-            await TestAsync(
-@"using System.Threading.Tasks;
-
-class C
-{
-    [|async|] Task M()
+    [Fact]
+    public async Task TestForEachVariableAwait_OnAwait()
     {
-        foreach {|Cursor:[|await|]|} (var n in new int[] { });
+        await TestAsync(
+            """
+            using System.Threading.Tasks;
+
+            class C
+            {
+                [|async|] Task M()
+                {
+                    foreach {|Cursor:[|await|]|} (var (a, b) in new (int, int)[] { });
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestForEachVariableAwait_OnAsync()
-        {
-            await TestAsync(
-@"using System.Threading.Tasks;
-
-class C
-{
-    {|Cursor:[|async|]|} Task M()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60400")]
+    public async Task TestTopLevelStatements()
     {
-        foreach [|await|] (var (a, b) in new (int, int)[] { });
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestForEachVariableAwait_OnAwait()
-        {
-            await TestAsync(
-@"using System.Threading.Tasks;
-
-class C
-{
-    [|async|] Task M()
-    {
-        foreach {|Cursor:[|await|]|} (var (a, b) in new (int, int)[] { });
-    }
-}");
-        }
-
-        [WorkItem(60400, "https://github.com/dotnet/roslyn/issues/60400")]
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestTopLevelStatements()
-        {
-            await TestAsync(
-@"[|await|] Task.Delay(1000);
-{|Cursor:[|await|]|} Task.Run(() => { })");
-        }
+        await TestAsync(
+            """
+            [|await|] Task.Delay(1000);
+            {|Cursor:[|await|]|} Task.Run(() => { })
+            """);
     }
 }

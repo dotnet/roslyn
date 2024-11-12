@@ -12,61 +12,47 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.QualifyMemberAccess
+namespace Microsoft.CodeAnalysis.QualifyMemberAccess;
+
+internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSyntax, TInvocationSyntax>
+    : SyntaxEditorBasedCodeFixProvider
+    where TSimpleNameSyntax : SyntaxNode
+    where TInvocationSyntax : SyntaxNode
 {
-    internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSyntax, TInvocationSyntax>
-        : SyntaxEditorBasedCodeFixProvider
-        where TSimpleNameSyntax : SyntaxNode
-        where TInvocationSyntax : SyntaxNode
+    protected abstract string GetTitle();
+    protected abstract TSimpleNameSyntax? GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
+
+    public sealed override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.AddThisOrMeQualificationDiagnosticId];
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        protected abstract string GetTitle();
+        var title = GetTitle();
+        RegisterCodeFix(context, title, title);
+        return Task.CompletedTask;
+    }
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId);
+    protected override Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        foreach (var diagnostic in diagnostics)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                GetTitle(),
-                c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                context.Diagnostics);
-            return Task.CompletedTask;
-        }
-
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-
-            foreach (var diagnostic in diagnostics)
+            var node = GetNode(diagnostic, cancellationToken);
+            if (node != null)
             {
-                var node = GetNode(diagnostic, cancellationToken);
-                if (node != null)
-                {
-                    var qualifiedAccess =
-                        generator.MemberAccessExpression(
-                            generator.ThisExpression(),
-                            node.WithLeadingTrivia())
-                        .WithLeadingTrivia(node.GetLeadingTrivia());
+                var qualifiedAccess =
+                    generator.MemberAccessExpression(
+                        generator.ThisExpression(),
+                        node.WithLeadingTrivia())
+                    .WithLeadingTrivia(node.GetLeadingTrivia());
 
-                    editor.ReplaceNode(node, qualifiedAccess);
-                }
-            }
-
-            return Task.CompletedTask;
-        }
-
-        protected abstract TSimpleNameSyntax GetNode(Diagnostic diagnostic, CancellationToken cancellationToken);
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
+                editor.ReplaceNode(node, qualifiedAccess);
             }
         }
+
+        return Task.CompletedTask;
     }
 }

@@ -2,45 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
+namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
+
+[Export(typeof(ISmartIndentProvider))]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[ContentType(ContentTypeNames.VisualBasicContentType)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SmartIndentProvider(EditorOptionsService editorOptionsService) : ISmartIndentProvider
 {
-    [Export(typeof(ISmartIndentProvider))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class SmartIndentProvider : ISmartIndentProvider
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+
+    public ISmartIndent? CreateSmartIndent(ITextView textView)
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SmartIndentProvider(IGlobalOptionService globalOptions)
+        if (textView == null)
         {
-            _globalOptions = globalOptions;
+            throw new ArgumentNullException(nameof(textView));
         }
 
-        public ISmartIndent CreateSmartIndent(ITextView textView)
+        if (!_editorOptionsService.GlobalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
         {
-            if (textView == null)
-            {
-                throw new ArgumentNullException(nameof(textView));
-            }
-
-            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
-            {
-                return null;
-            }
-
-            return new SmartIndent(textView);
+            return null;
         }
+
+        return new SmartIndent(textView, _editorOptionsService);
     }
 }

@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         public static string GetLanguageServerProviderServiceName(string lspServiceName)
             => LanguageServerProviderServiceName + "-" + lspServiceName;
 
-        public static string GetContentTypesName(string[] contentTypes) => string.Join("-", contentTypes.OrderBy(c => c).ToArray());
+        public static string GetContentTypesName(string[] contentTypes) => string.Join("-", [.. contentTypes.OrderBy(c => c)]);
 
         public static bool IsContentTypeRemote(string contentType)
             => contentType.EndsWith("-remote");

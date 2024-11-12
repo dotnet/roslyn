@@ -140,7 +140,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Function(type, translator) translator.Retarget(DirectCast(type, TypeSymbol), RetargetOptions.RetargetPrimitiveTypesByTypeCode), Me)
             End Function
 
-
             Public Function Retarget(symbol As TypeSymbol, options As RetargetOptions) As TypeSymbol
                 Return DirectCast(symbol.Accept(Me, options), TypeSymbol)
             End Function
@@ -266,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     If type.ContainingModule Is _retargetingModule.UnderlyingModule Then
                         ' This is a local type explicitly declared in source. Get information from TypeIdentifier attribute.
                         For Each attrData In type.GetAttributes()
-                            Dim signatureIndex = attrData.GetTargetAttributeSignatureIndex(type, AttributeDescription.TypeIdentifierAttribute)
+                            Dim signatureIndex = attrData.GetTargetAttributeSignatureIndex(AttributeDescription.TypeIdentifierAttribute)
 
                             If signatureIndex <> -1 Then
                                 Debug.Assert(signatureIndex = 0 OrElse signatureIndex = 1)
@@ -337,14 +336,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                     mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity:=type.Arity)
                     result = scope.LookupMetadataType(mdName)
-                    Debug.Assert(result IsNot Nothing)
-                    Debug.Assert(result.Arity = type.Arity)
                 Else
                     Dim namespaceName As String = If(type.GetEmittedNamespaceName(), type.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
                     mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, type.MetadataName, forcedArity:=type.Arity)
                     result = addedModule.LookupTopLevelMetadataType(mdName)
-                    Debug.Assert(result.Arity = type.Arity)
                 End If
+
+                Debug.Assert(If(TryCast(result, PENamedTypeSymbol)?.Handle = type.Handle, False))
 
                 Return result
             End Function
@@ -367,14 +365,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                         Dim scope As NamedTypeSymbol = PerformTypeRetargeting(destination, containingType)
                         mdName = MetadataTypeName.FromTypeName(type.MetadataName, forcedArity:=type.Arity)
                         result1 = scope.LookupMetadataType(mdName)
-                        Debug.Assert(result1 IsNot Nothing)
-                        Debug.Assert(result1.Arity = type.Arity)
+
+                        If result1 Is Nothing Then
+                            result1 = New MissingMetadataTypeSymbol.Nested(scope, mdName)
+                        Else
+                            Debug.Assert(Not result1.IsErrorType())
+                        End If
                     Else
                         Dim namespaceName As String = If(type.GetEmittedNamespaceName(), type.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
                         mdName = MetadataTypeName.FromNamespaceAndTypeName(namespaceName, type.MetadataName, forcedArity:=type.Arity)
-                        result1 = destination.To.LookupTopLevelMetadataType(mdName, digThroughForwardedTypes:=True)
-                        Debug.Assert(result1.Arity = type.Arity)
+                        result1 = destination.To.LookupDeclaredOrForwardedTopLevelMetadataType(mdName, visitedAssemblies:=Nothing)
                     End If
+
+                    Debug.Assert(result1.Arity = type.Arity)
 
                     result = destination.SymbolMap.GetOrAdd(type, result1)
                     Debug.Assert(result1.Equals(result))
@@ -657,11 +660,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Friend Iterator Function RetargetAttributes(attributes As IEnumerable(Of VisualBasicAttributeData)) As IEnumerable(Of VisualBasicAttributeData)
-#If DEBUG Then
-                Dim x As SynthesizedAttributeData = Nothing
-                Dim y As SourceAttributeData = x ' Code below relies on the fact that SynthesizedAttributeData derives from SourceAttributeData.
-                x = DirectCast(y, SynthesizedAttributeData)
-#End If
                 For Each attrData In attributes
                     Yield RetargetAttributeData(attrData)
                 Next
@@ -693,13 +691,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 ' Must create a RetargetingAttributeData even if the types and
                 ' arguments are unchanged since the AttributeData instance is
                 ' used to resolve System.Type which may require retargeting.
-                Return New RetargetingAttributeData(oldAttribute.ApplicationSyntaxReference,
+                Return New RetargetingAttributeData(oldAttribute,
                                                     newAttributeType,
                                                     newAttributeCtor,
                                                     newCtorArguments,
-                                                    newNamedArguments,
-                                                    oldAttribute.IsConditionallyOmitted,
-                                                    oldAttribute.HasErrors)
+                                                    newNamedArguments)
             End Function
 
             Private Function RetargetAttributeConstructorArguments(constructorArguments As ImmutableArray(Of TypedConstant)) As ImmutableArray(Of TypedConstant)
@@ -755,7 +751,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                     Return oldConstant
                 End If
             End Function
-
 
             Private Function RetargetAttributeNamedArguments(namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))) As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
                 Dim retargetedArguments = namedArguments
@@ -1117,7 +1112,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                 Return Nothing
             End Function
-
 
             Public Overrides Function VisitModule(symbol As ModuleSymbol, options As RetargetOptions) As Symbol
                 ' We shouldn't run into any other module, but the underlying module

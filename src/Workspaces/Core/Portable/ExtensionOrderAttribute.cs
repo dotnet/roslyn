@@ -7,18 +7,17 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class ExtensionOrderAttribute : Attribute
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public sealed class ExtensionOrderAttribute : Attribute
+    public ExtensionOrderAttribute()
     {
-        public ExtensionOrderAttribute()
-        {
-        }
-
-        public string After { get; set; }
-
-        public string Before { get; set; }
     }
+
+    public string After { get; set; }
+
+    public string Before { get; set; }
 }

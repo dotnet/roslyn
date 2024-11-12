@@ -7,18 +7,16 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EncapsulateField
+namespace Microsoft.CodeAnalysis.EncapsulateField;
+
+internal interface IRemoteEncapsulateFieldService
 {
-    internal interface IRemoteEncapsulateFieldService
-    {
-        ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
-            PinnedSolutionInfo solutionInfo,
-            DocumentId documentId,
-            ImmutableArray<string> fieldSymbolKeys,
-            bool updateReferences,
-            CancellationToken cancellationToken);
-    }
+    ValueTask<ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>> EncapsulateFieldsAsync(
+        Checksum solutionChecksum,
+        DocumentId documentId,
+        ImmutableArray<string> fieldSymbolKeys,
+        bool updateReferences,
+        CancellationToken cancellationToken);
 }

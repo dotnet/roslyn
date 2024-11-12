@@ -35,9 +35,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (11,15): error CS8352: Cannot use local 's1' in this context because it may expose referenced variables outside of their declaration scope
+                // (11,15): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
                 //         s2 = (s1 = s2);
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s1 = s2").WithArguments("s1").WithLocation(11, 15));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1 = s2").WithArguments("s1").WithLocation(11, 15));
         }
 
         [Fact]
@@ -444,9 +444,9 @@ class Program
                 // (13,26): error CS0701: 'Span<int>' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     class C1<T> where T: Span<int>
                 Diagnostic(ErrorCode.ERR_BadBoundType, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 26),
-                // (10,14): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (10,14): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Func<TResult>'
                 //         Func<Span<int>> d = ()=>x;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Span<int>").WithArguments("System.Span<int>").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Span<int>").WithArguments("System.Func<TResult>", "TResult", "System.Span<int>").WithLocation(10, 14),
                 // (10,33): error CS8175: Cannot use ref local 'x' inside an anonymous method, lambda expression, or query expression
                 //         Func<Span<int>> d = ()=>x;
                 Diagnostic(ErrorCode.ERR_AnonDelegateCantUseLocal, "x").WithArguments("x").WithLocation(10, 33)
@@ -485,8 +485,7 @@ class Program
         [Fact]
         public void ByrefParam()
         {
-            var text = @"
-using System;
+            var text = @"using System;
 
 class Program
 {
@@ -495,7 +494,7 @@ class Program
     }
 
     // OK
-    static void M1(ref Span<string> ss)
+    static void M1(scoped ref Span<string> ss)
     {
     }
 
@@ -506,12 +505,12 @@ class Program
     }
 
     // OK
-    static void M3(in Span<string> ss)
+    static void M3(scoped in Span<string> ss)
     {
     }
 
     // OK
-    static void M3l(in SpanLike<string> ss)
+    static void M3l(scoped in SpanLike<string> ss)
     {
     }
 
@@ -527,15 +526,33 @@ class Program
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
+            var comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                // (10,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M1(scoped ref Span<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(10, 20),
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
-                // (39,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12)
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12),
+                // (21,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M3(scoped in Span<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(21, 20),
+                // (26,21): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     static void M3l(scoped in SpanLike<string> ss)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(26, 21)
+            );
+
+            comp = CreateCompilationWithMscorlibAndSpan(new[] { text, UnscopedRefAttributeDefinition });
+            comp.VerifyDiagnostics(
+                // (38,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(38, 34),
+                // (38,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(38, 12)
             );
         }
 
@@ -681,7 +698,7 @@ public class Program
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
-        public void InterfaceImpl()
+        public void InterfaceImpl_01()
         {
             var text = @"
 using System;
@@ -692,24 +709,177 @@ public class Program
     {
         using (new S1())
         {
-
+            System.Console.Write(1);
         }
+
+        System.Console.Write(3);    
     }
 
     public ref struct S1 : IDisposable
     {
-        public void Dispose() { }
+        public void Dispose()
+        {
+            System.Console.Write(2);
+        }
     }
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (14,28): error CS8343: 'Program.S1': ref structs cannot implement interfaces
-                //     public ref struct S1 : IDisposable
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28)
-            );
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_0018
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  call       ""void Program.S1.Dispose()""
+    IL_0017:  endfinally
+  }
+  IL_0018:  ldc.i4.3
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InterfaceImpl_02()
+        {
+            var text = @"
+using System;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+            System.Console.Write(1);
+        }
+
+        System.Console.Write(3);    
+    }
+
+    public ref struct S1 : IDisposable
+    {
+        public void Dispose()
+        {
+            System.Console.Write(22);
+        }
+
+        void IDisposable.Dispose()
+        {
+            System.Console.Write(2);
+        }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"1223").VerifyDiagnostics();
+
+            // We prioritize pattern over an interface according to https://github.com/dotnet/csharplang/blob/main/proposals/ref-struct-interfaces.md#using-statement 
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_0018
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  call       ""void Program.S1.Dispose()""
+    IL_0017:  endfinally
+  }
+  IL_0018:  ldc.i4.3
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void InterfaceImpl_03()
+        {
+            var text = @"
+using System;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+            System.Console.Write(1);
+        }
+
+        System.Console.Write(3);    
+    }
+
+    public ref struct S1 : IDisposable
+    {
+        void IDisposable.Dispose()
+        {
+            System.Console.Write(2);
+        }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_001e
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  constrained. ""Program.S1""
+    IL_0018:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001d:  endfinally
+  }
+  IL_001e:  ldc.i4.3
+  IL_001f:  call       ""void System.Console.Write(int)""
+  IL_0024:  ret
+}
+");
         }
 
         [Fact]
@@ -722,26 +892,56 @@ public class Program
     {
         using (new S1())
         {
-
+            System.Console.Write(1);
         }
+
+        System.Console.Write(3);
     }
 
     public ref struct S1
     {
-        public void Dispose() { }
+        public void Dispose()
+        {
+            System.Console.Write(2);
+        }
     }
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-            );
+            var verifier = CompileAndVerify(comp, expectedOutput: @"123").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (Program.S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Program.S1""
+  .try
+  {
+    IL_0008:  ldc.i4.1
+    IL_0009:  call       ""void System.Console.Write(int)""
+    IL_000e:  leave.s    IL_0018
+  }
+  finally
+  {
+    IL_0010:  ldloca.s   V_0
+    IL_0012:  call       ""void Program.S1.Dispose()""
+    IL_0017:  endfinally
+  }
+  IL_0018:  ldc.i4.3
+  IL_0019:  call       ""void System.Console.Write(int)""
+  IL_001e:  ret
+}
+");
         }
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
-        public void RefIteratorInAsync()
+        public void RefIteratorInAsync_01()
         {
             var text = @"
 using System;
@@ -787,18 +987,87 @@ class C1
 
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
-            comp.VerifyDiagnostics(
-                // (15,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (15,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         foreach (var i in obj)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(15, 9)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var i in obj)
+        {
+            await Task.Yield();
+            System.Console.WriteLine(i);
+        }").WithArguments("C1.S1").WithLocation(15, 9)
+            };
+
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74793")]
+        public void RefIteratorInAsync_02()
+        {
+            var text = @"
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        var obj = new C1();
+
+        foreach (var i in obj)
+        {
+            System.Console.Write(i);
+        }
+
+        await Task.Yield();
+
+        System.Console.Write(-1);
+    }
+}
+
+class C1
+{
+    public S1 GetEnumerator()
+    {
+        return new S1();
+    }
+
+    public ref struct S1
+    {
+        public int Current { get; private set; }
+
+        public bool MoveNext()
+        {
+            Current++;
+            return Current < 3;
+        }
+    }
+}
+
+";
+
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 9));
+
+            var expectedOutput = "12-1";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
-        public void RefIteratorInIterator()
+        public void RefIteratorInIterator_01()
         {
             var text = @"
 using System;
@@ -834,6 +1103,7 @@ class Program
         // this is an error
         foreach (var i in new C1())
         {
+            yield return 0;
         }
 
         yield return 1;
@@ -859,13 +1129,87 @@ class C1
 }
 ";
 
-            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
-
-            comp.VerifyDiagnostics(
-                // (33,9): error CS8344: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (33,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         foreach (var i in new C1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(33, 9)
-            );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(33, 9));
+
+            var expectedDiagnostics = new[]
+            {
+                // (33,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var i in new C1())
+        {
+            yield return 0;
+        }").WithArguments("C1.S1").WithLocation(33, 9)
+            };
+
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefIteratorInIterator_02()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (var i in Test())
+        {
+            Console.Write(i);
+        }
+    }
+
+    static IEnumerable<int> Test()
+    {
+        foreach (var i in new C1())
+        {
+            Console.Write(i);
+        }
+
+        yield return -1;
+
+        Console.Write(-2);
+    }
+}
+
+class C1
+{
+    public S1 GetEnumerator()
+    {
+        return new S1();
+    }
+
+    public ref struct S1
+    {
+        public int Current { get; private set; }
+
+        public bool MoveNext()
+        {
+            Current++;
+            return Current < 3;
+        }
+    }
+}
+";
+
+            CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular12).VerifyDiagnostics(
+                // (17,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(17, 9));
+
+            var expectedOutput = "12-1-2";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
         [Fact]
@@ -958,9 +1302,9 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (11,48): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
+                // (11,48): error CS4012: Parameters of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //     public static async Task<int> M1(Span<int> arg)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
             );
         }
 
@@ -979,29 +1323,378 @@ public class Program
 
     public static async Task<int> M1()
     {
-        Span<int> local = default(Span<int>);
+        Span<int> local1 = default(Span<int>);
+        var local2 = default(Span<int>);
 
         await Task.Yield();
         return 42;
     }
+
+    public static async Task<int> M2()
+    {
+        Span<int> local1 = default(Span<int>);
+        var local2 = default(Span<int>);
+
+        await Task.Yield();
+        return local1.Length; // 1
+    }
+
+    public static async Task<int> M3()
+    {
+        Span<int> local1 = default(Span<int>);
+        var local2 = default(Span<int>);
+
+        await Task.Yield();
+        return local2.Length; // 2
+    }
+
+    public static async Task<int> M4()
+    {
+        Span<int> local1 = default(Span<int>);
+        var local2 = default(Span<int>);
+
+        await Task.Yield();
+        return local1.Length + local2.Length; // 3, 4
+    }
+}
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // (13,19): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         Span<int> local1 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(13, 19),
+                // (14,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         var local2 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(14, 13),
+                // (23,13): warning CS0219: The variable 'local2' is assigned but its value is never used
+                //         var local2 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local2").WithArguments("local2").WithLocation(23, 13),
+                // (26,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(26, 16),
+                // (31,19): warning CS0219: The variable 'local1' is assigned but its value is never used
+                //         Span<int> local1 = default(Span<int>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local1").WithArguments("local1").WithLocation(31, 19),
+                // (35,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(35, 16),
+                // (44,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length + local2.Length; // 3, 4
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(44, 16),
+                // (44,32): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length + local2.Length; // 3, 4
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(44, 32)
+            };
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AsyncLocals_OutVar()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+public class Program
+{
+    public static async Task<int> M1()
+    {
+        M2(out var local1);
+        M2(out Span<int> local2);
+
+        await Task.Yield();
+        return 42;
+    }
+
+    public static async Task<int> M3()
+    {
+        M2(out var local1);
+        M2(out Span<int> local2);
+
+        await Task.Yield();
+        return local1.Length; // 1
+    }
+
+    public static async Task<int> M4()
+    {
+        M2(out var local1);
+        M2(out Span<int> local2);
+
+        await Task.Yield();
+        return local2.Length; // 2
+    }
+
+    static void M2(out Span<int> s) => throw null;
 }
 ";
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
-            );
+            comp.VerifyEmitDiagnostics(
+                // (22,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local1").WithArguments("System.Span<int>").WithLocation(22, 16),
+                // (31,16): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         return local2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "local2").WithArguments("System.Span<int>").WithLocation(31, 16));
+        }
 
-            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
+        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        public void AsyncLocals_Foreach()
+        {
+            var src = @"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-            comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
-                //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
-            );
+public class Program
+{
+    public async Task M(IReadOnlyList<string> o)
+    {
+        foreach (ReadOnlySpan<char> c1 in o) { }
+
+        var enumerator = ((IEnumerable<string>)o).GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current;
+            _ = c2.Length;
+        }
+
+        await Task.Yield();
+        return;
+    }
+
+    public async Task M2(IReadOnlyList<string> o)
+    {
+        foreach (ReadOnlySpan<char> c1 in o)
+        {
+            await Task.Yield();
+            _ = c1.Length; // 1
+        }
+
+        var enumerator = ((IEnumerable<string>)o).GetEnumerator();
+        while (enumerator.MoveNext())
+        {
+            ReadOnlySpan<char> c2 = (ReadOnlySpan<char>)(string)enumerator.Current;
+            await Task.Yield();
+            _ = c2.Length; // 2
+        }
+
+        await Task.Yield();
+        return;
+    }
+}
+";
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (28,17): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = c1.Length; // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c1").WithArguments("System.ReadOnlySpan<char>").WithLocation(28, 17),
+                // (36,17): error CS4007: Instance of type 'System.ReadOnlySpan<char>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = c2.Length; // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "c2").WithArguments("System.ReadOnlySpan<char>").WithLocation(36, 17));
+        }
+
+        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        public void AsyncLocals_Deconstruction()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+
+public class Program
+{
+    public async Task M()
+    {
+        (Span<int> s1, Span<int> s2) = new Program();
+        var (s3, s4) = new Program();
+        (var s5, var s6) = new Program();
+
+        await Task.Yield();
+        return;
+    }
+
+    public async Task M2()
+    {
+        (Span<int> s1, Span<int> s2) = new Program();
+        var (s3, s4) = new Program();
+        (var s5, var s6) = new Program();
+
+        await Task.Yield();
+
+        _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+        return;
+    }
+
+    void Deconstruct(out Span<int> s1, out Span<int> s2) => throw null;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (25,13): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(25, 13),
+                // (25,25): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4").WithArguments("System.Span<int>").WithLocation(25, 25),
+                // (25,37): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         _ = s1.Length + s4.Length + s5.Length; // 1, 2, 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s5").WithArguments("System.Span<int>").WithLocation(25, 37));
+        }
+
+        [Fact, WorkItem(62747, "https://github.com/dotnet/roslyn/issues/62747")]
+        public void AsyncLocals_Using()
+        {
+            var src = @"
+using System.Threading.Tasks;
+
+public class Program
+{
+    public async Task M()
+    {
+        using (default(RS)) { }
+        using (var s1 = default(RS)) { }
+        using (RS s2 = default(RS)) { }
+        using RS s3 = default(RS); // 1
+        using var s4 = default(RS); // 2
+
+        await Task.Yield();
+        return;
+    }
+
+    public async Task M2()
+    {
+        using (default(RS)) { await Task.Yield(); } // 3
+        using (var s1 = default(RS)) { await Task.Yield(); } // 4
+        using (RS s2 = default(RS)) { await Task.Yield(); } // 5
+        {
+            using RS s3 = default(RS); // 6
+            await Task.Yield();
+            using var s4 = default(RS);
+        }
+
+        await Task.Yield();
+        return;
+    }
+}
+
+public ref struct RS
+{
+    public void Dispose() { }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (11,18): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using RS s3 = default(RS); // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3 = default(RS)").WithArguments("RS").WithLocation(11, 18),
+                // (12,19): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using var s4 = default(RS); // 2
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s4 = default(RS)").WithArguments("RS").WithLocation(12, 19),
+                // (20,16): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using (default(RS)) { await Task.Yield(); } // 3
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(RS)").WithArguments("RS").WithLocation(20, 16),
+                // (21,20): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using (var s1 = default(RS)) { await Task.Yield(); } // 4
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1 = default(RS)").WithArguments("RS").WithLocation(21, 20),
+                // (22,19): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //         using (RS s2 = default(RS)) { await Task.Yield(); } // 5
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2 = default(RS)").WithArguments("RS").WithLocation(22, 19),
+                // (24,22): error CS4007: Instance of type 'RS' cannot be preserved across 'await' or 'yield' boundary.
+                //             using RS s3 = default(RS); // 6
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s3 = default(RS)").WithArguments("RS").WithLocation(24, 22));
+        }
+
+        [Fact]
+        public void AsyncLocals_PatternDeclaration()
+        {
+            var src = @"
+using System;
+using System.Threading.Tasks;
+
+public class Program
+{
+    public async Task M()
+    {
+        if (M2() is var s1) { }
+        if (M2() is Span<int> s2) { }
+        if (M2() is var s3) { await Task.Yield(); }
+        if (M2() is Span<int> s4) { await Task.Yield(); }
+
+        await Task.Yield();
+        return;
+    }
+
+    public async Task M3()
+    {
+        if (M2() is var s1)
+        {
+            await Task.Yield();
+            _ = s1.Length; // 1
+        }
+        if (M2() is Span<int> s2)
+        {
+            await Task.Yield();
+            _ = s2.Length; // 2
+        }
+
+        await Task.Yield();
+        return;
+    }
+
+    static Span<int> M2() => throw null;
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
+            comp.VerifyEmitDiagnostics(
+                // (23,17): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = s1.Length;
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s1").WithArguments("System.Span<int>").WithLocation(23, 17),
+                // (28,17): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //             _ = s2.Length;
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s2").WithArguments("System.Span<int>").WithLocation(28, 17));
+        }
+
+        [Fact]
+        public void AsyncLocals_Reassignment()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+                class C
+                {
+                    async Task M1()
+                    {
+                        int x = 42;
+                        Span<int> y = new(ref x);
+                        y.ToString();
+                        await Task.Yield();
+                        y.ToString(); // 1
+                    }
+                    async Task M2()
+                    {
+                        int x = 42;
+                        Span<int> y = new(ref x);
+                        y.ToString();
+                        await Task.Yield();
+                        y = new(ref x);
+                        y.ToString();
+                    }
+                }
+                """;
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(
+                // (11,9): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //         y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(11, 9));
         }
 
         [Fact]
@@ -1050,19 +1743,18 @@ public class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyEmitDiagnostics(
-                // (17,39): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
+            var expectedDiagnostics = new[]
+            {
+                // (17,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         TakesSpan(default(Span<int>), await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>")
-            );
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(Span<int>)").WithArguments("System.Span<int>").WithLocation(17, 19)
+            };
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (17,39): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
-                //         TakesSpan(default(Span<int>), await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>")
-            );
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -1101,19 +1793,49 @@ public class Program
 
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
-            comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
+            var expectedDiagnostics = new[]
+            {
+                // (14,22): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         TakesSpan(s: default(Span<int>), i: await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
-            );
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "default(Span<int>)").WithArguments("System.Span<int>").WithLocation(14, 22)
+            };
+
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
-            comp.VerifyEmitDiagnostics(
-                // (14,45): error CS4007: 'await' cannot be used in an expression containing the type 'Span<int>'
-                //         TakesSpan(s: default(Span<int>), i: await I1());
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await I1()").WithArguments("System.Span<int>").WithLocation(14, 45)
-            );
+            comp.VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AwaitAssignSpan()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                ReadOnlySpan<int> r = await M();
+                Console.Write(r[1]);
+
+                async Task<int[]> M()
+                {
+                    await Task.Yield();
+                    return new[] { 4, 5, 6 };
+                }
+                """;
+
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,1): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                // ReadOnlySpan<int> r = await M();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ReadOnlySpan<int>").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 1));
+
+            var expectedOutput = "5";
+
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular13);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            comp = CreateCompilationWithSpan(source);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1448,13 +2170,13 @@ class Program
                 );
         }
 
-        [Fact]
         [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
-        public void PassingSpansToLocals_EscapeScope()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope_01(LanguageVersion languageVersion)
         {
-            CompileAndVerify(
-                CreateCompilationWithMscorlibAndSpan(@"
-using System;
+            var source = @"using System;
 class C
 {
     static void Main()
@@ -1475,8 +2197,46 @@ class C
     {
         return ref x;
     }
-}",
-                options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+10
+10");
+        }
+
+        [WorkItem(27874, "https://github.com/dotnet/roslyn/issues/27874")]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PassingSpansToLocals_EscapeScope_02(LanguageVersion languageVersion)
+        {
+            var source = @"using System;
+
+class C
+{
+    static void Main()
+    {
+        Span<int> x = stackalloc int [10];
+        
+        Console.WriteLine(M1(ref x).Length);
+        Console.WriteLine(M2(ref x).Length);
+    }
+    
+    static ref Span<int> M1(ref Span<int> x)
+    {
+        ref Span<int> q = ref x;
+        return ref q;
+    }
+    
+    static ref Span<int> M2(ref Span<int> x)
+    {
+        return ref x;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSpan(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 10
 10");
         }
@@ -1571,11 +2331,13 @@ class C
 2 - 1");
         }
 
-        [Fact]
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
         [WorkItem(27357, "https://github.com/dotnet/roslyn/issues/27357")]
-        public void PassingSpansToParameters_Errors()
+        public void PassingSpansToParameters_Errors(LanguageVersion languageVersion)
         {
-            CreateCompilationWithMscorlibAndSpan(@"
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -1599,51 +2361,83 @@ class C
         M2(y: out s2, x: ref s1);   // five
         M2(y: out s1, x: ref s2);   // six
 
-        M2(ref s1, out s1);         // should be ok
-        M2(ref s2, out s2);         // should be ok
+        M2(ref s1, out s1);         // okay
+        M2(ref s2, out s2);         // okay
     }
 
-    static void M2(ref Span<int> x, out Span<int> y)
+    static void M2(scoped ref Span<int> x, out Span<int> y)
     {
         y = default;
     }
-}").VerifyDiagnostics(
-                // (16,24): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, out s2);         // one
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(16, 24),
-                // (16,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(ref s1, out s2);         // one
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
-                // (17,16): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s2, out s1);         // two
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(17, 16),
-                // (17,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(ref s2, out s1);         // two
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
-                // (19,24): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s1, out s2);         // three
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(19, 24),
-                // (19,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(ref s1, out s2);         // three
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
-                // (20,16): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(ref s2, out s1);         // four
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(20, 16),
-                // (20,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(ref s2, out s1);         // four
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
-                // (22,19): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(y: out s2, x: ref s1);   // five
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(22, 19),
-                // (22,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
-                //         M2(y: out s2, x: ref s1);   // five
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
-                // (23,30): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
-                //         M2(y: out s1, x: ref s2);   // six
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(23, 30),
-                // (23,9): error CS8350: This combination of arguments to 'C.M2(ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
-                //         M2(y: out s1, x: ref s2);   // six
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9));
+}", parseOptions: TestOptions.RegularDefault.WithLanguageVersion(languageVersion));
+
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                // In C# 7.2 the input to an `out` parameter can escape which means several 
+                // of the tests are errors due to stack copying to escape
+                comp.VerifyDiagnostics(
+                    // (16,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(ref s1, out s2);         // one
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(16, 9),
+                    // (16,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s1, out s2);         // one
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 24),
+                    // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                    // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
+                    // (19,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(ref s1, out s2);         // three
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s1, out s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(19, 9),
+                    // (19,24): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s1, out s2);         // three
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(19, 24),
+                    // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                    // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
+                    // (22,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                    //         M2(y: out s2, x: ref s1);   // five
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s2, x: ref s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "y").WithLocation(22, 9),
+                    // (22,19): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s2, x: ref s1);   // five
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(22, 19),
+                    // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
+                    // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30),
+                    // (29,20): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                    //     static void M2(scoped ref Span<int> x, out Span<int> y)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(29, 20));
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (17,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(17, 9),
+                    // (17,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // two
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 16),
+                    // (20,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(ref s2, out s1)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(20, 9),
+                    // (20,16): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(ref s2, out s1);         // four
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(20, 16),
+                    // (23,9): error CS8350: This combination of arguments to 'C.M2(scoped ref Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(y: out s1, x: ref s2)").WithArguments("C.M2(scoped ref System.Span<int>, out System.Span<int>)", "x").WithLocation(23, 9),
+                    // (23,30): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
+                    //         M2(y: out s1, x: ref s2);   // six
+                    Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(23, 30));
+            }
         }
 
         [Fact]
@@ -1673,15 +2467,15 @@ class C
     {
     }
 }").VerifyDiagnostics(
-                // (16,34): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,34): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(__arglist(ref s1, ref s2));  // one
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(16, 34),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(16, 34),
                 // (16,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //         M2(__arglist(ref s1, ref s2));  // one
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s1, ref s2))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(16, 9),
-                // (17,26): error CS8352: Cannot use local 's2' in this context because it may expose referenced variables outside of their declaration scope
+                // (17,26): error CS8352: Cannot use variable 's2' in this context because it may expose referenced variables outside of their declaration scope
                 //         M2(__arglist(ref s2, ref s1));  // two
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "s2").WithArguments("s2").WithLocation(17, 26),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s2").WithArguments("s2").WithLocation(17, 26),
                 // (17,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //         M2(__arglist(ref s2, ref s1));  // two
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s2, ref s1))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(17, 9));
@@ -1796,12 +2590,12 @@ struct Struct2
                 // (21,18): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
                 //             0 => stackalloc byte[10], // 2
                 Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[10]").WithArguments("System.Span<byte>").WithLocation(21, 18),
-                // (36,16): error CS8352: Cannot use local 'span' in this context because it may expose referenced variables outside of their declaration scope
+                // (36,16): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
                 //         return span; // 3
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(36, 16),
-                // (43,16): error CS8352: Cannot use local 'span' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(36, 16),
+                // (43,16): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
                 //         return span; // 4
-                Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(43, 16)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(43, 16)
                 );
         }
 

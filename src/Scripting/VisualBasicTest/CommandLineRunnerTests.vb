@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.Scripting.Test
+Imports Microsoft.CodeAnalysis.Scripting.TestUtilities
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
 Imports Roslyn.Test.Utilities
@@ -16,7 +17,7 @@ Imports Xunit
 Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
     Public Class CommandLineRunnerTests
-        Inherits TestBase
+        Inherits VisualBasicScriptTestBase
 
         Private Shared ReadOnly s_compilerVersion As String =
             CommonCompiler.GetProductVersion(GetType(VisualBasicInteractiveCompiler))
@@ -26,36 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 
 " + ScriptingResources.HelpPrompt
 
-        Private Shared ReadOnly s_defaultArgs As String() = {"/R:System"}
-
-        Private Shared Function CreateRunner(
-            Optional args As String() = Nothing,
-            Optional input As String = "",
-            Optional responseFile As String = Nothing,
-            Optional workingDirectory As String = Nothing
-        ) As CommandLineRunner
-            Dim io = New TestConsoleIO(input)
-
-            Dim buildPaths = New BuildPaths(
-                clientDir:=AppContext.BaseDirectory,
-                workingDir:=If(workingDirectory, AppContext.BaseDirectory),
-                sdkDir:=RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
-                tempDir:=Path.GetTempPath())
-
-            Dim compiler = New VisualBasicInteractiveCompiler(
-                responseFile,
-                buildPaths,
-                If(args, s_defaultArgs),
-                New NotImplementedAnalyzerLoader())
-
-            Return New CommandLineRunner(
-                io,
-                compiler,
-                VisualBasicScriptCompiler.Instance,
-                VisualBasicObjectFormatter.Instance)
-        End Function
-
-        <Fact()>
+        <Fact>
         Public Sub TestPrint()
             Dim runner = CreateRunner(input:="? 10")
 
@@ -67,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestImportArgument()
             Dim runner = CreateRunner(args:={"/Imports:<xmlns:xmlNamespacePrefix='xmlNamespaceName'>"})
 
@@ -108,7 +80,7 @@ End Class", "1").EmitToArray())
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact()>
+        <Fact>
         Public Sub TestReferenceDirectiveWhenReferenceMissing()
             Dim runner = CreateRunner(args:={}, input:="#r ""://invalidfilepath""")
 
@@ -122,8 +94,7 @@ End Class", "1").EmitToArray())
 >", runner.Console.Out.ToString())
         End Sub
 
-        <Fact()>
-        <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture1()
             ' Save the current thread culture as it is changed in the test.
             ' If the culture is not restored after the test all following tests
@@ -155,8 +126,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globaliz
             End Try
         End Sub
 
-        <Fact()>
-        <WorkItem(7133, "https://github.com/dotnet/roslyn/issues/7133")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7133")>
         Public Sub TestDisplayResultsWithCurrentUICulture2()
             ' Save the current thread culture as it is changed in the test.
             ' If the culture is not restored after the test all following tests

@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,7 +16,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Symbols
 {
-    public class DocumentationCommentIdTests : CommonTestBase
+    public sealed class DocumentationCommentIdTests : CommonTestBase
     {
         private CSharpCompilation CreateCompilation(string code) =>
             CreateCSharpCompilation(
@@ -117,6 +119,70 @@ class C
             var foundSymbols = DocumentationCommentId.GetSymbolsForDeclarationId(expectedDocId, comp);
 
             Assert.Equal(new[] { symbol }, foundSymbols);
+        }
+
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
+        public void InvalidTypeParameterIndex_CSharp()
+        {
+            var comp = CreateCSharpCompilation("""
+                namespace N;
+                class C
+                {
+                    static void Main() { }
+                    public void M<T>(T[] ts) { }
+                }
+                """).VerifyDiagnostics();
+            Assert.NotNull(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``0[])", comp));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(`0[])", comp));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", comp));
+        }
+
+        [Fact, WorkItem(65396, "https://github.com/dotnet/roslyn/issues/65396")]
+        public void InvalidTypeParameterIndex_VisualBasic()
+        {
+            var comp = CreateVisualBasicCompilation("""
+                Namespace N
+                    Class C
+                        Shared Sub Main()
+                        End Sub
+
+                        Public Sub M(Of T)(ByVal ts As T())
+                        End Sub
+                    End Class
+                End Namespace
+                """).VerifyDiagnostics();
+            Assert.NotNull(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``0[])", comp));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(`0[])", comp));
+            Assert.Null(DocumentationCommentId.GetFirstSymbolForDeclarationId("M:N.C.M``1(``1[])", comp));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/70159")]
+        public async Task TestReturnValueOnInvalidSymbol1(
+            [CombinatorialValues("int*", "dynamic")] string type)
+        {
+            var text = $$"""
+                class C
+                {
+                    unsafe void M({{type}} i)
+                    {
+                        var x = i + 1;
+                    }
+                }
+                """;
+
+            var comp = CreateCSharpCompilation(text, compilationOptions: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+            var tree = comp.SyntaxTrees.Single();
+            var semanticModel = comp.GetSemanticModel(tree);
+            var root = await tree.GetRootAsync();
+
+            var token = root.FindToken(text.IndexOf('+'));
+            var node = token.Parent;
+            Assert.NotNull(node);
+            var symbol = semanticModel.GetSymbolInfo(node!).Symbol;
+            Assert.NotNull(symbol);
+
+            var id = DocumentationCommentId.CreateDeclarationId(symbol!);
+            Assert.Null(id);
         }
 
         internal override string VisualizeRealIL(

@@ -28,6 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void UsingDirective()
+        {
+            var someValidName = SyntaxFactory.ParseName("System.String");
+            var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.Token(SyntaxKind.StaticKeyword), null, someValidName);
+            Assert.NotNull(usingDirective);
+            Assert.Equal(SyntaxKind.StaticKeyword, usingDirective.StaticKeyword.Kind());
+            Assert.Null(usingDirective.Alias);
+            Assert.Equal("System.String", usingDirective.Name.ToFullString());
+            Assert.Equal(SyntaxKind.SemicolonToken, usingDirective.SemicolonToken.Kind());
+        }
+
+        [Fact]
         public void SyntaxTree()
         {
             var text = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding: null).GetText();
@@ -330,7 +342,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CheckLiteralToString(long.MinValue, @"-9223372036854775808L");
             CheckLiteralToString(long.MaxValue, @"9223372036854775807L");
 
-
             // float
             CheckLiteralToString(0F, @"0F");
             CheckLiteralToString(0.012345F, @"0.012345F");
@@ -413,9 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("1l", literal.Text);
             Assert.Equal(Location.None, literal.GetLocation());
 
-            literal.GetDiagnostics().Verify(
-                // warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix));
+            literal.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -443,10 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expectedLocation = Location.Create(expression.Token.SyntaxTree, TextSpan.FromBounds(0, 2));
             Assert.Equal(expectedLocation, expression.Token.GetLocation());
 
-            expression.Token.GetDiagnostics().Verify(
-                // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
-                // 1l
-                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 2));
+            expression.Token.GetDiagnostics().Verify();
         }
 
         [Fact]
@@ -591,20 +597,86 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestCreateRecordWithoutMembers()
+        {
+            var record = SyntaxFactory.RecordDeclaration(
+                default, default, SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier("R"), null, null, null, default, default);
+            Assert.NotNull(record);
+            Assert.Equal("record R;", record.NormalizeWhitespace().ToFullString());
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/67335")]
+        public void TestCreateRecordWithMembers(bool collectionExpression)
+        {
+            var record = SyntaxFactory.RecordDeclaration(
+                default, default, SyntaxFactory.Token(SyntaxKind.RecordKeyword), SyntaxFactory.Identifier("R"), null, null, null, default,
+                collectionExpression
+                    ? [SyntaxFactory.ParseMemberDeclaration("private int i;")]
+                    : SyntaxFactory.SingletonList(SyntaxFactory.ParseMemberDeclaration("private int i;")));
+            Assert.NotNull(record);
+            Assert.Equal("record R\r\n{\r\n    private int i;\r\n}", record.NormalizeWhitespace().ToFullString());
+        }
+
         [Fact]
         public void TestParseNameWithOptions()
         {
             var type = "delegate*<void>";
 
             var parsedWith8 = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular8);
-            parsedWith8.GetDiagnostics().Verify(
-                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
-                // delegate*<void>
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1)
-            );
+            parsedWith8.GetDiagnostics().Verify();
 
             var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular9);
             parsedWithPreview.GetDiagnostics().Verify();
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,1): error CS8400: Feature 'top-level statements' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("top-level statements", "9.0").WithLocation(1, 1),
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(1, 1),
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,16): error CS1001: Identifier expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
+                // (1,16): error CS1002: ; expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 16));
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
+                // (1,16): error CS1001: Identifier expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 16),
+                // (1,16): error CS1002: ; expected
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 16));
+
+            type = "unsafe class C { delegate*<void> x; }";
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
+                // (1,18): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(1, 18),
+                // (1,34): warning CS0169: The field 'C.x' is never used
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
+
+            CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
+                // (1,34): warning CS0169: The field 'C.x' is never used
+                // unsafe class C { delegate*<void> x; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
         }
     }
 }

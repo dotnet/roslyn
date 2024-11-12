@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -315,7 +316,6 @@ Diagnostic(ErrorCode.ERR_BadArgType, "nu").WithArguments("1", "uint?", "int?")
                 );
         }
 
-
         [Fact]
         public void ParametersExactlyMatchExpression()
         {
@@ -514,7 +514,7 @@ public class MyTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source1).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
                 //         h(async () => { await (Task)null; return 1; });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h<T>(System.Func<System.Threading.Tasks.Task<T>>)", "C.h<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
@@ -563,7 +563,7 @@ public class YourTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source2).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
                 //         k(async () => { await (Task)null; return 1; });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "k").WithArguments("C.k<T>(System.Func<YourTask<T>>)", "C.k<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
@@ -605,7 +605,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -685,11 +685,8 @@ namespace System.Runtime.CompilerServices
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, assemblyName: "comp");
-            compilation.VerifyDiagnostics(
-                // (10,12): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>' from assembly comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 12));
+            var compilation = CreateCompilationWithMscorlib461(source, assemblyName: "comp");
+            compilation.VerifyEmitDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -771,7 +768,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -801,11 +798,11 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
-                // (6,28): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
+                // (6,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "F0").WithArguments("C<MyTask<int>>").WithLocation(6, 28));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "F0").WithArguments("C<MyTask<int>>").WithLocation(6, 28));
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -842,7 +839,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -875,7 +872,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
@@ -929,7 +926,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -966,7 +963,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics(
                 // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     static MyTask<B> F1;
@@ -1020,7 +1017,7 @@ class C<T, U>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -1073,7 +1070,7 @@ class MyTaskMethodBuilder<V>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -1388,13 +1385,13 @@ class C
         public void TestConstraintViolationApplicabilityErrors()
         {
             // The rules for constraint satisfaction during overload resolution are a bit odd. If a constraint
-            // *on a formal parameter type* is not met then the candidate is not applicable. But if a constraint
+            // *on a parameter type* is not met then the candidate is not applicable. But if a constraint
             // is violated *on the method type parameter itself* then the method can be chosen as the best
             // applicable candidate, and then rejected during "final validation".
             //
             // Furthermore: most of the time a constraint violation on a formal type parameter will also 
             // be a constraint violation on the method type parameter. The latter seems like the better 
-            // error to report. We only report the violation on the formal parameter if the constraint
+            // error to report. We only report the violation on the parameter if the constraint
             // is not violated on the method type parameter.
 
             var source =
@@ -6621,10 +6618,10 @@ public class Q
             // Problem 2:
             //
             // The native compiler gets the "betterness" rules wrong when lambdas are involved. The right thing
-            // to do is to first, check to see if one method has a more specific formal parameter type than the other.
-            // If betterness cannot be determined by formal parameter types, and the argument is a lambda, then 
+            // to do is to first, check to see if one method has a more specific parameter type than the other.
+            // If betterness cannot be determined by parameter types, and the argument is a lambda, then 
             // a special rule regarding the inferred return type of the lambda is used. What the native compiler does
-            // is, if there is a lambda, then it skips doing the formal parameter type check and goes straight to the
+            // is, if there is a lambda, then it skips doing the parameter type check and goes straight to the
             // lambda check.
             //
             // After some debate, we decided a while back to replicate this bug in Roslyn. 
@@ -7300,7 +7297,7 @@ class TestCase : Test
         Console.WriteLine(xxx); // 3;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7329,7 +7326,7 @@ class TestCase : Test
         Console.WriteLine(xxx); // 3;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
@@ -7366,7 +7363,7 @@ static class Extensions
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(667132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667132")]
@@ -7396,7 +7393,7 @@ static class Program
         Console.WriteLine(g);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7529,13 +7526,12 @@ class Test
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (9,14): error CS0123: No overload for 'goo' matches delegate 'System.EventHandler'
+                // (9,14): error CS0123: No overload for 'goo' matches delegate 'EventHandler'
                 //         y += goo;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler"),
-                // (10,14): error CS1593: Delegate 'System.EventHandler' does not take 1 arguments
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "goo").WithArguments("goo", "System.EventHandler").WithLocation(9, 14),
+                // (10,16): error CS1593: Delegate 'EventHandler' does not take 1 arguments
                 //         y += x => 2;
-                Diagnostic(ErrorCode.ERR_BadDelArgCount, "x => 2").WithArguments("System.EventHandler", "1")
-                );
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "=>").WithArguments("System.EventHandler", "1").WithLocation(10, 16));
         }
 
         [Fact]
@@ -7578,22 +7574,12 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-    // (8,28): error CS1513: } expected
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_RbraceExpected, "[").WithLocation(8, 28),
-    // (8,36): error CS1002: ; expected
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(8, 36),
-    // (8,37): error CS1597: Semicolon after method or accessor block is not valid
-    //         var d = new int[] {[1] = 3 };
-    Diagnostic(ErrorCode.ERR_UnexpectedSemicolon, ";").WithLocation(8, 37),
-    // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
-    // }
-    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1),
-    // (2,1): info CS8019: Unnecessary using directive.
-    // using System.Collections.Generic;
-    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1)
-);
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
+                // (8,28): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         var d = new int[] {[1] = 3 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[1]").WithLocation(8, 28));
         }
 
         [Fact]
@@ -7622,10 +7608,18 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-    // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(System.Func<bool, T>)' and 'C.M<T>(System.Func<byte, T>)'
-    //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
-    Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44)
-                );
+                // (8,34): info CS9236: Compiling requires binding the lambda expression at least 200 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("200").WithLocation(8, 34),
+                // (8,41): info CS9236: Compiling requires binding the lambda expression at least 1000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1000").WithLocation(8, 41),
+                // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(Func<bool, T>)' and 'C.M<T>(Func<byte, T>)'
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44),
+                // (8,48): info CS9236: Compiling requires binding the lambda expression at least 4000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("4000").WithLocation(8, 48));
         }
 
         [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
@@ -7725,7 +7719,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7758,7 +7752,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7786,7 +7780,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"2
 1");
@@ -8199,7 +8193,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { Net40.References.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8235,7 +8229,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { Net40.References.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8319,7 +8313,7 @@ public class C : CodeAccessSecurityAttribute
                 // (16,35): error CS1001: Identifier expected
                 //     public A(params SecurityAction)
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(16, 35),
-                // (30,22): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (30,22): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params SecurityAction p2").WithLocation(30, 22),
                 // (14,14): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
@@ -8331,28 +8325,28 @@ public class C : CodeAccessSecurityAttribute
                 // (21,14): error CS0534: 'B' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
                 // public class B : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(21, 14),
-                // (16,14): error CS0225: The params parameter must be a single dimensional array
+                // (16,14): error CS0225: The params parameter must have a valid collection type
                 //     public A(params SecurityAction)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(16, 14),
-                // (23,22): error CS0225: The params parameter must be a single dimensional array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(16, 14),
+                // (23,22): error CS0225: The params parameter must have a valid collection type
                 //     public B(int p1, params SecurityAction p2)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(23, 22),
-                // (30,22): error CS0225: The params parameter must be a single dimensional array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(23, 22),
+                // (30,22): error CS0225: The params parameter must have a valid collection type
                 //     public C(int p1, params SecurityAction p2, string p3)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(30, 22),
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(30, 22),
                 // (7,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 //     [B(p2: SecurityAction.Assert, p1: 0)]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "B").WithLocation(7, 6),
                 // (8,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 //     [C(p3: "again", p2: SecurityAction.Assert, p1: 0)]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "C").WithLocation(8, 6),
-                // (16,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (16,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public A(params SecurityAction)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(16, 12),
-                // (23,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (23,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public B(int p1, params SecurityAction p2)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "B").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(23, 12),
-                // (30,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                // (30,12): error CS7036: There is no argument given that corresponds to the required parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
                 //     public C(int p1, params SecurityAction p2, string p3)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
         }
@@ -8378,7 +8372,7 @@ public class A
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,28): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (4,28): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public static void Goo(params int[] vals, bool truth)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] vals"),
                 // (12,13): error CS1503: Argument 1: cannot convert from 'int' to 'params int[]'
@@ -8868,16 +8862,16 @@ class C
     // (22,15): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
     //         M6(0, x: 1);
     Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(22, 15),
-    // (24,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M7(int, int, int)'
+    // (24,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M7(int, int, int)'
     //         M7(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M7").WithArguments("w", "C.M7(int, int, int)").WithLocation(24, 9),
-    // (25,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M9(int, int, int)'
+    // (25,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M9(int, int, int)'
     //         M9(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M9").WithArguments("w", "C.M9(int, int, int)").WithLocation(25, 9),
-    // (26,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M8(int, int, int)'
+    // (26,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M8(int, int, int)'
     //         M8(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M8").WithArguments("w", "C.M8(int, int, int)").WithLocation(26, 9),
-    // (27,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'w' of 'C.M10(int, int, int)'
+    // (27,9): error CS7036: There is no argument given that corresponds to the required parameter 'w' of 'C.M10(int, int, int)'
     //         M10(0, x: 1);
     Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M10").WithArguments("w", "C.M10(int, int, int)").WithLocation(27, 9),
     // (29,25): error CS1739: The best overload for 'M11' does not have a parameter named 'z'
@@ -8971,7 +8965,7 @@ namespace ClassLibraryOverloadResolution
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source1);
+            var compilation = CreateCompilationWithMscorlib461(source1);
 
             compilation.VerifyDiagnostics(
     // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
@@ -9036,9 +9030,8 @@ public static class Class
         System.Console.WriteLine(""RemoveDetail"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput:
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail
 RemoveDetail
@@ -9472,10 +9465,414 @@ public static class Program
     }
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
-                // (11,20): error CS1615: Argument 1 may not be passed with the 'ref' keyword
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (11,20): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
                 //         Method(ref x);
-                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "ref").WithLocation(11, 20));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(11, 20));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,20): warning CS9190: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         Method(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(11, 20)
+            };
+
+            CompileAndVerify(code, expectedOutput: "5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            var verifier = CompileAndVerify(code, expectedOutput: "5").VerifyDiagnostics(expectedDiagnostics);
+
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  1
+                  .locals init (int V_0) //x
+                  IL_0000:  ldc.i4.5
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  call       "void Program.Method(in int)"
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_ReadonlyRef()
+        {
+            var code = """
+                public static class Program
+                {
+                    public static void Method(in int p)
+                    {
+                        System.Console.WriteLine(p);
+                    }
+                    static readonly int x = 5;
+                    public static void Main()
+                    {
+                        Method(ref x);
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,20): error CS0199: A static readonly field cannot be used as a ref or out value (except in a static constructor)
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_RefReadonlyStatic, "x").WithLocation(10, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_RValue()
+        {
+            var code = """
+                public static class Program
+                {
+                    public static void Method(in int p)
+                    {
+                        System.Console.WriteLine(p);
+                    }
+                    public static void Main()
+                    {
+                        Method(ref 5);
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,20): error CS1510: A ref or out value must be an assignable variable
+                //         Method(ref 5);
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "5").WithLocation(9, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_CrossAssembly()
+        {
+            var source1 = """
+                public class C
+                {
+                    public void M(in int p) { }
+                    void M2()
+                    {
+                        int x = 5;
+                        M(x);
+                        M(ref x);
+                        M(in x);
+                    }
+                }
+                """;
+            var comp1 = CreateCompilation(source1).VerifyDiagnostics(
+                // (8,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 15));
+            var comp1Ref = comp1.ToMetadataReference();
+
+            var source2 = """
+                class D
+                {
+                    void M(C c)
+                    {
+                        int x = 6;
+                        c.M(x);
+                        c.M(ref x);
+                        c.M(in x);
+                    }
+                }
+                """;
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (7,17): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         c.M(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(7, 17));
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,17): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         c.M(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(7, 17)
+            };
+
+            CreateCompilation(source2, new[] { comp1Ref }, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(source2, new[] { comp1Ref }).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_Ctor()
+        {
+            var source = """
+                class C
+                {
+                    private C(in int p) => System.Console.Write(p);
+                    static void Main()
+                    {
+                        int x = 5;
+                        new C(x);
+                        new C(ref x);
+                        new C(in x);
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,19): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         new C(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(8, 19));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,19): warning CS9190: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         new C(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 19)
+            };
+
+            CompileAndVerify(source, expectedOutput: "555", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_Indexer()
+        {
+            var source = """
+                class C
+                {
+                    private int this[in int p]
+                    {
+                        get
+                        {
+                            System.Console.Write(p);
+                            return 0;
+                        }
+                    }
+                    static void Main()
+                    {
+                        int x = 5;
+                        _ = new C()[x];
+                        _ = new C()[ref x];
+                        _ = new C()[in x];
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (15,25): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         _ = new C()[ref x];
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(15, 25));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,25): warning CS9190: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         _ = new C()[ref x];
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(15, 25)
+            };
+
+            CompileAndVerify(source, expectedOutput: "555", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555").VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_FunctionPointer()
+        {
+            var source = """
+                class C
+                {
+                    static void M(in int p) => System.Console.Write(p);
+                    static unsafe void Main()
+                    {
+                        delegate*<in int, void> f = &M;
+                        int x = 5;
+                        f(x);
+                        f(ref x);
+                        f(in x);
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (9,15): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         f(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(9, 15));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         f(ref x);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(9, 15)
+            };
+
+            CompileAndVerify(source, expectedOutput: "555", options: TestOptions.UnsafeReleaseExe,
+                parseOptions: TestOptions.Regular12, verify: Verification.Fails).VerifyDiagnostics(expectedDiagnostics);
+
+            CompileAndVerify(source, expectedOutput: "555", options: TestOptions.UnsafeReleaseExe,
+                verify: Verification.Fails).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.RestrictedTypesNeedDesktop)]
+        public void PassingArgumentsToInParameters_Arglist()
+        {
+            var source = """
+                class C
+                {
+                    static void M(in int p, __arglist) => System.Console.Write(p);
+                    static void Main()
+                    {
+                        int x = 5;
+                        M(x, __arglist(x));
+                        M(ref x, __arglist(x));
+                        M(in x, __arglist(x));
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,15): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         M(ref x, __arglist(x));
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(8, 15));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,15): warning CS9190: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(ref x, __arglist(x));
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(8, 15)
+            };
+
+            CompileAndVerify(source, expectedOutput: "555", verify: Verification.FailsILVerify, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "555", verify: Verification.FailsILVerify).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_NamedArguments()
+        {
+            var source = """
+                class C
+                {
+                    static void M(in int a, ref int b)
+                    {
+                        System.Console.Write(a);
+                        System.Console.Write(b);
+                    }
+                    static void Main()
+                    {
+                        int x = 5;
+                        int y = 6;
+                        M(b: ref x, a: y); // 1
+                        M(b: ref x, a: ref y); // 2
+                        M(a: x, ref y); // 3
+                        M(a: ref x, ref y); // 4
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "65655656").VerifyDiagnostics(
+                // (13,28): warning CS9191: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(b: ref x, a: ref y); // 2
+                Diagnostic(ErrorCode.WRN_BadArgRef, "y").WithArguments("2").WithLocation(13, 28),
+                // (15,18): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(a: ref x, ref y); // 4
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(15, 18));
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_01()
+        {
+            var source = """
+                class C
+                {
+                    static string M1(string s, ref int i) => "string" + i;
+                    static string M1(object o, in int i) => "object" + i;
+                    static void Main()
+                    {
+                        int i = 5;
+                        System.Console.WriteLine(M1(null, ref i));
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_01_Ctor()
+        {
+            var source = """
+                class C
+                {
+                    private C(string s, ref int i) => System.Console.WriteLine("string" + i);
+                    private C(object o, in int i) => System.Console.WriteLine("object" + i);
+                    static void Main()
+                    {
+                        int i = 5;
+                        new C(null, ref i);
+                    }
+                }
+                """;
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5", parseOptions: TestOptions.Regular12).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "string5").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_02()
+        {
+            var source = """
+                class C
+                {
+                    static string M1(string s, ref int i) => "string" + i;
+                    static string M1(object o, in int i) => "object" + i;
+                    static void Main()
+                    {
+                        int i = 5;
+                        System.Console.WriteLine(M1(default(object), ref i));
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,37): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+                //         System.Console.WriteLine(M1(default(object), ref i));
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(object)").WithArguments("1", "object", "string").WithLocation(8, 37));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,58): warning CS9190: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         System.Console.WriteLine(M1(default(object), ref i));
+                Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 58)
+            };
+
+            CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void PassingArgumentsToInParameters_RefKind_Ref_02_Ctor()
+        {
+            var source = """
+                class C
+                {
+                    private C(string s, ref int i) => System.Console.WriteLine("string" + i);
+                    private C(object o, in int i) => System.Console.WriteLine("object" + i);
+                    static void Main()
+                    {
+                        int i = 5;
+                        new C(default(object), ref i);
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
+                // (8,15): error CS1503: Argument 1: cannot convert from 'object' to 'string'
+                //         new C(default(object), ref i);
+                Diagnostic(ErrorCode.ERR_BadArgType, "default(object)").WithArguments("1", "object", "string").WithLocation(8, 15));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,36): warning CS9190: The 'ref' modifier for argument 2 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         new C(default(object), ref i);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "i").WithArguments("2").WithLocation(8, 36)
+            };
+
+            CompileAndVerify(source, expectedOutput: "object5", parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CompileAndVerify(source, expectedOutput: "object5").VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -9536,14 +9933,43 @@ public static class Program
     {
         System.Exception x = null;
         Method(x);
+        Method(ref x);
+        Method(in x);
+        Method(out x);
     }
 }";
-
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
                 //         Method(x);
-                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16)
-            );
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16),
+                // (12,20): error CS9194: Argument 1 may not be passed with the 'ref' keyword in language version 11.0. To pass 'ref' arguments to 'in' parameters, upgrade to language version 12.0 or greater.
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRefLangVersion, "x").WithArguments("1", "11.0", "12.0").WithLocation(12, 20),
+                // (13,19): error CS1503: Argument 1: cannot convert from 'in System.Exception' to 'in int'
+                //         Method(in x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in System.Exception", "in int").WithLocation(13, 19),
+                // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(14, 20));
+
+            var expectedDiagnostics = new[]
+            {
+                // (11,16): error CS1503: Argument 1: cannot convert from 'System.Exception' to 'in int'
+                //         Method(x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Exception", "in int").WithLocation(11, 16),
+                // (12,20): error CS1503: Argument 1: cannot convert from 'ref System.Exception' to 'in int'
+                //         Method(ref x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "ref System.Exception", "in int").WithLocation(12, 20),
+                // (13,19): error CS1503: Argument 1: cannot convert from 'in System.Exception' to 'in int'
+                //         Method(in x);
+                Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "in System.Exception", "in int").WithLocation(13, 19),
+                // (14,20): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Method(out x);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "x").WithArguments("1", "out").WithLocation(14, 20)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [WorkItem(20799, "https://github.com/dotnet/roslyn/issues/20799")]
@@ -10880,12 +11306,12 @@ class Program
                 // (17,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(new object(), default(RefLike));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(17, 9),
-                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (19,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.M1<T>(in T, in T)'
                 //         M1(rl, rl);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M1").WithArguments("Program.RefLike").WithLocation(19, 9),
-                // (20,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M1").WithArguments("Program.M1<T>(in T, in T)", "T", "Program.RefLike").WithLocation(19, 9),
+                // (20,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.M1<T>(in T, in T)'
                 //         M1(in rl, in rl);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M1").WithArguments("Program.RefLike").WithLocation(20, 9),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M1").WithArguments("Program.M1<T>(in T, in T)", "T", "Program.RefLike").WithLocation(20, 9),
                 // (22,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(in y, in x);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(22, 9),
@@ -10972,27 +11398,27 @@ class Program
                 // (16,16): error CS1503: Argument 1: cannot convert from '(<null>, int)' to 'in (int arg1, int arg2)'
                 //         Method((null, 1));
                 Diagnostic(ErrorCode.ERR_BadArgType, "(null, 1)").WithArguments("1", "(<null>, int)", "in (int arg1, int arg2)").WithLocation(16, 16),
-                // (17,31): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (17,31): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method((new object(), default(RefLike)));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(RefLike)").WithArguments("Program.RefLike").WithLocation(17, 31),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "default(RefLike)").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(17, 31),
                 // (17,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Method((new object(), default(RefLike)));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(17, 9),
-                // (19,17): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (19,17): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 17),
-                // (19,21): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T1", "Program.RefLike").WithLocation(19, 17),
+                // (19,21): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 21),
-                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(19, 21),
+                // (19,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.Method<T>(in (T arg1, T arg2))'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Method").WithArguments("Program.RefLike").WithLocation(19, 9),
-                // (20,20): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))", "T", "Program.RefLike").WithLocation(19, 9),
+                // (20,20): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         Method(in (rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 20),
-                // (20,24): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T1", "Program.RefLike").WithLocation(20, 20),
+                // (20,24): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method(in (rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(20, 24),
                 // (20,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         Method(in (rl, rl));
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(rl, rl)").WithLocation(20, 19),
@@ -11072,8 +11498,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
-
+            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
 
             var code = @"
  class D
@@ -11095,20 +11520,19 @@ public static class Extensions
  }
 ";
 
-
             CreateCompilation(code, references: new[] { libComp.EmitToImageReference() }).VerifyDiagnostics(
-                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(13, 10),
                 // (14,10): error CS1510: A ref or out value must be an assignable variable
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
                 );
 
             CreateCompilation(code, references: new[] { libComp.ToMetadataReference() }).VerifyDiagnostics(
-                // (13,10): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (13,10): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //          y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(13, 10),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(13, 10),
                 // (14,10): error CS1510: A ref or out value must be an assignable variable
                 //          1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(14, 10)
@@ -11293,8 +11717,7 @@ public static class Extensions
         throw new NotImplementedException();
 }";
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(code, verify: Verification.FailsILVerify, expectedOutput: @"2");
+            CompileAndVerify(code, expectedOutput: @"2");
         }
 
         [Fact]
@@ -11498,6 +11921,32 @@ class B : A
                 //         F<object>(default);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70659")]
+        public void IsStandardImplicitConversion_NullLiteral()
+        {
+            var source = """
+                class C
+                {
+                    void M(S? s)
+                    {
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+
+                readonly struct S
+                {
+                    public static implicit operator S(bool? x) => default;
+                    public static bool operator ==(S left, S right) => false;
+                    public static bool operator !=(S left, S right) => true;
+                    public override bool Equals(object obj) => false;
+                    public override int GetHashCode() => 0;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }

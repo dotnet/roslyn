@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal enum SymbolVisibility
 {
-    internal enum SymbolVisibility
-    {
-        Public,
-        Internal,
-        Private,
-    }
+    Public,
+    Internal,
+    Private,
 }

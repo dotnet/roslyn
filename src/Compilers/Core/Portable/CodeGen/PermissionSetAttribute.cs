@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public bool AllowMultiple => _sourceAttribute.AllowMultiple;
 
-        private struct HexPropertyMetadataNamedArgument : Cci.IMetadataNamedArgument
+        private readonly struct HexPropertyMetadataNamedArgument : Cci.IMetadataNamedArgument
         {
             private readonly Cci.ITypeReference _type;
             private readonly Cci.IMetadataExpression _value;

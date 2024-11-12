@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedList<T>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedList<T>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedList<T>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedList<T>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue, transformerArgument);
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The prior value at the specified <paramref name="location"/>.</returns>
         public static ImmutableSegmentedList<T> InterlockedExchange<T>(ref ImmutableSegmentedList<T> location, ImmutableSegmentedList<T> value)
         {
-            return ImmutableSegmentedList<T>.PrivateInterlocked.InterlockedExchange(ref location, value);
+            return ImmutableSegmentedList<T>.PrivateMarshal.InterlockedExchange(ref location, value);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <returns>The prior value at the specified <paramref name="location"/>.</returns>
         public static ImmutableSegmentedList<T> InterlockedCompareExchange<T>(ref ImmutableSegmentedList<T> location, ImmutableSegmentedList<T> value, ImmutableSegmentedList<T> comparand)
         {
-            return ImmutableSegmentedList<T>.PrivateInterlocked.InterlockedCompareExchange(ref location, value, comparand);
+            return ImmutableSegmentedList<T>.PrivateMarshal.InterlockedCompareExchange(ref location, value, comparand);
         }
 
         /// <summary>
@@ -130,6 +130,127 @@ namespace Microsoft.CodeAnalysis.Collections
         public static bool InterlockedInitialize<T>(ref ImmutableSegmentedList<T> location, ImmutableSegmentedList<T> value)
         {
             return InterlockedCompareExchange(ref location, value, default(ImmutableSegmentedList<T>)).IsDefault;
+        }
+
+        /// <summary>
+        /// Mutates a value in-place with optimistic locking transaction semantics via a specified transformation
+        /// function. The transformation is retried as many times as necessary to win the optimistic locking race.
+        /// </summary>
+        /// <typeparam name="T">The type of value stored by the set.</typeparam>
+        /// <param name="location">
+        /// The variable or field to be changed, which may be accessed by multiple threads.
+        /// </param>
+        /// <param name="transformer">
+        /// A function that mutates the value. This function should be side-effect free,
+        /// as it may run multiple times when races occur with other threads.</param>
+        /// <returns>
+        /// <see langword="true"/> if the location's value is changed by applying the result of the
+        /// <paramref name="transformer"/> function; otherwise, <see langword="false"/> if the location's value remained
+        /// the same because the last invocation of <paramref name="transformer"/> returned the existing value.
+        /// </returns>
+        public static bool Update<T>(ref ImmutableSegmentedHashSet<T> location, Func<ImmutableSegmentedHashSet<T>, ImmutableSegmentedHashSet<T>> transformer)
+        {
+            if (transformer is null)
+                throw new ArgumentNullException(nameof(transformer));
+
+            var oldValue = ImmutableSegmentedHashSet<T>.PrivateMarshal.VolatileRead(in location);
+            while (true)
+            {
+                var newValue = transformer(oldValue);
+                if (oldValue == newValue)
+                {
+                    // No change was actually required.
+                    return false;
+                }
+
+                var interlockedResult = InterlockedCompareExchange(ref location, newValue, oldValue);
+                if (oldValue == interlockedResult)
+                    return true;
+
+                oldValue = interlockedResult; // we already have a volatile read that we can reuse for the next loop
+            }
+        }
+
+        /// <summary>
+        /// Mutates a value in-place with optimistic locking transaction semantics via a specified transformation
+        /// function. The transformation is retried as many times as necessary to win the optimistic locking race.
+        /// </summary>
+        /// <typeparam name="T">The type of value stored by the set.</typeparam>
+        /// <typeparam name="TArg">The type of argument passed to the <paramref name="transformer"/>.</typeparam>
+        /// <param name="location">
+        /// The variable or field to be changed, which may be accessed by multiple threads.
+        /// </param>
+        /// <param name="transformer">
+        /// A function that mutates the value. This function should be side-effect free, as it may run multiple times
+        /// when races occur with other threads.</param>
+        /// <param name="transformerArgument">The argument to pass to <paramref name="transformer"/>.</param>
+        /// <returns>
+        /// <see langword="true"/> if the location's value is changed by applying the result of the
+        /// <paramref name="transformer"/> function; otherwise, <see langword="false"/> if the location's value remained
+        /// the same because the last invocation of <paramref name="transformer"/> returned the existing value.
+        /// </returns>
+        public static bool Update<T, TArg>(ref ImmutableSegmentedHashSet<T> location, Func<ImmutableSegmentedHashSet<T>, TArg, ImmutableSegmentedHashSet<T>> transformer, TArg transformerArgument)
+        {
+            if (transformer is null)
+                throw new ArgumentNullException(nameof(transformer));
+
+            var oldValue = ImmutableSegmentedHashSet<T>.PrivateMarshal.VolatileRead(in location);
+            while (true)
+            {
+                var newValue = transformer(oldValue, transformerArgument);
+                if (oldValue == newValue)
+                {
+                    // No change was actually required.
+                    return false;
+                }
+
+                var interlockedResult = InterlockedCompareExchange(ref location, newValue, oldValue);
+                if (oldValue == interlockedResult)
+                    return true;
+
+                oldValue = interlockedResult; // we already have a volatile read that we can reuse for the next loop
+            }
+        }
+
+        /// <summary>
+        /// Assigns a field or variable containing an immutable set to the specified value and returns the
+        /// previous value.
+        /// </summary>
+        /// <typeparam name="T">The type of value stored by the set.</typeparam>
+        /// <param name="location">The field or local variable to change.</param>
+        /// <param name="value">The new value to assign.</param>
+        /// <returns>The prior value at the specified <paramref name="location"/>.</returns>
+        public static ImmutableSegmentedHashSet<T> InterlockedExchange<T>(ref ImmutableSegmentedHashSet<T> location, ImmutableSegmentedHashSet<T> value)
+        {
+            return ImmutableSegmentedHashSet<T>.PrivateMarshal.InterlockedExchange(ref location, value);
+        }
+
+        /// <summary>
+        /// Assigns a field or variable containing an immutable set to the specified value if it is currently
+        /// equal to another specified value. Returns the previous value.
+        /// </summary>
+        /// <typeparam name="T">The type of value stored by the set.</typeparam>
+        /// <param name="location">The field or local variable to change.</param>
+        /// <param name="value">The new value to assign.</param>
+        /// <param name="comparand">The value to check equality for before assigning.</param>
+        /// <returns>The prior value at the specified <paramref name="location"/>.</returns>
+        public static ImmutableSegmentedHashSet<T> InterlockedCompareExchange<T>(ref ImmutableSegmentedHashSet<T> location, ImmutableSegmentedHashSet<T> value, ImmutableSegmentedHashSet<T> comparand)
+        {
+            return ImmutableSegmentedHashSet<T>.PrivateMarshal.InterlockedCompareExchange(ref location, value, comparand);
+        }
+
+        /// <summary>
+        /// Assigns a field or variable containing an immutable set to the specified value if it is has not yet
+        /// been initialized.
+        /// </summary>
+        /// <typeparam name="T">The type of value stored by the set.</typeparam>
+        /// <param name="location">The field or local variable to change.</param>
+        /// <param name="value">The new value to assign.</param>
+        /// <returns><see langword="true"/> if the field was assigned the specified value; otherwise,
+        /// <see langword="false"/> if it was previously initialized.</returns>
+        public static bool InterlockedInitialize<T>(ref ImmutableSegmentedHashSet<T> location, ImmutableSegmentedHashSet<T> value)
+        {
+            return InterlockedCompareExchange(ref location, value, default(ImmutableSegmentedHashSet<T>)).IsDefault;
         }
 
         /// <summary>
@@ -155,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue);
@@ -198,7 +319,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
 
-            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var oldValue = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 var newValue = transformer(oldValue, transformerArgument);
@@ -228,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static ImmutableSegmentedDictionary<TKey, TValue> InterlockedExchange<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, ImmutableSegmentedDictionary<TKey, TValue> value)
             where TKey : notnull
         {
-            return ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.InterlockedExchange(ref location, value);
+            return ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.InterlockedExchange(ref location, value);
         }
 
         /// <summary>
@@ -244,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static ImmutableSegmentedDictionary<TKey, TValue> InterlockedCompareExchange<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, ImmutableSegmentedDictionary<TKey, TValue> value, ImmutableSegmentedDictionary<TKey, TValue> comparand)
             where TKey : notnull
         {
-            return ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.InterlockedCompareExchange(ref location, value, comparand);
+            return ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.InterlockedCompareExchange(ref location, value, comparand);
         }
 
         /// <summary>
@@ -270,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (valueFactory is null)
                 throw new ArgumentNullException(nameof(valueFactory));
 
-            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             if (map.IsDefault)
                 throw new ArgumentNullException(nameof(location));
 
@@ -290,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (valueFactory is null)
                 throw new ArgumentNullException(nameof(valueFactory));
 
-            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var map = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             if (map.IsDefault)
                 throw new ArgumentNullException(nameof(location));
 
@@ -307,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static TValue GetOrAdd<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -341,7 +462,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentNullException(nameof(updateValueFactory));
 
             TValue newValue;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -377,7 +498,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentNullException(nameof(updateValueFactory));
 
             TValue newValue;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -409,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static bool TryAdd<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -436,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Collections
             where TKey : notnull
         {
             var valueComparer = EqualityComparer<TValue>.Default;
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -463,7 +584,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public static bool TryRemove<TKey, TValue>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, [MaybeNullWhen(false)] out TValue value)
             where TKey : notnull
         {
-            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateInterlocked.VolatileRead(in location);
+            var priorCollection = ImmutableSegmentedDictionary<TKey, TValue>.PrivateMarshal.VolatileRead(in location);
             while (true)
             {
                 if (priorCollection.IsDefault)
@@ -486,4 +607,3 @@ namespace Microsoft.CodeAnalysis.Collections
         }
     }
 }
-

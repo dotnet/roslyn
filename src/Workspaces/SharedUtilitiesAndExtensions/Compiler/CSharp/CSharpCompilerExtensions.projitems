@@ -9,30 +9,31 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpSyntaxTokens.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpCodeStyleOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\CSharpCodeStyleOptions_Parsing.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\PreferBracesPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\TypeStyle\UseVarPreference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\CSharpVirtualCharService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\RuneExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AssignmentExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\AttributeArgumentSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BlockSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ConversionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DefaultExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveSyntaxEqualityComparer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveSyntaxExtensions.DirectiveWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ExpressionSyntaxExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ForEachStatementSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ILocalSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LanguageVersionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberAccessExpressionSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.DeclarationFinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MemberDeclarationSyntaxExtensions.LocalDeclarationMap.cs" />
@@ -55,6 +56,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\IndentationPlacement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\NewLinePlacement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\SpacePlacement.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.Parsers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormatting.cs" />
@@ -73,6 +77,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaDataFactory.ModifiedComplexTrivia.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Engine\Trivia\TriviaRewriter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\NewLineBeforeOpenBracePlacement.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\SpacingWithinParentheses.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\AnchorIndentationFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\BaseFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\Rules\ElasticTriviaFormattingRule.cs" />
@@ -94,12 +100,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Services\SelectedMembers\CSharpSelectedMembers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SemanticFacts\CSharpSemanticFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpAccessibilityFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpBlockFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpFileBannerFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpHeaderFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxKinds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpDocumentationCommentService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\SyntaxFacts\CSharpSyntaxFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpInferredMemberNameSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpSimplification.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpSimplifierOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\CastSimplifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\FormattingRangeHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NameSyntaxComparer.cs" />
@@ -115,7 +124,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" GenerateSource="true" Link="CSharpCompilerExtensionsResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CSharpCompilerExtensionsResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

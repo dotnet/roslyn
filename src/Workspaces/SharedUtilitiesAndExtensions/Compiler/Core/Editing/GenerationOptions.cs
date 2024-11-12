@@ -3,26 +3,29 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editing
+namespace Microsoft.CodeAnalysis.Editing;
+
+internal sealed class GenerationOptions
 {
-    internal class GenerationOptions
-    {
-        public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(nameof(GenerationOptions),
-            CodeStyleOptionGroups.Usings,
-            nameof(PlaceSystemNamespaceFirst), defaultValue: true,
-            EditorConfigStorageLocation.ForBoolOption("dotnet_sort_system_directives_first"),
-            new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PlaceSystemNamespaceFirst"));
+    public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
+        "dotnet_sort_system_directives_first",
+        defaultValue: AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
+        group: CodeStyleOptionGroups.Usings,
+        isEditorConfigOption: true);
 
-        public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
-            nameof(GenerationOptions), CodeStyleOptionGroups.Usings, nameof(SeparateImportDirectiveGroups), defaultValue: false,
-            EditorConfigStorageLocation.ForBoolOption("dotnet_separate_import_directive_groups"),
-            new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(SeparateImportDirectiveGroups)}"));
+    public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
+        "dotnet_separate_import_directive_groups",
+        defaultValue: SyntaxFormattingOptions.CommonDefaults.SeparateImportDirectiveGroups,
+        group: CodeStyleOptionGroups.Usings,
+        isEditorConfigOption: true);
 
-        public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(
-            PlaceSystemNamespaceFirst,
-            SeparateImportDirectiveGroups);
-    }
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    public static readonly ImmutableArray<IOption2> EditorConfigOptions = [PlaceSystemNamespaceFirst, SeparateImportDirectiveGroups];
 }

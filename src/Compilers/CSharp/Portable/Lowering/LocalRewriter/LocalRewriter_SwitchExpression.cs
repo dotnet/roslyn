@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sectionBuilder.Add(_factory.Label(arm.Label));
                     var loweredValue = _localRewriter.VisitExpression(arm.Value);
                     if (GenerateInstrumentation)
-                        loweredValue = this._localRewriter._instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
+                        loweredValue = this._localRewriter.Instrumenter.InstrumentSwitchExpressionArmExpression(arm.Value, loweredValue, _factory);
 
                     sectionBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), loweredValue));
                     sectionBuilder.Add(_factory.Goto(afterSwitchExpression));
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
                 {
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, ref discardedUseSiteInfo);
+                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, isChecked: false, ref discardedUseSiteInfo);
                     return c.IsImplicit;
                 }
             }

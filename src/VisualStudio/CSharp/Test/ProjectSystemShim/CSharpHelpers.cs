@@ -79,14 +79,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
         {
             var hierarchy = environment.CreateHierarchy(projectName, binOutputPath, projectRefPath: null, "CSharp");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
+
+            var data = new TestEvaluationData(projectFilePath, binOutputPath, assemblyName: "", binOutputPath, checksumAlgorithm: "SHA256");
+
             var cpsProject = (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
-                LanguageNames.CSharp,
-                projectName,
-                projectFilePath,
                 projectGuid,
+                projectName,
+                LanguageNames.CSharp,
+                data,
                 hierarchy,
-                binOutputPath,
-                assemblyName: null,
                 CancellationToken.None);
 
             cpsProject.SetOptions(ImmutableArray.Create(commandLineArguments));
@@ -94,19 +95,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             return cpsProject;
         }
 
-        public static async Task<CPSProject> CreateNonCompilableProjectAsync(TestEnvironment environment, string projectName, string projectFilePath)
+        public static async Task<CPSProject> CreateNonCompilableProjectAsync(TestEnvironment environment, string projectName, string projectFilePath, string targetPath)
         {
-            var hierarchy = environment.CreateHierarchy(projectName, projectBinPath: null, projectRefPath: null, "");
+            var hierarchy = environment.CreateHierarchy(projectName, projectBinPath: null, projectRefPath: null, projectCapabilities: "");
             var cpsProjectFactory = environment.ExportProvider.GetExportedValue<IWorkspaceProjectContextFactory>();
 
+            var data = new TestEvaluationData(projectFilePath, targetPath, assemblyName: "", targetPath, checksumAlgorithm: "SHA256");
+
             return (CPSProject)await cpsProjectFactory.CreateProjectContextAsync(
-                NoCompilationConstants.LanguageName,
-                projectName,
-                projectFilePath,
                 Guid.NewGuid(),
+                projectName,
+                NoCompilationConstants.LanguageName,
+                data,
                 hierarchy,
-                binOutputPath: null,
-                assemblyName: null,
                 CancellationToken.None);
         }
 
@@ -119,7 +120,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 var index = arg.IndexOf(outPrefix);
                 if (index >= 0)
                 {
-                    outputPath = arg.Substring(index + outPrefix.Length);
+                    outputPath = arg[(index + outPrefix.Length)..];
                 }
             }
 

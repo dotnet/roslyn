@@ -3,13 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -46,7 +42,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return MakeGetTypeExpression(node, containerType, typeType)
             End If
         End Function
-
 
         ' returns "New Type(){GetType(Type1), GetType(Type2) ...} or Nothing literal
         Private Function LateMakeTypeArgumentArrayArgument(node As SyntaxNode, arguments As BoundTypeArguments, typeArrayType As TypeSymbol) As BoundExpression
@@ -333,7 +328,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-
         ' Makes expressions like
         '  if(copyBackArrayRef[argNum], assignmentTarget := valueArrayRef[argNum] , Nothing)
         '
@@ -370,8 +364,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                          WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ChangeType, syntax) Then
 
                     ' value = ChangeType(value, GetType(targetType))
-
-                    Dim getTypeExpr = New BoundGetType(syntax, New BoundTypeExpression(syntax, targetType), changeTypeMethod.Parameters(1).Type)
+                    Dim factory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, syntax, _compilationState, _diagnostics)
+                    Dim getTypeExpr = factory.Typeof(targetType, changeTypeMethod.Parameters(1).Type)
 
                     'TODO: should we suppress object clone here? Dev11 does not.
                     value = New BoundCall(syntax,
@@ -499,7 +493,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     arguments,
                                                                     argumentNames)
 
-
             Dim callerInvocation As BoundExpression = New BoundCall(
                 syntax,
                 lateIndexGetMethod,
@@ -622,7 +615,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New BoundSequence(syntax, ImmutableArray(Of LocalSymbol).Empty, ImmutableArray.Create(Of BoundExpression)(invocation), Nothing, Me.GetSpecialType(SpecialType.System_Void))
                 End If
             End If
-
 
             ' arg0  "object Instance"
             Dim receiver As BoundExpression = LateMakeReceiverArgument(syntax, invocation.Member.MakeRValue, lateIndexSetMethod.Parameters(0).Type)
@@ -811,7 +803,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     typeArguments,
                                                                     copyBack)
 
-
             ' 
             ' It appears that IgnoreReturn is always set when LateCall is called from compiled code.
             '
@@ -888,7 +879,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             argument = argumentWithCapture.OriginalArgument
                         End If
 
-                        Dim useTwice = UseTwiceRewriter.UseTwice(container, argument, temps)
+                        Dim useTwice = UseTwiceRewriter.UseTwice(container, argument, isForRegularCompoundAssignment:=False, temps)
 
                         If argument.IsPropertyOrXmlPropertyAccess Then
                             argument = useTwice.First.SetAccessKind(PropertyAccessKind.Get)
@@ -942,12 +933,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundLiteral(node, ConstantValue.Create(value), booleanType)
         End Function
 
-        Private Shared Function MakeGetTypeExpression(node As SyntaxNode,
+        Private Function MakeGetTypeExpression(node As SyntaxNode,
                                                type As TypeSymbol,
-                                               typeType As TypeSymbol) As BoundGetType
+                                               typeType As TypeSymbol) As BoundExpression
 
-            Dim typeExpr = New BoundTypeExpression(node, type)
-            Return New BoundGetType(node, typeExpr, typeType)
+            Dim factory As New SyntheticBoundNodeFactory(_topMethod, _currentMethodOrLambda, node, _compilationState, _diagnostics)
+            Return factory.Typeof(type, typeType)
         End Function
 
         Private Function MakeArrayOfGetTypeExpressions(node As SyntaxNode,
@@ -995,16 +986,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Function TryGetSpecialMember(Of T As Symbol)(<Out> ByRef result As T,
                                                        memberId As SpecialMember,
-                                                       syntax As SyntaxNode) As Boolean
+                                                       syntax As SyntaxNode,
+                                                       Optional isOptional As Boolean = False) As Boolean
 
             result = Nothing
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = Nothing
             Dim memberSymbol = Binder.GetSpecialTypeMember(Me._topMethod.ContainingAssembly, memberId, useSiteInfo)
 
-            If Binder.ReportUseSite(_diagnostics, syntax.GetLocation(), useSiteInfo) Then
+            If useSiteInfo.DiagnosticInfo IsNot Nothing Then
+                If Not isOptional Then
+                    Binder.ReportUseSite(_diagnostics, syntax.GetLocation(), useSiteInfo)
+                End If
+
                 Return False
             End If
 
+            _diagnostics.AddDependencies(useSiteInfo)
             result = DirectCast(memberSymbol, T)
             Return True
         End Function

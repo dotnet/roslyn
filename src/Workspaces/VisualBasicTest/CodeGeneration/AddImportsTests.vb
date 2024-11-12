@@ -4,10 +4,13 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -33,7 +36,7 @@ End NameSpace"
                     "test",
                     "test.dll",
                     LanguageNames.VisualBasic,
-                    metadataReferences:={TestMetadata.Net451.mscorlib}))
+                    metadataReferences:={NetFramework.mscorlib}))
 
             If globalImports IsNot Nothing Then
                 Dim gi = GlobalImport.Parse(globalImports)
@@ -81,10 +84,13 @@ End NameSpace"
 
             Dim doc = Await GetDocument(initialText, useSymbolAnnotations, globalImports)
 
-            Dim addImportOptions = New AddImportPlacementOptions(
-                PlaceSystemNamespaceFirst:=placeSystemNamespaceFirst,
-                PlaceImportsInsideNamespaces:=False,
-                AllowInHiddenRegions:=False)
+            Dim addImportOptions = New AddImportPlacementOptions() With
+            {
+                .PlaceSystemNamespaceFirst = placeSystemNamespaceFirst
+            }
+
+            Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
+            Dim simplifierOptions = VisualBasicSimplifierOptions.Default
 
             Dim imported = If(
                     useSymbolAnnotations,
@@ -92,16 +98,16 @@ End NameSpace"
                     Await ImportAdder.AddImportsFromSyntaxesAsync(doc, addImportOptions, CancellationToken.None))
 
             If importsAddedText IsNot Nothing Then
-                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation)
+                Dim formatted = Await Formatter.FormatAsync(imported, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
                 Assert.Equal(importsAddedText, actualText)
             End If
 
             If simplifiedText IsNot Nothing Then
-                Dim reduced = Await Simplifier.ReduceAsync(imported)
-                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation)
+                Dim reduced = Await Simplifier.ReduceAsync(imported, simplifierOptions, CancellationToken.None)
+                Dim formatted = Await Formatter.FormatAsync(reduced, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None)
                 Dim actualText = (Await formatted.GetTextAsync()).ToString()
-                Assert.Equal(simplifiedText, actualText)
+                AssertEx.EqualOrDiff(simplifiedText, actualText)
             End If
 
             If performCheck Then
@@ -157,7 +163,7 @@ End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDoNotAddSystemImportFirst(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports N
 
@@ -266,7 +272,8 @@ End Class",
 Class C
     Public F As System.Int32
 End Class",
-"Class C
+"
+Class C
     Public F As Integer
 End Class", useSymbolAnnotations:=False)
         End Function
@@ -356,7 +363,8 @@ Class C
     Private F As N.C
 End Class
 ",
-"Namespace N
+"
+Namespace N
     Class C
     End Class
 End Namespace
@@ -393,7 +401,7 @@ End Class", useSymbolAnnotations)
         End Function
 
         <Theory, MemberData(NameOf(TestAllData))>
-        Public Async Function TestDontAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
+        Public Async Function TestDoNotAddImportWithExisitingImportDifferentCase(useSymbolAnnotations As Boolean) As Task
             Await TestAsync(
 "Imports system.collections.generic
 
@@ -987,7 +995,7 @@ End Class", useSymbolAnnotations:=True)
         '            Assert.Equal(expectedWarningMessage, WarningAnnotation.GetDescription(warning))
         '        End Function
 
-        <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39592")>
         Public Async Function TestCanExpandCrefSignaturePart() As Task
             Await TestNoImportsAddedAsync(
 "Imports B
@@ -1014,7 +1022,7 @@ Class C
 End Class", useSymbolAnnotations:=True)
         End Function
 
-        <Fact, WorkItem(39592, "https://github.com/dotnet/roslyn/issues/39592")>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39592")>
         Public Async Function TestSafeWithLambdaExtensionMethodAmbiguity() As Task
             Await TestNoImportsAddedAsync(
 "Imports System

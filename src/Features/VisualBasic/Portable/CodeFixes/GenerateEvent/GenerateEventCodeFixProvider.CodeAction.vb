@@ -34,8 +34,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent
 
             Protected Overrides Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Return _codeGenService.AddEventAsync(
-                    _solution, _targetSymbol, _generatedEvent,
-                    CodeGenerationContext.Default, cancellationToken)
+                    New CodeGenerationSolutionContext(
+                        _solution,
+                        CodeGenerationContext.Default),
+                    _targetSymbol,
+                    _generatedEvent,
+                    cancellationToken)
             End Function
         End Class
     End Class

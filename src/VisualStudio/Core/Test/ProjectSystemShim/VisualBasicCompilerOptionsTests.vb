@@ -13,10 +13,9 @@ Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
     Public Class VisualBasicCompilerOptions
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(867840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867840")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867840")>
         Public Sub ConditionalCompilationOptionsIncludesTargetAndVersion()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -33,9 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
         Public Sub DocumentationModeSetToDiagnoseIfProducingDocFile()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -53,8 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        <WpfFact>
         Public Sub SetCompilerOptions_LangVersion14()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -77,8 +73,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        <WpfFact>
         Public Sub SetCompilerOptions_LangVersion15()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -101,8 +96,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        <WpfFact>
         Public Sub SetCompilerOptions_LangVersionDefault()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -122,8 +116,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        <WpfFact>
         Public Sub SetCompilerOptions_LangVersion15_3()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -143,8 +136,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        <WpfFact>
         Public Sub SetCompilerOptions_LangVersionLatest()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -164,9 +156,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(530980, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530980")>
         Public Sub DocumentationModeSetToParseIfNotProducingDocFile()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -184,11 +174,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
-        <WorkItem(1092636, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")>
-        <WorkItem(1040247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>
-        <WorkItem(1048368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1092636")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040247")>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1048368")>
         Public Sub ProjectWarningsOptionSetAndUnset()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -214,9 +202,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
-        <WorkItem(33401, "https://github.com/dotnet/roslyn/pull/33401")>
-        <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/pull/33401")>
         Public Sub ProjectOutputPathAndOutputExeNameChange()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -226,7 +212,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal("C:\test.dll", project.GetOutputFileName())
 
-                Assert.Equal("C:\test.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
+                Assert.Equal("C:\test.dll", project.Test_ProjectSystemProject.CompilationOutputAssemblyFilePath)
 
                 ' Change output folder from command line arguments - verify that objOutputPath changes.
                 Dim newPath = "C:\NewFolder\test.dll"
@@ -236,7 +222,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal(newPath, project.GetOutputFileName())
 
-                Assert.Equal("C:\NewFolder\test.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
+                Assert.Equal("C:\NewFolder\test.dll", project.Test_ProjectSystemProject.CompilationOutputAssemblyFilePath)
 
                 ' Change output file name - verify that outputPath changes.
                 newPath = "C:\NewFolder\test2.dll"
@@ -246,7 +232,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal(newPath, project.GetOutputFileName())
 
-                Assert.Equal("C:\NewFolder\test2.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
+                Assert.Equal("C:\NewFolder\test2.dll", project.Test_ProjectSystemProject.CompilationOutputAssemblyFilePath)
 
                 ' Change output file name and folder - verify that outputPath changes.
                 newPath = "C:\NewFolder3\test3.dll"
@@ -256,7 +242,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal(newPath, project.GetOutputFileName())
 
-                Assert.Equal("C:\NewFolder3\test3.dll", project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
+                Assert.Equal("C:\NewFolder3\test3.dll", project.Test_ProjectSystemProject.CompilationOutputAssemblyFilePath)
 
                 ' Relative path - set by VBIntelliProj in VB Web App project
                 compilerOptions = CreateMinimalCompilerOptions(project)
@@ -264,7 +250,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 compilerOptions.wszExeName = "test3.dll"
                 project.SetCompilerOptions(compilerOptions)
                 Assert.Equal(Nothing, project.GetOutputFileName())
-                Assert.Equal(Nothing, project.Test_VisualStudioProject.CompilationOutputAssemblyFilePath)
+                Assert.Equal(Nothing, project.Test_ProjectSystemProject.CompilationOutputAssemblyFilePath)
             End Using
         End Sub
     End Class

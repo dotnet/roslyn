@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/Common/tests/System/Collections/IEnumerable.NonGeneric.Tests.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/Common/tests/System/Collections/IEnumerable.NonGeneric.Tests.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -69,6 +69,31 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         protected virtual bool Enumerator_Current_UndefinedOperation_Throws => false;
 
         /// <summary>
+        /// When calling MoveNext or Reset after modification of the enumeration, the resulting behavior is
+        /// undefined. Tests are included to cover two behavioral scenarios:
+        ///   - Throwing an InvalidOperationException
+        ///   - Execute MoveNext or Reset.
+        ///
+        /// If this property is set to true, the tests ensure that the exception is thrown. The default value is
+        /// true.
+        /// </summary>
+        protected virtual bool Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException => true;
+
+        /// <summary>
+        /// When calling MoveNext or Reset after modification of an empty enumeration, the resulting behavior is
+        /// undefined. Tests are included to cover two behavioral scenarios:
+        ///   - Throwing an InvalidOperationException
+        ///   - Execute MoveNext or Reset.
+        ///
+        /// If this property is set to true, the tests ensure that the exception is thrown. The default value is
+        /// <see cref="Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException"/>.
+        /// </summary>
+        protected virtual bool Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException => Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException;
+
+        /// <summary>Whether the enumerator returned from GetEnumerator is a singleton instance when the collection is empty.</summary>
+        protected virtual bool Enumerator_Empty_UsesSingletonInstance => false;
+
+        /// <summary>
         /// Whether the collection can be serialized.
         /// </summary>
         protected virtual bool SupportsSerialization => true;
@@ -90,6 +115,30 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         #endregion
 
         #region GetEnumerator()
+
+        [Fact]
+        public void IEnumerable_NonGeneric_GetEnumerator_EmptyCollection_UsesSingleton()
+        {
+            IEnumerable enumerable = NonGenericIEnumerableFactory(0);
+
+            IEnumerator enumerator1 = enumerable.GetEnumerator();
+            try
+            {
+                IEnumerator enumerator2 = enumerable.GetEnumerator();
+                try
+                {
+                    Assert.Equal(Enumerator_Empty_UsesSingletonInstance, ReferenceEquals(enumerator1, enumerator2));
+                }
+                finally
+                {
+                    if (enumerator2 is IDisposable d2) d2.Dispose();
+                }
+            }
+            finally
+            {
+                if (enumerator1 is IDisposable d1) d1.Dispose();
+            }
+        }
 
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
@@ -128,7 +177,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             Assert.Equal(count, iterations);
         }
 
-
         [Theory]
         [MemberData(nameof(ValidCollectionSizes))]
         public void IEnumerable_NonGeneric_Enumerator_MoveNext_AfterEndOfCollection(int count)
@@ -149,7 +197,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 IEnumerable enumerable = NonGenericIEnumerableFactory(count);
                 IEnumerator enumerator = enumerable.GetEnumerator();
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+                {
+                    if (count == 0 ? Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException : Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
+                    {
+                        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+                    }
+                    else
+                    {
+                        _ = enumerator.MoveNext();
+                    }
+                }
             });
         }
 
@@ -161,10 +218,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 IEnumerable enumerable = NonGenericIEnumerableFactory(count);
                 IEnumerator enumerator = enumerable.GetEnumerator();
+
                 for (int i = 0; i < count / 2; i++)
                     enumerator.MoveNext();
+
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+                {
+                    if (count == 0 ? Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException : Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
+                    {
+                        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+                    }
+                    else
+                    {
+                        enumerator.MoveNext();
+                    }
+                }
             });
         }
 
@@ -178,7 +246,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 IEnumerator enumerator = enumerable.GetEnumerator();
                 while (enumerator.MoveNext()) ;
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+                {
+                    if (count == 0 ? Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException : Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
+                    {
+                        Assert.Throws<InvalidOperationException>(() => enumerator.MoveNext());
+                    }
+                    else
+                    {
+                        _ = enumerator.MoveNext();
+                    }
+                }
             });
         }
 
@@ -217,15 +294,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             // Ensures that the elements returned from enumeration are exactly the same collection of
             // elements returned from a previous enumeration
             IEnumerable enumerable = NonGenericIEnumerableFactory(count);
-            Dictionary<object, int> firstValues = new Dictionary<object, int>(count);
-            Dictionary<object, int> secondValues = new Dictionary<object, int>(count);
+            HashSet<object> firstValues = new HashSet<object>(count);
+            HashSet<object> secondValues = new HashSet<object>(count);
             foreach (object item in enumerable)
-                firstValues[item] = firstValues.ContainsKey(item) ? firstValues[item]++ : 1;
+                Assert.True(firstValues.Add(item));
             foreach (object item in enumerable)
-                secondValues[item] = secondValues.ContainsKey(item) ? secondValues[item]++ : 1;
+                Assert.True(secondValues.Add(item));
             Assert.Equal(firstValues.Count, secondValues.Count);
-            foreach (object key in firstValues.Keys)
-                Assert.Equal(firstValues[key], secondValues[key]);
+            foreach (object item in firstValues)
+                Assert.True(secondValues.Contains(item));
         }
 
         [Theory]
@@ -298,7 +375,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 IEnumerable enumerable = NonGenericIEnumerableFactory(count);
                 IEnumerator enumerator = enumerable.GetEnumerator();
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                {
+                    if (count == 0 ? Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException : Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
+                    {
+                        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                    }
+                    else
+                    {
+                        enumerator.Reset();
+                    }
+                }
             });
         }
 
@@ -310,10 +396,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 IEnumerable enumerable = NonGenericIEnumerableFactory(count);
                 IEnumerator enumerator = enumerable.GetEnumerator();
+
                 for (int i = 0; i < count / 2; i++)
                     enumerator.MoveNext();
+
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                {
+                    if (count == 0 ? Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException : Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
+                    {
+                        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                    }
+                    else
+                    {
+                        enumerator.Reset();
+                    }
+                }
             });
         }
 
@@ -327,7 +424,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 IEnumerator enumerator = enumerable.GetEnumerator();
                 while (enumerator.MoveNext()) ;
                 if (ModifyEnumerable(enumerable))
-                    Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                {
+                    if (count == 0 ? Enumerator_Empty_ModifiedDuringEnumeration_ThrowsInvalidOperationException : Enumerator_ModifiedDuringEnumeration_ThrowsInvalidOperationException)
+                    {
+                        Assert.Throws<InvalidOperationException>(() => enumerator.Reset());
+                    }
+                    else
+                    {
+                        enumerator.Reset();
+                    }
+                }
             });
         }
 

@@ -10,193 +10,207 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
-{
-    using VerifyCS = CSharpCodeFixVerifier<
-        UseExpressionBodyDiagnosticAnalyzer,
-        UseExpressionBodyCodeFixProvider>;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
 
-    public class UseExpressionBodyForOperatorsAnalyzerTests
+using VerifyCS = CSharpCodeFixVerifier<
+    UseExpressionBodyDiagnosticAnalyzer,
+    UseExpressionBodyCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+public class UseExpressionBodyForOperatorsAnalyzerTests
+{
+    private static async Task TestWithUseExpressionBody(string code, string fixedCode)
     {
-        private static async Task TestWithUseExpressionBody(string code, string fixedCode)
+        await new VerifyCS.Test
         {
-            await new VerifyCS.Test
+            TestCode = code,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ExpressionBodyPreference.WhenPossible } }
+        }.RunAsync();
+    }
+
+    private static async Task TestWithUseBlockBody(string code, string fixedCode)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = code,
+            FixedCode = fixedCode,
+            Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ExpressionBodyPreference.Never } }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestUseExpressionBody1()
+    {
+        var code = """
+            class C
             {
-                TestCode = code,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ExpressionBodyPreference.WhenPossible } }
-            }.RunAsync();
-        }
+                private static C Bar() { return new C(); }
 
-        private static async Task TestWithUseBlockBody(string code, string fixedCode)
-        {
-            await new VerifyCS.Test
+                {|IDE0024:public static C operator {|CS0161:+|}(C c1, C c2)
+                {
+                    Bar();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            class C
             {
-                TestCode = code,
-                FixedCode = fixedCode,
-                Options = { { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, ExpressionBodyPreference.Never } }
-            }.RunAsync();
-        }
+                private static C Bar() { return new C(); }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseExpressionBody1()
-        {
-            var code = @"
-class C
-{
-    private static C Bar() { return new C(); }
-
-    {|IDE0024:public static C operator {|CS0161:+|}(C c1, C c2)
-    {
-        Bar();
-    }|}
-}";
-            var fixedCode = @"
-class C
-{
-    private static C Bar() { return new C(); }
-
-    public static C operator +(C c1, C c2) => Bar();
-}";
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseExpressionBody2()
-        {
-            var code = @"
-class C
-{
-    private static C Bar() { return new C(); }
-
-    {|IDE0024:public static C operator +(C c1, C c2)
-    {
-        return Bar();
-    }|}
-}";
-            var fixedCode = @"
-class C
-{
-    private static C Bar() { return new C(); }
-
-    public static C operator +(C c1, C c2) => Bar();
-}";
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseExpressionBody3()
-        {
-            var code = @"
-using System;
-
-class C
-{
-    {|IDE0024:public static C operator +(C c1, C c2)
-    {
-        throw new NotImplementedException();
-    }|}
-}";
-            var fixedCode = @"
-using System;
-
-class C
-{
-    public static C operator +(C c1, C c2) => throw new NotImplementedException();
-}";
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseExpressionBody4()
-        {
-            var code = @"
-using System;
-
-class C
-{
-    {|IDE0024:public static C operator +(C c1, C c2)
-    {
-        throw new NotImplementedException(); // comment
-    }|}
-}";
-            var fixedCode = @"
-using System;
-
-class C
-{
-    public static C operator +(C c1, C c2) => throw new NotImplementedException(); // comment
-}";
-            await TestWithUseExpressionBody(code, fixedCode);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseBlockBody1()
-        {
-            var code = @"
-class C
-{
-    private static C Bar() { return new C(); }
-
-    {|IDE0024:public static C operator +(C c1, C c2) => Bar();|}
-}";
-            var fixedCode = @"
-class C
-{
-    private static C Bar() { return new C(); }
-
-    public static C operator +(C c1, C c2)
-    {
-        return Bar();
+                public static C operator +(C c1, C c2) => Bar();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
     }
-}";
-            await TestWithUseBlockBody(code, fixedCode);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseBlockBody3()
-        {
-            var code = @"
-using System;
-
-class C
-{
-    {|IDE0024:public static C operator +(C c1, C c2) => throw new NotImplementedException();|}
-}";
-            var fixedCode = @"
-using System;
-
-class C
-{
-    public static C operator +(C c1, C c2)
+    [Fact]
+    public async Task TestUseExpressionBody2()
     {
-        throw new NotImplementedException();
+        var code = """
+            class C
+            {
+                private static C Bar() { return new C(); }
+
+                {|IDE0024:public static C operator +(C c1, C c2)
+                {
+                    return Bar();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                private static C Bar() { return new C(); }
+
+                public static C operator +(C c1, C c2) => Bar();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
     }
-}";
-            await TestWithUseBlockBody(code, fixedCode);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-        public async Task TestUseBlockBody4()
-        {
-            var code = @"
-using System;
-
-class C
-{
-    {|IDE0024:public static C operator +(C c1, C c2) => throw new NotImplementedException();|} // comment
-}";
-            var fixedCode = @"
-using System;
-
-class C
-{
-    public static C operator +(C c1, C c2)
+    [Fact]
+    public async Task TestUseExpressionBody3()
     {
-        throw new NotImplementedException(); // comment
+        var code = """
+            using System;
+
+            class C
+            {
+                {|IDE0024:public static C operator +(C c1, C c2)
+                {
+                    throw new NotImplementedException();
+                }|}
+            }
+            """;
+        var fixedCode = """
+            using System;
+
+            class C
+            {
+                public static C operator +(C c1, C c2) => throw new NotImplementedException();
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
     }
-}";
-            await TestWithUseBlockBody(code, fixedCode);
-        }
+
+    [Fact]
+    public async Task TestUseExpressionBody4()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                {|IDE0024:public static C operator +(C c1, C c2)
+                {
+                    throw new NotImplementedException(); // comment
+                }|}
+            }
+            """;
+        var fixedCode = """
+            using System;
+
+            class C
+            {
+                public static C operator +(C c1, C c2) => throw new NotImplementedException(); // comment
+            }
+            """;
+        await TestWithUseExpressionBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestUseBlockBody1()
+    {
+        var code = """
+            class C
+            {
+                private static C Bar() { return new C(); }
+
+                {|IDE0024:public static C operator +(C c1, C c2) => Bar();|}
+            }
+            """;
+        var fixedCode = """
+            class C
+            {
+                private static C Bar() { return new C(); }
+
+                public static C operator +(C c1, C c2)
+                {
+                    return Bar();
+                }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestUseBlockBody3()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                {|IDE0024:public static C operator +(C c1, C c2) => throw new NotImplementedException();|}
+            }
+            """;
+        var fixedCode = """
+            using System;
+
+            class C
+            {
+                public static C operator +(C c1, C c2)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
+    }
+
+    [Fact]
+    public async Task TestUseBlockBody4()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                {|IDE0024:public static C operator +(C c1, C c2) => throw new NotImplementedException();|} // comment
+            }
+            """;
+        var fixedCode = """
+            using System;
+
+            class C
+            {
+                public static C operator +(C c1, C c2)
+                {
+                    throw new NotImplementedException(); // comment
+                }
+            }
+            """;
+        await TestWithUseBlockBody(code, fixedCode);
     }
 }

@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -272,7 +273,7 @@ End Module
 ]]>
     </file>
 </compilation>
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}).AssertTheseDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}).AssertTheseDiagnostics(
             <![CDATA[
 BC40008: 'Public Shared Sub ObsoleteMethod1()' is obsolete.
         ObsoleteMethod1()
@@ -1580,14 +1581,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://docs.microsoft.com/en-us/dotnet/visual-basic/language-reference/compiler-messages/TEST1", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -1629,14 +1628,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -1687,14 +1684,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -1745,14 +1740,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -1833,14 +1826,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -1899,14 +1890,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic("TEST1", "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -1963,14 +1952,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -2027,14 +2014,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -2177,7 +2162,6 @@ End Class
 ]]></file>
 </compilation>
 
-
             Dim ilComp = CompileIL(ilSource)
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={ilComp})
             Dim diags = comp2.GetDiagnostics()
@@ -2318,7 +2302,6 @@ End Class
 ]]></file>
 </compilation>
 
-
             Dim ilComp = CompileIL(ilSource)
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={ilComp})
             Dim diags = comp2.GetDiagnostics()
@@ -2375,14 +2358,12 @@ End Class
             Dim comp1 = CreateCompilationWithMscorlib40(source1)
             comp1.VerifyDiagnostics()
 
-
             Dim comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.ToMetadataReference()})
             Dim diags = comp2.GetDiagnostics()
             diags.Verify(Diagnostic(ERRID.WRN_UseOfObsoleteSymbolNoMessage1, "M1()").WithArguments("Public Sub M1()").WithLocation(5, 9))
 
             Dim diag = diags.Single()
             Assert.Equal("https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(BC40008)", diag.Descriptor.HelpLinkUri)
-
 
             comp2 = CreateCompilationWithMscorlib40(source2, references:={comp1.EmitToImageReference()})
             diags = comp2.GetDiagnostics()
@@ -2679,7 +2660,6 @@ BC40000: 'Public Shared Overloads Sub Bar()' is obsolete: 'hi'.
             ~~~~~~~~~~
 ]]>
             compilation2.AssertTheseDiagnostics(expected)
-
 
             Dim source3 =
 <compilation>

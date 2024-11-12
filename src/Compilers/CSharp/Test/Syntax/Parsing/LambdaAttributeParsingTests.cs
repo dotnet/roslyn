@@ -4,7 +4,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -277,29 +282,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source, TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token 'ref'
                 // [A] ref x => x
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("ref").WithLocation(1, 1),
-                // (1,1): error CS1525: Invalid expression term '['
-                // [A] ref x => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("ref").WithLocation(1, 1));
 
-            N(SyntaxKind.ElementAccessExpression);
+            N(SyntaxKind.CollectionExpression);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                N(SyntaxKind.BracketedArgumentList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Argument);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
+                        N(SyntaxKind.IdentifierToken, "A");
                     }
-                    N(SyntaxKind.CloseBracketToken);
                 }
+                N(SyntaxKind.CloseBracketToken);
             }
             EOF();
         }
@@ -311,29 +306,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source, TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token 'in'
                 // [A] in x => x
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("in").WithLocation(1, 1),
-                // (1,1): error CS1525: Invalid expression term '['
-                // [A] in x => x
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("in").WithLocation(1, 1));
 
-            N(SyntaxKind.ElementAccessExpression);
+            N(SyntaxKind.CollectionExpression);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.ExpressionElement);
                 {
-                    M(SyntaxKind.IdentifierToken);
-                }
-                N(SyntaxKind.BracketedArgumentList);
-                {
-                    N(SyntaxKind.OpenBracketToken);
-                    N(SyntaxKind.Argument);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "A");
-                        }
+                        N(SyntaxKind.IdentifierToken, "A");
                     }
-                    N(SyntaxKind.CloseBracketToken);
                 }
+                N(SyntaxKind.CloseBracketToken);
             }
             EOF();
         }
@@ -1063,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("new B { [A] x => y }", TestOptions.RegularPreview,
                 // (1,13): error CS1003: Syntax error, '=' expected
                 // new B { [A] x => y }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments("=", "").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments("=").WithLocation(1, 13));
 
             N(SyntaxKind.ObjectCreationExpression);
             {
@@ -1207,34 +1192,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("-- [A] () => { }", TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token '=>'
                 // -- [A] () => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "-- [A] ()").WithArguments("=>").WithLocation(1, 1),
-                // (1,4): error CS1525: Invalid expression term '['
-                // -- [A] () => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 4));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "-- [A] ()").WithArguments("=>").WithLocation(1, 1));
 
             N(SyntaxKind.PreDecrementExpression);
             {
                 N(SyntaxKind.MinusMinusToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1252,34 +1227,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("! [A] () => { }", TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token '=>'
                 // ! [A] () => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "! [A] ()").WithArguments("=>").WithLocation(1, 1),
-                // (1,3): error CS1525: Invalid expression term '['
-                // ! [A] () => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 3));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "! [A] ()").WithArguments("=>").WithLocation(1, 1));
 
             N(SyntaxKind.LogicalNotExpression);
             {
                 N(SyntaxKind.ExclamationToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1385,10 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression("x * [A] () => { }", TestOptions.RegularPreview,
                 // (1,1): error CS1073: Unexpected token '=>'
                 // x * [A] () => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "x * [A] ()").WithArguments("=>").WithLocation(1, 1),
-                // (1,5): error CS1525: Invalid expression term '['
-                // x * [A] () => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "x * [A] ()").WithArguments("=>").WithLocation(1, 1));
 
             N(SyntaxKind.MultiplyExpression);
             {
@@ -1399,24 +1361,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.AsteriskToken);
                 N(SyntaxKind.InvocationExpression);
                 {
-                    N(SyntaxKind.ElementAccessExpression);
+                    N(SyntaxKind.CollectionExpression);
                     {
-                        M(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.ExpressionElement);
                         {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        N(SyntaxKind.BracketedArgumentList);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
                     N(SyntaxKind.ArgumentList);
                     {
@@ -1517,40 +1472,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConditionalExpression_01()
         {
-            UsingExpression("x ? [A] () => { } : z", TestOptions.RegularPreview,
-                // (1,1): error CS1073: Unexpected token '=>'
-                // x ? [A] () => { } : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "x ? [A] ()").WithArguments("=>").WithLocation(1, 1));
+            UsingExpression("x ? [A] () => { } : z", TestOptions.RegularPreview);
 
-            N(SyntaxKind.ConditionalAccessExpression);
+            N(SyntaxKind.ConditionalExpression);
             {
                 N(SyntaxKind.IdentifierName);
                 {
                     N(SyntaxKind.IdentifierToken, "x");
                 }
                 N(SyntaxKind.QuestionToken);
-                N(SyntaxKind.InvocationExpression);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
                 {
-                    N(SyntaxKind.ElementBindingExpression);
+                    N(SyntaxKind.AttributeList);
                     {
-                        N(SyntaxKind.BracketedArgumentList);
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
                         {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "A");
-                                }
+                                N(SyntaxKind.IdentifierToken, "A");
                             }
-                            N(SyntaxKind.CloseBracketToken);
                         }
+                        N(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.ArgumentList);
+                    N(SyntaxKind.ParameterList);
                     {
                         N(SyntaxKind.OpenParenToken);
                         N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void ConditionalExpression_01_A()
+        {
+            UsingExpression("x ? () => { } : z", TestOptions.RegularPreview);
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "x");
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.ParenthesizedLambdaExpression);
+                {
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.Block);
+                    {
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "z");
                 }
             }
             EOF();
@@ -1943,9 +1938,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Range_02()
         {
             UsingExpression("s[..[A] () => { }]", TestOptions.RegularPreview,
-                // (1,5): error CS1003: Syntax error, ',' expected
+                // (1,12): error CS1003: Syntax error, ',' expected
                 // s[..[A] () => { }]
-                Diagnostic(ErrorCode.ERR_SyntaxError, "[").WithArguments(",", "[").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(1, 12));
 
             N(SyntaxKind.ElementAccessExpression);
             {
@@ -1961,35 +1956,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.RangeExpression);
                         {
                             N(SyntaxKind.DotDotToken);
-                        }
-                    }
-                    M(SyntaxKind.CommaToken);
-                    N(SyntaxKind.Argument);
-                    {
-                        N(SyntaxKind.ParenthesizedLambdaExpression);
-                        {
-                            N(SyntaxKind.AttributeList);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Attribute);
+                                N(SyntaxKind.CollectionExpression);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.ExpressionElement);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "A");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "A");
+                                        }
                                     }
+                                    N(SyntaxKind.CloseBracketToken);
                                 }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
-                            N(SyntaxKind.ParameterList);
-                            {
-                                N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.CloseParenToken);
-                            }
-                            N(SyntaxKind.EqualsGreaterThanToken);
-                            N(SyntaxKind.Block);
-                            {
-                                N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.CloseBraceToken);
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
                             }
                         }
                     }
@@ -2217,58 +2202,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_02()
         {
             string source = "x is string ? [A] y";
-            UsingExpression(source);
+            UsingExpression(source,
+                // (1,19): error CS1003: Syntax error, ':' expected
+                // x is string ? [A] y
+                Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(":").WithLocation(1, 19));
 
-            N(SyntaxKind.IsPatternExpression);
+            N(SyntaxKind.ConditionalExpression);
             {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.StringKeyword);
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.CollectionExpression);
+                {
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "A");
+                        }
+                    }
+                    N(SyntaxKind.CloseBracketToken);
+                }
+                M(SyntaxKind.ColonToken);
                 N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierToken, "x");
-                }
-                N(SyntaxKind.IsKeyword);
-                N(SyntaxKind.DeclarationPattern);
-                {
-                    N(SyntaxKind.ArrayType);
-                    {
-                        N(SyntaxKind.NullableType);
-                        {
-                            N(SyntaxKind.PredefinedType);
-                            {
-                                N(SyntaxKind.StringKeyword);
-                            }
-                            N(SyntaxKind.QuestionToken);
-                        }
-                        N(SyntaxKind.ArrayRankSpecifier);
-                        {
-                            N(SyntaxKind.OpenBracketToken);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
-                            N(SyntaxKind.CloseBracketToken);
-                        }
-                    }
-                    N(SyntaxKind.SingleVariableDesignation);
-                    {
-                        N(SyntaxKind.IdentifierToken, "y");
-                    }
+                    N(SyntaxKind.IdentifierToken, "y");
                 }
             }
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_03()
         {
             string source = "_ = x is string ? [] y => y : z";
             UsingExpression(source,
-                // (1,1): error CS1073: Unexpected token '=>'
+                // (1,20): error CS1001: Identifier expected
                 // _ = x is string ? [] y => y : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = x is string ? [] y").WithArguments("=>").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 20));
 
             N(SyntaxKind.SimpleAssignmentExpression);
             {
@@ -2277,53 +2263,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierToken, "_");
                 }
                 N(SyntaxKind.EqualsToken);
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.ConditionalExpression);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IsExpression);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.DeclarationPattern);
-                    {
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.NullableType);
-                            {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.StringKeyword);
-                                }
-                                N(SyntaxKind.QuestionToken);
-                            }
-                            N(SyntaxKind.ArrayRankSpecifier);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.OmittedArraySizeExpression);
-                                {
-                                    N(SyntaxKind.OmittedArraySizeExpressionToken);
-                                }
-                                N(SyntaxKind.CloseBracketToken);
-                            }
+                            N(SyntaxKind.IdentifierToken, "x");
                         }
-                        N(SyntaxKind.SingleVariableDesignation);
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            M(SyntaxKind.Attribute);
+                            {
+                                M(SyntaxKind.IdentifierName);
+                                {
+                                    M(SyntaxKind.IdentifierToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "y");
                         }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "z");
                     }
                 }
             }
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_04()
         {
             string source = "_ = x is string ? [A] y => y : z";
-            UsingExpression(source,
-                // (1,1): error CS1073: Unexpected token '=>'
-                // _ = x is string ? [A] y => y : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = x is string ? [A] y").WithArguments("=>").WithLocation(1, 1));
+            UsingExpression(source);
 
             N(SyntaxKind.SimpleAssignmentExpression);
             {
@@ -2332,56 +2325,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierToken, "_");
                 }
                 N(SyntaxKind.EqualsToken);
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.ConditionalExpression);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IsExpression);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.DeclarationPattern);
-                    {
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.NullableType);
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Attribute);
                             {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.StringKeyword);
-                                }
-                                N(SyntaxKind.QuestionToken);
-                            }
-                            N(SyntaxKind.ArrayRankSpecifier);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "A");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
                             }
+                            N(SyntaxKind.CloseBracketToken);
                         }
-                        N(SyntaxKind.SingleVariableDesignation);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "y");
                         }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "z");
                     }
                 }
             }
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_05()
         {
             string source = "_ = x is string ? [return: A] y => y : z";
-            UsingExpression(source,
-                // (1,1): error CS1073: Unexpected token '=>'
-                // _ = x is string ? [return: A] y => y : z
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "_ = x is string ? [return: A] y").WithArguments("=>").WithLocation(1, 1),
-                // (1,20): error CS1003: Syntax error, ',' expected
-                // _ = x is string ? [return: A] y => y : z
-                Diagnostic(ErrorCode.ERR_SyntaxError, "return").WithArguments(",", "return").WithLocation(1, 20));
+            UsingExpression(source);
 
             N(SyntaxKind.SimpleAssignmentExpression);
             {
@@ -2390,39 +2387,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.IdentifierToken, "_");
                 }
                 N(SyntaxKind.EqualsToken);
-                N(SyntaxKind.IsPatternExpression);
+                N(SyntaxKind.ConditionalExpression);
                 {
-                    N(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.IsExpression);
                     {
-                        N(SyntaxKind.IdentifierToken, "x");
-                    }
-                    N(SyntaxKind.IsKeyword);
-                    N(SyntaxKind.DeclarationPattern);
-                    {
-                        N(SyntaxKind.ArrayType);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.NullableType);
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                        N(SyntaxKind.IsKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.StringKeyword);
+                        }
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleLambdaExpression);
+                    {
+                        N(SyntaxKind.AttributeList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.AttributeTargetSpecifier);
                             {
-                                N(SyntaxKind.PredefinedType);
-                                {
-                                    N(SyntaxKind.StringKeyword);
-                                }
-                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.ReturnKeyword);
+                                N(SyntaxKind.ColonToken);
                             }
-                            N(SyntaxKind.ArrayRankSpecifier);
+                            N(SyntaxKind.Attribute);
                             {
-                                N(SyntaxKind.OpenBracketToken);
                                 N(SyntaxKind.IdentifierName);
                                 {
                                     N(SyntaxKind.IdentifierToken, "A");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
                             }
+                            N(SyntaxKind.CloseBracketToken);
                         }
-                        N(SyntaxKind.SingleVariableDesignation);
+                        N(SyntaxKind.Parameter);
                         {
                             N(SyntaxKind.IdentifierToken, "y");
                         }
+                        N(SyntaxKind.EqualsGreaterThanToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "y");
+                        }
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "z");
                     }
                 }
             }
@@ -2686,10 +2698,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,13): error CS1003: Syntax error, '=' expected
                 // new() { [A] x => x, [B] () => { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments("=", "").WithLocation(1, 13),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments("=").WithLocation(1, 13),
                 // (1,25): error CS1003: Syntax error, '=' expected
                 // new() { [A] x => x, [B] () => { } }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("=", "(").WithLocation(1, 25));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("=").WithLocation(1, 25));
 
             N(SyntaxKind.ImplicitObjectCreationExpression);
             {
@@ -2949,7 +2961,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source,
                 // (1,13): error CS1003: Syntax error, ',' expected
                 // new { x [B] y => y }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(",", "").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "y").WithArguments(",").WithLocation(1, 13));
 
             N(SyntaxKind.AnonymousObjectCreationExpression);
             {
@@ -3562,29 +3574,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingExpression(source, parseOptions,
                     // (1,1): error CS1073: Unexpected token 'delegate'
                     // [A] delegate () { }
-                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("delegate").WithLocation(1, 1),
-                    // (1,1): error CS1525: Invalid expression term '['
-                    // [A] delegate () { }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1));
+                    Diagnostic(ErrorCode.ERR_UnexpectedToken, "[A]").WithArguments("delegate").WithLocation(1, 1));
 
-                N(SyntaxKind.ElementAccessExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    N(SyntaxKind.BracketedArgumentList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Argument);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
+                            N(SyntaxKind.IdentifierToken, "A");
                         }
-                        N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.CloseBracketToken);
                 }
                 EOF();
             }
@@ -3603,31 +3605,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (1,1): error CS1073: Unexpected token 'delegate'
                     // [return: A] delegate () { return null; }
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "[return: A]").WithArguments("delegate").WithLocation(1, 1),
-                    // (1,1): error CS1525: Invalid expression term '['
-                    // [return: A] delegate () { return null; }
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 1),
                     // (1,2): error CS1041: Identifier expected; 'return' is a keyword
                     // [return: A] delegate () { return null; }
                     Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "return").WithArguments("", "return").WithLocation(1, 2));
 
-                N(SyntaxKind.ElementAccessExpression);
+                N(SyntaxKind.CollectionExpression);
                 {
-                    M(SyntaxKind.IdentifierName);
+                    N(SyntaxKind.OpenBracketToken);
+                    N(SyntaxKind.ExpressionElement);
                     {
-                        M(SyntaxKind.IdentifierToken);
-                    }
-                    N(SyntaxKind.BracketedArgumentList);
-                    {
-                        N(SyntaxKind.OpenBracketToken);
-                        N(SyntaxKind.Argument);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "A");
-                            }
+                            N(SyntaxKind.IdentifierToken, "A");
                         }
-                        N(SyntaxKind.CloseBracketToken);
                     }
+                    N(SyntaxKind.CloseBracketToken);
                 }
                 EOF();
             }
@@ -3646,9 +3638,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (1,1): error CS1073: Unexpected token 'delegate'
                     // d = [A] delegate () { };
                     Diagnostic(ErrorCode.ERR_UnexpectedToken, "d = [A] ").WithArguments("delegate").WithLocation(1, 1),
-                    // (1,5): error CS1525: Invalid expression term '['
-                    // d = [A] delegate () { };
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(1, 5),
                     // (1,9): error CS1002: ; expected
                     // d = [A] delegate () { };
                     Diagnostic(ErrorCode.ERR_SemicolonExpected, "delegate").WithLocation(1, 9));
@@ -3662,30 +3651,893 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.IdentifierToken, "d");
                         }
                         N(SyntaxKind.EqualsToken);
-                        N(SyntaxKind.ElementAccessExpression);
+                        N(SyntaxKind.CollectionExpression);
                         {
-                            M(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.ExpressionElement);
                             {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                            N(SyntaxKind.BracketedArgumentList);
-                            {
-                                N(SyntaxKind.OpenBracketToken);
-                                N(SyntaxKind.Argument);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "A");
-                                    }
+                                    N(SyntaxKind.IdentifierToken, "A");
                                 }
-                                N(SyntaxKind.CloseBracketToken);
                             }
+                            N(SyntaxKind.CloseBracketToken);
                         }
                     }
                     M(SyntaxKind.SemicolonToken);
                 }
                 EOF();
             }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithLambda1()
+        {
+            UsingTree("""
+                // Lambda inside attribute with attributes of its own will cause us to bail out.
+                [A([B]() => {})]
+                class C
+                {
+                }
+                """,
+                // (2,10): error CS1003: Syntax error, ',' expected
+                // [A([B]() => {})]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(2, 10),
+                // (2,14): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B]() => {})]
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 14),
+                // (2,14): error CS1003: Syntax error, ']' expected
+                // [A([B]() => {})]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(2, 14),
+                // (2,15): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B]() => {})]
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 15));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithLambda2()
+        {
+            UsingTree("""
+                // Lambda inside attribute without attributes of its own is fine for parsing.
+                [A(() => {})]
+                class C
+                {
+                }
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.AttributeList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Attribute);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "A");
+                            }
+                            N(SyntaxKind.AttributeArgumentList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                    {
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithLambda3()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        // Because we're already in an expression, parsing an attribute list, we'll bail out of parsing the `[B]`
+                        // as an attribute on an inner lambda.
+                        var v = [A([B]() => {})]
+                            () => {};
+                    }
+                }
+                """,
+                // (8,16): error CS1003: Syntax error, ',' expected
+                //             () => {};
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(8, 16),
+                // (8,19): error CS1002: ; expected
+                //             () => {};
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(8, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.InvocationExpression);
+                                            {
+                                                N(SyntaxKind.CollectionExpression);
+                                                {
+                                                    N(SyntaxKind.OpenBracketToken);
+                                                    N(SyntaxKind.ExpressionElement);
+                                                    {
+                                                        N(SyntaxKind.InvocationExpression);
+                                                        {
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "A");
+                                                            }
+                                                            N(SyntaxKind.ArgumentList);
+                                                            {
+                                                                N(SyntaxKind.OpenParenToken);
+                                                                N(SyntaxKind.Argument);
+                                                                {
+                                                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                                    {
+                                                                        N(SyntaxKind.AttributeList);
+                                                                        {
+                                                                            N(SyntaxKind.OpenBracketToken);
+                                                                            N(SyntaxKind.Attribute);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierName);
+                                                                                {
+                                                                                    N(SyntaxKind.IdentifierToken, "B");
+                                                                                }
+                                                                            }
+                                                                            N(SyntaxKind.CloseBracketToken);
+                                                                        }
+                                                                        N(SyntaxKind.ParameterList);
+                                                                        {
+                                                                            N(SyntaxKind.OpenParenToken);
+                                                                            N(SyntaxKind.CloseParenToken);
+                                                                        }
+                                                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                                                        N(SyntaxKind.Block);
+                                                                        {
+                                                                            N(SyntaxKind.OpenBraceToken);
+                                                                            N(SyntaxKind.CloseBraceToken);
+                                                                        }
+                                                                    }
+                                                                }
+                                                                N(SyntaxKind.CloseParenToken);
+                                                            }
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseBracketToken);
+                                                }
+                                                N(SyntaxKind.ArgumentList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.EmptyStatement);
+                            {
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithLambda3_B()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        // This is an attributed lambda *within* a collection expression.  This is fine.
+                        var v = [A([B]() => {})];
+                    }
+                }
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.CollectionExpression);
+                                            {
+                                                N(SyntaxKind.OpenBracketToken);
+                                                N(SyntaxKind.ExpressionElement);
+                                                {
+                                                    N(SyntaxKind.InvocationExpression);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "A");
+                                                        }
+                                                        N(SyntaxKind.ArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.Argument);
+                                                            {
+                                                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                                {
+                                                                    N(SyntaxKind.AttributeList);
+                                                                    {
+                                                                        N(SyntaxKind.OpenBracketToken);
+                                                                        N(SyntaxKind.Attribute);
+                                                                        {
+                                                                            N(SyntaxKind.IdentifierName);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierToken, "B");
+                                                                            }
+                                                                        }
+                                                                        N(SyntaxKind.CloseBracketToken);
+                                                                    }
+                                                                    N(SyntaxKind.ParameterList);
+                                                                    {
+                                                                        N(SyntaxKind.OpenParenToken);
+                                                                        N(SyntaxKind.CloseParenToken);
+                                                                    }
+                                                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                                                    N(SyntaxKind.Block);
+                                                                    {
+                                                                        N(SyntaxKind.OpenBraceToken);
+                                                                        N(SyntaxKind.CloseBraceToken);
+                                                                    }
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                }
+                                                N(SyntaxKind.CloseBracketToken);
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithLambda4()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var v = [A(() => {})] () => {};
+                    }
+                }
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            {
+                                                N(SyntaxKind.AttributeList);
+                                                {
+                                                    N(SyntaxKind.OpenBracketToken);
+                                                    N(SyntaxKind.Attribute);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "A");
+                                                        }
+                                                        N(SyntaxKind.AttributeArgumentList);
+                                                        {
+                                                            N(SyntaxKind.OpenParenToken);
+                                                            N(SyntaxKind.AttributeArgument);
+                                                            {
+                                                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                                {
+                                                                    N(SyntaxKind.ParameterList);
+                                                                    {
+                                                                        N(SyntaxKind.OpenParenToken);
+                                                                        N(SyntaxKind.CloseParenToken);
+                                                                    }
+                                                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                                                    N(SyntaxKind.Block);
+                                                                    {
+                                                                        N(SyntaxKind.OpenBraceToken);
+                                                                        N(SyntaxKind.CloseBraceToken);
+                                                                    }
+                                                                }
+                                                            }
+                                                            N(SyntaxKind.CloseParenToken);
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseBracketToken);
+                                                }
+                                                N(SyntaxKind.ParameterList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.Block);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithLambda5()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        var v = [A] () =>
+                        {
+                            // This attribute, within an expression of a lambda, should be totally fine to parse.  It
+                            // is not within an attribute argument itself.
+                            var y = [B] () => { };
+                        };
+                    }
+                }
+                """);
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ParenthesizedLambdaExpression);
+                                            {
+                                                N(SyntaxKind.AttributeList);
+                                                {
+                                                    N(SyntaxKind.OpenBracketToken);
+                                                    N(SyntaxKind.Attribute);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "A");
+                                                        }
+                                                    }
+                                                    N(SyntaxKind.CloseBracketToken);
+                                                }
+                                                N(SyntaxKind.ParameterList);
+                                                {
+                                                    N(SyntaxKind.OpenParenToken);
+                                                    N(SyntaxKind.CloseParenToken);
+                                                }
+                                                N(SyntaxKind.EqualsGreaterThanToken);
+                                                N(SyntaxKind.Block);
+                                                {
+                                                    N(SyntaxKind.OpenBraceToken);
+                                                    N(SyntaxKind.LocalDeclarationStatement);
+                                                    {
+                                                        N(SyntaxKind.VariableDeclaration);
+                                                        {
+                                                            N(SyntaxKind.IdentifierName);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "var");
+                                                            }
+                                                            N(SyntaxKind.VariableDeclarator);
+                                                            {
+                                                                N(SyntaxKind.IdentifierToken, "y");
+                                                                N(SyntaxKind.EqualsValueClause);
+                                                                {
+                                                                    N(SyntaxKind.EqualsToken);
+                                                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                                                    {
+                                                                        N(SyntaxKind.AttributeList);
+                                                                        {
+                                                                            N(SyntaxKind.OpenBracketToken);
+                                                                            N(SyntaxKind.Attribute);
+                                                                            {
+                                                                                N(SyntaxKind.IdentifierName);
+                                                                                {
+                                                                                    N(SyntaxKind.IdentifierToken, "B");
+                                                                                }
+                                                                            }
+                                                                            N(SyntaxKind.CloseBracketToken);
+                                                                        }
+                                                                        N(SyntaxKind.ParameterList);
+                                                                        {
+                                                                            N(SyntaxKind.OpenParenToken);
+                                                                            N(SyntaxKind.CloseParenToken);
+                                                                        }
+                                                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                                                        N(SyntaxKind.Block);
+                                                                        {
+                                                                            N(SyntaxKind.OpenBraceToken);
+                                                                            N(SyntaxKind.CloseBraceToken);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.SemicolonToken);
+                                                    }
+                                                    N(SyntaxKind.CloseBraceToken);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithLambda6()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        // We won't recognize this as a lambda because we'll bail out from default-parameter parsing
+                        // when we see the `[` after the `=`.
+                        var v = (X x = [A] () => {}) => { };
+                    }
+                }
+                """,
+                // (7,20): error CS1026: ) expected
+                //         var v = (X x = [A] () => {}) => { };
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(7, 20),
+                // (7,20): error CS1002: ; expected
+                //         var v = (X x = [A] () => {}) => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(7, 20),
+                // (7,36): error CS1002: ; expected
+                //         var v = (X x = [A] () => {}) => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(7, 36),
+                // (7,36): error CS1513: } expected
+                //         var v = (X x = [A] () => {}) => { };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(7, 36));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ParenthesizedExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "X");
+                                                }
+                                                M(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                                    {
+                                        N(SyntaxKind.AttributeList);
+                                        {
+                                            N(SyntaxKind.OpenBracketToken);
+                                            N(SyntaxKind.Attribute);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "A");
+                                                }
+                                            }
+                                            N(SyntaxKind.CloseBracketToken);
+                                        }
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.EqualsGreaterThanToken);
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.EmptyStatement);
+                            {
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithCollectionExpression()
+        {
+            UsingTree("""
+                class C
+                {
+                    void M()
+                    {
+                        // We won't recognize this as a lambda because we'll bail out from default-parameter parsing
+                        // when we see the `[` after the `=`.
+                        var v = (X x = [0]) => { };
+                    }
+                }
+                """,
+                // (7,20): error CS1026: ) expected
+                //         var v = (X x = [0]) => { };
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x").WithLocation(7, 20),
+                // (7,20): error CS1002: ; expected
+                //         var v = (X x = [0]) => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x").WithLocation(7, 20),
+                // (7,27): error CS1002: ; expected
+                //         var v = (X x = [0]) => { };
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(7, 27),
+                // (7,27): error CS1513: } expected
+                //         var v = (X x = [0]) => { };
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(7, 27));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "M");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.LocalDeclarationStatement);
+                            {
+                                N(SyntaxKind.VariableDeclaration);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "var");
+                                    }
+                                    N(SyntaxKind.VariableDeclarator);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "v");
+                                        N(SyntaxKind.EqualsValueClause);
+                                        {
+                                            N(SyntaxKind.EqualsToken);
+                                            N(SyntaxKind.ParenthesizedExpression);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "X");
+                                                }
+                                                M(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.SimpleAssignmentExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.CollectionExpression);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.ExpressionElement);
+                                        {
+                                            N(SyntaxKind.NumericLiteralExpression);
+                                            {
+                                                N(SyntaxKind.NumericLiteralToken, "0");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                M(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                            N(SyntaxKind.EmptyStatement);
+                            {
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73789")]
+        public void ParseAttributeWithLambaPathological()
+        {
+            // Ensure we can parse this pathological lambda attribute code without getting into exponential time.
+            int n = 30;
+            var builder = new StringBuilder();
+            for (int i = 0; i < n; i++)
+                builder.Append("[A(");
+            for (int i = 0; i < n; i++)
+                builder.Append(")]");
+            builder.Append("class C { }");
+
+            var tree = ParseTree(builder.ToString(), CSharpParseOptions.Default);
         }
     }
 }

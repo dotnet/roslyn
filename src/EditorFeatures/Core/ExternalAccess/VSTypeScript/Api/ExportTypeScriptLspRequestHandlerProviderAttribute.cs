@@ -5,14 +5,10 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
 [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
-internal class ExportTypeScriptLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
+internal class ExportTypeScriptLspServiceFactoryAttribute(Type handlerType) : ExportLspServiceFactoryAttribute(handlerType, ProtocolConstants.TypeScriptLanguageContract)
 {
-    public ExportTypeScriptLspRequestHandlerProviderAttribute(Type firstHandlerType, params Type[] additionalHandlerTypes) : base(ProtocolConstants.TypeScriptLanguageContract, firstHandlerType, additionalHandlerTypes)
-    {
-    }
 }

@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis
             var hash = GetKeyHash(key);
             var idx = hash & mask;
 
-            entries[idx].hash = hash;
-            entries[idx].value = value;
+            Entries[idx].hash = hash;
+            Entries[idx].value = value;
         }
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
             int hash = GetKeyHash(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            var entries = this.Entries;
             if (entries[idx].hash == hash)
             {
                 var candidate = entries[idx].value;
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
             int hash = GetKeyHash(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            var entries = this.Entries;
             if (entries[idx].hash == hash)
             {
                 var candidate = entries[idx].value;
@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis
             var hash = RuntimeHelpers.GetHashCode(key);
             var idx = hash & mask;
 
-            entries[idx].key = key;
-            entries[idx].value = value;
+            Entries[idx].key = key;
+            Entries[idx].value = value;
         }
 
         public bool TryGetValue(TKey key, [MaybeNullWhen(returnValue: false)] out TValue value)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis
             int hash = RuntimeHelpers.GetHashCode(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            var entries = this.Entries;
             if ((object)entries[idx].key == (object)key)
             {
                 value = entries[idx].value;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
             int hash = RuntimeHelpers.GetHashCode(key);
             int idx = hash & mask;
 
-            var entries = this.entries;
+            var entries = this.Entries;
             if ((object)entries[idx].key == (object)key)
             {
                 return entries[idx].value;
@@ -215,17 +215,28 @@ namespace Microsoft.CodeAnalysis
     // Just holds the data for the derived caches.
     internal abstract class CachingBase<TEntry>
     {
+        private readonly int _alignedSize;
+        private TEntry[]? _entries;
+
         // cache size is always ^2. 
         // items are placed at [hash ^ mask]
         // new item will displace previous one at the same location.
         protected readonly int mask;
-        protected readonly TEntry[] entries;
 
-        internal CachingBase(int size)
+        // See docs for createBackingArray on the constructor for why using the non-threadsafe ??= is ok here.
+        protected TEntry[] Entries => _entries ??= new TEntry[_alignedSize];
+
+        /// <param name="createBackingArray">Whether or not the backing array should be created immediately, or should
+        /// be deferred until the first time that <see cref="Entries"/> is used.  Note: if <paramref
+        /// name="createBackingArray"/> is <see langword="false"/> then the array will be created in a non-threadsafe
+        /// fashion (effectively different threads might observe a small window of time when different arrays could be
+        /// returned.  Derived types should only pass <see langword="false"/> here if that behavior is acceptable for
+        /// their use case.</param>
+        internal CachingBase(int size, bool createBackingArray = true)
         {
-            var alignedSize = AlignSize(size);
-            this.mask = alignedSize - 1;
-            this.entries = new TEntry[alignedSize];
+            _alignedSize = AlignSize(size);
+            this.mask = _alignedSize - 1;
+            _entries = createBackingArray ? new TEntry[_alignedSize] : null;
         }
 
         private static int AlignSize(int size)

@@ -3,198 +3,190 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
-{
-    public class IndexerCompletionProviderTests : AbstractCSharpCompletionProviderTests
-    {
-        internal override Type GetCompletionProviderType()
-            => typeof(UnnamedSymbolCompletionProvider);
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerIsSuggestedAfterDot()
-        {
-            await VerifyItemExistsAsync(@"
-public class C
+[Trait(Traits.Feature, Traits.Features.Completion)]
+public class IndexerCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
-    public int this[int i] => i;
-}
+    internal override Type GetCompletionProviderType()
+        => typeof(UnnamedSymbolCompletionProvider);
 
-public class Program
-{
-    public static void Main()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerIsSuggestedAfterDot()
     {
-        var c = new C();
-        c.$$
+        await VerifyItemExistsAsync("""
+            public class C
+            {
+                public int this[int i] => i;
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, "this", displayTextSuffix: "[]", matchingFilters: [FilterSet.PropertyFilter]);
     }
-}
-", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerIsSuggestedAfterDotForString()
-        {
-            await VerifyItemExistsAsync(@"
-public class Program
-{
-    public static void Main(string s)
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerIsSuggestedAfterDotForString()
     {
-        s.$$
+        await VerifyItemExistsAsync("""
+            public class Program
+            {
+                public static void Main(string s)
+                {
+                    s.$$
+                }
+            }
+            """, "this", displayTextSuffix: "[]", matchingFilters: [FilterSet.PropertyFilter]);
     }
-}
-", "this", displayTextSuffix: "[]", matchingFilters: new List<CompletionFilter> { FilterSet.PropertyFilter });
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerIsNotSuggestedOnStaticAccess()
-        {
-            await VerifyNoItemsExistAsync(@"
-public class C
-{
-    public int this[int i] => i;
-}
-
-public class Program
-{
-    public static void Main()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerIsNotSuggestedOnStaticAccess()
     {
-        C.$$
+        await VerifyNoItemsExistAsync("""
+            public class C
+            {
+                public int this[int i] => i;
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    C.$$
+                }
+            }
+            """);
     }
-}
-");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerIsNotSuggestedInNameOfContext()
-        {
-            await VerifyNoItemsExistAsync(@"
-public class C
-{
-    public int this[int i] => i;
-}
-
-public class Program
-{
-    public static void Main()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerIsNotSuggestedInNameOfContext()
     {
-        var c = new C();
-        var name = nameof(c.$$
+        await VerifyNoItemsExistAsync("""
+            public class C
+            {
+                public int this[int i] => i;
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    var name = nameof(c.$$
+                }
+            }
+            """);
     }
-}
-");
-        }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerSuggestionCommitsOpenAndClosingBraces()
-        {
-            await VerifyCustomCommitProviderAsync(@"
-public class C
-{
-    public int this[int i] => i;
-}
-
-public class Program
-{
-    public static void Main()
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerSuggestionCommitsOpenAndClosingBraces()
     {
-        var c = new C();
-        c.$$
-    }
-}
-", "this", @"
-public class C
-{
-    public int this[int i] => i;
-}
+        await VerifyCustomCommitProviderAsync("""
+            public class C
+            {
+                public int this[int i] => i;
+            }
 
-public class Program
-{
-    public static void Main()
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, "this", """
+            public class C
+            {
+                public int this[int i] => i;
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c[$$]
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerWithTwoParametersSuggestionCommitsOpenAndClosingBraces()
     {
-        var c = new C();
-        c[$$]
+        await VerifyCustomCommitProviderAsync("""
+            public class C
+            {
+                public int this[int x, int y] => i;
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, "this", """
+            public class C
+            {
+                public int this[int x, int y] => i;
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c[$$]
+                }
+            }
+            """);
     }
-}
-");
-        }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerWithTwoParametersSuggestionCommitsOpenAndClosingBraces()
-        {
-            await VerifyCustomCommitProviderAsync(@"
-public class C
-{
-    public int this[int x, int y] => i;
-}
-
-public class Program
-{
-    public static void Main()
+    [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    [InlineData("c.$$",
+                "c[$$]")]
+    [InlineData("c. $$",
+                "c[$$] ")]
+    [InlineData("c.$$;",
+                "c[$$];")]
+    [InlineData("c.th$$",
+                "c[$$]")]
+    [InlineData("c.this$$",
+                "c[$$]")]
+    [InlineData("c.th$$;",
+                "c[$$];")]
+    [InlineData("var f = c.$$;",
+                "var f = c[$$];")]
+    [InlineData("var f = c.th$$;",
+                "var f = c[$$];")]
+    [InlineData("c?.$$",
+                "c?[$$]")]
+    [InlineData("c?.this$$",
+                "c?[$$]")]
+    [InlineData("((C)c).$$",
+                "((C)c)[$$]")]
+    [InlineData("(true ? c : c).$$",
+                "(true ? c : c)[$$]")]
+    public async Task IndexerCompletionForDifferentExpressions(string expression, string fixedCode)
     {
-        var c = new C();
-        c.$$
-    }
-}
-", "this", @"
-public class C
-{
-    public int this[int x, int y] => i;
-}
-
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c[$$]
-    }
-}
-");
-        }
-
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [InlineData("c.$$",
-                    "c[$$]")]
-        [InlineData("c. $$",
-                    "c[$$] ")]
-        [InlineData("c.$$;",
-                    "c[$$];")]
-        [InlineData("c.th$$",
-                    "c[$$]")]
-        [InlineData("c.this$$",
-                    "c[$$]")]
-        [InlineData("c.th$$;",
-                    "c[$$];")]
-        [InlineData("var f = c.$$;",
-                    "var f = c[$$];")]
-        [InlineData("var f = c.th$$;",
-                    "var f = c[$$];")]
-        [InlineData("c?.$$",
-                    "c?[$$]")]
-        [InlineData("c?.this$$",
-                    "c?[$$]")]
-        [InlineData("((C)c).$$",
-                    "((C)c)[$$]")]
-        [InlineData("(true ? c : c).$$",
-                    "(true ? c : c)[$$]")]
-        public async Task IndexerCompletionForDifferentExpressions(string expression, string fixedCode)
-        {
-            await VerifyCustomCommitProviderAsync($@"
+        await VerifyCustomCommitProviderAsync($@"
 public class C
 {{
     public int this[int i] => i;
@@ -223,19 +215,18 @@ public class Program
     }}
 }}
 ");
-        }
+    }
 
-        [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        [InlineData("/* Leading trivia */c.$$",
-                    "/* Leading trivia */c[$$]")]
-        [InlineData("c. $$ /* Trailing trivia */",
-                    "c[$$]  /* Trailing trivia */")]
-        [InlineData("c./* Trivia in between */$$",
-                    "c[$$]/* Trivia in between */")]
-        public async Task IndexerCompletionTriviaTest(string expression, string fixedCode)
-        {
-            await VerifyCustomCommitProviderAsync($@"
+    [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    [InlineData("/* Leading trivia */c.$$",
+                "/* Leading trivia */c[$$]")]
+    [InlineData("c. $$ /* Trailing trivia */",
+                "c[$$]  /* Trailing trivia */")]
+    [InlineData("c./* Trivia in between */$$",
+                "c[$$]/* Trivia in between */")]
+    public async Task IndexerCompletionTriviaTest(string expression, string fixedCode)
+    {
+        await VerifyCustomCommitProviderAsync($@"
 public class C
 {{
     public int this[int i] => i;
@@ -264,279 +255,270 @@ public class Program
     }}
 }}
 ");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerDescriptionIncludesDocCommentsAndOverloadsHint()
-        {
-            await VerifyItemExistsAsync(@"
-public class C
-{
-    /// <summary>
-    /// Returns the index <paramref name=""i""/>
-    /// </summary>
-    /// <param name=""i"">The index</param>
-    /// <returns>Returns the index <paramref name=""i""/></returns>
-    public int this[int i] => i;
-
-    /// <summary>
-    /// Returns 1
-    /// </summary>
-    /// <param name=""i"">The index</param>
-    /// <returns>Returns 1</returns>
-    public int this[string s] => 1;
-}
-
-public class Program
-{
-    public static void Main()
-    {
-        var c = new C();
-        c.$$
     }
-}
-", "this", displayTextSuffix: "[]", expectedDescriptionOrNull: @$"int C.this[int i] {{ get; }} (+ 1 {FeaturesResources.overload})
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerDescriptionIncludesDocCommentsAndOverloadsHint()
+    {
+        await VerifyItemExistsAsync("""
+            public class C
+            {
+                /// <summary>
+                /// Returns the index <paramref name="i"/>
+                /// </summary>
+                /// <param name="i">The index</param>
+                /// <returns>Returns the index <paramref name="i"/></returns>
+                public int this[int i] => i;
+
+                /// <summary>
+                /// Returns 1
+                /// </summary>
+                /// <param name="i">The index</param>
+                /// <returns>Returns 1</returns>
+                public int this[string s] => 1;
+            }
+
+            public class Program
+            {
+                public static void Main()
+                {
+                    var c = new C();
+                    c.$$
+                }
+            }
+            """, "this", displayTextSuffix: "[]", expectedDescriptionOrNull: @$"int C.this[int i] {{ get; }} (+ 1 {FeaturesResources.overload})
 Returns the index i");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerOfBaseTypeIsSuggestedAfterDot()
-        {
-            await VerifyItemExistsAsync(@"
-public class Base
-{
-    public int this[int i] => i;
-}
-public class Derived : Base
-{
-}
-
-public class Program
-{
-    public static void Main()
-    {
-        var d = new Derived();
-        d.$$
     }
-}
-", "this", displayTextSuffix: "[]");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerOfBaseTypeIsNotSuggestedIfNotAccessible()
-        {
-            await VerifyNoItemsExistAsync(@"
-public class Base
-{
-    protected int this[int i] => i;
-}
-public class Derived : Base
-{
-}
-
-public class Program
-{
-    public static void Main()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerOfBaseTypeIsSuggestedAfterDot()
     {
-        var d = new Derived();
-        d.$$
-    }
-}
-");
-        }
+        await VerifyItemExistsAsync("""
+            public class Base
+            {
+                public int this[int i] => i;
+            }
+            public class Derived : Base
+            {
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerIsSuggestedOnString()
-        {
-            await VerifyItemExistsAsync(@"
-public class Program
-{
-    public static void Main()
+            public class Program
+            {
+                public static void Main()
+                {
+                    var d = new Derived();
+                    d.$$
+                }
+            }
+            """, "this", displayTextSuffix: "[]");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerOfBaseTypeIsNotSuggestedIfNotAccessible()
     {
-        var s = ""Test"";
-        s.$$
-    }
-}
-", "this", displayTextSuffix: "[]");
-        }
+        await VerifyNoItemsExistAsync("""
+            public class Base
+            {
+                protected int this[int i] => i;
+            }
+            public class Derived : Base
+            {
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever()
-        {
-            var markup = @"
-namespace N
-{
-    public class Program
+            public class Program
+            {
+                public static void Main()
+                {
+                    var d = new Derived();
+                    d.$$
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerIsSuggestedOnString()
     {
-        public static void Main()
-        {
-            var c = new C();
-            c.$$
-        }
+        await VerifyItemExistsAsync("""
+            public class Program
+            {
+                public static void Main()
+                {
+                    var s = "Test";
+                    s.$$
+                }
+            }
+            """, "this", displayTextSuffix: "[]");
     }
-}
-";
-            var referencedCode = @"
-using System.ComponentModel;
 
-namespace N
-{
-    public class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever()
     {
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public int this[int i] => i;
+        var markup = """
+            namespace N
+            {
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$
+                    }
+                }
+            }
+            """;
+        var referencedCode = """
+            using System.ComponentModel;
+
+            namespace N
+            {
+                public class C
+                {
+                    [EditorBrowsable(EditorBrowsableState.Never)]
+                    public int this[int i] => i;
+                }
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "this",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
-}
-";
 
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode,
-                item: "this",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 0,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateAdvanced()
-        {
-            var markup = @"
-namespace N
-{
-    public class Program
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateAdvanced()
     {
-        public static void Main()
-        {
-            var c = new C();
-            c.$$
-        }
-    }
-}
-";
-            var referencedCode = @"
-using System.ComponentModel;
+        var markup = """
+            namespace N
+            {
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c.$$
+                    }
+                }
+            }
+            """;
+        var referencedCode = """
+            using System.ComponentModel;
 
-namespace N
-{
-    public class C
+            namespace N
+            {
+                public class C
+                {
+                    [EditorBrowsable(EditorBrowsableState.Advanced)]
+                    public int this[int i] => i;
+                }
+            }
+            """;
+        HideAdvancedMembers = true;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "this",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+
+        HideAdvancedMembers = false;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "this",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 1,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever_InheritedMember()
     {
-        [EditorBrowsable(EditorBrowsableState.Advanced)]
-        public int this[int i] => i;
+        var markup = """
+            namespace N
+            {
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var d = new Derived();
+                        d.$$
+                    }
+                }
+            }
+            """;
+        var referencedCode = """
+            using System.ComponentModel;
+
+            namespace N
+            {
+                public class Base
+                {
+                    [EditorBrowsable(EditorBrowsableState.Never)]
+                    public int this[int i] => i;
+                }
+
+                public class Derived: Base
+                {
+                }
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "this",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
     }
-}
-";
-            HideAdvancedMembers = true;
 
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode,
-                item: "this",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 0,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp);
-
-            HideAdvancedMembers = false;
-
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode,
-                item: "this",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 1,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task TestEditorBrowsableOnIndexerIsRespected_EditorBrowsableStateNever_InheritedMember()
-        {
-            var markup = @"
-namespace N
-{
-    public class Program
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/47511")]
+    public async Task IndexerNullForgivingOperatorHandling()
     {
-        public static void Main()
-        {
-            var d = new Derived();
-            d.$$
-        }
-    }
-}
-";
-            var referencedCode = @"
-using System.ComponentModel;
+        await VerifyCustomCommitProviderAsync("""
+            #nullable enable
 
-namespace N
-{
-    public class Base
-    {
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public int this[int i] => i;
-    }
-    
-    public class Derived: Base
-    {
-    }
-}
-";
+            public class C
+            {
+                public int this[int i] => i;
+            }
 
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode,
-                item: "this",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 0,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp);
-        }
+            public class Program
+            {
+                public static void Main()
+                {
+                    C? c = null;
+                    var i = c!.$$
+                }
+            }
+            """, "this", """
+            #nullable enable
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        [WorkItem(47511, "https://github.com/dotnet/roslyn/issues/47511")]
-        public async Task IndexerNullForgivingOperatorHandling()
-        {
-            await VerifyCustomCommitProviderAsync(@"
-#nullable enable
+            public class C
+            {
+                public int this[int i] => i;
+            }
 
-public class C
-{
-    public int this[int i] => i;
-}
-
-public class Program
-{
-    public static void Main()
-    {
-        C? c = null;
-        var i = c!.$$
-    }
-}
-", "this", @"
-#nullable enable
-
-public class C
-{
-    public int this[int i] => i;
-}
-
-public class Program
-{
-    public static void Main()
-    {
-        C? c = null;
-        var i = c![$$]
-    }
-}
-");
-        }
+            public class Program
+            {
+                public static void Main()
+                {
+                    C? c = null;
+                    var i = c![$$]
+                }
+            }
+            """);
     }
 }

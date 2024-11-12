@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // we have this immutable struct which maintains the map. If the mapping is
         // trivial then no array is ever allocated.
 
-        private struct ParameterMap
+        private readonly struct ParameterMap
         {
             private readonly int[] _parameters;
             private readonly int _length;
@@ -85,13 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool seenNamedParams = false;
             bool seenOutOfPositionNamedArgument = false;
-            bool isValidParams = IsValidParams(symbol);
             for (int argumentPosition = 0; argumentPosition < argumentCount; ++argumentPosition)
             {
                 // We use -1 as a sentinel to mean that no parameter was found that corresponded to this argument.
                 bool isNamedArgument;
                 int parameterPosition = CorrespondsToAnyParameter(parameters, expanded, arguments, argumentPosition,
-                    isValidParams, isVararg, out isNamedArgument, ref seenNamedParams, ref seenOutOfPositionNamedArgument) ?? -1;
+                    isVararg, out isNamedArgument, ref seenNamedParams, ref seenOutOfPositionNamedArgument) ?? -1;
 
                 if (parameterPosition == -1 && unmatchedArgumentIndex == null)
                 {
@@ -134,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
 
-            int? badNonTrailingNamedArgument = CheckForBadNonTrailingNamedArgument(arguments, argsToParameters, parameters);
+            int? badNonTrailingNamedArgument = CheckForBadNonTrailingNamedArgument(arguments, argsToParameters);
             if (badNonTrailingNamedArgument != null)
             {
                 return ArgumentAnalysisResult.BadNonTrailingNamedArgument(badNonTrailingNamedArgument.Value);
@@ -192,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArgumentAnalysisResult.NormalForm(argsToParameters.ToImmutableArray());
         }
 
-        private static int? CheckForBadNonTrailingNamedArgument(AnalyzedArguments arguments, ParameterMap argsToParameters, ImmutableArray<ParameterSymbol> parameters)
+        private static int? CheckForBadNonTrailingNamedArgument(AnalyzedArguments arguments, ParameterMap argsToParameters)
         {
             // Is there any named argument used out-of-position and followed by unnamed arguments?
 
@@ -235,7 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             AnalyzedArguments arguments,
             int argumentPosition,
-            bool isValidParams,
             bool isVararg,
             out bool isNamedArgument,
             ref bool seenNamedParams,
@@ -278,6 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (seenNamedParams)
                 {
                     // Unnamed arguments after a named argument corresponding to a params parameter cannot correspond to any parameters
+                    Debug.Assert(expanded);
                     return null;
                 }
 
@@ -320,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // _any_ parameter (not just the parameters past the point of positional arguments)
                     if (memberParameters[p].Name == name)
                     {
-                        if (isValidParams && p == memberParameters.Length - 1)
+                        if (expanded && p == memberParameters.Length - 1)
                         {
                             seenNamedParams = true;
                         }
@@ -485,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static int? CheckForDuplicateNamedArgument(AnalyzedArguments arguments)
         {
-            if (arguments.Names.IsEmpty())
+            if (arguments.Names.IsEmpty)
             {
                 // No checks if there are no named arguments
                 return null;

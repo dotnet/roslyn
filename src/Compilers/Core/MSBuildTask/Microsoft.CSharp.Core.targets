@@ -21,6 +21,18 @@
     <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '6.0' AND
                                          '$(_MaxSupportedLangVersion)' == ''">10.0</_MaxSupportedLangVersion>
 
+    <!-- .NETCoreApp == 7.0 -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '7.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">11.0</_MaxSupportedLangVersion>
+
+    <!-- .NETCoreApp == 8.0 -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '8.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">12.0</_MaxSupportedLangVersion>
+
+    <!-- .NETCoreApp == 9.0 -->
+    <_MaxSupportedLangVersion Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' == '9.0' AND
+                                         '$(_MaxSupportedLangVersion)' == ''">13.0</_MaxSupportedLangVersion>
+
     <MaxSupportedLangVersion>$(_MaxSupportedLangVersion)</MaxSupportedLangVersion>
     <LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>
   </PropertyGroup>
@@ -41,7 +53,9 @@
                   $(ResolvedCodeAnalysisRuleSet);
                   @(AdditionalFiles);
                   @(EmbeddedFiles);
-                  @(EditorConfigFiles)"
+                  @(Analyzer);
+                  @(EditorConfigFiles);
+                  $(SourceLink)"
           Outputs="@(DocFileItem);
                    @(IntermediateAssembly);
                    @(IntermediateRefAssembly);
@@ -99,6 +113,8 @@
          ErrorLog="$(ErrorLog)"
          ErrorReport="$(ErrorReport)"
          Features="$(Features)"
+         InterceptorsNamespaces="$(InterceptorsNamespaces)"
+         InterceptorsPreviewNamespaces="$(InterceptorsPreviewNamespaces)"
          FileAlignment="$(FileAlignment)"
          GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
          GenerateFullPaths="$(GenerateFullPaths)"
@@ -124,10 +140,12 @@
          Platform="$(PlatformTarget)"
          Prefer32Bit="$(Prefer32Bit)"
          PreferredUILang="$(PreferredUILang)"
+         ProjectName="$(MSBuildProjectName)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
          References="@(ReferencePathWithRefAssemblies)"
          RefOnly="$(ProduceOnlyReferenceAssembly)"
          ReportAnalyzer="$(ReportAnalyzer)"
+         ReportIVTs="$(ReportIVTs)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
          ResponseFiles="$(CompilerResponseFile)"
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
@@ -137,6 +155,7 @@
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"
          TargetType="$(OutputType)"
+         TargetFramework="$(TargetFramework)"
          ToolExe="$(CscToolExe)"
          ToolPath="$(CscToolPath)"
          TreatWarningsAsErrors="$(TreatWarningsAsErrors)"
@@ -161,4 +180,28 @@
 
     <CallTarget Targets="$(TargetsTriggeredByCompilation)" Condition="'$(TargetsTriggeredByCompilation)' != ''" />
   </Target>
+
+  <!-- When we load a project in Visual Studio, the project system first does an evaluation pass of the
+       project, and hands the resulting list of <Compile> items to the language service. It then does an
+       execution pass executing CoreCompile passing SkipCompilerExecution=true and ProvideCommandLineArgs=true,
+       that resulting command line string is where we get our compiler switches. The execution pass is much
+       slower than the evaluation pass, so there's a window of time where we have a list of files, but not
+       any options yet.
+
+       Because there's a gap, that means there's a time where we are parsing source files with the default
+       parse options. We'll then have to reparse them a second time which isn't great. It also means any
+       cache lookups we do won't have the right options either, so the cache lookups might miss.
+
+       To help this, we'll have properties for the evaluation pass which is an "approximation" of the
+       options that would come out of CoreCompile, but only the ones that are required to be specified
+       and we don't expect them to change after evaluation phase or those that matter for parsing.
+
+       It's acceptable for the options that affect parsing to be imperfect: once the execution pass is complete we'll use those options instead,
+       so any behaviors here that don't match the real command line generation will only be temporary, and
+       probably won't be any worse than having no options at all. -->
+  <PropertyGroup>
+    <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(DefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(DefineConstants)</CommandLineArgsForDesignTimeEvaluation>
+  </PropertyGroup>
 </Project>

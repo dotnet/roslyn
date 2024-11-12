@@ -65,7 +65,7 @@ Friend Module Extensions
         Dim lastContainer As NamespaceOrTypeSymbol = Nothing
         Dim members = GetMembers(container, qualifiedName, lastContainer)
         If members.Length = 0 Then
-            Assert.True(False, "Available members:" & vbCrLf + String.Join(vbCrLf, lastContainer.GetMembers()))
+            Return Nothing
         ElseIf members.Length > 1 Then
             Assert.True(False, "Found multiple members of specified name:" & vbCrLf + String.Join(vbCrLf, members))
         End If
@@ -147,7 +147,7 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetAttributes(this As Symbol, description As AttributeDescription) As IEnumerable(Of VisualBasicAttributeData)
-        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(this, description))
+        Return this.GetAttributes().Where(Function(a) a.IsTargetAttribute(description))
     End Function
 
     <Extension>
@@ -323,7 +323,7 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Function Parameters(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
+    Friend Function ParameterSymbols(this As IMethodSymbolInternal) As ImmutableArray(Of ParameterSymbol)
         Return DirectCast(this, MethodSymbol).Parameters
     End Function
 
@@ -344,12 +344,12 @@ Friend Module Extensions
 
     <Extension>
     Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol) As MethodSymbol
-        Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+        Return this.ReduceExtensionMethod(instanceType, CompoundUseSiteInfo(Of AssemblySymbol).Discarded, LanguageVersion.Latest)
     End Function
 
     <Extension>
     Friend Function ReduceExtensionMethod(this As MethodSymbol, instanceType As TypeSymbol, proximity As Integer) As MethodSymbol
-        Return this.ReduceExtensionMethod(instanceType, proximity, CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
+        Return this.ReduceExtensionMethod(instanceType, proximity, CompoundUseSiteInfo(Of AssemblySymbol).Discarded, LanguageVersion.Latest)
     End Function
 
     <Extension>
@@ -358,7 +358,7 @@ Friend Module Extensions
     End Function
 
     <Extension>
-    Friend Sub Verify(this As ImmutableBindingDiagnostic(Of AssemblySymbol), ParamArray expected As DiagnosticDescription())
+    Friend Sub Verify(this As ReadOnlyBindingDiagnostic(Of AssemblySymbol), ParamArray expected As DiagnosticDescription())
         this.Diagnostics.Verify(expected)
     End Sub
 
@@ -415,7 +415,11 @@ Friend Module Extensions
 
     <Extension>
     Friend Function GetBoundMethodBody(this As MethodSymbol, compilationState As TypeCompilationState, diagnostics As DiagnosticBag, <Out()> Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
-        Return this.GetBoundMethodBody(compilationState, New BindingDiagnosticBag(diagnostics), methodBodyBinder)
+        Dim builder = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
+        Dim result = this.GetBoundMethodBody(compilationState, builder, methodBodyBinder)
+        diagnostics.AddRange(builder.DiagnosticBag)
+        builder.Free()
+        Return result
     End Function
 
 End Module

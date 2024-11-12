@@ -35,9 +35,10 @@ namespace IOperationGenerator
             _typeMap.Add("IOperation", null);
         }
 
-        public static void Write(Tree tree, string location)
+        /// <summary>Returns true for success</summary>
+        public static bool Write(Tree tree, string location)
         {
-            new IOperationClassWriter(tree, location).WriteFiles();
+            return new IOperationClassWriter(tree, location).WriteFiles();
         }
 
         #region Writing helpers
@@ -90,12 +91,13 @@ namespace IOperationGenerator
         }
         #endregion
 
-        private void WriteFiles()
+        /// <summary>Returns true for success</summary>
+        private bool WriteFiles()
         {
             if (ModelHasErrors(_tree))
             {
                 Console.WriteLine("Encountered xml errors, not generating");
-                return;
+                return false;
             }
 
             foreach (var grouping in _tree.Types.OfType<AbstractNode>().GroupBy(n => n.Namespace))
@@ -171,6 +173,8 @@ namespace IOperationGenerator
                 WriteEndNamespace();
             }
 
+            return true;
+
             void writeHeader()
             {
                 WriteLine("// Licensed to the .NET Foundation under one or more agreements.");
@@ -239,7 +243,7 @@ namespace IOperationGenerator
                 {
                     WriteLine($"/// <{el.LocalName}>");
 
-                    string[] separators = new[] { "\r", "\n", "\r\n" };
+                    string[] separators = ["\r", "\n", "\r\n"];
                     string[] lines = el.InnerXml.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
                     int indentation = lines[0].Length - lines[0].TrimStart().Length;
@@ -288,7 +292,7 @@ namespace IOperationGenerator
 
         private void WriteInterfaceProperty(Property prop)
         {
-            if (prop.IsInternal)
+            if (prop.IsInternal || prop.IsOverride)
                 return;
             WriteComments(prop.Comments, operationKinds: Enumerable.Empty<string>(), writeReservedRemark: false);
             var modifiers = prop.IsNew ? "new " : "";
@@ -567,9 +571,9 @@ namespace IOperationGenerator
                             }
                             else
                             {
-                                var initializer = IsIOperationType(prop.Type) ?
-                                    $"SetParentOperation({prop.Name.ToCamelCase()}, this)" :
-                                    prop.Name.ToCamelCase();
+                                var initializer = IsIOperationType(prop.Type)
+                                    ? $"SetParentOperation({prop.Name.ToCamelCase()}, this)"
+                                    : prop.Name.ToCamelCase();
                                 WriteLine($"{prop.Name} = {initializer};");
                             }
                         }
@@ -627,6 +631,10 @@ namespace IOperationGenerator
                     }
                     else
                     {
+                        if (prop.IsOverride)
+                        {
+                            propExtensibility += "override ";
+                        }
                         WriteLine($"public {propExtensibility}{prop.Type} {prop.Name} {{ get; }}");
                     }
                 }
@@ -931,7 +939,7 @@ namespace IOperationGenerator
             WriteLine("public OperationCloner() { }");
             WriteLine(@"[return: NotNullIfNotNull(""node"")]");
             WriteLine("private T? Visit<T>(T? node) where T : IOperation? => (T?)Visit(node, argument: null);");
-            WriteLine("public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;");
+            WriteLine("public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable();");
             WriteLine("private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this)!;");
             WriteLine("private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this)!;");
 

@@ -19,6 +19,12 @@ usage()
   echo "Actions:"
   echo "  --restore                  Restore dependencies (short: -r)"
   echo "  --build                    Build solution (short: -b)"
+  echo "  --sourceBuild              Source-build the solution (short: -sb)"
+  echo "                             Will additionally trigger the following actions: --restore, --build, --pack"
+  echo "                             If --configuration is not set explicitly, will also set it to 'Release'"
+  echo "  --productBuild             Build the solution in the way it will be built in the full .NET product (VMR) build (short: -pb)"
+  echo "                             Will additionally trigger the following actions: --restore, --build, --pack"
+  echo "                             If --configuration is not set explicitly, will also set it to 'Release'"
   echo "  --rebuild                  Rebuild solution"
   echo "  --test                     Run all unit tests in the solution (short: -t)"
   echo "  --integrationTest          Run all integration tests in the solution"
@@ -55,6 +61,8 @@ scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
 
 restore=false
 build=false
+source_build=false
+product_build=false
 rebuild=false
 test=false
 integration_test=false
@@ -73,7 +81,7 @@ exclude_ci_binary_log=false
 pipelines_log=false
 
 projects=''
-configuration='Debug'
+configuration=''
 prepare_machine=false
 verbosity='minimal'
 runtime_source_feed=''
@@ -101,7 +109,7 @@ while [[ $# > 0 ]]; do
     -binarylog|-bl)
       binary_log=true
       ;;
-    -excludeCIBinarylog|-nobl)
+    -excludecibinarylog|-nobl)
       exclude_ci_binary_log=true
       ;;
     -pipelineslog|-pl)
@@ -117,6 +125,19 @@ while [[ $# > 0 ]]; do
       rebuild=true
       ;;
     -pack)
+      pack=true
+      ;;
+    -sourcebuild|-sb)
+      build=true
+      source_build=true
+      product_build=true
+      restore=true
+      pack=true
+      ;;
+    -productBuild|-pb)
+      build=true
+      product_build=true
+      restore=true
       pack=true
       ;;
     -test|-t)
@@ -168,6 +189,10 @@ while [[ $# > 0 ]]; do
   shift
 done
 
+if [[ -z "$configuration" ]]; then
+  if [[ "$source_build" = true ]]; then configuration="Release"; else configuration="Debug"; fi
+fi
+
 if [[ "$ci" == true ]]; then
   pipelines_log=true
   node_reuse=false
@@ -205,6 +230,9 @@ function Build {
     /p:RepoRoot="$repo_root" \
     /p:Restore=$restore \
     /p:Build=$build \
+    /p:DotNetBuildRepo=$product_build \
+    /p:ArcadeBuildFromSource=$source_build \
+    /p:DotNetBuildSourceOnly=$source_build \
     /p:Rebuild=$rebuild \
     /p:Test=$test \
     /p:Pack=$pack \

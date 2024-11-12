@@ -7,42 +7,34 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
-using System.Runtime;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.ServiceHub.Framework;
 using Nerdbank.Streams;
 using Roslyn.Utilities;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
 {
     internal sealed partial class InProcRemoteHostClient : RemoteHostClient
     {
-        private readonly HostWorkspaceServices _workspaceServices;
+        private readonly SolutionServices _workspaceServices;
         private readonly InProcRemoteServices _inprocServices;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
 
-        public static RemoteHostClient Create(HostWorkspaceServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers, TraceListener? traceListener, RemoteHostTestData testData)
+        public static RemoteHostClient Create(SolutionServices services, RemoteServiceCallbackDispatcherRegistry callbackDispatchers, TraceListener? traceListener, RemoteHostTestData testData)
         {
             var inprocServices = new InProcRemoteServices(services, traceListener, testData);
             var instance = new InProcRemoteHostClient(services, inprocServices, callbackDispatchers);
-
-            instance.Started();
 
             // return instance
             return instance;
         }
 
         private InProcRemoteHostClient(
-            HostWorkspaceServices services,
+            SolutionServices services,
             InProcRemoteServices inprocServices,
             RemoteServiceCallbackDispatcherRegistry callbackDispatchers)
         {
@@ -65,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
         {
-            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), RemoteProcessConfiguration.ServerGC | (ServiceDescriptors.IsCurrentProcessRunningOnCoreClr() ? RemoteProcessConfiguration.Core : 0));
+            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), RemoteProcessConfiguration.ServerGC);
             var callbackDispatcher = (descriptor.ClientInterface != null) ? _callbackDispatchers.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(
@@ -75,14 +67,13 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 _inprocServices.ServiceBrokerClient,
                 _workspaceServices.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage,
                 _workspaceServices.GetRequiredService<IErrorReportingService>(),
-                shutdownCancellationService: null);
+                shutdownCancellationService: null,
+                remoteProcess: null);
         }
 
         public override void Dispose()
         {
             _inprocServices.Dispose();
-
-            base.Dispose();
         }
 
         public sealed class ServiceProvider : IServiceProvider
@@ -125,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
             // This method is currently not needed for our IServiceBroker usage patterns.
             public ValueTask<IDuplexPipe?> GetPipeAsync(ServiceMoniker serviceMoniker, ServiceActivationOptions options, CancellationToken cancellationToken)
-                => throw ExceptionUtilities.Unreachable;
+                => throw ExceptionUtilities.Unreachable();
 
             public ValueTask<T?> GetProxyAsync<T>(ServiceRpcDescriptor descriptor, ServiceActivationOptions options, CancellationToken cancellationToken) where T : class
             {
@@ -161,17 +152,17 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
         private sealed class InProcRemoteServices : IDisposable
         {
             public readonly ServiceProvider ServiceProvider;
-            private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = new();
-            private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.IFactory> _remoteBrokeredServicesMap = new();
+            private readonly Dictionary<ServiceMoniker, Func<object>> _inProcBrokeredServicesMap = [];
+            private readonly Dictionary<ServiceMoniker, BrokeredServiceBase.IFactory> _remoteBrokeredServicesMap = [];
 
             public readonly IServiceBroker ServiceBroker;
             public readonly ServiceBrokerClient ServiceBrokerClient;
 
-            public InProcRemoteServices(HostWorkspaceServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
+            public InProcRemoteServices(SolutionServices workspaceServices, TraceListener? traceListener, RemoteHostTestData testData)
             {
                 var remoteLogger = new TraceSource("InProcRemoteClient")
                 {
-                    Switch = { Level = SourceLevels.Verbose },
+                    Switch = { Level = SourceLevels.Warning },
                 };
 
                 if (traceListener != null)
@@ -189,31 +180,36 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 RegisterInProcBrokeredService(SolutionAssetProvider.ServiceDescriptor, () => new SolutionAssetProvider(workspaceServices));
                 RegisterRemoteBrokeredService(new RemoteAssetSynchronizationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteAsynchronousOperationListenerService.Factory());
-                RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteProjectTelemetryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteTodoCommentsDiscoveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());
-                RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDocumentHighlightsService.Factory());
-                RegisterRemoteBrokeredService(new RemoteEncapsulateFieldService.Factory());
-                RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
+                RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
                 RegisterRemoteBrokeredService(new RemoteConvertTupleToStructCodeRefactoringService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDesignerAttributeDiscoveryService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDiagnosticAnalyzerService.Factory());
+                RegisterRemoteBrokeredService(new RemoteDocumentHighlightsService.Factory());
+                RegisterRemoteBrokeredService(new RemoteEditAndContinueService.Factory());
+                RegisterRemoteBrokeredService(new RemoteEncapsulateFieldService.Factory());
+                RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
                 RegisterRemoteBrokeredService(new RemoteFindUsagesService.Factory());
-                RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
+                RegisterRemoteBrokeredService(new RemoteFullyQualifyService.Factory());
+                RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
+                RegisterRemoteBrokeredService(new RemoteKeepAliveService.Factory());
+                RegisterRemoteBrokeredService(new RemoteLegacySolutionEventsAggregationService.Factory());
+                RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigateToSearchService.Factory());
                 RegisterRemoteBrokeredService(new RemoteNavigationBarItemService.Factory());
-                RegisterRemoteBrokeredService(new RemoteMissingImportDiscoveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteExtensionMethodImportCompletionService.Factory());
-                RegisterRemoteBrokeredService(new RemoteDependentTypeFinderService.Factory());
-                RegisterRemoteBrokeredService(new RemoteGlobalNotificationDeliveryService.Factory());
-                RegisterRemoteBrokeredService(new RemoteCodeLensReferencesService.Factory());
-                RegisterRemoteBrokeredService(new RemoteEditAndContinueService.Factory());
-                RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
-                RegisterRemoteBrokeredService(new RemoteInheritanceMarginService.Factory());
-                RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
-                RegisterRemoteBrokeredService(new RemoteCompilationAvailableService.Factory());
+                RegisterRemoteBrokeredService(new RemoteProcessTelemetryService.Factory());
+                RegisterRemoteBrokeredService(new RemoteRelatedDocumentsService.Factory());
+                RegisterRemoteBrokeredService(new RemoteRenamerService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSemanticClassificationService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSemanticSearchService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSourceGenerationService.Factory());
                 RegisterRemoteBrokeredService(new RemoteStackTraceExplorerService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSymbolFinderService.Factory());
+                RegisterRemoteBrokeredService(new RemoteSymbolSearchUpdateService.Factory());
+                RegisterRemoteBrokeredService(new RemoteTaskListService.Factory());
+                RegisterRemoteBrokeredService(new RemoteUnitTestingSearchService.Factory());
+                RegisterRemoteBrokeredService(new RemoteUnusedReferenceAnalysisService.Factory());
+                RegisterRemoteBrokeredService(new RemoteValueTrackingService.Factory());
             }
 
             public void Dispose()
@@ -308,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
                 public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => _stream.ReadAsync(buffer, offset, count, cancellationToken);
                 public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => _stream.WriteAsync(buffer, offset, count, cancellationToken);
 
-#if NETCOREAPP // nullability annotations differ
+#if NET // nullability annotations differ
                 public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state) => _stream.BeginRead(buffer, offset, count, callback, state);
                 public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state) => _stream.BeginWrite(buffer, offset, count, callback, state);
 #else

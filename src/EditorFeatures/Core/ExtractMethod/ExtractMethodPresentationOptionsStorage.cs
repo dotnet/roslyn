@@ -2,20 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.ExtractMethod
+namespace Microsoft.CodeAnalysis.ExtractMethod;
+
+internal static class ExtractMethodPresentationOptionsStorage
 {
-    internal static class ExtractMethodPresentationOptionsStorage
-    {
-        private const string FeatureName = "ExtractMethodOptions";
-
-        public static readonly PerLanguageOption2<bool> AllowBestEffort = new(FeatureName, "AllowBestEffort", defaultValue: true,
-            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Allow Best Effort"));
-    }
+    // Deprecated.  Never exposed in the UI to users in any way.  Kept around to still support automation
+    // getting/setting our storage values from the user's profile.
+    public static readonly PerLanguageOption2<bool> AllowBestEffort = new("dotnet_allow_best_effort_when_extracting_method", defaultValue: true);
 }

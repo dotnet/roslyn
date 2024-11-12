@@ -29,8 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Variáveis reatribuídas de sublinhado; Exibir as dicas embutidas;Inserção automática de constructos finais;Alterar as configurações de reformatação automática;Alterar o modo de estrutura de tópicos;Inserção automática dos membros Interface e MustOverride;Mostrar ou ocultar os separadores de linha de procedimento;Ativar ou desativar as sugestões para correção de erros;Ativar ou desativar o realce de referências e palavras-chave;Regex;Colorir as expressões regulares;Realçar os componentes relacionados sob o cursor;Relatar as expressões regulares inválidas;regex;expressão regular;Usar cores avançadas;Esquema de Cores do Editor;Margem de herança;Diretivas de importação;</target>
+        <target state="translated">Sublinhar variáveis reatribuídas;Exibir dicas incorporadas;Inserção automática de construtores finais;Alterar as configurações de reformatação automática;Alterar o modo de estrutura de tópicos;Inserção automática de interface e membros MustOverride;Mostrar ou ocultar separadores de linha de procedimento;Ativar ou desativar as sugestões de correção de erros;Ativar ou desativar o realce de referências e palavras-chave;
+Regex; 
+expressões regulares;
+componentes relacionados sob o cursor;
+Notificar expressões regulares inválidas;
+regex;
+expressões regulares;
+JSON;
+Colorizar cadeias de caracteres JSON;
+Notificar cadeias de caracteres JSON inválidas;
+Detectar e oferecer recursos de editor para cadeia de caracteres JSON;
+Recolher #regions do arquivo aberto;
+Recolher inportações do arquivo aberto;
+Recolher implementações de metadados do arquivo aberto;
+Usar cores aprimoradas;Esquema de Cores do Editor;Margem de Herança;Importar Diretivas;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -113,14 +130,34 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</s
         <target state="translated">Ferramentas do Visual Basic</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Um arquivo de script vazio do Visual Basic.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Sempre adicionar uma nova linha ao pressionar enter</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Script do Visual Basic</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Sempre incluir snippets</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Incluir snippets quando ?-Tab for digitado após um identificador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Nunca adicionar uma nova linha ao entrar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Nunca incluir snippets</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Somente adiciona uma nova linha após digitar toda palavra</target>
         <note />
       </trans-unit>
     </body>

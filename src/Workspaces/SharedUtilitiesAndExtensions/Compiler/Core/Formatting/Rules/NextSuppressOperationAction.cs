@@ -4,46 +4,33 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting.Rules
+namespace Microsoft.CodeAnalysis.Formatting.Rules;
+
+[NonDefaultable]
+internal readonly struct NextSuppressOperationAction(
+    ImmutableArray<AbstractFormattingRule> formattingRules,
+    int index,
+    SyntaxNode node,
+    ArrayBuilder<SuppressOperation> list)
 {
-    [NonDefaultable]
-    internal readonly struct NextSuppressOperationAction
+    private NextSuppressOperationAction NextAction
+        => new(formattingRules, index + 1, node, list);
+
+    public void Invoke()
     {
-        private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly int _index;
-        private readonly SyntaxNode _node;
-        private readonly List<SuppressOperation> _list;
-
-        public NextSuppressOperationAction(
-            ImmutableArray<AbstractFormattingRule> formattingRules,
-            int index,
-            SyntaxNode node,
-            List<SuppressOperation> list)
+        // If we have no remaining handlers to execute, then we'll execute our last handler
+        if (index >= formattingRules.Length)
         {
-            _formattingRules = formattingRules;
-            _index = index;
-            _node = node;
-            _list = list;
+            return;
         }
-
-        private NextSuppressOperationAction NextAction
-            => new(_formattingRules, _index + 1, _node, _list);
-
-        public void Invoke()
+        else
         {
-            // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (_index >= _formattingRules.Length)
-            {
-                return;
-            }
-            else
-            {
-                // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                _formattingRules[_index].AddSuppressOperations(_list, _node, NextAction);
-                return;
-            }
+            // Call the handler at the index, passing a continuation that will come back to here with index + 1
+            formattingRules[index].AddSuppressOperations(list, node, NextAction);
+            return;
         }
     }
 }

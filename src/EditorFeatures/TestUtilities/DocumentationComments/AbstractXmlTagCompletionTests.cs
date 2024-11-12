@@ -7,7 +7,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -21,31 +20,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     [UseExportProvider]
     public abstract class AbstractXmlTagCompletionTests
     {
-        internal abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(TestWorkspace testWorkspace);
-        protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
+        private protected abstract IChainedCommandHandler<TypeCharCommandArgs> CreateCommandHandler(EditorTestWorkspace testWorkspace);
+        private protected abstract EditorTestWorkspace CreateTestWorkspace(string initialMarkup);
 
         public void Verify(string initialMarkup, string expectedMarkup, char typeChar)
         {
-            using (var workspace = CreateTestWorkspace(initialMarkup))
-            {
-                var testDocument = workspace.Documents.Single();
-                var view = testDocument.GetTextView();
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+            using var workspace = CreateTestWorkspace(initialMarkup);
 
-                var commandHandler = CreateCommandHandler(workspace);
+            var testDocument = workspace.Documents.Single();
+            var view = testDocument.GetTextView();
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
 
-                var args = new TypeCharCommandArgs(view, view.TextBuffer, typeChar);
-                var nextHandler = CreateInsertTextHandler(view, typeChar.ToString());
+            var commandHandler = CreateCommandHandler(workspace);
 
-                commandHandler.ExecuteCommand(args, nextHandler, TestCommandExecutionContext.Create());
-                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
+            var args = new TypeCharCommandArgs(view, view.TextBuffer, typeChar);
+            var nextHandler = CreateInsertTextHandler(view, typeChar.ToString());
 
-                Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+            commandHandler.ExecuteCommand(args, nextHandler, TestCommandExecutionContext.Create());
+            MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
 
-                var caretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == caretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
-            }
+            Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+
+            var caretPosition = view.Caret.Position.BufferPosition.Position;
+            Assert.True(expectedPosition == caretPosition,
+                string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
         }
 
         private static Action CreateInsertTextHandler(ITextView textView, string text)

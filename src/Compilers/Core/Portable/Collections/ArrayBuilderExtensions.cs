@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -241,8 +242,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-#nullable disable
-        public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>> getNested)
+        public static void FreeAll<T>(this ArrayBuilder<T> builder, Func<T, ArrayBuilder<T>?> getNested)
         {
             foreach (var item in builder)
             {
@@ -250,6 +250,44 @@ namespace Microsoft.CodeAnalysis
             }
             builder.Free();
         }
-#nullable enable
+
+#if COMPILERCORE
+
+        /// <summary>
+        /// Realizes the OneOrMany and disposes the builder in one operation.
+        /// </summary>
+        public static OneOrMany<T> ToOneOrManyAndFree<T>(this ArrayBuilder<T> builder)
+        {
+            if (builder.Count == 1)
+            {
+                var result = OneOrMany.Create(builder[0]);
+                builder.Free();
+                return result;
+            }
+            else
+            {
+                return OneOrMany.Create(builder.ToImmutableAndFree());
+            }
+        }
+
+#endif
+
+        public static void RemoveWhere<TItem, TArg>(this ArrayBuilder<TItem> builder, Func<TItem, int, TArg, bool> filter, TArg arg)
+        {
+            var writeIndex = 0;
+            for (var i = 0; i < builder.Count; i++)
+            {
+                var item = builder[i];
+                if (!filter(item, i, arg))
+                {
+                    if (writeIndex != i)
+                        builder[writeIndex] = item;
+
+                    writeIndex++;
+                }
+            }
+
+            builder.Count = writeIndex;
+        }
     }
 }

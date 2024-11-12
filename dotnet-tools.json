@@ -2,7 +2,7 @@
   "isRoot": true,
   "tools": {
     "dotnet-format": {
-      "version": "6.2.315104",
+      "version": "7.0.360304",
       "commands": [
         "dotnet-format"
       ]

@@ -81,14 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, node.Type, used);
+            return MakeStaticAssignmentOperator(node.Syntax, loweredLeft, loweredRight, node.IsRef, used);
         }
 
         /// <summary>
         /// Generates a lowered form of the assignment operator for the given left and right sub-expressions.
         /// Left and right sub-expressions must be in lowered form.
         /// </summary>
-        private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight, TypeSymbol type,
+        private BoundExpression MakeAssignmentOperator(SyntaxNode syntax, BoundExpression rewrittenLeft, BoundExpression rewrittenRight,
             bool used, bool isChecked, bool isCompoundAssignment)
         {
             switch (rewrittenLeft.Kind)
@@ -118,11 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(eventAccess.IsUsableAsField);
                     if (eventAccess.EventSymbol.IsWindowsRuntimeEvent)
                     {
-                        const bool isDynamic = false;
                         return RewriteWindowsRuntimeEventAssignmentOperator(eventAccess.Syntax,
                                                                             eventAccess.EventSymbol,
                                                                             EventAssignmentKind.Assignment,
-                                                                            isDynamic,
                                                                             eventAccess.ReceiverOpt,
                                                                             rewrittenRight);
                     }
@@ -131,10 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // - Assignment operation is not supported for custom (non-field like) events.
                     // - Access to regular field-like events is expected to be lowered to at least a field access
                     //   when we reach here.
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
 
                 default:
-                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, type: type, used: used);
+                    return MakeStaticAssignmentOperator(syntax, rewrittenLeft, rewrittenRight, isRef: false, used: used);
             }
         }
 
@@ -142,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDynamicIndexerAccess indexerAccess,
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             BoundExpression loweredRight,
             bool isCompoundAssignment = false,
@@ -170,7 +168,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenLeft,
             BoundExpression rewrittenRight,
             bool isRef,
-            TypeSymbol type,
             bool used)
         {
             switch (rewrittenLeft.Kind)
@@ -195,7 +192,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             false,
                             default(ImmutableArray<int>),
                             rewrittenRight,
-                            type,
                             used);
                     }
 
@@ -216,30 +212,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             indexerAccess.Expanded,
                             indexerAccess.ArgsToParamsOpt,
                             rewrittenRight,
-                            type,
                             used);
                     }
 
                 case BoundKind.Local:
-                    {
-                        Debug.Assert(!isRef || ((BoundLocal)rewrittenLeft).LocalSymbol.RefKind != RefKind.None);
-                        return new BoundAssignmentOperator(
-                            syntax,
-                            rewrittenLeft,
-                            rewrittenRight,
-                            type,
-                            isRef: isRef);
-                    }
-
                 case BoundKind.Parameter:
+                case BoundKind.FieldAccess:
                     {
                         Debug.Assert(!isRef || rewrittenLeft.GetRefKind() != RefKind.None);
-                        return new BoundAssignmentOperator(
+                        return _factory.AssignmentExpression(
                             syntax,
                             rewrittenLeft,
                             rewrittenRight,
-                            isRef,
-                            type);
+                            isRef);
                     }
 
                 case BoundKind.DiscardExpression:
@@ -263,25 +248,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 sequence.Value,
                                 rewrittenRight,
                                 isRef,
-                                type,
                                 used),
-                            type);
+                            sequence.Type);
                     }
                     goto default;
 
                 default:
                     {
                         Debug.Assert(!isRef);
-                        return new BoundAssignmentOperator(
+                        return _factory.AssignmentExpression(
                             syntax,
                             rewrittenLeft,
-                            rewrittenRight,
-                            type);
+                            rewrittenRight);
                     }
             }
         }
-
-#nullable enable
 
         private BoundExpression MakePropertyAssignment(
             SyntaxNode syntax,
@@ -292,7 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BoundExpression rewrittenRight,
-            TypeSymbol type,
             bool used)
         {
             // Rewrite property assignment into call to setter.
@@ -301,8 +281,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (setMethod is null)
             {
                 var autoProp = (SourcePropertySymbolBase)property.OriginalDefinition;
-                Debug.Assert(autoProp.IsAutoPropertyWithGetAccessor,
+                Debug.Assert(autoProp.IsAutoPropertyOrUsesFieldKeyword,
                     "only autoproperties can be assignable without having setters");
+                Debug.Assert(_factory.CurrentFunction.IsConstructor());
                 Debug.Assert(property.Equals(autoProp, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
                 var backingField = autoProp.BackingField;
@@ -311,16 +292,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenRight);
             }
 
-            arguments = VisitArguments(
+            ArrayBuilder<LocalSymbol>? argTempsBuilder = null;
+            arguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                ref rewrittenReceiver,
+                captureReceiverMode: ReceiverCaptureMode.Default,
                 arguments,
                 property,
                 argsToParamsOpt,
                 argumentRefKindsOpt,
-                ref rewrittenReceiver,
-                out ArrayBuilder<LocalSymbol>? argTempsBuilder);
+                storesOpt: null,
+                ref argTempsBuilder);
 
             arguments = MakeArguments(
-                syntax,
                 arguments,
                 property,
                 expanded,
@@ -352,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression setterCall = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
                     AppendToPossibleNull(arguments, rhsAssignment));
 
@@ -360,13 +344,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AppendToPossibleNull(argTemps, rhsTemp),
                     ImmutableArray.Create(setterCall),
                     boundRhs,
-                    type);
+                    rhsTemp.Type);
             }
             else
             {
                 BoundCall setterCall = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
+                    initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
                     AppendToPossibleNull(arguments, rewrittenRight));
 

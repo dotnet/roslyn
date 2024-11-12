@@ -2529,7 +2529,7 @@ End Module
     ]]></file>
 </compilation>, expectedOutput:="Success").VerifyIL("M1.Test", <![CDATA[
 {
-  // Code size      453 (0x1c5)
+  // Code size      398 (0x18e)
   .maxstack  3
   .locals init (Boolean V_0, //Bo
                 Object V_1, //Ob
@@ -2586,258 +2586,217 @@ End Module
   IL_004b:  ldc.i4.0
   IL_004c:  cgt.un
   IL_004e:  neg
-  IL_004f:  bne.un.s   IL_0062
+  IL_004f:  bne.un.s   IL_005f
   IL_0051:  ldarg.1
   IL_0052:  ldarg.1
   IL_0053:  ldind.u1
-  IL_0054:  brfalse.s  IL_005f
+  IL_0054:  brfalse.s  IL_005c
   IL_0056:  ldarg.0
-  IL_0057:  brfalse.s  IL_005c
-  IL_0059:  ldc.i4.0
-  IL_005a:  br.s       IL_0060
-  IL_005c:  ldc.i4.1
-  IL_005d:  br.s       IL_0060
-  IL_005f:  ldc.i4.0
-  IL_0060:  stind.i1
-  IL_0061:  ret
-  IL_0062:  ldloc.s    V_14
-  IL_0064:  box        "Integer"
-  IL_0069:  ldloc.1
-  IL_006a:  ldc.i4.0
-  IL_006b:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual(Object, Object, Boolean) As Boolean"
-  IL_0070:  brfalse.s  IL_0084
-  IL_0072:  ldarg.1
-  IL_0073:  ldarg.1
-  IL_0074:  ldind.u1
-  IL_0075:  brfalse.s  IL_0081
-  IL_0077:  ldarg.0
-  IL_0078:  ldc.i4.1
-  IL_0079:  beq.s      IL_007e
-  IL_007b:  ldc.i4.0
-  IL_007c:  br.s       IL_0082
-  IL_007e:  ldc.i4.1
-  IL_007f:  br.s       IL_0082
-  IL_0081:  ldc.i4.0
-  IL_0082:  stind.i1
-  IL_0083:  ret
-  IL_0084:  ldloc.s    V_14
-  IL_0086:  ldloc.2
-  IL_0087:  bne.un.s   IL_009b
-  IL_0089:  ldarg.1
-  IL_008a:  ldarg.1
-  IL_008b:  ldind.u1
-  IL_008c:  brfalse.s  IL_0098
-  IL_008e:  ldarg.0
-  IL_008f:  ldc.i4.2
-  IL_0090:  beq.s      IL_0095
-  IL_0092:  ldc.i4.0
-  IL_0093:  br.s       IL_0099
-  IL_0095:  ldc.i4.1
-  IL_0096:  br.s       IL_0099
-  IL_0098:  ldc.i4.0
-  IL_0099:  stind.i1
-  IL_009a:  ret
-  IL_009b:  ldloc.s    V_14
-  IL_009d:  ldloc.3
-  IL_009e:  bne.un.s   IL_00b2
-  IL_00a0:  ldarg.1
-  IL_00a1:  ldarg.1
-  IL_00a2:  ldind.u1
-  IL_00a3:  brfalse.s  IL_00af
-  IL_00a5:  ldarg.0
-  IL_00a6:  ldc.i4.3
-  IL_00a7:  beq.s      IL_00ac
-  IL_00a9:  ldc.i4.0
-  IL_00aa:  br.s       IL_00b0
-  IL_00ac:  ldc.i4.1
-  IL_00ad:  br.s       IL_00b0
-  IL_00af:  ldc.i4.0
-  IL_00b0:  stind.i1
-  IL_00b1:  ret
-  IL_00b2:  ldloc.s    V_14
-  IL_00b4:  ldloc.s    V_4
-  IL_00b6:  bne.un.s   IL_00ca
-  IL_00b8:  ldarg.1
-  IL_00b9:  ldarg.1
-  IL_00ba:  ldind.u1
-  IL_00bb:  brfalse.s  IL_00c7
-  IL_00bd:  ldarg.0
-  IL_00be:  ldc.i4.4
-  IL_00bf:  beq.s      IL_00c4
-  IL_00c1:  ldc.i4.0
-  IL_00c2:  br.s       IL_00c8
-  IL_00c4:  ldc.i4.1
-  IL_00c5:  br.s       IL_00c8
-  IL_00c7:  ldc.i4.0
-  IL_00c8:  stind.i1
-  IL_00c9:  ret
-  IL_00ca:  ldloc.s    V_14
-  IL_00cc:  ldloc.s    V_5
-  IL_00ce:  bne.un.s   IL_00e2
-  IL_00d0:  ldarg.1
+  IL_0057:  ldc.i4.0
+  IL_0058:  ceq
+  IL_005a:  br.s       IL_005d
+  IL_005c:  ldc.i4.0
+  IL_005d:  stind.i1
+  IL_005e:  ret
+  IL_005f:  ldloc.s    V_14
+  IL_0061:  box        "Integer"
+  IL_0066:  ldloc.1
+  IL_0067:  ldc.i4.0
+  IL_0068:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual(Object, Object, Boolean) As Boolean"
+  IL_006d:  brfalse.s  IL_007d
+  IL_006f:  ldarg.1
+  IL_0070:  ldarg.1
+  IL_0071:  ldind.u1
+  IL_0072:  brfalse.s  IL_007a
+  IL_0074:  ldarg.0
+  IL_0075:  ldc.i4.1
+  IL_0076:  ceq
+  IL_0078:  br.s       IL_007b
+  IL_007a:  ldc.i4.0
+  IL_007b:  stind.i1
+  IL_007c:  ret
+  IL_007d:  ldloc.s    V_14
+  IL_007f:  ldloc.2
+  IL_0080:  bne.un.s   IL_0090
+  IL_0082:  ldarg.1
+  IL_0083:  ldarg.1
+  IL_0084:  ldind.u1
+  IL_0085:  brfalse.s  IL_008d
+  IL_0087:  ldarg.0
+  IL_0088:  ldc.i4.2
+  IL_0089:  ceq
+  IL_008b:  br.s       IL_008e
+  IL_008d:  ldc.i4.0
+  IL_008e:  stind.i1
+  IL_008f:  ret
+  IL_0090:  ldloc.s    V_14
+  IL_0092:  ldloc.3
+  IL_0093:  bne.un.s   IL_00a3
+  IL_0095:  ldarg.1
+  IL_0096:  ldarg.1
+  IL_0097:  ldind.u1
+  IL_0098:  brfalse.s  IL_00a0
+  IL_009a:  ldarg.0
+  IL_009b:  ldc.i4.3
+  IL_009c:  ceq
+  IL_009e:  br.s       IL_00a1
+  IL_00a0:  ldc.i4.0
+  IL_00a1:  stind.i1
+  IL_00a2:  ret
+  IL_00a3:  ldloc.s    V_14
+  IL_00a5:  ldloc.s    V_4
+  IL_00a7:  bne.un.s   IL_00b7
+  IL_00a9:  ldarg.1
+  IL_00aa:  ldarg.1
+  IL_00ab:  ldind.u1
+  IL_00ac:  brfalse.s  IL_00b4
+  IL_00ae:  ldarg.0
+  IL_00af:  ldc.i4.4
+  IL_00b0:  ceq
+  IL_00b2:  br.s       IL_00b5
+  IL_00b4:  ldc.i4.0
+  IL_00b5:  stind.i1
+  IL_00b6:  ret
+  IL_00b7:  ldloc.s    V_14
+  IL_00b9:  ldloc.s    V_5
+  IL_00bb:  bne.un.s   IL_00cb
+  IL_00bd:  ldarg.1
+  IL_00be:  ldarg.1
+  IL_00bf:  ldind.u1
+  IL_00c0:  brfalse.s  IL_00c8
+  IL_00c2:  ldarg.0
+  IL_00c3:  ldc.i4.5
+  IL_00c4:  ceq
+  IL_00c6:  br.s       IL_00c9
+  IL_00c8:  ldc.i4.0
+  IL_00c9:  stind.i1
+  IL_00ca:  ret
+  IL_00cb:  ldloc.s    V_14
+  IL_00cd:  ldloc.s    V_6
+  IL_00cf:  bne.un.s   IL_00df
   IL_00d1:  ldarg.1
-  IL_00d2:  ldind.u1
-  IL_00d3:  brfalse.s  IL_00df
-  IL_00d5:  ldarg.0
-  IL_00d6:  ldc.i4.5
-  IL_00d7:  beq.s      IL_00dc
-  IL_00d9:  ldc.i4.0
-  IL_00da:  br.s       IL_00e0
-  IL_00dc:  ldc.i4.1
-  IL_00dd:  br.s       IL_00e0
-  IL_00df:  ldc.i4.0
-  IL_00e0:  stind.i1
-  IL_00e1:  ret
-  IL_00e2:  ldloc.s    V_14
-  IL_00e4:  ldloc.s    V_6
-  IL_00e6:  bne.un.s   IL_00fa
-  IL_00e8:  ldarg.1
-  IL_00e9:  ldarg.1
-  IL_00ea:  ldind.u1
-  IL_00eb:  brfalse.s  IL_00f7
-  IL_00ed:  ldarg.0
-  IL_00ee:  ldc.i4.6
-  IL_00ef:  beq.s      IL_00f4
+  IL_00d2:  ldarg.1
+  IL_00d3:  ldind.u1
+  IL_00d4:  brfalse.s  IL_00dc
+  IL_00d6:  ldarg.0
+  IL_00d7:  ldc.i4.6
+  IL_00d8:  ceq
+  IL_00da:  br.s       IL_00dd
+  IL_00dc:  ldc.i4.0
+  IL_00dd:  stind.i1
+  IL_00de:  ret
+  IL_00df:  ldloc.s    V_14
+  IL_00e1:  ldloc.s    V_7
+  IL_00e3:  conv.ovf.i4.un
+  IL_00e4:  bne.un.s   IL_00f4
+  IL_00e6:  ldarg.1
+  IL_00e7:  ldarg.1
+  IL_00e8:  ldind.u1
+  IL_00e9:  brfalse.s  IL_00f1
+  IL_00eb:  ldarg.0
+  IL_00ec:  ldc.i4.7
+  IL_00ed:  ceq
+  IL_00ef:  br.s       IL_00f2
   IL_00f1:  ldc.i4.0
-  IL_00f2:  br.s       IL_00f8
-  IL_00f4:  ldc.i4.1
-  IL_00f5:  br.s       IL_00f8
-  IL_00f7:  ldc.i4.0
-  IL_00f8:  stind.i1
-  IL_00f9:  ret
-  IL_00fa:  ldloc.s    V_14
-  IL_00fc:  ldloc.s    V_7
-  IL_00fe:  conv.ovf.i4.un
-  IL_00ff:  bne.un.s   IL_0113
-  IL_0101:  ldarg.1
-  IL_0102:  ldarg.1
-  IL_0103:  ldind.u1
-  IL_0104:  brfalse.s  IL_0110
-  IL_0106:  ldarg.0
-  IL_0107:  ldc.i4.7
-  IL_0108:  beq.s      IL_010d
-  IL_010a:  ldc.i4.0
-  IL_010b:  br.s       IL_0111
-  IL_010d:  ldc.i4.1
-  IL_010e:  br.s       IL_0111
-  IL_0110:  ldc.i4.0
-  IL_0111:  stind.i1
-  IL_0112:  ret
-  IL_0113:  ldloc.s    V_14
-  IL_0115:  ldloc.s    V_8
-  IL_0117:  conv.ovf.i4
-  IL_0118:  bne.un.s   IL_012c
-  IL_011a:  ldarg.1
-  IL_011b:  ldarg.1
-  IL_011c:  ldind.u1
-  IL_011d:  brfalse.s  IL_0129
-  IL_011f:  ldarg.0
-  IL_0120:  ldc.i4.8
-  IL_0121:  beq.s      IL_0126
-  IL_0123:  ldc.i4.0
-  IL_0124:  br.s       IL_012a
-  IL_0126:  ldc.i4.1
-  IL_0127:  br.s       IL_012a
-  IL_0129:  ldc.i4.0
-  IL_012a:  stind.i1
-  IL_012b:  ret
-  IL_012c:  ldloc.s    V_14
-  IL_012e:  ldloc.s    V_9
-  IL_0130:  conv.ovf.i4.un
-  IL_0131:  bne.un.s   IL_0146
-  IL_0133:  ldarg.1
-  IL_0134:  ldarg.1
-  IL_0135:  ldind.u1
-  IL_0136:  brfalse.s  IL_0143
-  IL_0138:  ldarg.0
-  IL_0139:  ldc.i4.s   9
-  IL_013b:  beq.s      IL_0140
-  IL_013d:  ldc.i4.0
-  IL_013e:  br.s       IL_0144
-  IL_0140:  ldc.i4.1
-  IL_0141:  br.s       IL_0144
-  IL_0143:  ldc.i4.0
-  IL_0144:  stind.i1
-  IL_0145:  ret
-  IL_0146:  ldloc.s    V_14
-  IL_0148:  ldloc.s    V_11
-  IL_014a:  conv.r8
-  IL_014b:  call       "Function System.Math.Round(Double) As Double"
-  IL_0150:  conv.ovf.i4
-  IL_0151:  bne.un.s   IL_0166
-  IL_0153:  ldarg.1
-  IL_0154:  ldarg.1
-  IL_0155:  ldind.u1
-  IL_0156:  brfalse.s  IL_0163
-  IL_0158:  ldarg.0
-  IL_0159:  ldc.i4.s   10
-  IL_015b:  beq.s      IL_0160
-  IL_015d:  ldc.i4.0
-  IL_015e:  br.s       IL_0164
-  IL_0160:  ldc.i4.1
-  IL_0161:  br.s       IL_0164
-  IL_0163:  ldc.i4.0
-  IL_0164:  stind.i1
-  IL_0165:  ret
-  IL_0166:  ldloc.s    V_14
-  IL_0168:  ldloc.s    V_12
-  IL_016a:  call       "Function System.Math.Round(Double) As Double"
-  IL_016f:  conv.ovf.i4
-  IL_0170:  bne.un.s   IL_0185
-  IL_0172:  ldarg.1
-  IL_0173:  ldarg.1
-  IL_0174:  ldind.u1
-  IL_0175:  brfalse.s  IL_0182
-  IL_0177:  ldarg.0
-  IL_0178:  ldc.i4.s   11
-  IL_017a:  beq.s      IL_017f
-  IL_017c:  ldc.i4.0
-  IL_017d:  br.s       IL_0183
-  IL_017f:  ldc.i4.1
-  IL_0180:  br.s       IL_0183
-  IL_0182:  ldc.i4.0
-  IL_0183:  stind.i1
-  IL_0184:  ret
-  IL_0185:  ldloc.s    V_14
-  IL_0187:  ldloc.s    V_10
-  IL_0189:  call       "Function System.Convert.ToInt32(Decimal) As Integer"
-  IL_018e:  bne.un.s   IL_01a3
-  IL_0190:  ldarg.1
-  IL_0191:  ldarg.1
-  IL_0192:  ldind.u1
-  IL_0193:  brfalse.s  IL_01a0
-  IL_0195:  ldarg.0
-  IL_0196:  ldc.i4.s   12
-  IL_0198:  beq.s      IL_019d
-  IL_019a:  ldc.i4.0
-  IL_019b:  br.s       IL_01a1
-  IL_019d:  ldc.i4.1
-  IL_019e:  br.s       IL_01a1
-  IL_01a0:  ldc.i4.0
-  IL_01a1:  stind.i1
-  IL_01a2:  ret
-  IL_01a3:  ldloc.s    V_14
-  IL_01a5:  ldloc.s    V_13
-  IL_01a7:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String) As Integer"
-  IL_01ac:  bne.un.s   IL_01c1
-  IL_01ae:  ldarg.1
-  IL_01af:  ldarg.1
-  IL_01b0:  ldind.u1
-  IL_01b1:  brfalse.s  IL_01be
-  IL_01b3:  ldarg.0
-  IL_01b4:  ldc.i4.s   13
-  IL_01b6:  beq.s      IL_01bb
-  IL_01b8:  ldc.i4.0
-  IL_01b9:  br.s       IL_01bf
-  IL_01bb:  ldc.i4.1
-  IL_01bc:  br.s       IL_01bf
-  IL_01be:  ldc.i4.0
-  IL_01bf:  stind.i1
-  IL_01c0:  ret
-  IL_01c1:  ldarg.1
-  IL_01c2:  ldc.i4.0
-  IL_01c3:  stind.i1
-  IL_01c4:  ret
+  IL_00f2:  stind.i1
+  IL_00f3:  ret
+  IL_00f4:  ldloc.s    V_14
+  IL_00f6:  ldloc.s    V_8
+  IL_00f8:  conv.ovf.i4
+  IL_00f9:  bne.un.s   IL_0109
+  IL_00fb:  ldarg.1
+  IL_00fc:  ldarg.1
+  IL_00fd:  ldind.u1
+  IL_00fe:  brfalse.s  IL_0106
+  IL_0100:  ldarg.0
+  IL_0101:  ldc.i4.8
+  IL_0102:  ceq
+  IL_0104:  br.s       IL_0107
+  IL_0106:  ldc.i4.0
+  IL_0107:  stind.i1
+  IL_0108:  ret
+  IL_0109:  ldloc.s    V_14
+  IL_010b:  ldloc.s    V_9
+  IL_010d:  conv.ovf.i4.un
+  IL_010e:  bne.un.s   IL_011f
+  IL_0110:  ldarg.1
+  IL_0111:  ldarg.1
+  IL_0112:  ldind.u1
+  IL_0113:  brfalse.s  IL_011c
+  IL_0115:  ldarg.0
+  IL_0116:  ldc.i4.s   9
+  IL_0118:  ceq
+  IL_011a:  br.s       IL_011d
+  IL_011c:  ldc.i4.0
+  IL_011d:  stind.i1
+  IL_011e:  ret
+  IL_011f:  ldloc.s    V_14
+  IL_0121:  ldloc.s    V_11
+  IL_0123:  conv.r8
+  IL_0124:  call       "Function System.Math.Round(Double) As Double"
+  IL_0129:  conv.ovf.i4
+  IL_012a:  bne.un.s   IL_013b
+  IL_012c:  ldarg.1
+  IL_012d:  ldarg.1
+  IL_012e:  ldind.u1
+  IL_012f:  brfalse.s  IL_0138
+  IL_0131:  ldarg.0
+  IL_0132:  ldc.i4.s   10
+  IL_0134:  ceq
+  IL_0136:  br.s       IL_0139
+  IL_0138:  ldc.i4.0
+  IL_0139:  stind.i1
+  IL_013a:  ret
+  IL_013b:  ldloc.s    V_14
+  IL_013d:  ldloc.s    V_12
+  IL_013f:  call       "Function System.Math.Round(Double) As Double"
+  IL_0144:  conv.ovf.i4
+  IL_0145:  bne.un.s   IL_0156
+  IL_0147:  ldarg.1
+  IL_0148:  ldarg.1
+  IL_0149:  ldind.u1
+  IL_014a:  brfalse.s  IL_0153
+  IL_014c:  ldarg.0
+  IL_014d:  ldc.i4.s   11
+  IL_014f:  ceq
+  IL_0151:  br.s       IL_0154
+  IL_0153:  ldc.i4.0
+  IL_0154:  stind.i1
+  IL_0155:  ret
+  IL_0156:  ldloc.s    V_14
+  IL_0158:  ldloc.s    V_10
+  IL_015a:  call       "Function System.Convert.ToInt32(Decimal) As Integer"
+  IL_015f:  bne.un.s   IL_0170
+  IL_0161:  ldarg.1
+  IL_0162:  ldarg.1
+  IL_0163:  ldind.u1
+  IL_0164:  brfalse.s  IL_016d
+  IL_0166:  ldarg.0
+  IL_0167:  ldc.i4.s   12
+  IL_0169:  ceq
+  IL_016b:  br.s       IL_016e
+  IL_016d:  ldc.i4.0
+  IL_016e:  stind.i1
+  IL_016f:  ret
+  IL_0170:  ldloc.s    V_14
+  IL_0172:  ldloc.s    V_13
+  IL_0174:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String) As Integer"
+  IL_0179:  bne.un.s   IL_018a
+  IL_017b:  ldarg.1
+  IL_017c:  ldarg.1
+  IL_017d:  ldind.u1
+  IL_017e:  brfalse.s  IL_0187
+  IL_0180:  ldarg.0
+  IL_0181:  ldc.i4.s   13
+  IL_0183:  ceq
+  IL_0185:  br.s       IL_0188
+  IL_0187:  ldc.i4.0
+  IL_0188:  stind.i1
+  IL_0189:  ret
+  IL_018a:  ldarg.1
+  IL_018b:  ldc.i4.0
+  IL_018c:  stind.i1
+  IL_018d:  ret
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
@@ -2918,7 +2877,7 @@ End Module
     ]]></file>
 </compilation>, expectedOutput:="Success").VerifyIL("M1.Test", <![CDATA[
 {
-  // Code size      306 (0x132)
+  // Code size      255 (0xff)
   .maxstack  3
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
@@ -2926,204 +2885,166 @@ End Module
   IL_0002:  ldloc.0
   IL_0003:  switch    (
         IL_0041,
-        IL_0052,
-        IL_0064,
-        IL_0076,
-        IL_0088,
-        IL_009a,
-        IL_00ac,
-        IL_00be,
-        IL_00d0,
-        IL_00e2,
-        IL_00f5,
-        IL_0108,
-        IL_011b)
-  IL_003c:  br         IL_012e
+        IL_004f,
+        IL_005d,
+        IL_006b,
+        IL_0079,
+        IL_0087,
+        IL_0095,
+        IL_00a3,
+        IL_00b1,
+        IL_00bf,
+        IL_00ce,
+        IL_00dd,
+        IL_00ec)
+  IL_003c:  br         IL_00fb
   IL_0041:  ldarg.1
   IL_0042:  ldarg.1
   IL_0043:  ldind.u1
-  IL_0044:  brfalse.s  IL_004f
+  IL_0044:  brfalse.s  IL_004c
   IL_0046:  ldarg.0
-  IL_0047:  brfalse.s  IL_004c
-  IL_0049:  ldc.i4.0
-  IL_004a:  br.s       IL_0050
-  IL_004c:  ldc.i4.1
-  IL_004d:  br.s       IL_0050
-  IL_004f:  ldc.i4.0
-  IL_0050:  stind.i1
-  IL_0051:  ret
-  IL_0052:  ldarg.1
-  IL_0053:  ldarg.1
-  IL_0054:  ldind.u1
-  IL_0055:  brfalse.s  IL_0061
-  IL_0057:  ldarg.0
-  IL_0058:  ldc.i4.1
-  IL_0059:  beq.s      IL_005e
-  IL_005b:  ldc.i4.0
-  IL_005c:  br.s       IL_0062
-  IL_005e:  ldc.i4.1
-  IL_005f:  br.s       IL_0062
-  IL_0061:  ldc.i4.0
-  IL_0062:  stind.i1
-  IL_0063:  ret
-  IL_0064:  ldarg.1
-  IL_0065:  ldarg.1
-  IL_0066:  ldind.u1
-  IL_0067:  brfalse.s  IL_0073
-  IL_0069:  ldarg.0
-  IL_006a:  ldc.i4.2
-  IL_006b:  beq.s      IL_0070
-  IL_006d:  ldc.i4.0
-  IL_006e:  br.s       IL_0074
-  IL_0070:  ldc.i4.1
-  IL_0071:  br.s       IL_0074
-  IL_0073:  ldc.i4.0
-  IL_0074:  stind.i1
-  IL_0075:  ret
-  IL_0076:  ldarg.1
-  IL_0077:  ldarg.1
-  IL_0078:  ldind.u1
-  IL_0079:  brfalse.s  IL_0085
-  IL_007b:  ldarg.0
-  IL_007c:  ldc.i4.3
-  IL_007d:  beq.s      IL_0082
-  IL_007f:  ldc.i4.0
-  IL_0080:  br.s       IL_0086
-  IL_0082:  ldc.i4.1
-  IL_0083:  br.s       IL_0086
-  IL_0085:  ldc.i4.0
-  IL_0086:  stind.i1
-  IL_0087:  ret
+  IL_0047:  ldc.i4.0
+  IL_0048:  ceq
+  IL_004a:  br.s       IL_004d
+  IL_004c:  ldc.i4.0
+  IL_004d:  stind.i1
+  IL_004e:  ret
+  IL_004f:  ldarg.1
+  IL_0050:  ldarg.1
+  IL_0051:  ldind.u1
+  IL_0052:  brfalse.s  IL_005a
+  IL_0054:  ldarg.0
+  IL_0055:  ldc.i4.1
+  IL_0056:  ceq
+  IL_0058:  br.s       IL_005b
+  IL_005a:  ldc.i4.0
+  IL_005b:  stind.i1
+  IL_005c:  ret
+  IL_005d:  ldarg.1
+  IL_005e:  ldarg.1
+  IL_005f:  ldind.u1
+  IL_0060:  brfalse.s  IL_0068
+  IL_0062:  ldarg.0
+  IL_0063:  ldc.i4.2
+  IL_0064:  ceq
+  IL_0066:  br.s       IL_0069
+  IL_0068:  ldc.i4.0
+  IL_0069:  stind.i1
+  IL_006a:  ret
+  IL_006b:  ldarg.1
+  IL_006c:  ldarg.1
+  IL_006d:  ldind.u1
+  IL_006e:  brfalse.s  IL_0076
+  IL_0070:  ldarg.0
+  IL_0071:  ldc.i4.3
+  IL_0072:  ceq
+  IL_0074:  br.s       IL_0077
+  IL_0076:  ldc.i4.0
+  IL_0077:  stind.i1
+  IL_0078:  ret
+  IL_0079:  ldarg.1
+  IL_007a:  ldarg.1
+  IL_007b:  ldind.u1
+  IL_007c:  brfalse.s  IL_0084
+  IL_007e:  ldarg.0
+  IL_007f:  ldc.i4.4
+  IL_0080:  ceq
+  IL_0082:  br.s       IL_0085
+  IL_0084:  ldc.i4.0
+  IL_0085:  stind.i1
+  IL_0086:  ret
+  IL_0087:  ldarg.1
   IL_0088:  ldarg.1
-  IL_0089:  ldarg.1
-  IL_008a:  ldind.u1
-  IL_008b:  brfalse.s  IL_0097
-  IL_008d:  ldarg.0
-  IL_008e:  ldc.i4.4
-  IL_008f:  beq.s      IL_0094
-  IL_0091:  ldc.i4.0
-  IL_0092:  br.s       IL_0098
-  IL_0094:  ldc.i4.1
-  IL_0095:  br.s       IL_0098
-  IL_0097:  ldc.i4.0
-  IL_0098:  stind.i1
-  IL_0099:  ret
-  IL_009a:  ldarg.1
-  IL_009b:  ldarg.1
-  IL_009c:  ldind.u1
-  IL_009d:  brfalse.s  IL_00a9
-  IL_009f:  ldarg.0
-  IL_00a0:  ldc.i4.5
-  IL_00a1:  beq.s      IL_00a6
-  IL_00a3:  ldc.i4.0
-  IL_00a4:  br.s       IL_00aa
-  IL_00a6:  ldc.i4.1
-  IL_00a7:  br.s       IL_00aa
-  IL_00a9:  ldc.i4.0
-  IL_00aa:  stind.i1
-  IL_00ab:  ret
-  IL_00ac:  ldarg.1
-  IL_00ad:  ldarg.1
-  IL_00ae:  ldind.u1
-  IL_00af:  brfalse.s  IL_00bb
-  IL_00b1:  ldarg.0
-  IL_00b2:  ldc.i4.6
-  IL_00b3:  beq.s      IL_00b8
-  IL_00b5:  ldc.i4.0
-  IL_00b6:  br.s       IL_00bc
-  IL_00b8:  ldc.i4.1
-  IL_00b9:  br.s       IL_00bc
-  IL_00bb:  ldc.i4.0
-  IL_00bc:  stind.i1
-  IL_00bd:  ret
-  IL_00be:  ldarg.1
+  IL_0089:  ldind.u1
+  IL_008a:  brfalse.s  IL_0092
+  IL_008c:  ldarg.0
+  IL_008d:  ldc.i4.5
+  IL_008e:  ceq
+  IL_0090:  br.s       IL_0093
+  IL_0092:  ldc.i4.0
+  IL_0093:  stind.i1
+  IL_0094:  ret
+  IL_0095:  ldarg.1
+  IL_0096:  ldarg.1
+  IL_0097:  ldind.u1
+  IL_0098:  brfalse.s  IL_00a0
+  IL_009a:  ldarg.0
+  IL_009b:  ldc.i4.6
+  IL_009c:  ceq
+  IL_009e:  br.s       IL_00a1
+  IL_00a0:  ldc.i4.0
+  IL_00a1:  stind.i1
+  IL_00a2:  ret
+  IL_00a3:  ldarg.1
+  IL_00a4:  ldarg.1
+  IL_00a5:  ldind.u1
+  IL_00a6:  brfalse.s  IL_00ae
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldc.i4.7
+  IL_00aa:  ceq
+  IL_00ac:  br.s       IL_00af
+  IL_00ae:  ldc.i4.0
+  IL_00af:  stind.i1
+  IL_00b0:  ret
+  IL_00b1:  ldarg.1
+  IL_00b2:  ldarg.1
+  IL_00b3:  ldind.u1
+  IL_00b4:  brfalse.s  IL_00bc
+  IL_00b6:  ldarg.0
+  IL_00b7:  ldc.i4.8
+  IL_00b8:  ceq
+  IL_00ba:  br.s       IL_00bd
+  IL_00bc:  ldc.i4.0
+  IL_00bd:  stind.i1
+  IL_00be:  ret
   IL_00bf:  ldarg.1
-  IL_00c0:  ldind.u1
-  IL_00c1:  brfalse.s  IL_00cd
-  IL_00c3:  ldarg.0
-  IL_00c4:  ldc.i4.7
-  IL_00c5:  beq.s      IL_00ca
-  IL_00c7:  ldc.i4.0
-  IL_00c8:  br.s       IL_00ce
-  IL_00ca:  ldc.i4.1
-  IL_00cb:  br.s       IL_00ce
-  IL_00cd:  ldc.i4.0
-  IL_00ce:  stind.i1
-  IL_00cf:  ret
-  IL_00d0:  ldarg.1
-  IL_00d1:  ldarg.1
-  IL_00d2:  ldind.u1
-  IL_00d3:  brfalse.s  IL_00df
-  IL_00d5:  ldarg.0
-  IL_00d6:  ldc.i4.8
-  IL_00d7:  beq.s      IL_00dc
-  IL_00d9:  ldc.i4.0
-  IL_00da:  br.s       IL_00e0
-  IL_00dc:  ldc.i4.1
-  IL_00dd:  br.s       IL_00e0
-  IL_00df:  ldc.i4.0
-  IL_00e0:  stind.i1
-  IL_00e1:  ret
-  IL_00e2:  ldarg.1
-  IL_00e3:  ldarg.1
-  IL_00e4:  ldind.u1
-  IL_00e5:  brfalse.s  IL_00f2
-  IL_00e7:  ldarg.0
-  IL_00e8:  ldc.i4.s   9
-  IL_00ea:  beq.s      IL_00ef
-  IL_00ec:  ldc.i4.0
-  IL_00ed:  br.s       IL_00f3
-  IL_00ef:  ldc.i4.1
-  IL_00f0:  br.s       IL_00f3
-  IL_00f2:  ldc.i4.0
-  IL_00f3:  stind.i1
-  IL_00f4:  ret
-  IL_00f5:  ldarg.1
-  IL_00f6:  ldarg.1
-  IL_00f7:  ldind.u1
-  IL_00f8:  brfalse.s  IL_0105
-  IL_00fa:  ldarg.0
-  IL_00fb:  ldc.i4.s   10
-  IL_00fd:  beq.s      IL_0102
-  IL_00ff:  ldc.i4.0
-  IL_0100:  br.s       IL_0106
-  IL_0102:  ldc.i4.1
-  IL_0103:  br.s       IL_0106
-  IL_0105:  ldc.i4.0
-  IL_0106:  stind.i1
-  IL_0107:  ret
-  IL_0108:  ldarg.1
-  IL_0109:  ldarg.1
-  IL_010a:  ldind.u1
-  IL_010b:  brfalse.s  IL_0118
-  IL_010d:  ldarg.0
-  IL_010e:  ldc.i4.s   11
-  IL_0110:  beq.s      IL_0115
-  IL_0112:  ldc.i4.0
-  IL_0113:  br.s       IL_0119
-  IL_0115:  ldc.i4.1
-  IL_0116:  br.s       IL_0119
-  IL_0118:  ldc.i4.0
-  IL_0119:  stind.i1
-  IL_011a:  ret
-  IL_011b:  ldarg.1
-  IL_011c:  ldarg.1
-  IL_011d:  ldind.u1
-  IL_011e:  brfalse.s  IL_012b
-  IL_0120:  ldarg.0
-  IL_0121:  ldc.i4.s   12
-  IL_0123:  beq.s      IL_0128
-  IL_0125:  ldc.i4.0
-  IL_0126:  br.s       IL_012c
-  IL_0128:  ldc.i4.1
-  IL_0129:  br.s       IL_012c
-  IL_012b:  ldc.i4.0
-  IL_012c:  stind.i1
-  IL_012d:  ret
-  IL_012e:  ldarg.1
-  IL_012f:  ldc.i4.0
-  IL_0130:  stind.i1
-  IL_0131:  ret
+  IL_00c0:  ldarg.1
+  IL_00c1:  ldind.u1
+  IL_00c2:  brfalse.s  IL_00cb
+  IL_00c4:  ldarg.0
+  IL_00c5:  ldc.i4.s   9
+  IL_00c7:  ceq
+  IL_00c9:  br.s       IL_00cc
+  IL_00cb:  ldc.i4.0
+  IL_00cc:  stind.i1
+  IL_00cd:  ret
+  IL_00ce:  ldarg.1
+  IL_00cf:  ldarg.1
+  IL_00d0:  ldind.u1
+  IL_00d1:  brfalse.s  IL_00da
+  IL_00d3:  ldarg.0
+  IL_00d4:  ldc.i4.s   10
+  IL_00d6:  ceq
+  IL_00d8:  br.s       IL_00db
+  IL_00da:  ldc.i4.0
+  IL_00db:  stind.i1
+  IL_00dc:  ret
+  IL_00dd:  ldarg.1
+  IL_00de:  ldarg.1
+  IL_00df:  ldind.u1
+  IL_00e0:  brfalse.s  IL_00e9
+  IL_00e2:  ldarg.0
+  IL_00e3:  ldc.i4.s   11
+  IL_00e5:  ceq
+  IL_00e7:  br.s       IL_00ea
+  IL_00e9:  ldc.i4.0
+  IL_00ea:  stind.i1
+  IL_00eb:  ret
+  IL_00ec:  ldarg.1
+  IL_00ed:  ldarg.1
+  IL_00ee:  ldind.u1
+  IL_00ef:  brfalse.s  IL_00f8
+  IL_00f1:  ldarg.0
+  IL_00f2:  ldc.i4.s   12
+  IL_00f4:  ceq
+  IL_00f6:  br.s       IL_00f9
+  IL_00f8:  ldc.i4.0
+  IL_00f9:  stind.i1
+  IL_00fa:  ret
+  IL_00fb:  ldarg.1
+  IL_00fc:  ldc.i4.0
+  IL_00fd:  stind.i1
+  IL_00fe:  ret
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)

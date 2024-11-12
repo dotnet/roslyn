@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
             // mapped to the entire 'MappedSpan', regardless of the size of the unmapped span,
             // even if the unmapped span ends before 'UnmappedCharacterOffset'.
             if (unmappedStartPos.Line == entry.UnmappedLine &&
-                unmappedStartPos.Character <= entry.UnmappedCharacterOffset.GetValueOrDefault())
+                unmappedStartPos.Character < entry.UnmappedCharacterOffset.GetValueOrDefault())
             {
                 return entry.MappedSpan;
             }
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>True if there's at least one hidden region in the map.</returns>
         public bool HasAnyHiddenRegions()
         {
-            return this.Entries.Any(e => e.State == PositionState.Hidden);
+            return this.Entries.Any(static e => e.State == PositionState.Hidden);
         }
 
         // Find the line mapped entry with the largest unmapped line number <= lineNumber.

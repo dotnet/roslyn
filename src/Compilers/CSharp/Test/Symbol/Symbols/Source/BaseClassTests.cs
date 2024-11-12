@@ -399,7 +399,6 @@ public partial class C1
                 Diagnostic(ErrorCode.ERR_BadVisBaseClass, "C1").WithArguments("C1", "NV").WithLocation(10, 15));
         }
 
-
         [Fact, WorkItem(7878, "https://github.com/dotnet/roslyn/issues/7878")]
         public void BadVisInterfacePartial()
         {
@@ -609,7 +608,6 @@ class U : U.I
             Assert.False(ifaces[0].IsErrorType());
             Assert.Equal("U.I", ifaces[0].ToTestDisplayString());
         }
-
 
         [Fact]
         public void EricLiCase10()
@@ -1003,7 +1001,6 @@ interface I4 : I1 {}
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-
         [Fact]
         public void CyclicRetargeted4()
         {
@@ -1056,7 +1053,6 @@ public class ClassC : ClassB {}
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base type dependency.",
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
-
 
         [Fact]
         public void CyclicRetargeted5()
@@ -1119,7 +1115,6 @@ public class ClassC : ClassB {}
                 er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
-
         [Fact]
         public void CyclicRetargeted6()
         {
@@ -1174,7 +1169,6 @@ public class ClassC : ClassB {}
             Assert.Same(C.BaseType(), B2);
             Assert.Same(B2.BaseType(), A2);
         }
-
 
         [Fact]
         public void CyclicRetargeted7()
@@ -2031,7 +2025,7 @@ class D : B {
   extern D(int x) : base(y) {}
   static int y;
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var baseY = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "y").OfType<ExpressionSyntax>().First();
@@ -2266,8 +2260,7 @@ class Derived : Base
                 Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17));
         }
 
-        [Fact]
-        [WorkItem(174789, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
         public void CyclePointer()
         {
             var text =
@@ -2285,7 +2278,7 @@ class Derived : Base
     class E : A<C*>.B { }
     class F : A<D*>.B { }
 }";
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }
@@ -2293,15 +2286,73 @@ class Derived : Base
                 // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
-                // (13,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
+                // (13,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.D')
                 //     class F : A<D*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
                 // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
                 //     class E : A<C*>.B { }
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11),
-                // (12,11): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
+                // (12,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.C')
                 //     class E : A<C*>.B { }
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
+        public void CyclePointer_UnsafeContext()
+        {
+            var text =
+@"class A<T>
+{
+    internal class B { }
+}
+class Base
+{
+    protected class C { }
+    private class D { }
+}
+unsafe class Derived : Base
+{
+    class E : A<C*>.B { }
+    class F : A<D*>.B { }
+}";
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // unsafe class Derived : Base
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Derived").WithLocation(10, 14),
+                // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17),
+                // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
+                // (13,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.D')
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
+                // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11),
+                // (12,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.C')
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
+
+            comp = CreateCompilation(text, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17),
+                // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
+                // (13,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.D')
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "F").WithArguments("Base.D").WithLocation(13, 11),
+                // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11),
+                // (12,11): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('Base.C')
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "E").WithArguments("Base.C").WithLocation(12, 11));
         }
 
         [Fact]

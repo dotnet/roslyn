@@ -8,78 +8,85 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+using static SyntaxFactory;
+
+internal static class ITypeParameterSymbolExtensions
 {
-    internal static class ITypeParameterSymbolExtensions
+    public static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
+        this ImmutableArray<ITypeParameterSymbol> typeParameters)
     {
-        public static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
-            this ImmutableArray<ITypeParameterSymbol> typeParameters)
+        return typeParameters.AsEnumerable().GenerateConstraintClauses();
+    }
+
+    public static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
+        this IEnumerable<ITypeParameterSymbol> typeParameters)
+    {
+        var clauses = new List<TypeParameterConstraintClauseSyntax>();
+
+        foreach (var typeParameter in typeParameters)
         {
-            return typeParameters.AsEnumerable().GenerateConstraintClauses();
+            AddConstraintClauses(clauses, typeParameter);
         }
 
-        public static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
-            this IEnumerable<ITypeParameterSymbol> typeParameters)
+        return [.. clauses];
+    }
+
+    private static void AddConstraintClauses(
+        List<TypeParameterConstraintClauseSyntax> clauses,
+        ITypeParameterSymbol typeParameter)
+    {
+        var constraints = new List<TypeParameterConstraintSyntax>();
+
+        if (typeParameter.HasReferenceTypeConstraint)
         {
-            var clauses = new List<TypeParameterConstraintClauseSyntax>();
-
-            foreach (var typeParameter in typeParameters)
-            {
-                AddConstraintClauses(clauses, typeParameter);
-            }
-
-            return clauses.Count == 0 ? default : clauses.ToSyntaxList();
+            constraints.Add(ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+        }
+        else if (typeParameter.HasUnmanagedTypeConstraint)
+        {
+            constraints.Add(TypeConstraint(IdentifierName("unmanaged")));
+        }
+        else if (typeParameter.HasValueTypeConstraint)
+        {
+            constraints.Add(ClassOrStructConstraint(SyntaxKind.StructConstraint));
+        }
+        else if (typeParameter.HasNotNullConstraint)
+        {
+            constraints.Add(TypeConstraint(IdentifierName("notnull")));
         }
 
-        private static void AddConstraintClauses(
-            List<TypeParameterConstraintClauseSyntax> clauses,
-            ITypeParameterSymbol typeParameter)
+        var constraintTypes =
+            typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Class).Concat(
+            typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Interface).Concat(
+            typeParameter.ConstraintTypes.Where(t => t.TypeKind is not TypeKind.Class and not TypeKind.Interface)));
+
+        foreach (var type in constraintTypes)
         {
-            var constraints = new List<TypeParameterConstraintSyntax>();
-
-            if (typeParameter.HasReferenceTypeConstraint)
+            if (type.SpecialType != SpecialType.System_Object)
             {
-                constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+                constraints.Add(TypeConstraint(type.GenerateTypeSyntax()));
             }
-            else if (typeParameter.HasUnmanagedTypeConstraint)
-            {
-                constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("unmanaged")));
-            }
-            else if (typeParameter.HasValueTypeConstraint)
-            {
-                constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint));
-            }
-            else if (typeParameter.HasNotNullConstraint)
-            {
-                constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull")));
-            }
-
-            var constraintTypes =
-                typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Class).Concat(
-                typeParameter.ConstraintTypes.Where(t => t.TypeKind == TypeKind.Interface).Concat(
-                typeParameter.ConstraintTypes.Where(t => t.TypeKind is not TypeKind.Class and not TypeKind.Interface)));
-
-            foreach (var type in constraintTypes)
-            {
-                if (type.SpecialType != SpecialType.System_Object)
-                {
-                    constraints.Add(SyntaxFactory.TypeConstraint(type.GenerateTypeSyntax()));
-                }
-            }
-
-            if (typeParameter.HasConstructorConstraint)
-            {
-                constraints.Add(SyntaxFactory.ConstructorConstraint());
-            }
-
-            if (constraints.Count == 0)
-            {
-                return;
-            }
-
-            clauses.Add(SyntaxFactory.TypeParameterConstraintClause(
-                typeParameter.Name.ToIdentifierName(),
-                SyntaxFactory.SeparatedList(constraints)));
         }
+
+        if (typeParameter.HasConstructorConstraint)
+        {
+            constraints.Add(ConstructorConstraint());
+        }
+
+        if (typeParameter.AllowsRefLikeType)
+        {
+            // "allows ref struct" anti-constraint must be last
+            constraints.Add(AllowsConstraintClause([RefStructConstraint()]));
+        }
+
+        if (constraints.Count == 0)
+        {
+            return;
+        }
+
+        clauses.Add(TypeParameterConstraintClause(
+            typeParameter.Name.ToIdentifierName(),
+            [.. constraints]));
     }
 }

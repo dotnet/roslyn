@@ -10,45 +10,41 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Debugging;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging;
+
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
+public partial class ProximityExpressionsGetterTests
 {
-    [UseExportProvider]
-    [Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
-    public partial class ProximityExpressionsGetterTests
+    private static string s_lazyTestFileContent;
+
+    private static string GetTestFileContent()
     {
-        private static string s_lazyTestFileContent;
-
-        private static string GetTestFileContent()
+        if (s_lazyTestFileContent == null)
         {
-            if (s_lazyTestFileContent == null)
-            {
-                using var stream = typeof(ProximityExpressionsGetterTests).Assembly.GetManifestResourceStream("Debugging/ProximityExpressionsGetterTestFile.cs");
-                using var reader = new StreamReader(stream, Encoding.UTF8);
-                s_lazyTestFileContent = reader.ReadToEnd();
-            }
-
-            return s_lazyTestFileContent;
+            using var stream = typeof(ProximityExpressionsGetterTests).Assembly.GetManifestResourceStream("Debugging/ProximityExpressionsGetterTestFile.cs");
+            using var reader = new StreamReader(stream, Encoding.UTF8);
+            s_lazyTestFileContent = reader.ReadToEnd();
         }
 
-        private static SyntaxTree GetTree()
-            => SyntaxFactory.ParseSyntaxTree(GetTestFileContent());
+        return s_lazyTestFileContent;
+    }
 
-        private static SyntaxTree GetTreeFromCode(string code)
-            => SyntaxFactory.ParseSyntaxTree(code);
+    private static SyntaxTree GetTree()
+        => SyntaxFactory.ParseSyntaxTree(GetTestFileContent());
 
-        [Fact]
-        public void TestWithinStatement_1()
-        {
-            var tree = GetTreeFromCode(@"using System;
+    private static SyntaxTree GetTreeFromCode(string code)
+        => SyntaxFactory.ParseSyntaxTree(code);
+
+    [Fact]
+    public void TestWithinStatement_1()
+    {
+        var tree = GetTreeFromCode(@"using System;
 using System.Collections.Generic;
 
 namespace ConsoleApplication1
@@ -63,106 +59,106 @@ namespace ConsoleApplication1
         }
     }
 }");
-            var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 245, cancellationToken: default);
-            Assert.NotNull(terms);
-            AssertEx.Equal(new[] { "yy", "xx" }, terms);
-        }
+        var terms = CSharpProximityExpressionsService.GetProximityExpressions(tree, 245, cancellationToken: default);
+        Assert.NotNull(terms);
+        AssertEx.Equal((string[])["yy", "xx"], terms);
+    }
 
-        private static async Task TestProximityExpressionGetterAsync(
-            string markup,
-            Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
+    private static async Task TestProximityExpressionGetterAsync(
+        string markup,
+        Func<CSharpProximityExpressionsService, Document, int, Task> continuation)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp(markup);
+        var testDocument = workspace.Documents.Single();
+        var caretPosition = testDocument.CursorPosition.Value;
+        var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
+        var languageDebugInfo = new CSharpLanguageDebugInfoService();
+        var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+
+        var proximityExpressionsGetter = new CSharpProximityExpressionsService();
+
+        await continuation(proximityExpressionsGetter, document, caretPosition);
+    }
+
+    private static async Task TestTryDoInMainAsync(string body, bool topLevelStatement, params string[] expectedTerms)
+    {
+        string input;
+        if (topLevelStatement)
         {
-            using var workspace = TestWorkspace.CreateCSharp(markup);
-            var testDocument = workspace.Documents.Single();
-            var caretPosition = testDocument.CursorPosition.Value;
-            var snapshot = testDocument.GetTextBuffer().CurrentSnapshot;
-            var languageDebugInfo = new CSharpLanguageDebugInfoService();
-            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-
-            var proximityExpressionsGetter = new CSharpProximityExpressionsService();
-
-            await continuation(proximityExpressionsGetter, document, caretPosition);
+            input = body;
         }
-
-        private static async Task TestTryDoInMainAsync(string body, bool topLevelStatement, params string[] expectedTerms)
+        else
         {
-            string input;
-            if (topLevelStatement)
-            {
-                input = body;
-            }
-            else
-            {
-                input = $@"class Program
+            input = $@"class Program
 {{
     static void Main(string[] args)
     {{
 {string.Join(Environment.NewLine, body.ReplaceLineEndings("\n").Split('\n').Select(line => line == "" ? line : $"        {line}"))}
     }}
 }}";
-            }
-
-            await TestTryDoAsync(input, expectedTerms);
         }
 
-        private static async Task TestTryDoAsync(string input, params string[] expectedTerms)
+        await TestTryDoAsync(input, expectedTerms);
+    }
+
+    private static async Task TestTryDoAsync(string input, params string[] expectedTerms)
+    {
+        await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
         {
-            await TestProximityExpressionGetterAsync(input, async (getter, document, position) =>
-            {
-                var actualTerms = await getter.GetProximityExpressionsAsync(document, position, CancellationToken.None);
-                Assert.True(actualTerms is null or { Count: > 0 });
-                AssertEx.Equal(expectedTerms, actualTerms ?? Array.Empty<string>());
-            });
-        }
+            var actualTerms = await getter.GetProximityExpressionsAsync(document, position, CancellationToken.None);
+            Assert.True(actualTerms is null or { Count: > 0 });
+            AssertEx.Equal(expectedTerms, actualTerms ?? Array.Empty<string>());
+        });
+    }
 
-        private static async Task TestIsValidAsync(string input, string expression, bool expectedValid)
+    private static async Task TestIsValidAsync(string input, string expression, bool expectedValid)
+    {
+        await TestProximityExpressionGetterAsync(input, async (getter, semanticSnapshot, position) =>
         {
-            await TestProximityExpressionGetterAsync(input, async (getter, semanticSnapshot, position) =>
-            {
-                var actualValid = await getter.IsValidAsync(semanticSnapshot, position, expression, CancellationToken.None);
-                Assert.Equal(expectedValid, actualValid);
-            });
-        }
+            var actualValid = await getter.IsValidAsync(semanticSnapshot, position, expression, CancellationToken.None);
+            Assert.Equal(expectedValid, actualValid);
+        });
+    }
 
-        [Fact]
-        public async Task TestTryDo1()
-            => await TestTryDoAsync("class Class { void Method() { string local;$$ } }", "local", "this");
+    [Fact]
+    public async Task TestTryDo1()
+        => await TestTryDoAsync("class Class { void Method() { string local;$$ } }", "local", "this");
 
-        [Fact]
-        public async Task TestNoParentToken()
-            => await TestTryDoAsync("$$");
+    [Fact]
+    public async Task TestNoParentToken()
+        => await TestTryDoAsync("$$");
 
-        [Fact]
-        public async Task TestIsValid1()
-            => await TestIsValidAsync("class Class { void Method() { string local;$$ } }", "local", true);
+    [Fact]
+    public async Task TestIsValid1()
+        => await TestIsValidAsync("class Class { void Method() { string local;$$ } }", "local", true);
 
-        [Fact]
-        public async Task TestIsValidWithDiagnostics()
-        {
-            // local doesn't exist in this context
-            await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", false);
-        }
+    [Fact]
+    public async Task TestIsValidWithDiagnostics()
+    {
+        // local doesn't exist in this context
+        await TestIsValidAsync("class Class { void Method() { string local; } $$}", "local", false);
+    }
 
-        [Fact]
-        public async Task TestIsValidReferencingLocalBeforeDeclaration()
-            => await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", false);
+    [Fact]
+    public async Task TestIsValidReferencingLocalBeforeDeclaration()
+        => await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "j", false);
 
-        [Fact]
-        public async Task TestIsValidReferencingUndefinedVariable()
-            => await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", false);
+    [Fact]
+    public async Task TestIsValidReferencingUndefinedVariable()
+        => await TestIsValidAsync("class Class { void Method() { $$int i; int j; } }", "k", false);
 
-        [Fact]
-        public async Task TestIsValidNoTypeSymbol()
-            => await TestIsValidAsync("namespace Namespace$$ { }", "goo", false);
+    [Fact]
+    public async Task TestIsValidNoTypeSymbol()
+        => await TestIsValidAsync("namespace Namespace$$ { }", "goo", false);
 
-        [Fact]
-        public async Task TestIsValidLocalAfterPosition()
-            => await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", false);
+    [Fact]
+    public async Task TestIsValidLocalAfterPosition()
+        => await TestIsValidAsync("class Class { void Method() { $$ int i; string local; } }", "local", false);
 
-        [Fact]
-        public async Task TestThis()
-        {
-            await TestTryDoAsync(@"
+    [Fact]
+    public async Task TestThis()
+    {
+        await TestTryDoAsync(@"
 class Class 
 {
     public Class() : this(true) 
@@ -171,14 +167,14 @@ class Class
         this.ToString()$$;
     }
 }", "this");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestArrayCreationExpression(bool topLevelStatement)
+    [Theory, CombinatorialData]
+    public async Task TestArrayCreationExpression(bool topLevelStatement)
+    {
+        if (!topLevelStatement)
         {
-            if (!topLevelStatement)
-            {
-                await TestTryDoAsync(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -186,19 +182,19 @@ class Class
         int[] i = new int[] { 3 }$$;
     }
 }", "i", "this");
-            }
-
-            await TestTryDoInMainAsync(@"
-int[] i = new int[] { 3 }$$;
-", topLevelStatement, "i", "args");
         }
 
-        [Theory, CombinatorialData]
-        public async Task TestPostfixUnaryExpressionSyntax(bool topLevelStatement)
+        await TestTryDoInMainAsync(@"
+int[] i = new int[] { 3 }$$;
+", topLevelStatement, "i", "args");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestPostfixUnaryExpressionSyntax(bool topLevelStatement)
+    {
+        if (!topLevelStatement)
         {
-            if (!topLevelStatement)
-            {
-                await TestTryDoAsync(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -207,19 +203,19 @@ class Class
         i++$$;
     }
 }", "i", "this");
-            }
-
-            await TestTryDoInMainAsync(@"int i = 3;
-i++$$;
-", topLevelStatement, "i");
         }
 
-        [Theory, CombinatorialData]
-        public async Task TestLabeledStatement(bool topLevelStatement)
+        await TestTryDoInMainAsync(@"int i = 3;
+i++$$;
+", topLevelStatement, "i");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestLabeledStatement(bool topLevelStatement)
+    {
+        if (!topLevelStatement)
         {
-            if (!topLevelStatement)
-            {
-                await TestTryDoAsync(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -228,63 +224,63 @@ class Class
         label2$$: i++;
     }
 }", "i", "this");
-            }
+        }
 
-            await TestTryDoInMainAsync(@"label: int i = 3;
+        await TestTryDoInMainAsync(@"label: int i = 3;
 label2$$: i++;
 ", topLevelStatement, "i");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestThrowStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"e = new Exception();
+    [Theory, CombinatorialData]
+    public async Task TestThrowStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"e = new Exception();
 thr$$ow e;
 ", topLevelStatement, "e");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestDoStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"do$$ { } while (true);
+    [Theory, CombinatorialData]
+    public async Task TestDoStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"do$$ { } while (true);
 ", topLevelStatement, "args");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestLockStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"lock(typeof(Cl$$ass)) { };
+    [Theory, CombinatorialData]
+    public async Task TestLockStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"lock(typeof(Cl$$ass)) { };
 ", topLevelStatement, "args");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestWhileStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"while(DateTime.Now <$$ DateTime.Now) { };
+    [Theory, CombinatorialData]
+    public async Task TestWhileStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"while(DateTime.Now <$$ DateTime.Now) { };
 ", topLevelStatement, "DateTime", "DateTime.Now", "args");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestForStatementWithDeclarators(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"for(int i = 0; i < 10; i$$++) { }
+    [Theory, CombinatorialData]
+    public async Task TestForStatementWithDeclarators(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"for(int i = 0; i < 10; i$$++) { }
 ", topLevelStatement, "i", "args");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestForStatementWithInitializers(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int i = 0;
+    [Theory, CombinatorialData]
+    public async Task TestForStatementWithInitializers(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int i = 0;
 for(i = 1; i < 10; i$$++) { }
 ", topLevelStatement, "i");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestUsingStatement(bool topLevelStatement)
+    [Theory, CombinatorialData]
+    public async Task TestUsingStatement(bool topLevelStatement)
+    {
+        if (!topLevelStatement)
         {
-            if (!topLevelStatement)
-            {
-                await TestTryDoAsync(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -292,17 +288,16 @@ class Class
         using (FileStream fs = new FileStream($$)) { }
     }
 }", "this");
-            }
-
-            await TestTryDoInMainAsync(@"using (FileStream fs = new FileStream($$)) { }
-", topLevelStatement, "args");
         }
 
-        [Fact]
-        [WorkItem(538879, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538879")]
-        public async Task TestValueInPropertySetter()
-        {
-            await TestTryDoAsync(@"
+        await TestTryDoInMainAsync(@"using (FileStream fs = new FileStream($$)) { }
+", topLevelStatement, "args");
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538879")]
+    public async Task TestValueInPropertySetter()
+    {
+        await TestTryDoAsync(@"
 class Class 
 {
     string Name
@@ -311,13 +306,12 @@ class Class
         set { $$ }
     }
 }", "this", "value");
-        }
+    }
 
-        [Fact]
-        [WorkItem(48504, "https://github.com/dotnet/roslyn/issues/48504")]
-        public async Task TestValueInPropertyInit()
-        {
-            await TestTryDoAsync(@"
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48504")]
+    public async Task TestValueInPropertyInit()
+    {
+        await TestTryDoAsync(@"
 class Class
 {
     string Name
@@ -326,12 +320,12 @@ class Class
         init { $$ }
     }
 }", "this", "value");
-        }
+    }
 
-        [Fact]
-        public async Task TestValueInEventAdd()
-        {
-            await TestTryDoAsync(@"
+    [Fact]
+    public async Task TestValueInEventAdd()
+    {
+        await TestTryDoAsync(@"
 class Class 
 {
     event Action Event
@@ -340,12 +334,12 @@ class Class
         set { }
     }
 }", "this", "value");
-        }
+    }
 
-        [Fact]
-        public async Task TestValueInEventRemove()
-        {
-            await TestTryDoAsync(@"
+    [Fact]
+    public async Task TestValueInEventRemove()
+    {
+        await TestTryDoAsync(@"
 class Class 
 {
     event Action Event
@@ -354,13 +348,12 @@ class Class
         remove { $$ }
     }
 }", "this", "value");
-        }
+    }
 
-        [Fact]
-        [WorkItem(538880, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538880")]
-        public async Task TestValueInIndexerSetter()
-        {
-            await TestTryDoAsync(@"
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538880")]
+    public async Task TestValueInIndexerSetter()
+    {
+        await TestTryDoAsync(@"
 class Class 
 {
     string this[int index]
@@ -369,15 +362,15 @@ class Class
         set { $$ }
     }
 }", "index", "this", "value");
-        }
+    }
 
-        [Theory, CombinatorialData]
-        [WorkItem(538881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538881")]
-        public async Task TestCatchBlock(bool topLevelStatement)
+    [Theory, CombinatorialData]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538881")]
+    public async Task TestCatchBlock(bool topLevelStatement)
+    {
+        if (!topLevelStatement)
         {
-            if (!topLevelStatement)
-            {
-                await TestTryDoAsync(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -386,20 +379,20 @@ class Class
         catch(Exception ex) { int $$ }
     }
 }", "ex", "this");
-            }
-
-            await TestTryDoInMainAsync(@"try { }
-catch(Exception ex) { int $$ }
-", topLevelStatement, "ex");
         }
 
-        [Theory, CombinatorialData]
-        [WorkItem(538881, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538881")]
-        public async Task TestCatchBlockEmpty_OpenBrace(bool topLevelStatement)
+        await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { int $$ }
+", topLevelStatement, "ex");
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538881")]
+    public async Task TestCatchBlockEmpty_OpenBrace(bool topLevelStatement)
+    {
+        if (!topLevelStatement)
         {
-            if (!topLevelStatement)
-            {
-                await TestTryDoAsync(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -408,19 +401,19 @@ class Class
         catch(Exception ex) { $$ }
     }
 }", "ex", "this");
-            }
-
-            await TestTryDoInMainAsync(@"try { }
-catch(Exception ex) { $$ }
-", topLevelStatement, "ex");
         }
 
-        [Theory, CombinatorialData]
-        public async Task TestCatchBlockEmpty_CloseBrace(bool topLevelStatement)
+        await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { $$ }
+", topLevelStatement, "ex");
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestCatchBlockEmpty_CloseBrace(bool topLevelStatement)
+    {
+        if (!topLevelStatement)
         {
-            if (!topLevelStatement)
-            {
-                await TestTryDoAsync(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -429,20 +422,20 @@ class Class
         catch(Exception ex) { } $$ 
     }
 }", "this");
-            }
-
-            await TestTryDoInMainAsync(@"try { }
-catch(Exception ex) { } $$ 
-", topLevelStatement);
         }
 
-        [Theory, CombinatorialData]
-        [WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
-        public async Task TestObjectCreation(bool topLevelStatement)
+        await TestTryDoInMainAsync(@"try { }
+catch(Exception ex) { } $$ 
+", topLevelStatement);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
+    public async Task TestObjectCreation(bool topLevelStatement)
+    {
+        if (!topLevelStatement)
         {
-            if (!topLevelStatement)
-            {
-                await TestTryDoAsync(@"
+            await TestTryDoAsync(@"
 class Class 
 {
     void Method()
@@ -450,17 +443,16 @@ class Class
         $$Goo(new Bar(a).Baz);
     }
 }", "a", "new Bar(a).Baz", "Goo", "this");
-            }
-
-            await TestTryDoInMainAsync(@"$$Goo(new Bar(a).Baz);
-", topLevelStatement, "a", "new Bar(a).Baz", "Goo", "args");
         }
 
-        [Fact]
-        [WorkItem(538874, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
-        public async Task Test2()
-        {
-            await TestIsValidAsync(@"
+        await TestTryDoInMainAsync(@"$$Goo(new Bar(a).Baz);
+", topLevelStatement, "a", "new Bar(a).Baz", "Goo", "args");
+    }
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538874")]
+    public async Task Test2()
+    {
+        await TestIsValidAsync(@"
 class D
 {
    private static int x;
@@ -473,13 +465,12 @@ class Class
         $$Goo(D.x);
     }
 }", "D.x", false);
-        }
+    }
 
-        [Fact]
-        [WorkItem(538890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538890")]
-        public async Task TestArrayCreation()
-        {
-            await TestTryDoAsync(@"
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538890")]
+    public async Task TestArrayCreation()
+    {
+        await TestTryDoAsync(@"
 class Class 
 {
     int a;
@@ -488,13 +479,12 @@ class Class
         $$new int[] { a };
     }
 }", "this");
-        }
+    }
 
-        [WorkItem(751141, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751141")]
-        [Fact]
-        public async Task Bug751141()
-        {
-            await TestTryDoAsync(@"
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751141")]
+    public async Task Bug751141()
+    {
+        await TestTryDoAsync(@"
 class Program
 {
     double m_double = 1.1;
@@ -509,24 +499,22 @@ class Program
     }
 }
 ", "System.Diagnostics.Debugger", "local_int", "m_double", "(int)m_double", "this");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ForLoopExpressionsInFirstStatementOfLoop1(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"for(int i = 0; i < 5; i++)
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ForLoopExpressionsInFirstStatementOfLoop1(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"for(int i = 0; i < 5; i++)
 {
     $$var x = 8;
 }
 ", topLevelStatement, "i", "x");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ForLoopExpressionsInFirstStatementOfLoop2(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0, n = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ForLoopExpressionsInFirstStatementOfLoop2(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0, n = 0;
 
 for(i = 0; j < 5; k++)
 {
@@ -534,13 +522,12 @@ for(i = 0; j < 5; k++)
     n = 7;
 }
 ", topLevelStatement, "m", "i", "j", "k");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ForLoopExpressionsInFirstStatementOfLoop3(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ForLoopExpressionsInFirstStatementOfLoop3(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
 
 for(i = 0; j < 5; k++)
 {
@@ -548,44 +535,40 @@ for(i = 0; j < 5; k++)
     $$var n = 7;
 }
 ", topLevelStatement, "m", "n");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ForLoopExpressionsInFirstStatementOfLoop4(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ForLoopExpressionsInFirstStatementOfLoop4(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
 
 for(i = 0; j < 5; k++)
     $$m = 8;
 ", topLevelStatement, "m", "i", "j", "k");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ForEachLoopExpressionsInFirstStatementOfLoop1(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"foreach (var x in new int[] { 1, 2, 3 })
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ForEachLoopExpressionsInFirstStatementOfLoop1(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"foreach (var x in new int[] { 1, 2, 3 })
 {
     $$var z = 0;
 }
 ", topLevelStatement, "x", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ForEachLoopExpressionsInFirstStatementOfLoop2(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"foreach (var x in new int[] { 1, 2, 3 })
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ForEachLoopExpressionsInFirstStatementOfLoop2(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"foreach (var x in new int[] { 1, 2, 3 })
     $$var z = 0;
 ", topLevelStatement, "x", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterForLoop1(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterForLoop1(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0;
 
 for (a = 5; b < 1; b++)
 {
@@ -595,13 +578,12 @@ for (a = 5; b < 1; b++)
         
 $$var z = 0;
 ", topLevelStatement, "a", "b", "d", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterForLoop2(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterForLoop2(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0;
 
 for (a = 5; b < 1; b++)
 {
@@ -611,13 +593,12 @@ for (a = 5; b < 1; b++)
         
 $$var z = 0;
 ", topLevelStatement, "a", "b", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterForEachLoop(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterForEachLoop(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0;
 
 foreach (var q in new int[] {1, 2, 3})
 {
@@ -627,13 +608,12 @@ foreach (var q in new int[] {1, 2, 3})
         
 $$var z = 0;
 ", topLevelStatement, "q", "d", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterNestedForLoop(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterNestedForLoop(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
 for (a = 5; b < 1; b++)
 {
@@ -648,13 +628,12 @@ for (a = 5; b < 1; b++)
         
 $$var z = 0;
 ", topLevelStatement, "a", "b", "f", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterCheckedStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterCheckedStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
 checked
 {
@@ -664,13 +643,12 @@ checked
         
 $$var z = 0;
 ", topLevelStatement, "b", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterUncheckedStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterUncheckedStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
 unchecked
 {
@@ -680,13 +658,12 @@ unchecked
         
 $$var z = 0;
 ", topLevelStatement, "b", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterIfStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterIfStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
 if (a == 0)
 {
@@ -696,13 +673,12 @@ if (a == 0)
 
 $$var z = 0;
 ", topLevelStatement, "a", "d", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterIfStatementWithElse(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterIfStatementWithElse(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
 if (a == 0)
 {
@@ -717,13 +693,12 @@ else
 
 $$var z = 0;
 ", topLevelStatement, "a", "d", "f", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterLockStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterLockStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0;
 
 lock (new object())
 {
@@ -733,13 +708,12 @@ lock (new object())
 
 $$var z = 0;
 ", topLevelStatement, "b", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterSwitchStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterSwitchStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
 
 switch(a)
 {
@@ -759,13 +733,12 @@ switch(a)
 
 $$var z = 0;
 ", topLevelStatement, "a", "c", "e", "g", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterTryStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterTryStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
 
 try
 {
@@ -785,13 +758,12 @@ catch (System.EntryPointNotFoundException)
 
 $$var z = 0;
 ", topLevelStatement, "b", "d", "f", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterTryStatementWithFinally(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterTryStatementWithFinally(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
 
 try
 {
@@ -815,13 +787,12 @@ finally
 
 $$var z = 0;
 ", topLevelStatement, "g", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterUsingStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterUsingStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
 
 using (null as System.IDisposable)
 {
@@ -831,13 +802,12 @@ using (null as System.IDisposable)
 
 $$var z = 0;
 ", topLevelStatement, "b", "z");
-        }
+    }
 
-        [WorkItem(775161, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsAfterWhileStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775161"), CombinatorialData]
+    public async Task ExpressionsAfterWhileStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 0, b = 0, c = 0, d = 0, e = 0, f = 0, g = 0;
 
 while (a < 5)
 {
@@ -847,13 +817,12 @@ while (a < 5)
 
 $$var z = 0;
 ", topLevelStatement, "a", "b", "z");
-        }
+    }
 
-        [WorkItem(778215, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778215")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsInParenthesizedExpressions(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
+    [Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/778215"), CombinatorialData]
+    public async Task ExpressionsInParenthesizedExpressions(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int i = 0, j = 0, k = 0, m = 0;
 int flags = 7;
 
 if((flags & i) == k)
@@ -861,16 +830,14 @@ if((flags & i) == k)
     $$ m = 8;
 }
 ", topLevelStatement, "m", "flags", "i", "k");
-        }
+    }
 
-        [WorkItem(58337, "https://github.com/dotnet/roslyn/issues/58337")]
-        [Theory, CombinatorialData]
-        public async Task ExpressionsInTopLevelStatement(bool topLevelStatement)
-        {
-            await TestTryDoInMainAsync(@"int a = 1;
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/58337"), CombinatorialData]
+    public async Task ExpressionsInTopLevelStatement(bool topLevelStatement)
+    {
+        await TestTryDoInMainAsync(@"int a = 1;
 int b = 2;
 $$ Console.WriteLine(""Hello, World!"");
 ", topLevelStatement, "Console", "b");
-        }
     }
 }

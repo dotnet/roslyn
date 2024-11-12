@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -190,7 +191,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                         Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
 
-                        retType.CheckAllConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
+                        retType.CheckAllConstraints(
+                            DeclaringCompilation.LanguageVersion,
+                            diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
 
                         If useSiteDiagnosticsBuilder IsNot Nothing Then
                             diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -259,7 +262,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         If param.Locations.Length > 0 Then
                             ' Note: Errors are reported on the parameter name. Ideally, we should
                             ' match Dev10 and report errors on the parameter type syntax instead.
-                            param.Type.CheckAllConstraints(param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
+                            param.Type.CheckAllConstraints(
+                                DeclaringCompilation.LanguageVersion,
+                                param.Locations(0), diagBag, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagBag, sourceModule.ContainingAssembly))
                         End If
                     Next
 
@@ -477,7 +482,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
             If arguments.SymbolPart = AttributeLocation.None Then
-                If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.DebuggerHiddenAttribute) Then
+                If arguments.Attribute.IsTargetAttribute(AttributeDescription.DebuggerHiddenAttribute) Then
                     arguments.GetOrCreateData(Of MethodWellKnownAttributeData)().IsPropertyAccessorWithDebuggerHiddenAttribute = True
                 End If
             End If
@@ -492,8 +497,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If m_property.IsAutoProperty Then
                 Dim compilation = DeclaringCompilation

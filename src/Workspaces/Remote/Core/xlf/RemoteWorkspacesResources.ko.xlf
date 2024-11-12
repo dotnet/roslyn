@@ -67,6 +67,11 @@
         <target state="translated">사용량 찾기</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">정규화</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
         <source>Global notification delivery</source>
         <target state="translated">전역 알림 배달</target>
@@ -75,6 +80,16 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">상속 여백</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">서비스 연결 유지</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">솔루션 이벤트</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
@@ -102,6 +117,11 @@
         <target state="translated">프로젝트 원격 분석 컬렉션</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_RelatedDocuments">
+        <source>Related documents</source>
+        <target state="translated">관련 문서</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
         <target state="translated">이름 바꾸기</target>
@@ -112,9 +132,19 @@
         <target state="translated">의미 체계 분류</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">의미 체계 검색</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">자산 공급자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">원본 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
@@ -132,9 +162,14 @@
         <target state="translated">기호 검색</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_TodoCommentsDiscovery">
-        <source>TODO comments discovery</source>
-        <target state="translated">TODO 주석 검색</target>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">작업 목록</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">단위 테스트 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">

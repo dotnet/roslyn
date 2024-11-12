@@ -29,8 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Podkreślenie ponownie przypisanych zmiennych;Wyświetlanie wskazówek śródwierszowych; Automatyczne wstawianie konstrukcji końcowych; Zmiana ustawień formatowania kodu;Zmiana tryb konspektu; Automatyczne wstawianie składowych interfejsu i MustOverride; Pokazywanie lub ukrywanie separatorów wierszy procedury; Włączanie lub wyłączanie sugestii poprawek błędów; Włączanie lub wyłączanie wyróżnianie odwołań i słów kluczowych; Wyrażenie regularne; Kolorowanie wyrażeń regularnych; Wyróżnianie powiązanych składników pod kursorem; Zgłaszanie nieprawidłowych wyrażeń regularnych;wyrażenie regularne;wyrażenie regularne; Użyj rozszerzonych kolorów; Schemat kolorów edytora;Margines dziedziczenia;Dyrektywy importu;</target>
+        <target state="translated">Podkreślanie ponownie przypisanych zmiennych;Wyświatlnie wskazówek śródwierszowych; Automatyczne wstawianie konstrukcji końcowych; Zmiana ustawień wyświetlania listy;Zmiana trybu konspektu; Automatyczne wstawianie elementów członkowskich Interfejs i Należy Zastąpić; Pokazywanie lub ukrywanie separatorów wierszy procedury; Włączanie lub wyłączanie sugestii poprawek błędów; Włączanie lub wyłączanie wyróżnianie odwołań i słów kluczowych;
+Wyrażenie regularne;
+Wyrażenia regularne;
+Powiązane składniki pod kursorem;
+Zgłaszanie nieprawidłowych wyrażeń regularnych;
+wyrażenie regularne;
+wyrażenie regularne; 
+JSON, 
+Kolorowanie ciągów JSON; 
+Zgłaszanie nieprawidłowych ciągów JSON;
+Wykrywanie i oferowanie funkcji edytowania dla ciągów JSON;
+Zwijanie #regions przy otwieraniu pliku;
+Zwijanie importów przy otwieraniu pliku;
+Zwijanie implementacji metadanych przy otwieraniu pliku;
+Używanie rozszerzonych kolorów; Schemat kolorów edytora;Margines dziedziczenia;Dyrektywy importu;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -113,14 +130,34 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</s
         <target state="translated">Narzędzia języka Visual Basic</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Pusty plik skryptu języka Visual Basic.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Zawsze dodawaj nowy wiersz po naciśnięciu klawisza Enter</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Skrypt języka Visual Basic</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Zawsze dołączaj fragmenty kodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Dołącz fragmenty kodu po wpisaniu znaku ? po identyfikatorze i naciśnięciu klawisza Tab</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Nigdy nie dodawaj nowego wiersza po naciśnięciu klawisza Enter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Nigdy nie dołączaj fragmentów kodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Dodaj nowy wiersz tylko po naciśnięciu klawisza Enter na końcu w pełni wpisanego wyrazu</target>
         <note />
       </trans-unit>
     </body>

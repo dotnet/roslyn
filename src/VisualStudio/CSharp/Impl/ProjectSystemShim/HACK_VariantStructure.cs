@@ -5,11 +5,7 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
@@ -24,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// it to null instead of true.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct HACK_VariantStructure
+    internal readonly struct HACK_VariantStructure
     {
         private readonly short _type;
 

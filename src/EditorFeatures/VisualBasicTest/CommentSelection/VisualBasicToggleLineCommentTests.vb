@@ -10,10 +10,11 @@ Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CommentSelection
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
     Public Class VisualBasicToggleLineCommentTests
         Inherits AbstractToggleCommentTestBase
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
+        <WpfFact>
         Public Sub AddComment()
             Dim markup =
 <code>
@@ -37,7 +38,7 @@ End Class
             ToggleAndReplaceLineEndings(markup, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
+        <WpfFact>
         Public Sub RemoveComment()
             Dim markup =
 <code>
@@ -61,7 +62,7 @@ End Class
             ToggleAndReplaceLineEndings(markup, expected)
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ToggleLineComment)>
+        <WpfFact>
         Public Sub ToggleComment_Multiple()
             Dim markup =
 <code>
@@ -112,14 +113,14 @@ End Class
             Return markup.Replace(vbLf, vbCrLf)
         End Function
 
-        Friend Overrides Function GetToggleCommentCommandHandler(workspace As TestWorkspace) As AbstractCommentSelectionBase(Of ValueTuple)
+        Friend Overrides Function GetToggleCommentCommandHandler(workspace As EditorTestWorkspace) As AbstractCommentSelectionBase(Of ValueTuple)
             Return DirectCast(
                 workspace.ExportProvider.GetExportedValues(Of ICommandHandler)().First(Function(export) TypeOf export Is ToggleLineCommentCommandHandler),
                 AbstractCommentSelectionBase(Of ValueTuple))
         End Function
 
-        Friend Overrides Function GetWorkspace(markup As String, composition As TestComposition) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(markup, composition:=composition)
+        Friend Overrides Function GetWorkspace(markup As String, composition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(markup, composition:=composition)
         End Function
     End Class
 End Namespace

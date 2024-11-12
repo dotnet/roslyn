@@ -4,27 +4,27 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
+namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup;
+
+internal partial class EventHookupCommandHandler :
+    ICommandHandler<EscapeKeyCommandArgs>
 {
-    internal partial class EventHookupCommandHandler :
-        ICommandHandler<EscapeKeyCommandArgs>
+    public string DisplayName => CSharpEditorResources.Generate_Event_Subscription;
+
+    public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
     {
-        public string DisplayName => CSharpEditorResources.Generate_Event_Subscription;
+        _threadingContext.ThrowIfNotOnUIThread();
+        EventHookupSessionManager.DismissExistingSessions();
+        return false;
+    }
 
-        public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
-        {
-            AssertIsForeground();
-            EventHookupSessionManager.CancelAndDismissExistingSessions();
-            return false;
-        }
-
-        public CommandState GetCommandState(EscapeKeyCommandArgs args)
-        {
-            AssertIsForeground();
-            return CommandState.Unspecified;
-        }
+    public CommandState GetCommandState(EscapeKeyCommandArgs args)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        return CommandState.Unspecified;
     }
 }

@@ -27,6 +27,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 #endif
         internal static bool IsCoreClrRuntime => !IsDesktopRuntime;
 
+        private static int? CoreClrRuntimeVersion { get; } = IsDesktopRuntime
+            ? null
+            : typeof(object).Assembly.GetName().Version.Major;
+
+        internal static bool IsCoreClr6Runtime
+            => IsCoreClrRuntime && RuntimeInformation.FrameworkDescription.StartsWith(".NET 6.", StringComparison.Ordinal);
+
+        internal static bool IsCoreClr8OrHigherRuntime
+            => CoreClrRuntimeVersion is { } v && v >= 8;
+
+        internal static bool IsCoreClr9OrHigherRuntime
+            => CoreClrRuntimeVersion is { } v && v >= 9;
+
         internal static BuildPaths CreateBuildPaths(string workingDirectory, string sdkDirectory = null, string tempDirectory = null)
         {
             tempDirectory ??= Path.GetTempPath();

@@ -9,23 +9,22 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.QuickInfo;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportXamlLspRequestHandlerProvider(typeof(HoverHandler)), Shared]
+    [ExportStatelessXamlLspService(typeof(HoverHandler)), Shared]
     [Method(Methods.TextDocumentHoverName)]
-    internal sealed class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
+    internal sealed class HoverHandler : ILspServiceRequestHandler<TextDocumentPositionParams, Hover?>
     {
         private readonly IGlobalOptionService _globalOptions;
 
@@ -36,12 +35,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
+        public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-        public override async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
@@ -51,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var quickInfoService = document.Project.LanguageServices.GetService<IXamlQuickInfoService>();
+            var quickInfoService = document.Project.Services.GetService<IXamlQuickInfoService>();
             if (quickInfoService == null)
             {
                 return null;
@@ -79,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 }
             }
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),

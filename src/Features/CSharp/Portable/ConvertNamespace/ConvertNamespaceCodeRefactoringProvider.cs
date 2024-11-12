@@ -2,80 +2,106 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
+namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
+
+using static ConvertNamespaceAnalysis;
+using static ConvertNamespaceTransform;
+
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertNamespace), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCodeRefactoringProvider
 {
-    using static ConvertNamespaceAnalysis;
-    using static ConvertNamespaceTransform;
+    protected override ImmutableArray<FixAllScope> SupportedFixAllScopes
+        => [FixAllScope.Project, FixAllScope.Solution];
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertNamespace), Shared]
-    internal class ConvertNamespaceCodeRefactoringProvider : CodeRefactoringProvider
+    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConvertNamespaceCodeRefactoringProvider()
+        var (document, span, cancellationToken) = context;
+        if (!span.IsEmpty)
+            return;
+
+        var position = span.Start;
+        var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(position);
+        var namespaceDecl = token.GetAncestor<BaseNamespaceDeclarationSyntax>();
+        if (namespaceDecl == null)
+            return;
+
+        if (!IsValidPosition(namespaceDecl, position))
+            return;
+
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        if (!CanOfferRefactoring(namespaceDecl, root, options, out var info))
+            return;
+
+        context.RegisterRefactoring(CodeAction.Create(
+            info.Value.title, c => ConvertAsync(document, namespaceDecl, options, c), info.Value.equivalenceKey));
+    }
+
+    private static bool CanOfferRefactoring(
+        [NotNullWhen(true)] BaseNamespaceDeclarationSyntax? namespaceDecl,
+        CompilationUnitSyntax root,
+        CSharpSyntaxFormattingOptions options,
+        [NotNullWhen(true)] out (string title, string equivalenceKey)? info)
+    {
+        info =
+            CanOfferUseBlockScoped(options.NamespaceDeclarations, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
+            CanOfferUseFileScoped(options.NamespaceDeclarations, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
+            null;
+
+        return info != null;
+    }
+
+    private static bool IsValidPosition(BaseNamespaceDeclarationSyntax baseDeclaration, int position)
+    {
+        if (position < baseDeclaration.SpanStart)
+            return false;
+
+        if (baseDeclaration is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
+            return position <= fileScopedNamespace.SemicolonToken.Span.End;
+
+        if (baseDeclaration is NamespaceDeclarationSyntax namespaceDeclaration)
+            return position <= namespaceDeclaration.Name.Span.End;
+
+        throw ExceptionUtilities.UnexpectedValue(baseDeclaration.Kind());
+    }
+
+    protected override async Task FixAllAsync(
+        Document document,
+        ImmutableArray<TextSpan> fixAllSpans,
+        SyntaxEditor editor,
+        string? equivalenceKey,
+        CancellationToken cancellationToken)
+    {
+        var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var namespaceDecl = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
+        if (!CanOfferRefactoring(namespaceDecl, root, options, out var info)
+            || info.Value.equivalenceKey != equivalenceKey)
         {
+            return;
         }
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            var (document, span, cancellationToken) = context;
-            if (!span.IsEmpty)
-                return;
-
-            var position = span.Start;
-            var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-            var namespaceDecl = token.GetAncestor<BaseNamespaceDeclarationSyntax>();
-            if (namespaceDecl == null)
-                return;
-
-            if (!IsValidPosition(namespaceDecl, position))
-                return;
-
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var info =
-                CanOfferUseBlockScoped(optionSet, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.BlockScoped) :
-                CanOfferUseFileScoped(optionSet, root, namespaceDecl, forAnalyzer: false) ? GetInfo(NamespaceDeclarationPreference.FileScoped) :
-                ((string title, string equivalenceKey)?)null;
-            if (info == null)
-                return;
-
-            context.RegisterRefactoring(new MyCodeAction(
-                info.Value.title, c => ConvertAsync(document, namespaceDecl, c), info.Value.equivalenceKey));
-        }
-
-        private static bool IsValidPosition(BaseNamespaceDeclarationSyntax baseDeclaration, int position)
-        {
-            if (position < baseDeclaration.SpanStart)
-                return false;
-
-            if (baseDeclaration is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
-                return position <= fileScopedNamespace.SemicolonToken.Span.End;
-
-            if (baseDeclaration is NamespaceDeclarationSyntax namespaceDeclaration)
-                return position <= namespaceDeclaration.Name.Span.End;
-
-            throw ExceptionUtilities.UnexpectedValue(baseDeclaration.Kind());
-        }
-
-        private class MyCodeAction : CodeAction.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
-            {
-            }
-        }
+        document = await ConvertAsync(document, namespaceDecl, options, cancellationToken).ConfigureAwait(false);
+        var newRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        editor.ReplaceNode(editor.OriginalRoot, newRoot);
     }
 }

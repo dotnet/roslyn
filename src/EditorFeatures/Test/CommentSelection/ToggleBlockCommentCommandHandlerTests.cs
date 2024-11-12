@@ -7,41 +7,40 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CommentSelection;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.CommentSelection;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection;
+
+[UseExportProvider]
+[Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+public class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
 {
-    [UseExportProvider]
-    public class ToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
+    [WpfFact]
+    public void AddComment_EmptyCaret()
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_EmptyCaret()
-        {
-            var markup = @"$$";
-            var expected = @"[|/**/|]";
+        var markup = @"$$";
+        var expected = @"[|/**/|]";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_EmptySelection()
-        {
-            var markup = @"[| |]";
-            var expected = @"[|/* */|]";
+    [WpfFact]
+    public void AddComment_EmptySelection()
+    {
+        var markup = @"[| |]";
+        var expected = @"[|/* */|]";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_SingleLineSelected()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_SingleLineSelected()
+    {
+        var markup =
 @"
 class C
 {
@@ -50,7 +49,7 @@ class C
         [|var i = 1;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -60,13 +59,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_SingleLineWithWhitespaceSelected()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_SingleLineWithWhitespaceSelected()
+    {
+        var markup =
 @"
 class C
 {
@@ -75,7 +74,7 @@ class C
 [|        var i = 1;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -85,13 +84,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretInsideSingleLine()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CaretInsideSingleLine()
+    {
+        var markup =
 @"
 class C
 {
@@ -100,7 +99,7 @@ class C
         var$$ i = 1;
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -110,13 +109,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_PartialLineSelected()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_PartialLineSelected()
+    {
+        var markup =
 @"
 class C
 {
@@ -125,7 +124,7 @@ class C
         var [|i = 1|];
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -135,13 +134,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretInsideToken()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CaretInsideToken()
+    {
+        var markup =
 @"
 class C
 {
@@ -150,7 +149,7 @@ class C
         va$$r i = 1;
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -160,13 +159,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretInsideOperatorToken()
-        {
-            var markup = @"
+    [WpfFact]
+    public void AddComment_CaretInsideOperatorToken()
+    {
+        var markup = @"
 class C
 {
     void M()
@@ -174,7 +173,7 @@ class C
         Func<int, bool> myFunc = x =$$> x == 5;
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -184,13 +183,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretInsideNewline()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CaretInsideNewline()
+    {
+        var markup =
 @"
 class C
 {
@@ -199,7 +198,7 @@ class C
         var i = 1;$$
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -209,13 +208,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_MultiLineSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_MultiLineSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -226,7 +225,7 @@ class C
         var k = 3;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -238,13 +237,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_MultiLineSelectionWithWhitespace()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_MultiLineSelectionWithWhitespace()
+    {
+        var markup =
 @"
 class C
 {
@@ -257,7 +256,7 @@ class C
 |]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -271,13 +270,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_SingleLineCommentInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_SingleLineCommentInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -287,7 +286,7 @@ class C
         var j = 2;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -298,13 +297,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_BlockCommentBetweenCodeInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_BlockCommentBetweenCodeInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -316,7 +315,7 @@ class C
         var l = 4;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -329,13 +328,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_SequentialBlockCommentBetweenCodeInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_SequentialBlockCommentBetweenCodeInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -348,7 +347,7 @@ class C
         var m = 5;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -362,13 +361,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_SequentialBlockCommentsAndWhitespaceBetweenCodeInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_SequentialBlockCommentsAndWhitespaceBetweenCodeInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -383,7 +382,7 @@ class C
         var m = 5;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -399,13 +398,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CodeBetweenBlockCommentsInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CodeBetweenBlockCommentsInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -418,7 +417,7 @@ class C
         var m = 5;*/|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -432,13 +431,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CodeThenCommentInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CodeThenCommentInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -449,7 +448,7 @@ class C
         var k = 3;*/|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -461,13 +460,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CodeThenCommentAndWhitespaceInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CodeThenCommentAndWhitespaceInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -479,7 +478,7 @@ class C
   |]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -492,13 +491,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CloseCommentOnlyInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CloseCommentOnlyInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -509,7 +508,7 @@ class C
         var k = 3;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -521,13 +520,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CodeThenPartialCommentInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CodeThenPartialCommentInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -538,7 +537,7 @@ class C
         var|] k = 3;*/
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -550,13 +549,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CommentThenCodeInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CommentThenCodeInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -567,7 +566,7 @@ class C
         var k = 3;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -579,13 +578,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CommentAndWhitespaceThenCodeInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CommentAndWhitespaceThenCodeInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -597,7 +596,7 @@ class C
   |]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -610,13 +609,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CommentCloseMarkerThenCodeInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CommentCloseMarkerThenCodeInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -627,7 +626,7 @@ class C
         var k = 3;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -639,13 +638,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CodeThenCommentStartMarkerInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CodeThenCommentStartMarkerInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -656,7 +655,7 @@ class C
         var k = 3;*/
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -668,13 +667,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_PartialCommentThenCodeInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_PartialCommentThenCodeInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -685,7 +684,7 @@ class C
         var k = 3;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -697,13 +696,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretBeforeBlockOnNewLine()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CaretBeforeBlockOnNewLine()
+    {
+        var markup =
 @"
 class C
 {
@@ -712,7 +711,7 @@ class C
         /*var i = 1;*/
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -722,13 +721,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretBeforeCodeAndBlock()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CaretBeforeCodeAndBlock()
+    {
+        var markup =
 @"
 class C
 {
@@ -737,7 +736,7 @@ class C
     $$    var /*i*/ = 1;
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -747,13 +746,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretAfterBlockOnNewLine()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CaretAfterBlockOnNewLine()
+    {
+        var markup =
 @"
 class C
 {
@@ -763,7 +762,7 @@ class C
 $$
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -774,13 +773,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretAfterBlockAndCode()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_CaretAfterBlockAndCode()
+    {
+        var markup =
 @"
 class C
 {
@@ -789,7 +788,7 @@ class C
         /*var */i = 1;  $$
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -799,13 +798,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_BlockSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_BlockSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -816,7 +815,7 @@ class C
         [|var k = 3;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -828,13 +827,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_BlockSelectionPartiallyCommented()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_BlockSelectionPartiallyCommented()
+    {
+        var markup =
 @"
 class C
 {
@@ -845,7 +844,7 @@ class C
         [|var k = 3;  |]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -857,13 +856,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_DirectiveInsideSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void AddComment_DirectiveInsideSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -876,7 +875,7 @@ class C
         var k = 3;|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -890,14 +889,14 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_WithProjectionBuffer()
-        {
-            var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
-            var csharpMarkup =
+    [WpfFact]
+    public void AddComment_WithProjectionBuffer()
+    {
+        var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
+        var csharpMarkup =
 @"
 {|S1:class C
 {
@@ -906,7 +905,7 @@ class C
         [|var i = 1;|]
     }
 }|}";
-            var expected =
+        var expected =
 @"&lt; html &gt;@class C
 {
     void M()
@@ -914,22 +913,22 @@ class C
         [|/*var i = 1;*/|]
     }
 }";
-            ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
-        }
+        ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_AtBeginningOfFile()
-        {
-            var markup = @"[|/**/|]";
-            var expected = @"";
+    [WpfFact]
+    public void RemoveComment_AtBeginningOfFile()
+    {
+        var markup = @"[|/**/|]";
+        var expected = @"";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CaretInsideBlock()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CaretInsideBlock()
+    {
+        var markup =
 @"
 class C
 {
@@ -940,7 +939,7 @@ class C
         var k = 3;*/
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -952,13 +951,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CaretInsideSequentialBlock()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CaretInsideSequentialBlock()
+    {
+        var markup =
 @"
 class C
 {
@@ -969,7 +968,7 @@ class C
         var k = 3;*/
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -981,13 +980,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CaretBeforeBlockOnlyWhitespace()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CaretBeforeBlockOnlyWhitespace()
+    {
+        var markup =
 @"
 class C
 {
@@ -998,7 +997,7 @@ class C
         var k = 3;
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1010,13 +1009,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CaretBeforeMultipleBlocksOnlyWhitespace()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CaretBeforeMultipleBlocksOnlyWhitespace()
+    {
+        var markup =
 @"
 class C
 {
@@ -1027,7 +1026,7 @@ class C
         var k = 3;
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1039,13 +1038,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CaretAfterBlockOnlyWhitespace()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CaretAfterBlockOnlyWhitespace()
+    {
+        var markup =
 @"
 class C
 {
@@ -1055,7 +1054,7 @@ class C
         var j = 2;*/    $$
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1066,13 +1065,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CaretAfterMultipleBlocksOnlyWhitespace()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CaretAfterMultipleBlocksOnlyWhitespace()
+    {
+        var markup =
 @"
 class C
 {
@@ -1082,7 +1081,7 @@ class C
         /*var*/ j /*= 2;*/   $$
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1093,13 +1092,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CaretInsideUnclosedBlock()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CaretInsideUnclosedBlock()
+    {
+        var markup =
 @"
 class C
 {
@@ -1110,7 +1109,7 @@ class C
         var k = 3;
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1122,13 +1121,13 @@ class C
     }
 }|]";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CommentInsideSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CommentInsideSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1139,7 +1138,7 @@ class C
         var k = 3;*/|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1151,13 +1150,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CommentAndWhitespaceInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CommentAndWhitespaceInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1169,7 +1168,7 @@ class C
         var k = 3;*/          |]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1182,13 +1181,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CommentWithSingleLineCommentInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CommentWithSingleLineCommentInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1199,7 +1198,7 @@ class C
         var k = 3;*/|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1211,13 +1210,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_SequentialBlockInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_SequentialBlockInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1228,7 +1227,7 @@ class C
         var k = 3;*/|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1240,13 +1239,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_SequentialBlockAndWhitespaceInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_SequentialBlockAndWhitespaceInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1259,7 +1258,7 @@ class C
         var k = 3;*/       |]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1273,13 +1272,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_CommentPartiallyInsideSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_CommentPartiallyInsideSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1290,7 +1289,7 @@ class C
         var k = 3;*/
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1302,13 +1301,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_PartialSequentialBlockInSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_PartialSequentialBlockInSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1319,7 +1318,7 @@ class C
         var |]k = 3;*/
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1331,13 +1330,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_BlockSelectionWithMultipleComments()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_BlockSelectionWithMultipleComments()
+    {
+        var markup =
 @"
 class C
 {
@@ -1348,7 +1347,7 @@ class C
         [|/*var k = 3;*/|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1360,13 +1359,13 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_BlockSelectionWithOneComment()
-        {
-            var markup =
+    [WpfFact]
+    public void RemoveComment_BlockSelectionWithOneComment()
+    {
+        var markup =
 @"
 class C
 {
@@ -1377,7 +1376,7 @@ class C
         [|var k = 3;*/|]
     }
 }";
-            var expected =
+        var expected =
 @"
 class C
 {
@@ -1389,14 +1388,14 @@ class C
     }
 }";
 
-            ToggleComment(markup, expected);
-        }
+        ToggleComment(markup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_WithProjectionBuffer()
-        {
-            var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
-            var csharpMarkup =
+    [WpfFact]
+    public void RemoveComment_WithProjectionBuffer()
+    {
+        var surfaceMarkup = @"&lt; html &gt;@{|S1:|}";
+        var csharpMarkup =
 @"
 {|S1:class C
 {
@@ -1405,7 +1404,7 @@ class C
         [|/*var i = 1;*/|]
     }
 }|}";
-            var expected =
+        var expected =
 @"&lt; html &gt;@class C
 {
     void M()
@@ -1413,13 +1412,13 @@ class C
         [|var i = 1;|]
     }
 }";
-            ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
-        }
+        ToggleCommentWithProjectionBuffer(surfaceMarkup, csharpMarkup, expected);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void ToggleComment_MultiLineSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void ToggleComment_MultiLineSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1430,8 +1429,8 @@ class C
         var k = 3;|]
     }
 }";
-            var expectedText = new[]
-            {
+        var expectedText = new[]
+        {
 @"
 class C
 {
@@ -1452,15 +1451,15 @@ class C
         var k = 3;|]
     }
 }"
-            };
+        };
 
-            ToggleCommentMultiple(markup, expectedText);
-        }
+        ToggleCommentMultiple(markup, expectedText);
+    }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void ToggleComment_MultiCommentSelection()
-        {
-            var markup =
+    [WpfFact]
+    public void ToggleComment_MultiCommentSelection()
+    {
+        var markup =
 @"
 class C
 {
@@ -1471,8 +1470,8 @@ class C
         var k = 3;|]
     }
 }";
-            var expectedText = new[]
-            {
+        var expectedText = new[]
+        {
 @"
 class C
 {
@@ -1494,18 +1493,17 @@ class C
         var k = 3;|]
     }
 }"
-            };
+        };
 
-            ToggleCommentMultiple(markup, expectedText);
-        }
-
-        internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace)
-        {
-            return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<ICommandHandler>()
-                .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
-        }
-
-        internal override TestWorkspace GetWorkspace(string markup, TestComposition composition)
-            => TestWorkspace.CreateCSharp(markup, composition: composition);
+        ToggleCommentMultiple(markup, expectedText);
     }
+
+    internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(EditorTestWorkspace workspace)
+    {
+        return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<ICommandHandler>()
+            .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
+    }
+
+    internal override EditorTestWorkspace GetWorkspace(string markup, TestComposition composition)
+        => EditorTestWorkspace.CreateCSharp(markup, composition: composition);
 }

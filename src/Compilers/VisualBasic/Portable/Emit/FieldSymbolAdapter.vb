@@ -21,6 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements ITypeDefinitionMember
         Implements ISpecializedFieldReference
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private Function IFieldReferenceGetType(context As EmitContext) As ITypeReference Implements IFieldReference.GetType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             Dim customModifiers = AdaptedFieldSymbol.CustomModifiers
@@ -31,6 +37,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return New ModifiedTypeReference(type, customModifiers.As(Of Cci.ICustomModifier))
             End If
         End Function
+
+        Private ReadOnly Property IFieldReferenceRefCustomModifiers As ImmutableArray(Of ICustomModifier) Implements IFieldReference.RefCustomModifiers
+            Get
+                Return ImmutableArray(Of ICustomModifier).Empty
+            End Get
+        End Property
+
+        Private ReadOnly Property IFieldReferenceIsByReference As Boolean Implements IFieldReference.IsByReference
+            Get
+                Return False
+            End Get
+        End Property
 
         Private Function IFieldReferenceGetResolvedField(context As EmitContext) As IFieldDefinition Implements IFieldReference.GetResolvedField
             Return ResolvedFieldImpl(DirectCast(context.Module, PEModuleBuilder))
@@ -208,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property ITypeDefinitionMemberVisibility As TypeMemberVisibility Implements ITypeDefinitionMember.Visibility
             Get
                 CheckDefinitionInvariant()
-                Return PEModuleBuilder.MemberVisibility(AdaptedFieldSymbol)
+                Return AdaptedFieldSymbol.MetadataVisibility
             End Get
         End Property
 

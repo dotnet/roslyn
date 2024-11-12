@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         [Fact]
         public void PartialMethods()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 public partial class C
 {
     static partial void goo() => System.Console.WriteLine(""test"");
@@ -62,7 +62,7 @@ public partial class C
         [Fact]
         public void ExprBodiedProp01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class Program
 {
     public int F = 1;
@@ -117,7 +117,7 @@ class C
 {
     int P => /*<bind>*/P/*</bind>*/;
 }");
-            var comp = CreateCompilationWithMscorlib45(new[] { tree });
+            var comp = CreateCompilationWithMscorlib461(new[] { tree });
 
             var info = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
             Assert.NotNull(info);
@@ -214,7 +214,7 @@ class C
         [Fact]
         public void ExprBodiedFunc01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class Program
 {
     public int M(int i) => /*<bind>*/i/*</bind>*/;
@@ -247,7 +247,7 @@ class Program
         [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void ExprBodiedFunc02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public T M<T>(T t) where T : class => /*<bind>*/t/*</bind>*/;
@@ -270,7 +270,7 @@ class C
         [Fact]
         public void ExprBodiedOperator01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class Program
 {
     public static Program operator ++(Program p) => /*<bind>*/p/*</bind>*/;
@@ -302,7 +302,7 @@ class Program
         [Fact]
         public void ExprBodiedConversion01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public static C M(int i) => new C();
@@ -413,7 +413,7 @@ public class Program : Base
         [Fact, WorkItem(1069421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]
         public void Bug1069421()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class Program
 {
     private int x => () => { 
@@ -1044,14 +1044,13 @@ public class C
             CreateCompilation(source, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (5,9): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     C() => Console.WriteLine(1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(1)").WithArguments("expression body constructor and destructor", "7.0").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=>").WithArguments("expression body constructor and destructor", "7.0").WithLocation(5, 9),
                 // (6,10): error CS8059: Feature 'expression body constructor and destructor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     ~C() => Console.WriteLine(2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(2)").WithArguments("expression body constructor and destructor", "7.0").WithLocation(6, 10),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=>").WithArguments("expression body constructor and destructor", "7.0").WithLocation(6, 10),
                 // (7,17): error CS8059: Feature 'expression body property accessor' is not available in C# 6. Please use language version 7.0 or greater.
                 //     int P { set => Console.WriteLine(value); }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=> Console.WriteLine(value)").WithArguments("expression body property accessor", "7.0").WithLocation(7, 17)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "=>").WithArguments("expression body property accessor", "7.0").WithLocation(7, 17));
         }
     }
 }

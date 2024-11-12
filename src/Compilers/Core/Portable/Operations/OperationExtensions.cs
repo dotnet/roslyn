@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return false;
             }
 
-            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
+            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(static d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             var stack = ArrayBuilder<IOperation.OperationList.Enumerator>.GetInstance();
-            stack.Push(((Operation)operation).ChildOperations.GetEnumerator());
+            stack.Push(operation.ChildOperations.GetEnumerator());
 
             while (stack.Any())
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (current != null)
                 {
                     yield return current;
-                    stack.Push(((Operation)current).ChildOperations.GetEnumerator());
+                    stack.Push(current.ChildOperations.GetEnumerator());
                 }
             }
 

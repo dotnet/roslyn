@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override IEnumerable<Cci.SecurityAttribute> GetSecurityInformation()
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal sealed override ImmutableArray<string> GetAppliedConditionalSymbols()
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -288,15 +289,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             factory.CurrentFunction = this;
             if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
             {
-                // System_Attribute was not found or was inaccessible
+                // Containing type was not found or was inaccessible
                 factory.CloseMethod(factory.Block());
                 return;
             }
 
-            var baseConstructorCall = MethodCompiler.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
+            var baseConstructorCall = Binder.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
             if (baseConstructorCall == null)
             {
-                // Attribute..ctor was not found or was inaccessible
+                // .ctor was not found or was inaccessible
                 factory.CloseMethod(factory.Block());
                 return;
             }
@@ -316,5 +317,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // overridden in a derived class to add extra statements to the body of the generated constructor
         }
 
+        protected override bool HasSetsRequiredMembersImpl => false;
+
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        {
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+            AddRequiredMembersMarkerAttributes(ref attributes, this);
+        }
     }
 }

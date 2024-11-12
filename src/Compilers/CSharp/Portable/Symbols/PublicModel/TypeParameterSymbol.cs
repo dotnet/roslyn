@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ITypeParameterSymbol.HasValueTypeConstraint => _underlying.HasValueTypeConstraint;
 
+        bool ITypeParameterSymbol.AllowsRefLikeType => _underlying.AllowsRefLikeType;
+
         bool ITypeParameterSymbol.HasUnmanagedTypeConstraint => _underlying.HasUnmanagedTypeConstraint;
 
         bool ITypeParameterSymbol.HasNotNullConstraint => _underlying.HasNotNullConstraint;
@@ -104,6 +106,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitTypeParameter(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitTypeParameter(this, argument);
         }
 
         #endregion

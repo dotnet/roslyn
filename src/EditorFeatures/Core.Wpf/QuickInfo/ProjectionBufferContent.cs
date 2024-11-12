@@ -5,10 +5,10 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Projection;
@@ -21,11 +21,12 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
     /// used to create a projection buffer out that will then be displayed in the quick info
     /// window.
     /// </summary>
-    internal class ProjectionBufferContent : ForegroundThreadAffinitizedObject
+    internal sealed class ProjectionBufferContent
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly ImmutableArray<SnapshotSpan> _spans;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IContentType _contentType;
         private readonly ITextViewRoleSet _roleSet;
@@ -34,15 +35,15 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             IThreadingContext threadingContext,
             ImmutableArray<SnapshotSpan> spans,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextEditorFactoryService textEditorFactoryService,
             IContentType contentType = null,
             ITextViewRoleSet roleSet = null)
-            : base(threadingContext)
         {
+            _threadingContext = threadingContext;
             _spans = spans;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _textEditorFactoryService = textEditorFactoryService;
             _contentType = contentType;
             _roleSet = roleSet ?? _textEditorFactoryService.NoRoles;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             IThreadingContext threadingContext,
             ImmutableArray<SnapshotSpan> spans,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             ITextEditorFactoryService textEditorFactoryService,
             IContentType contentType = null,
             ITextViewRoleSet roleSet = null)
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 threadingContext,
                 spans,
                 projectionBufferFactoryService,
-                editorOptionsFactoryService,
+                editorOptionsService,
                 textEditorFactoryService,
                 contentType,
                 roleSet);
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
         private ViewHostingControl Create()
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             return new ViewHostingControl(CreateView, CreateBuffer);
         }
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         {
             var view = _textEditorFactoryService.CreateTextView(buffer, _roleSet);
 
-            view.SizeToFit(ThreadingContext);
+            view.SizeToFit(_threadingContext);
             view.Background = Brushes.Transparent;
 
             // Zoom out a bit to shrink the text.
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         private IProjectionBuffer CreateBuffer()
         {
             return _projectionBufferFactoryService.CreateProjectionBufferWithoutIndentation(
-                _editorOptionsFactoryService.GlobalOptions, _contentType, _spans.ToArray());
+                _editorOptionsService.Factory.GlobalOptions, _contentType, [.. _spans]);
         }
     }
 }

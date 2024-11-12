@@ -66,6 +66,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
         End Sub
 
+        <Fact>
+        Public Sub EmitDebugInfoForSynthesizedSyntaxTree()
+            Dim tree1 = SyntaxFactory.ParseCompilationUnit("
+#ExternalSource(""test.vb"", 1)  
+Class C
+  Sub M
+  End Sub
+End Class
+#End ExternalSource
+").SyntaxTree
+            Dim tree2 = SyntaxFactory.ParseCompilationUnit("
+Class D
+  Sub M
+  End Sub
+End Class
+").SyntaxTree
+
+            Dim comp = VisualBasicCompilation.Create("test", {tree1, tree2}, TargetFrameworkUtil.StandardReferences, TestOptions.DebugDll)
+
+            Dim result = comp.Emit(New MemoryStream(), pdbStream:=New MemoryStream())
+            result.Diagnostics.Verify()
+
+            comp.VerifyPdb("
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""VB"" />
+    <file id=""2"" name=""test.vb"" language=""VB"" />
+  </files>
+</symbols>
+", format:=DebugInformationFormat.PortablePdb, options:=PdbValidationOptions.ExcludeMethods)
+        End Sub
+
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub CustomDebugEntryPoint_DLL()
             Dim source = "
@@ -174,6 +206,31 @@ End Class
 
             result = c1.Emit(New MemoryStream(), New MemoryStream(), debugEntryPoint:=d_int_g_int)
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_DebugEntryPointNotSourceMethodDefinition))
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/75237")>
+        Public Sub NativeWriterLimit()
+            Dim locals = Enumerable.Range(0, 14_000).
+                Select(Function(i) $"
+Dim local{i} As Integer = {i}
+M2(local{i})
+").
+                Join(Environment.NewLine)
+            Dim source = $"
+Namespace N
+Class C
+    Shared Sub M1()
+        {locals}
+    End Sub
+    Shared Sub M2(x As Integer)
+    End Sub
+End Class
+End Namespace
+"
+            ' Cannot emit native PDB for method 'Public Shared Sub M1()' because its debug metadata size 69328 is over the limit 65504.
+            CreateCompilation(source, options:=TestOptions.DebugDll).VerifyEmitDiagnostics(
+                Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments(String.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "Public Shared Sub M1()", 69328, 65504)).WithLocation(1, 1))
         End Sub
 
 #End Region
@@ -1233,7 +1290,6 @@ End Class
     </methods>
 </symbols>)
 
-
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
@@ -1308,7 +1364,6 @@ End Class
         </method>
     </methods>
 </symbols>)
-
 
         End Sub
 
@@ -1629,7 +1684,6 @@ End Class
         </method>
     </methods>
 </symbols>)
-
 
         End Sub
 
@@ -2240,7 +2294,6 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                     source,
                     TestOptions.DebugExe)
-
 
             compilation.VerifyPdb("Module1.Main",
 <symbols>
@@ -4393,7 +4446,6 @@ End Class
             </scope>
         </method>
     </methods>
-
 </symbols>)
         End Sub
 
@@ -4513,7 +4565,7 @@ Class C
         c.Select(Function(i) i)
     End Function
 End Class"
-            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim c = CreateCompilationWithMscorlib461AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
 
             ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             c.VerifyPdb("C+VB$StateMachine_1_F.MoveNext",
@@ -4570,7 +4622,7 @@ Class C
             End Sub
     End Sub
 End Class"
-            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim c = CreateCompilationWithMscorlib461AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
             c.VerifyPdb("C+_Closure$__+VB$StateMachine___Lambda$__1-0.MoveNext",
 <symbols>
     <files>

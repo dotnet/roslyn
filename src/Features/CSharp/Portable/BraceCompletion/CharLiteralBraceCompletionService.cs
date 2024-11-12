@@ -5,31 +5,24 @@
 using System;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
+namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
+
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CharLiteralBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
-    [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class CharLiteralBraceCompletionService : AbstractBraceCompletionService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CharLiteralBraceCompletionService()
-        {
-        }
+    protected override char OpeningBrace => SingleQuote.OpenCharacter;
 
-        protected override char OpeningBrace => SingleQuote.OpenCharacter;
+    protected override char ClosingBrace => SingleQuote.CloseCharacter;
 
-        protected override char ClosingBrace => SingleQuote.CloseCharacter;
+    public override bool AllowOverType(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
+        => AllowOverTypeWithValidClosingToken(braceCompletionContext);
 
-        public override Task<bool> AllowOverTypeAsync(BraceCompletionContext braceCompletionContext, CancellationToken cancellationToken)
-            => AllowOverTypeWithValidClosingTokenAsync(braceCompletionContext, cancellationToken);
+    protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CharacterLiteralToken);
 
-        protected override bool IsValidOpeningBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CharacterLiteralToken);
-
-        protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CharacterLiteralToken);
-    }
+    protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CharacterLiteralToken);
 }

@@ -37,10 +37,9 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
             );
-
 
             var s1 = comp.GetTypeByMetadataName("Program+S1");
             Assert.False(s1.IsRefLikeType);
@@ -75,7 +74,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (4,5): error CS8107: Feature 'readonly structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //     readonly struct S1{}
@@ -103,7 +102,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (4,20): error CS0106: The modifier 'readonly' is not valid for this item
                 //     readonly class S1{}
@@ -147,7 +146,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
             );
 
@@ -180,7 +179,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
             );
 
@@ -214,7 +213,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
             );
 

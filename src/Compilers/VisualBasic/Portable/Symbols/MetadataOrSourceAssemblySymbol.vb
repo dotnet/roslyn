@@ -37,26 +37,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="type"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
 #If DEBUG Then
             For Each [module] In Me.Modules
                 Debug.Assert([module].GetReferencedAssemblies().Length = 0)
             Next
 #End If
 
-            If _lazySpecialTypes Is Nothing OrElse _lazySpecialTypes(type) Is Nothing Then
+            If _lazySpecialTypes Is Nothing OrElse _lazySpecialTypes(CInt(type)) Is Nothing Then
 
                 Dim emittedName As MetadataTypeName = MetadataTypeName.FromFullName(SpecialTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
 
                 Dim [module] As ModuleSymbol = Me.Modules(0)
                 Dim result As NamedTypeSymbol = [module].LookupTopLevelMetadataType(emittedName)
-                If result.TypeKind <> TypeKind.Error AndAlso result.DeclaredAccessibility <> Accessibility.Public Then
+                Debug.Assert(If(Not result?.IsErrorType(), True))
+
+                If result Is Nothing OrElse result.DeclaredAccessibility <> Accessibility.Public Then
                     result = New MissingMetadataTypeSymbol.TopLevel([module], emittedName, type)
                 End If
                 RegisterDeclaredSpecialType(result)
             End If
 
-            Return _lazySpecialTypes(type)
+            Return _lazySpecialTypes(CInt(type))
 
         End Function
 
@@ -65,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="corType"></param>
         Friend Overrides Sub RegisterDeclaredSpecialType(corType As NamedTypeSymbol)
-            Dim typeId As SpecialType = corType.SpecialType
+            Dim typeId As ExtendedSpecialType = corType.ExtendedSpecialType
             Debug.Assert(typeId <> SpecialType.None)
             Debug.Assert(corType.ContainingAssembly Is Me)
             Debug.Assert(corType.ContainingModule.Ordinal = 0)
@@ -73,16 +75,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If (_lazySpecialTypes Is Nothing) Then
                 Interlocked.CompareExchange(_lazySpecialTypes,
-                    New NamedTypeSymbol(SpecialType.Count) {}, Nothing)
+                    New NamedTypeSymbol(InternalSpecialType.NextAvailable - 1) {}, Nothing)
             End If
 
-            If (Interlocked.CompareExchange(_lazySpecialTypes(typeId), corType, Nothing) IsNot Nothing) Then
-                Debug.Assert(corType Is _lazySpecialTypes(typeId) OrElse
+            If (Interlocked.CompareExchange(_lazySpecialTypes(CInt(typeId)), corType, Nothing) IsNot Nothing) Then
+                Debug.Assert(corType Is _lazySpecialTypes(CInt(typeId)) OrElse
                                         (corType.Kind = SymbolKind.ErrorType AndAlso
-                                        _lazySpecialTypes(typeId).Kind = SymbolKind.ErrorType))
+                                        _lazySpecialTypes(CInt(typeId)).Kind = SymbolKind.ErrorType))
             Else
                 Interlocked.Increment(_cachedSpecialTypes)
-                Debug.Assert(_cachedSpecialTypes > 0 AndAlso _cachedSpecialTypes <= SpecialType.Count)
+                Debug.Assert(_cachedSpecialTypes > 0 AndAlso _cachedSpecialTypes < InternalSpecialType.NextAvailable)
             End If
         End Sub
 
@@ -92,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Overrides ReadOnly Property KeepLookingForDeclaredSpecialTypes As Boolean
             Get
-                Return Me.CorLibrary Is Me AndAlso _cachedSpecialTypes < SpecialType.Count
+                Return Me.CorLibrary Is Me AndAlso _cachedSpecialTypes < InternalSpecialType.NextAvailable - 1
             End Get
         End Property
 

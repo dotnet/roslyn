@@ -7,7 +7,7 @@ Imports CompilationCreationTestHelpers
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
     Public Class NoPia
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.NoPia.LocalTypes1,
                     TestReferences.SymbolsTests.NoPia.LocalTypes2,
                     TestReferences.SymbolsTests.NoPia.Pia1,
-                    Net40.mscorlib,
+                    Net40.References.mscorlib,
                     TestReferences.SymbolsTests.MDTestLib1
                 })
             Dim localTypes1_1 = assemblies1(0)
@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                         TestReferences.SymbolsTests.NoPia.LocalTypes1,
                         TestReferences.SymbolsTests.NoPia.LocalTypes2,
                         TestReferences.SymbolsTests.NoPia.Pia1,
-                        Net40.mscorlib
+                        Net40.References.mscorlib
                     })
             Dim localTypes1_2 = assemblies2(0)
             Dim localTypes2_2 = assemblies2(1)
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.NoPia.LocalTypes1,
                     TestReferences.SymbolsTests.NoPia.LocalTypes2,
                     TestReferences.SymbolsTests.NoPia.Pia1,
-                    Net40.mscorlib,
+                    Net40.References.mscorlib,
                     TestReferences.SymbolsTests.MDTestLib1
                 })
 
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.NoPia.LocalTypes1,
                     TestReferences.SymbolsTests.NoPia.LocalTypes2,
                     TestReferences.SymbolsTests.NoPia.Pia2,
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 })
             Dim localTypes1_5 = assemblies5(0)
             Dim localTypes2_5 = assemblies5(1)
@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.NoPia.LocalTypes1,
                     TestReferences.SymbolsTests.NoPia.LocalTypes2,
                     TestReferences.SymbolsTests.NoPia.Pia3,
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 })
             Dim localTypes1_6 = assemblies6(0)
             Dim localTypes2_6 = assemblies6(1)
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.NoPia.LocalTypes1,
                     TestReferences.SymbolsTests.NoPia.LocalTypes2,
                     TestReferences.SymbolsTests.NoPia.Pia4,
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 })
             Dim localTypes1_7 = assemblies7(0)
             Dim localTypes2_7 = assemblies7(1)
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.NoPia.LocalTypes2,
                     TestReferences.SymbolsTests.NoPia.Pia4,
                     TestReferences.SymbolsTests.NoPia.Pia1,
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 })
 
             Dim localTypes1_8 = assemblies8(0)
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.NoPia.Library1,
                     TestReferences.SymbolsTests.NoPia.LocalTypes1,
                     TestReferences.SymbolsTests.NoPia.Pia4,
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 })
             Dim library1_9 = assemblies9(0)
             Dim localTypes1_9 = assemblies9(1)
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestReferences.SymbolsTests.NoPia.Library1,
                     TestReferences.SymbolsTests.NoPia.LocalTypes1,
                     TestReferences.SymbolsTests.NoPia.Pia4,
-                    Net40.mscorlib,
+                    Net40.References.mscorlib,
                     TestReferences.SymbolsTests.MDTestLib1
                 })
             Dim library1_10 = assemblies10(0)
@@ -272,7 +272,7 @@ public class LocalTypes2
     End Sub
 End Class
             </text>.Value
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim pia1CopyLink = TestReferences.SymbolsTests.NoPia.Pia1Copy.WithEmbedInteropTypes(True)
             Dim pia1CopyRef = TestReferences.SymbolsTests.NoPia.Pia1Copy.WithEmbedInteropTypes(False)
 
@@ -286,7 +286,7 @@ End Class
             Dim assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(
                     {
                         TestReferences.SymbolsTests.NoPia.Pia1,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         TestReferences.SymbolsTests.MDTestLib1,
                         TestReferences.SymbolsTests.MDTestLib2,
                         localTypes1,
@@ -330,7 +330,7 @@ End Class
             Dim assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(
                     {
                         TestReferences.SymbolsTests.NoPia.Pia1,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         TestReferences.SymbolsTests.MDTestLib1,
                         localTypes1,
                         localTypes2
@@ -353,7 +353,7 @@ End Class
             Dim assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(
                     {
                         TestReferences.SymbolsTests.NoPia.Pia1,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         localTypes1,
                         localTypes2
                     })
@@ -378,7 +378,7 @@ End Class
             Dim assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(
                     {
                         TestReferences.SymbolsTests.NoPia.Pia1,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         TestReferences.SymbolsTests.MDTestLib1,
                         TestReferences.SymbolsTests.MDTestLib2,
                         localTypes1,
@@ -392,7 +392,7 @@ End Class
             Dim assemblies5 = MetadataTestHelpers.GetSymbolsForReferences(
                     {
                         TestReferences.SymbolsTests.NoPia.Pia2,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         localTypes1,
                         localTypes2
                     })
@@ -427,7 +427,7 @@ End Class
             Dim assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(
                     {
                          TestReferences.SymbolsTests.NoPia.Pia3,
-                         Net40.mscorlib,
+                         Net40.References.mscorlib,
                          localTypes1,
                          localTypes2
                     })
@@ -452,7 +452,7 @@ End Class
             Dim assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(
                     {
                         TestReferences.SymbolsTests.NoPia.Pia4,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         localTypes1,
                         localTypes2
                     })
@@ -481,7 +481,7 @@ End Class
                     {
                         TestReferences.SymbolsTests.NoPia.Pia4,
                         TestReferences.SymbolsTests.NoPia.Pia1,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         localTypes1,
                         localTypes2
                     })
@@ -507,7 +507,7 @@ End Class
                     {
                         TestReferences.SymbolsTests.NoPia.Library1,
                         TestReferences.SymbolsTests.NoPia.Pia4,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         localTypes1
                     })
 
@@ -518,7 +518,7 @@ End Class
                     {
                         TestReferences.SymbolsTests.NoPia.Library1,
                         TestReferences.SymbolsTests.NoPia.Pia4,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         TestReferences.SymbolsTests.MDTestLib1,
                         localTypes1
                     })
@@ -562,7 +562,7 @@ End Class
             Assert.Equal("C31(Of I1).I31(Of C33)", illegal.UnderlyingSymbol.ToTestDisplayString())
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test4").ReturnType.Kind)
             Assert.IsType(Of NoPiaIllegalGenericInstantiationSymbol)(localTypes3.GetMember(Of MethodSymbol)("Test5").ReturnType)
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.SymbolsTests.NoPia.LocalTypes3, TestReferences.SymbolsTests.NoPia.Pia1, Net40.mscorlib})
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.SymbolsTests.NoPia.LocalTypes3, TestReferences.SymbolsTests.NoPia.Pia1, Net40.References.mscorlib})
             localTypes3 = assemblies(0).GlobalNamespace.GetTypeMembers("LocalTypes3").Single()
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test1").ReturnType.Kind)
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test2").ReturnType.Kind)
@@ -574,7 +574,7 @@ End Class
 
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes2()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim pia5Link = TestReferences.SymbolsTests.NoPia.Pia5.WithEmbedInteropTypes(True)
             Dim pia5Ref = TestReferences.SymbolsTests.NoPia.Pia5.WithEmbedInteropTypes(False)
             Dim library2Ref = TestReferences.SymbolsTests.NoPia.Library2.WithEmbedInteropTypes(False)
@@ -663,7 +663,7 @@ End Class
 
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes3()
-            Dim varmscorlibRef = Net40.mscorlib
+            Dim varmscorlibRef = Net40.References.mscorlib
             Dim varALink = TestReferences.SymbolsTests.NoPia.A.WithEmbedInteropTypes(True)
             Dim varARef = TestReferences.SymbolsTests.NoPia.A.WithEmbedInteropTypes(False)
             Dim varBLink = TestReferences.SymbolsTests.NoPia.B.WithEmbedInteropTypes(True)
@@ -764,7 +764,7 @@ End Interface
 public class C33
 End Class
             </text>.Value
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim pia1CopyLink = TestReferences.SymbolsTests.NoPia.Pia1Copy.WithEmbedInteropTypes(True)
             Dim pia1CopyRef = TestReferences.SymbolsTests.NoPia.Pia1Copy.WithEmbedInteropTypes(False)
             ' vbc /t:library /vbruntime- LocalTypes3.vb /l:Pia1.dll
@@ -780,7 +780,7 @@ End Class
             Assert.Equal("C31(Of I1).I31(Of C33)", illegal.UnderlyingSymbol.ToTestDisplayString())
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test4").ReturnType.Kind)
             Assert.IsType(Of NoPiaIllegalGenericInstantiationSymbol)(localTypes3.GetMember(Of MethodSymbol)("Test5").ReturnType)
-            assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.SymbolsTests.NoPia.Pia1, Net40.mscorlib, varC_LocalTypes3})
+            assemblies = MetadataTestHelpers.GetSymbolsForReferences({TestReferences.SymbolsTests.NoPia.Pia1, Net40.References.mscorlib, varC_LocalTypes3})
             localTypes3 = assemblies(2).GlobalNamespace.GetTypeMembers("LocalTypes3").Single()
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test1").ReturnType.Kind)
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test2").ReturnType.Kind)
@@ -841,7 +841,7 @@ public interface I7
     Function Bar() As List(Of I1)
 End interface
             </text>.Value
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             ' vbc /t:library /vbruntime- Pia5.vb
             Dim varC_Pia5 = VisualBasicCompilation.Create("Pia5", {Parse(pia5Source)}, {mscorlibRef})
             Dim pia5Link = New VisualBasicCompilationReference(varC_Pia5, embedInteropTypes:=True)
@@ -961,7 +961,7 @@ End interface
 
         <Fact()>
         Public Sub GenericsClosedOverLocalTypes6()
-            Dim mscorlibRef = Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim varC_A = VisualBasicCompilation.Create("A", references:={mscorlibRef})
             Dim varALink = New VisualBasicCompilationReference(varC_A, embedInteropTypes:=True)
             Dim varARef = New VisualBasicCompilationReference(varC_A, embedInteropTypes:=False)
@@ -1247,6 +1247,79 @@ End Class
             <![CDATA[
 Derived
 ]]>)
+        End Sub
+
+        <Fact>
+        <WorkItem(62863, "https://github.com/dotnet/roslyn/issues/62863")>
+        Public Sub ExplicitInterfaceImplementations()
+            Dim sourcePIA =
+"Imports System.Runtime.InteropServices
+<assembly: PrimaryInteropAssembly(0, 0)>
+<assembly: Guid(""863D5BC0-46A1-49AC-97AA-A5F0D441A9DA"")>
+<ComImport>
+<Guid(""863D5BC0-46A1-49AD-97AA-A5F0D441A9DA"")>
+public interface I1
+    Function F1() As Integer
+end interface
+"
+            Dim sourceBase =
+"
+public class C
+    public Function F1() As Long
+        Return 0
+    End Function
+end class
+
+public class Base
+    Inherits C
+    Implements I1
+
+    Function I1F1() As Integer Implements I1.F1
+        throw new System.NotImplementedException()
+    end Function
+end class
+"
+            Dim verify = Sub(compilationDerived As VisualBasicCompilation)
+                             Dim i1F1 = compilationDerived.GetTypeByMetadataName("I1").GetMember(Of MethodSymbol)("F1")
+                             Dim baseI1F1 = compilationDerived.GetTypeByMetadataName("Base").GetMember(Of MethodSymbol)("I1F1")
+                             Assert.Same(i1F1, baseI1F1.ExplicitInterfaceImplementations.Single())
+                             compilationDerived.AssertNoDiagnostics()
+                         End Sub
+
+            Dim compilationPIA = CreateCompilation(sourcePIA, options:=TestOptions.DebugDll)
+            compilationPIA.AssertNoDiagnostics()
+
+            Dim referencePIAImage = compilationPIA.EmitToImageReference(embedInteropTypes:=true)
+            Dim referencePIASource = compilationPIA.ToMetadataReference(embedInteropTypes:=True)
+
+            Dim compilationBase = CreateCompilation(sourceBase, {referencePIASource}, TestOptions.DebugDll)
+            compilationBase.AssertNoDiagnostics()
+
+            Dim referenceBaseImage = compilationBase.EmitToImageReference()
+            Dim referenceBaseSource = compilationBase.ToMetadataReference()
+
+            Dim sourceDerived =
+"
+public interface I2
+    Inherits I1
+End Interface
+
+public class Derived
+    Inherits Base
+    Implements I2
+end class
+"
+            Dim compilationDerived1 = CreateCompilation(sourceDerived, {referencePIASource, referenceBaseSource}, TestOptions.DebugDll)
+            verify(compilationDerived1)
+
+            Dim compilationDerived2 = CreateCompilation(sourceDerived, {referencePIAImage, referenceBaseSource}, TestOptions.DebugDll)
+            verify(compilationDerived2)
+
+            Dim compilationDerived3 = CreateCompilation(sourceDerived, {referencePIASource, referenceBaseImage}, TestOptions.DebugDll)
+            verify(compilationDerived3)
+
+            Dim compilationDerived4 = CreateCompilation(sourceDerived, {referencePIAImage, referenceBaseImage}, TestOptions.DebugDll)
+            verify(compilationDerived4)
         End Sub
 
     End Class

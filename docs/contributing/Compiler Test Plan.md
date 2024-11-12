@@ -37,12 +37,19 @@ This document provides guidance for thinking about language interactions and tes
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-- type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- type declarations
+  - class with or without primary constructor
+  - record class/struct with or without positional members
+  - struct with or without primary constructor
+  - interface
+  - type parameter
+- file-local types
 - methods
-- fields
-- properties (including get/set/init accessors)
+  - Primary constructors
+- fields (required and not)
+- properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
-- Parameter modifiers (ref, out, in, params)
+- Parameter modifiers: ref, out, in, ref readonly, params (for array, for non-array)
 - Attributes (including generic attributes and security attributes)
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
@@ -78,6 +85,7 @@ This document provides guidance for thinking about language interactions and tes
 - Conversions (boxing/unboxing)
 - Nullable (wrapping, unwrapping)
 - Overload resolution, override/hide/implement (OHI)
+  - OverloadResolutionPriorityAttribute
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
@@ -93,21 +101,29 @@ This document provides guidance for thinking about language interactions and tes
     - Compound operators (`+=`, `/=`, etc ..) 
     - Assignment exprs
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
+- Ref fields
+- `scoped` parameters and locals
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice)
+- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice, constant `string` matching `Span<char>`)
 - Switch expressions
 - With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis
+- Definite assignment analysis and auto-default struct fields
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
+- If you add a new expression that can be nested inside itself, test deeply nesting it. Potentially cut off direct nesting.
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
+- UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
+- Inline array element access and slicing.
+- Collection expressions and spread elements
 
 # Misc
 - reserved keywords (sometimes contextual)
 - pre-processing directives
 - COM interop
 - modopt and modreq
+- CompilerFeatureRequiredAttribute
 - ref assemblies
 - extern alias
 - UnmanagedCallersOnly
@@ -120,6 +136,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to", Find All References, and renaming
+    - F1 help (for new keywords)
     - cref comments
     - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/main/docs/contributing/IDE%20Test%20Plan.md)
@@ -168,7 +185,7 @@ return … ;
 try  { … } catch (…) when (…) { … } finally { … } 
 checked { … } 
 unchecked { … } 
-lock(…) … 
+lock(…) … // including variant on an instance of the `System.Threading.Lock` type
 using (…) … // including `await` variant
 yield return …; 
 yield break; 
@@ -211,7 +228,8 @@ A variable is a storage location. These are all the different ways to refer to a
 - Formal param, out 
 - Local variable 
 - Pointer dereference 
-- __refvalue 
+- __refvalue
+- Inline array access
 
 ## Operators 
 
@@ -244,6 +262,7 @@ x + y
 x - y 
 x << y 
 x >> y 
+x >>> y 
 x < y 
 x > y 
 x <= y 
@@ -267,6 +286,7 @@ x += y
 x -= y 
 x <<= y 
 x >>= y 
+x >>>= y 
 x &= y 
 x ^= y 
 x |= y 
@@ -324,6 +344,10 @@ __makeref( x )
 - Default literal
 - Implicit object creation (target-typed new)
 - Function type (in type inference comparing function types of lambdas or method groups)
+- UTF8 String Literal (string constant value to ```byte[]```, ```Span<byte>```, or ```ReadOnlySpan<byte>``` types)
+- Inline arrays (conversions to Span and ReadOnlySpan)
+- Collection expression conversions
+- Span conversions (from array to (ReadOnly)Span, or from string or (ReadOnly)Span to ReadOnlySpan)
 
 ## Types 
 
@@ -352,14 +376,15 @@ __makeref( x )
 - Interface method 
 - Field
 - User-defined indexer
-- User-defined operator
-- User-defined conversion
+- User-defined operator (including checked)
+- User-defined conversion (including checked)
 
 ## Patterns
 - Discard Pattern
 - Var Pattern
 - Declaration Pattern
 - Constant Pattern
+- Constant `string` matching `Span<char>`
 - Recursive Pattern
 - Parenthesized Pattern
 - `and` Pattern

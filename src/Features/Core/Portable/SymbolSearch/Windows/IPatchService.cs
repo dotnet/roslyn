@@ -4,13 +4,12 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch;
+
+/// <summary>
+/// Used so we can mock out patching in unit tests.
+/// </summary>
+internal interface IPatchService
 {
-    /// <summary>
-    /// Used so we can mock out patching in unit tests.
-    /// </summary>
-    internal interface IPatchService
-    {
-        byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes);
-    }
+    byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes);
 }

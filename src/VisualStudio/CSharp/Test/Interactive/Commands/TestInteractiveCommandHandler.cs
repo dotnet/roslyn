@@ -4,10 +4,9 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
@@ -23,9 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
             IInteractiveWindow interactiveWindow,
             ISendToInteractiveSubmissionProvider sendToInteractiveSubmissionProvider,
             IContentTypeRegistryService contentTypeRegistryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IEditorOperationsFactoryService editorOperationsFactoryService)
-            : base(contentTypeRegistryService, editorOptionsFactoryService, editorOperationsFactoryService)
+            : base(contentTypeRegistryService, editorOptionsService, editorOperationsFactoryService)
         {
             _interactiveWindow = interactiveWindow;
             _sendToInteractiveSubmissionProvider = sendToInteractiveSubmissionProvider;

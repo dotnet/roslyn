@@ -10,7 +10,7 @@ using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
-    internal struct MetadataDecoder
+    internal readonly struct MetadataDecoder
     {
         private readonly MetadataReader _reader;
         private readonly ImmutableArray<string> _allTypeParameters;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 case SignatureTypeCode.TypeHandle:
                     {
                         int typeArgumentOffset = 0;
-                        return DecodeType(signatureReader.ReadTypeHandle(), ImmutableArray<TypeSignature>.Empty, ref typeArgumentOffset);
+                        return DecodeType(signatureReader.ReadTypeHandle(), [], ref typeArgumentOffset);
                     }
                 case SignatureTypeCode.Array:
                     {
@@ -245,11 +245,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     throw new BadImageFormatException();
             }
             return CreateTypeSignature(qualifier, _reader.GetString(typeRef.Name), typeArguments, ref typeArgumentOffset);
-        }
-
-        private string GetTypeName(StringHandle nameHandle, out int arity)
-        {
-            return RemoveAritySeparatorIfAny(_reader.GetString(nameHandle), out arity);
         }
 
         private QualifiedTypeSignature GetNamespace(StringHandle namespaceHandle)

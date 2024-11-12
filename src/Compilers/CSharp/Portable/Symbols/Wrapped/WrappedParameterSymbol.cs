@@ -86,9 +86,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.Ordinal; }
         }
 
-        public override bool IsParams
+        public override bool IsParamsArray
         {
-            get { return _underlyingParameter.IsParams; }
+            get { return _underlyingParameter.IsParamsArray; }
+        }
+
+        public override bool IsParamsCollection
+        {
+            get { return _underlyingParameter.IsParamsCollection; }
         }
 
         internal override bool IsMetadataOptional
@@ -152,7 +157,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        public sealed override bool IsNullChecked => UnderlyingParameter.IsNullChecked;
+        internal sealed override ScopedKind EffectiveScope => _underlyingParameter.EffectiveScope;
+
+        internal sealed override bool HasUnscopedRefAttribute => _underlyingParameter.HasUnscopedRefAttribute;
+
+        internal sealed override bool UseUpdatedEscapeRules => _underlyingParameter.UseUpdatedEscapeRules;
 
         #endregion
     }

@@ -4,9 +4,9 @@
 
 Imports System.ComponentModel.Composition
 Imports System.Diagnostics.CodeAnalysis
-Imports Microsoft.CodeAnalysis.ExtractInterface
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.ExtractInterface
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Utilities
 
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractInterface
     <Export(GetType(ICommandHandler))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.ExtractInterface)>
-    Friend Class ExtractInterfaceCommandHandler
+    Friend NotInheritable Class ExtractInterfaceCommandHandler
         Inherits AbstractExtractInterfaceCommandHandler
 
         <ImportingConstructor>

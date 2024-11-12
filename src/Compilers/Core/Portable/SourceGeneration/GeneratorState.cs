@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
+
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
@@ -13,6 +15,9 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct GeneratorState
     {
 
+        /// <summary>
+        /// A generator state that has been initialized but produced no results
+        /// </summary>
         public static readonly GeneratorState Empty = new GeneratorState(ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<SyntaxInputNode>.Empty,
                                                                          ImmutableArray<IIncrementalGeneratorOutputNode>.Empty,
@@ -20,6 +25,7 @@ namespace Microsoft.CodeAnalysis
                                                                          ImmutableArray<Diagnostic>.Empty,
                                                                          ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                                                          ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
+                                                                         ImmutableDictionary<string, object>.Empty,
                                                                          exception: null,
                                                                          elapsedTime: TimeSpan.Zero);
 
@@ -27,11 +33,30 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new generator state that contains information, constant trees and an execution pipeline
         /// </summary>
         public GeneratorState(ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<SyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes)
-            : this(postInitTrees, inputNodes, outputNodes, ImmutableArray<GeneratedSyntaxTree>.Empty, ImmutableArray<Diagnostic>.Empty, ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty, ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty, exception: null, elapsedTime: TimeSpan.Zero)
+            : this(postInitTrees,
+                   inputNodes,
+                   outputNodes,
+                   ImmutableArray<GeneratedSyntaxTree>.Empty,
+                   ImmutableArray<Diagnostic>.Empty,
+                   ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
+                   ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
+                   ImmutableDictionary<string, object>.Empty,
+                   exception: null,
+                   elapsedTime: TimeSpan.Zero)
         {
         }
 
-        private GeneratorState(ImmutableArray<GeneratedSyntaxTree> postInitTrees, ImmutableArray<SyntaxInputNode> inputNodes, ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, ImmutableArray<GeneratedSyntaxTree> generatedTrees, ImmutableArray<Diagnostic> diagnostics, ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps, ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps, Exception? exception, TimeSpan elapsedTime)
+        private GeneratorState(
+            ImmutableArray<GeneratedSyntaxTree> postInitTrees,
+            ImmutableArray<SyntaxInputNode> inputNodes,
+            ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes,
+            ImmutableArray<GeneratedSyntaxTree> generatedTrees,
+            ImmutableArray<Diagnostic> diagnostics,
+            ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps,
+            ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
+            ImmutableDictionary<string, object> hostOutputs,
+            Exception? exception,
+            TimeSpan elapsedTime)
         {
             this.Initialized = true;
             this.PostInitTrees = postInitTrees;
@@ -41,6 +66,7 @@ namespace Microsoft.CodeAnalysis
             this.Diagnostics = diagnostics;
             this.ExecutedSteps = executedSteps;
             this.OutputSteps = outputSteps;
+            this.HostOutputs = hostOutputs;
             this.Exception = exception;
             this.ElapsedTime = elapsedTime;
         }
@@ -49,6 +75,7 @@ namespace Microsoft.CodeAnalysis
                                           ImmutableArray<Diagnostic> diagnostics,
                                           ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> executedSteps,
                                           ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
+                                          ImmutableDictionary<string, object> hostOutputs,
                                           TimeSpan elapsedTime)
         {
             return new GeneratorState(this.PostInitTrees,
@@ -58,6 +85,7 @@ namespace Microsoft.CodeAnalysis
                                       diagnostics,
                                       executedSteps,
                                       outputSteps,
+                                      hostOutputs,
                                       exception: null,
                                       elapsedTime);
         }
@@ -71,6 +99,7 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray.Create(error),
                                       ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
                                       ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>>.Empty,
+                                      ImmutableDictionary<string, object>.Empty,
                                       exception,
                                       elapsedTime);
         }
@@ -94,5 +123,9 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> ExecutedSteps { get; }
 
         internal ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> OutputSteps { get; }
+
+        internal ImmutableDictionary<string, object> HostOutputs { get; }
+
+        internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
     }
 }

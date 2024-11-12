@@ -8,9 +8,8 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Interactive;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
                 TestHost.Window,
                 GetExportedValue<ISendToInteractiveSubmissionProvider>(),
                 GetExportedValue<IContentTypeRegistryService>(),
-                GetExportedValue<IEditorOptionsFactoryService>(),
+                GetExportedValue<EditorOptionsService>(),
                 GetExportedValue<IEditorOperationsFactoryService>());
         }
 

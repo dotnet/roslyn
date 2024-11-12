@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             return r.CompileResult;
         }
 
-        private struct CompileExpressionResult
+        private readonly struct CompileExpressionResult
         {
             internal readonly CompileResult CompileResult;
             internal readonly CompilationTestData TestData;
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             actual.Free();
             expected.Free();
 
-            void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
+            static void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
             {
                 builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1.GetDisplayName(), y.Item1.GetDisplayName()));
             }
@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
                 return new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
                 {
-                    { methodToken, new MethodDebugInfoBytes.Builder(new [] { importStrings }).Build() },
+                    { methodToken, new MethodDebugInfoBytes.Builder([importStrings]).Build() },
                 }.ToImmutableDictionary());
             }
         }
@@ -759,9 +759,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
             var parameters = signature.Substring(parameterListStart + 1, signature.Length - parameterListStart - 2);
             var methodName = signature.Substring(0, parameterListStart);
-            parameterTypeNames = (parameters.Length == 0) ?
-                new string[0] :
-                parameters.Split(',');
+            parameterTypeNames = (parameters.Length == 0)
+                ? new string[0]
+                : parameters.Split(',');
             return methodName;
         }
 

@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Load the ruleset from the specified file. This ruleset will contain
         /// all the rules resolved from the includes specified in the ruleset file
-        /// as well. See also: <seealso cref="GetEffectiveIncludesFromFile(string)" />.
+        /// as well. See also: <see cref="GetEffectiveIncludesFromFile(string)" />.
         /// </summary>
         /// <returns>
         /// A ruleset that contains resolved rules or null if there were errors.
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Get the paths to all files contributing rules to the ruleset from the specified file.
-        /// See also: <seealso cref="LoadEffectiveRuleSetFromFile(string)" />.
+        /// See also: <see cref="LoadEffectiveRuleSetFromFile(string)" />.
         /// </summary>
         /// <returns>
         /// The full paths to included files, or an empty array if there were errors.
@@ -275,7 +275,6 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray<string>.Empty;
         }
 
-#nullable enable
         /// <summary>
         /// Parses the ruleset file at the given <paramref name="rulesetFileFullPath"/> and returns the following diagnostic options from the parsed file:
         /// 1) A map of <paramref name="specificDiagnosticOptions"/> from rule ID to <see cref="ReportDiagnostic"/> option.

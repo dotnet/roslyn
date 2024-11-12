@@ -10,40 +10,42 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteCodeLensReferencesService : BrokeredServiceBase, IRemoteCodeLensReferencesService
 {
-    internal sealed class RemoteCodeLensReferencesService : BrokeredServiceBase, IRemoteCodeLensReferencesService
+    internal sealed class Factory : FactoryBase<IRemoteCodeLensReferencesService>
     {
-        internal sealed class Factory : FactoryBase<IRemoteCodeLensReferencesService>
+        protected override IRemoteCodeLensReferencesService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteCodeLensReferencesService(arguments);
+    }
+
+    public RemoteCodeLensReferencesService(in ServiceConstructionArguments arguments)
+        : base(arguments)
+    {
+    }
+
+    private static async ValueTask<SyntaxNode?> TryFindNodeAsync(Solution solution, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    {
+        var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+        if (document == null)
         {
-            protected override IRemoteCodeLensReferencesService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteCodeLensReferencesService(arguments);
+            return null;
         }
 
-        public RemoteCodeLensReferencesService(in ServiceConstructionArguments arguments)
-            : base(arguments)
-        {
-        }
+        var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        private static async ValueTask<SyntaxNode?> TryFindNodeAsync(Solution solution, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
-        {
-            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            if (document == null)
-            {
-                return null;
-            }
+        // Pass getInnermostNodeForTie so top-level statements that are contained within a GlobalStatementSyntax picks the actual
+        // definition and not just the GlobalStatementSyntax.
+        return syntaxRoot.FindNode(textSpan, getInnermostNodeForTie: true);
+    }
 
-            var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return syntaxRoot.FindNode(textSpan);
-        }
-
-        public ValueTask<ReferenceCount?> GetReferenceCountAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)
+    public async ValueTask<ReferenceCount?> GetReferenceCountAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken)
+    {
+        using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, cancellationToken))
         {
-            return RunServiceAsync(async cancellationToken =>
-            {
-                using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, cancellationToken))
+            return await RunServiceAsync(solutionChecksum, async solution =>
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                     if (syntaxNode == null)
                     {
@@ -56,55 +58,55 @@ namespace Microsoft.CodeAnalysis.Remote
                         syntaxNode,
                         maxResultCount,
                         cancellationToken).ConfigureAwait(false);
-                }
-            }, cancellationToken);
+                },
+                cancellationToken).ConfigureAwait(false);
         }
+    }
 
-        public ValueTask<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    {
+        using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, cancellationToken))
         {
-            return RunServiceAsync(async cancellationToken =>
+            return await RunServiceAsync(solutionChecksum, async solution =>
             {
-                using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, cancellationToken))
+                var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
+                if (syntaxNode == null)
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-                    if (syntaxNode == null)
-                    {
-                        return null;
-                    }
-
-                    return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(
-                        solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                    return null;
                 }
-            }, cancellationToken);
+
+                return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(
+                    solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
         }
+    }
 
-        public ValueTask<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    public async ValueTask<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    {
+        using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, cancellationToken))
         {
-            return RunServiceAsync(async cancellationToken =>
+            return await RunServiceAsync(solutionChecksum, async solution =>
             {
-                using (Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, cancellationToken))
+                var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
+                if (syntaxNode == null)
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
-                    var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
-                    if (syntaxNode == null)
-                    {
-                        return null;
-                    }
-
-                    return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(
-                        solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+                    return null;
                 }
-            }, cancellationToken);
-        }
 
-        public ValueTask<string?> GetFullyQualifiedNameAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+                return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(
+                    solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
+            }, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    public ValueTask<string?> GetFullyQualifiedNameAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(async cancellationToken =>
         {
-            return RunServiceAsync(async cancellationToken =>
+            using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, cancellationToken))
             {
-                using (Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, cancellationToken))
+                return await RunServiceAsync(solutionChecksum, async solution =>
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, cancellationToken).ConfigureAwait(false);
                     var syntaxNode = await TryFindNodeAsync(solution, documentId, textSpan, cancellationToken).ConfigureAwait(false);
                     if (syntaxNode == null)
                     {
@@ -113,8 +115,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedNameAsync(
                         solution, documentId, syntaxNode, cancellationToken).ConfigureAwait(false);
-                }
-            }, cancellationToken);
-        }
+                }, cancellationToken).ConfigureAwait(false);
+            }
+        }, cancellationToken);
     }
 }

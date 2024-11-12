@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     <[UseExportProvider]>
+    <Trait(Traits.Feature, Traits.Features.Rename)>
     Public Class LocalConflictTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -15,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(539939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539939")>
+        <CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539939")>
         Public Sub ConflictingLocalWithLocal(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -40,8 +41,8 @@ class Program
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(539939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539939")>
+        <CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539939")>
         Public Sub ConflictingLocalWithParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -64,7 +65,7 @@ class Program
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Sub ConflictingLocalWithForEachRangeVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -89,7 +90,7 @@ class Program
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Sub ConflictingLocalWithForLoopVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -114,7 +115,7 @@ class Program
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Sub ConflictingLocalWithUsingBlockVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -139,7 +140,7 @@ class Program : IDisposable
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Sub ConflictingLocalWithSimpleLambdaParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -165,7 +166,7 @@ class Program
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Sub ConflictingLocalWithParenthesizedLambdaParameter(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -191,7 +192,7 @@ class Program
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <CombinatorialData>
         Public Sub ConflictingFromClauseWithLetClause(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -220,9 +221,8 @@ class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <CombinatorialData>
         Public Sub ConflictBetweenLabelsInSameMethod(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -248,9 +248,8 @@ public class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <CombinatorialData>
         Public Sub ConflictBetweenLabelInMethodAndLambda(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -276,9 +275,8 @@ public class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <CombinatorialData>
         Public Sub ConflictBetweenLabelsInLambda(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -303,9 +301,8 @@ public class C
             End Using
         End Sub
 
-        <Theory>
-        <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
+        <CombinatorialData>
         Public Sub NoConflictBetweenLabelsInTwoNonNestedLambdas(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -330,8 +327,8 @@ public class C
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(545468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545468")>
+        <CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545468")>
         Public Sub NoConflictsWithCatchBlockWithoutExceptionVariable(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -359,8 +356,8 @@ class Test
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1081066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081066")>
+        <CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081066")>
         Public Sub NoConflictsBetweenCatchClauses(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -384,8 +381,8 @@ class Test
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(1081066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081066")>
+        <CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1081066")>
         Public Sub ConflictsWithinCatchClause(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -410,8 +407,8 @@ class Test
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(546163, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546163")>
+        <CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546163")>
         Public Sub NoConflictsWithCatchExceptionWithoutDeclaration(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -439,8 +436,8 @@ class Test
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(992721, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992721")>
+        <CombinatorialData>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/992721")>
         Public Sub ConflictingLocalWithFieldWithExtensionMethodInvolved(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
             <Workspace>
@@ -471,8 +468,8 @@ namespace ConsoleApplication1
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(17177, "https://github.com/dotnet/roslyn/issues/17177")>
+        <CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17177")>
         Public Sub ConflictsBetweenSwitchCaseStatementsWithoutBlocks(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -503,8 +500,8 @@ class Test
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(17177, "https://github.com/dotnet/roslyn/issues/17177")>
+        <CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17177")>
         Public Sub NoConflictsBetweenSwitchCaseStatementsWithBlocks(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -538,8 +535,8 @@ class Test
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(17177, "https://github.com/dotnet/roslyn/issues/17177")>
+        <CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17177")>
         Public Sub NoConflictsBetweenSwitchCaseStatementFirstStatementWithBlock(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
@@ -572,8 +569,8 @@ class Test
         End Sub
 
         <Theory>
-        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        <WorkItem(17177, "https://github.com/dotnet/roslyn/issues/17177")>
+        <CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17177")>
         Public Sub NoConflictsBetweenSwitchCaseStatementSecondStatementWithBlock(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

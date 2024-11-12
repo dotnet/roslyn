@@ -4,30 +4,25 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Implementation.SplitComment;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.Formatting.FormattingOptions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 {
     public abstract class AbstractSplitCommentCommandHandlerTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string markup);
+        protected abstract EditorTestWorkspace CreateWorkspace(string markup);
 
         /// <summary>
         /// verifyUndo is needed because of https://github.com/dotnet/roslyn/issues/28033
@@ -52,11 +47,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 
             using var workspace = CreateWorkspace(inputMarkup);
 
-            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+            var globalOptions = workspace.GlobalOptions;
             var language = workspace.Projects.Single().Language;
 
-            globalOptions.SetGlobalOption(new OptionKey(SplitCommentOptions.Enabled, language), enabled);
-            workspace.SetOptions(workspace.Options.WithChangedOption(FormattingOptions.UseTabs, language, useTabs));
+            globalOptions.SetGlobalOption(SplitCommentOptionsStorage.Enabled, language, enabled);
+            globalOptions.SetGlobalOption(FormattingOptions2.UseTabs, language, useTabs);
 
             var document = workspace.Documents.Single();
             var view = document.GetTextView();
@@ -79,8 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SplitComment
 
             if (expectedOutputMarkup != null)
             {
-                MarkupTestFile.GetSpans(expectedOutputMarkup,
-                    out var expectedOutput, out ImmutableArray<TextSpan> expectedSpans);
+                MarkupTestFile.GetSpans(expectedOutputMarkup, out var expectedOutput, out var expectedSpans);
 
                 Assert.Equal(expectedOutput, view.TextBuffer.CurrentSnapshot.AsText().ToString());
 

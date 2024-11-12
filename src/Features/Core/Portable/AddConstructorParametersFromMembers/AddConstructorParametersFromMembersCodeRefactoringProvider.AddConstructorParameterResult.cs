@@ -4,25 +4,17 @@
 
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
-{
-    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
-    {
-        private struct AddConstructorParameterResult
-        {
-            internal readonly ImmutableArray<AddConstructorParametersCodeAction> RequiredParameterActions;
-            internal readonly ImmutableArray<AddConstructorParametersCodeAction> OptionalParameterActions;
-            internal readonly bool UseSubMenu;
+namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
-            public AddConstructorParameterResult(
-                ImmutableArray<AddConstructorParametersCodeAction> requiredParameterActions,
-                ImmutableArray<AddConstructorParametersCodeAction> optionalParameterActions,
-                bool useSubMenu)
-            {
-                RequiredParameterActions = requiredParameterActions;
-                OptionalParameterActions = optionalParameterActions;
-                UseSubMenu = useSubMenu;
-            }
-        }
+internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
+{
+    private readonly struct AddConstructorParameterResult(
+        ImmutableArray<AddConstructorParametersCodeAction> requiredParameterActions,
+        ImmutableArray<AddConstructorParametersCodeAction> optionalParameterActions,
+        bool useSubMenu)
+    {
+        internal readonly ImmutableArray<AddConstructorParametersCodeAction> RequiredParameterActions = requiredParameterActions;
+        internal readonly ImmutableArray<AddConstructorParametersCodeAction> OptionalParameterActions = optionalParameterActions;
+        internal readonly bool UseSubMenu = useSubMenu;
     }
 }

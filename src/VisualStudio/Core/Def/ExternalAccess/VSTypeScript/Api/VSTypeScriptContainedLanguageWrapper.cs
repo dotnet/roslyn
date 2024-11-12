@@ -2,93 +2,79 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
+
+internal readonly struct VSTypeScriptContainedLanguageWrapper
 {
-    internal struct VSTypeScriptContainedLanguageWrapper
+    private readonly ContainedLanguage _underlyingObject;
+
+    [Obsolete("Use the constructor that omits the IVsHierarchy and uint parameters instead.", error: true)]
+    public VSTypeScriptContainedLanguageWrapper(
+        IVsTextBufferCoordinator bufferCoordinator,
+        IComponentModel componentModel,
+        VSTypeScriptVisualStudioProjectWrapper project,
+        IVsHierarchy hierarchy,
+        uint itemid,
+        Guid languageServiceGuid) : this(bufferCoordinator, componentModel, project, languageServiceGuid)
     {
-        private readonly ContainedLanguage _underlyingObject;
-
-        [Obsolete("Remove once TypeScript has stopped using this.", error: true)]
-        public VSTypeScriptContainedLanguageWrapper(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            AbstractProject project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            Guid languageServiceGuid)
-        {
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
-
-            _underlyingObject = new ContainedLanguage(
-                bufferCoordinator,
-                componentModel,
-                workspace,
-                project.Id,
-                project.VisualStudioProject,
-                filePath,
-                languageServiceGuid,
-                vbHelperFormattingRule: null);
-        }
-
-        public VSTypeScriptContainedLanguageWrapper(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            VSTypeScriptVisualStudioProjectWrapper project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            Guid languageServiceGuid)
-        {
-            var workspace = componentModel.GetService<VisualStudioWorkspace>();
-            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
-
-            _underlyingObject = new ContainedLanguage(
-                bufferCoordinator,
-                componentModel,
-                workspace,
-                project.Project.Id,
-                project.Project,
-                filePath,
-                languageServiceGuid,
-                vbHelperFormattingRule: null);
-        }
-
-        public VSTypeScriptContainedLanguageWrapper(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            Workspace workspace,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            Guid languageServiceGuid)
-        {
-            var filePath = ContainedLanguage.GetFilePathFromHierarchyAndItemId(hierarchy, itemid);
-            var projectId = ProjectId.CreateNewId($"Project for {filePath}");
-            workspace.OnProjectAdded(ProjectInfo.Create(projectId, VersionStamp.Default, filePath, string.Empty, InternalLanguageNames.TypeScript));
-
-            _underlyingObject = new ContainedLanguage(
-                bufferCoordinator,
-                componentModel,
-                workspace,
-                projectId,
-                null,
-                filePath,
-                languageServiceGuid,
-                vbHelperFormattingRule: null);
-        }
-
-        public bool IsDefault => _underlyingObject == null;
-
-        public void DisconnectHost()
-            => _underlyingObject.SetHost(null);
     }
+
+    [Obsolete("Use the constructor that omits the IVsHierarchy and uint parameters instead.", error: true)]
+    public VSTypeScriptContainedLanguageWrapper(
+        IVsTextBufferCoordinator bufferCoordinator,
+        IComponentModel componentModel,
+        Workspace workspace,
+        IVsHierarchy hierarchy,
+        uint itemid,
+        Guid languageServiceGuid) : this(bufferCoordinator, componentModel, workspace, languageServiceGuid)
+    {
+    }
+
+    public VSTypeScriptContainedLanguageWrapper(
+        IVsTextBufferCoordinator bufferCoordinator,
+        IComponentModel componentModel,
+        VSTypeScriptVisualStudioProjectWrapper project,
+        Guid languageServiceGuid)
+    {
+        _underlyingObject = new ContainedLanguage(
+            bufferCoordinator,
+            componentModel,
+            componentModel.GetService<VisualStudioWorkspace>(),
+            project.Project.Id,
+            project.Project,
+            languageServiceGuid,
+            vbHelperFormattingRule: null);
+    }
+
+    public VSTypeScriptContainedLanguageWrapper(
+        IVsTextBufferCoordinator bufferCoordinator,
+        IComponentModel componentModel,
+        Workspace workspace,
+        Guid languageServiceGuid)
+    {
+        var projectId = ProjectId.CreateNewId();
+
+        _underlyingObject = new ContainedLanguage(
+            bufferCoordinator,
+            componentModel,
+            workspace,
+            projectId,
+            null,
+            languageServiceGuid,
+            vbHelperFormattingRule: null);
+
+        var filePath = _underlyingObject.GetFilePathFromBuffers();
+        workspace.OnProjectAdded(ProjectInfo.Create(projectId, VersionStamp.Default, filePath, string.Empty, InternalLanguageNames.TypeScript));
+    }
+
+    public bool IsDefault => _underlyingObject == null;
+
+    public void DisconnectHost() => _underlyingObject.SetHost(null);
 }

@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
 
             Protected Overrides Async Function GetChangedDocumentAsync(cancellationToken As CancellationToken) As Task(Of Document)
                 Dim root = Await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(_document, cancellationToken).ConfigureAwait(False)
+                Dim options = Await _document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
 
                 Dim newNode = Await GetNewNodeAsync(_document, _node, options, cancellationToken).ConfigureAwait(False)
                 Dim newRoot = root.ReplaceNode(_node, newNode)
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.OverloadBase
                 Dim cleanupService = document.GetLanguageService(Of ICodeCleanerService)
 
                 If cleanupService IsNot Nothing AndAlso newNode IsNot Nothing Then
-                    Dim services = document.Project.Solution.Workspace.Services
+                    Dim services = document.Project.Solution.Services
                     newNode = Await cleanupService.CleanupAsync(newNode, ImmutableArray.Create(newNode.Span), options, services, cleanupService.GetDefaultProviders(), cancellationToken).ConfigureAwait(False)
                 End If
 

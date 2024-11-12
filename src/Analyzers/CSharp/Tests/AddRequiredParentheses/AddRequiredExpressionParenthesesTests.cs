@@ -15,718 +15,834 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
-{
-    public partial class AddRequiredExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
-    {
-        public AddRequiredExpressionParenthesesTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses;
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+public partial class AddRequiredExpressionParenthesesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+{
+    public AddRequiredExpressionParenthesesTests(ITestOutputHelper logger)
+      : base(logger)
+    {
+    }
 
-        private Task TestMissingAsync(string initialMarkup, OptionsCollection options)
-            => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpAddRequiredExpressionParenthesesDiagnosticAnalyzer(), new AddRequiredParenthesesCodeFixProvider());
 
-        private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
-            => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
+    private Task TestMissingAsync(string initialMarkup, OptionsCollection options)
+        => TestMissingInRegularAndScriptAsync(initialMarkup, new TestParameters(options: options));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestArithmeticPrecedence()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
-    {
-        int x = 1 + 2 $$* 3;
-    }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = 1 + (2 * 3);
-    }
-}", RequireAllParenthesesForClarity);
-        }
+    private Task TestAsync(string initialMarkup, string expected, OptionsCollection options)
+        => TestInRegularAndScript1Async(initialMarkup, expected, parameters: new TestParameters(options: options));
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNoArithmeticOnLowerPrecedence()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestArithmeticPrecedence()
     {
-        int x = 1 $$+ 2 * 3;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + 2 $$* 3;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + (2 * 3);
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotIfArithmeticPrecedenceStaysTheSame()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNoArithmeticOnLowerPrecedence()
     {
-        int x = 1 + 2 $$+ 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$+ 2 * 3;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotIfArithmeticPrecedenceIsNotEnforced1()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotIfArithmeticPrecedenceStaysTheSame()
     {
-        int x = 1 + 2 $$+ 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + 2 $$+ 3;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireOtherBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotIfArithmeticPrecedenceIsNotEnforced2()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotIfArithmeticPrecedenceIsNotEnforced1()
     {
-        int x = 1 + 2 $$* 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + 2 $$+ 3;
+                }
+            }
+            """, RequireOtherBinaryParenthesesForClarity);
     }
-}", RequireOtherBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestRelationalPrecedence()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotIfArithmeticPrecedenceIsNotEnforced2()
     {
-        int x = a $$> b == c;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + 2 $$* 3;
+                }
+            }
+            """, RequireOtherBinaryParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = (a > b) == c;
-    }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestLogicalPrecedence()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestRelationalPrecedence()
     {
-        int x = a || b $$&& c;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a $$> b == c;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (a > b) == c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = a || (b && c);
-    }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNoLogicalOnLowerPrecedence()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestLogicalPrecedence()
     {
-        int x = a $$|| b && c;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a || b $$&& c;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a || (b && c);
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotIfLogicalPrecedenceStaysTheSame()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNoLogicalOnLowerPrecedence()
     {
-        int x = a || b $$|| c;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a $$|| b && c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotIfLogicalPrecedenceStaysTheSame()
     {
-        int x = a || b $$|| c;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a || b $$|| c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireArithmeticBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestMixedArithmeticAndLogical()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotIfLogicalPrecedenceIsNotEnforced()
     {
-        int x = a == b $$&& c == d;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a || b $$|| c;
+                }
+            }
+            """, RequireArithmeticBinaryParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestMixedArithmeticAndLogical()
     {
-        int x = a || b $$&& c && d;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a == b $$&& c == d;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = a || (b && c && d);
-    }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts1()
     {
-        int x = a || b && c $$&& d;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a || b $$&& c && d;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a || (b && c && d);
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = a || (b && c && d);
-    }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestShiftPrecedence1()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestLogicalPrecedenceMultipleEqualPrecedenceParts2()
     {
-        int x = 1 $$+ 2 << 3;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a || b && c $$&& d;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a || (b && c && d);
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = (1 + 2) << 3;
-    }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestShiftPrecedence2()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestShiftPrecedence1()
     {
-        int x = 1 $$+ 2 << 3;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$+ 2 << 3;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (1 + 2) << 3;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = (1 + 2) << 3;
-    }
-}", RequireArithmeticBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestShiftPrecedence3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestShiftPrecedence2()
     {
-        int x = 1 $$+ 2 << 3;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$+ 2 << 3;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (1 + 2) << 3;
+                }
+            }
+            """, RequireArithmeticBinaryParenthesesForClarity);
     }
-}", RequireOtherBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotIfShiftPrecedenceStaysTheSame1()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestShiftPrecedence3()
     {
-        int x = 1 $$<< 2 << 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$+ 2 << 3;
+                }
+            }
+            """, RequireOtherBinaryParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotIfShiftPrecedenceStaysTheSame2()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotIfShiftPrecedenceStaysTheSame1()
     {
-        int x = 1 << 2 $$<< 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$<< 2 << 3;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestEqualityPrecedence1()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotIfShiftPrecedenceStaysTheSame2()
     {
-        int x = 1 $$+ 2 == 2 + 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 << 2 $$<< 3;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireOtherBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestEqualityPrecedence2()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestEqualityPrecedence1()
     {
-        int x = 1 + 2 == 2 $$+ 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$+ 2 == 2 + 3;
+                }
+            }
+            """, RequireOtherBinaryParenthesesForClarity);
     }
-}", RequireOtherBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestEqualityPrecedence3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestEqualityPrecedence2()
     {
-        int x = 1 $$+ 2 == 2 + 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + 2 == 2 $$+ 3;
+                }
+            }
+            """, RequireOtherBinaryParenthesesForClarity);
     }
-}", RequireRelationalBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestEqualityPrecedence4()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestEqualityPrecedence3()
     {
-        int x = 1 + 2 == 2 $$+ 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$+ 2 == 2 + 3;
+                }
+            }
+            """, RequireRelationalBinaryParenthesesForClarity);
     }
-}", RequireRelationalBinaryParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestCoalescePrecedence1()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestEqualityPrecedence4()
     {
-        int x = a $$+ b ?? c;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + 2 == 2 $$+ 3;
+                }
+            }
+            """, RequireRelationalBinaryParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestCoalescePrecedence2()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestCoalescePrecedence1()
     {
-        int x = a $$?? b ?? c;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a $$+ b ?? c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestCoalescePrecedence3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestCoalescePrecedence2()
     {
-        int x = a ?? b $$?? c;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a $$?? b ?? c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestBitwisePrecedence1()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestCoalescePrecedence3()
     {
-        int x = 1 $$+ 2 & 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a ?? b $$?? c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = (1 + 2) & 3;
-    }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestBitwisePrecedence2()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestBitwisePrecedence1()
     {
-        int x = a $$| b | c;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$+ 2 & 3;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (1 + 2) & 3;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestBitwisePrecedence3()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestBitwisePrecedence2()
     {
-        int x = a | b $$& c;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a $$| b | c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        int x = a | (b & c);
-    }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestBitwisePrecedence4()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestBitwisePrecedence3()
     {
-        int x = a $$| b & c;
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a | b $$& c;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a | (b & c);
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotForEqualityAfterEquals()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestBitwisePrecedence4()
     {
-        int x = 1 $$== 2;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = a $$| b & c;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotForAssignmentEqualsAfterLocal()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M(int a)
+    [Fact]
+    public async Task TestNotForEqualityAfterEquals()
     {
-        int x = a $$+= 2;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 $$== 2;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestForAssignmentAndEquality1()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M(bool x, bool y, bool z)
+    [Fact]
+    public async Task TestNotForAssignmentEqualsAfterLocal()
     {
-        x $$= y == z;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M(int a)
+                {
+                    int x = a $$+= 2;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestMissingForAssignmentAndEquality2()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M(bool x, bool y, bool z)
+    [Fact]
+    public async Task TestForAssignmentAndEquality1()
     {
-        x = y $$== z;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M(bool x, bool y, bool z)
+                {
+                    x $$= y == z;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestUnclearCast1()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestMissingForAssignmentAndEquality2()
     {
-        int x = (int)$$-y;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M(bool x, bool y, bool z)
+                {
+                    x = y $$== z;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestUnclearCast_NotOfferedWithIgnore()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestUnclearCast1()
     {
-        int x = (int)$$-y;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$-y;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", IgnoreAllParentheses);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestUnclearCast_NotOfferedWithRemoveForClarity()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestUnclearCast_NotOfferedWithIgnore()
     {
-        int x = (int)$$-y;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$-y;
+                }
+            }
+            """, IgnoreAllParentheses);
     }
-}", RemoveAllUnnecessaryParentheses);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestUnclearCast2()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestUnclearCast_NotOfferedWithRemoveForClarity()
     {
-        int x = (int)$$+y;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$-y;
+                }
+            }
+            """, RemoveAllUnnecessaryParentheses);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestUnclearCast3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestUnclearCast2()
     {
-        int x = (int)$$&y;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$+y;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestUnclearCast4()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestUnclearCast3()
     {
-        int x = (int)$$*y;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$&y;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotForPrimary()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestUnclearCast4()
     {
-        int x = (int)$$y;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$*y;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotForMemberAccess()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotForPrimary()
     {
-        int x = (int)$$y.z;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$y;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotForCastOfCast()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotForMemberAccess()
     {
-        int x = (int)$$(y);
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$y.z;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestNotForNonAmbiguousUnary()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotForCastOfCast()
     {
-        int x = (int)$$!y;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$(y);
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestFixAll1()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestNotForNonAmbiguousUnary()
     {
-        if (0 {|FixAllInDocument:>=|} 3 * 2 + 4)
-        {
-        }
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = (int)$$!y;
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestFixAll2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestFixAll1()
     {
-        if (3 * 2 + 4 >= 3 {|FixAllInDocument:*|} 2 + 4)
-        {
-        }
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (0 {|FixAllInDocument:>=|} 3 * 2 + 4)
+                    {
+                    }
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
-    {
-        if ((3 * 2) + 4 >= (3 * 2) + 4)
-        {
-        }
-    }
-}", options: RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestFixAll3()
-        {
-            await TestMissingAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestFixAll2()
     {
-        if (3 * 2 + 4 >= 3 * 2 {|FixAllInDocument:+|} 4)
-        {
-        }
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (3 * 2 + 4 >= 3 {|FixAllInDocument:*|} 2 + 4)
+                    {
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if ((3 * 2) + 4 >= (3 * 2) + 4)
+                    {
+                    }
+                }
+            }
+            """, options: RequireAllParenthesesForClarity);
     }
-}", RequireAllParenthesesForClarity);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
-        public async Task TestSeams1()
-        {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestFixAll3()
     {
-        int x = 1 + 2 {|FixAllInDocument:*|} 3 == 1 + 2 * 3;
+        await TestMissingAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    if (3 * 2 + 4 >= 3 * 2 {|FixAllInDocument:+|} 4)
+                    {
+                    }
+                }
+            }
+            """, RequireAllParenthesesForClarity);
     }
-}",
-@"class C
-{
-    void M()
+
+    [Fact]
+    public async Task TestSeams1()
     {
-        int x = 1 + (2 * 3) == 1 + (2 * 3);
-    }
-}", options: RequireAllParenthesesForClarity);
-        }
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + 2 {|FixAllInDocument:*|} 3 == 1 + 2 * 3;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int x = 1 + (2 * 3) == 1 + (2 * 3);
+                }
+            }
+            """, options: RequireAllParenthesesForClarity);
     }
 }

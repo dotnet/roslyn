@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -564,7 +564,6 @@ End Module]]>
 
 #Region "TryGetSpeculativeSemanticModel"
 
-
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForExpression_ConstantInfo()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -721,6 +720,7 @@ End Class
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, initializer, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Dim typeInfo = speculativeModel.GetTypeInfo(expression)
             Assert.Equal("System.Int16", typeInfo.Type.ToTestDisplayString())
@@ -728,6 +728,10 @@ End Class
             Dim constantInfo = speculativeModel.GetConstantValue(expression)
             Assert.True(constantInfo.HasValue, "must be a constant")
             Assert.Equal(CType(0, System.Int16), constantInfo.Value)
+
+            semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(position1, initializer, speculativeModel))
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact()>
@@ -1082,12 +1086,18 @@ End Module
             Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedRangeArgument, speculativeModel)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Dim upperBound = speculatedRangeArgument.UpperBound
             Dim symbolInfo = speculativeModel.GetSymbolInfo(upperBound)
             Assert.NotNull(symbolInfo.Symbol)
             Assert.Equal(SymbolKind.Method, symbolInfo.Symbol.Kind)
             Assert.Equal("NewMethod", symbolInfo.Symbol.Name)
+
+            semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedRangeArgument, speculativeModel))
+            Assert.NotNull(speculativeModel)
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact()>
@@ -1710,6 +1720,7 @@ End Class
             Dim success = model.TryGetSpeculativeSemanticModel(position, speculatedTypeSyntax, speculativeModel, bindingOption)
             Assert.True(success)
             Assert.NotNull(speculativeModel)
+            Assert.False(speculativeModel.IgnoresAccessibility)
 
             Assert.True(speculativeModel.IsSpeculativeSemanticModel)
             Assert.Equal(model, speculativeModel.ParentModel)
@@ -1816,6 +1827,13 @@ End Namespace
             Dim implementsClause = typeBlock.Implements(0)
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, implementsClause.Types.First.Position,
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsExpression, SymbolKind.NamedType, "N.I")
+
+            model = compilation.GetSemanticModel(tree, ignoreAccessibility:=True)
+            Dim speculativeModel As SemanticModel = Nothing
+            Dim success = model.TryGetSpeculativeSemanticModel(inheritsClause.Types.First.Position, speculatedTypeExpression, speculativeModel, SpeculativeBindingOption.BindAsExpression)
+            Assert.True(success)
+            Assert.NotNull(speculativeModel)
+            Assert.True(speculativeModel.IgnoresAccessibility)
         End Sub
 
         <Fact>
@@ -2424,7 +2442,6 @@ End Enum
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim cunit = tree.GetCompilationUnitRoot()
             Dim v1 = TryCast(cunit.Members(0), TypeBlockSyntax)
             Dim v2 = TryCast(v1.Members(0), MethodBlockSyntax)
@@ -2552,7 +2569,6 @@ End Enum
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim cunit = tree.GetCompilationUnitRoot()
             Dim v1 = TryCast(cunit.Members(0), TypeBlockSyntax)
             Dim v2 = TryCast(v1.Members(0), MethodBlockSyntax)
@@ -2638,7 +2654,6 @@ End Enum
             CompilationUtils.AssertNoErrors(compilation)
 
         End Sub
-
 
         <WorkItem(541564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541564")>
         <Fact()>
@@ -2932,12 +2947,12 @@ End Class")
                                    Single(Function(n) n.Identifier.ValueText = name)
                                    Return CType(model.GetDeclaredSymbol(decl), ILocalSymbol).Type
                                End Function
-            ' VB does not have a concept of a managed type
-            Assert.False(getLocalType("s1").IsUnmanagedType)
-            Assert.False(getLocalType("s2").IsUnmanagedType)
+
+            Assert.True(getLocalType("s1").IsUnmanagedType)
+            Assert.True(getLocalType("s2").IsUnmanagedType)
             Assert.False(getLocalType("s3").IsUnmanagedType)
-            Assert.False(getLocalType("s4").IsUnmanagedType)
-            Assert.False(getLocalType("e1").IsUnmanagedType)
+            Assert.True(getLocalType("s4").IsUnmanagedType)
+            Assert.True(getLocalType("e1").IsUnmanagedType)
         End Sub
 
         <Fact>
@@ -4534,7 +4549,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic
     End Class
 End Namespace
     ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
+</compilation>, {Net40.References.SystemCore}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
 
             Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
 
@@ -4609,6 +4624,276 @@ End Structure
 BC30002: Type 'P.F' is not defined.
         Function Test() As P.F
                            ~~~
+</expected>)
+        End Sub
+
+        <Fact()>
+        Public Sub ObjectInitializerIncompleteMemberValueAssignment01()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Public Class Thing
+    Public Key As String
+    Public Value As String
+End Class
+
+Class C
+    Public Sub F()
+        Dim x = New Thing With
+        {
+            .Key = 1,
+            .Value
+        }
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim node =
+                DirectCast(
+                    tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Value", StringComparison.Ordinal)).Parent,
+                    NamedFieldInitializerSyntax).Name
+            Dim symbol = DirectCast(semanticModel.GetSymbolInfo(node).Symbol, IFieldSymbol)
+            Assert.Equal("Value", symbol.Name)
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString())
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30201: Expression expected.
+        }
+~
+BC30984: '=' expected (object initializer).
+        }
+~
+</expected>)
+        End Sub
+
+        <Fact()>
+        Public Sub ObjectInitializerIncompleteMemberValueAssignment02()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Public Class Thing
+    Public Property Key As String
+    Public Property Value As String
+End Class
+
+Class C
+    Public Sub F()
+        Dim x = New Thing With
+        {
+            .Key = 1,
+            .Value
+        }
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim node =
+                DirectCast(
+                    tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Value", StringComparison.Ordinal)).Parent,
+                    NamedFieldInitializerSyntax).Name
+            Dim symbol = DirectCast(semanticModel.GetSymbolInfo(node).Symbol, IPropertySymbol)
+            Assert.Equal("Value", symbol.Name)
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString())
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30201: Expression expected.
+        }
+~
+BC30984: '=' expected (object initializer).
+        }
+~
+</expected>)
+        End Sub
+
+        <Fact()>
+        Public Sub ObjectInitializerIncompleteMemberValueAssignment03()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Public Class Thing
+    Public Event Key As System.Action
+    Public Event Value As System.Action
+End Class
+
+Class C
+    Public Sub F()
+        Dim x = New Thing With
+        {
+            .Key = 1,
+            .Value
+        }
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim node =
+                DirectCast(
+                    tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Value", StringComparison.Ordinal)).Parent,
+                    NamedFieldInitializerSyntax).Name
+            Dim symbol = DirectCast(semanticModel.GetSymbolInfo(node).Symbol, IEventSymbol)
+            Assert.Equal("Value", symbol.Name)
+            Assert.Equal("System.Action", symbol.Type.ToTestDisplayString())
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30990: Member 'Key' cannot be initialized in an object initializer expression because it is not a field or property.
+            .Key = 1,
+             ~~~
+BC30990: Member 'Value' cannot be initialized in an object initializer expression because it is not a field or property.
+            .Value
+             ~~~~~
+BC30201: Expression expected.
+        }
+~
+BC30984: '=' expected (object initializer).
+        }
+~
+</expected>)
+        End Sub
+
+        <Fact()>
+        Public Sub ObjectInitializerIncompleteMemberValueAssignment04()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Public Class Thing
+    Public Key As String
+    Public Value As String
+End Class
+
+Class C
+    Public Sub F()
+        Dim x = New Thing With
+        {
+            .Value,
+            .Key = 1
+        }
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim node =
+                DirectCast(
+                    tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Value", StringComparison.Ordinal)).Parent,
+                    NamedFieldInitializerSyntax).Name
+            Dim symbol = DirectCast(semanticModel.GetSymbolInfo(node).Symbol, IFieldSymbol)
+            Assert.Equal("Value", symbol.Name)
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString())
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30201: Expression expected.
+            .Value,
+                  ~
+BC30984: '=' expected (object initializer).
+            .Value,
+                  ~
+</expected>)
+        End Sub
+
+        <Fact()>
+        Public Sub ObjectInitializerIncompleteMemberValueAssignment05()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Public Class Thing
+    Public Property Key As String
+    Public Property Value As String
+End Class
+
+Class C
+    Public Sub F()
+        Dim x = New Thing With
+        {
+            .Value,
+            .Key = 1
+        }
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim node =
+                DirectCast(
+                    tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Value", StringComparison.Ordinal)).Parent,
+                    NamedFieldInitializerSyntax).Name
+            Dim symbol = DirectCast(semanticModel.GetSymbolInfo(node).Symbol, IPropertySymbol)
+            Assert.Equal("Value", symbol.Name)
+            Assert.Equal("System.String", symbol.Type.ToTestDisplayString())
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30201: Expression expected.
+            .Value,
+                  ~
+BC30984: '=' expected (object initializer).
+            .Value,
+                  ~
+</expected>)
+        End Sub
+
+        <Fact()>
+        Public Sub ObjectInitializerIncompleteMemberValueAssignment06()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+Public Class Thing
+    Public Event Key As System.Action
+    Public Event Value As System.Action
+End Class
+
+Class C
+    Public Sub F()
+        Dim x = New Thing With
+        {
+            .Value,
+            .Key = 1
+        }
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = CompilationUtils.GetTree(compilation, "a.vb")
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim node =
+                DirectCast(
+                    tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Value", StringComparison.Ordinal)).Parent,
+                    NamedFieldInitializerSyntax).Name
+            Dim symbol = DirectCast(semanticModel.GetSymbolInfo(node).Symbol, IEventSymbol)
+            Assert.Equal("Value", symbol.Name)
+            Assert.Equal("System.Action", symbol.Type.ToTestDisplayString())
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30990: Member 'Value' cannot be initialized in an object initializer expression because it is not a field or property.
+            .Value,
+             ~~~~~
+BC30201: Expression expected.
+            .Value,
+                  ~
+BC30984: '=' expected (object initializer).
+            .Value,
+                  ~
+BC30990: Member 'Key' cannot be initialized in an object initializer expression because it is not a field or property.
+            .Key = 1
+             ~~~
 </expected>)
         End Sub
 

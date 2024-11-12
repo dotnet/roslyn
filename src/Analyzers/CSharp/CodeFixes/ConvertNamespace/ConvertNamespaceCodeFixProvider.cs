@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -18,63 +19,48 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace
+namespace Microsoft.CodeAnalysis.CSharp.ConvertNamespace;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertNamespace), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ConvertNamespaceCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    using static ConvertNamespaceAnalysis;
-    using static ConvertNamespaceTransform;
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId];
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertNamespace), Shared]
-    internal class ConvertNamespaceCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConvertNamespaceCodeFixProvider()
-        {
-        }
+        var diagnostic = context.Diagnostics.First();
 
-        internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId, IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            var diagnostic = context.Diagnostics.First();
-
-            var (title, equivalenceKey) = GetInfo(
-                diagnostic.Id switch
-                {
-                    IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId => NamespaceDeclarationPreference.BlockScoped,
-                    IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId => NamespaceDeclarationPreference.FileScoped,
-                    _ => throw ExceptionUtilities.UnexpectedValue(diagnostic.Id),
-                });
-
-            context.RegisterCodeFix(
-                new MyCodeAction(title, c => FixAsync(context.Document, diagnostic, c), equivalenceKey),
-                context.Diagnostics);
-
-            return Task.CompletedTask;
-        }
-
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var diagnostic = diagnostics.First();
-
-            var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-            var converted = await ConvertAsync(document, namespaceDecl, cancellationToken).ConfigureAwait(false);
-
-            editor.ReplaceNode(
-                editor.OriginalRoot,
-                await converted.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
-                : base(title, createChangedDocument, equivalenceKey)
+        var (title, equivalenceKey) = ConvertNamespaceAnalysis.GetInfo(
+            diagnostic.Id switch
             {
-            }
-        }
+                IDEDiagnosticIds.UseBlockScopedNamespaceDiagnosticId => NamespaceDeclarationPreference.BlockScoped,
+                IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId => NamespaceDeclarationPreference.FileScoped,
+                _ => throw ExceptionUtilities.UnexpectedValue(diagnostic.Id),
+            });
+
+        context.RegisterCodeFix(
+            CodeAction.Create(title, GetDocumentUpdater(context), equivalenceKey),
+            context.Diagnostics);
+
+        return Task.CompletedTask;
+    }
+
+    protected override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var diagnostic = diagnostics.First();
+
+        var namespaceDecl = (BaseNamespaceDeclarationSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var converted = await ConvertNamespaceTransform.ConvertAsync(document, namespaceDecl, options, cancellationToken).ConfigureAwait(false);
+
+        editor.ReplaceNode(
+            editor.OriginalRoot,
+            await converted.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
     }
 }

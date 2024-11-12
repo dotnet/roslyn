@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.PeekChar(1) == '"' &&
                 TextWindow.PeekChar(2) == '"')
             {
-                ScanRawStringLiteral(ref info);
+                ScanRawStringLiteral(ref info, inDirective);
                 if (inDirective)
                 {
                     // Reinterpret this as just a string literal so that the directive parser can consume this.  
@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            info.Text = TextWindow.GetText(intern: true);
             if (quoteCharacter == '\'')
             {
+                info.Text = TextWindow.GetText(intern: true);
                 info.Kind = SyntaxKind.CharacterLiteralToken;
                 if (_builder.Length != 1)
                 {
@@ -93,7 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                info.Kind = SyntaxKind.StringLiteralToken;
+                if (!inDirective && ScanUtf8Suffix())
+                {
+                    info.Kind = SyntaxKind.Utf8StringLiteralToken;
+                }
+                else
+                {
+                    info.Kind = SyntaxKind.StringLiteralToken;
+                }
+
+                info.Text = TextWindow.GetText(intern: true);
+
                 if (_builder.Length > 0)
                 {
                     info.StringValue = TextWindow.Intern(_builder);
@@ -103,6 +113,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.StringValue = string.Empty;
                 }
             }
+        }
+
+        private bool ScanUtf8Suffix()
+        {
+            if (TextWindow.PeekChar() is ('u' or 'U') && TextWindow.PeekChar(1) == '8')
+            {
+                TextWindow.AdvanceChar(2);
+                return true;
+            }
+
+            return false;
         }
 
         private char ScanEscapeSequence(out char surrogateCharacter)
@@ -130,6 +151,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 'b':
                     ch = '\u0008';
                     break;
+                case 'e':
+                    var info = MessageID.IDS_FeatureStringEscapeCharacter.GetFeatureAvailabilityDiagnosticInfo(this.Options);
+                    if (info != null)
+                        this.AddError(start, TextWindow.Position - start, info.Code, info.Arguments);
+
+                    ch = '\u001b';
+                    break;
                 case 'f':
                     ch = '\u000c';
                     break;
@@ -149,8 +177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case 'u':
                 case 'U':
                     TextWindow.Reset(start);
-                    SyntaxDiagnosticInfo error;
-                    ch = TextWindow.NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
+                    SyntaxDiagnosticInfo? error;
+                    ch = NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
                     AddError(error);
                     break;
                 default:
@@ -210,7 +238,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _builder.Append(ch);
             }
 
-            info.Kind = SyntaxKind.StringLiteralToken;
+            if (ScanUtf8Suffix())
+            {
+                info.Kind = SyntaxKind.Utf8StringLiteralToken;
+            }
+            else
+            {
+                info.Kind = SyntaxKind.StringLiteralToken;
+            }
+
             info.Text = TextWindow.GetText(intern: false);
             info.StringValue = _builder.ToString();
         }
@@ -1041,6 +1077,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 if (_lexer.TryScanAtStringToken(ref discarded))
                                     continue;
 
+                                if (_lexer.TextWindow.PeekChar(1) == '*')
+                                {
+                                    // Razor comment. Handle for error recovery purposes. The parser will come along later to retokenize the inside of the string
+                                    // and report a proper error.
+                                    _lexer.ScanMultiLineComment(isTerminated: out _, delimiter: '@');
+                                    continue;
+                                }
+
                                 // Wasn't an @"" or @$"" string.  Just consume this as normal code.
                                 goto default;
                             }
@@ -1051,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                     _lexer.ScanToEndOfLine();
                                     continue;
                                 case '*':
-                                    _lexer.ScanMultiLineComment(out _);
+                                    _lexer.ScanMultiLineComment(isTerminated: out _, '/');
                                     continue;
                                 default:
                                     _lexer.TextWindow.AdvanceChar();

@@ -1,12 +1,11 @@
 # Test on Windows Desktop using Helix
 parameters:
+- name: helixQueueName
+  type: string
 - name: testRunName
   type: string
   default: ''
 - name: jobName
-  type: string
-  default: ''
-- name: buildJobName
   type: string
   default: ''
 - name: testArtifactName
@@ -18,15 +17,15 @@ parameters:
 - name: testArguments
   type: string
   default: ''
+- name: helixApiAccessToken
+  type: string
+  default: ''
+- name: poolParameters
+  type: object
 
 jobs:
 - job: ${{ parameters.jobName }}
-  dependsOn: ${{ parameters.buildJobName }}
-  pool:
-    # Note that when helix is enabled, the agent running this job is essentially
-    # a thin client that kicks off a helix job and waits for it to complete.
-    # Thus we don't use a helix queue to run the job here, and instead use the plentiful AzDO vmImages.
-    vmImage: windows-2019
+  pool: ${{ parameters.poolParameters }}
   timeoutInMinutes: 120
   steps:
     - checkout: none
@@ -40,7 +39,7 @@ jobs:
     - task: BatchScript@1
       displayName: Rehydrate RunTests
       inputs:
-        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net6.0/rehydrate.cmd
+        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net9.0/rehydrate.cmd
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
@@ -48,7 +47,10 @@ jobs:
       displayName: Run Unit Tests
       inputs:
         filePath: eng/build.ps1
-        arguments: -ci -helix -configuration ${{ parameters.configuration }} ${{ parameters.testArguments }} -collectDumps
+        ${{ if ne(variables['System.TeamProject'], 'public') }}:
+          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps        
+        ${{ else }}:
+          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
       env:
         SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 

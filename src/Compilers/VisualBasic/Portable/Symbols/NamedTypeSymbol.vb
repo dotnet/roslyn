@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -22,6 +23,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend MustInherit Class NamedTypeSymbol
         Inherits TypeSymbol
         Implements INamedTypeSymbol, INamedTypeSymbolInternal
+
+        Protected Shared ReadOnly s_requiredMembersErrorSentinel As ImmutableSegmentedDictionary(Of String, Symbol) = ImmutableSegmentedDictionary(Of String, Symbol).Empty.Add("<error sentinel>", Nothing)
+
+        ''' <summary>
+        ''' <see langword="Nothing" /> if uninitialized. <see cref="s_requiredMembersErrorSentinel"/> if there are errors.
+        ''' <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/> if there are no required members. Otherwise,
+        ''' the required members.
+        ''' </summary>
+        Private _lazyRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol) = Nothing
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -60,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' Returns the type arguments that have been substituted for the type parameters. 
-        ''' If nothing has been substituted for a give type parameters,
+        ''' If nothing has been substituted for a given type parameter,
         ''' then the type parameter itself is consider the type argument.
         ''' </summary>
         Friend MustOverride ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
@@ -144,9 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' the string might be null or an invalid guid representation. False, 
         ''' if there is no GuidAttribute with string argument.
         ''' </summary>
-        Friend Overridable Function GetGuidString(ByRef guidString As String) As Boolean
-            Return GetGuidStringDefaultImplementation(guidString)
-        End Function
+        Friend MustOverride Function GetGuidString(ByRef guidString As String) As Boolean
 
         ' Named types have the arity suffix added to the metadata name.
         Public Overrides ReadOnly Property MetadataName As String
@@ -159,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Therefore it is a good practice to avoid type names with dots.
                 Debug.Assert(Me.IsErrorType OrElse Not (TypeOf Me Is SourceNamedTypeSymbol) OrElse Not Name.Contains("."), "type name contains dots: " + Name)
 
-                Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity), Name)
+                Return If(MangleName, MetadataHelpers.ComposeAritySuffixedMetadataName(Name, Arity, associatedFileIdentifier:=Nothing), Name)
             End Get
         End Property
 
@@ -424,7 +432,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
             Return constructors.ToImmutableAndFree()
         End Function
-
 
         ''' <summary>
         ''' Returns true if this type is known to be a reference type. It is never the case
@@ -929,7 +936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' True if and only if this type or some containing type has type parameters.
         ''' </summary>
-        Public ReadOnly Property IsGenericType As Boolean Implements INamedTypeSymbol.IsGenericType
+        Public ReadOnly Property IsGenericType As Boolean Implements INamedTypeSymbol.IsGenericType, INamedTypeSymbolInternal.IsGenericType
             Get
                 Dim p As NamedTypeSymbol = Me
                 Do While p IsNot Nothing
@@ -995,14 +1002,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Check definition.
             Dim definitionUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromType(Me.OriginalDefinition)
 
-            If definitionUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedType1 Then
+            If definitionUseSiteInfo.DiagnosticInfo IsNot Nothing AndAlso IsHighestPriorityUseSiteError(definitionUseSiteInfo.DiagnosticInfo.Code) Then
                 Return definitionUseSiteInfo
             End If
 
             ' Check type arguments.
             Dim argsUseSiteInfo As UseSiteInfo(Of AssemblySymbol) = DeriveUseSiteInfoFromTypeArguments()
 
-            Return MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
+            MergeUseSiteInfo(definitionUseSiteInfo, argsUseSiteInfo)
+            Return definitionUseSiteInfo
         End Function
 
         Private Function DeriveUseSiteInfoFromTypeArguments() As UseSiteInfo(Of AssemblySymbol)
@@ -1011,14 +1019,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Do
                 For Each arg As TypeSymbol In currentType.TypeArgumentsNoUseSiteDiagnostics
-                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg), ERRID.ERR_UnsupportedType1) Then
+                    If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromType(arg)) Then
                         Return argsUseSiteInfo
                     End If
                 Next
 
                 If currentType.HasTypeArgumentsCustomModifiers Then
                     For i As Integer = 0 To Me.Arity - 1
-                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i)), ERRID.ERR_UnsupportedType1) Then
+                        If MergeUseSiteInfo(argsUseSiteInfo, DeriveUseSiteInfoFromCustomModifiers(Me.GetTypeArgumentCustomModifiers(i))) Then
                             Return argsUseSiteInfo
                         End If
                     Next
@@ -1089,6 +1097,219 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Function GetSynthesizedWithEventsOverrides() As IEnumerable(Of PropertySymbol)
 
+        ''' <summary>
+        ''' Gets all of the required members from this type and all base types. This will be a set of the most derived overrides. If <see cref="HasRequiredMembersError"/> is true,
+        ''' this will be <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/>.
+        ''' </summary>
+        Friend ReadOnly Property AllRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol)
+            Get
+                EnsureRequiredMembersCalculated()
+                Debug.Assert(Not _lazyRequiredMembers.IsDefault)
+                Return If(_lazyRequiredMembers = s_requiredMembersErrorSentinel, ImmutableSegmentedDictionary(Of String, Symbol).Empty, _lazyRequiredMembers)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' True if this or any base type has a required members error, and constructors should be blocked unless attributed with SetsRequiredMembersAttribute. When this is
+        ''' true, <see cref="AllRequiredMembers"/> will be <see cref="ImmutableSegmentedDictionary(Of String, Symbol).Empty"/>
+        ''' </summary>
+        Friend ReadOnly Property HasRequiredMembersError As Boolean
+            Get
+                EnsureRequiredMembersCalculated()
+                Debug.Assert(Not _lazyRequiredMembers.IsDefault)
+                Return _lazyRequiredMembers = s_requiredMembersErrorSentinel
+            End Get
+        End Property
+
+        Friend MustOverride ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+
+        Private Sub EnsureRequiredMembersCalculated()
+            Dim lazyRequiredMembers As ImmutableSegmentedDictionary(Of String, Symbol) = _lazyRequiredMembers
+
+            If Not lazyRequiredMembers.IsDefault Then
+                Return
+            End If
+
+            Dim requiredMembersBuilder As ImmutableSegmentedDictionary(Of String, Symbol).Builder = Nothing
+            Dim success = TryCalculateRequiredMembers(requiredMembersBuilder)
+
+            Dim requiredMembers = If(success,
+                If(requiredMembersBuilder?.ToImmutable(), If(BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers, ImmutableSegmentedDictionary(Of String, Symbol).Empty)),
+                s_requiredMembersErrorSentinel)
+
+            RoslynImmutableInterlocked.InterlockedInitialize(_lazyRequiredMembers, requiredMembers)
+        End Sub
+
+        Private Function TryCalculateRequiredMembers(<Out> ByRef requiredMembersBuilder As ImmutableSegmentedDictionary(Of String, Symbol).Builder) As Boolean
+            If BaseTypeNoUseSiteDiagnostics?.HasRequiredMembersError = True Then
+                Return False
+            End If
+
+            Dim baseAllRequiredMembers = If(BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers, ImmutableSegmentedDictionary(Of String, Symbol).Empty)
+            Dim typeHasDeclaredRequiredMembers = HasAnyDeclaredRequiredMembers
+
+            If (Not typeHasDeclaredRequiredMembers) AndAlso baseAllRequiredMembers.IsEmpty Then
+                Return True
+            End If
+
+            For Each member In GetMembersUnordered()
+                ' Indexed properties cannot be required.
+                Dim [property] = TryCast(member, PropertySymbol)
+                If [property] IsNot Nothing AndAlso [property].ParameterCount > 0 Then
+                    If [property].IsRequired Then
+                        Return False
+                    Else
+                        Continue For
+                    End If
+                End If
+
+                Dim existingMember As Symbol = Nothing
+                ' Need to make sure that members from a base type weren't hidden by members from the current type. That is an error scenario
+                If baseAllRequiredMembers.TryGetValue(member.Name, existingMember) Then
+                    ' This is only permitted if the member is an override of a required member from a base type, and is required itself
+                    Dim overriddenMember = TryCast(member, PropertySymbol)?.OverriddenProperty
+
+                    If (Not member.IsRequired()) OrElse
+                       overriddenMember Is Nothing OrElse
+                       (Not overriddenMember.Equals(existingMember, TypeCompareKind.IgnoreTupleNames)) Then
+                        Return False
+                    End If
+                End If
+
+                If Not member.IsRequired() Then
+                    Continue For
+                End If
+
+                If Not typeHasDeclaredRequiredMembers Then
+                    ' Bad metadata. Type claimed it didn't declare any required members, but we found one.
+                    Return False
+                End If
+
+                If requiredMembersBuilder Is Nothing Then
+                    requiredMembersBuilder = baseAllRequiredMembers.ToBuilder()
+                End If
+
+                requiredMembersBuilder(member.Name) = member
+            Next
+
+            Return True
+        End Function
+
+        Friend Overrides Function GetManagedKind(ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+            Return GetManagedKind(Me, useSiteInfo)
+        End Function
+
+        ''' <summary>
+        ''' <see cref="ManagedKind"/> is simple for most named types:
+        '''     enums are not managed;
+        '''     non-enum, non-struct named types are managed;
+        '''     type parameters are managed unless an 'unmanaged' constraint is present;
+        '''     all special types have spec'd values (basically, (non-string) primitives) are not managed;
+        ''' 
+        ''' Only structs are complicated, because the definition is recursive.  A struct type is managed
+        ''' if one of its instance fields is managed or a ref field.  Unfortunately, this can result in infinite recursion.
+        ''' If the closure is finite, and we don't find anything definitely managed, then we return true.
+        ''' If the closure is infinite, we disregard all but a representative of any expanding cycle.
+        ''' 
+        ''' Intuitively, this will only return true if there's a specific type we can point to that is would
+        ''' be managed even if it had no fields.  e.g. struct S { S s; } is not managed, but struct S { S s; object o; }
+        ''' is because we can point to object.
+        ''' </summary>
+        Private Overloads Shared Function GetManagedKind(type As NamedTypeSymbol, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ManagedKind
+            type = DirectCast(type.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
+
+            ' The code below is a clone of BaseTypeAnalysis.GetManagedKind from C#. It should be kept in sync going forward
+            Dim managedInfo = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(type)
+            Dim definitelyManaged = (managedInfo.isManaged = ThreeState.True)
+
+            If managedInfo.isManaged = ThreeState.Unknown Then
+                ' Otherwise, we have to build and inspect the closure of depended-upon types.
+                Dim hs = PooledHashSet(Of Symbol).GetInstance()
+                Dim result = DependsOnDefinitelyManagedType(type, hs, useSiteInfo)
+                definitelyManaged = result.definitelyManaged
+                managedInfo.hasGenerics = managedInfo.hasGenerics OrElse result.hasGenerics
+                hs.Free()
+            End If
+
+            If definitelyManaged Then
+                Return ManagedKind.Managed
+            ElseIf managedInfo.hasGenerics Then
+                Return ManagedKind.UnmanagedWithGenerics
+            Else
+                Return ManagedKind.Unmanaged
+            End If
+        End Function
+
+        Private Shared Function DependsOnDefinitelyManagedType(
+            type As NamedTypeSymbol,
+            partialClosure As HashSet(Of Symbol),
+            ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)
+        ) As (definitelyManaged As Boolean, hasGenerics As Boolean)
+
+            Debug.Assert(type IsNot Nothing)
+
+            Dim hasGenerics = False
+
+            If partialClosure.Add(type) Then
+
+                For Each member In type.GetMembersUnordered()
+
+                    Dim field = TryCast(member, FieldSymbol)
+
+                    ' Only instance fields (including field-like events) affect the outcome.
+                    If field Is Nothing OrElse field.IsShared Then
+                        Continue For
+                    End If
+
+                    useSiteInfo.Add(field.GetUseSiteInfo())
+                    Dim fieldType As TypeSymbol = field.Type.GetTupleUnderlyingTypeOrSelf()
+
+                    ' A ref struct which has a ref field is never considered unmanaged
+                    ' but we cannot represent ref fields in VB
+                    ' The previous line should collect an error about the fact
+
+                    Select Case fieldType.TypeKind
+                        Case TypeKind.Pointer, TypeKind.FunctionPointer
+                            ' pointers are unmanaged
+                            ExceptionUtilities.UnexpectedValue(fieldType.TypeKind)
+                            Continue For
+                    End Select
+
+                    Dim fieldNamedType = TryCast(fieldType, NamedTypeSymbol)
+                    If fieldNamedType Is Nothing Then
+                        If fieldType.GetManagedKind(useSiteInfo) = ManagedKind.Managed Then
+                            Return (True, hasGenerics)
+                        End If
+                    Else
+                        Dim result = INamedTypeSymbolInternal.Helpers.IsManagedTypeHelper(fieldNamedType)
+                        hasGenerics = hasGenerics OrElse result.hasGenerics
+                        ' NOTE: don't use GetManagedKind on a NamedTypeSymbol - that could lead
+                        ' to infinite recursion.
+                        Select Case result.isManaged
+                            Case ThreeState.True
+                                Return (True, hasGenerics)
+
+                            Case ThreeState.False
+                                Continue For
+
+                            Case ThreeState.Unknown
+                                If Not fieldNamedType.OriginalDefinition.KnownCircularStruct Then
+                                    Dim dependsInfo = DependsOnDefinitelyManagedType(fieldNamedType, partialClosure, useSiteInfo)
+                                    hasGenerics = hasGenerics OrElse dependsInfo.hasGenerics
+                                    If dependsInfo.definitelyManaged Then
+                                        Return (True, hasGenerics)
+                                    End If
+                                End If
+
+                                Continue For
+                        End Select
+                    End If
+                Next
+            End If
+
+            Return (False, hasGenerics)
+        End Function
+
 #Region "INamedTypeSymbol"
 
         Private ReadOnly Property INamedTypeSymbol_Arity As Integer Implements INamedTypeSymbol.Arity
@@ -1120,6 +1341,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me.EnumUnderlyingType
             End Get
         End Property
+
+        Private Function INamedTypeSymbolInternal_GetMembers() As ImmutableArray(Of ISymbolInternal) Implements INamedTypeSymbolInternal.GetMembers
+            Return GetMembers().CastArray(Of ISymbolInternal)
+        End Function
+
+        Private Function INamedTypeSymbolInternal_GetMembers(name As String) As ImmutableArray(Of ISymbolInternal) Implements INamedTypeSymbolInternal.GetMembers
+            Return GetMembers(name).CastArray(Of ISymbolInternal)
+        End Function
 
         Private ReadOnly Property INamedTypeSymbol_MemberNames As IEnumerable(Of String) Implements INamedTypeSymbol.MemberNames
             Get
@@ -1215,6 +1444,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property INamedTypeSymbol_IsFileLocal As Boolean Implements INamedTypeSymbol.IsFileLocal
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property INamedTypeSymbol_NativeIntegerUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.NativeIntegerUnderlyingType
             Get
                 Return Nothing
@@ -1255,6 +1490,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitNamedType(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNamedType(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

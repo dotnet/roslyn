@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -28,24 +27,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
         internal static TestComposition WpfCompositionWithSolutionCrawler = EditorTestCompositions.EditorFeaturesWpf
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
-        internal static async Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(
-            TestWorkspace workspace,
+        internal static async Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync<TProvider, TTag>(
+            EditorTestWorkspace workspace,
             IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzerMap = null)
-            where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<TTag>
+            where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
             where TTag : class, ITag
         {
-            using var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
-            var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(workspace.Documents.First().GetTextBuffer());
+            var wrapper = new DiagnosticTaggerWrapper<TProvider, TTag>(workspace, analyzerMap);
 
-            using var disposable = tagger as IDisposable;
+            var firstDocument = workspace.Documents.First();
+            var textBuffer = firstDocument.GetTextBuffer();
+            using var tagger = wrapper.TaggerProvider.CreateTagger<TTag>(textBuffer);
+
             await wrapper.WaitForTags();
 
-            var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
-
-            var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
+            var snapshot = textBuffer.CurrentSnapshot;
             var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();
 
-            return (analyzerDiagnostics, spans);
+            return spans;
         }
     }
 }

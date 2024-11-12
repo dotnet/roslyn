@@ -7,7 +7,6 @@
 using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
@@ -37,8 +36,8 @@ class C{
 
         public WrappingViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
         {
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingPreserveSingleLine, CSharpVSResources.Leave_block_on_single_line, s_blockPreview, this, optionStore));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine, CSharpVSResources.Leave_statements_and_member_declarations_on_the_same_line, s_declarationPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.WrappingPreserveSingleLine, CSharpVSResources.Leave_block_on_single_line, s_blockPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine, CSharpVSResources.Leave_statements_and_member_declarations_on_the_same_line, s_declarationPreview, this, optionStore));
         }
     }
 }

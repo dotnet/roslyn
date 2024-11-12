@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If ShouldCheckConstraints Then
                 Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                 Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                constructedType.CheckConstraints(diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=GetNewCompoundUseSiteInfo(diagBag))
+                constructedType.CheckConstraints(Compilation.LanguageVersion, diagnosticsBuilder, useSiteDiagnosticsBuilder, template:=GetNewCompoundUseSiteInfo(diagBag))
 
                 If useSiteDiagnosticsBuilder IsNot Nothing Then
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder)
@@ -1512,7 +1512,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              conversionType)
             Return Nothing
         End Function
-
 
         ''' <summary>isWinMd says whether to mangle the name for winmdobj output. See the param tag for details.</summary>
         ''' <param name="isWinMd">isWinMd is only necessary for set properties, so any MethodKind which is definitely not

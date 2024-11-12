@@ -6,9 +6,6 @@ parameters:
 - name: jobName
   type: string
   default: ''
-- name: buildJobName
-  type: string
-  default: ''
 - name: testArtifactName
   type: string
   default: ''
@@ -18,24 +15,13 @@ parameters:
 - name: testArguments
   type: string
   default: ''
-- name: queueName
-  type: string
-  default: ''
-- name: vmImageName
-  type: string
-  default: ''
+- name: poolParameters
+  type: object
 
 jobs:
 - job: ${{ parameters.jobName }}
-  dependsOn: ${{ parameters.buildJobName }}
-  pool:
-    ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-
-    ${{ if ne(parameters.vmImageName, '') }}:
-      vmImage: ${{ parameters.vmImageName }}
-  timeoutInMinutes: 40
+  pool: ${{ parameters.poolParameters }}
+  timeoutInMinutes: 50
   variables:
     DOTNET_ROLL_FORWARD: LatestMajor
     DOTNET_ROLL_FORWARD_TO_PRERELEASE: 1
@@ -47,7 +33,7 @@ jobs:
       inputs:
         artifact: ${{ parameters.testArtifactName }}
         path: '$(Build.SourcesDirectory)'
-
+    
     - task: ShellScript@2
       displayName: Rehydrate Unit Tests Environment
       inputs:

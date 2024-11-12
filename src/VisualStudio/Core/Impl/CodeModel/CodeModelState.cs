@@ -8,8 +8,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -29,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public CodeModelState(
             IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
-            HostLanguageServices languageServices,
+            Microsoft.CodeAnalysis.Host.LanguageServices languageServices,
             VisualStudioWorkspace workspace,
             ProjectCodeModelFactory projectCodeModelFactory)
         {

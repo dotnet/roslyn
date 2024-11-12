@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
-
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -888,7 +888,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef,
-                                                                                     {TestMetadata.Net40.SystemCore},
+                                                                                     {Net40.References.SystemCore},
                                                                                      TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -2793,7 +2793,6 @@ End Module
     </file>
 </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
@@ -2835,7 +2834,6 @@ Module Module1
 End Module
     </file>
 </compilation>
-
 
             Dim verifier = CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.On),
                       expectedOutput:=
@@ -2904,7 +2902,6 @@ Module Module1
 End Module
     </file>
 </compilation>
-
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 

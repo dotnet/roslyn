@@ -6,86 +6,83 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
+namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
+
+internal abstract partial class AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService? service) : CodeRefactoringProvider
 {
-    internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
+    private IPullMemberUpOptionsService? _service = service;
+
+    protected abstract Task<ImmutableArray<SyntaxNode>> GetSelectedNodesAsync(CodeRefactoringContext context);
+
+    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
-        private IPullMemberUpOptionsService? _service;
+        // Currently support to pull field, method, event, property and indexer up,
+        // constructor, operator and finalizer are excluded.
+        var (document, _, cancellationToken) = context;
 
-        protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
+        _service ??= document.Project.Solution.Services.GetService<IPullMemberUpOptionsService>();
+        if (_service == null)
+            return;
 
-        /// <summary>
-        /// Test purpose only
-        /// </summary>
-        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService? service)
-            => _service = service;
+        var selectedMemberNodes = await GetSelectedNodesAsync(context).ConfigureAwait(false);
+        if (selectedMemberNodes.IsEmpty)
+            return;
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-        {
-            // Currently support to pull field, method, event, property and indexer up,
-            // constructor, operator and finalizer are excluded.
-            var (document, _, cancellationToken) = context;
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var memberNodeSymbolPairs = selectedMemberNodes
+            .SelectAsArray(m => (node: m, symbol: semanticModel.GetRequiredDeclaredSymbol(m, cancellationToken)))
+            .WhereAsArray(pair => MemberAndDestinationValidator.IsMemberValid(pair.symbol));
 
-            _service ??= document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
-            if (_service == null)
-            {
-                return;
-            }
+        if (memberNodeSymbolPairs.IsEmpty)
+            return;
 
-            var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
-            if (selectedMemberNode == null)
-            {
-                return;
-            }
+        var selectedMembers = memberNodeSymbolPairs.SelectAsArray(pair => pair.symbol);
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
-            if (selectedMember == null || selectedMember.ContainingType == null)
-            {
-                return;
-            }
+        var containingType = selectedMembers.First().ContainingType;
+        Contract.ThrowIfNull(containingType);
+        if (selectedMembers.Any(m => !m.ContainingType.Equals(containingType)))
+            return;
 
-            if (!MemberAndDestinationValidator.IsMemberValid(selectedMember))
-            {
-                return;
-            }
+        var allDestinations = FindAllValidDestinations(
+            selectedMembers,
+            containingType,
+            document.Project.Solution,
+            cancellationToken);
+        if (allDestinations.Length == 0)
+            return;
 
-            var allDestinations = FindAllValidDestinations(
-                selectedMember,
-                document.Project.Solution,
-                cancellationToken);
-            if (allDestinations.Length == 0)
-            {
-                return;
-            }
+        context.RegisterRefactoring(CodeAction.Create(
+                selectedMembers.IsSingle()
+                    ? string.Format(FeaturesResources.Pull_0_up_to, selectedMembers.Single().ToNameDisplayString())
+                    : FeaturesResources.Pull_selected_members_up,
+                allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination))
+                    .WhereNotNull()
+                    .Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service))
+                    .ToImmutableArray(),
+                isInlinable: false),
+            // we want to use a span which covers all the selected viable member nodes, so that more specific nodes have priority
+            TextSpan.FromBounds(
+                memberNodeSymbolPairs.First().node.FullSpan.Start,
+                memberNodeSymbolPairs.Last().node.FullSpan.End));
+    }
 
-            var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMember, destination))
-                .WhereNotNull().Concat(new PullMemberUpWithDialogCodeAction(document, selectedMember, _service))
-                .ToImmutableArray();
+    private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
+        ImmutableArray<ISymbol> selectedMembers,
+        INamedTypeSymbol containingType,
+        Solution solution,
+        CancellationToken cancellationToken)
+    {
+        var allDestinations = selectedMembers.All(m => m.IsKind(SymbolKind.Field))
+            ? containingType.GetBaseTypes().ToImmutableArray()
+            : [.. containingType.AllInterfaces, .. containingType.GetBaseTypes()];
 
-            var nestedCodeAction = new CodeActionWithNestedActions(
-                string.Format(FeaturesResources.Pull_0_up, selectedMember.ToNameDisplayString()),
-                allActions, isInlinable: true);
-            context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);
-        }
-
-        private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
-            ISymbol selectedMember,
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            var containingType = selectedMember.ContainingType;
-            var allDestinations = selectedMember.IsKind(SymbolKind.Field)
-                ? containingType.GetBaseTypes().ToImmutableArray()
-                : containingType.AllInterfaces.Concat(containingType.GetBaseTypes()).ToImmutableArray();
-
-            return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
-        }
+        return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
     }
 }

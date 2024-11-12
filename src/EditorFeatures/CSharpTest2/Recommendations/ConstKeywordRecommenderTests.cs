@@ -2,385 +2,451 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 {
+    [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
     public class ConstKeywordRecommenderTests : KeywordRecommenderTests
     {
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAtRoot()
         {
             await VerifyKeywordAsync(
 @"$$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterClass()
         {
             await VerifyKeywordAsync(
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGlobalStatement()
         {
             await VerifyKeywordAsync(
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGlobalVariableDeclaration()
         {
             await VerifyKeywordAsync(
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInGlobalUsingAlias()
         {
             await VerifyAbsenceAsync(
 @"global using Goo = $$");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInEmptyStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterExtern()
         {
-            await VerifyKeywordAsync(@"extern alias Goo;
-$$");
+            await VerifyKeywordAsync("""
+                extern alias Goo;
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterUsing()
         {
-            await VerifyKeywordAsync(@"using Goo;
-$$");
+            await VerifyKeywordAsync("""
+                using Goo;
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterGlobalUsing()
         {
-            await VerifyKeywordAsync(@"global using Goo;
-$$");
+            await VerifyKeywordAsync("""
+                global using Goo;
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterNamespace()
         {
-            await VerifyKeywordAsync(@"namespace N {}
-$$");
+            await VerifyKeywordAsync("""
+                namespace N {}
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterDelegateDeclaration()
         {
-            await VerifyKeywordAsync(@"delegate void Goo();
-$$");
+            await VerifyKeywordAsync("""
+                delegate void Goo();
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterMethod()
         {
             await VerifyKeywordAsync(
-@"class C {
-  void Goo() {}
-  $$");
+                """
+                class C {
+                  void Goo() {}
+                  $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterField()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i;
-  $$");
+                """
+                class C {
+                  int i;
+                  $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterProperty()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i { get; }
-  $$");
+                """
+                class C {
+                  int i { get; }
+                  $$
+                """);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script, Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeUsing(SourceCodeKind sourceCodeKind)
         {
             await VerifyAbsenceAsync(sourceCodeKind,
-@"$$
-using Goo;");
+                """
+                $$
+                using Goo;
+                """);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Theory]
         [InlineData(SourceCodeKind.Regular)]
         [InlineData(SourceCodeKind.Script, Skip = "https://github.com/dotnet/roslyn/issues/9880")]
         public async Task TestNotBeforeGlobalUsing(SourceCodeKind sourceCodeKind)
         {
             await VerifyAbsenceAsync(sourceCodeKind,
-@"$$
-global using Goo;");
+                """
+                $$
+                global using Goo;
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterAssemblyAttribute()
         {
-            await VerifyKeywordAsync(@"[assembly: goo]
-$$");
+            await VerifyKeywordAsync("""
+                [assembly: goo]
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterRootAttribute()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Regular, @"[goo]
-$$");
+            await VerifyKeywordAsync(SourceCodeKind.Regular, """
+                [goo]
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterRootAttribute_Interactive()
         {
-            await VerifyKeywordAsync(SourceCodeKind.Script, @"[goo]
-$$");
+            await VerifyKeywordAsync(SourceCodeKind.Script, """
+                [goo]
+                $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterNestedAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-  [goo]
-  $$");
+                """
+                class C {
+                  [goo]
+                  $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideStruct()
         {
             await VerifyKeywordAsync(
-@"struct S {
-   $$");
+                """
+                struct S {
+                   $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideInterface()
         {
-            await VerifyKeywordAsync(@"interface I {
-   $$");
+            await VerifyKeywordAsync("""
+                interface I {
+                   $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotInsideEnum()
         {
-            await VerifyAbsenceAsync(@"enum E {
-   $$");
+            await VerifyAbsenceAsync("""
+                enum E {
+                   $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInsideClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-   $$");
+                """
+                class C {
+                   $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterPartial()
             => await VerifyAbsenceAsync(@"partial $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterAbstract()
             => await VerifyAbsenceAsync(@"abstract $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterInternal()
             => await VerifyAbsenceAsync(SourceCodeKind.Regular, @"internal $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterInternal_Interactive()
             => await VerifyKeywordAsync(SourceCodeKind.Script, @"internal $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterNestedInternal()
         {
             await VerifyKeywordAsync(
-@"class C {
-    internal $$");
+                """
+                class C {
+                    internal $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterPublic()
             => await VerifyAbsenceAsync(SourceCodeKind.Regular, @"public $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPublic_Interactive()
             => await VerifyKeywordAsync(SourceCodeKind.Script, @"public $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterNestedPublic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public $$");
+                """
+                class C {
+                    public $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterPrivate()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"private $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterPrivate_Script()
         {
             await VerifyKeywordAsync(SourceCodeKind.Script,
 @"private $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterNestedPrivate()
         {
             await VerifyKeywordAsync(
-@"class C {
-    private $$");
+                """
+                class C {
+                    private $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterProtected()
         {
             await VerifyAbsenceAsync(
 @"protected $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterNestedProtected()
         {
             await VerifyKeywordAsync(
-@"class C {
-    protected $$");
+                """
+                class C {
+                    protected $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterSealed()
             => await VerifyAbsenceAsync(@"sealed $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterNestedSealed()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    sealed $$");
+                """
+                class C {
+                    sealed $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterStatic()
             => await VerifyAbsenceAsync(@"static $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterNestedStatic()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    static $$");
+                """
+                class C {
+                    static $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterStaticPublic()
             => await VerifyAbsenceAsync(@"static public $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterNestedStaticPublic()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    static public $$");
+                """
+                class C {
+                    static public $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterDelegate()
             => await VerifyAbsenceAsync(@"delegate $$");
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterEvent()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    event $$");
+                """
+                class C {
+                    event $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterConst()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    const $$");
+                """
+                class C {
+                    const $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestNotAfterNew()
         {
             await VerifyAbsenceAsync(
 @"new $$");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestAfterNestedNew()
         {
             await VerifyKeywordAsync(
-@"class C {
-   new $$");
+                """
+                class C {
+                   new $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInMethod()
         {
             await VerifyKeywordAsync(
-@"class C {
-   void Goo() {
-     $$");
+                """
+                class C {
+                   void Goo() {
+                     $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInMethodNotAfterConst()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   void Goo() {
-     const $$");
+                """
+                class C {
+                   void Goo() {
+                     const $$
+                """);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [Fact]
         public async Task TestInProperty()
         {
             await VerifyKeywordAsync(
-@"class C {
-   int Goo {
-     get {
-       $$");
+                """
+                class C {
+                   int Goo {
+                     get {
+                       $$
+                """);
         }
     }
 }

@@ -8,33 +8,32 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Completion;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Extensions;
-using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    [ExportXamlLspRequestHandlerProvider(typeof(CompletionResolveHandler)), Shared]
+    [ExportStatelessXamlLspService(typeof(CompletionResolveHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCompletionResolveName)]
-    internal class CompletionResolveHandler : AbstractStatelessRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         private readonly IGlobalOptionService _globalOptions;
 
-        public override bool MutatesSolutionState => false;
-        public override bool RequiresLSPSolution => true;
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -43,9 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
-
-        public override async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
+        public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -73,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var offset = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(data.Position), cancellationToken).ConfigureAwait(false);
-            var completionService = document.Project.LanguageServices.GetRequiredService<IXamlCompletionService>();
+            var completionService = document.Project.Services.GetRequiredService<IXamlCompletionService>();
             var symbol = await completionService.GetSymbolAsync(new XamlCompletionContext(document, offset), completionItem.Label, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (symbol == null)
             {

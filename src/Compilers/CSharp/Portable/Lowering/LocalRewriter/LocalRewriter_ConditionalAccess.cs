@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLoweredConditionalAccess(BoundLoweredConditionalAccess node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         // null when currently enclosing conditional access node
@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 loweringKind = ConditionalAccessLoweringKind.Conditional;
             }
-
 
             var previousConditionalAccessTarget = _currentConditionalAccessTarget;
             var currentConditionalAccessID = ++_currentConditionalAccessID;
@@ -143,7 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression result;
-            var objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
             switch (loweringKind)
             {
@@ -158,6 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         loweredAccessExpression,
                         null,
                         currentConditionalAccessID,
+                        forceCopyOfNullableValueType: true,
                         type);
 
                     break;
@@ -174,9 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConditionalAccessLoweringKind.Conditional:
                     {
                         // (object)r != null ? access : default(T)
-                        var condition = _factory.ObjectNotEqual(
-                                _factory.Convert(objectType, loweredReceiver),
-                                _factory.Null(objectType));
+                        var condition = _factory.IsNotNullReference(loweredReceiver);
 
                         var consequence = loweredAccessExpression;
 

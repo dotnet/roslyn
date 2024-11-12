@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (constraints.Count > 0)
                 {
                     var symbolsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    MetadataDecoder tokenDecoder = GetDecoderForConstraintTypes(moduleSymbol);
+                    MetadataDecoder tokenDecoder = GetDecoder(moduleSymbol);
 
                     TypeWithAnnotations bestObjectConstraint = default;
 
@@ -230,13 +230,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // - presence of unmanaged pattern has to be matched with `valuetype`
-                // - IsUnmanagedAttribute is allowed iff there is an unmanaged pattern
+                // - IsUnmanagedAttribute is allowed if there is an unmanaged pattern
                 if (hasUnmanagedModreqPattern && (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0 ||
                     hasUnmanagedModreqPattern != peModule.HasIsUnmanagedAttribute(_handle))
                 {
                     // we do not recognize these combinations as "unmanaged"
                     hasUnmanagedModreqPattern = false;
-                    _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency: null, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
+                    _lazyCachedConstraintsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency: null, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
                 }
 
                 _lazyHasIsUnmanagedConstraint = hasUnmanagedModreqPattern.ToThreeState();
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyDeclaredConstraintTypes;
         }
 
-        private MetadataDecoder GetDecoderForConstraintTypes(PEModuleSymbol moduleSymbol)
+        private MetadataDecoder GetDecoder(PEModuleSymbol moduleSymbol)
         {
             MetadataDecoder tokenDecoder;
             if (_containingSymbol.Kind == SymbolKind.Method)
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             catch (BadImageFormatException)
             {
                 constraints = default(GenericParameterConstraintHandleCollection);
-                _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency: null, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
+                _lazyCachedConstraintsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency: null, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
             }
 
             return constraints;
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         // We must have filtered out some Object constraints, lets calculate nullability from them.
                         var symbolsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                        MetadataDecoder tokenDecoder = GetDecoderForConstraintTypes(moduleSymbol);
+                        MetadataDecoder tokenDecoder = GetDecoder(moduleSymbol);
 
                         bool hasUnmanagedModreqPattern = false;
                         var metadataReader = module.MetadataReader;
@@ -564,6 +564,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 return (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
+            }
+        }
+
+        public override bool AllowsRefLikeType
+        {
+            get
+            {
+                return (_flags & MetadataHelpers.GenericParameterAttributesAllowByRefLike) != 0;
             }
         }
 
@@ -681,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 diagnostics.Free();
 
-                _lazyCachedConstraintsUseSiteInfo.InterlockedCompareExchange(primaryDependency, useSiteInfo);
+                _lazyCachedConstraintsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency, useSiteInfo);
                 Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
             }
 
@@ -704,6 +712,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+#nullable enable
+        internal DiagnosticInfo? DeriveCompilerFeatureRequiredDiagnostic(MetadataDecoder decoder)
+            => PEUtilities.DeriveCompilerFeatureRequiredAttributeDiagnostic(this, (PEModuleSymbol)ContainingModule, Handle, CompilerFeatureRequiredFeatures.None, decoder);
+
+        public override bool HasUnsupportedMetadata
+        {
+            get
+            {
+                var containingModule = (PEModuleSymbol)ContainingModule;
+                return DeriveCompilerFeatureRequiredDiagnostic(GetDecoder(containingModule)) is { Code: (int)ErrorCode.ERR_UnsupportedCompilerFeature } || base.HasUnsupportedMetadata;
+            }
         }
     }
 }

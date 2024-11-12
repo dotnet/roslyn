@@ -2,133 +2,107 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
+namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
+
+internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
 {
-    internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    private sealed class GenerateConstructorWithDialogCodeAction(
+        AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
+        Document document,
+        TextSpan textSpan,
+        INamedTypeSymbol containingType,
+        Accessibility? desiredAccessibility,
+        ImmutableArray<ISymbol> viableMembers,
+        ImmutableArray<PickMembersOption> pickMembersOptions) : CodeActionWithOptions
     {
-        private class GenerateConstructorWithDialogCodeAction : CodeActionWithOptions
+        private readonly Document _document = document;
+        private readonly INamedTypeSymbol _containingType = containingType;
+        private readonly Accessibility? _desiredAccessibility = desiredAccessibility;
+        private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
+        private readonly TextSpan _textSpan = textSpan;
+
+        internal ImmutableArray<ISymbol> ViableMembers { get; } = viableMembers;
+        internal ImmutableArray<PickMembersOption> PickMembersOptions { get; } = pickMembersOptions;
+
+        public override string Title => FeaturesResources.Generate_constructor;
+
+        public override object GetOptions(CancellationToken cancellationToken)
         {
-            private readonly Document _document;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly Accessibility? _desiredAccessibility;
-            private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service;
-            private readonly TextSpan _textSpan;
+            var service = _service._pickMembersService_forTesting ?? _document.Project.Solution.Services.GetRequiredService<IPickMembersService>();
 
-            private bool? _addNullCheckOptionValue;
+            return service.PickMembers(
+                FeaturesResources.Pick_members_to_be_used_as_constructor_parameters,
+                ViableMembers, PickMembersOptions);
+        }
 
-            internal ImmutableArray<ISymbol> ViableMembers { get; }
-            internal ImmutableArray<PickMembersOption> PickMembersOptions { get; }
+        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+        {
+            var result = (PickMembersResult)options;
+            if (result.IsCanceled)
+                return [];
 
-            public override string Title => FeaturesResources.Generate_constructor;
-
-            public GenerateConstructorWithDialogCodeAction(
-                AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
-                Document document, TextSpan textSpan,
-                INamedTypeSymbol containingType,
-                Accessibility? desiredAccessibility,
-                ImmutableArray<ISymbol> viableMembers,
-                ImmutableArray<PickMembersOption> pickMembersOptions)
+            var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);
+            if (addNullChecksOption != null)
             {
-                _service = service;
-                _document = document;
-                _textSpan = textSpan;
-                _containingType = containingType;
-                _desiredAccessibility = desiredAccessibility;
-                ViableMembers = viableMembers;
-                PickMembersOptions = pickMembersOptions;
+                // ILegacyGlobalOptionsWorkspaceService is guaranteed to be not null here because we have checked it before the code action is provided.
+                var globalOptions = _document.Project.Solution.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+
+                // If we presented the 'Add null check' option, then persist whatever value
+                // the user chose.  That way we'll keep that as the default for the next time
+                // the user opens the dialog.
+                globalOptions.SetGenerateEqualsAndGetHashCodeFromMembersGenerateOperators(_document.Project.Language, addNullChecksOption.Value);
             }
 
-            public override object GetOptions(CancellationToken cancellationToken)
-            {
-                var workspace = _document.Project.Solution.Workspace;
-                var service = _service._pickMembersService_forTesting ?? workspace.Services.GetRequiredService<IPickMembersService>();
+            var addNullChecks = (addNullChecksOption?.Value ?? false);
+            var state = await State.TryGenerateAsync(
+                _service, _document, _textSpan, _containingType, _desiredAccessibility,
+                result.Members, cancellationToken).ConfigureAwait(false);
 
-                return service.PickMembers(
-                    FeaturesResources.Pick_members_to_be_used_as_constructor_parameters,
-                    ViableMembers, PickMembersOptions);
+            if (state == null)
+                return [];
+
+            // There was an existing constructor that matched what the user wants to create.
+            // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate
+            // to the existing constructor
+            var solution = _document.Project.Solution;
+            if (state.MatchingConstructor != null)
+            {
+                if (state.MatchingConstructor.IsImplicitlyDeclared)
+                {
+                    var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
+                    return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
+                }
+
+                var constructorReference = state.MatchingConstructor.DeclaringSyntaxReferences[0];
+                var constructorSyntax = await constructorReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                var constructorTree = constructorSyntax.SyntaxTree;
+                var constructorDocument = solution.GetRequiredDocument(constructorTree);
+                return ImmutableArray.Create<CodeActionOperation>(new DocumentNavigationOperation(
+                    constructorDocument.Id, constructorSyntax.SpanStart));
             }
-
-            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-                object options, CancellationToken cancellationToken)
+            else
             {
-                var result = (PickMembersResult)options;
-                if (result.IsCanceled)
-                {
-                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-                }
+                var codeAction = state.DelegatedConstructor != null
+                    ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks)
+                    : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
 
-                var addNullChecksOption = result.Options.FirstOrDefault(o => o.Id == AddNullChecksId);
-                if (addNullChecksOption != null)
-                {
-                    // If we presented the 'Add null check' option, then persist whatever value
-                    // the user chose.  That way we'll keep that as the default for the next time
-                    // the user opens the dialog.
-                    _addNullCheckOptionValue = addNullChecksOption.Value;
-                }
-
-                var addNullChecks = (addNullChecksOption?.Value ?? false);
-                var state = await State.TryGenerateAsync(
-                    _service, _document, _textSpan, _containingType, _desiredAccessibility,
-                    result.Members, cancellationToken).ConfigureAwait(false);
-
-                if (state == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-                }
-
-                // There was an existing constructor that matched what the user wants to create.
-                // Generate it if it's the implicit, no-arg, constructor, otherwise just navigate
-                // to the existing constructor
-                if (state.MatchingConstructor != null)
-                {
-                    if (state.MatchingConstructor.IsImplicitlyDeclared)
-                    {
-                        var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
-                        return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
-                    }
-
-                    var constructorReference = state.MatchingConstructor.DeclaringSyntaxReferences[0];
-                    var constructorSyntax = await constructorReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                    var constructorTree = constructorSyntax.SyntaxTree;
-                    var constructorDocument = _document.Project.Solution.GetRequiredDocument(constructorTree);
-                    return ImmutableArray.Create<CodeActionOperation>(new DocumentNavigationOperation(
-                        constructorDocument.Id, constructorSyntax.SpanStart));
-                }
-                else
-                {
-                    var codeAction = state.DelegatedConstructor != null
-                        ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks)
-                        : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
-
-                    return await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
-            {
-                var solution = await base.GetChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
-
-                if (_addNullCheckOptionValue.HasValue)
-                {
-                    solution = solution?.WithOptions(solution.Options.WithChangedOption(
-                        GenerateConstructorFromMembersOptions.AddNullChecks,
-                        _document.Project.Language,
-                        _addNullCheckOptionValue.Value));
-                }
-
-                return solution;
+                return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
             }
         }
     }

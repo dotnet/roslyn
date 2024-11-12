@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeDefinitionMember,
         Cci.ISpecializedFieldReference
     {
+        public bool IsEncDeleted
+            => false;
+
         Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
@@ -46,6 +49,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new Cci.ModifiedTypeReference(type, ImmutableArray<Cci.ICustomModifier>.CastUp(customModifiers));
             }
         }
+
+        ImmutableArray<Cci.ICustomModifier> Cci.IFieldReference.RefCustomModifiers =>
+            ImmutableArray<Cci.ICustomModifier>.CastUp(AdaptedFieldSymbol.RefCustomModifiers);
+
+        bool Cci.IFieldReference.IsByReference => AdaptedFieldSymbol.RefKind != RefKind.None;
 
         Cci.IFieldDefinition Cci.IFieldReference.GetResolvedField(EmitContext context)
         {
@@ -274,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(AdaptedFieldSymbol);
+                return AdaptedFieldSymbol.MetadataVisibility;
             }
         }
 

@@ -4,9 +4,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.Wrapping
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Formatting
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
@@ -14,22 +14,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping
         Inherits SyntaxWrappingOptions
 
         Public Sub New(
-            useTabs As Boolean,
-            tabSize As Integer,
-            newLine As String,
-            wrappingColumn As Integer,
+            formattingOptions As VisualBasicSyntaxFormattingOptions,
             operatorPlacement As OperatorPlacementWhenWrappingPreference)
 
-            MyBase.New(useTabs, tabSize, newLine, wrappingColumn, operatorPlacement)
+            MyBase.New(formattingOptions, operatorPlacement)
         End Sub
 
-        Public Shared Function Create(options As AnalyzerConfigOptions, ideOptions As CodeActionOptions) As VisualBasicSyntaxWrappingOptions
+        Public Shared Function Create(options As IOptionsReader) As VisualBasicSyntaxWrappingOptions
             Return New VisualBasicSyntaxWrappingOptions(
-                useTabs:=options.GetOption(FormattingOptions2.UseTabs),
-                tabSize:=options.GetOption(FormattingOptions2.TabSize),
-                newLine:=options.GetOption(FormattingOptions2.NewLine),
-                operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping),
-                wrappingColumn:=ideOptions.WrappingColumn)
+                formattingOptions:=New VisualBasicSyntaxFormattingOptions(options),
+                operatorPlacement:=options.GetOption(CodeStyleOptions2.OperatorPlacementWhenWrapping))
         End Function
     End Class
 End Namespace

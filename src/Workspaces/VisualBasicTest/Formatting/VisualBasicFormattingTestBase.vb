@@ -64,20 +64,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 Dim spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
-                Dim changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), workspace.Services, options, CancellationToken.None)
+                Dim changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
-                changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), (Await syntaxTree.GetRootAsync()).FullSpan, workspace.Services, options, CancellationToken.None)
+                changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), (Await syntaxTree.GetRootAsync()).FullSpan, workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 spans = New List(Of TextSpan)()
                 spans.Add(syntaxTree.GetRoot().FullSpan)
 
-                changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), spans, workspace.Services, options, CancellationToken.None)
+                changes = Formatter.GetFormattedTextChanges(Await syntaxTree.GetRootAsync(), spans, workspace.Services.SolutionServices, options, CancellationToken.None)
                 AssertResult(expected, Await document.GetTextAsync(), changes)
 
                 ' format with node and transform
-                AssertFormatWithTransformation(workspace.Services, expected, syntaxTree.GetRoot(), spans, options, False)
+                AssertFormatWithTransformation(workspace.Services.SolutionServices, expected, syntaxTree.GetRoot(), spans, options, False)
             End Using
         End Function
 
@@ -92,18 +92,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
         Private Protected Overloads Function AssertFormatAsync(
             code As String,
             expected As String,
-            Optional debugMode As Boolean = False,
             Optional changedOptionSet As OptionsCollection = Nothing,
             Optional testWithTransformation As Boolean = False,
             Optional experimental As Boolean = False) As Task
-            Return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), debugMode, changedOptionSet, testWithTransformation, experimental:=experimental)
+            Return AssertFormatAsync(expected, code, SpecializedCollections.SingletonEnumerable(New TextSpan(0, code.Length)), changedOptionSet, testWithTransformation, experimental:=experimental)
         End Function
 
         Private Protected Overloads Function AssertFormatAsync(
             expected As String,
             code As String,
             spans As IEnumerable(Of TextSpan),
-            Optional debugMode As Boolean = False,
             Optional changedOptionSet As OptionsCollection = Nothing,
             Optional testWithTransformation As Boolean = False,
             Optional experimental As Boolean = False) As Task
@@ -114,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
                 ' parseOptions = parseOptions.WithExperimentalFeatures
             End If
 
-            Return AssertFormatAsync(expected, code, spans, LanguageNames.VisualBasic, debugMode, changedOptionSet, testWithTransformation, parseOptions)
+            Return AssertFormatAsync(expected, code, spans, LanguageNames.VisualBasic, changedOptionSet, testWithTransformation, parseOptions)
         End Function
 
         Private Shared Function StringFromLines(ParamArray lines As String()) As String

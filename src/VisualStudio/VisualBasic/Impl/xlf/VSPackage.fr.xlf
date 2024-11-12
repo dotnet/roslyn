@@ -29,8 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Souligner les variables réaffectées;Afficher les indicateurs inline;Insertion automatique des constructions de fin;Changer les paramètres de listing en mode Pretty;Changer le mode Plan;Insertion automatique des membres Interface et MustOverride;Afficher ou masquer les séparateurs de ligne de procédure;Activer ou désactiver les suggestions de correction d'erreurs;Activer ou désactiver la mise en surbrillance des références et des mots clés;Regex;Mettre en couleurs les expressions régulières;Mettre en surbrillance les composants connexes sous le curseur;Signaler les expressions régulières non valides;regex;expression régulière;Utiliser des couleurs améliorées;Modèle de couleurs de l'éditeur;Directives d’importation;</target>
+        <target state="translated">Souligner les variables réaffectées;Afficher les indicateurs inline; Insertion automatique des constructions de fin ; Modifier les paramètres de liste de création de listes ; Modifier le mode plan ; Insertion automatique des membres Interface et MustOverride ; Afficher ou masquer les séparateurs de ligne de procédure ; Activer ou désactiver les suggestions de correction d’erreur ; Activer ou désactiver la mise en surbrillance des références et des mots clés ;
+Regex;
+expressions régulières ;
+composants associés sous le curseur ;
+signaler des expressions régulières non valides ;
+expression régulière ;
+expression régulière ;
+JSON ;
+coloriser les chaînes JSON ;
+signaler des chaînes JSON non valides ;
+détecter et proposer des fonctionnalités d’éditeur pour les chaînes JSON ;
+Réduire #regions sur le fichier ouvert ;
+réduire les importations à l’ouverture du fichier ;
+Réduire les implémentations de métadonnées lors de l’ouverture du fichier ;
+Utiliser des couleurs améliorées ; Modèle de couleurs de l’éditeur;Marge d’héritage;Directives d’importation;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -113,14 +130,34 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</s
         <target state="translated">Outils Visual Basic</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Fichier de script Visual Basic vide.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Toujours ajouter une nouvelle ligne en appuyant sur Entrée</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Script Visual Basic</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Toujours inclure les extraits de code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Inclure les extraits de code quand ?-Tab est typé après un identificateur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Ne jamais ajouter de nouvelle ligne en appuyant sur Entrée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Ne jamais inclure d'extrait de code</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Ajouter une nouvelle ligne en appuyant sur Entrée seulement après la fin d'un mot entièrement tapé</target>
         <note />
       </trans-unit>
     </body>

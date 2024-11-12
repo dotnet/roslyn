@@ -1328,7 +1328,7 @@ public class ClassA
     }
 }";
             var data = Compile(source, 1,
-                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
                 //         using (var v1 =    new { }   )
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 =    new { }").WithArguments("<empty anonymous type>")
             );
@@ -1365,7 +1365,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
   Initializer: 
     null";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
                 //         using (/*<bind>*/var v1 = new { }/*</bind>*/)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = new { }").WithArguments("<empty anonymous type>").WithLocation(6, 26)
             };
@@ -1871,6 +1871,93 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void AnonymousTypeSymbols_PointerArrayField()
+        {
+            var source = """
+unsafe class C
+{
+    static unsafe void Main()
+    {
+        var array = new int*[0];
+        var result = C.M(array);
+        if (array == result)
+        {
+            System.Console.Write("RAN");
+        }
+    }
+
+    static int*[] M(int*[] a)
+    {
+        var b = new { F = a };
+        return b.F;
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "RAN", verify: Verification.FailsPEVerify);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void AnonymousTypeSymbols_NestedPointerArrayField()
+        {
+            var source = """
+unsafe class C<T>
+{
+    static C<int*[]> M()
+    {
+        var a = new { F = new C<int*[]>() };
+        return a.F;
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void AnonymousTypeSymbols_PointerField()
+        {
+            var source = """
+unsafe class C
+{
+    static int* M(int* i)
+    {
+        var a = new { F = i };
+        return a.F;
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0828: Cannot assign 'int*' to anonymous type property
+                //         var a = new { F = i };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = i").WithArguments("int*").WithLocation(5, 23)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67330")]
+        public void AnonymousTypeSymbols_FunctionPointerField()
+        {
+            var source = """
+unsafe class C
+{
+    static delegate*<void> M(delegate*<void> i)
+    {
+        var a = new { F = i };
+        return a.F;
+    }
+}
+""";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (5,23): error CS0828: Cannot assign 'delegate*<void>' to anonymous type property
+                //         var a = new { F = i };
+                Diagnostic(ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, "F = i").WithArguments("delegate*<void>").WithLocation(5, 23)
+                );
         }
 
         #region "Utility methods"

@@ -5,60 +5,98 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.LanguageServices;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.UseNullPropagation;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation
+namespace Microsoft.CodeAnalysis.CSharp.UseNullPropagation;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpUseNullPropagationDiagnosticAnalyzer :
+    AbstractUseNullPropagationDiagnosticAnalyzer<
+        SyntaxKind,
+        ExpressionSyntax,
+        StatementSyntax,
+        ConditionalExpressionSyntax,
+        BinaryExpressionSyntax,
+        InvocationExpressionSyntax,
+        ConditionalAccessExpressionSyntax,
+        ElementAccessExpressionSyntax,
+        MemberAccessExpressionSyntax,
+        IfStatementSyntax,
+        ExpressionStatementSyntax>
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseNullPropagationDiagnosticAnalyzer :
-        AbstractUseNullPropagationDiagnosticAnalyzer<
-            SyntaxKind,
-            ExpressionSyntax,
-            ConditionalExpressionSyntax,
-            BinaryExpressionSyntax,
-            InvocationExpressionSyntax,
-            MemberAccessExpressionSyntax,
-            ConditionalAccessExpressionSyntax,
-            ElementAccessExpressionSyntax>
+    protected override SyntaxKind IfStatementSyntaxKind
+        => SyntaxKind.IfStatement;
+
+    protected override bool ShouldAnalyze(Compilation compilation)
+        => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
+
+    protected override ISemanticFacts SemanticFacts
+        => CSharpSemanticFacts.Instance;
+
+    protected override bool TryAnalyzePatternCondition(
+        ISyntaxFacts syntaxFacts, ExpressionSyntax conditionNode,
+        [NotNullWhen(true)] out ExpressionSyntax? conditionPartToCheck, out bool isEquals)
     {
-        protected override bool ShouldAnalyze(Compilation compilation)
-            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
+        conditionPartToCheck = null;
+        isEquals = true;
 
-        protected override ISyntaxFacts GetSyntaxFacts()
-            => CSharpSyntaxFacts.Instance;
+        if (conditionNode is not IsPatternExpressionSyntax patternExpression)
+            return false;
 
-        protected override bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol? expressionTypeOpt, CancellationToken cancellationToken)
-            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
-
-        protected override bool TryAnalyzePatternCondition(
-            ISyntaxFacts syntaxFacts, SyntaxNode conditionNode,
-            [NotNullWhen(true)] out SyntaxNode? conditionPartToCheck, out bool isEquals)
+        var pattern = patternExpression.Pattern;
+        if (pattern is UnaryPatternSyntax(SyntaxKind.NotPattern) notPattern)
         {
-            conditionPartToCheck = null;
-            isEquals = true;
-
-            if (conditionNode is not IsPatternExpressionSyntax patternExpression)
-            {
-                return false;
-            }
-
-            if (patternExpression.Pattern is not ConstantPatternSyntax constantPattern)
-            {
-                return false;
-            }
-
-            if (!syntaxFacts.IsNullLiteralExpression(constantPattern.Expression))
-            {
-                return false;
-            }
-
-            conditionPartToCheck = patternExpression.Expression;
-            return true;
+            isEquals = false;
+            pattern = notPattern.Pattern;
         }
+
+        if (pattern is not ConstantPatternSyntax constantPattern)
+            return false;
+
+        if (!syntaxFacts.IsNullLiteralExpression(constantPattern.Expression))
+            return false;
+
+        conditionPartToCheck = patternExpression.Expression;
+        return true;
+    }
+
+    protected override bool TryGetPartsOfIfStatement(
+        IfStatementSyntax ifStatement,
+        [NotNullWhen(true)] out ExpressionSyntax? condition,
+        [NotNullWhen(true)] out StatementSyntax? trueStatement)
+    {
+        // has to be of the form:
+        //
+        //   if (...)
+        //      statement
+        //
+        // or
+        //
+        //   if (...)
+        //   {
+        //       statement
+        //   }
+
+        condition = ifStatement.Condition;
+
+        trueStatement = null;
+        if (ifStatement.Else == null)
+        {
+            if (ifStatement.Statement is BlockSyntax block)
+            {
+                if (block.Statements.Count == 1)
+                    trueStatement = block.Statements[0];
+            }
+            else
+            {
+                trueStatement = ifStatement.Statement;
+            }
+        }
+
+        return trueStatement != null;
     }
 }

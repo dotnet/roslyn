@@ -6,14 +6,13 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportXamlLspRequestHandlerProvider(typeof(FormatDocumentRangeHandler)), Shared]
+    [ExportStatelessXamlLspService(typeof(FormatDocumentRangeHandler)), Shared]
     [Method(Methods.TextDocumentRangeFormattingName)]
     internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]>
     {
@@ -23,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
 
         public override Task<TextEdit[]> HandleRequestAsync(DocumentRangeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
             => GetTextEditsAsync(request.Options, context, cancellationToken, range: request.Range);

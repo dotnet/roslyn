@@ -29,8 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Подчеркивать переназначенные переменные;Показывать встроенные подсказки;Автоматическая вставка конечных конструкций;Изменение параметров автоматического форматирования;Изменение режима структуры;Автоматическая вставка интерфейса и элементов MustOverride;Показывать или скрывать разделители строк для процедуры;Включить или отключить предложения по исправлению ошибок;Включить или отключить выделение ссылок и ключевых слов;Регулярные выражения;Выделять регулярные выражения;Выделять родственные компоненты под курсором;Сообщать о недопустимых регулярных выражениях;регулярные выражения;регулярное выражение;Использование расширенного набора цветов;Цветовая схема редактора;Поле наследования;Директивы import;</target>
+        <target state="translated">Подчеркивать переназначенные переменные;Показывать встроенные подсказки;Автоматическая вставка конечных конструкций;Изменять параметры автоматического форматирования;Изменять режим структуры;Автоматическая вставка интерфейса и элементов MustOverride;Показывать или скрывать разделители строк для процедуры;Включить или отключить предложения по исправлению ошибок;Включить или отключить выделение ссылок и ключевых слов;
+Регулярные выражения;
+регулярные выражения;
+связанные компоненты под курсором;
+Сообщать о недопустимых регулярных выражениях;
+регулярное выражение;
+регулярное выражение;
+JSON;
+Выделить строки JSON цветом;
+Сообщить о недопустимых строках JSON;
+Найти и предложить функции редактора для строк JSON;
+Сворачивать #regions при открытии файлов;
+Сворачивать директивы import при открытии файлов;
+Сворачивать реализации метаданных при открытии файлов;
+Использовать расширенный набор цветов;Цветовая схема редактора;Поле наследования;Директивы import;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -113,14 +130,34 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</s
         <target state="translated">Инструменты Visual Basic</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Пустой файл сценария Visual Basic.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Всегда добавлять новую строку при нажатии клавиши ВВОД</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Сценарий Visual Basic</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Всегда включать фрагменты кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Включать фрагменты кода, когда после идентификатора указывается "?-Tab"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Никогда не добавлять новую строку при нажатии клавиши ВВОД</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Никогда не включать фрагменты кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Добавлять только новую строку при нажатии клавиши ВВОД после полностью введенного слова</target>
         <note />
       </trans-unit>
     </body>

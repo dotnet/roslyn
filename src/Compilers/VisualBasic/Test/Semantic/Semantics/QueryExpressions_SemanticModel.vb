@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1151,7 +1151,7 @@ End Module
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function System.Int32.op_Addition(left As System.Int32, right As System.Int32) As System.Int32",
+            Assert.Equal("Function System.Int32.op_CheckedAddition(left As System.Int32, right As System.Int32) As System.Int32",
                          semanticInfo.Symbol.ToTestDisplayString())
 
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason)
@@ -1177,7 +1177,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            commonSymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(DirectCast(node11, SyntaxNode))
+            commonSymbolInfo = semanticModel.GetSymbolInfo(DirectCast(node11, SyntaxNode))
 
             Assert.Same(symbolInfo.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(CandidateReason.None, commonSymbolInfo.CandidateReason)
@@ -1429,7 +1429,7 @@ End Module
                 Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
                 Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-                Dim commonSymbolInfo As SymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(ordering)
+                Dim commonSymbolInfo As SymbolInfo = semanticModel.GetSymbolInfo(ordering)
                 Assert.Null(commonSymbolInfo.Symbol)
                 Assert.Equal(CandidateReason.None, commonSymbolInfo.CandidateReason)
                 Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -1480,7 +1480,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            Dim commonSymbolInfo As SymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(node1)
+            Dim commonSymbolInfo As SymbolInfo = semanticModel.GetSymbolInfo(node1)
             Assert.Same(symbolInfo.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(symbolInfo.CandidateReason, commonSymbolInfo.CandidateReason)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -1492,7 +1492,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            commonSymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(node2)
+            commonSymbolInfo = semanticModel.GetSymbolInfo(node2)
             Assert.Same(symbolInfo.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(symbolInfo.CandidateReason, commonSymbolInfo.CandidateReason)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -1669,7 +1669,6 @@ End Module
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(semanticModel, TryCast(node2, ExpressionSyntax))
             Assert.Same(x1, semanticInfo.Symbol)
 
-
             Dim node3 As ExpressionRangeVariableSyntax = CompilationUtils.FindBindingText(Of ExpressionRangeVariableSyntax)(compilation, "a.vb", 3)
             Dim x2 = DirectCast(semanticModel.GetDeclaredSymbol(node3), RangeVariableSymbol)
             Assert.Equal("x", x2.Name)
@@ -1708,7 +1707,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            Dim commonSymbolInfo As SymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(node6)
+            Dim commonSymbolInfo As SymbolInfo = semanticModel.GetSymbolInfo(node6)
             Assert.Null(commonSymbolInfo.Symbol)
             Assert.Equal(CandidateReason.None, commonSymbolInfo.CandidateReason)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -1727,7 +1726,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            commonSymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(node8)
+            commonSymbolInfo = semanticModel.GetSymbolInfo(node8)
             Assert.Same(symbolInfo.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(symbolInfo.CandidateReason, commonSymbolInfo.CandidateReason)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -2126,7 +2125,6 @@ End Namespace
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(semanticModel, TryCast(node2, ExpressionSyntax))
             Assert.Same(x1, semanticInfo.Symbol)
 
-
             Dim node3 As CollectionRangeVariableSyntax = CompilationUtils.FindBindingText(Of CollectionRangeVariableSyntax)(compilation, "a.vb", 3)
             Dim x2 = DirectCast(semanticModel.GetDeclaredSymbol(node3), RangeVariableSymbol)
             Assert.Equal("x", x2.Name)
@@ -2521,7 +2519,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
             Dim x1 = DirectCast(semanticModel.GetDeclaredSymbol(node1), RangeVariableSymbol)
             Assert.Equal("x", x1.Name)
@@ -2662,7 +2659,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 1)
 
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(semanticModel, TryCast(node1, ExpressionSyntax))
@@ -2790,7 +2786,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
 
-
             Dim node8 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 8)
 
             Dim k2 = DirectCast(semanticModel.GetDeclaredSymbol(node8.Parent.Parent), RangeVariableSymbol)
@@ -2892,7 +2887,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
             Dim x1 = DirectCast(semanticModel.GetDeclaredSymbol(node1), RangeVariableSymbol)
             Assert.Equal("x", x1.Name)
@@ -2930,7 +2924,6 @@ End Module
             Assert.Same(x4, semanticModel.GetDeclaredSymbol(node8.Parent.Parent))
             Assert.NotSame(x1, x4)
             Assert.NotSame(x2, x4)
-
 
             Dim node3 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 3)
             Dim y1 = DirectCast(semanticModel.GetDeclaredSymbol(node3), RangeVariableSymbol)
@@ -3300,7 +3293,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
             Dim s1 = DirectCast(semanticModel.GetDeclaredSymbol(node1), RangeVariableSymbol)
             Assert.Equal("s", s1.Name)
@@ -3309,7 +3301,6 @@ End Module
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1, VisualBasicSyntaxNode)))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(node1.Parent))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1.Parent, CollectionRangeVariableSyntax)))
-
 
             Dim node2 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 2)
             Dim s2 = DirectCast(semanticModel.GetDeclaredSymbol(node2), RangeVariableSymbol)
@@ -3394,7 +3385,7 @@ End Module
             Assert.Same(symbolInfo1.Symbol, symbolInfo2.Symbol)
             Assert.Equal(0, symbolInfo2.CandidateSymbols.Length)
 
-            Dim commonSymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(DirectCast(node9, SyntaxNode))
+            Dim commonSymbolInfo = semanticModel.GetSymbolInfo(DirectCast(node9, SyntaxNode))
             Assert.Equal(symbolInfo1.CandidateReason, commonSymbolInfo.CandidateReason)
             Assert.Same(symbolInfo1.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -3506,7 +3497,6 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim node1 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 1)
             Dim s1 = DirectCast(semanticModel.GetDeclaredSymbol(node1), RangeVariableSymbol)
             Assert.Equal("s", s1.Name)
@@ -3515,7 +3505,6 @@ End Module
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1, VisualBasicSyntaxNode)))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(node1.Parent))
             Assert.Same(s1, semanticModel.GetDeclaredSymbol(DirectCast(node1.Parent, CollectionRangeVariableSyntax)))
-
 
             Dim node2 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 2)
             Dim s2 = DirectCast(semanticModel.GetDeclaredSymbol(node2), RangeVariableSymbol)
@@ -3749,9 +3738,7 @@ End Module
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
-
             Dim symbolInfo As SymbolInfo
-
 
             Dim aggregateInfo As AggregateClauseSymbolInfo
 
@@ -3820,7 +3807,7 @@ Module AggrArgsInvalidmod
     End Sub
 End Module
     ]]></file>
-</compilation>, references:={TestMetadata.Net40.SystemCore})
+</compilation>, references:={Net40.References.SystemCore})
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_QueryOperatorNotFound, "aggr4").WithArguments("aggr4"))
 
@@ -3930,7 +3917,7 @@ End Module
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("By", StringComparison.Ordinal)).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
 
-            Dim containingSymbol = DirectCast(semanticModel, SemanticModel).GetEnclosingSymbol(node.SpanStart)
+            Dim containingSymbol = semanticModel.GetEnclosingSymbol(node.SpanStart)
 
             Assert.Equal("Function (z As System.Int32) As <anonymous type: Key z As System.Int32, Key Group As ?>", DirectCast(containingSymbol, Symbol).ToTestDisplayString())
         End Sub

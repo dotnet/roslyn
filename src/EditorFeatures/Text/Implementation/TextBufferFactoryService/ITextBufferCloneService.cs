@@ -3,13 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
 {
-    internal interface ITextBufferCloneService : IWorkspaceService
+    internal interface ITextBufferCloneService
     {
         /// <summary>
         /// get new <see cref="ITextBuffer"/> from <see cref="SnapshotSpan"/> with <see cref="IContentTypeRegistryService.UnknownContentType"/>

@@ -11,33 +11,27 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Structure;
 
-namespace Microsoft.CodeAnalysis.CSharp.Structure
+namespace Microsoft.CodeAnalysis.CSharp.Structure;
+
+[ExportLanguageServiceFactory(typeof(BlockStructureService), LanguageNames.CSharp), Shared]
+internal class CSharpBlockStructureServiceFactory : ILanguageServiceFactory
 {
-    [ExportLanguageServiceFactory(typeof(BlockStructureService), LanguageNames.CSharp), Shared]
-    internal class CSharpBlockStructureServiceFactory : ILanguageServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpBlockStructureServiceFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpBlockStructureServiceFactory()
-        {
-        }
-
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpBlockStructureService(languageServices.WorkspaceServices.Workspace);
     }
 
-    internal class CSharpBlockStructureService : BlockStructureServiceWithProviders
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        => new CSharpBlockStructureService(languageServices.LanguageServices.SolutionServices);
+}
+
+internal class CSharpBlockStructureService(SolutionServices services) : BlockStructureServiceWithProviders(services)
+{
+    protected override ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
     {
-        public CSharpBlockStructureService(Workspace workspace) : base(workspace)
-        {
-        }
-
-        protected override ImmutableArray<BlockStructureProvider> GetBuiltInProviders()
-        {
-            return ImmutableArray.Create<BlockStructureProvider>(
-                new CSharpBlockStructureProvider());
-        }
-
-        public override string Language => LanguageNames.CSharp;
+        return [new CSharpBlockStructureProvider()];
     }
+
+    public override string Language => LanguageNames.CSharp;
 }

@@ -3,16 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -124,7 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Note: it is possible for any parameter to have the [ParamArray] attribute (for instance, in IL),
         ///     even if it is not the last parameter. So check for that.
         /// </summary>
-        public abstract bool IsParams { get; }
+        public abstract bool IsParamsArray { get; }
+
+        /// <summary>
+        /// Returns true if the parameter was declared as a parameter collection.
+        /// Note: it is possible for any parameter to have the [ParamCollection] attribute (for instance, in IL),
+        ///     even if it is not the last parameter. So check for that.
+        /// </summary>
+        public abstract bool IsParamsCollection { get; }
+
+        internal bool IsParams => IsParamsArray || IsParamsCollection;
 
         /// <summary>
         /// Returns true if the parameter is semantically optional.
@@ -156,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 RefKind refKind;
                 return !IsParams && IsMetadataOptional &&
                        ((refKind = RefKind) == RefKind.None ||
-                        (refKind == RefKind.In) ||
+                        (refKind is RefKind.In or RefKind.RefReadOnlyParameter) ||
                         (refKind == RefKind.Ref && ContainingSymbol.ContainingType.IsComImport));
             }
         }
@@ -165,11 +169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// True if Optional flag is set in metadata.
         /// </summary>
         internal abstract bool IsMetadataOptional { get; }
-
-        /// <summary>
-        /// True if the compiler will synthesize a null check for this parameter (the parameter is declared in source with a '!' following the parameter name). 
-        /// </summary>
-        public abstract bool IsNullChecked { get; }
 
         /// <summary>
         /// True if In flag is set in metadata.
@@ -420,21 +419,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasInterpolatedStringHandlerArgumentError { get; }
 
-        protected sealed override int HighestPriorityUseSiteError
-        {
-            get
-            {
-                return (int)ErrorCode.ERR_BogusType;
-            }
-        }
+        /// <summary>
+        /// The effective scope. This is from the declared scope, implicit scope and any
+        /// <c>UnscopedRefAttribute</c>.
+        /// </summary>
+        internal abstract ScopedKind EffectiveScope { get; }
 
-        public sealed override bool HasUnsupportedMetadata
+        internal abstract bool HasUnscopedRefAttribute { get; }
+
+        internal abstract bool UseUpdatedEscapeRules { get; }
+
+        protected sealed override bool IsHighestPriorityUseSiteErrorCode(int code) => code is (int)ErrorCode.ERR_UnsupportedCompilerFeature or (int)ErrorCode.ERR_BogusType;
+
+        public override bool HasUnsupportedMetadata
         {
             get
             {
                 UseSiteInfo<AssemblySymbol> info = default;
                 DeriveUseSiteInfoFromParameter(ref info, this);
-                return info.DiagnosticInfo?.Code == (int)ErrorCode.ERR_BogusType;
+                return info.DiagnosticInfo?.Code is (int)ErrorCode.ERR_BogusType or (int)ErrorCode.ERR_UnsupportedCompilerFeature;
             }
         }
 
@@ -442,5 +445,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return new PublicModel.ParameterSymbol(this);
         }
+
+        #region IParameterSymbolInternal
+
+        ITypeSymbolInternal IParameterSymbolInternal.Type => Type;
+        RefKind IParameterSymbolInternal.RefKind => RefKind;
+
+        #endregion
     }
 }

@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.Text
 {
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Text
                 return SourceText.From(string.Empty, encoding, checksumAlgorithm);
             }
 
-            var maxCharRemainingGuess = encoding.GetMaxCharCountOrThrowIfHuge(stream);
+            var maxCharRemainingGuess = GetMaxCharCountOrThrowIfHuge(encoding, stream);
             Debug.Assert(longLength > 0 && longLength <= int.MaxValue); // GetMaxCharCountOrThrowIfHuge should have thrown.
             int length = (int)longLength;
 
@@ -130,34 +131,6 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return chunks.ToImmutableAndFree();
-        }
-
-        /// <summary>
-        /// Check for occurrence of two consecutive NUL (U+0000) characters.
-        /// This is unlikely to appear in genuine text, so it's a good heuristic
-        /// to detect binary files.
-        /// </summary>
-        private static bool IsBinary(char[] chunk)
-        {
-            // PERF: We can advance two chars at a time unless we find a NUL.
-            for (int i = 1; i < chunk.Length;)
-            {
-                if (chunk[i] == '\0')
-                {
-                    if (chunk[i - 1] == '\0')
-                    {
-                        return true;
-                    }
-
-                    i += 1;
-                }
-                else
-                {
-                    i += 2;
-                }
-            }
-
-            return false;
         }
 
         private int GetIndexFromPosition(int position)
@@ -260,12 +233,14 @@ namespace Microsoft.CodeAnalysis.Text
             return new LineInfo(this, ParseLineStarts());
         }
 
-        private int[] ParseLineStarts()
+        private SegmentedList<int> ParseLineStarts()
         {
             var position = 0;
             var index = 0;
             var lastCr = -1;
-            var arrayBuilder = ArrayBuilder<int>.GetInstance();
+            // Initial line capacity estimated at 64 chars / line. This value was obtained by
+            // looking at ratios in large files in the roslyn repo.
+            var list = new SegmentedList<int>(Length / 64);
 
             // The following loop goes through every character in the text. It is highly
             // performance critical, and thus inlines knowledge about common line breaks
@@ -303,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Text
                         case '\u2028':
                         case '\u2029':
 line_break:
-                            arrayBuilder.Add(position);
+                            list.Add(position);
                             position = index;
                             break;
                     }
@@ -311,8 +286,8 @@ line_break:
             }
 
             // Create a start for the final line.  
-            arrayBuilder.Add(position);
-            return arrayBuilder.ToArrayAndFree();
+            list.Add(position);
+            return list;
         }
     }
 }

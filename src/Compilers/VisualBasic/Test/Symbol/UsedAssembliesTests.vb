@@ -1701,7 +1701,6 @@ End Class
             VerifyUsedAssemblyReferences(Of PEAssemblySymbol)(source2, comp1ImageRef)
             VerifyUsedAssemblyReferences(Of SourceAssemblySymbol)(source2, comp1Ref)
 
-
             Dim source3 =
 "
 Imports C1
@@ -3481,7 +3480,6 @@ End Class
                     AssertUsedAssemblyReferences(comp3, references)
                 End Sub
 
-
             verifyCrefReferences(comp0Ref, comp1Ref,
 "
 class C2
@@ -4641,6 +4639,9 @@ namespace System
     End Class
     public structure Void
     End Structure
+
+    public structure RuntimeTypeHandle
+    End Structure
 End Namespace
 "
             Dim comp0 = CreateEmptyCompilation(source0)
@@ -4655,9 +4656,6 @@ namespace System
             return Nothing
         End Function
     End Class
-
-    public structure RuntimeTypeHandle
-    End Structure
 End Namespace
 "
             Dim comp1 = CreateEmptyCompilation(source1, references:={comp0Ref})

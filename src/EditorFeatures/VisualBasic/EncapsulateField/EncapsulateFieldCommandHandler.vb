@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
     <Export(GetType(ICommandHandler))>

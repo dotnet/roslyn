@@ -11,83 +11,97 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterface;
+
+[ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Host), Shared]
+internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOptionsService
 {
-    [ExportWorkspaceService(typeof(IExtractInterfaceOptionsService), ServiceLayer.Host), Shared]
-    internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOptionsService
+    private readonly IGlyphService _glyphService;
+    private readonly IThreadingContext _threadingContext;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext, IUIThreadOperationExecutor uiThreadOperationExecutor)
     {
-        private readonly IGlyphService _glyphService;
-        private readonly IThreadingContext _threadingContext;
+        _glyphService = glyphService;
+        _threadingContext = threadingContext;
+        _uiThreadOperationExecutor = uiThreadOperationExecutor;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioExtractInterfaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext)
+    public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
+        ISyntaxFactsService syntaxFactsService,
+        INotificationService notificationService,
+        List<ISymbol> extractableMembers,
+        string defaultInterfaceName,
+        List<string> allTypeNames,
+        string defaultNamespace,
+        string generatedNameTypeParameterSuffix,
+        string languageName,
+        CancellationToken cancellationToken)
+    {
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        var memberViewModels = extractableMembers
+            .SelectAsArray(member =>
+                new MemberSymbolViewModel(member, _glyphService)
+                {
+                    IsChecked = true,
+                    MakeAbstract = false,
+                    IsMakeAbstractCheckable = false,
+                    IsCheckable = true
+                });
+
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var viewModel = new ExtractInterfaceDialogViewModel(
+            syntaxFactsService,
+            _uiThreadOperationExecutor,
+            notificationService,
+            defaultInterfaceName,
+            allTypeNames,
+            memberViewModels,
+            defaultNamespace,
+            generatedNameTypeParameterSuffix,
+            languageName);
+
+        var dialog = new ExtractInterfaceDialog(viewModel);
+        var result = dialog.ShowModal();
+
+        if (result.HasValue && result.Value)
         {
-            _glyphService = glyphService;
-            _threadingContext = threadingContext;
+            var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
+
+            return new ExtractInterfaceOptionsResult(
+                isCancelled: false,
+                includedMembers: includedMembers.AsImmutable(),
+                interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
+                fileName: viewModel.DestinationViewModel.FileName.Trim(),
+                location: GetLocation(viewModel.DestinationViewModel.Destination));
         }
-
-        public async Task<ExtractInterfaceOptionsResult> GetExtractInterfaceOptionsAsync(
-            ISyntaxFactsService syntaxFactsService,
-            INotificationService notificationService,
-            List<ISymbol> extractableMembers,
-            string defaultInterfaceName,
-            List<string> allTypeNames,
-            string defaultNamespace,
-            string generatedNameTypeParameterSuffix,
-            string languageName,
-            CancellationToken cancellationToken)
+        else
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var viewModel = new ExtractInterfaceDialogViewModel(
-                syntaxFactsService,
-                _glyphService,
-                notificationService,
-                defaultInterfaceName,
-                extractableMembers,
-                allTypeNames,
-                defaultNamespace,
-                generatedNameTypeParameterSuffix,
-                languageName);
-
-            var dialog = new ExtractInterfaceDialog(viewModel);
-            var result = dialog.ShowModal();
-
-            if (result.HasValue && result.Value)
-            {
-                var includedMembers = viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.Symbol);
-
-                return new ExtractInterfaceOptionsResult(
-                    isCancelled: false,
-                    includedMembers: includedMembers.AsImmutable(),
-                    interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
-                    fileName: viewModel.DestinationViewModel.FileName.Trim(),
-                    location: GetLocation(viewModel.DestinationViewModel.Destination));
-            }
-            else
-            {
-                return ExtractInterfaceOptionsResult.Cancelled;
-            }
-        }
-
-        private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(NewTypeDestination destination)
-        {
-            switch (destination)
-            {
-                case NewTypeDestination.CurrentFile: return ExtractInterfaceOptionsResult.ExtractLocation.SameFile;
-                case NewTypeDestination.NewFile: return ExtractInterfaceOptionsResult.ExtractLocation.NewFile;
-                default: throw ExceptionUtilities.UnexpectedValue(destination);
-            }
+            return ExtractInterfaceOptionsResult.Cancelled;
         }
     }
+
+    private static ExtractInterfaceOptionsResult.ExtractLocation GetLocation(NewTypeDestination destination)
+        => destination switch
+        {
+            NewTypeDestination.CurrentFile => ExtractInterfaceOptionsResult.ExtractLocation.SameFile,
+            NewTypeDestination.NewFile => ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
+            _ => throw ExceptionUtilities.UnexpectedValue(destination),
+        };
 }

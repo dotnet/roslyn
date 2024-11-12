@@ -2073,6 +2073,52 @@ Console.writeline( cust2.e.ToString)
             CompileAndVerify(compilation)
         End Sub
 
+        <Fact, CompilerTrait(CompilerFeature.IOperation), WorkItem("https://github.com/dotnet/roslyn/issues/72916")>
+        Public Sub RefReturningProperty()
+            Dim cSharpSource = <![CDATA[
+public class C
+{
+    int _f = 0;
+    public ref int P
+    {
+        get => ref _f;
+    }
+}]]>.Value
+            Dim cSharpCompilation = CreateCSharpCompilation(cSharpSource).VerifyDiagnostics()
+            Dim cSharpRef = cSharpCompilation.EmitToPortableExecutableReference()
+
+            Dim source = <![CDATA[
+Imports System
+
+Class Program
+    Public Shared Sub Main()
+        Dim c As C = New C() With { .P = 123 }'BIND:"New C() With { .P = 123 }"
+        Console.WriteLine(c.P)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C() Wit ...  .P = 123 }')
+  Arguments(0)
+  Initializer:
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: C) (Syntax: 'With { .P = 123 }')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.P = 123')
+            Left:
+              IPropertyReferenceOperation: ReadOnly ByRef Property C.P As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'P')
+                Instance Receiver:
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'New C() Wit ...  .P = 123 }')
+            Right:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 123) (Syntax: '123')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics, references:={cSharpRef})
+
+            CompileAndVerify(CreateCompilation(source, {cSharpRef}, TestOptions.ReleaseExe), expectedOutput:=<![CDATA[123]]>).VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace
 

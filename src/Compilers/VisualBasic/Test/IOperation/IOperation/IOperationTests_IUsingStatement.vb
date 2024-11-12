@@ -1101,11 +1101,7 @@ Block[B0] - Entry
                 Statements (1)
                     IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 's2')
                       Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 's2')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (WideningValue)
-                          Operand: 
-                            ILocalReferenceOperation: s2 (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 's2')
+                        ILocalReferenceOperation: s2 (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 's2')
                       Arguments(0)
 
                 Next (StructuredExceptionHandling) Block[null]
@@ -1251,7 +1247,6 @@ End Class
 Public Class D
 End Class
 ]]>.Value
-
 
             Dim expectedDiagnostics = <![CDATA[
 BC36010: 'Using' operand of type 'D' must implement 'System.IDisposable'.
@@ -1416,7 +1411,6 @@ Block[B6] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(compilation, expectedFlowGraph, expectedDiagnostics)
         End Sub
-
 
     End Class
 End Namespace

@@ -19,6 +19,7 @@ using Castle.Core.Resource;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -71,21 +72,6 @@ End Module")
         }
 
         #region Helpers
-
-        private static IEnumerable<KeyValuePair<string, string>> AddForLoggingEnvironmentVars(IEnumerable<KeyValuePair<string, string>> vars)
-        {
-            vars = vars ?? new KeyValuePair<string, string>[] { };
-            if (!vars.Where(kvp => kvp.Key == "RoslynCommandLineLogFile").Any())
-            {
-                var list = vars.ToList();
-                list.Add(new KeyValuePair<string, string>(
-                    "RoslynCommandLineLogFile",
-                    typeof(CompilerServerUnitTests).Assembly.Location + ".client-server.log"));
-                return list;
-            }
-
-            return vars;
-        }
 
         private static void CheckForBadShared(List<string> arguments)
         {
@@ -214,7 +200,7 @@ End Module")
                 clientDir: Path.GetDirectoryName(typeof(CommonCompiler).Assembly.Location),
                 workingDir: currentDirectory.Path,
                 sdkDir: sdkDir,
-                tempDir: BuildServerConnection.GetTempPath(currentDirectory.Path));
+                tempDir: Path.GetTempPath());
 
             var (result, output) = UseTextWriter(redirectEncoding, writer => ApplyEnvironmentVariables(additionalEnvironmentVars, () => client.RunCompilation(arguments, buildPaths, writer)));
             Assert.Equal(shouldRunOnServer, result.RanOnServer);
@@ -249,7 +235,7 @@ End Module")
                         currentDirectory: tempDir);
                     if (result.ExitCode != 0)
                     {
-                        AssertEx.Fail($"Deterministic compile failed \n stdout:  { result.Output }");
+                        AssertEx.Fail($"Deterministic compile failed \n stdout:  {result.Output}");
                     }
                     var listener = await serverData.Complete();
                     Assert.Equal(CompletionData.RequestCompleted, listener.CompletionDataList.Single());
@@ -463,8 +449,11 @@ End Module")
         {
             var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
             var compilerServerExecutable = Path.Combine(basePath, "VBCSCompiler.exe");
+#pragma warning disable SYSLIB0037
+            // warning SYSLIB0037: 'AssemblyName.ProcessorArchitecture' is obsolete: 'AssemblyName members HashAlgorithm, ProcessorArchitecture, and VersionCompatibility are obsolete and not supported.'
             Assert.NotEqual(ProcessorArchitecture.X86,
                 AssemblyName.GetAssemblyName(compilerServerExecutable).ProcessorArchitecture);
+#pragma warning restore SYSLIB0037
         }
 
         /// <summary>
@@ -949,8 +938,9 @@ class Hello
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
                             result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello3.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
-                            Assert.Equal("", result.Output);
-                            Assert.Equal(0, result.ExitCode);
+                            // Instrumenting to assist investigation of flakiness. Tracked by https://github.com/dotnet/roslyn/issues/19763
+                            RoslynDebug.AssertOrFailFast("" == result.Output);
+                            RoslynDebug.AssertOrFailFast(0 == result.ExitCode);
 
                             // Run hello3.exe. Should work.
                             RunCompilerOutput(hello3_file, "Hello3 from library3");
@@ -1253,8 +1243,8 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task AssemblyIdentityComparer1()
         {
-            _tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(TestMetadata.ResourcesNet20.mscorlib);
-            _tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(TestMetadata.ResourcesNet40.mscorlib);
+            _tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(Net20.Resources.mscorlib);
+            _tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(Net40.Resources.mscorlib);
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
@@ -1516,7 +1506,7 @@ static void Main(string[] args)
             {
                 if (first[i] != second[i])
                 {
-                    AssertEx.Fail($"Bytes were different at position { i } ({ first[i] } vs { second[i] }).  Flags used were (\"{ finalFlags1 }\" vs \"{ finalFlags2 }\")");
+                    AssertEx.Fail($"Bytes were different at position {i} ({first[i]} vs {second[i]}).  Flags used were (\"{finalFlags1}\" vs \"{finalFlags2}\")");
                 }
             }
         }

@@ -10,7 +10,6 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements
 {
@@ -175,10 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
-            if (codeElement == null)
-            {
-                codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.Members.Item(element));
-            }
+            codeElement ??= ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.Members.Item(element));
 
             if (codeElement == null)
             {

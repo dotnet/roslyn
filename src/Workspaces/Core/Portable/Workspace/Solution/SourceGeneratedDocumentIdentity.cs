@@ -3,135 +3,106 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// A small struct that holds the values that define the identity of a source generated document, and don't change
+/// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
+/// </summary>
+[DataContract]
+internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<SourceGeneratedDocumentIdentity>
 {
-    /// <summary>
-    /// A small struct that holds the values that define the identity of a source generated document, and don't change
-    /// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
-    /// </summary>
-    internal readonly struct SourceGeneratedDocumentIdentity : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
+    [DataMember(Order = 0)] public DocumentId DocumentId { get; }
+    [DataMember(Order = 1)] public string HintName { get; }
+    [DataMember(Order = 2)] public SourceGeneratorIdentity Generator { get; }
+    [DataMember(Order = 3)] public string FilePath { get; }
+
+    public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, SourceGeneratorIdentity generator, string filePath)
     {
-        public DocumentId DocumentId { get; }
-        public string HintName { get; }
-        public string GeneratorAssemblyName { get; }
-        public string GeneratorTypeName { get; }
-        public string FilePath { get; }
+        Contract.ThrowIfFalse(documentId.IsSourceGenerated);
+        DocumentId = documentId;
+        HintName = hintName;
+        Generator = generator;
+        FilePath = filePath;
+    }
 
-        public bool ShouldReuseInSerialization => true;
+    public static SourceGeneratedDocumentIdentity Generate(ProjectId projectId, string hintName, ISourceGenerator generator, string filePath, AnalyzerReference analyzerReference)
+    {
+        // We want the DocumentId generated for a generated output to be stable between Compilations; this is so
+        // features that track a document by DocumentId can find it after some change has happened that requires
+        // generators to run again. To achieve this we'll just do a crytographic hash of the generator name and hint
+        // name; the choice of a cryptographic hash as opposed to a more generic string hash is we actually want to
+        // ensure we don't have collisions.
+        var generatorIdentity = SourceGeneratorIdentity.Create(generator, analyzerReference);
 
-        public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, string generatorAssemblyName, string generatorTypeName, string filePath)
-        {
-            DocumentId = documentId;
-            HintName = hintName;
-            GeneratorAssemblyName = generatorAssemblyName;
-            GeneratorTypeName = generatorTypeName;
-            FilePath = filePath;
-        }
+        // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
+        // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
+        var projectIdBytes = projectId.Id.ToByteArray();
 
-        public static string GetGeneratorTypeName(ISourceGenerator generator)
-        {
-            return generator.GetGeneratorType().FullName!;
-        }
+        // The assembly path should exist in any normal scenario; the hashing of the name only would apply if the user loaded a
+        // dynamic assembly they produced at runtime and passed us that via a custom AnalyzerReference.
+        var assemblyNameToHash = generatorIdentity.AssemblyPath ?? generatorIdentity.AssemblyName;
 
-        public static string GetGeneratorAssemblyName(ISourceGenerator generator)
-        {
-            return generator.GetGeneratorType().Assembly.FullName!;
-        }
+        using var _ = ArrayBuilder<byte>.GetInstance(capacity: (assemblyNameToHash.Length + 1 + generatorIdentity.TypeName.Length + 1 + hintName.Length) * 2 + projectIdBytes.Length, out var hashInput);
+        hashInput.AddRange(projectIdBytes);
 
-        public static SourceGeneratedDocumentIdentity Generate(ProjectId projectId, string hintName, ISourceGenerator generator, string filePath)
-        {
-            // We want the DocumentId generated for a generated output to be stable between Compilations; this is so features that track
-            // a document by DocumentId can find it after some change has happened that requires generators to run again.
-            // To achieve this we'll just do a crytographic hash of the generator name and hint name; the choice of a cryptographic hash
-            // as opposed to a more generic string hash is we actually want to ensure we don't have collisions.
-            var generatorAssemblyName = GetGeneratorAssemblyName(generator);
-            var generatorTypeName = GetGeneratorTypeName(generator);
+        // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
+        // we'll use a UTF-16 null just to make sure there's absolutely no risk of collision.
+        hashInput.AddRange(Encoding.Unicode.GetBytes(assemblyNameToHash));
+        hashInput.AddRange(0, 0);
+        hashInput.AddRange(Encoding.Unicode.GetBytes(generatorIdentity.TypeName));
+        hashInput.AddRange(0, 0);
+        hashInput.AddRange(Encoding.Unicode.GetBytes(hintName));
 
-            // Combine the strings together; we'll use Encoding.Unicode since that'll match the underlying format; this can be made much
-            // faster once we're on .NET Core since we could directly treat the strings as ReadOnlySpan<char>.
-            var projectIdBytes = projectId.Id.ToByteArray();
-            using var _ = ArrayBuilder<byte>.GetInstance(capacity: (generatorAssemblyName.Length + 1 + generatorTypeName.Length + 1 + hintName.Length) * 2 + projectIdBytes.Length, out var hashInput);
-            hashInput.AddRange(projectIdBytes);
+        // The particular choice of crypto algorithm here is arbitrary and can be always changed as necessary. The only requirement
+        // is it must be collision resistant, and provide enough bits to fill a GUID.
+        using var crytpoAlgorithm = System.Security.Cryptography.SHA256.Create();
+        var hash = crytpoAlgorithm.ComputeHash(hashInput.ToArray());
+        Array.Resize(ref hash, 16);
+        var guid = new Guid(hash);
 
-            // Add a null to separate the generator name and hint name; since this is effectively a joining of UTF-16 bytes
-            // we'll use a UTF-16 null just to make sure there's absolutely no risk of collision.
-            hashInput.AddRange(Encoding.Unicode.GetBytes(generatorAssemblyName));
-            hashInput.AddRange(0, 0);
-            hashInput.AddRange(Encoding.Unicode.GetBytes(generatorTypeName));
-            hashInput.AddRange(0, 0);
-            hashInput.AddRange(Encoding.Unicode.GetBytes(hintName));
+        var documentId = DocumentId.CreateFromSerialized(projectId, guid, isSourceGenerated: true, hintName);
 
-            // The particular choice of crypto algorithm here is arbitrary and can be always changed as necessary. The only requirement
-            // is it must be collision resistant, and provide enough bits to fill a GUID.
-            using var crytpoAlgorithm = System.Security.Cryptography.SHA256.Create();
-            var hash = crytpoAlgorithm.ComputeHash(hashInput.ToArray());
-            Array.Resize(ref hash, 16);
-            var guid = new Guid(hash);
+        return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorIdentity, filePath);
+    }
 
-            var documentId = DocumentId.CreateFromSerialized(projectId, guid, hintName);
+    public void WriteTo(ObjectWriter writer)
+    {
+        DocumentId.WriteTo(writer);
 
-            return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorAssemblyName, generatorTypeName, filePath);
-        }
+        writer.WriteString(HintName);
+        writer.WriteString(Generator.AssemblyName);
+        writer.WriteString(Generator.AssemblyPath);
+        writer.WriteString(Generator.AssemblyVersion.ToString());
+        writer.WriteString(Generator.TypeName);
+        writer.WriteString(FilePath);
+    }
 
-        public void WriteTo(ObjectWriter writer)
-        {
-            DocumentId.WriteTo(writer);
+    internal static SourceGeneratedDocumentIdentity ReadFrom(ObjectReader reader)
+    {
+        var documentId = DocumentId.ReadFrom(reader);
 
-            writer.WriteString(HintName);
-            writer.WriteString(GeneratorAssemblyName);
-            writer.WriteString(GeneratorTypeName);
-            writer.WriteString(FilePath);
-        }
+        var hintName = reader.ReadRequiredString();
+        var generatorAssemblyName = reader.ReadRequiredString();
+        var generatorAssemblyPath = reader.ReadString();
+        var generatorAssemblyVersion = Version.Parse(reader.ReadRequiredString());
+        var generatorTypeName = reader.ReadRequiredString();
+        var filePath = reader.ReadRequiredString();
 
-        internal static SourceGeneratedDocumentIdentity ReadFrom(ObjectReader reader)
-        {
-            var documentId = DocumentId.ReadFrom(reader);
-
-            var hintName = reader.ReadString();
-            var generatorAssemblyName = reader.ReadString();
-            var generatorTypeName = reader.ReadString();
-            var filePath = reader.ReadString();
-
-            return new SourceGeneratedDocumentIdentity(documentId, hintName, generatorAssemblyName, generatorTypeName, filePath);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return obj is SourceGeneratedDocumentIdentity identity && Equals(identity);
-        }
-
-        public bool Equals(SourceGeneratedDocumentIdentity other)
-        {
-            return EqualityComparer<DocumentId>.Default.Equals(DocumentId, other.DocumentId) &&
-                   HintName == other.HintName &&
-                   GeneratorAssemblyName == other.GeneratorAssemblyName &&
-                   GeneratorTypeName == other.GeneratorTypeName &&
-                   FilePath == other.FilePath;
-        }
-
-        public override int GetHashCode()
-        {
-            return Hash.Combine(DocumentId,
-                   Hash.Combine(HintName,
-                   Hash.Combine(GeneratorAssemblyName,
-                   Hash.Combine(GeneratorTypeName,
-                   Hash.Combine(FilePath, 0)))));
-        }
-
-        public static bool operator ==(SourceGeneratedDocumentIdentity left, SourceGeneratedDocumentIdentity right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(SourceGeneratedDocumentIdentity left, SourceGeneratedDocumentIdentity right)
-        {
-            return !(left == right);
-        }
+        return new SourceGeneratedDocumentIdentity(
+            documentId,
+            hintName,
+            new SourceGeneratorIdentity(
+                generatorAssemblyName,
+                generatorAssemblyPath,
+                generatorAssemblyVersion,
+                generatorTypeName),
+            filePath);
     }
 }

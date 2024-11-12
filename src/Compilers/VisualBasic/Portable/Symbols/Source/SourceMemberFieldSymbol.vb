@@ -29,6 +29,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.New(container, syntaxRef, name, memberFlags)
         End Sub
 
+        Protected Overrides Sub GenerateDeclarationErrorsImpl(cancellationToken As CancellationToken)
+            MyBase.GenerateDeclarationErrorsImpl(cancellationToken)
+
+            If (_lazyState And StateFlags.TypeConstraintsChecked) = 0 Then
+                Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                Type.CheckAllConstraints(DeclaringCompilation.LanguageVersion,
+                                     Locations(0), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
+                sourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.TypeConstraintsChecked, 0, diagnostics)
+                diagnostics.Free()
+            End If
+        End Sub
+
         Friend NotOverridable Overrides ReadOnly Property DeclarationSyntax As VisualBasicSyntaxNode
             Get
                 Return Syntax.Parent.Parent
@@ -386,7 +399,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _sibling.GetInferredConstantType(inProgress)
             End Function
         End Class
-
 
         ' Create variable members, with the given, name, declarator, and declaration syntax.
         Friend Shared Sub Create(container As SourceMemberContainerTypeSymbol,

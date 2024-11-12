@@ -29,8 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Yeniden atanan değişkenleri altını çiz;Satır içi ipuçlarını göster;Bitiş yapılarının otomatik olarak eklenmesi;Düzgün listeleme ayarlarını değiştir;Ana hat modunu değiştir;Interface ve MustOverride üyelerinin otomatik olarak eklenmesi;Yordam satır ayıraçlarını göster veya gizle;Hata düzeltme önerilerini aç veya kapat;Başvuruları ve anahtar sözcükleri vurgulamayı aç veya kapat;Normal ifade;Normal ifadeleri renklendir;İmlecin altındaki ilgili bileşenleri vurgula;Geçersiz normal ifadeleri bildir;normal ifade;normal ifade;Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralşma Kenar Boşluğu;İçe Aktarma Yönergeleri;</target>
+        <target state="translated">Yeniden atanan değişkenlerin altını çiz;Satır içi ipuçlarını görüntüle;Bitiş yapılarının otomatik olarak eklenmesi;Düzgün listeleme ayarlarını değiştir;Ana hat modunu değiştir;Interface ve MustOverride üyelerinin otomatik olarak eklenmesi;Yordam satır ayraçlarını göster veya gizle;Hata düzeltme önerilerini aç veya kapat;Başvuruları ve anahtar sözcükleri vurgulamayı aç veya kapat;
+Normal ifade;
+normal ifadeler;
+imlecin altındaki ilgili bileşenler; 
+Geçersiz normal ifadeleri bildir;
+normal ifade;
+normal ifade;
+JSON;
+JSON dizelerini renklendir;
+Geçersiz JSON dizelerini bildir;
+JSON dizeleri için düzenleyici özelliklerini algıla ve öner;
+Dosya açılırken #regions daralt;
+Dosya açılırken İçeri Aktarmaları daralt;
+Dosya açılırken meta veri uygulamalarını daralt;
+Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İçeri Aktarma Yönergeleri;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -113,14 +130,34 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</s
         <target state="translated">Visual Basic Araçları</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Boş bir Visual Basic betik dosyası.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Enter'a basıldığında her zaman yeni satır ekle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Visual Basic Betiği</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Kod parçacıklarını her zaman dahil et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Bir tanımlayıcıdan sonra ?-Tab yazılırsa kod parçacıklarını dahil et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Enter'a basıldığında hiçbir zaman yeni satır ekleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Kod parçacıklarını hiçbir zaman dahil etme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Yalnızca tam olarak yazılmış bir kelimeden sonra Enter'a basıldığında yeni satır ekle</target>
         <note />
       </trans-unit>
     </body>

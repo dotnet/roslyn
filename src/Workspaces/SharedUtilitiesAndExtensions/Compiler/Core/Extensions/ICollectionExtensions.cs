@@ -4,25 +4,51 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal static class ICollectionExtensions
 {
-    internal static class ICollectionExtensions
+    public static ImmutableArray<T> WhereAsArray<T, TState>(this IEnumerable<T> values, Func<T, TState, bool> predicate, TState state)
     {
-        public static void RemoveRange<T>(this ICollection<T> collection, IEnumerable<T>? items)
-        {
-            if (collection == null)
-            {
-                throw new ArgumentNullException(nameof(collection));
-            }
+        using var _ = ArrayBuilder<T>.GetInstance(out var result);
 
-            if (items != null)
+        foreach (var value in values)
+        {
+            if (predicate(value, state))
+                result.Add(value);
+        }
+
+        return result.ToImmutableAndClear();
+    }
+
+    public static void RemoveRange<T>(this ICollection<T> collection, IEnumerable<T>? items)
+    {
+        if (collection == null)
+        {
+            throw new ArgumentNullException(nameof(collection));
+        }
+
+        if (items != null)
+        {
+            foreach (var item in items)
             {
-                foreach (var item in items)
-                {
-                    collection.Remove(item);
-                }
+                collection.Remove(item);
             }
         }
+    }
+
+    public static void AddIfNotNull<T>(this ICollection<T> collection, T? value) where T : struct
+    {
+        if (value != null)
+            collection.Add(value.Value);
+    }
+
+    public static void AddIfNotNull<T>(this ICollection<T> collection, T? value) where T : class
+    {
+        if (value != null)
+            collection.Add(value);
     }
 }

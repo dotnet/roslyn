@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             TypeCompilationState compilationState = new TypeCompilationState(method.ContainingType, compilation, module);
 
-            var diagnostics = DiagnosticBag.GetInstance();
-            var block = MethodCompiler.BindMethodBody(method, compilationState, new BindingDiagnosticBag(diagnostics));
+            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
+            var block = MethodCompiler.BindSynthesizedMethodBody(method, compilationState, diagnostics);
             diagnostics.Free();
             return block;
         }
 
-        public const string LINQ =
+        public static readonly string LINQ =
         #region the string LINQ defines a complete LINQ API called List1<T> (for instance method) and List2<T> (for extension methods)
  @"using System;
 using System.Text;

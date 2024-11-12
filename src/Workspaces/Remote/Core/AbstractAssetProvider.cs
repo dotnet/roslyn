@@ -2,151 +2,186 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+/// <summary>
+/// Provides corresponding data of the given checksum
+/// </summary>
+internal abstract class AbstractAssetProvider
 {
     /// <summary>
-    /// Provides corresponding data of the given checksum
+    /// return data of type T whose checksum is the given checksum
     /// </summary>
-    internal abstract class AbstractAssetProvider
+    public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
+    public abstract Task GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken);
+
+    public async Task<SolutionInfo> CreateSolutionInfoAsync(
+        Checksum solutionChecksum,
+        SolutionServices solutionServices,
+        CancellationToken cancellationToken)
     {
-        /// <summary>
-        /// return data of type T whose checksum is the given checksum
-        /// </summary>
-        public abstract Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken);
+        var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
+        var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetPathKind.SolutionStateChecksums, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
 
-        public async Task<(SolutionInfo, SerializableOptionSet)> CreateSolutionInfoAndOptionsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
-        {
-            var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
-            var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+        var solutionAttributes = await GetAssetAsync<SolutionInfo.SolutionAttributes>(AssetPathKind.SolutionAttributes, solutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
+        await GetAssetAsync<SourceGeneratorExecutionVersionMap>(AssetPathKind.SolutionSourceGeneratorExecutionVersionMap, solutionCompilationChecksums.SourceGeneratorExecutionVersionMap, cancellationToken).ConfigureAwait(false);
 
-            var projects = new List<ProjectInfo>();
-            foreach (var projectChecksum in solutionChecksums.Projects)
+        // Fetch all the project state checksums up front.  That allows getting all the data in a single call, and
+        // enables parallel fetching of the projects below.
+        using var _1 = ArrayBuilder<Task<ProjectInfo>>.GetInstance(solutionChecksums.Projects.Length, out var projectsTasks);
+        await this.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
+            AssetPathKind.ProjectStateChecksums,
+            solutionChecksums.Projects.Checksums,
+            static (_, projectStateChecksums, args) =>
             {
-                var projectInfo = await CreateProjectInfoAsync(projectChecksum, cancellationToken).ConfigureAwait(false);
-                if (projectInfo != null)
-                {
-                    projects.Add(projectInfo);
-                }
-            }
+                var (@this, projectsTasks, solutionServices, cancellationToken) = args;
+                projectsTasks.Add(@this.CreateProjectInfoAsync(projectStateChecksums, solutionServices, cancellationToken));
+            },
+            (@this: this, projectsTasks, solutionServices, cancellationToken),
+            cancellationToken).ConfigureAwait(false);
 
-            var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        // Deserialize the analyzer references, then wrap them in a new isolated analyzer reference set that has its own ALC
+        var analyzerReference = await this.GetAssetsArrayAsync<AnalyzerReference>(
+            AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+            useAsync: true, analyzerReference, solutionServices, cancellationToken).ConfigureAwait(false);
 
-            var info = SolutionInfo.Create(solutionAttributes.Id, solutionAttributes.Version, solutionAttributes.FilePath, projects, analyzerReferences).WithTelemetryId(solutionAttributes.TelemetryId);
-            var options = await GetAssetAsync<SerializableOptionSet>(solutionChecksums.Options, cancellationToken).ConfigureAwait(false);
-            return (info, options);
-        }
+        var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionFallbackAnalyzerOptions, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
 
-        public async Task<ProjectInfo> CreateProjectInfoAsync(Checksum projectChecksum, CancellationToken cancellationToken)
+        // Fetch the projects in parallel.
+        var projects = await Task.WhenAll(projectsTasks).ConfigureAwait(false);
+        return SolutionInfo.Create(
+            solutionAttributes.Id,
+            solutionAttributes.Version,
+            solutionAttributes.FilePath,
+            ImmutableCollectionsMarshal.AsImmutableArray(projects),
+            isolatedAnalyzerReferences,
+            fallbackAnalyzerOptions).WithTelemetryId(solutionAttributes.TelemetryId);
+    }
+
+    public async Task<ProjectInfo> CreateProjectInfoAsync(
+        ProjectStateChecksums projectChecksums,
+        SolutionServices solutionServices,
+        CancellationToken cancellationToken)
+    {
+        await Task.Yield();
+
+        var projectId = projectChecksums.ProjectId;
+
+        var attributes = await GetAssetAsync<ProjectInfo.ProjectAttributes>(new(AssetPathKind.ProjectAttributes, projectId), projectChecksums.Info, cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfFalse(RemoteSupportedLanguages.IsSupported(attributes.Language));
+
+        var compilationOptions = attributes.FixUpCompilationOptions(
+            await GetAssetAsync<CompilationOptions>(new(AssetPathKind.ProjectCompilationOptions, projectId), projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
+        var parseOptionsTask = GetAssetAsync<ParseOptions>(new(AssetPathKind.ProjectParseOptions, projectId), projectChecksums.ParseOptions, cancellationToken);
+
+        var projectReferencesTask = this.GetAssetsArrayAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken);
+        var metadataReferencesTask = this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken);
+        var analyzerReferencesTask = this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken);
+
+        // Attempt to fetch all the documents for this project in bulk.  This will allow for all the data to be fetched
+        // efficiently.  We can then go and create the DocumentInfos for each document in the project.
+        await SynchronizeProjectDocumentsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+
+        var documentInfosTask = CreateDocumentInfosAsync(projectChecksums.Documents);
+        var additionalDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments);
+        var analyzerConfigDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments);
+
+        // Deserialize the analyzer references, then wrap them in a new isolated analyzer reference set that has its own ALC.
+        var isolatedAnalyzerReferencesTask = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+            useAsync: true,
+            await analyzerReferencesTask.ConfigureAwait(false),
+            solutionServices,
+            cancellationToken);
+
+        return ProjectInfo.Create(
+            attributes,
+            compilationOptions,
+            await parseOptionsTask.ConfigureAwait(false),
+            await documentInfosTask.ConfigureAwait(false),
+            await projectReferencesTask.ConfigureAwait(false),
+            await metadataReferencesTask.ConfigureAwait(false),
+            await isolatedAnalyzerReferencesTask.ConfigureAwait(false),
+            await additionalDocumentInfosTask.ConfigureAwait(false),
+            await analyzerConfigDocumentInfosTask.ConfigureAwait(false),
+            hostObjectType: null); // TODO: https://github.com/dotnet/roslyn/issues/62804
+
+        async Task<ImmutableArray<DocumentInfo>> CreateDocumentInfosAsync(DocumentChecksumsAndIds checksumsAndIds)
         {
-            var projectChecksums = await GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
+            var documentInfos = new FixedSizeArrayBuilder<DocumentInfo>(checksumsAndIds.Length);
 
-            var projectInfo = await GetAssetAsync<ProjectInfo.ProjectAttributes>(projectChecksums.Info, cancellationToken).ConfigureAwait(false);
-            if (!RemoteSupportedLanguages.IsSupported(projectInfo.Language))
-            {
-                // only add project our workspace supports. 
-                // workspace doesn't allow creating project with unknown languages
-                return null;
-            }
-
-            var compilationOptions = projectInfo.FixUpCompilationOptions(
-                await GetAssetAsync<CompilationOptions>(projectChecksums.CompilationOptions, cancellationToken).ConfigureAwait(false));
-
-            var parseOptions = await GetAssetAsync<ParseOptions>(projectChecksums.ParseOptions, cancellationToken).ConfigureAwait(false);
-
-            var projectReferences = await CreateCollectionAsync<ProjectReference>(projectChecksums.ProjectReferences, cancellationToken).ConfigureAwait(false);
-            var metadataReferences = await CreateCollectionAsync<MetadataReference>(projectChecksums.MetadataReferences, cancellationToken).ConfigureAwait(false);
-            var analyzerReferences = await CreateCollectionAsync<AnalyzerReference>(projectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
-
-            var documentInfos = await CreateDocumentInfosAsync(projectChecksums.Documents, cancellationToken).ConfigureAwait(false);
-            var additionalDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
-            var analyzerConfigDocumentInfos = await CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
-
-            return ProjectInfo.Create(
-                projectInfo.Id,
-                projectInfo.Version,
-                projectInfo.Name,
-                projectInfo.AssemblyName,
-                projectInfo.Language,
-                projectInfo.FilePath,
-                projectInfo.OutputFilePath,
-                compilationOptions,
-                parseOptions,
-                documentInfos,
-                projectReferences,
-                metadataReferences,
-                analyzerReferences,
-                additionalDocumentInfos,
-                projectInfo.IsSubmission)
-                .WithOutputRefFilePath(projectInfo.OutputRefFilePath)
-                .WithCompilationOutputInfo(projectInfo.CompilationOutputInfo)
-                .WithHasAllInformation(projectInfo.HasAllInformation)
-                .WithRunAnalyzers(projectInfo.RunAnalyzers)
-                .WithDefaultNamespace(projectInfo.DefaultNamespace)
-                .WithAnalyzerConfigDocuments(analyzerConfigDocumentInfos)
-                .WithTelemetryId(projectInfo.TelemetryId);
-        }
-
-        public async Task<DocumentInfo> CreateDocumentInfoAsync(Checksum documentChecksum, CancellationToken cancellationToken)
-        {
-            var documentSnapshot = await GetAssetAsync<DocumentStateChecksums>(documentChecksum, cancellationToken).ConfigureAwait(false);
-            var documentInfo = await GetAssetAsync<DocumentInfo.DocumentAttributes>(documentSnapshot.Info, cancellationToken).ConfigureAwait(false);
-            var serializableSourceText = await GetAssetAsync<SerializableSourceText>(documentSnapshot.Text, cancellationToken).ConfigureAwait(false);
-
-            var textLoader = TextLoader.From(
-                TextAndVersion.Create(
-                    await serializableSourceText.GetTextAsync(cancellationToken).ConfigureAwait(false),
-                    VersionStamp.Create(),
-                    documentInfo.FilePath));
-
-            // TODO: do we need version?
-            return DocumentInfo.Create(
-                documentInfo.Id,
-                documentInfo.Name,
-                documentInfo.Folders,
-                documentInfo.SourceCodeKind,
-                textLoader,
-                documentInfo.FilePath,
-                documentInfo.IsGenerated,
-                documentInfo.DesignTimeOnly,
-                documentServiceProvider: null);
-        }
-
-        private async Task<IEnumerable<DocumentInfo>> CreateDocumentInfosAsync(ChecksumCollection documentChecksums, CancellationToken cancellationToken)
-        {
-            var documentInfos = new List<DocumentInfo>();
-
-            foreach (var documentChecksum in documentChecksums)
+            foreach (var (attributeChecksum, textChecksum, documentId) in checksumsAndIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                documentInfos.Add(await CreateDocumentInfoAsync(documentChecksum, cancellationToken).ConfigureAwait(false));
+                documentInfos.Add(await CreateDocumentInfoAsync(documentId, attributeChecksum, textChecksum, cancellationToken).ConfigureAwait(false));
             }
 
-            return documentInfos;
+            return documentInfos.MoveToImmutable();
         }
+    }
 
-        public async Task<List<T>> CreateCollectionAsync<T>(ChecksumCollection checksums, CancellationToken cancellationToken)
-        {
-            var assets = new List<T>();
+    public async Task SynchronizeProjectDocumentsAsync(
+        ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
+    {
+        await Task.Yield();
 
-            foreach (var checksum in checksums)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+        using var _1 = PooledHashSet<Checksum>.GetInstance(out var attributeChecksums);
+        using var _2 = PooledHashSet<Checksum>.GetInstance(out var textChecksums);
 
-                var asset = await GetAssetAsync<T>(checksum, cancellationToken).ConfigureAwait(false);
-                assets.Add(asset);
-            }
+        projectChecksums.Documents.AttributeChecksums.AddAllTo(attributeChecksums);
+        projectChecksums.AdditionalDocuments.AttributeChecksums.AddAllTo(attributeChecksums);
+        projectChecksums.AnalyzerConfigDocuments.AttributeChecksums.AddAllTo(attributeChecksums);
 
-            return assets;
-        }
+        projectChecksums.Documents.TextChecksums.AddAllTo(textChecksums);
+        projectChecksums.AdditionalDocuments.TextChecksums.AddAllTo(textChecksums);
+        projectChecksums.AnalyzerConfigDocuments.TextChecksums.AddAllTo(textChecksums);
+
+        var attributesTask = this.GetAssetsAsync<DocumentInfo.DocumentAttributes>(
+            assetPath: new(AssetPathKind.DocumentAttributes, projectChecksums.ProjectId),
+            attributeChecksums,
+            cancellationToken);
+
+        var textTask = this.GetAssetsAsync<SerializableSourceText>(
+            assetPath: new(AssetPathKind.DocumentText, projectChecksums.ProjectId),
+            textChecksums,
+            cancellationToken);
+
+        await Task.WhenAll(attributesTask, textTask).ConfigureAwait(false);
+    }
+
+    public async Task<DocumentInfo> CreateDocumentInfoAsync(
+        DocumentId documentId, Checksum attributeChecksum, Checksum textChecksum, CancellationToken cancellationToken)
+    {
+        var attributes = await GetAssetAsync<DocumentInfo.DocumentAttributes>(new(AssetPathKind.DocumentAttributes, documentId), attributeChecksum, cancellationToken).ConfigureAwait(false);
+        var serializableSourceText = await GetAssetAsync<SerializableSourceText>(new(AssetPathKind.DocumentText, documentId), textChecksum, cancellationToken).ConfigureAwait(false);
+
+        var textLoader = serializableSourceText.ToTextLoader(attributes.FilePath);
+
+        // TODO: do we need version?
+        return new DocumentInfo(attributes, textLoader, documentServiceProvider: null);
+    }
+
+    public AssetHelper<T> GetAssetHelper<T>()
+        => new(this);
+
+    public readonly struct AssetHelper<T>(AbstractAssetProvider assetProvider)
+    {
+        public Task GetAssetsAsync<TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+            => assetProvider.GetAssetsAsync(assetPath, checksums, callback, arg, cancellationToken);
+
+        public Task GetAssetsAsync<TArg>(AssetPath assetPath, ChecksumCollection checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+            => assetProvider.GetAssetsAsync(assetPath, checksums, callback, arg, cancellationToken);
     }
 }

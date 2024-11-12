@@ -283,6 +283,70 @@ public class Test
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75681")]
+        public void LoadingUnmanagedTypeModifier_ModreqGeneric()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M1<valuetype .ctor (class [mscorlib]System.ValueType modreq(System.Runtime.InteropServices.UnmanagedType`1)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M1
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+}
+
+.class public auto ansi beforefieldinit System.Runtime.InteropServices.UnmanagedType`1<T>
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+
+        obj.M1<int>();
+    }
+}";
+
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // An error is expected here, see https://github.com/dotnet/roslyn/issues/75681
+                );
+        }
+
+        [Fact]
         public void LoadingUnmanagedTypeModifier_AttributeWithoutModreq()
         {
             var ilSource = IsUnmanagedAttributeIL + @"
@@ -576,13 +640,13 @@ public class Child : Parent
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
                 var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -611,9 +675,8 @@ public class Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
-
 
             var child = CompileAndVerify(@"
 public class Child : Parent
@@ -625,7 +688,7 @@ public class Child : Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -658,13 +721,13 @@ public class Child : Parent
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
                 var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -690,9 +753,8 @@ public abstract class Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
-
 
             var child = CompileAndVerify(@"
 public class Child : Parent
@@ -704,7 +766,7 @@ public class Child : Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -734,13 +796,13 @@ public class Child : Parent
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
                 var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -766,9 +828,8 @@ public interface Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
-
 
             var child = CompileAndVerify(@"
 public class Child : Parent
@@ -780,7 +841,7 @@ public class Child : Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -810,13 +871,13 @@ public class Child : Parent
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
                 var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -842,9 +903,8 @@ public interface Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
-
 
             var child = CompileAndVerify(@"
 public class Child : Parent
@@ -856,7 +916,7 @@ public class Child : Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -886,13 +946,13 @@ public class Child : Parent
                 Assert.True(parentTypeParameter.HasValueTypeConstraint);
                 Assert.True(parentTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, parentTypeParameter, module.ContainingAssembly.Name);
 
                 var childTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("Parent.M").TypeParameters.Single();
                 Assert.True(childTypeParameter.HasValueTypeConstraint);
                 Assert.True(childTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, childTypeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -919,9 +979,8 @@ public interface Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
-
 
             var child = CompileAndVerify(@"
 public class Child : Parent
@@ -933,7 +992,7 @@ public class Child : Parent
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
 
             CompileAndVerify(@"
@@ -979,13 +1038,13 @@ public class Program
                 Assert.True(delegateTypeParameter.HasValueTypeConstraint);
                 Assert.True(delegateTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, delegateTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, delegateTypeParameter, module.ContainingAssembly.Name);
 
                 var lambdaTypeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
                 Assert.True(lambdaTypeParameter.HasValueTypeConstraint);
                 Assert.True(lambdaTypeParameter.HasUnmanagedTypeConstraint);
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, lambdaTypeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, lambdaTypeParameter, module.ContainingAssembly.Name);
             });
         }
 
@@ -1007,9 +1066,8 @@ public class TestRef
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);   // .ctor  is an artifact of emit, we will ignore it on importing.
 
-                AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
-
 
             CompileAndVerify(@"
 public class Program
@@ -1034,7 +1092,7 @@ public class Program
                     Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                     Assert.False(typeParameter.HasConstructorConstraint);  // .ctor  is an artifact of emit, we will ignore it on importing.
 
-                    AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
+                    AttributeValidation.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
                 });
         }
 
@@ -1071,6 +1129,14 @@ namespace System
     public class ValueType { }
     public struct Void { }
     public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets t) { }
+        public bool AllowMultiple { get; set; }
+        public bool Inherited { get; set; }
+    }
+    public struct Enum { }
+    public enum AttributeTargets { }
 }
 ";
 

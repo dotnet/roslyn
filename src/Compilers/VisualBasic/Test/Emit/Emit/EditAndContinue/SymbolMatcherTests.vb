@@ -331,7 +331,8 @@ End Class
             Dim reader0 = peModule0.Module.MetadataReader
             Dim decoder0 = New MetadataDecoder(peModule0)
 
-            Dim anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0)
+            Dim synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0)
+            Dim anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes
             Assert.Equal("VB$AnonymousType_0", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("A", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal("VB$AnonymousType_1", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("B", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal(2, anonymousTypeMap0.Count)
@@ -355,9 +356,8 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                anonymousTypeMap0,
+                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
@@ -401,7 +401,8 @@ End Class
             Dim reader0 = peModule0.Module.MetadataReader
             Dim decoder0 = New MetadataDecoder(peModule0)
 
-            Dim anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0)
+            Dim synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0)
+            Dim anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes
             Assert.Equal("VB$AnonymousType_0", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("A", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal("VB$AnonymousType_1", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("X", isKey:=False, ignoreCase:=True)))).Name)
             Assert.Equal("VB$AnonymousType_2", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(New AnonymousTypeKeyField("Y", isKey:=False, ignoreCase:=True)))).Name)
@@ -426,9 +427,8 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                anonymousTypeMap0,
+                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
@@ -472,7 +472,8 @@ End Class
             Dim reader0 = peModule0.Module.MetadataReader
             Dim decoder0 = New MetadataDecoder(peModule0)
 
-            Dim anonymousTypeMap0 = PEDeltaAssemblyBuilder.GetAnonymousTypeMapFromMetadata(reader0, decoder0)
+            Dim synthesizedTypes0 = PEDeltaAssemblyBuilder.GetSynthesizedTypesFromMetadata(reader0, decoder0)
+            Dim anonymousTypeMap0 = synthesizedTypes0.AnonymousTypes
             Assert.Equal("VB$AnonymousDelegate_0", anonymousTypeMap0(New AnonymousTypeKey(ImmutableArray.Create(
                 New AnonymousTypeKeyField("A", isKey:=False, ignoreCase:=True),
                 New AnonymousTypeKeyField(AnonymousTypeDescriptor.FunctionReturnParameterName, isKey:=False, ignoreCase:=True)), isDelegate:=True)).Name)
@@ -503,9 +504,8 @@ End Class
             Assert.Equal("$VB$Local_x2", x2.Name)
 
             Dim matcher = New VisualBasicSymbolMatcher(
-                anonymousTypeMap0,
+                synthesizedTypes0,
                 compilation1.SourceAssembly,
-                emitContext,
                 peAssemblySymbol0)
 
             Dim mappedX1 = DirectCast(matcher.MapDefinition(x1), Cci.IFieldDefinition)
@@ -534,13 +534,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -562,13 +556,7 @@ Class C
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.x")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -592,13 +580,7 @@ Class C
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.x")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -627,13 +609,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -660,13 +636,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -693,13 +663,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -726,13 +690,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -765,13 +723,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of PropertySymbol)("C.X")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -802,13 +754,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of PropertySymbol)("C.X")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -833,13 +779,7 @@ End Structure
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("Vector.Coordinates")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -862,13 +802,7 @@ End Structure
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of FieldSymbol)("Vector.Coordinates")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -893,13 +827,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of SourceNamedTypeSymbol)("C.F")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())
@@ -923,13 +851,7 @@ End Class"
             Dim compilation0 = CreateCompilationWithMscorlib40(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1)
 
-            Dim matcher = New VisualBasicSymbolMatcher(
-                Nothing,
-                compilation1.SourceAssembly,
-                New EmitContext(),
-                compilation0.SourceAssembly,
-                New EmitContext(),
-                Nothing)
+            Dim matcher = CreateMatcher(compilation1, compilation0)
 
             Dim member = compilation1.GetMember(Of SourceNamedTypeSymbol)("C.F")
             Dim other = matcher.MapDefinition(member.GetCciAdapter())

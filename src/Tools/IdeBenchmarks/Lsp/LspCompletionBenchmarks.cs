@@ -5,13 +5,12 @@
 using System.Linq;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace IdeBenchmarks.Lsp
 {
@@ -23,6 +22,10 @@ namespace IdeBenchmarks.Lsp
         private TestLspServer? _testServer;
         private IGlobalOptionService? _globalOptionService;
         private LSP.CompletionParams? _completionParams;
+
+        public LspCompletionBenchmarks() : base(null)
+        {
+        }
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -70,7 +73,19 @@ class A
         T{|caret:|}
     }
 }";
-            _testServer = await CreateTestLspServerAsync(markup).ConfigureAwait(false);
+            _testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities
+                {
+                    Completion = new LSP.CompletionSetting
+                    {
+                        CompletionListSetting = new LSP.CompletionListSetting
+                        {
+                            ItemDefaults = ["editRange"],
+                        }
+                    }
+                }
+            }).ConfigureAwait(false);
 
             _completionParams = CreateCompletionParams(
                 _testServer.GetLocations("caret").Single(),
@@ -84,27 +99,19 @@ class A
         [Benchmark]
         public void GetCompletionsWithTextEdits()
         {
-            _globalOptionService!.SetGlobalOption(new OptionKey(LspOptions.LspCompletionFeatureFlag), true);
-
             var results = CompletionTests.RunGetCompletionsAsync(_testServer!, _completionParams!).Result;
             Assert.Equal(1000, results.Items.Length);
             Assert.True(results.IsIncomplete);
-        }
-
-        [Benchmark]
-        public void GetCompletionsWithoutTextEdits()
-        {
-            _globalOptionService!.SetGlobalOption(new OptionKey(LspOptions.LspCompletionFeatureFlag), false);
-
-            var results = CompletionTests.RunGetCompletionsAsync(_testServer!, _completionParams!).Result;
-            Assert.Equal(1000, results.Items.Length);
-            Assert.True(results.IsIncomplete);
+            Assert.NotNull(results.ItemDefaults?.EditRange);
         }
 
         [IterationCleanup]
-        public void Cleanup()
+        public async Task CleanupAsync()
         {
-            _testServer?.Dispose();
+            if (_testServer is not null)
+            {
+                await _testServer.DisposeAsync();
+            }
             _useExportProviderAttribute.After(null);
         }
     }

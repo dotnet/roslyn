@@ -7,33 +7,31 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.Interactive
+namespace Microsoft.CodeAnalysis.Interactive;
+
+internal sealed class InteractiveCommandCompletionService : CompletionService
 {
-    internal sealed class InteractiveCommandCompletionService : CompletionServiceWithProviders
+    [ExportLanguageServiceFactory(typeof(CompletionService), InteractiveLanguageNames.InteractiveCommand), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class Factory(IAsynchronousOperationListenerProvider listenerProvider) : ILanguageServiceFactory
     {
-        [ExportLanguageServiceFactory(typeof(CompletionService), InteractiveLanguageNames.InteractiveCommand), Shared]
-        internal sealed class Factory : ILanguageServiceFactory
-        {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
-            }
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
 
-            public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-                => new InteractiveCommandCompletionService(languageServices.WorkspaceServices.Workspace);
-        }
-
-        private InteractiveCommandCompletionService(Workspace workspace)
-            : base(workspace)
-        {
-        }
-
-        public override string Language
-            => InteractiveLanguageNames.InteractiveCommand;
-
-        internal override CompletionRules GetRules(CompletionOptions options)
-            => CompletionRules.Default;
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+            => new InteractiveCommandCompletionService(languageServices.LanguageServices.SolutionServices, _listenerProvider);
     }
+
+    private InteractiveCommandCompletionService(SolutionServices services, IAsynchronousOperationListenerProvider listenerProvider)
+        : base(services, listenerProvider)
+    {
+    }
+
+    public override string Language
+        => InteractiveLanguageNames.InteractiveCommand;
+
+    internal override CompletionRules GetRules(CompletionOptions options)
+        => CompletionRules.Default;
 }

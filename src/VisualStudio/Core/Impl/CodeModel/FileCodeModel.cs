@@ -10,17 +10,18 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -343,8 +344,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 var formatted = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
                 {
-                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation).ConfigureAwait(true);
-                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation).ConfigureAwait(true);
+                    var formattingOptions = await result.GetSyntaxFormattingOptionsAsync(CancellationToken.None).ConfigureAwait(false);
+                    var formatted = await Formatter.FormatAsync(result, Formatter.Annotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
+                    formatted = await Formatter.FormatAsync(formatted, SyntaxAnnotation.ElasticAnnotation, formattingOptions, CancellationToken.None).ConfigureAwait(true);
 
                     return formatted;
                 });
@@ -415,15 +417,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                // HACK HACK HACK: Ensure we've processed all files being opened before we let designers work further.
-                // In https://devdiv.visualstudio.com/DevDiv/_workitems/edit/728035, a file is opened in an invisible editor and contents are written
-                // to it. The file isn't saved, but it's added to the workspace; we won't have yet hooked up to the open file since that work was deferred.
-                // Since we're on the UI thread here, we can ensure those are all wired up since the analysis of this document may depend on that other file.
-                // We choose to do this here rather than in the project system code when it's added because we don't want to pay the penalty of checking the RDT for
-                // all files being opened on the UI thread if we really don't need it. This uses an 'as' cast, because in unit tests the workspace is a different
-                // derived form of VisualStudioWorkspace, and there we aren't dealing with open files at all so it doesn't matter.
-                (State.Workspace as VisualStudioWorkspaceImpl)?.ProcessQueuedWorkOnUIThread();
-
                 document = Workspace.CurrentSolution.GetDocument(GetDocumentId());
             }
 
@@ -445,6 +438,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             {
                 return GetDocument()
                     .GetRequiredSemanticModelAsync(CancellationToken.None).AsTask();
+            });
+
+        internal CodeGenerationOptions GetDocumentOptions()
+            => State.ThreadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return GetDocument()
+                    .GetCodeGenerationOptionsAsync(CancellationToken.None).AsTask();
             });
 
         internal Compilation GetCompilation()
@@ -643,10 +643,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(element);
 
-            if (codeElement == null)
-            {
-                codeElement = ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
-            }
+            codeElement ??= ComAggregate.TryGetManagedObject<AbstractCodeElement>(this.CodeElements.Item(element));
 
             if (codeElement == null)
             {
@@ -665,7 +662,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (_editCount == 1)
                 {
                     _batchMode = true;
-                    _batchElements = new List<AbstractKeyedCodeElement>();
+                    _batchElements = [];
                 }
 
                 return VSConstants.S_OK;
@@ -693,7 +690,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                             var node = element.LookupNode();
                             if (node != null)
                             {
-                                elementAndPaths ??= new List<ValueTuple<AbstractKeyedCodeElement, SyntaxPath>>();
+                                elementAndPaths ??= [];
                                 elementAndPaths.Add(ValueTuple.Create(element, new SyntaxPath(node)));
                             }
                         }
@@ -702,8 +699,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     if (_batchDocument != null)
                     {
                         // perform expensive operations at once
-                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(() =>
-                            Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, cancellationToken: CancellationToken.None));
+                        var newDocument = State.ThreadingContext.JoinableTaskFactory.Run(async () =>
+                        {
+                            var simplifierOptions = await _batchDocument.GetSimplifierOptionsAsync(CancellationToken.None).ConfigureAwait(false);
+                            return await Simplifier.ReduceAsync(_batchDocument, Simplifier.Annotation, simplifierOptions, CancellationToken.None).ConfigureAwait(false);
+                        });
 
                         _batchDocument.Project.Solution.Workspace.TryApplyChanges(newDocument.Project.Solution);
 
@@ -824,10 +824,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             if (_codeElementTable.TryGetValue(globalNodeKey.NodeKey, out var element))
             {
                 var keyedElement = ComAggregate.GetManagedObject<AbstractKeyedCodeElement>(element);
-                if (keyedElement != null)
-                {
-                    keyedElement.ReacquireNodeKey(globalNodeKey.Path, default);
-                }
+                keyedElement?.ReacquireNodeKey(globalNodeKey.Path, default);
             }
         }
     }

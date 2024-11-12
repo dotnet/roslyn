@@ -40,7 +40,6 @@ class Module1
 
 }", new MetadataReference[] { cl2, cl3 });
 
-
             var a_cs =
 @"
 
@@ -287,6 +286,12 @@ interface I1<T>
                 // (137,15): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     interface I2 : CL3_I1, I1<CL3_I1>
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "I2").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(137, 15),
+                // (140,11): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     class C5 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C5").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(140, 11),
+                // (137,15): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //     interface I2 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "I2").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(137, 15),
                 // (9,16): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         CL3_C1 x1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 16),
@@ -344,13 +349,13 @@ interface I1<T>
                 // (207,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         y.w(null);
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "y.w(null)").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(207, 9),
-                // (212,20): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                // (212,26): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_D1 u = (uuu) => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(uuu) => System.Console.WriteLine()").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(212, 20),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "=>").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(212, 26),
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
-                                             };
+            };
 
             var compilation2 = CreateCompilation(a_cs, new MetadataReference[] { cl3 });
 
@@ -477,6 +482,12 @@ public interface CL3_I1 : CL2_I1
                 // (137,15): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
                 //     interface I2 : CL3_I1, I1<CL3_I1>
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("CL2_I1").WithLocation(137, 15),
+                // (140,11): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     class C5 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C5").WithArguments("CL2_I1").WithLocation(140, 11),
+                // (137,15): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     interface I2 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("CL2_I1").WithLocation(137, 15),
                 // (9,16): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         CL3_C1 x1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 16),
@@ -537,9 +548,9 @@ public interface CL3_I1 : CL2_I1
                 // (207,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 //         y.w(null);
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y.w(null)").WithArguments("CL2_C1").WithLocation(207, 9),
-                // (212,20): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                    // (212,26): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 //         CL3_D1 u = (uuu) => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "(uuu) => System.Console.WriteLine()").WithArguments("CL2_C1").WithLocation(212, 20),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "=>").WithArguments("CL2_C1").WithLocation(212, 26),
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
@@ -729,8 +740,8 @@ public interface CL3_I1 : CL2_I1
             var references = new[]
             {
                 MscorlibRef,
-                TestMetadata.Net451.SystemData,
-                TestMetadata.Net451.System,
+                NetFramework.SystemData,
+                NetFramework.System,
                 cl2,
                 cl3
             };

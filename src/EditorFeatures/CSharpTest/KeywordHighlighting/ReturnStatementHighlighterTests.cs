@@ -10,465 +10,511 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
-{
-    public class ReturnStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
-    {
-        internal override Type GetHighlighterType()
-            => typeof(ReturnStatementHighlighter);
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInLambda()
-        {
-            await TestAsync(
-@"static double CalculateArea(double radius)
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public class ReturnStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    Func<double, double> f = r => {
-        if (Double.IsNan(r))
-        {
-            {|Cursor:[|return|]|} Double.NaN;
-        }
-        else
-        {
-            [|return|] r * r * Math.PI;
-        }
-    };
-    return calcArea(radius);
-}");
-        }
+    internal override Type GetHighlighterType()
+        => typeof(ReturnStatementHighlighter);
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInLambda_NotOnReturnValue()
-        {
-            await TestAsync(
-@"class C
-{
-    static double CalculateArea(double radius)
+    [Fact]
+    public async Task TestInLambda()
     {
-        Func<double, double> f = r => {
-            if (Double.IsNan(r))
+        await TestAsync(
+            """
+            static double CalculateArea(double radius)
             {
-                return {|Cursor:Double.NaN|};
+                Func<double, double> f = r => {
+                    if (Double.IsNan(r))
+                    {
+                        {|Cursor:[|return|]|} Double.NaN;
+                    }
+                    else
+                    {
+                        [|return|] r * r * Math.PI;
+                    }
+                };
+                return calcArea(radius);
             }
-            else
+            """);
+    }
+
+    [Fact]
+    public async Task TestInLambda_NotOnReturnValue()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                return r * r * Math.PI;
+                static double CalculateArea(double radius)
+                {
+                    Func<double, double> f = r => {
+                        if (Double.IsNan(r))
+                        {
+                            return {|Cursor:Double.NaN|};
+                        }
+                        else
+                        {
+                            return r * r * Math.PI;
+                        }
+                    };
+                    return calcArea(radius);
+                }
             }
-        };
-        return calcArea(radius);
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInLambda_OnSemicolon()
-        {
-            await TestAsync(
-@"class C
-{
-    static double CalculateArea(double radius)
+    [Fact]
+    public async Task TestInLambda_OnSemicolon()
     {
-        Func<double, double> f = r => {
-            if (Double.IsNan(r))
+        await TestAsync(
+            """
+            class C
             {
-                [|return|] Double.NaN;{|Cursor:|}
+                static double CalculateArea(double radius)
+                {
+                    Func<double, double> f = r => {
+                        if (Double.IsNan(r))
+                        {
+                            [|return|] Double.NaN;{|Cursor:|}
+                        }
+                        else
+                        {
+                            [|return|] r * r * Math.PI;
+                        }
+                    };
+                    return calcArea(radius);
+                }
             }
-            else
+            """);
+    }
+
+    [Fact]
+    public async Task TestInLambda_SecondOccurence()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                [|return|] r * r * Math.PI;
+                static double CalculateArea(double radius)
+                {
+                    Func<double, double> f = r => {
+                        if (Double.IsNan(r))
+                        {
+                            [|return|] Double.NaN;
+                        }
+                        else
+                        {
+                            {|Cursor:[|return|]|} r * r * Math.PI;
+                        }
+                    };
+                    return calcArea(radius);
+                }
             }
-        };
-        return calcArea(radius);
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInLambda_SecondOccurence()
-        {
-            await TestAsync(
-@"class C
-{
-    static double CalculateArea(double radius)
+    [Fact]
+    public async Task TestInLambda_SecondOccurence_NotOnReturnValue()
     {
-        Func<double, double> f = r => {
-            if (Double.IsNan(r))
+        await TestAsync(
+            """
+            class C
             {
-                [|return|] Double.NaN;
+                static double CalculateArea(double radius)
+                {
+                    Func<double, double> f = r => {
+                        if (Double.IsNan(r))
+                        {
+                            return Double.NaN;
+                        }
+                        else
+                        {
+                            return {|Cursor:r * r * Math.PI|};
+                        }
+                    };
+                    return calcArea(radius);
+                }
             }
-            else
+            """);
+    }
+
+    [Fact]
+    public async Task TestInLambda_SecondOccurence_OnSemicolon()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                {|Cursor:[|return|]|} r * r * Math.PI;
+                static double CalculateArea(double radius)
+                {
+                    Func<double, double> f = r => {
+                        if (Double.IsNan(r))
+                        {
+                            [|return|] Double.NaN;
+                        }
+                        else
+                        {
+                            [|return|] r * r * Math.PI;{|Cursor:|}
+                        }
+                    };
+                    return calcArea(radius);
+                }
             }
-        };
-        return calcArea(radius);
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInLambda_SecondOccurence_NotOnReturnValue()
-        {
-            await TestAsync(
-@"class C
-{
-    static double CalculateArea(double radius)
+    [Fact]
+    public async Task TestInMethodWithLambda()
     {
-        Func<double, double> f = r => {
-            if (Double.IsNan(r))
+        await TestAsync(
+            """
+            class C
             {
-                return Double.NaN;
+                static double CalculateArea(double radius)
+                {
+                    Func<double, double> f = r => {
+                        if (Double.IsNan(r))
+                        {
+                            return Double.NaN;
+                        }
+                        else
+                        {
+                            return r * r * Math.PI;
+                        }
+                    };
+                    {|Cursor:[|return|]|} calcArea(radius);
+                }
             }
-            else
+            """);
+    }
+
+    [Fact]
+    public async Task TestInMethodWithLambda_NotOnReturnValue()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                return {|Cursor:r * r * Math.PI|};
+                static double CalculateArea(double radius)
+                {
+                    Func<double, double> f = r => {
+                        if (Double.IsNan(r))
+                        {
+                            return Double.NaN;
+                        }
+                        else
+                        {
+                            return r * r * Math.PI;
+                        }
+                    };
+                    return {|Cursor:calcArea(radius)|};
+                }
             }
-        };
-        return calcArea(radius);
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInLambda_SecondOccurence_OnSemicolon()
-        {
-            await TestAsync(
-@"class C
-{
-    static double CalculateArea(double radius)
+    [Fact]
+    public async Task TestInMethodWithLambda_OnSemicolon()
     {
-        Func<double, double> f = r => {
-            if (Double.IsNan(r))
+        await TestAsync(
+            """
+            class C
             {
-                [|return|] Double.NaN;
+                static double CalculateArea(double radius)
+                {
+                    Func<double, double> f = r => {
+                        if (Double.IsNan(r))
+                        {
+                            return Double.NaN;
+                        }
+                        else
+                        {
+                            return r * r * Math.PI;
+                        }
+                    };
+                    [|return|] calcArea(radius);{|Cursor:|}
+                }
             }
-            else
+            """);
+    }
+
+    [Fact]
+    public async Task TestInConstructor()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                [|return|] r * r * Math.PI;{|Cursor:|}
+                C()
+                {
+                    {|Cursor:[|return|]|};
+                    [|return|];
+                }
             }
-        };
-        return calcArea(radius);
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInMethodWithLambda()
-        {
-            await TestAsync(
-@"class C
-{
-    static double CalculateArea(double radius)
+    [Fact]
+    public async Task TestInDestructor()
     {
-        Func<double, double> f = r => {
-            if (Double.IsNan(r))
+        await TestAsync(
+            """
+            class C
             {
-                return Double.NaN;
+                ~C()
+                {
+                    {|Cursor:[|return|]|};
+                    [|return|];
+                }
             }
-            else
+            """);
+    }
+
+    [Fact]
+    public async Task TestInOperator()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                return r * r * Math.PI;
+                public static string operator +(C a)
+                {
+                    {|Cursor:[|return|]|} null;
+                    [|return|] null;
+                }
             }
-        };
-        {|Cursor:[|return|]|} calcArea(radius);
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInMethodWithLambda_NotOnReturnValue()
-        {
-            await TestAsync(
-@"class C
-{
-    static double CalculateArea(double radius)
+    [Fact]
+    public async Task TestInConversionOperator()
     {
-        Func<double, double> f = r => {
-            if (Double.IsNan(r))
+        await TestAsync(
+            """
+            class C
             {
-                return Double.NaN;
+                public static explicit operator string(C a)
+                {
+                    {|Cursor:[|return|]|} null;
+                    [|return|] null;
+                }
             }
-            else
+            """);
+    }
+
+    [Fact]
+    public async Task TestInGetter()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                return r * r * Math.PI;
+                int P
+                {
+                    get
+                    {
+                        {|Cursor:[|return|]|} 0;
+                        [|return|] 0;
+                    }
+                    set
+                    {
+                        return;
+                        return;
+                    }
+                }
             }
-        };
-        return {|Cursor:calcArea(radius)|};
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInMethodWithLambda_OnSemicolon()
-        {
-            await TestAsync(
-@"class C
-{
-    static double CalculateArea(double radius)
+    [Fact]
+    public async Task TestInSetter()
     {
-        Func<double, double> f = r => {
-            if (Double.IsNan(r))
+        await TestAsync(
+            """
+            class C
             {
-                return Double.NaN;
+                int P
+                {
+                    get
+                    {
+                        return 0;
+                        return 0;
+                    }
+                    set
+                    {
+                        {|Cursor:[|return|]|};
+                        [|return|];
+                    }
+                }
             }
-            else
+            """);
+    }
+
+    [Fact]
+    public async Task TestInInit()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                return r * r * Math.PI;
+                int P
+                {
+                    get
+                    {
+                        return 0;
+                        return 0;
+                    }
+                    init
+                    {
+                        {|Cursor:[|return|]|};
+                        [|return|];
+                    }
+                }
             }
-        };
-        [|return|] calcArea(radius);{|Cursor:|}
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInConstructor()
-        {
-            await TestAsync(
-@"class C
-{
-    C()
+    [Fact]
+    public async Task TestInAdder()
     {
-        {|Cursor:[|return|]|};
-        [|return|];
+        await TestAsync(
+            """
+            class C
+            {
+                event EventHandler E
+                {
+                    add
+                    {
+                        {|Cursor:[|return|]|};
+                        [|return|];
+                    }
+                    remove
+                    {
+                        return;
+                        return;
+                    }
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInDestructor()
-        {
-            await TestAsync(
-@"class C
-{
-    ~C()
+    [Fact]
+    public async Task TestInRemover()
     {
-        {|Cursor:[|return|]|};
-        [|return|];
+        await TestAsync(
+            """
+            class C
+            {
+                event EventHandler E
+                {
+                    add
+                    {
+                        return;
+                        return;
+                    }
+                    remove
+                    {
+                        {|Cursor:[|return|]|};
+                        [|return|];
+                    }
+                }
+            }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInOperator()
-        {
-            await TestAsync(
-@"class C
-{
-    public static string operator +(C a)
+    [Fact]
+    public async Task TestInLocalFunction()
     {
-        {|Cursor:[|return|]|} null;
-        [|return|] null;
-    }
-}");
-        }
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    void F()
+                    {
+                        {|Cursor:[|return|]|};
+                        [|return|];
+                    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInConversionOperator()
-        {
-            await TestAsync(
-@"class C
-{
-    public static explicit operator string(C a)
+                    return;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInSimpleLambda()
     {
-        {|Cursor:[|return|]|} null;
-        [|return|] null;
-    }
-}");
-        }
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    Action<string> f = s =>
+                    {
+                        {|Cursor:[|return|]|};
+                        [|return|];
+                    };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInGetter()
-        {
-            await TestAsync(
-@"class C
-{
-    int P
+                    return;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInParenthesizedLambda()
     {
-        get
-        {
-            {|Cursor:[|return|]|} 0;
-            [|return|] 0;
-        }
-        set
-        {
-            return;
-            return;
-        }
-    }
-}");
-        }
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    Action<string> f = (s) =>
+                    {
+                        {|Cursor:[|return|]|};
+                        [|return|];
+                    };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInSetter()
-        {
-            await TestAsync(
-@"class C
-{
-    int P
+                    return;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInAnonymousMethod()
     {
-        get
-        {
-            return 0;
-            return 0;
-        }
-        set
-        {
-            {|Cursor:[|return|]|};
-            [|return|];
-        }
-    }
-}");
-        }
+        await TestAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    Action<string> f = delegate
+                    {
+                        {|Cursor:[|return|]|};
+                        [|return|];
+                    };
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInInit()
-        {
-            await TestAsync(
-@"class C
-{
-    int P
+                    return;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInTopLevelStatements()
     {
-        get
-        {
-            return 0;
-            return 0;
-        }
-        init
-        {
-            {|Cursor:[|return|]|};
-            [|return|];
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInAdder()
-        {
-            await TestAsync(
-@"class C
-{
-    event EventHandler E
-    {
-        add
-        {
-            {|Cursor:[|return|]|};
-            [|return|];
-        }
-        remove
-        {
-            return;
-            return;
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInRemover()
-        {
-            await TestAsync(
-@"class C
-{
-    event EventHandler E
-    {
-        add
-        {
-            return;
-            return;
-        }
-        remove
-        {
-            {|Cursor:[|return|]|};
-            [|return|];
-        }
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInLocalFunction()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
-    {
-        void F()
-        {
-            {|Cursor:[|return|]|};
-            [|return|];
-        }
-
-        return;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInSimpleLambda()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
-    {
-        Action<string> f = s =>
-        {
-            {|Cursor:[|return|]|};
-            [|return|];
-        };
-
-        return;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInParenthesizedLambda()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
-    {
-        Action<string> f = (s) =>
-        {
-            {|Cursor:[|return|]|};
-            [|return|];
-        };
-
-        return;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInAnonymousMethod()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
-    {
-        Action<string> f = delegate
-        {
-            {|Cursor:[|return|]|};
-            [|return|];
-        };
-
-        return;
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestInTopLevelStatements()
-        {
-            await TestAsync(
-@"if (args.Length > 0) [|return|] 0;
-{|Cursor:[|return|]|} 1;");
-        }
+        await TestAsync(
+            """
+            if (args.Length > 0) [|return|] 0;
+            {|Cursor:[|return|]|} 1;
+            """);
     }
 }

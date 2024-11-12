@@ -13,47 +13,33 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.UseInferredMemberName
+namespace Microsoft.CodeAnalysis.UseInferredMemberName;
+
+internal abstract class AbstractUseInferredMemberNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    internal abstract class AbstractUseInferredMemberNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    protected abstract void LanguageSpecificRemoveSuggestedNode(SyntaxEditor editor, SyntaxNode node);
+
+    public override ImmutableArray<string> FixableDiagnosticIds { get; }
+        = [IDEDiagnosticIds.UseInferredMemberNameDiagnosticId];
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        protected abstract void LanguageSpecificRemoveSuggestedNode(SyntaxEditor editor, SyntaxNode node);
+        RegisterCodeFix(context, AnalyzersResources.Use_inferred_member_name, nameof(AnalyzersResources.Use_inferred_member_name));
+        return Task.CompletedTask;
+    }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.UseInferredMemberNameDiagnosticId);
+    protected override Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var root = editor.OriginalRoot;
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        foreach (var diagnostic in diagnostics)
         {
-            context.RegisterCodeFix(new MyCodeAction(
-                c => FixAsync(context.Document, context.Diagnostics.First(), c)),
-                context.Diagnostics);
-
-            return Task.CompletedTask;
+            var node = root.FindNode(diagnostic.Location.SourceSpan);
+            LanguageSpecificRemoveSuggestedNode(editor, node);
         }
 
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var root = editor.OriginalRoot;
-
-            foreach (var diagnostic in diagnostics)
-            {
-                var node = root.FindNode(diagnostic.Location.SourceSpan);
-                LanguageSpecificRemoveSuggestedNode(editor, node);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Use_inferred_member_name, createChangedDocument, AnalyzersResources.Use_inferred_member_name)
-            {
-            }
-        }
+        return Task.CompletedTask;
     }
 }

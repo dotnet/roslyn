@@ -3,102 +3,63 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+/// <summary>
+/// Provides solution assets present locally (in the current process) to a remote process where the solution is being replicated to.
+/// </summary>
+internal sealed class SolutionAssetProvider(SolutionServices services) : ISolutionAssetProvider
 {
-    /// <summary>
-    /// Provides solution assets present locally (in the current process) to a remote process where the solution is being replicated to.
-    /// </summary>
-    internal sealed class SolutionAssetProvider : ISolutionAssetProvider
+    public const string ServiceName = "SolutionAssetProvider";
+
+    internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
+
+    private readonly SolutionAssetStorage _assetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
+    private readonly ISerializerService _serializer = services.GetRequiredService<ISerializerService>();
+
+    public ValueTask WriteAssetsAsync(
+        PipeWriter pipeWriter,
+        Checksum solutionChecksum,
+        AssetPath assetPath,
+        ReadOnlyMemory<Checksum> checksums,
+        CancellationToken cancellationToken)
     {
-        public const string ServiceName = "SolutionAssetProvider";
+        // Suppress ExecutionContext flow for asynchronous operations operate on the pipe. In addition to avoiding
+        // ExecutionContext allocations, this clears the LogicalCallContext and avoids the need to clone data set by
+        // CallContext.LogicalSetData at each yielding await in the task tree.
+        //
+        // ⚠ DO NOT AWAIT INSIDE THE USING BLOCK LEXICALLY (it's fine to await within the call to
+        // WriteAssetsSuppressedFlowAsync). The Dispose method that restores ExecutionContext flow must run on the same
+        // thread where SuppressFlow was originally run.
+        using var _ = FlowControlHelper.TrySuppressFlow();
+        return WriteAssetsSuppressedFlowAsync(pipeWriter, solutionChecksum, assetPath, checksums, cancellationToken);
 
-        internal static ServiceDescriptor ServiceDescriptor { get; } = ServiceDescriptor.CreateInProcServiceDescriptor(ServiceDescriptors.ComponentName, ServiceName, suffix: "", ServiceDescriptors.GetFeatureDisplayName);
-
-        private readonly HostWorkspaceServices _services;
-
-        public SolutionAssetProvider(HostWorkspaceServices services)
+        async ValueTask WriteAssetsSuppressedFlowAsync(PipeWriter pipeWriter, Checksum solutionChecksum, AssetPath assetPath, ReadOnlyMemory<Checksum> checksums, CancellationToken cancellationToken)
         {
-            _services = services;
-        }
-
-        public async ValueTask GetAssetsAsync(PipeWriter pipeWriter, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
-        {
-            var assetStorage = _services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            var serializer = _services.GetRequiredService<ISerializerService>();
-            var replicationContext = assetStorage.GetReplicationContext(scopeId);
-
-            SolutionAsset? singleAsset = null;
-            IReadOnlyDictionary<Checksum, SolutionAsset>? assetMap = null;
-
-            if (checksums.Length == 1)
+            // The responsibility is on us (as per the requirements of RemoteCallback.InvokeAsync) to Complete the
+            // pipewriter.  This will signal to streamjsonrpc that the writer passed into it is complete, which will
+            // allow the calling side know to stop reading results.
+            Exception? exception = null;
+            try
             {
-                singleAsset = (await assetStorage.GetAssetAsync(scopeId, checksums[0], cancellationToken).ConfigureAwait(false)) ?? SolutionAsset.Null;
+                var scope = _assetStorage.GetScope(solutionChecksum);
+                var writer = new RemoteHostAssetWriter(pipeWriter, scope, assetPath, checksums, _serializer);
+                await writer.WriteDataAsync(cancellationToken).ConfigureAwait(false);
             }
-            else
+            catch (Exception ex) when ((exception = ex) == null)
             {
-                assetMap = await assetStorage.GetAssetsAsync(scopeId, checksums, cancellationToken).ConfigureAwait(false);
+                throw ExceptionUtilities.Unreachable();
             }
-
-            // We can cancel early, but once the pipe operations are scheduled we rely on both operations running to
-            // avoid deadlocks (the exception handler in 'task1' ensures progress is made in 'task2').
-            cancellationToken.ThrowIfCancellationRequested();
-            var mustNotCancelToken = CancellationToken.None;
-
-            // Work around the lack of async stream writing in ObjectWriter, which is required when writing to the RPC pipe.
-            // Run two tasks - the first synchronously writes to a local pipe and the second asynchronosly transfers the data to the RPC pipe.
-            //
-            // Configure the pipe to never block on write (waiting for the reader to read). This prevents deadlocks but might result in more
-            // (non-contiguous) memory allocated for the underlying buffers. The amount of memory is bounded by the total size of the serialized assets.
-            var localPipe = new Pipe(RemoteHostAssetSerialization.PipeOptionsWithUnlimitedWriterBuffer);
-
-            var task1 = Task.Run(() =>
+            finally
             {
-                try
-                {
-                    var stream = localPipe.Writer.AsStream(leaveOpen: false);
-                    using var writer = new ObjectWriter(stream, leaveOpen: false, cancellationToken);
-                    RemoteHostAssetSerialization.WriteData(writer, singleAsset, assetMap, serializer, replicationContext, scopeId, checksums, cancellationToken);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                {
-                    // no-op
-                }
-            }, mustNotCancelToken);
-
-            // Complete RPC once we send the initial piece of data and start waiting for the writer to send more,
-            // so the client can start reading from the stream. Once CopyPipeDataAsync completes the pipeWriter
-            // the corresponding client-side pipeReader will complete and the data transfer will be finished.
-            var task2 = CopyPipeDataAsync();
-
-            await Task.WhenAll(task1, task2).ConfigureAwait(false);
-
-            async Task CopyPipeDataAsync()
-            {
-                Exception? exception = null;
-                try
-                {
-                    await localPipe.Reader.CopyToAsync(pipeWriter, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e)
-                {
-                    FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken);
-                    exception = e;
-                }
-                finally
-                {
-                    await localPipe.Reader.CompleteAsync(exception).ConfigureAwait(false);
-                    await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
-                }
+                await pipeWriter.CompleteAsync(exception).ConfigureAwait(false);
             }
         }
     }

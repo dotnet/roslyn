@@ -95,7 +95,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             //      emitting conditional jumps if current bucket sub-array has more than one bucket and
             //      emitting the switch instruction when we are down to a single bucket in the sub-array.
 
-
             // (a) Sort switch labels: This was done in the constructor
 
             Debug.Assert(!_sortedCaseLabels.IsEmpty);
@@ -195,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 //          merge top bucket on stack into newBucket, and pop bucket from stack
                 //      End While
 
-                while (!switchBucketsStack.IsEmpty())
+                while (!switchBucketsStack.IsEmpty)
                 {
                     // get the bucket at top of the stack
                     SwitchBucket prevBucket = switchBucketsStack.Peek();
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 curStartLabelIndex++;
             }
 
-            Debug.Assert(!switchBucketsStack.IsEmpty());
+            Debug.Assert(!switchBucketsStack.IsEmpty);
 
             // crumble leaf buckets into degenerate buckets where possible
             var crumbled = ArrayBuilder<SwitchBucket>.GetInstance();

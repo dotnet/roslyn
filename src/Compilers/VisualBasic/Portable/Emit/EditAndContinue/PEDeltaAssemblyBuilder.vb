@@ -6,8 +6,10 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Reflection.Metadata
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
@@ -20,50 +22,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Inherits PEAssemblyBuilderBase
         Implements IPEDeltaAssemblyBuilder
 
-        Private ReadOnly _previousGeneration As EmitBaseline
-        Private ReadOnly _previousDefinitions As VisualBasicDefinitionMap
         Private ReadOnly _changes As SymbolChanges
         Private ReadOnly _deepTranslator As VisualBasicSymbolMatcher.DeepTranslator
+        Private ReadOnly _predefinedHotReloadExceptionConstructor As MethodSymbol
+
+        ''' <summary>
+        ''' HotReloadException type. May be created even if not used. We might find out
+        ''' we need it late in the emit phase only after all types and members have been compiled.
+        ''' <see cref="_isHotReloadExceptionTypeUsed"/> indicates if the type is actually used in the delta.
+        ''' </summary>
+        Private _lazyHotReloadExceptionType As SynthesizedHotReloadExceptionSymbol
+
+        ''' <summary>
+        ''' True if usage of HotReloadException type symbol has been observed and shouldn't be changed anymore.
+        ''' </summary>
+        Private _freezeHotReloadExceptionTypeUsage As Boolean
+
+        ''' <summary>
+        ''' True if HotReloadException type is actually used in the delta.
+        ''' </summary>
+        Private _isHotReloadExceptionTypeUsed As Boolean
 
         Public Sub New(sourceAssembly As SourceAssemblySymbol,
+                       changes As VisualBasicSymbolChanges,
                        emitOptions As EmitOptions,
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       previousGeneration As EmitBaseline,
-                       edits As IEnumerable(Of SemanticEdit),
-                       isAddedSymbol As Func(Of ISymbol, Boolean))
+                       predefinedHotReloadExceptionConstructor As MethodSymbol)
 
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
-            Dim initialBaseline = previousGeneration.InitialBaseline
-            Dim context = New EmitContext(Me, Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
-
-            ' Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
-            ' in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
-            Dim metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation)
-
-            Dim metadataDecoder = DirectCast(metadataSymbols.MetadataDecoder, MetadataDecoder)
-            Dim metadataAssembly = DirectCast(metadataDecoder.ModuleSymbol.ContainingAssembly, PEAssemblySymbol)
-            Dim matchToMetadata = New VisualBasicSymbolMatcher(initialBaseline.LazyMetadataSymbols.AnonymousTypes, sourceAssembly, context, metadataAssembly)
-
-            Dim matchToPrevious As VisualBasicSymbolMatcher = Nothing
-            If previousGeneration.Ordinal > 0 Then
-                Dim previousAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
-                Dim previousContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag(), metadataOnly:=False, includePrivateMembers:=True)
-
-                matchToPrevious = New VisualBasicSymbolMatcher(
-                    previousGeneration.AnonymousTypeMap,
-                    sourceAssembly:=sourceAssembly,
-                    sourceContext:=context,
-                    otherAssembly:=previousAssembly,
-                    otherContext:=previousContext,
-                    otherSynthesizedMembersOpt:=previousGeneration.SynthesizedMembers)
-            End If
-
-            _previousDefinitions = New VisualBasicDefinitionMap(edits, metadataDecoder, matchToMetadata, matchToPrevious)
-            _previousGeneration = previousGeneration
-            _changes = New VisualBasicSymbolChanges(_previousDefinitions, edits, isAddedSymbol)
+            _changes = changes
 
             ' Workaround for https://github.com/dotnet/roslyn/issues/3192. 
             ' When compiling state machine we stash types of awaiters and state-machine hoisted variables,
@@ -78,6 +68,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' In order to get the fully lowered form we run the type symbols of stashed variables through a deep translator
             ' that translates the symbol recursively.
             _deepTranslator = New VisualBasicSymbolMatcher.DeepTranslator(sourceAssembly.GetSpecialType(SpecialType.System_Object))
+
+            _predefinedHotReloadExceptionConstructor = predefinedHotReloadExceptionConstructor
         End Sub
 
         Friend Overrides Function EncTranslateLocalVariableType(type As TypeSymbol, diagnostics As DiagnosticBag) As ITypeReference
@@ -96,11 +88,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Public Overrides ReadOnly Property PreviousGeneration As EmitBaseline
             Get
-                Return _previousGeneration
+                Return _changes.DefinitionMap.Baseline
             End Get
         End Property
 
-        Private Shared Function GetOrCreateMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
+        Friend Shared Function GetOrCreateMetadataSymbols(initialBaseline As EmitBaseline, compilation As VisualBasicCompilation) As EmitBaseline.MetadataSymbols
             If initialBaseline.LazyMetadataSymbols IsNot Nothing Then
                 Return initialBaseline.LazyMetadataSymbols
             End If
@@ -114,22 +106,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim assemblyReferenceIdentityMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity) = Nothing
             Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, assemblyReferenceIdentityMap)
             Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
-            Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
-            ' VB anonymous delegates are handled as anonymous types in the map above
-            Dim anonymousDelegates = SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
-            Dim anonymousDelegatesWithFixedTypes = SpecializedCollections.EmptyReadOnlyDictionary(Of String, AnonymousTypeValue)
-            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, anonymousDelegates, anonymousDelegatesWithFixedTypes, metadataDecoder, assemblyReferenceIdentityMap)
+
+            Dim synthesizedTypes = GetSynthesizedTypesFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
+            Dim metadataSymbols = New EmitBaseline.MetadataSymbols(synthesizedTypes, metadataDecoder, assemblyReferenceIdentityMap)
 
             Return InterlockedOperations.Initialize(initialBaseline.LazyMetadataSymbols, metadataSymbols)
         End Function
 
         ' friend for testing
-        Friend Overloads Shared Function GetAnonymousTypeMapFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+        Friend Overloads Shared Function GetSynthesizedTypesFromMetadata(reader As MetadataReader, metadataDecoder As MetadataDecoder) As SynthesizedTypeMaps
             ' In general, the anonymous type name Is 'VB$Anonymous' ('Type'|'Delegate') '_' (submission-index '_')? index module-id
             ' but EnC Is not supported for modules nor submissions. Hence we only look for type names with no module id and no submission index:
             ' e.g. VB$AnonymousType_123, VB$AnonymousDelegate_123
 
-            Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
+            Dim anonymousTypes = ImmutableSegmentedDictionary.CreateBuilder(Of AnonymousTypeKey, AnonymousTypeValue)
             For Each handle In reader.TypeDefinitions
                 Dim def = reader.GetTypeDefinition(handle)
                 If Not def.Namespace.IsNil Then
@@ -149,15 +139,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousTypeKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
-                    result.Add(key, value)
+                    anonymousTypes.Add(key, value)
                 ElseIf TryParseAnonymousTypeTemplateName(GeneratedNameConstants.AnonymousDelegateTemplateNamePrefix, name, index) Then
                     Dim type = DirectCast(metadataDecoder.GetTypeOfToken(handle), NamedTypeSymbol)
                     Dim key = GetAnonymousDelegateKey(type)
                     Dim value = New AnonymousTypeValue(name, index, type.GetCciAdapter())
-                    result.Add(key, value)
+                    anonymousTypes.Add(key, value)
                 End If
             Next
-            Return result
+
+            ' VB anonymous delegates are handled as anonymous types
+            Return New SynthesizedTypeMaps(
+                anonymousTypes.ToImmutable(),
+                anonymousDelegates:=Nothing,
+                anonymousDelegatesWithIndexedNames:=Nothing)
         End Function
 
         Friend Shared Function TryParseAnonymousTypeTemplateName(prefix As String, name As String, <Out()> ByRef index As Integer) As Boolean
@@ -217,60 +212,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
         Friend ReadOnly Property PreviousDefinitions As VisualBasicDefinitionMap
             Get
-                Return _previousDefinitions
+                Return DirectCast(_changes.DefinitionMap, VisualBasicDefinitionMap)
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property SupportsPrivateImplClass As Boolean
-            Get
-                ' Disable <PrivateImplementationDetails> in ENC since the
-                ' CLR does Not support adding non-private members.
-                Return False
-            End Get
-        End Property
+        Friend Overloads Function GetSynthesizedTypes() As SynthesizedTypeMaps Implements IPEDeltaAssemblyBuilder.GetSynthesizedTypes
+            ' VB anonymous delegates are handled as anonymous types
+            Dim result = New SynthesizedTypeMaps(
+                Compilation.AnonymousTypeManager.GetAnonymousTypeMap(),
+                anonymousDelegates:=Nothing,
+                anonymousDelegatesWithIndexedNames:=Nothing)
 
-        Friend Overloads Function GetAnonymousTypeMap() As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousTypeMap
-            Dim anonymousTypes = Compilation.AnonymousTypeManager.GetAnonymousTypeMap()
             ' Should contain all entries in previous generation.
-            Debug.Assert(_previousGeneration.AnonymousTypeMap.All(Function(p) anonymousTypes.ContainsKey(p.Key)))
-            Return anonymousTypes
-        End Function
+            Debug.Assert(PreviousGeneration.SynthesizedTypes.IsSubsetOf(result))
 
-        Friend Overloads Function GetAnonymousDelegates() As IReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousDelegates
-            ' VB anonymous delegates are handled as anonymous types in the method above
-            Return SpecializedCollections.EmptyReadOnlyDictionary(Of SynthesizedDelegateKey, SynthesizedDelegateValue)
-        End Function
-
-        Friend Overloads Function GetAnonymousDelegatesWithFixedTypes() As IReadOnlyDictionary(Of String, AnonymousTypeValue) Implements IPEDeltaAssemblyBuilder.GetAnonymousDelegatesWithFixedTypes
-            ' VB anonymous delegates are handled as anonymous types in the method above
-            Return SpecializedCollections.EmptyReadOnlyDictionary(Of String, AnonymousTypeValue)
+            Return result
         End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
-            Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics)
+            Return _changes.DefinitionMap.TryCreateVariableSlotAllocator(Compilation, method, topLevelMethod, diagnostics)
+        End Function
+
+        Friend Overrides Function GetMethodBodyInstrumentations(method As MethodSymbol) As MethodInstrumentation
+            Return _changes.DefinitionMap.GetMethodBodyInstrumentations(method)
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)
-            Return ImmutableArray.CreateRange(_previousGeneration.AnonymousTypeMap.Keys)
+            Return ImmutableArray.CreateRange(PreviousGeneration.SynthesizedTypes.AnonymousTypes.Keys)
         End Function
 
         Friend Overrides Function GetNextAnonymousTypeIndex(fromDelegates As Boolean) As Integer
-            Return _previousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
+            Return PreviousGeneration.GetNextAnonymousTypeIndex(fromDelegates)
         End Function
 
         Friend Overrides Function TryGetAnonymousTypeName(template As AnonymousTypeManager.AnonymousTypeOrDelegateTemplateSymbol, <Out> ByRef name As String, <Out> ByRef index As Integer) As Boolean
             Debug.Assert(Compilation Is template.DeclaringCompilation)
-            Return _previousDefinitions.TryGetAnonymousTypeName(template, name, index)
+            Return PreviousDefinitions.TryGetAnonymousTypeName(template, name, index)
         End Function
 
-        Public Overrides Iterator Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
-            For Each typeDef In GetAnonymousTypeDefinitions(context)
-                Yield typeDef
-            Next
-
-            For Each typeDef In GetTopLevelTypeDefinitionsCore(context)
-                Yield typeDef
-            Next
+        Public Overrides Function GetTopLevelTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
+            Return GetTopLevelTypeDefinitionsCore(context)
         End Function
 
         Public Overrides Function GetTopLevelSourceTypeDefinitions(context As EmitContext) As IEnumerable(Of Cci.INamespaceTypeDefinition)
@@ -299,5 +280,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return SpecializedCollections.EmptyEnumerable(Of String)()
             End Get
         End Property
+
+        Public Overrides Function TryGetOrCreateSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+            Return If(_predefinedHotReloadExceptionConstructor Is Nothing, GetOrCreateHotReloadExceptionType(), Nothing)
+        End Function
+
+        Public Overrides Function GetOrCreateHotReloadExceptionConstructorDefinition() As IMethodSymbolInternal
+            If _predefinedHotReloadExceptionConstructor IsNot Nothing Then
+                Return _predefinedHotReloadExceptionConstructor
+            End If
+
+            If _freezeHotReloadExceptionTypeUsage Then
+                ' the type shouldn't be used after usage has been frozen.
+                Throw ExceptionUtilities.Unreachable()
+            End If
+
+            _isHotReloadExceptionTypeUsed = True
+            Return GetOrCreateHotReloadExceptionType().Constructor
+        End Function
+
+        Public Overrides Function GetUsedSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+            _freezeHotReloadExceptionTypeUsage = True
+            Return If(_isHotReloadExceptionTypeUsed, _lazyHotReloadExceptionType, Nothing)
+        End Function
+
+        Private Function GetOrCreateHotReloadExceptionType() As SynthesizedHotReloadExceptionSymbol
+            Dim symbol = _lazyHotReloadExceptionType
+            If symbol IsNot Nothing Then
+                Return symbol
+            End If
+
+            Dim exceptionType = Compilation.GetWellKnownType(WellKnownType.System_Exception)
+            Dim stringType = Compilation.GetSpecialType(SpecialType.System_String)
+            Dim intType = Compilation.GetSpecialType(SpecialType.System_Int32)
+
+            Dim containingNamespace = GetOrSynthesizeNamespace(SynthesizedHotReloadExceptionSymbol.NamespaceName)
+            symbol = New SynthesizedHotReloadExceptionSymbol(containingNamespace, exceptionType, stringType, intType)
+
+            Interlocked.CompareExchange(_lazyHotReloadExceptionType, symbol, comparand:=Nothing)
+            Return _lazyHotReloadExceptionType
+        End Function
     End Class
 End Namespace

@@ -151,10 +151,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override bool IsRequired => false;
+
+        internal sealed override bool HasUnscopedRefAttribute => false;
+
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }
         }
+
+        internal override int? TryGetOverloadResolutionPriority() => null;
 
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
         {

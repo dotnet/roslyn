@@ -32,7 +32,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If this is an extension method that can be applied to an instance of the given type,
         ''' returns the curried method symbol thus formed. Otherwise, returns Nothing.
         ''' </summary>
-        Public Shared Function Create(instanceType As TypeSymbol, possiblyExtensionMethod As MethodSymbol, proximity As Integer, ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As MethodSymbol
+        Public Shared Function Create(
+                                     instanceType As TypeSymbol,
+                                     possiblyExtensionMethod As MethodSymbol,
+                                     proximity As Integer,
+                                     ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol),
+                                     languageVersion As LanguageVersion
+        ) As MethodSymbol
+
             Debug.Assert(instanceType IsNot Nothing)
             Debug.Assert(possiblyExtensionMethod IsNot Nothing)
             Debug.Assert(proximity >= 0)
@@ -104,7 +111,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                diagnostic:=inferenceDiagnostic,
                                                inferTheseTypeParameters:=fixTheseTypeParameters)
 
-
                 parameterToArgumentMap.Free()
 
                 If Not success OrElse Not reducedUseSiteInfo.Diagnostics.IsNullOrEmpty() Then
@@ -141,7 +147,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Check constraints.
                     Dim diagnosticsBuilder = ArrayBuilder(Of TypeParameterDiagnosticInfo).GetInstance()
                     Dim useSiteDiagnosticsBuilder As ArrayBuilder(Of TypeParameterDiagnosticInfo) = Nothing
-                    success = possiblyExtensionMethod.CheckConstraints(partialSubstitution,
+                    success = possiblyExtensionMethod.CheckConstraints(languageVersion,
+                                                                       partialSubstitution,
                                                                        typeParametersToFixArray,
                                                                        fixWithArray,
                                                                        diagnosticsBuilder,
@@ -722,6 +729,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+                Get
+                    Return _curriedFromTypeParameter.HasUnmanagedTypeConstraint
+                End Get
+            End Property
+
             Public Overrides ReadOnly Property ContainingSymbol As Symbol
                 Get
                     Return _curriedMethod
@@ -747,6 +760,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Public Overrides ReadOnly Property HasValueTypeConstraint As Boolean
                 Get
                     Return _curriedFromTypeParameter.HasValueTypeConstraint
+                End Get
+            End Property
+
+            Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+                Get
+                    Return _curriedFromTypeParameter.AllowsRefLikeType
                 End Get
             End Property
 
@@ -848,6 +867,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
         End Class
+
+        Friend Overrides ReadOnly Property HasSetsRequiredMembers As Boolean
+            Get
+                Return False
+            End Get
+        End Property
     End Class
 
     Friend MustInherit Class ReducedParameterSymbolBase

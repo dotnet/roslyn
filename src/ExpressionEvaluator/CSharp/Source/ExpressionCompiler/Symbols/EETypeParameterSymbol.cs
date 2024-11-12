@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public override bool HasConstructorConstraint
@@ -95,6 +95,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _sourceTypeParameter.HasValueTypeConstraint; }
         }
 
+        public override bool AllowsRefLikeType
+        {
+            get { return _sourceTypeParameter.AllowsRefLikeType; }
+        }
+
         public override bool IsValueTypeFromConstraintTypes
         {
             get
@@ -110,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override ImmutableArray<Location> Locations
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public override int Ordinal
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override TypeParameterKind TypeParameterKind
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
 
         public override VarianceKind Variance

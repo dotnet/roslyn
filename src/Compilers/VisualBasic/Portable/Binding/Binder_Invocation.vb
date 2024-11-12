@@ -841,9 +841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CheckMemberTypeAccessibility(diagnostics, node, methodOrProperty)
             End If
 
-            If bestResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
-                diagnostics.AddRange(bestResult.TypeArgumentInferenceDiagnosticsOpt)
-            End If
+            diagnostics.AddRange(bestResult.TypeArgumentInferenceDiagnosticsOpt)
 
             Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node, bestResult, boundArguments, diagnostics)
             boundArguments = argumentInfo.Arguments
@@ -1762,7 +1760,6 @@ ProduceBoundNode:
             Return If(commonReturnType, ErrorTypeSymbol.UnknownResultType)
         End Function
 
-
         Private Shared Sub ReportUnspecificProcedures(
             diagnosticLocation As Location,
             bestSymbols As ImmutableArray(Of Symbol),
@@ -1823,8 +1820,6 @@ ProduceBoundNode:
                                                     ))
         End Sub
 
-
-
         Private Sub ReportOverloadResolutionFailureForASetOfCandidates(
             node As SyntaxNode,
             diagnosticLocation As Location,
@@ -1838,7 +1833,7 @@ ProduceBoundNode:
             queryMode As Boolean,
             callerInfoOpt As SyntaxNode
         )
-            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableBindingDiagnostic(Of AssemblySymbol))).GetInstance(candidates.Count)
+            Dim diagnosticPerSymbol = ArrayBuilder(Of KeyValuePair(Of Symbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))).GetInstance(candidates.Count)
 
             If arguments.IsDefault Then
                 arguments = ImmutableArray(Of BoundExpression).Empty
@@ -1937,7 +1932,7 @@ ProduceBoundNode:
         End Sub
 
         Private Shared Function ReportCommonErrorsFromLambdas(
-            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ImmutableBindingDiagnostic(Of AssemblySymbol))),
+            diagnosticPerSymbol As ArrayBuilder(Of KeyValuePair(Of Symbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol))),
             arguments As ImmutableArray(Of BoundExpression),
             diagnostics As BindingDiagnosticBag
         ) As Boolean
@@ -2199,9 +2194,7 @@ ProduceBoundNode:
                 Next
 
                 ' Check whether type inference failed
-                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
-                    diagnostics.AddRange(candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt)
-                End If
+                diagnostics.AddRange(candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt)
 
                 If candidate.IsGeneric AndAlso candidateAnalysisResult.State = OverloadResolution.CandidateAnalysisResultState.TypeInferenceFailed Then
                     ' Bug 122092: AddressOf doesn't want detailed info on which parameters could not be
@@ -2256,8 +2249,7 @@ ProduceBoundNode:
                             ReportDiagnostic(diagnostics, diagnosticLocation, If(queryMode, ERRID.ERR_TypeInferenceFailureNoExplicitNoBest2, ERRID.ERR_TypeInferenceFailureNoBest2), If(representCandidateInDiagnosticsOpt, candidateSymbol))
                         End If
                     Else
-                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
-                           candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
+                        If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyResolvedErrors Then
                             ' Already reported some errors, let's not report a general inference error
                             Return
                         End If
@@ -2282,13 +2274,12 @@ ProduceBoundNode:
                     Dim method = DirectCast(candidate.UnderlyingSymbol, MethodSymbol)
                     ' TODO: Dev10 uses the location of the type parameter or argument that
                     ' violated the constraint, rather than  the entire invocation expression.
-                    Dim succeeded = method.CheckConstraints(diagnosticLocation, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
+                    Dim succeeded = method.CheckConstraints(Compilation.LanguageVersion, diagnosticLocation, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
                     Debug.Assert(Not succeeded)
                     Return
                 End If
 
-                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing AndAlso
-                   candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyErrors Then
+                If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt.HasAnyErrors Then
                     Return
                 End If
 
@@ -2321,7 +2312,6 @@ ProduceBoundNode:
                         ElseIf someParamArrayArgumentsBad Then
                             Continue For
                         End If
-
 
                         If paramArrayItems.Count = 1 Then
                             Dim paramArrayArgument = arguments(paramArrayItems(0))
@@ -2541,7 +2531,6 @@ ProduceBoundNode:
             End If
 
         End Sub
-
 
         ''' <summary>
         ''' Should be in sync with OverloadResolution.MatchArgumentToByValParameter.
@@ -2800,7 +2789,6 @@ ProduceBoundNode:
             parameterToArgumentMap.Free()
             Return (argumentsInOrder.ToImmutableAndFree(), defaultArguments)
         End Function
-
 
         Private Function PassArgument(
             argument As BoundExpression,
@@ -3183,7 +3171,7 @@ ProduceBoundNode:
 
                         If callerInfoValue IsNot Nothing Then
                             ' Use the value only if it will not cause errors.
-                            Dim ignoreDiagnostics = New BindingDiagnosticBag(DiagnosticBag.GetInstance())
+                            Dim ignoreDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
                             Dim literal As BoundLiteral
 
                             If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then

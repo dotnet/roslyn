@@ -3,28 +3,35 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
+using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[ExportLspServiceFactory(typeof(DocumentPullDiagnosticHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
+    IDiagnosticAnalyzerService analyzerService,
+    IDiagnosticSourceManager diagnosticSourceManager,
+    IDiagnosticsRefresher diagnosticsRefresher,
+    IGlobalOptionService globalOptions) : DocumentPullDiagnosticHandlerFactory(analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
-    [Shared]
-    [ExportLspRequestHandlerProvider(ProtocolConstants.TypeScriptLanguageContract, typeof(DocumentPullDiagnosticHandler), typeof(WorkspacePullDiagnosticHandler))]
-    internal class VSTypeScriptPullDiagnosticHandlerProvider : PullDiagnosticHandlerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptPullDiagnosticHandlerProvider(
-            IDiagnosticService diagnosticService,
-            IDiagnosticAnalyzerService analyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource) : base(diagnosticService, analyzerService, editAndContinueDiagnosticUpdateSource)
-        {
-        }
-    }
+}
+
+[ExportLspServiceFactory(typeof(WorkspacePullDiagnosticHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VSTypeScriptWorkspacePullDiagnosticHandler(
+    LspWorkspaceRegistrationService registrationService,
+    IDiagnosticAnalyzerService analyzerService,
+    IDiagnosticSourceManager diagnosticSourceManager,
+    IDiagnosticsRefresher diagnosticsRefresher,
+    IGlobalOptionService globalOptions) : WorkspacePullDiagnosticHandlerFactory(registrationService, analyzerService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
+{
 }

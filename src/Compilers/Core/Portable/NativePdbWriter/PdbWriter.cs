@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.Cci
 {
@@ -70,7 +71,7 @@ namespace Microsoft.Cci
             // A state machine kickoff method doesn't have sequence points as it only contains generated code.
             // We could avoid emitting debug info for it if the corresponding MoveNext method had no sequence points,
             // but there is no real need for such optimization.
-            // 
+            //
             // Special case a hidden entry point (#line hidden applied) that would otherwise have no debug info.
             // This is to accommodate for a requirement of Windows PDB writer that the entry point method must have some debug information.
             bool isKickoffMethod = methodBody.StateMachineTypeName != null;
@@ -79,7 +80,7 @@ namespace Microsoft.Cci
 
             var compilationOptions = Context.Module.CommonCompilation.Options;
 
-            // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
+            // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until
             // bug #1067635 is fixed and available in SDK.
             bool suppressNewCustomDebugInfo = compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata;
 
@@ -90,6 +91,7 @@ namespace Microsoft.Cci
             bool emitEncInfo = compilationOptions.EnableEditAndContinue && _metadataWriter.IsFullMetadata && !suppressNewCustomDebugInfo;
 
             byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(Context, methodBody, methodHandle, emitStateMachineInfo: emitAllDebugInfo, emitEncInfo, emitDynamicAndTupleInfo, out bool emitExternNamespaces);
+            Debug.Assert(emitAllDebugInfo || !emitExternNamespaces);
 
             if (!emitAllDebugInfo && blob.Length == 0)
             {
@@ -97,7 +99,7 @@ namespace Microsoft.Cci
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);
-            OpenMethod(methodToken, methodBody.MethodDefinition);
+            OpenMethod(methodToken);
 
             if (emitAllDebugInfo)
             {
@@ -146,7 +148,7 @@ namespace Microsoft.Cci
 
             if (blob.Length > 0)
             {
-                _symWriter.DefineCustomMetadata(blob);
+                _symWriter.DefineCustomMetadata(blob, methodBody.MethodDefinition);
             }
 
             CloseMethod(methodBody.IL.Length);
@@ -166,7 +168,7 @@ namespace Microsoft.Cci
             {
                 for (var scope = namespaceScopes; scope != null; scope = scope.Parent)
                 {
-                    foreach (var import in scope.GetUsedNamespaces())
+                    foreach (var import in scope.GetUsedNamespaces(Context))
                     {
                         if (import.TargetNamespaceOpt == null && import.TargetTypeOpt == null)
                         {
@@ -187,7 +189,7 @@ namespace Microsoft.Cci
             // file and namespace level
             for (IImportScope scope = namespaceScopes; scope != null; scope = scope.Parent)
             {
-                foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces())
+                foreach (UsedNamespaceOrType import in scope.GetUsedNamespaces(Context))
                 {
                     var importString = TryEncodeImport(import, lazyDeclaredExternAliases, isProjectLevel: false);
                     if (importString != null)
@@ -412,35 +414,49 @@ namespace Microsoft.Cci
             return result.ToStringAndFree();
         }
 
-        private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string> declaredExternAliases)
-        {
-            // no extern alias defined in scope at all -> error in compiler
-            Debug.Assert(declaredExternAliases != null);
+#nullable enable
 
+        private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string>? declaredExternAliases)
+        {
             var allAliases = _metadataWriter.Context.Module.GetAssemblyReferenceAliases(_metadataWriter.Context);
+
+            if (declaredExternAliases is not null)
+            {
+                foreach (AssemblyReferenceAlias alias in allAliases)
+                {
+                    // Multiple aliases may be given to an assembly reference.
+                    // We find one that is in scope (was imported via extern alias directive).
+                    // If multiple are in scope then use the first one.
+
+                    // NOTE: Dev12 uses the one that appeared in source, whereas we use
+                    // the first one that COULD have appeared in source.  (DevDiv #913022)
+                    // The reason we're not just using the alias from the syntax is that
+                    // it is non-trivial to locate.  In particular, since "." may be used in
+                    // place of "::", determining whether the first identifier in the name is
+                    // the alias requires binding.  For example, "using A.B;" could refer to
+                    // either "A::B" or "global::A.B".
+
+                    if (assembly == alias.Assembly && declaredExternAliases.Contains(alias.Name))
+                    {
+                        return alias.Name;
+                    }
+                }
+            }
+
+            // no alias defined in scope for given assembly -> must be a 'global' using, use the first defined alias
             foreach (AssemblyReferenceAlias alias in allAliases)
             {
-                // Multiple aliases may be given to an assembly reference.
-                // We find one that is in scope (was imported via extern alias directive).
-                // If multiple are in scope then use the first one.
-
-                // NOTE: Dev12 uses the one that appeared in source, whereas we use
-                // the first one that COULD have appeared in source.  (DevDiv #913022)
-                // The reason we're not just using the alias from the syntax is that
-                // it is non-trivial to locate.  In particular, since "." may be used in
-                // place of "::", determining whether the first identifier in the name is
-                // the alias requires binding.  For example, "using A.B;" could refer to
-                // either "A::B" or "global::A.B".
-
-                if (assembly == alias.Assembly && declaredExternAliases.Contains(alias.Name))
+                if (assembly == alias.Assembly)
                 {
                     return alias.Name;
                 }
             }
 
-            // no alias defined in scope for given assembly -> error in compiler
-            throw ExceptionUtilities.Unreachable;
+            // no alias defined for given assembly -> error in compiler
+            throw ExceptionUtilities.Unreachable();
         }
+
+#nullable disable
 
         private void DefineLocalScopes(ImmutableArray<LocalScope> scopes, StandaloneSignatureHandle localSignatureHandleOpt)
         {
@@ -622,7 +638,7 @@ namespace Microsoft.Cci
             return documentIndex;
         }
 
-        private void OpenMethod(int methodToken, IMethodDefinition method)
+        private void OpenMethod(int methodToken)
         {
             _symWriter.OpenMethod(methodToken);
 

@@ -5,13 +5,8 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.MetadataAsSource
+namespace Microsoft.CodeAnalysis.MetadataAsSource;
+
+internal sealed class MetadataAsSourceFileProviderMetadata(IDictionary<string, object> data) : OrderableLanguageMetadata(data)
 {
-    internal class MetadataAsSourceFileProviderMetadata : OrderableLanguageMetadata
-    {
-        public MetadataAsSourceFileProviderMetadata(IDictionary<string, object> data)
-            : base(data)
-        {
-        }
-    }
 }

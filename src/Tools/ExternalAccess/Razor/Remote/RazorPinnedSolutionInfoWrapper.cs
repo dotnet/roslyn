@@ -3,20 +3,22 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
+    /// <summary>
+    /// A wrapper for a solution that can be used by Razor for OOP services that communicate via MessagePack
+    /// </summary>
     [DataContract]
     internal readonly struct RazorPinnedSolutionInfoWrapper
     {
         [DataMember(Order = 0)]
-        internal readonly PinnedSolutionInfo UnderlyingObject;
+        internal readonly Checksum UnderlyingObject;
 
-        public RazorPinnedSolutionInfoWrapper(PinnedSolutionInfo underlyingObject)
+        public RazorPinnedSolutionInfoWrapper(Checksum underlyingObject)
             => UnderlyingObject = underlyingObject;
 
-        public static implicit operator RazorPinnedSolutionInfoWrapper(PinnedSolutionInfo info)
+        public static implicit operator RazorPinnedSolutionInfoWrapper(Checksum info)
             => new(info);
     }
 }

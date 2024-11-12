@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace CompilationCreationTestHelpers
     Friend Module Helpers
@@ -94,8 +94,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             For i As Integer = 1 To SpecialType.Count Step 1
                 Dim type As NamedTypeSymbol = c1.Assembly.GetSpecialType(CType(i, SpecialType))
 
-                If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature Or
-                   i = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute Then
+                If i = SpecialType.System_Runtime_CompilerServices_RuntimeFeature OrElse
+                   i = SpecialType.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute OrElse
+                   i = SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute Then
                     Assert.Equal(type.Kind, SymbolKind.ErrorType) ' Not available
                 Else
                     Assert.NotEqual(type.Kind, SymbolKind.ErrorType)
@@ -238,7 +239,7 @@ End Namespace
 
         <Fact()>
         Public Sub CyclicReference()
-            Dim mscorlibRef = Net451.mscorlib
+            Dim mscorlibRef = NetFramework.mscorlib
             Dim cyclic2Ref = TestReferences.SymbolsTests.Cyclic.Cyclic2.dll
 
             Dim tc1 = VisualBasicCompilation.Create("Cyclic1", references:={mscorlibRef, cyclic2Ref})
@@ -260,7 +261,7 @@ End Namespace
             Dim varV1MTTestLib2Path = TestReferences.SymbolsTests.V1.MTTestLib2.dll
             Dim asm1 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+                Net40.References.mscorlib,
                 varV1MTTestLib2Path
             })
 
@@ -273,9 +274,9 @@ End Namespace
 
             Dim asm2 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+                Net40.References.mscorlib,
                 varV1MTTestLib2Path,
-            TestReferences.SymbolsTests.V1.MTTestLib1.dll
+                TestReferences.SymbolsTests.V1.MTTestLib1.dll
             })
 
             Assert.Same(asm2(0), asm1(0))
@@ -297,9 +298,9 @@ End Namespace
             Dim varV2MTTestLib3Path = TestReferences.SymbolsTests.V2.MTTestLib3.dll
             Dim asm3 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+                Net40.References.mscorlib,
                 varV1MTTestLib2Path,
-            TestReferences.SymbolsTests.V2.MTTestLib1.dll,
+                TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                 varV2MTTestLib3Path
             })
 
@@ -340,7 +341,7 @@ End Namespace
             Dim varV3MTTestLib4Path = TestReferences.SymbolsTests.V3.MTTestLib4.dll
             Dim asm4 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+            Net40.References.mscorlib,
                 varV1MTTestLib2Path,
             TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                 varV2MTTestLib3Path,
@@ -408,7 +409,7 @@ End Namespace
             Assert.Same(retval14, asm4(3).GlobalNamespace.GetMembers("Class5").Single())
             Dim asm5 = GetSymbolsForReferences(
             {
-                Net40.mscorlib,
+                Net40.References.mscorlib,
                 TestReferences.SymbolsTests.V2.MTTestLib3.dll
             })
 
@@ -416,7 +417,7 @@ End Namespace
             Assert.True(asm5(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(asm3(3)))
             Dim asm6 = GetSymbolsForReferences(
             {
-                Net40.mscorlib,
+                Net40.References.mscorlib,
                 TestReferences.SymbolsTests.V1.MTTestLib2.dll
             })
 
@@ -424,7 +425,7 @@ End Namespace
             Assert.Same(asm6(1), asm1(1))
             Dim asm7 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+            Net40.References.mscorlib,
             TestReferences.SymbolsTests.V1.MTTestLib2.dll,
             TestReferences.SymbolsTests.V2.MTTestLib3.dll,
             TestReferences.SymbolsTests.V3.MTTestLib4.dll
@@ -471,7 +472,7 @@ End Namespace
             ' This test shows that simple reordering of references doesn't pick different set of assemblies
             Dim asm8 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+            Net40.References.mscorlib,
             TestReferences.SymbolsTests.V3.MTTestLib4.dll,
             TestReferences.SymbolsTests.V1.MTTestLib2.dll,
             TestReferences.SymbolsTests.V2.MTTestLib3.dll
@@ -486,7 +487,7 @@ End Namespace
             Assert.Same(asm8(1), asm7(3))
             Dim asm9 = GetSymbolsForReferences(
             {
-                Net40.mscorlib,
+                Net40.References.mscorlib,
                 TestReferences.SymbolsTests.V3.MTTestLib4.dll
             })
 
@@ -494,7 +495,7 @@ End Namespace
             Assert.True(asm9(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(asm4(4)))
             Dim asm10 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+            Net40.References.mscorlib,
             TestReferences.SymbolsTests.V1.MTTestLib2.dll,
             TestReferences.SymbolsTests.V3.MTTestLib1.dll,
             TestReferences.SymbolsTests.V2.MTTestLib3.dll,
@@ -666,7 +667,7 @@ End Namespace
 Public Class Class1
 
 End Class
-                </text>.Value}, {Net451.mscorlib})
+                </text>.Value}, {NetFramework.mscorlib})
 
             Dim asm_MTTestLib1_V1 = varC_MTTestLib1_V1.SourceAssembly().BoundReferences()
             Dim varMTTestLib2_Name = New AssemblyIdentity("MTTestLib2")
@@ -679,14 +680,14 @@ Public Class Class4
     Public Bar As Class1
 
 End Class
-                </text>.Value}, {Net451.mscorlib, varC_MTTestLib1_V1.ToMetadataReference()})
+                </text>.Value}, {NetFramework.mscorlib, varC_MTTestLib1_V1.ToMetadataReference()})
 
             Dim asm_MTTestLib2 = varC_MTTestLib2.SourceAssembly().BoundReferences()
             Assert.Same(asm_MTTestLib2(0), asm_MTTestLib1_V1(0))
             Assert.Same(asm_MTTestLib2(1), varC_MTTestLib1_V1.SourceAssembly())
 
             Dim c2 = CreateEmptyCompilation(New AssemblyIdentity("c2"), Nothing,
-                                       {Net451.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V1.ToMetadataReference()})
+                                       {NetFramework.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V1.ToMetadataReference()})
 
             Dim asm2 = c2.SourceAssembly().BoundReferences()
             Assert.Same(asm2(0), asm_MTTestLib1_V1(0))
@@ -712,7 +713,7 @@ End Class
 Public Class Class2
 
 End Class
-                </text>.Value}, {Net451.mscorlib})
+                </text>.Value}, {NetFramework.mscorlib})
             Dim asm_MTTestLib1_V2 = varC_MTTestLib1_V2.SourceAssembly().BoundReferences()
             Dim varMTTestLib3_Name = New AssemblyIdentity("MTTestLib3")
             Dim varC_MTTestLib3 = CreateEmptyCompilation(varMTTestLib3_Name, New String() {<text>
@@ -733,12 +734,12 @@ Public Class Class5
     Public Bar2 As Class2
     Public Bar3 As Class4
 End Class
-                </text>.Value}, {Net451.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V2.ToMetadataReference()})
+                </text>.Value}, {NetFramework.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V2.ToMetadataReference()})
             Dim asm_MTTestLib3 = varC_MTTestLib3.SourceAssembly().BoundReferences()
             Assert.Same(asm_MTTestLib3(0), asm_MTTestLib1_V1(0))
             Assert.NotSame(asm_MTTestLib3(1), varC_MTTestLib2.SourceAssembly())
             Assert.NotSame(asm_MTTestLib3(2), varC_MTTestLib1_V1.SourceAssembly())
-            Dim c3 = CreateEmptyCompilation(New AssemblyIdentity("c3"), Nothing, {Net451.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V2.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference()})
+            Dim c3 = CreateEmptyCompilation(New AssemblyIdentity("c3"), Nothing, {NetFramework.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V2.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference()})
             Dim asm3 = c3.SourceAssembly().BoundReferences()
             Assert.Same(asm3(0), asm_MTTestLib1_V1(0))
             Assert.Same(asm3(1), asm_MTTestLib3(1))
@@ -786,7 +787,7 @@ End Class
 Public Class Class3
 
 End Class
-                </text>.Value}, {Net451.mscorlib})
+                </text>.Value}, {NetFramework.mscorlib})
             Dim asm_MTTestLib1_V3 = varC_MTTestLib1_V3.SourceAssembly().BoundReferences()
             Dim varMTTestLib4_Name = New AssemblyIdentity("MTTestLib4")
             Dim varC_MTTestLib4 = CreateEmptyCompilation(varMTTestLib4_Name, New String() {<text>
@@ -818,7 +819,7 @@ Public Class Class6
     Public Bar5 As Class5
 
 End Class
-                </text>.Value}, {Net451.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V3.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference()})
+                </text>.Value}, {NetFramework.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib1_V3.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference()})
 
             Dim asm_MTTestLib4 = varC_MTTestLib4.SourceAssembly().BoundReferences()
             Assert.Same(asm_MTTestLib4(0), asm_MTTestLib1_V1(0))
@@ -828,7 +829,7 @@ End Class
 
             Dim c4 = CreateEmptyCompilation(New AssemblyIdentity("c4"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                        varC_MTTestLib2.ToMetadataReference(),
                                        varC_MTTestLib1_V3.ToMetadataReference(),
                                        varC_MTTestLib3.ToMetadataReference(),
@@ -898,15 +899,15 @@ End Class
             Dim retval14 = type3.GetMembers("Foo5").OfType(Of MethodSymbol)().Single().ReturnType
             Assert.NotEqual(SymbolKind.ErrorType, retval14.Kind)
             Assert.Same(retval14, asm4(3).GlobalNamespace.GetMembers("Class5").Single())
-            Dim c5 = CreateEmptyCompilation(New AssemblyIdentity("c5"), Nothing, {Net451.mscorlib, varC_MTTestLib3.ToMetadataReference()})
+            Dim c5 = CreateEmptyCompilation(New AssemblyIdentity("c5"), Nothing, {NetFramework.mscorlib, varC_MTTestLib3.ToMetadataReference()})
             Dim asm5 = c5.SourceAssembly().BoundReferences()
             Assert.Same(asm5(0), asm2(0))
             Assert.True(asm5(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(asm3(3)))
-            Dim c6 = CreateEmptyCompilation(New AssemblyIdentity("c6"), Nothing, {Net451.mscorlib, varC_MTTestLib2.ToMetadataReference()})
+            Dim c6 = CreateEmptyCompilation(New AssemblyIdentity("c6"), Nothing, {NetFramework.mscorlib, varC_MTTestLib2.ToMetadataReference()})
             Dim asm6 = c6.SourceAssembly().BoundReferences()
             Assert.Same(asm6(0), asm2(0))
             Assert.True(asm6(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(varC_MTTestLib2.SourceAssembly()))
-            Dim c7 = CreateEmptyCompilation(New AssemblyIdentity("c6"), Nothing, {Net451.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference(), varC_MTTestLib4.ToMetadataReference()})
+            Dim c7 = CreateEmptyCompilation(New AssemblyIdentity("c6"), Nothing, {NetFramework.mscorlib, varC_MTTestLib2.ToMetadataReference(), varC_MTTestLib3.ToMetadataReference(), varC_MTTestLib4.ToMetadataReference()})
             Dim asm7 = c7.SourceAssembly().BoundReferences()
             Assert.Same(asm7(0), asm2(0))
             Assert.True(asm7(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(varC_MTTestLib2.SourceAssembly()))
@@ -949,7 +950,7 @@ End Class
 
             ' This test shows that simple reordering of references doesn't pick different set of assemblies
             Dim c8 = CreateEmptyCompilation(New AssemblyIdentity("c8"), Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                        varC_MTTestLib4.ToMetadataReference(),
                                        varC_MTTestLib2.ToMetadataReference(),
                                        varC_MTTestLib3.ToMetadataReference()})
@@ -962,13 +963,13 @@ End Class
             Assert.Same(asm8(3), asm7(2))
             Assert.True(asm8(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(asm4(4)))
             Assert.Same(asm8(1), asm7(3))
-            Dim c9 = CreateEmptyCompilation(New AssemblyIdentity("c9"), Nothing, {Net451.mscorlib, varC_MTTestLib4.ToMetadataReference()})
+            Dim c9 = CreateEmptyCompilation(New AssemblyIdentity("c9"), Nothing, {NetFramework.mscorlib, varC_MTTestLib4.ToMetadataReference()})
             Dim asm9 = c9.SourceAssembly().BoundReferences()
             Assert.Same(asm9(0), asm2(0))
             Assert.True(asm9(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(asm4(4)))
 
             Dim c10 = CreateEmptyCompilation(New AssemblyIdentity("c10"), Nothing,
-                                        {Net451.mscorlib,
+                                        {NetFramework.mscorlib,
                                         varC_MTTestLib2.ToMetadataReference(),
                                         varC_MTTestLib1_V3.ToMetadataReference(),
                                         varC_MTTestLib3.ToMetadataReference(),
@@ -1145,14 +1146,14 @@ End Class
             Dim varMTTestLib2_Name = New AssemblyIdentity("MTTestLib2")
             Dim varC_MTTestLib2 = CreateEmptyCompilation(varMTTestLib2_Name,
                                                     Nothing,
-                                                    {Net451.mscorlib,
+                                                    {NetFramework.mscorlib,
                                                     TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                                                     TestReferences.SymbolsTests.V1.MTTestModule2.netmodule})
 
             Dim asm_MTTestLib2 = varC_MTTestLib2.SourceAssembly().BoundReferences()
             Dim c2 = CreateEmptyCompilation(New AssemblyIdentity("c2"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                        TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                                        New VisualBasicCompilationReference(varC_MTTestLib2)})
 
@@ -1177,7 +1178,7 @@ End Class
 
             Dim varC_MTTestLib3 = CreateEmptyCompilation(varMTTestLib3_Name,
                                                     Nothing,
-                                                    {Net451.mscorlib,
+                                                    {NetFramework.mscorlib,
                                                     TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                                                     New VisualBasicCompilationReference(varC_MTTestLib2),
                                                     TestReferences.SymbolsTests.V2.MTTestModule3.netmodule})
@@ -1190,7 +1191,7 @@ End Class
 
             Dim c3 = CreateEmptyCompilation(New AssemblyIdentity("c3"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                        TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                                        New VisualBasicCompilationReference(varC_MTTestLib2),
                                        New VisualBasicCompilationReference(varC_MTTestLib3)})
@@ -1236,7 +1237,7 @@ End Class
 
             Dim varC_MTTestLib4 = CreateEmptyCompilation(varMTTestLib4_Name,
                                                     Nothing,
-                                                    {Net451.mscorlib,
+                                                    {NetFramework.mscorlib,
                                                     TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                                                     New VisualBasicCompilationReference(varC_MTTestLib2),
                                                     New VisualBasicCompilationReference(varC_MTTestLib3),
@@ -1252,7 +1253,7 @@ End Class
 
             Dim c4 = CreateEmptyCompilation(New AssemblyIdentity("c4"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                         TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                                         New VisualBasicCompilationReference(varC_MTTestLib2),
                                         New VisualBasicCompilationReference(varC_MTTestLib3),
@@ -1326,7 +1327,7 @@ End Class
 
             Dim c5 = CreateEmptyCompilation(New AssemblyIdentity("c5"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                         New VisualBasicCompilationReference(varC_MTTestLib3)})
 
             Dim asm5 = c5.SourceAssembly().BoundReferences()
@@ -1336,7 +1337,7 @@ End Class
 
             Dim c6 = CreateEmptyCompilation(New AssemblyIdentity("c6"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                         New VisualBasicCompilationReference(varC_MTTestLib2)})
 
             Dim asm6 = c6.SourceAssembly().BoundReferences()
@@ -1346,7 +1347,7 @@ End Class
 
             Dim c7 = CreateEmptyCompilation(New AssemblyIdentity("c7"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                         New VisualBasicCompilationReference(varC_MTTestLib2),
                                         New VisualBasicCompilationReference(varC_MTTestLib3),
                                         New VisualBasicCompilationReference(varC_MTTestLib4)})
@@ -1402,7 +1403,7 @@ End Class
             ' This test shows that simple reordering of references doesn't pick different set of assemblies
             Dim c8 = CreateEmptyCompilation(New AssemblyIdentity("c8"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                         New VisualBasicCompilationReference(varC_MTTestLib4),
                                         New VisualBasicCompilationReference(varC_MTTestLib2),
                                         New VisualBasicCompilationReference(varC_MTTestLib3)})
@@ -1424,7 +1425,7 @@ End Class
 
             Dim c9 = CreateEmptyCompilation(New AssemblyIdentity("c9"),
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                         New VisualBasicCompilationReference(varC_MTTestLib4)})
 
             Dim asm9 = c9.SourceAssembly().BoundReferences()
@@ -1434,7 +1435,7 @@ End Class
 
             Dim c10 = CreateEmptyCompilation(New AssemblyIdentity("c10"),
                                         Nothing,
-                                        {Net451.mscorlib,
+                                        {NetFramework.mscorlib,
                                         TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                                         New VisualBasicCompilationReference(varC_MTTestLib2),
                                         New VisualBasicCompilationReference(varC_MTTestLib3),
@@ -1642,7 +1643,7 @@ End Class
 
             Dim c1_V1 As VisualBasicCompilation = CreateEmptyCompilation(c1_V1_Name,
                                {source1.Value},
-                               {Net451.mscorlib})
+                               {NetFramework.mscorlib})
 
             Dim asm1_V1 = c1_V1.SourceAssembly
 
@@ -1650,7 +1651,7 @@ End Class
 
             Dim c1_V2 As VisualBasicCompilation = CreateEmptyCompilation(c1_V2_Name,
                                {source1.Value},
-                               {Net451.mscorlib})
+                               {NetFramework.mscorlib})
 
             Dim asm1_V2 = c1_V2.SourceAssembly
 
@@ -1660,12 +1661,11 @@ Public Class C4
 End Class
 </s4>
 
-
             Dim c4_V1_Name = New AssemblyIdentity("c4", New Version("1.0.0.0"))
 
             Dim c4_V1 As VisualBasicCompilation = CreateEmptyCompilation(c4_V1_Name,
                                {source4.Value},
-                               {Net451.mscorlib})
+                               {NetFramework.mscorlib})
 
             Dim asm4_V1 = c4_V1.SourceAssembly
 
@@ -1673,7 +1673,7 @@ End Class
 
             Dim c4_V2 As VisualBasicCompilation = CreateEmptyCompilation(c4_V2_Name,
                                {source4.Value},
-                               {Net451.mscorlib})
+                               {NetFramework.mscorlib})
 
             Dim asm4_V2 = c4_V2.SourceAssembly
 
@@ -1688,10 +1688,9 @@ End Class
 
             Dim c7 As VisualBasicCompilation = CreateEmptyCompilation(New AssemblyIdentity("C7"),
                                {source7.Value},
-                               {Net451.mscorlib})
+                               {NetFramework.mscorlib})
 
             Dim asm7 = c7.SourceAssembly
-
 
             Dim source3 =
         <s3>
@@ -1763,7 +1762,7 @@ End Namespace
 
             Dim c3 As VisualBasicCompilation = CreateEmptyCompilation(New AssemblyIdentity("C3"),
                                {source3.Value},
-                               {Net451.mscorlib,
+                               {NetFramework.mscorlib,
                                 New VisualBasicCompilationReference(c1_V1),
                                 New VisualBasicCompilationReference(c4_V1),
                                 New VisualBasicCompilationReference(c7)})
@@ -1771,7 +1770,6 @@ End Namespace
             Dim asm3 = c3.SourceAssembly
 
             Dim localC3Foo2 = asm3.GlobalNamespace.GetTypeMembers("C3").Single().GetMembers("Foo2").OfType(Of MethodSymbol)().Single()
-
 
             Dim source5 =
         <s5>
@@ -1782,7 +1780,7 @@ End Class
 
             Dim c5 As VisualBasicCompilation = CreateEmptyCompilation(New AssemblyIdentity("C5"),
                                {source5.Value},
-                               {Net451.mscorlib,
+                               {NetFramework.mscorlib,
                                New VisualBasicCompilationReference(c3),
                                New VisualBasicCompilationReference(c1_V2),
                                New VisualBasicCompilationReference(c4_V2),
@@ -1999,7 +1997,7 @@ End Class
             Dim c2_Name = New AssemblyIdentity("MTTestLib2")
             Dim c2 = CreateEmptyCompilation(c2_Name,
                                        Nothing,
-                                       {Net451.mscorlib,
+                                       {NetFramework.mscorlib,
                                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                                         New VisualBasicCompilationReference(c1)})
 
@@ -2041,9 +2039,9 @@ End Class
 
         <Fact()>
         Public Sub AddRemoveReferences()
-            Dim mscorlibRef = Net451.mscorlib
-            Dim systemCoreRef = Net451.SystemCore
-            Dim systemRef = Net451.System
+            Dim mscorlibRef = NetFramework.mscorlib
+            Dim systemCoreRef = NetFramework.SystemCore
+            Dim systemRef = NetFramework.System
 
             Dim c = VisualBasicCompilation.Create("Test")
             Assert.False(HasSingleTypeOfKind(c, TypeKind.Structure, "System.Int32"))
@@ -2062,8 +2060,6 @@ End Class
             c = c.RemoveReferences(mscorlibRef)
             Assert.False(HasSingleTypeOfKind(c, TypeKind.Structure, "System.Int32"))
         End Sub
-
-
 
         <Fact()>
         Public Sub SyntaxTreeOrderConstruct()
@@ -2192,7 +2188,6 @@ End Class
             Assert.IsType(Of SourceNamedTypeSymbol)(sourceType)
             Assert.Equal(lib2, sourceType.DeclaringCompilation)
 
-
             Dim addedModule = sourceAssembly.Modules(1)
             Dim addedModuleAssembly = addedModule.ContainingAssembly
             Dim addedModuleType = addedModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C1")
@@ -2235,6 +2230,41 @@ End Class
                     Assert.Equal(Math.Sign(compilation.CompareSourceLocations(types(i).Locations(0), types(j).Locations(0))), Math.Sign(i.CompareTo(j)))
                 Next
             Next
+        End Sub
+
+        <Fact>
+        Public Sub RuntimeCapabilitiesSupported()
+            Dim compilation = VisualBasicCompilation.Create("Compilation")
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net50, Nothing))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net60, Nothing))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.False(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
+
+            compilation = VisualBasicCompilation.Create("Compilation", references:=TargetFrameworkUtil.GetReferences(TargetFramework.Net70, Nothing))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.ByRefFields))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.CovariantReturnsOfClasses))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.UnmanagedSignatureCallingConvention))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.VirtualStaticsInInterfaces))
+            Assert.True(compilation.SupportsRuntimeCapability(RuntimeCapability.DefaultImplementationsOfInterfaces))
         End Sub
     End Class
 End Namespace

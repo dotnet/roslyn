@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
@@ -11,12 +10,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
     internal readonly struct PythiaPinnedSolutionInfoWrapper
     {
         [DataMember(Order = 0)]
-        internal readonly PinnedSolutionInfo UnderlyingObject;
+        internal readonly Checksum UnderlyingObject;
 
-        public PythiaPinnedSolutionInfoWrapper(PinnedSolutionInfo underlyingObject)
+        public PythiaPinnedSolutionInfoWrapper(Checksum underlyingObject)
             => UnderlyingObject = underlyingObject;
 
-        public static implicit operator PythiaPinnedSolutionInfoWrapper(PinnedSolutionInfo info)
+        public static implicit operator PythiaPinnedSolutionInfoWrapper(Checksum info)
             => new(info);
     }
 }

@@ -27,16 +27,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
         {
             // Embedded attributes should never be synthesized in modules.
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
+        // Emitting netmodules is not supported by EnC.
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
+
+        public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
+            => null;
+
+        public override IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType()
+            => null;
 
         public override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context) => SpecializedCollections.EmptyEnumerable<Cci.IFileReference>();
         public override ISourceAssemblySymbolInternal? SourceAssemblyOpt => null;

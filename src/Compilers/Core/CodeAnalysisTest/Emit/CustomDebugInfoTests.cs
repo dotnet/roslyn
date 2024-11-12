@@ -4,19 +4,15 @@
 
 #nullable disable
 
-extern alias PDB;
-
 using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
-using PDB::Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -203,10 +199,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
 
             var cmw = new BlobBuilder();
 
-            new EditAndContinueMethodDebugInformation(123, slots, closures, lambdas).SerializeLocalSlots(cmw);
+            new EditAndContinueMethodDebugInformation(123, slots, closures, lambdas, states).SerializeLocalSlots(cmw);
 
             var bytes = cmw.ToImmutableArray();
             AssertEx.Equal(new byte[] { 0xFF, 0xC0, 0x00, 0x4E, 0x20, 0x81, 0xC0, 0x00, 0x4E, 0x1F, 0x0A, 0x9A, 0x00, 0x0A }, bytes);
@@ -231,9 +228,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
             var cmw = new BlobBuilder();
 
-            new EditAndContinueMethodDebugInformation(0x7b, slots, closures, lambdas).SerializeLambdaMap(cmw);
+            new EditAndContinueMethodDebugInformation(0x7b, slots, closures, lambdas, states).SerializeLambdaMap(cmw);
 
             var bytes = cmw.ToImmutableArray();
 
@@ -252,10 +250,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, new DebugId(0, 0), LambdaDebugInfo.StaticClosureOrdinal));
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
 
             var cmw = new BlobBuilder();
 
-            new EditAndContinueMethodDebugInformation(-1, slots, closures, lambdas).SerializeLambdaMap(cmw);
+            new EditAndContinueMethodDebugInformation(-1, slots, closures, lambdas, states).SerializeLambdaMap(cmw);
 
             var bytes = cmw.ToImmutableArray();
 
@@ -275,10 +274,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
             var closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
 
             var cmw = new BlobBuilder();
 
-            new EditAndContinueMethodDebugInformation(10, slots, closures, lambdas).SerializeLambdaMap(cmw);
+            new EditAndContinueMethodDebugInformation(10, slots, closures, lambdas, states).SerializeLambdaMap(cmw);
 
             var bytes = cmw.ToImmutableArray();
 
@@ -288,6 +288,56 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
 
             AssertEx.Equal(closures, deserialized.Closures);
             AssertEx.Equal(lambdas, deserialized.Lambdas);
+        }
+
+        [Fact]
+        public void StateMachineStateDebugInfo()
+        {
+            var cmw = new BlobBuilder();
+
+            var info = new EditAndContinueMethodDebugInformation(
+                methodOrdinal: 1,
+                localSlots: ImmutableArray<LocalSlotDebugInfo>.Empty,
+                closures: ImmutableArray<ClosureDebugInfo>.Empty,
+                lambdas: ImmutableArray<LambdaDebugInfo>.Empty,
+                stateMachineStates: ImmutableArray.Create(
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(2), (StateMachineState)0),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x30, new AwaitDebugId(0), (StateMachineState)5),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(0), (StateMachineState)1),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x20, new AwaitDebugId(0), (StateMachineState)3),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(1), (StateMachineState)2),
+                    new StateMachineStateDebugInfo(syntaxOffset: 0x20, new AwaitDebugId(1), (StateMachineState)4)
+                ));
+
+            info.SerializeStateMachineStates(cmw);
+
+            var bytes = cmw.ToImmutableArray();
+            AssertEx.Equal(new byte[] { 0x06, 0x00, 0x02, 0x10, 0x04, 0x10, 0x00, 0x10, 0x06, 0x20, 0x08, 0x20, 0x0A, 0x30 }, bytes);
+
+            var deserialized = EditAndContinueMethodDebugInformation.Create(
+                compressedSlotMap: ImmutableArray<byte>.Empty,
+                compressedLambdaMap: ImmutableArray<byte>.Empty,
+                compressedStateMachineStateMap: bytes).StateMachineStates;
+
+            AssertEx.Equal(new[]
+            {
+                new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(0), (StateMachineState)1),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(1), (StateMachineState)2),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x10, new AwaitDebugId(2), (StateMachineState)0),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x20, new AwaitDebugId(0), (StateMachineState)3),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x20, new AwaitDebugId(1), (StateMachineState)4),
+                new StateMachineStateDebugInfo(syntaxOffset: 0x30, new AwaitDebugId(0), (StateMachineState)5),
+            }, deserialized);
+        }
+
+        [Fact]
+        public void StateMachineStateDebugInfo_BadData()
+        {
+            // not sorted:
+            Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(
+                compressedSlotMap: ImmutableArray<byte>.Empty,
+                compressedLambdaMap: ImmutableArray<byte>.Empty,
+                compressedStateMachineStateMap: ImmutableArray.Create<byte>(0x06, 0x00, 0x02, 0x20, 0x04, 0x10, 0x00, 0x10, 0x06, 0x20, 0x08, 0x20, 0x0A, 0x30)));
         }
 
         [Fact]
@@ -307,7 +357,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LambdaDebugInfo(-50, new DebugId(1, 0), 0),
                 new LambdaDebugInfo(-180, new DebugId(2, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
-            var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas);
+            var states = ImmutableArray<StateMachineStateDebugInfo>.Empty;
+
+            var debugInfo = new EditAndContinueMethodDebugInformation(1, slots, closures, lambdas, states);
 
             var builder = new BlobBuilder();
             var cdiEncoder = new CustomDebugInfoEncoder(builder);

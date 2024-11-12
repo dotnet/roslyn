@@ -24,11 +24,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             string expected,
             string code,
             string language,
-            bool debugMode = false,
             OptionsCollection? changedOptionSet = null,
             bool testWithTransformation = true)
         {
-            return AssertFormatAsync(expected, code, new[] { new TextSpan(0, code.Length) }, language, debugMode, changedOptionSet, testWithTransformation);
+            return AssertFormatAsync(expected, code, [new TextSpan(0, code.Length)], language, changedOptionSet, testWithTransformation);
         }
 
         private protected async Task AssertFormatAsync(
@@ -36,50 +35,38 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             string code,
             IEnumerable<TextSpan> spans,
             string language,
-#pragma warning disable IDE0060 // Remove unused parameter - https://github.com/dotnet/roslyn/issues/44225
-            bool debugMode = false,
-#pragma warning restore IDE0060 // Remove unused parameter
-            OptionsCollection? changedOptionSet = null,
+            OptionsCollection? changedOptions = null,
             bool treeCompare = true,
             ParseOptions? parseOptions = null)
         {
-            using (var workspace = new AdhocWorkspace())
+            using var workspace = new AdhocWorkspace();
+            var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", language);
+            if (parseOptions != null)
             {
-                var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", language);
-                if (parseOptions != null)
-                {
-                    project = project.WithParseOptions(parseOptions);
-                }
-
-                var document = project.AddDocument("Document", SourceText.From(code));
-
-                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-
-                var optionSet = workspace.Options;
-                if (changedOptionSet != null)
-                {
-                    foreach (var entry in changedOptionSet)
-                    {
-                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value);
-                    }
-                }
-
-                var root = await syntaxTree.GetRootAsync();
-                var options = SyntaxFormattingOptions.Create(optionSet, workspace.Services, root.Language);
-
-                await AssertFormatAsync(workspace.Services, expected, root, spans.AsImmutable(), options, await document.GetTextAsync());
-
-                // format with node and transform
-                AssertFormatWithTransformation(workspace.Services, expected, root, spans, options, treeCompare, parseOptions);
+                project = project.WithParseOptions(parseOptions);
             }
+
+            var document = project.AddDocument("Document", SourceText.From(code));
+
+            var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
+            var formattingOptions = changedOptions != null
+                ? formattingService.GetFormattingOptions(changedOptions)
+                : formattingService.DefaultOptions;
+
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+            var root = await syntaxTree.GetRootAsync();
+            await AssertFormatAsync(workspace.Services.SolutionServices, expected, root, spans.AsImmutable(), formattingOptions, await document.GetTextAsync());
+
+            // format with node and transform
+            AssertFormatWithTransformation(workspace.Services.SolutionServices, expected, root, spans, formattingOptions, treeCompare, parseOptions);
         }
 
         protected abstract SyntaxNode ParseCompilation(string text, ParseOptions? parseOptions);
 
         internal void AssertFormatWithTransformation(
-            HostWorkspaceServices services, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, SyntaxFormattingOptions options, bool treeCompare = true, ParseOptions? parseOptions = null)
+            SolutionServices services, string expected, SyntaxNode root, IEnumerable<TextSpan> spans, SyntaxFormattingOptions options, bool treeCompare = true, ParseOptions? parseOptions = null)
         {
-            var newRootNode = Formatter.Format(root, spans, services, options, rules: null, CancellationToken.None);
+            var newRootNode = Formatter.Format(root, spans, services, options, rules: default, CancellationToken.None);
 
             Assert.Equal(expected, newRootNode.ToFullString());
 
@@ -93,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             }
         }
 
-        private static async Task AssertFormatAsync(HostWorkspaceServices services, string expected, SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SourceText sourceText)
+        private static async Task AssertFormatAsync(SolutionServices services, string expected, SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SourceText sourceText)
         {
             // Verify formatting the input code produces the expected result
             var result = Formatter.GetFormattedTextChanges(root, spans, services, options);

@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -37,7 +36,6 @@ namespace IdeCoreBenchmarks
         public void GlobalSetup()
         {
             RestoreCompilerSolution();
-            SetUpWorkspace();
         }
 
         [IterationSetup]
@@ -51,15 +49,6 @@ namespace IdeCoreBenchmarks
             restoreOperation.WaitForExit();
             if (restoreOperation.ExitCode != 0)
                 throw new ArgumentException($"Unable to restore {_solutionPath}");
-        }
-
-        private static void SetUpWorkspace()
-        {
-            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
-            // installations on .NET Core. We use the one with the most recent version.
-            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
-
-            MSBuildLocator.RegisterInstance(msBuildInstance);
         }
 
         private async Task LoadSolutionAsync()
@@ -86,9 +75,6 @@ namespace IdeCoreBenchmarks
             if (_workspace == null)
                 throw new ArgumentException("Couldn't create workspace");
 
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
-
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
@@ -99,9 +85,9 @@ namespace IdeCoreBenchmarks
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
         {
             var service = document.GetRequiredLanguageService<IClassificationService>();
-            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            using var _ = Classifier.GetPooledList(out var result);
             await service.AddSemanticClassificationsAsync(document, span, ClassificationOptions.Default, result, CancellationToken.None);
-            return result.ToImmutable();
+            return result.ToImmutableArray();
         }
 
         [Benchmark]

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     /// <summary>
     /// The result of loading an assembly reference to the interactive session.
     /// </summary>
-    internal struct AssemblyLoadResult
+    internal readonly struct AssemblyLoadResult
     {
         /// <summary>
         /// True if the assembly was loaded by the assembly loader, false if has been loaded before.

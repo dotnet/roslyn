@@ -1421,7 +1421,6 @@ IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1)
             VerifyOperationTreeAndDiagnosticsForTest<ForEachVariableStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17602, "https://github.com/dotnet/roslyn/issues/17602")]
         public void IForEachLoopStatement_InvalidLoopControlVariableExpression_03()
@@ -2571,11 +2570,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'e')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'e')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (Boxing)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'e')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Enumerator, IsImplicit) (Syntax: 'e')
                   Arguments(0)
 
             Next (StructuredExceptionHandling) Block[null]
@@ -2913,7 +2908,6 @@ struct AsyncEnumerator
 }
 ";
 
-
             var comp = CreateCompilation(src, targetFramework: TargetFramework.Net60);
             comp.VerifyDiagnostics();
             var op = (Operations.ForEachLoopOperation)VerifyOperationTreeForTest<ForEachStatementSyntax>(comp, @"IForEachLoopOperation (LoopKind.ForEach, IsAsynchronous, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'await forea ... }')
@@ -3126,7 +3120,7 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + SpanSource, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + TestSources.Span, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -3215,7 +3209,7 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + SpanSource, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + TestSources.Span, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -3304,7 +3298,7 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + SpanSource, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + TestSources.Span, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -3393,7 +3387,7 @@ Block[B4] - Exit
     Predecessors: [B2]
     Statements (0)
 ";
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + SpanSource, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source + TestSources.Span, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithAllowUnsafe(true));
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
@@ -5184,7 +5178,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new Program()')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
                       Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                       Arguments(0)
@@ -5316,7 +5310,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'new Program()')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'new Program()')
                       Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'new Program()')
                       Arguments(0)
@@ -5573,7 +5567,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'null ?? new Program()')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'null ?? new Program()')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'null ?? new Program()')
                       Instance Receiver:
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'null ?? new Program()')
                       Arguments(0)
@@ -5744,7 +5738,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'pets')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'pets')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'pets')
                       Instance Receiver:
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Collections.Generic.IAsyncEnumerator<System.String>, IsImplicit) (Syntax: 'pets')
                       Arguments(0)
@@ -6222,11 +6216,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new C()')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'new C()')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (Boxing)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C.Enumerator, IsImplicit) (Syntax: 'new C()')
                   Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
@@ -6944,13 +6934,13 @@ public static class CExt
 ");
 
             var diagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'arr' of 'CExt.GetEnumerator(C, params int[], int)'
+                // (6,27): error CS7036: There is no argument given that corresponds to the required parameter 'arr' of 'CExt.GetEnumerator(C, params int[], int)'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("arr", "CExt.GetEnumerator(C, params int[], int)").WithLocation(6, 27),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "c").WithArguments("C", "GetEnumerator").WithLocation(6, 27),
-                // (18,54): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                // (18,54): error CS0231: A params parameter must be the last parameter in a parameter list
                 //     public static Enumerator GetEnumerator(this C c, params int[] arr, int i = 0) => null;
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] arr").WithLocation(18, 54)
             };
@@ -7038,16 +7028,16 @@ public static class CExt
 ");
 
             var diagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CExt.GetEnumerator(C, params int)'
+                // (6,27): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CExt.GetEnumerator(C, params int)'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("i", "CExt.GetEnumerator(C, params int)").WithLocation(6, 27),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "c").WithArguments("C", "GetEnumerator").WithLocation(6, 27),
-                // (18,54): error CS0225: The params parameter must be a single dimensional array
+                // (18,54): error CS0225: The params parameter must have a valid collection type
                 //     public static Enumerator GetEnumerator(this C c, params int i = 0) => null;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(18, 54),
-                // (18,54): error CS1751: Cannot specify a default value for a parameter array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(18, 54),
+                // (18,54): error CS1751: Cannot specify a default value for a parameter collection
                 //     public static Enumerator GetEnumerator(this C c, params int i = 0) => null;
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(18, 54)
             };
@@ -7162,7 +7152,7 @@ public class D
 ", il);
 
             var diagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'CExt.GetEnumerator(C, params int)'
+                // (6,27): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'CExt.GetEnumerator(C, params int)'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("i", "CExt.GetEnumerator(C, params int)").WithLocation(6, 27),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
@@ -7279,7 +7269,7 @@ public class D
 ", il);
 
             var diagnostics = new DiagnosticDescription[] {
-                // (6,27): error CS7036: There is no argument given that corresponds to the required formal parameter 'i2' of 'CExt.GetEnumerator(C, int, int)'
+                // (6,27): error CS7036: There is no argument given that corresponds to the required parameter 'i2' of 'CExt.GetEnumerator(C, int, int)'
                 //         foreach (var i in c)
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c").WithArguments("i2", "CExt.GetEnumerator(C, int, int)").WithLocation(6, 27),
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public instance or extension definition for 'GetEnumerator'
@@ -7558,5 +7548,460 @@ namespace System.Runtime.CompilerServices
         public System.Threading.Tasks.ValueTask<T> Task => default;
     }
 }";
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ForEach_InlineArray_01()
+        {
+            string source = @"
+class C
+{
+    public void F(Buffer10 arg)
+    {
+        /*<bind>*/foreach (ref char item in arg)
+        {
+            item = '0';
+        }/*</bind>*/
+    }
+}
+";
+
+            string expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (re ... }')
+  Locals: Local_1: System.Char item
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Char item) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'char')
+      Initializer:
+        null
+  Collection:
+    IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'item = '0';')
+        Expression:
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Char) (Syntax: 'item = '0'')
+            Left:
+              ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.Char) (Syntax: 'item')
+            Right:
+              ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: 0) (Syntax: ''0'')
+  NextVariables(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ForEach_InlineArray_01_Flow()
+        {
+            string source = @"
+class C
+{
+    public void F(Buffer10 arg)
+    /*<bind>*/{
+        foreach (ref char item in arg)
+        {
+            item = '0';
+        }
+    }/*</bind>*/
+}
+";
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'arg')
+              Value:
+                IInvocationOperation ( System.Span<System.Char>.Enumerator System.Span<System.Char>.GetEnumerator()) (OperationKind.Invocation, Type: System.Span<System.Char>.Enumerator, IsImplicit) (Syntax: 'arg')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Span<System.Char>, IsImplicit) (Syntax: 'arg')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (InlineArray)
+                      Operand:
+                        IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( System.Boolean System.Span<System.Char>.Enumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'arg')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Span<System.Char>.Enumerator, IsImplicit) (Syntax: 'arg')
+              Arguments(0)
+            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+    .locals {R2}
+    {
+        Locals: [System.Char item]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'char')
+                  Left:
+                    ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Char, IsImplicit) (Syntax: 'char')
+                  Right:
+                    IPropertyReferenceOperation: ref System.Char System.Span<System.Char>.Enumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'char')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Span<System.Char>.Enumerator, IsImplicit) (Syntax: 'arg')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'item = '0';')
+                  Expression:
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Char) (Syntax: 'item = '0'')
+                      Left:
+                        ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.Char) (Syntax: 'item')
+                      Right:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: 0) (Syntax: ''0'')
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ForEach_InlineArray_02()
+        {
+            string source = @"
+class C
+{
+    public void F(in Buffer10 arg)
+    {
+        /*<bind>*/foreach (ref readonly char item in arg)
+        {
+            System.Console.WriteLine(item);
+        }/*</bind>*/
+    }
+}
+";
+
+            string expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (re ... }')
+  Locals: Local_1: System.Char item
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Char item) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'char')
+      Initializer:
+        null
+  Collection:
+    IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Line(item);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'item')
+                  ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.Char) (Syntax: 'item')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ForEach_InlineArray_02_Flow()
+        {
+            string source = @"
+class C
+{
+    public void F(in Buffer10 arg)
+    /*<bind>*/{
+        foreach (ref readonly char item in arg)
+        {
+            System.Console.WriteLine(item);
+        }
+    }/*</bind>*/
+}
+";
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'arg')
+              Value:
+                IInvocationOperation ( System.ReadOnlySpan<System.Char>.Enumerator System.ReadOnlySpan<System.Char>.GetEnumerator()) (OperationKind.Invocation, Type: System.ReadOnlySpan<System.Char>.Enumerator, IsImplicit) (Syntax: 'arg')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<System.Char>, IsImplicit) (Syntax: 'arg')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (InlineArray)
+                      Operand:
+                        IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( System.Boolean System.ReadOnlySpan<System.Char>.Enumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'arg')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.ReadOnlySpan<System.Char>.Enumerator, IsImplicit) (Syntax: 'arg')
+              Arguments(0)
+            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+    .locals {R2}
+    {
+        Locals: [System.Char item]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (IsRef) (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'char')
+                  Left:
+                    ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Char, IsImplicit) (Syntax: 'char')
+                  Right:
+                    IPropertyReferenceOperation: ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Char System.ReadOnlySpan<System.Char>.Enumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'char')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.ReadOnlySpan<System.Char>.Enumerator, IsImplicit) (Syntax: 'arg')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Line(item);')
+                  Expression:
+                    IInvocationOperation (void System.Console.WriteLine(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'item')
+                            ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.Char) (Syntax: 'item')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ForEach_InlineArray_03()
+        {
+            string source = @"
+class C
+{
+    public void F()
+    {
+        /*<bind>*/foreach (char item in GetBuffer())
+        {
+            System.Console.WriteLine(item);
+        }/*</bind>*/
+    }
+
+    static Buffer10 GetBuffer() => default;
+}
+";
+
+            string expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (ch ... }')
+  Locals: Local_1: System.Char item
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Char item) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'char')
+      Initializer:
+        null
+  Collection:
+    IInvocationOperation (Buffer10 C.GetBuffer()) (OperationKind.Invocation, Type: Buffer10) (Syntax: 'GetBuffer()')
+      Instance Receiver:
+        null
+      Arguments(0)
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Line(item);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'item')
+                  ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.Char) (Syntax: 'item')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ForEach_InlineArray_03_Flow()
+        {
+            string source = @"
+class C
+{
+    public void F(in Buffer10 arg)
+    /*<bind>*/{
+        foreach (char item in GetBuffer())
+        {
+            System.Console.WriteLine(item);
+        }
+    }/*</bind>*/
+
+    static Buffer10 GetBuffer() => default;
+}
+";
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0] [1]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetBuffer()')
+              Value:
+                IInvocationOperation (Buffer10 C.GetBuffer()) (OperationKind.Invocation, Type: Buffer10) (Syntax: 'GetBuffer()')
+                  Instance Receiver:
+                    null
+                  Arguments(0)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetBuffer()')
+              Value:
+                IInvocationOperation ( System.ReadOnlySpan<System.Char>.Enumerator System.ReadOnlySpan<System.Char>.GetEnumerator()) (OperationKind.Invocation, Type: System.ReadOnlySpan<System.Char>.Enumerator, IsImplicit) (Syntax: 'GetBuffer()')
+                  Instance Receiver:
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.ReadOnlySpan<System.Char>, IsImplicit) (Syntax: 'GetBuffer()')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (InlineArray)
+                      Operand:
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Buffer10, IsImplicit) (Syntax: 'GetBuffer()')
+                  Arguments(0)
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IInvocationOperation ( System.Boolean System.ReadOnlySpan<System.Char>.Enumerator.MoveNext()) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'GetBuffer()')
+              Instance Receiver:
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.ReadOnlySpan<System.Char>.Enumerator, IsImplicit) (Syntax: 'GetBuffer()')
+              Arguments(0)
+            Leaving: {R1}
+        Next (Regular) Block[B3]
+            Entering: {R2}
+    .locals {R2}
+    {
+        Locals: [System.Char item]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (2)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'char')
+                  Left:
+                    ILocalReferenceOperation: item (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Char, IsImplicit) (Syntax: 'char')
+                  Right:
+                    IPropertyReferenceOperation: ref readonly modreq(System.Runtime.InteropServices.InAttribute) System.Char System.ReadOnlySpan<System.Char>.Enumerator.Current { get; } (OperationKind.PropertyReference, Type: System.Char, IsImplicit) (Syntax: 'char')
+                      Instance Receiver:
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.ReadOnlySpan<System.Char>.Enumerator, IsImplicit) (Syntax: 'GetBuffer()')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Line(item);')
+                  Expression:
+                    IInvocationOperation (void System.Console.WriteLine(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
+                      Instance Receiver:
+                        null
+                      Arguments(1):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'item')
+                            ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.Char) (Syntax: 'item')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+    }
+}
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(comp, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void ForEach_InlineArray_04()
+        {
+            string source = @"
+class C
+{
+    public void F(Buffer10 arg)
+    {
+        /*<bind>*/foreach (char item in (Buffer10)arg)
+        {
+            System.Console.WriteLine(item);
+        }/*</bind>*/
+    }
+}
+";
+
+            string expectedOperationTree = @"
+IForEachLoopOperation (LoopKind.ForEach, Continue Label Id: 0, Exit Label Id: 1) (OperationKind.Loop, Type: null) (Syntax: 'foreach (ch ... }')
+  Locals: Local_1: System.Char item
+  LoopControlVariable:
+    IVariableDeclaratorOperation (Symbol: System.Char item) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'char')
+      Initializer:
+        null
+  Collection:
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: Buffer10) (Syntax: '(Buffer10)arg')
+      Conversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand:
+        IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: Buffer10) (Syntax: 'arg')
+  Body:
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'System.Cons ... Line(item);')
+        Expression:
+          IInvocationOperation (void System.Console.WriteLine(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'System.Cons ... eLine(item)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'item')
+                  ILocalReferenceOperation: item (OperationKind.LocalReference, Type: System.Char) (Syntax: 'item')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NextVariables(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            var comp = CreateCompilation(source + IOperationTests_IInlineArrayAccessOperation.Buffer10Definition, targetFramework: TargetFramework.Net80);
+            VerifyOperationTreeAndDiagnosticsForTest<ForEachStatementSyntax>(comp, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

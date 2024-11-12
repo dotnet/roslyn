@@ -7,7 +7,7 @@ Imports System.Text
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     ''' <summary>
@@ -38,7 +38,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
                  expectedOutput:=<![CDATA[
 Lambda(
@@ -733,13 +733,13 @@ Lambda(
 ]]>
 
             CompileAndVerify(source,
-                          references:={Net40.SystemCore},
+                          references:={Net40.References.SystemCore},
                           options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
                           expectedOutput:=expected
             )
 
             CompileAndVerify(source,
-                        references:={Net40.SystemCore},
+                        references:={Net40.References.SystemCore},
                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False),
                         expectedOutput:=expected
             )
@@ -1183,6 +1183,66 @@ Lambda(
 ]]>)
         End Sub
 
+        <Fact>
+        Public Sub CharArrayToStringConversion()
+
+            Dim source = <compilation>
+                             <%= _exprTesting %>
+                             <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+
+Public Class TestClass
+    Public Sub Test()
+        Dim exprtree1 As Expression(Of Func(Of Char(), String)) = Function(c) c
+        Console.WriteLine(exprtree1.Dump)
+    End Sub
+End Class
+
+Module Form1
+    Sub Main()
+        Dim inst As New TestClass()
+        inst.Test()
+    End Sub
+End Module
+]]></file>
+                         </compilation>
+
+            Dim expected = <![CDATA[
+Lambda(
+  Parameter(
+    c
+    type: System.Char[]
+  )
+  body {
+    New(
+      Void .ctor(Char[])(
+        Parameter(
+          c
+          type: System.Char[]
+        )
+      )
+      type: System.String
+    )
+  }
+  return type: System.String
+  type: System.Func`2[System.Char[],System.String]
+)
+]]>
+
+            CompileAndVerify(source,
+                          references:={Net40.References.SystemCore},
+                          options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
+                          expectedOutput:=expected
+            )
+
+            CompileAndVerify(source,
+                        references:={Net40.References.SystemCore},
+                        options:=TestOptions.ReleaseExe.WithOverflowChecks(False),
+                        expectedOutput:=expected
+            )
+
+        End Sub
 
 #Region "Conversions: User Defined Types"
 
@@ -1202,7 +1262,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             references:={Net40.SystemCore},
+                             references:={Net40.References.SystemCore},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics()
@@ -1224,7 +1284,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             references:={Net40.SystemCore},
+                             references:={Net40.References.SystemCore},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics()
@@ -1449,7 +1509,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             references:={Net40.SystemCore},
+                             references:={Net40.References.SystemCore},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics(Diagnostic(ERRID.WRN_ObsoleteIdentityDirectCastForValueType, "x"),
@@ -1678,7 +1738,6 @@ lNothing:
             TestConversion_TypeParameters("O", "D", tests)
             TestConversion_TypeParameters("D", "O", tests)
 
-
             ' Type parameter -> Type
             For Each type1 In {"T", "S", "S?", "O", "D"}
                 TestConversion_TypeParameters(type1, "Object", tests)
@@ -1687,7 +1746,6 @@ lNothing:
             TestConversion_TwoTypesAndExpression("O", "Clazz2", "TryCast({0}, {1})", tests)
             TestConversion_TypeParameters("D", "Clazz1", tests)
             TestConversion_TwoTypesAndExpression("D", "Clazz2", "TryCast({0}, {1})", tests)
-
 
             ' Type -> Type parameter 
             For Each type1 In {"T", "S", "S?", "O", "D"}
@@ -1701,7 +1759,6 @@ lNothing:
             TestConversion_TypeParameters("Clazz1", "D", tests)
             TestConversion_TwoTypesAndExpression("Clazz2", "D", "TryCast({0}, {1})", tests)
 
-
             ' Nothing -> Type parameter 
             For Each type1 In {"T", "S", "S?", "O", "D"}
                 TestConversion_TwoTypesAndExpression("Object", type1, "Nothing", tests)
@@ -1711,7 +1768,6 @@ lNothing:
                     TestConversion_TwoTypesAndExpression("Object", type1, "TryCast(Nothing, {1})", tests)
                 End If
             Next
-
 
             tests(0).Prefix = <![CDATA[
 Public Class Clazz1
@@ -1821,7 +1877,7 @@ End Structure
                                                      Optional optimize As Boolean = True,
                                                      Optional latestReferences As Boolean = False,
                                                      Optional addXmlReferences As Boolean = False,
-                                                     Optional verify As Verification = Verification.Passes) As CompilationVerifier
+                                                     Optional verify As Verification = Nothing) As CompilationVerifier
 
             Debug.Assert(Not latestReferences OrElse Not addXmlReferences) ' NYI
 
@@ -1844,7 +1900,7 @@ End Structure
                                         Optional latestReferences As Boolean = False,
                                         Optional addXmlReferences As Boolean = False,
                                         Optional diagnostics() As DiagnosticDescription = Nothing,
-                                        Optional verify As Verification = Verification.Passes)
+                                        Optional verify As Verification = Nothing)
 
             TestExpressionTreesVerifier(sourceFile, result, checked, optimize, latestReferences, addXmlReferences, verify).VerifyDiagnostics(If(diagnostics, {}))
         End Sub
@@ -1923,7 +1979,7 @@ End Module
             Dim src = source...<file>.Value
 
             CompileAndVerify(source,
-                             references:={Net40.SystemCore},
+                             references:={Net40.References.SystemCore},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics(If(diagnostics, {}))
@@ -2017,7 +2073,32 @@ End Module
 ]]></file>
                          </compilation>
 
-            CompileAndVerify(source, references:={Net40.SystemCore}).VerifyDiagnostics()
+            CompileAndVerify(source, references:={Net40.References.SystemCore}).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72456")>
+        Public Sub UndeclaredClassInLambdaFunction()
+            Dim source =
+<compilation>
+    <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Module Program
+    Public Function CreateExpression() As Expression(Of Func(Of Object))
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+    End Function
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, {LinqAssemblyRef})
+            AssertTheseDiagnostics(compilation.GetDiagnostics(),
+<expected>
+BC30002: Type 'UndeclaredClass' is not defined.
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+                               ~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3258,7 +3339,6 @@ End Class
 ]]>)
         End Sub
 
-
 #End Region
 
 #Region "Xml Literals"
@@ -3670,7 +3750,6 @@ Lambda(
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v40()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1223 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3711,12 +3790,11 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result)
         End Sub
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v45()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1167 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3754,7 +3832,7 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True)
         End Sub
 
         <Fact>
@@ -6571,19 +6649,19 @@ End Namespace
                 Dim emitResult = compilation.Emit(stream)
                 Assert.False(emitResult.Success)
                 CompilationUtils.AssertTheseDiagnostics(emitResult.Diagnostics, <expected>
-BC30456: 'Lambda' is not a member of 'Expression'.
+BC35000: Requested operation is not available because the runtime library function 'System.Linq.Expressions.Expression.Lambda' is not defined.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'Parameter' is not a member of 'Expression'.
+BC35000: Requested operation is not available because the runtime library function 'System.Linq.Expressions.Expression.Parameter' is not defined.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'Parameter' is not a member of 'Expression'.
+BC35000: Requested operation is not available because the runtime library function 'System.Linq.Expressions.Expression.Parameter' is not defined.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                             ~~~~~~~~~~~~~~~~~~~~
-BC30456: 'AddChecked' is not a member of 'Expression'.
+BC35000: Requested operation is not available because the runtime library function 'System.Linq.Expressions.Expression.AddChecked' is not defined.
         Dim exprTree As Expression(Of Func(Of Integer, Integer, Integer)) = Function(x, y) x + y
                                                                                            ~~~~~
-                                                                           </expected>)
+                                                                                </expected>)
             End Using
         End Sub
 
@@ -6611,7 +6689,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[
 Lambda(
   Parameter(
@@ -6669,7 +6747,7 @@ End Class
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[
 Lambda(
   Parameter(
@@ -6774,7 +6852,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[
 Infer A=System.Decimal
 Infer B=System.String
@@ -6817,7 +6895,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[Where Select]]>).VerifyDiagnostics()
         End Sub
 
@@ -6867,7 +6945,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="GroupBy 1;Select;GroupBy 2;Select;").VerifyDiagnostics()
         End Sub
 
@@ -6910,7 +6988,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="GroupJoin;").VerifyDiagnostics()
         End Sub
 
@@ -6993,7 +7071,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[A1 B2 C1 D2 E1 F2]]>)
         End Sub
 
@@ -7034,7 +7112,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[f1 f1 g1]]>)
         End Sub
 
@@ -7061,7 +7139,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="() => (value(Form1+_Closure$__0-0).$VB$Local_s1_a ?? Convert(value(Form1+_Closure$__0-0).$VB$Local_s1_b))").VerifyDiagnostics()
         End Sub
 
@@ -7179,7 +7257,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="10").VerifyDiagnostics()
         End Sub
 
@@ -7258,10 +7336,9 @@ end class
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="m => m").VerifyDiagnostics()
         End Sub
-
 
         <WorkItem(3906, "https://github.com/dotnet/roslyn/issues/3906")>
         <Fact>
@@ -7298,7 +7375,7 @@ End Class
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="").VerifyDiagnostics()
         End Sub
 
@@ -8022,16 +8099,19 @@ Namespace System.Collections.Generic
 End Namespace
 Namespace System.Linq.Expressions
     Public Class Expression
-        Public Shared Function [New](t As Type) As Expression
+        Public Shared Function [New](t As Type) As NewExpression
             Return Nothing
         End Function
-        Public Shared Function Lambda(Of T)(e As Expression, args As Expression()) As Expression(Of T)
+        Public Shared Function Lambda(Of T)(e As Expression, args As ParameterExpression()) As Expression(Of T)
             Return Nothing
         End Function
     End Class
     Public Class Expression(Of T)
     End Class
     Public Class ParameterExpression
+        Inherits Expression
+    End Class
+    Public Class NewExpression
         Inherits Expression
     End Class
 End Namespace
@@ -8087,16 +8167,19 @@ Namespace System.Collections.Generic
 End Namespace
 Namespace System.Linq.Expressions
     Public Class Expression
-        Public Shared Function Field(e As Expression, f As FieldInfo) As Expression
+        Public Shared Function Field(e As Expression, f As FieldInfo) As MemberExpression
             Return Nothing
         End Function
-        Public Shared Function Lambda(Of T)(e As Expression, args As Expression()) As Expression(Of T)
+        Public Shared Function Lambda(Of T)(e As Expression, args As ParameterExpression()) As Expression(Of T)
             Return Nothing
         End Function
     End Class
     Public Class Expression(Of T)
     End Class
     Public Class ParameterExpression
+        Inherits Expression
+    End Class
+    Public Class MemberExpression
         Inherits Expression
     End Class
 End Namespace
@@ -8170,25 +8253,37 @@ Namespace System.Collections.Generic
 End Namespace
 Namespace System.Linq.Expressions
     Public Class Expression
-        Public Shared Function [Call](e As Expression, m As MethodInfo, args As Expression()) As Expression
+        Public Shared Function [Call](e As Expression, m As MethodInfo, args As Expression()) As MethodCallExpression
             Return Nothing
         End Function
-        Public Shared Function Constant(o As Object, t As Type) As Expression
+        Public Shared Function Constant(o As Object, t As Type) As ConstantExpression
             Return Nothing
         End Function
-        Public Shared Function Convert(e As Expression, t As Type) As Expression
+        Public Shared Function Convert(e As Expression, t As Type) As UnaryExpression
             Return Nothing
         End Function
-        Public Shared Function Lambda(Of T)(e As Expression, args As Expression()) As Expression(Of T)
+        Public Shared Function Lambda(Of T)(e As Expression, args As ParameterExpression()) As Expression(Of T)
             Return Nothing
         End Function
-        Public Shared Function [New](c As ConstructorInfo, args As IEnumerable(Of Expression)) As Expression
+        Public Shared Function [New](c As ConstructorInfo, args As Expression()) As NewExpression
             Return Nothing
         End Function
     End Class
     Public Class Expression(Of T)
     End Class
     Public Class ParameterExpression
+        Inherits Expression
+    End Class
+    Public Class UnaryExpression
+        Inherits Expression
+    End Class
+    Public Class ConstantExpression
+        Inherits Expression
+    End Class
+    Public Class NewExpression
+        Inherits Expression
+    End Class
+    Public Class MethodCallExpression
         Inherits Expression
     End Class
 End Namespace
@@ -8221,9 +8316,15 @@ End Class
 </compilation>)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
+    BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~
@@ -8288,7 +8389,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
@@ -8348,7 +8449,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
@@ -8390,7 +8491,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => Concat(value(M+_Closure$__0-0).$VB$Local_str, null)
@@ -8444,7 +8545,7 @@ End Namespace
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 In catch
@@ -8509,14 +8610,13 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 x => x.set_City(ItIs(s => IsNullOrEmpty(s)))
 x => x.set_City("aa")
 aa
 ]]>).VerifyDiagnostics()
-
 
         End Sub
 
@@ -8586,14 +8686,13 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 x => x.set_City(1, ItIs(s => IsNullOrEmpty(s)))
 x => x.set_City(value(Module1+_Closure$__4-0).$VB$Local_i, "aa")
 aa23
 ]]>).VerifyDiagnostics()
-
 
         End Sub
 
@@ -8651,9 +8750,8 @@ End Module
                             ]]></file>
                          </compilation>
 
-
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe)
 
             compilation.VerifyDiagnostics(
@@ -8702,9 +8800,8 @@ End Class
                             ]]></file>
                          </compilation>
 
-
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 42

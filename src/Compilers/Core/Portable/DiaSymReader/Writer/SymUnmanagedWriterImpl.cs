@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +18,9 @@ namespace Microsoft.DiaSymReader
 {
     internal sealed class SymUnmanagedWriterImpl : SymUnmanagedWriter
     {
+        // This constant is verified in PDBTests.NativeWriterLimit_Under and NativeWriterLimit_Over.
+        internal const int CustomMetadataByteLimit = 65_504;
+
         private static readonly object s_zeroInt32 = 0;
 
         private ISymUnmanagedWriter5 _symWriter;
@@ -357,6 +362,9 @@ namespace Microsoft.DiaSymReader
 
         private unsafe void DefineLocalConstantImpl(ISymUnmanagedWriter5 symWriter, string name, object value, int constantSignatureToken)
         {
+#if NET6_0_OR_GREATER
+            Debug.Assert(OperatingSystem.IsWindows());
+#endif
             VariantStructure variant = new VariantStructure();
 #pragma warning disable CS0618 // Type or member is obsolete
             Marshal.GetNativeVariantForObject(value, new IntPtr(&variant));
@@ -371,7 +379,7 @@ namespace Microsoft.DiaSymReader
             int encodedLength;
 
             // ISymUnmanagedWriter2 doesn't handle unicode strings with unmatched unicode surrogates.
-            // We use the .NET UTF8 encoder to replace unmatched unicode surrogates with unicode replacement character.
+            // We use the .NET UTF-8 encoder to replace unmatched unicode surrogates with unicode replacement character.
 
             if (!IsValidUnicodeString(value))
             {
@@ -529,7 +537,7 @@ namespace Microsoft.DiaSymReader
             }
         }
 
-        public override unsafe void DefineCustomMetadata(byte[] metadata)
+        public override unsafe void DefineCustomMetadata(byte[] metadata, IMethodDefinition methodDefinition)
         {
             if (metadata == null)
             {
@@ -539,6 +547,15 @@ namespace Microsoft.DiaSymReader
             if (metadata.Length == 0)
             {
                 return;
+            }
+
+            if (metadata.Length > CustomMetadataByteLimit)
+            {
+                throw new SymUnmanagedWriterException(string.Format(
+                    CodeAnalysisResources.SymWriterMetadataOverLimit,
+                    methodDefinition,
+                    metadata.Length,
+                    CustomMetadataByteLimit));
             }
 
             var symWriter = GetSymWriter();
@@ -737,7 +754,7 @@ namespace Microsoft.DiaSymReader
             //     DWORD dwSig;                 // "RSDS"
             //     GUID guidSig;                // GUID
             //     DWORD age;                   // age
-            //     char szPDB[0];               // zero-terminated UTF8 file name passed to the writer
+            //     char szPDB[0];               // zero-terminated UTF-8 file name passed to the writer
             // };
             const int GuidSize = 16;
             var guidBytes = new byte[GuidSize];

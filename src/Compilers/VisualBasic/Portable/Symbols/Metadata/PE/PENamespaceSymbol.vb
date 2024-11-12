@@ -44,6 +44,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ' Lazily filled in collection of all contained types.
         Private _lazyFlattenedTypes As ImmutableArray(Of NamedTypeSymbol)
 
+        ' Lazily filled in collection of all contained namespaces and types.
+        Private _lazyFlattenedNamespacesAndTypes As ImmutableArray(Of Symbol)
+
         Friend NotOverridable Overrides ReadOnly Property Extent As NamespaceExtent
             Get
                 Return New NamespaceExtent(Me.ContainingPEModule)
@@ -71,9 +74,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Public NotOverridable Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            EnsureAllMembersLoaded()
+            If _lazyFlattenedNamespacesAndTypes.IsDefault Then
+                EnsureAllMembersLoaded()
+                ImmutableInterlocked.InterlockedExchange(_lazyFlattenedNamespacesAndTypes, m_lazyMembers.Flatten())
+            End If
 
-            Return m_lazyMembers.Flatten()
+            Return _lazyFlattenedNamespacesAndTypes
         End Function
 
         Friend Overrides ReadOnly Property EmbeddedSymbolKind As EmbeddedSymbolKind
@@ -300,24 +306,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overloads Function LookupMetadataType(ByRef emittedTypeName As MetadataTypeName, <Out> ByRef isNoPiaLocalType As Boolean) As NamedTypeSymbol
-            Dim result = LookupMetadataType(emittedTypeName)
-            isNoPiaLocalType = False
+        Friend Function UnifyIfNoPiaLocalType(ByRef emittedTypeName As MetadataTypeName) As NamedTypeSymbol
+            EnsureAllMembersLoaded()
+            Dim typeDef As TypeDefinitionHandle = Nothing
 
-            If TypeOf result Is MissingMetadataTypeSymbol Then
-                EnsureAllMembersLoaded()
-                Dim typeDef As TypeDefinitionHandle = Nothing
+            ' See if this is a NoPia local type, which we should unify.
+            If _lazyNoPiaLocalTypes IsNot Nothing AndAlso
+                _lazyNoPiaLocalTypes.TryGetValue(emittedTypeName.FullName, typeDef) Then
 
-                ' See if this is a NoPia local type, which we should unify.
-                If _lazyNoPiaLocalTypes IsNot Nothing AndAlso
-                    _lazyNoPiaLocalTypes.TryGetValue(emittedTypeName.FullName, typeDef) Then
-
-                    result = DirectCast(New MetadataDecoder(ContainingPEModule).GetTypeOfToken(typeDef, isNoPiaLocalType), NamedTypeSymbol)
-                    Debug.Assert(isNoPiaLocalType)
-                End If
+                Dim isNoPiaLocalType As Boolean
+                Dim result = DirectCast(New MetadataDecoder(ContainingPEModule).GetTypeOfToken(typeDef, isNoPiaLocalType), NamedTypeSymbol)
+                Debug.Assert(isNoPiaLocalType)
+                Debug.Assert(result IsNot Nothing)
+                Return result
             End If
 
-            Return result
+            Return Nothing
         End Function
 
     End Class

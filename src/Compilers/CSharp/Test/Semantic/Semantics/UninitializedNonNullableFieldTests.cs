@@ -853,23 +853,75 @@ struct S1
 }
 ";
 
-            var comp = CreateCompilation(source, options: WithNullableEnable());
+            var comp = CreateCompilation(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller.
+                // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 //     public S1(string s) // 1
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Prop").WithLocation(5, 12),
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S1").WithArguments("S1.Prop", "11.0").WithLocation(5, 12),
                 // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
-                // (7,9): error CS8079: Use of possibly unassigned auto-implemented property 'Prop'
+                // (7,9): error CS9014: Use of possibly unassigned auto-implemented property 'Prop'. Consider updating to language version '11.0' to auto-default the property.
                 //         Prop.ToString(); // 2
-                Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Prop").WithArguments("Prop").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_UseDefViolationPropertyUnsupportedVersion, "Prop").WithArguments("Prop", "11.0").WithLocation(7, 9),
                 // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         Prop.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(12, 9),
-                // (15,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (15,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public S1(object obj1, object obj2) : this() // 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
+
+            var verifier = CompileAndVerify(source, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
+            verifier.VerifyDiagnostics(
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(12, 9),
+                // (15,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public S1(object obj1, object obj2) : this() // 4
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("property", "Prop").WithLocation(15, 12));
+
+            verifier.VerifyIL("S1..ctor(string)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S1.<Prop>k__BackingField""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""readonly string S1.Prop.get""
+  IL_000d:  callvirt   ""string object.ToString()""
+  IL_0012:  pop
+  IL_0013:  ret
+}
+");
+
+            verifier.VerifyIL("S1..ctor(object, object)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  initobj    ""S1""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("S1..ctor(string, string)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""S1..ctor(string)""
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""readonly string S1.Prop.get""
+  IL_000d:  callvirt   ""string object.ToString()""
+  IL_0012:  pop
+  IL_0013:  ret
+}
+");
         }
 
         [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
@@ -902,9 +954,37 @@ public struct S1
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         field.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(10, 9),
-                // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S1(object obj1, object obj2) : this() // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(13, 12));
+        }
+
+        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        public void StructConstructorInitializer_NestedUninitializedField()
+        {
+            var source = @"
+#nullable enable
+public struct S1
+{
+    public object F1;
+    public S2 S2;
+
+    public S1()
+    {
+        F1.ToString(); // 1
+        S2.F2.ToString(); // missing warning: https://github.com/dotnet/roslyn/issues/60038
+    }
+}
+public struct S2
+{
+    public object F2;
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         F1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1").WithLocation(10, 9));
         }
 
         [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
@@ -969,18 +1049,50 @@ struct S1
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
-                // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public S1(string s) // 1, 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(13, 12),
-                // (13,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller
+                // (13,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     public S1(string s) // 1, 2
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.field").WithLocation(13, 12),
-                // (15,30): error CS0170: Use of possibly unassigned field 'field'
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S1").WithArguments("S1.field", "11.0").WithLocation(13, 12),
+                // (15,30): error CS9015: Use of possibly unassigned field 'field'. Consider updating to language version '11.0' to auto-default the field.
                 //         System.Console.Write(field); // 3
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "field").WithArguments("field").WithLocation(15, 30)
+                Diagnostic(ErrorCode.ERR_UseDefViolationFieldUnsupportedVersion, "field").WithArguments("field", "11.0").WithLocation(15, 30)
                 );
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular11);
+            verifier.VerifyDiagnostics(
+                // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                //     public S1(string s) // 1, 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(13, 12)
+                );
+
+            verifier.VerifyIL("S1..ctor()", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""ok ""
+  IL_0006:  stfld      ""string S1.field""
+  IL_000b:  ret
+}
+");
+
+            verifier.VerifyIL("S1..ctor(string)", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S1.field""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""string S1.field""
+  IL_000d:  call       ""void System.Console.Write(string)""
+  IL_0012:  ret
+}
+");
         }
 
         [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
@@ -1669,18 +1781,56 @@ class C5<T, U> where T : A where U : T
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,14): warning CS8618: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (6,14): warning CS8618: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     internal S(string s)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P").WithLocation(6, 14),
-                // (6,14): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (6,14): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     internal S(string s)
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F").WithLocation(6, 14),
-                // (6,14): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller.
+                // (6,14): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the property.
                 //     internal S(string s)
-                Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P").WithLocation(6, 14),
-                // (6,14): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
+                Diagnostic(ErrorCode.ERR_UnassignedThisAutoPropertyUnsupportedVersion, "S").WithArguments("S.P", "11.0").WithLocation(6, 14),
+                // (6,14): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 //     internal S(string s)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "S").WithArguments("S.F", "11.0").WithLocation(6, 14));
+
+            var verifier = CompileAndVerify(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular11);
+            verifier.VerifyDiagnostics(
+                // (6,14): warning CS8618: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     internal S(string s)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P").WithLocation(6, 14),
+                // (6,14): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                //     internal S(string s)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F").WithLocation(6, 14));
+            verifier.VerifyIL("S..ctor", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  5
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  stfld      ""string S.F""
+  IL_0007:  ldarg.0
+  IL_0008:  ldnull
+  IL_0009:  stfld      ""string[] S.<P>k__BackingField""
+  IL_000e:  ldarg.1
+  IL_000f:  callvirt   ""int string.Length.get""
+  IL_0014:  ldc.i4.0
+  IL_0015:  ble.s      IL_001f
+  IL_0017:  ldarg.0
+  IL_0018:  ldarg.1
+  IL_0019:  stfld      ""string S.F""
+  IL_001e:  ret
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.1
+  IL_0021:  newarr     ""string""
+  IL_0026:  dup
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldarg.1
+  IL_0029:  stelem.ref
+  IL_002a:  call       ""void S.P.set""
+  IL_002f:  ret
+}
+");
         }
 
         [Fact]
@@ -1834,13 +1984,13 @@ public interface I
                 // (4,19): error CS0525: Interfaces cannot contain instance fields
                 //     public object F1; // 1
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 19),
-                // (5,26): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (5,26): warning CS8618: Non-nullable field 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public static object F2; // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F2").WithArguments("field", "F2").WithLocation(5, 26),
-                // (6,26): warning CS8618: Non-nullable property 'F3' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (6,26): warning CS8618: Non-nullable property 'F3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public static object F3 { get; set; } // 3
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F3").WithArguments("property", "F3").WithLocation(6, 26),
-                // (7,39): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (7,39): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
                 //     public static event System.Action E1; // 4, 5
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E1").WithArguments("event", "E1").WithLocation(7, 39),
                 // (7,39): warning CS0067: The event 'I.E1' is never used
@@ -1880,13 +2030,13 @@ public interface I
                 // (6,39): warning CS0067: The event 'I.E1' is never used
                 //     public static event System.Action E1; // 1
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("I.E1").WithLocation(6, 39),
-                // (16,12): warning CS8618: Non-nullable property 'F2' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (16,12): warning CS8618: Non-nullable property 'F2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     static I() // 2, 3, 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "I").WithArguments("property", "F2").WithLocation(16, 12),
-                // (16,12): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider declaring the event as nullable.
+                // (16,12): warning CS8618: Non-nullable event 'E1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
                 //     static I() // 2, 3, 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "I").WithArguments("event", "E1").WithLocation(16, 12),
-                // (16,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (16,12): warning CS8618: Non-nullable field 'F1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     static I() // 2, 3, 4
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "I").WithArguments("field", "F1").WithLocation(16, 12)
                 );
@@ -1927,10 +2077,10 @@ class C
             // Null state does not flow out of local functions https://github.com/dotnet/roslyn/issues/45770
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (6,5): warning CS8618: Non-nullable field 'G' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (6,5): warning CS8618: Non-nullable field 'G' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(6, 5),
-                // (6,5): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (6,5): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F").WithLocation(6, 5));
         }
@@ -2038,7 +2188,7 @@ class C3
 }";
             var comp = CreateCompilation(new[] { source, DoesNotReturnIfAttributeDefinition }, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (9,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (9,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public C1() // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C1").WithArguments("property", "Prop").WithLocation(9, 12));
         }
@@ -2186,7 +2336,7 @@ class Derived : Base
 ";
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (4,19): warning CS8618: Non-nullable property 'BaseProp' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (4,19): warning CS8618: Non-nullable property 'BaseProp' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public string BaseProp { get; set; } // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "BaseProp").WithArguments("property", "BaseProp").WithLocation(4, 19),
                 // (14,9): warning CS8602: Dereference of a possibly null reference.
@@ -2408,21 +2558,21 @@ public partial class Class1
 
             comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
                 .Verify(
-                    // (4,35): warning CS8618: Non-nullable field 'Value1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    // (4,35): warning CS8618: Non-nullable field 'Value1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                     //     public static readonly string Value1; // 1
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value1").WithArguments("field", "Value1").WithLocation(4, 35));
 
             comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
                 .Verify(
-                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                     //     public static readonly string Value2; // 2
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
 
             comp.VerifyDiagnostics(
-                // (4,35): warning CS8618: Non-nullable field 'Value1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,35): warning CS8618: Non-nullable field 'Value1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public static readonly string Value1; // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value1").WithArguments("field", "Value1").WithLocation(4, 35),
-                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public static readonly string Value2; // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
         }
@@ -2449,12 +2599,12 @@ public partial class Class1
 
             comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
                 .Verify(
-                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                     //     public static readonly string Value2; // 1
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
 
             comp.VerifyDiagnostics(
-                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     public static readonly string Value2; // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
         }
@@ -2481,6 +2631,9 @@ class C
                 // (5,19): error CS0548: 'C.P': property or indexer must have at least one accessor
                 //     public string P { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(5, 19),
+                // (7,19): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //     public string P3 { } = string.Empty;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(7, 19),
                 // (7,19): error CS0548: 'C.P3': property or indexer must have at least one accessor
                 //     public string P3 { } = string.Empty;
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P3").WithArguments("C.P3").WithLocation(7, 19),
@@ -2591,7 +2744,7 @@ public class C
 }";
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (4,12): warning CS8618: Non-nullable property 'S' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (4,12): warning CS8618: Non-nullable property 'S' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public C() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "S").WithLocation(4, 12));
 
@@ -2612,13 +2765,169 @@ public class C
 }";
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (4,19): warning CS8618: Non-nullable property 'S' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (4,19): warning CS8618: Non-nullable property 'S' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public string S { get; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "S").WithLocation(4, 19));
 
             var property = comp.GetTypeByMetadataName("C").GetMember("S");
             var actualAdditionalLocations = comp.GetDiagnostics().Single().AdditionalLocations;
             Assert.Equal(property.Locations.Single(), actualAdditionalLocations.Single());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(66037, "https://github.com/dotnet/roslyn/issues/66037")]
+        public void TestAdditionalLocationOnCompilerDiagnostic(bool warnAsError)
+        {
+            var options = WithNullableEnable();
+            if (warnAsError)
+            {
+                options = options.WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+            }
+
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+}
+public class C
+{
+    public B f;
+    static void Main()
+    {
+        new C() { f = { f2 = null }};
+    }
+}", options: options);
+
+            var diagnostics = comp.GetDiagnostics();
+            diagnostics.Verify(
+                // (8,14): warning CS8618: Non-nullable field 'f' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
+                //     public B f;
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "f").WithArguments("field", "f").WithLocation(8, 14).WithWarningAsError(warnAsError));
+
+            var diagnostic = Assert.Single(diagnostics);
+            Assert.Single(diagnostic.AdditionalLocations);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_01()
+        {
+            var source = """
+                #nullable enable
+                var r = new Rec(); // to show that implicit parameterless ctor still exists, hence diagnostic 1
+
+                record Rec
+                {
+                    public string Prop { get; init; } // 1
+                    public Rec(Rec other) // 2
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(6,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public string Prop { get; init; } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop").WithLocation(6, 19),
+                // 0.cs(7,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public Rec(Rec other) // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(7, 12));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_02()
+        {
+            var source = """
+                #nullable enable
+                record Rec(string Prop)
+                {
+                    public Rec(Rec other) // 1
+                    {
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(4,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public Rec(Rec other) // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(4, 12));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_03()
+        {
+            // copy constructor implicitly declared
+            var source = """
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_04()
+        {
+            // copy constructor explicitly declared, lacks SetsRequiredMembersAttribute
+            var source = """
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+                    public Rec(Rec other) { }
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,23): error CS9035: Required member 'Rec.Prop' must be set in the object initializer or attribute constructor.
+                //         var rec = new Rec(this);
+                Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSet, "Rec").WithArguments("Rec.Prop").WithLocation(9, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68346")]
+        public void CopyConstructor_05()
+        {
+            // copy constructor explicitly declared, has SetsRequiredMembersAttribute
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+
+                #nullable enable
+                record Rec
+                {
+                    public required string Prop { get; init; }
+
+                    [SetsRequiredMembers]
+                    public Rec(Rec other) { } // 1
+
+                    public void M()
+                    {
+                        var rec = new Rec(this);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition, RequiredMemberAttribute, SetsRequiredMembersAttribute, CompilerFeatureRequiredAttribute });
+            comp.VerifyEmitDiagnostics(
+                // 0.cs(9,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public Rec(Rec other) { } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Rec").WithArguments("property", "Prop").WithLocation(9, 12));
         }
     }
 }

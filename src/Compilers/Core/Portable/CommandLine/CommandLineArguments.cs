@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<string> KeyFileSearchPaths { get; internal set; }
 
         /// <summary>
-        /// If true, use UTF8 for output.
+        /// If true, use UTF-8 for output.
         /// </summary>
         public bool Utf8Output { get; internal set; }
 
@@ -180,6 +180,11 @@ namespace Microsoft.CodeAnalysis
         /// Report additional information related to analyzers, such as analyzer execution time.
         /// </value>
         public bool ReportAnalyzer { get; internal set; }
+
+        /// <summary>
+        /// Report additional information related to InternalsVisibleToAttributes for all assemblies the compiler sees in this compilation.
+        /// </summary>
+        public bool ReportInternalsVisibleToAttributes { get; internal set; }
 
         /// <value>
         /// Skip execution of <see cref="DiagnosticAnalyzer"/>s.
@@ -467,6 +472,7 @@ namespace Microsoft.CodeAnalysis
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader,
+            CompilationOptions compilationOptions,
             bool skipAnalyzers,
             out ImmutableArray<DiagnosticAnalyzer> analyzers,
             out ImmutableArray<ISourceGenerator> generators)
@@ -493,13 +499,16 @@ namespace Microsoft.CodeAnalysis
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesFramework:
                         diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesFramework, analyzerReference.FullPath, e.TypeName!);
                         break;
+                    case AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler:
+                        diagnostic = new DiagnosticInfo(messageProvider, messageProvider.WRN_AnalyzerReferencesNewerCompiler, analyzerReference.FullPath, e.ReferencedCompilerVersion!.ToString(), typeof(AnalyzerFileReference).Assembly.GetName().Version!.ToString());
+                        break;
                     case AnalyzerLoadFailureEventArgs.FailureErrorCode.None:
                     default:
                         return;
                 }
 
                 // Filter this diagnostic based on the compilation options so that /nowarn and /warnaserror etc. take effect.
-                diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, this.CompilationOptions);
+                diagnostic = messageProvider.FilterDiagnosticInfo(diagnostic, compilationOptions);
 
                 if (diagnostic != null)
                 {
@@ -507,16 +516,26 @@ namespace Microsoft.CodeAnalysis
                 }
             };
 
-            var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
+            var resolvedReferencesSet = PooledHashSet<AnalyzerFileReference>.GetInstance();
+            var resolvedReferencesList = ArrayBuilder<AnalyzerFileReference>.GetInstance();
             foreach (var reference in AnalyzerReferences)
             {
                 var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
-                    resolvedReferences.Add(resolvedReference);
+                    var isAdded = resolvedReferencesSet.Add(resolvedReference);
+                    if (isAdded)
+                    {
+                        // register the reference to the analyzer loader:
+                        analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
 
-                    // register the reference to the analyzer loader:
-                    analyzerLoader.AddDependencyLocation(resolvedReference.FullPath);
+                        resolvedReferencesList.Add(resolvedReference);
+                    }
+                    else
+                    {
+                        // https://github.com/dotnet/roslyn/issues/63856
+                        //diagnostics.Add(new DiagnosticInfo(messageProvider, messageProvider.WRN_DuplicateAnalyzerReference, reference.FilePath));
+                    }
                 }
                 else
                 {
@@ -525,7 +544,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // All analyzer references are registered now, we can start loading them.
-            foreach (var resolvedReference in resolvedReferences)
+            foreach (var resolvedReference in resolvedReferencesList)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
                 resolvedReference.AddAnalyzers(analyzerBuilder, language, shouldIncludeAnalyzer);
@@ -533,7 +552,8 @@ namespace Microsoft.CodeAnalysis
                 resolvedReference.AnalyzerLoadFailed -= errorHandler;
             }
 
-            resolvedReferences.Free();
+            resolvedReferencesList.Free();
+            resolvedReferencesSet.Free();
 
             generators = generatorBuilder.ToImmutable();
             analyzers = analyzerBuilder.ToImmutable();

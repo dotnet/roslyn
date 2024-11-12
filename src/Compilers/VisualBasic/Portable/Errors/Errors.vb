@@ -1611,7 +1611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PublicKeyContainerFailure = 36981
 
         ERR_InvalidAssemblyCulture = 36982
-        ERR_EncUpdateFailedMissingAttribute = 36983
+        ERR_EncUpdateFailedMissingSymbol = 36983
 
         ERR_CantAwaitAsyncSub1 = 37001
         ERR_ResumableLambdaInExpressionTree = 37050
@@ -1764,7 +1764,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MultipleAnalyzerConfigsInSameDir = 37317
         ERR_StdInOptionProvidedButConsoleInputIsNotRedirected = 37318
 
-        ERR_NextAvailable = 37319
+        ERR_UnsupportedCompilerFeature = 37319
+        ERR_DoNotUseCompilerFeatureRequired = 37320
+
+        ERR_RequiredMemberMustBeSet = 37321
+        ERR_CannotInheritFromTypeWithRequiredMembers = 37322
+        ERR_RequiredMembersInvalid = 37323
+        ERR_NewConstraintCannotHaveRequiredMembers = 37324
+        ERR_DoNotUseRequiredMember = 37325
+
+        ERR_UnsupportedRefReturningCallInWithStatement = 37326
+        ERR_SymbolDefinedInAssembly = 37327
+
+        ERR_InvalidExperimentalDiagID = 37328
+
+        ERR_LockTypeUnsupported = 37329
+        ERR_InvalidVersionFormatDeterministic = 37330
+        ERR_TypeReserved = 37331
+        ERR_UnmanagedConstraintNotSatisfied = 37332
+
+        ERR_NextAvailable = 37333
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1994,8 +2013,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_CallerArgumentExpressionAttributeSelfReferential = 42504
         WRN_CallerArgumentExpressionAttributeHasInvalidParameterName = 42505
 
+        WRN_AnalyzerReferencesNewerCompiler = 42506
+        WRN_DuplicateAnalyzerReference = 42507
+
+        WRN_ConvertingLock = 42508
+
         ' // AVAILABLE                             42600 - 49998
         WRN_NextAvailable = 42600
+
+        ' NOTE: On adding a new ERRID, you will need to update ErrorFacts.IsBuildOnlyDiagnostic to handle it.
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
@@ -2056,5 +2082,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_CommentsAfterLineContinuation
         FEATURE_InitOnlySettersUsage
         FEATURE_CallerArgumentExpression
+        FEATURE_UnmanagedConstraint
     End Enum
 End Namespace

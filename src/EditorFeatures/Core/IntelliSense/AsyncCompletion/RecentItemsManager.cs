@@ -5,43 +5,48 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
+
+[Export]
+internal class RecentItemsManager
 {
-    [Export]
-    internal class RecentItemsManager
+    private const int MaxMRUSize = 10;
+
+    /// <summary>
+    /// Guard for <see cref="RecentItems"/>
+    /// </summary>
+    private readonly object _mruUpdateLock = new();
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RecentItemsManager()
     {
-        private const int MaxMRUSize = 10;
+    }
 
-        /// <summary>
-        /// Guard for <see cref="RecentItems"/>
-        /// </summary>
-        private readonly object _mruUpdateLock = new();
+    private ImmutableArray<string> RecentItems { get; set; } = [];
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RecentItemsManager()
+    public void MakeMostRecentItem(CompletionItem item)
+    {
+        lock (_mruUpdateLock)
         {
-        }
+            var items = RecentItems;
+            items = items.Remove(item.FilterText);
 
-        public ImmutableArray<string> RecentItems { get; private set; } = ImmutableArray<string>.Empty;
-
-        public void MakeMostRecentItem(string item)
-        {
-            lock (_mruUpdateLock)
+            if (items.Length == MaxMRUSize)
             {
-                var items = RecentItems;
-                items = items.Remove(item);
-
-                if (items.Length == MaxMRUSize)
-                {
-                    // Remove the least recent item.
-                    items = items.RemoveAt(0);
-                }
-
-                RecentItems = items.Add(item);
+                // Remove the least recent item.
+                items = items.RemoveAt(0);
             }
+
+            RecentItems = items.Add(item.FilterText);
         }
+    }
+
+    public int GetRecentItemIndex(CompletionItem item)
+    {
+        return RecentItems.IndexOf(item.FilterText);
     }
 }

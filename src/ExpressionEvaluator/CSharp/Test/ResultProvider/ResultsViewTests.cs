@@ -946,8 +946,7 @@ class C
             }
         }
 
-        [WorkItem(1006160, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006160")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1006160")]
         public void MultipleImplementations_DifferentImplementors()
         {
             var source =
@@ -1204,7 +1203,7 @@ public class C : IEnumerable
                 var runtime = new DkmClrRuntimeInstance(assemblies);
                 var type = assembly.GetType("C");
                 var value = CreateDkmClrValue(
-                    value: type.Instantiate(new object[] { new object[] { string.Empty } }),
+                    value: type.Instantiate([new object[] { string.Empty }]),
                     type: runtime.GetType((TypeImpl)type));
                 var evalResult = FormatResult("o", value);
                 Verify(evalResult,
@@ -1459,8 +1458,7 @@ class C
         /// <summary>
         /// Do not instantiate proxy type for null IEnumerable.
         /// </summary>
-        [WorkItem(1009646, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009646")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009646")]
         public void IEnumerableNull()
         {
             var source =
@@ -1538,9 +1536,8 @@ class C : IEnumerable
             }
         }
 
-        [Fact]
-        [WorkItem(1145125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")]
-        [WorkItem(5666, "https://github.com/dotnet/roslyn/issues/5666")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1145125")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/5666")]
         public void GetEnumerableException()
         {
             var source =
@@ -1636,8 +1633,7 @@ class C
         /// is [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]).
         /// Note, the native EE has an empty expansion when .dmp debugging.
         /// </summary>
-        [WorkItem(1043746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1043746")]
         public void GetProxyPropertyValueError()
         {
             var source =
@@ -1679,8 +1675,7 @@ class C : IEnumerable
         /// IEnumerable&lt;T&gt; should be expanded directly
         /// without intermediate "Results View" row.
         /// </summary>
-        [WorkItem(1114276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114276")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114276")]
         public void SyntheticIEnumerable()
         {
             var source =
@@ -1782,8 +1777,7 @@ class C
             }
         }
 
-        [WorkItem(4098, "https://github.com/dotnet/roslyn/issues/4098")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4098")]
         public void IEnumerableOfAnonymousType()
         {
             var code =
@@ -1810,7 +1804,7 @@ class C
                 var parameters = ctor.GetParameters();
                 var listType = typeof(List<>).MakeGenericType(anonymousType);
                 var source = listType.Instantiate();
-                listType.GetMethod("Add").Invoke(source, new[] { anonymousType.Instantiate(1, 1) });
+                listType.GetMethod("Add").Invoke(source, [anonymousType.Instantiate(1, 1)]);
                 var predicate = Delegate.CreateDelegate(parameters[1].ParameterType, instance, displayClass.GetMethod("<M>b__0_2", BindingFlags.Instance | BindingFlags.NonPublic));
                 var selector = Delegate.CreateDelegate(parameters[2].ParameterType, instance, displayClass.GetMethod("<M>b__0_3", BindingFlags.Instance | BindingFlags.NonPublic));
                 var value = CreateDkmClrValue(
@@ -1856,6 +1850,33 @@ class C
                 propertyName,
                 CreateDkmClrValue(propertyValue, type: valueType, valueFlags: DkmClrValueFlags.Synthetic),
                 declaredType: propertyType);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74082")]
+        public void LiftedPrimaryConstructorParameters()
+        {
+            var source = """
+                class C(int x, int y) { int F() => x; int A = y; int Z => 2; }
+                """;
+            var assembly = GetAssembly(source);
+            var assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(assembly);
+            using (ReflectionUtilities.LoadAssemblies(assemblies))
+            {
+                var runtime = new DkmClrRuntimeInstance(assemblies);
+                var type = assembly.GetType("C");
+                var value = CreateDkmClrValue(
+                    value: type.Instantiate([3, 1]),
+                    type: runtime.GetType((TypeImpl)type));
+                var evalResult = FormatResult("o", value);
+                Verify(evalResult,
+                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult);
+                Verify(children,
+                    EvalResult(name: "A", value: "1", type: "int", fullName: "o.A", DkmEvaluationResultFlags.CanFavorite),
+                    EvalResult(name: "Z", value: "2", type: "int", fullName: "o.Z", DkmEvaluationResultFlags.CanFavorite | DkmEvaluationResultFlags.ReadOnly),
+                    EvalResult(name: "x", value: "3", type: "int", fullName: null, DkmEvaluationResultFlags.CanFavorite));
+            }
         }
     }
 }

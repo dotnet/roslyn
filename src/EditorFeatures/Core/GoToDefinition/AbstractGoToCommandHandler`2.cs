@@ -5,6 +5,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -14,27 +15,34 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GoToDefinition;
 
-internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs> : ICommandHandler<TCommandArgs>
+internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArgs>(
+    IThreadingContext threadingContext,
+    IStreamingFindUsagesPresenter streamingPresenter,
+    IUIThreadOperationExecutor uiThreadOperationExecutor,
+    IAsynchronousOperationListener listener,
+    IGlobalOptionService globalOptions) : ICommandHandler<TCommandArgs>
     where TLanguageService : class, ILanguageService
     where TCommandArgs : EditorCommandArgs
 {
-    private readonly IThreadingContext _threadingContext;
-    private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
-    private readonly IAsynchronousOperationListener _listener;
-    private readonly IGlobalOptionService _globalOptions;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IStreamingFindUsagesPresenter _streamingPresenter = streamingPresenter;
+    private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor = uiThreadOperationExecutor;
+    private readonly IAsynchronousOperationListener _listener = listener;
+
+    public readonly OptionsProvider<ClassificationOptions> ClassificationOptionsProvider = globalOptions.GetClassificationOptionsProvider();
 
     /// <summary>
     /// The current go-to command that is in progress.  Tracked so that if we issue multiple find-impl commands that
@@ -62,51 +70,40 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     /// </summary>
     private Func<CancellationToken, Task>? _delayHook;
 
-    public AbstractGoToCommandHandler(
-        IThreadingContext threadingContext,
-        IStreamingFindUsagesPresenter streamingPresenter,
-        IUIThreadOperationExecutor uiThreadOperationExecutor,
-        IAsynchronousOperationListener listener,
-        IGlobalOptionService globalOptions)
-    {
-        _threadingContext = threadingContext;
-        _streamingPresenter = streamingPresenter;
-        _uiThreadOperationExecutor = uiThreadOperationExecutor;
-        _listener = listener;
-        _globalOptions = globalOptions;
-    }
-
     public abstract string DisplayName { get; }
     protected abstract string ScopeDescription { get; }
     protected abstract FunctionId FunctionId { get; }
 
     protected abstract Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken);
 
+    private static (Document?, TLanguageService?) GetDocumentAndService(ITextSnapshot snapshot)
+    {
+        var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+        return (document, document?.GetLanguageService<TLanguageService>());
+    }
+
     public CommandState GetCommandState(TCommandArgs args)
     {
-        var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-        return document?.GetLanguageService<TLanguageService>() is null
-            ? CommandState.Unspecified
-            : CommandState.Available;
+        var (_, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+        return service != null
+            ? CommandState.Available
+            : CommandState.Unspecified;
     }
 
     public bool ExecuteCommand(TCommandArgs args, CommandExecutionContext context)
     {
-        // Should only be called on the UI thread.
-        Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var subjectBuffer = args.SubjectBuffer;
         var caret = args.TextView.GetCaretPoint(subjectBuffer);
         if (!caret.HasValue)
             return false;
 
-        var document = subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-        if (document == null)
-            return false;
-
-        var service = document.GetLanguageService<TLanguageService>();
+        var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
         if (service == null)
             return false;
+
+        Roslyn.Utilities.Contract.ThrowIfNull(document);
 
         // cancel any prior find-refs that might be in progress.
         _cancellationTokenSource.Cancel();
@@ -127,8 +124,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // and failure ourselves.
         try
         {
-            // Should only be called on the UI thread.
-            Contract.ThrowIfFalse(_threadingContext.HasMainThread);
+            _threadingContext.ThrowIfNotOnUIThread();
 
             // Make an tracking token so that integration tests can wait until we're complete.
             using var token = _listener.BeginAsyncOperation($"{GetType().Name}.{nameof(ExecuteCommandAsync)}");
@@ -170,11 +166,11 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         // TLanguageService.  Once we get the results back we'll then decide what to do with them.  If we get only a
         // single result back, then we'll just go directly to it.  Otherwise, we'll present the results in the
         // IStreamingFindUsagesPresenter.
-        var findContext = new BufferedFindUsagesContext(_globalOptions);
+        var findContext = new BufferedFindUsagesContext();
 
         var cancellationToken = cancellationTokenSource.Token;
         var delayTask = DelayAsync(cancellationToken);
-        var findTask = Task.Run(() => FindResultsAsync(findContext, document, position, cancellationToken), cancellationToken);
+        var findTask = FindResultsAsync(findContext, document, position, cancellationToken);
 
         var firstFinishedTask = await Task.WhenAny(delayTask, findTask).ConfigureAwait(false);
         if (cancellationToken.IsCancellationRequested)
@@ -190,7 +186,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
             if (definitions.Length > 0)
             {
                 var title = await findContext.GetSearchTitleAsync(cancellationToken).ConfigureAwait(false);
-                await _streamingPresenter.TryNavigateToOrPresentItemsAsync(
+                await _streamingPresenter.TryPresentLocationOrNavigateIfOneAsync(
                     _threadingContext,
                     document.Project.Solution.Workspace,
                     title ?? DisplayName,
@@ -223,7 +219,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     {
         var cancellationToken = cancellationTokenSource.Token;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, supportsReferences: false);
+        var (presenterContext, presenterCancellationToken) = _streamingPresenter.StartSearch(DisplayName, StreamingFindUsagesPresenterOptions.Default);
 
         try
         {
@@ -254,18 +250,21 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
     private async Task FindResultsAsync(
         IFindUsagesContext findContext, Document document, int position, CancellationToken cancellationToken)
     {
+        // Ensure that we relinquish the thread so that the caller can proceed with their work.
+        await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
         using (Logger.LogBlock(FunctionId, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
             await findContext.SetSearchTitleAsync(DisplayName, cancellationToken).ConfigureAwait(false);
 
             // Let the user know in the FAR window if results may be inaccurate because this is running prior to the 
             // solution being fully loaded.
-            var service = document.Project.Solution.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            var service = document.Project.Solution.Services.GetRequiredService<IWorkspaceStatusService>();
             var isFullyLoaded = await service.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
             if (!isFullyLoaded)
             {
-                await findContext.ReportInformationalMessageAsync(
-                    EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, cancellationToken).ConfigureAwait(false);
+                await findContext.ReportMessageAsync(
+                    EditorFeaturesResources.The_results_may_be_incomplete_due_to_the_solution_still_loading_projects, NotificationSeverity.Information, cancellationToken).ConfigureAwait(false);
             }
 
             // We were able to find the doc prior to loading the workspace (or else we would not have the service).

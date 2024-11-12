@@ -7,41 +7,36 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.ErrorReporting;
 
-namespace Microsoft.CodeAnalysis.Features.Intents
+namespace Microsoft.CodeAnalysis.Features.Intents;
+
+internal sealed class IntentDataProvider(
+    string? serializedIntentData)
 {
-    internal class IntentDataProvider
+    private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
     {
-        private static readonly Lazy<JsonSerializerOptions> s_serializerOptions = new Lazy<JsonSerializerOptions>(() =>
+        var serializerOptions = new JsonSerializerOptions
         {
-            var serializerOptions = new JsonSerializerOptions
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+        serializerOptions.Converters.Add(new JsonStringEnumConverter());
+        return serializerOptions;
+    });
+
+    private readonly string? _serializedIntentData = serializedIntentData;
+
+    public T? GetIntentData<T>() where T : class
+    {
+        if (_serializedIntentData != null)
+        {
+            try
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            };
-            serializerOptions.Converters.Add(new JsonStringEnumConverter());
-            return serializerOptions;
-        });
-
-        private readonly string? _serializedIntentData;
-
-        public IntentDataProvider(string? serializedIntentData)
-        {
-            _serializedIntentData = serializedIntentData;
-        }
-
-        public T? GetIntentData<T>() where T : class
-        {
-            if (_serializedIntentData != null)
-            {
-                try
-                {
-                    return JsonSerializer.Deserialize<T>(_serializedIntentData, s_serializerOptions.Value);
-                }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
-                {
-                }
+                return JsonSerializer.Deserialize<T>(_serializedIntentData, s_serializerOptions.Value);
             }
-
-            return null;
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
+            {
+            }
         }
+
+        return null;
     }
 }

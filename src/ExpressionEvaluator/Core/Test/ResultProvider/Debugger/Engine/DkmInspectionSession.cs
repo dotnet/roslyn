@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
 
         private sealed class Dispatcher<TInterface>
         {
-            private struct InstanceAndMethod
+            private readonly struct InstanceAndMethod
             {
                 internal InstanceAndMethod(object instance, MethodId method)
                 {
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
             internal Dispatcher(ImmutableArray<TInterface> items)
             {
                 _implementations = items;
-                _calls = new ArrayBuilder<InstanceAndMethod>();
+                _calls = ArrayBuilder<InstanceAndMethod>.GetInstance();
             }
 
             internal TResult Invoke<TResult>(object instance, MethodId method, Func<TInterface, TResult> f)

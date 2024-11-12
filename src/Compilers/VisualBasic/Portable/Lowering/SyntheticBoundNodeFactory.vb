@@ -173,7 +173,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-
         Public Function Base() As BoundMyBaseReference
             Debug.Assert(Me.CurrentMethod IsNot Nothing AndAlso Not Me.CurrentMethod.IsShared)
             Dim boundNode = New BoundMyBaseReference(_syntax, Me.CurrentMethod.MeParameter.Type.BaseTypeNoUseSiteDiagnostics)
@@ -181,8 +180,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-        Public Function Parameter(p As ParameterSymbol) As BoundParameter
-            Dim boundNode = New BoundParameter(_syntax, p, p.Type)
+        Public Function Parameter(p As ParameterSymbol, Optional isLValue As Boolean = True) As BoundParameter
+            Dim boundNode = New BoundParameter(_syntax, p, isLValue, p.Type)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -259,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return member
         End Function
 
-        Public Function SpecialMember(sm As SpecialMember) As Symbol
+        Public Function SpecialMember(sm As SpecialMember, Optional isOptional As Boolean = False) As Symbol
             Dim memberSymbol As Symbol = Me.Compilation.GetSpecialTypeMember(sm)
             Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol)
 
@@ -268,6 +267,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, CompilationState.Compilation.Options.EmbedVbCoreRuntime))
             Else
                 useSiteInfo = Binder.GetUseSiteInfoForMemberAndContainingType(memberSymbol)
+            End If
+
+            If useSiteInfo.DiagnosticInfo IsNot Nothing AndAlso isOptional Then
+                Return Nothing
             End If
 
             Me.Diagnostics.Add(useSiteInfo, _syntax)
@@ -446,6 +449,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundNode = New BoundLiteral(_syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             boundNode.SetWasCompilerGenerated()
             Return boundNode
+        End Function
+
+        Public Function Literal(value As StateMachineState) As BoundLiteral
+            Return Literal(CType(value, Integer))
         End Function
 
         Public Function BadExpression(ParamArray subExpressions As BoundExpression()) As BoundExpression
@@ -832,12 +839,25 @@ nextm:
             Return boundNode
         End Function
 
-        Public Function [Typeof](type As WellKnownType) As BoundExpression
-            Return [Typeof](WellKnownType(type))
+        Public Function [Typeof](type As WellKnownType, systemTypeSymbol As TypeSymbol) As BoundExpression
+            Return [Typeof](WellKnownType(type), systemTypeSymbol)
         End Function
 
-        Public Function [Typeof](typeSym As TypeSymbol) As BoundExpression
-            Dim boundNode = New BoundGetType(_syntax, Type(typeSym), WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Type))
+        Public Function [Typeof](typeSym As TypeSymbol, systemTypeSymbol As TypeSymbol) As BoundExpression
+            Debug.Assert(systemTypeSymbol.ExtendedSpecialType = InternalSpecialType.System_Type OrElse
+                         systemTypeSymbol.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptionsForVB))
+
+            Dim getTypeFromHandle As MethodSymbol
+
+            If systemTypeSymbol.ExtendedSpecialType = InternalSpecialType.System_Type Then
+                getTypeFromHandle = DirectCast(SpecialMember(CodeAnalysis.SpecialMember.System_Type__GetTypeFromHandle), MethodSymbol)
+            Else
+                getTypeFromHandle = WellKnownMember(Of MethodSymbol)(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle)
+            End If
+
+            Debug.Assert(getTypeFromHandle Is Nothing OrElse
+                         TypeSymbol.Equals(systemTypeSymbol, getTypeFromHandle.ReturnType, TypeCompareKind.AllIgnoreOptionsForVB))
+            Dim boundNode = New BoundGetType(_syntax, Type(typeSym), getTypeFromHandle, systemTypeSymbol, hasErrors:=getTypeFromHandle Is Nothing)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function
@@ -848,31 +868,58 @@ nextm:
             Return boundNode
         End Function
 
-        Public Function MethodInfo(meth As WellKnownMember) As BoundExpression
+        Public Function MethodInfo(meth As WellKnownMember, systemReflectionMethodInfo As TypeSymbol) As BoundExpression
             Dim method = WellKnownMember(Of MethodSymbol)(meth)
             If method Is Nothing Then
                 Return BadExpression()
             Else
-                Return MethodInfo(method)
+                Return MethodInfo(method, systemReflectionMethodInfo)
             End If
         End Function
 
-        Public Function MethodInfo(meth As SpecialMember) As BoundExpression
+        Public Function MethodInfo(meth As SpecialMember, systemReflectionMethodInfo As TypeSymbol) As BoundExpression
             Dim method = DirectCast(SpecialMember(meth), MethodSymbol)
             If method Is Nothing Then
                 Return BadExpression()
             Else
-                Return MethodInfo(method)
+                Return MethodInfo(method, systemReflectionMethodInfo)
             End If
         End Function
 
-        Public Function MethodInfo(method As MethodSymbol) As BoundExpression
-            Dim boundNode = New BoundMethodInfo(Syntax, method, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_MethodInfo))
-            ' Touch the method to be used to report use site diagnostics
-            WellKnownMember(Of MethodSymbol)(If(method.ContainingType.IsGenericType,
-                                                Microsoft.CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2,
-                                                Microsoft.CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle))
+        Public Function MethodInfo(method As MethodSymbol, systemReflectionMethodInfo As TypeSymbol) As BoundExpression
+            Debug.Assert(systemReflectionMethodInfo.ExtendedSpecialType = InternalSpecialType.System_Reflection_MethodInfo OrElse
+                         systemReflectionMethodInfo.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Reflection_MethodInfo), TypeCompareKind.AllIgnoreOptionsForVB) OrElse
+                         systemReflectionMethodInfo.Equals(Compilation.GetWellKnownType(CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo), TypeCompareKind.AllIgnoreOptionsForVB))
+
+            Dim getMethodFromHandle As MethodSymbol
+            Dim isInGenericType As Boolean = DirectCast(method.ContainingType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol).IsGenericType OrElse method.ContainingType.IsAnonymousType
+
+            If systemReflectionMethodInfo.ExtendedSpecialType = InternalSpecialType.System_Reflection_MethodInfo Then
+                getMethodFromHandle = DirectCast(SpecialMember(
+                                                     If(isInGenericType,
+                                                         Microsoft.CodeAnalysis.SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle2,
+                                                         Microsoft.CodeAnalysis.SpecialMember.System_Reflection_MethodBase__GetMethodFromHandle)),
+                                                 MethodSymbol)
+            Else
+                getMethodFromHandle = WellKnownMember(Of MethodSymbol)(
+                                                     If(isInGenericType,
+                                                         Microsoft.CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle2,
+                                                         Microsoft.CodeAnalysis.WellKnownMember.System_Reflection_MethodBase__GetMethodFromHandle))
+            End If
+
+            If getMethodFromHandle Is Nothing Then
+                Return BadExpression()
+            End If
+
+            Dim boundNode = New BoundMethodInfo(Syntax, method, getMethodFromHandle, systemReflectionMethodInfo)
+
             boundNode.SetWasCompilerGenerated()
+
+#If DEBUG Then
+            Dim discardedUseSiteInfo = CompoundUseSiteInfo(Of AssemblySymbol).Discarded
+            Debug.Assert(systemReflectionMethodInfo.IsErrorType() OrElse Conversions.IsDerivedFrom(systemReflectionMethodInfo, getMethodFromHandle.ReturnType, discardedUseSiteInfo))
+#End If
+
             Return boundNode
         End Function
 
@@ -895,18 +942,8 @@ nextm:
         End Function
 
         Public Function ConstructorInfo(meth As MethodSymbol) As BoundExpression
-            Dim boundNode = New BoundMethodInfo(Syntax, meth, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
-            boundNode.SetWasCompilerGenerated()
-            Return boundNode
+            Return MethodInfo(meth, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
         End Function
-
-#If False Then
-        Friend Function ConstructorInfo(ctor As MethodSymbol) As BoundExpression
-            Dim boundNode = New BoundMethodInfo(Syntax, ctor, WellKnownType(Compilers.WellKnownType.System_Reflection_ConstructorInfo))
-            boundNode.SetWasCompilerGenerated()
-            Return boundNode
-        End Function
-#End If
 
         Public Function FieldInfo(field As FieldSymbol) As BoundExpression
             Dim boundNode = New BoundFieldInfo(_syntax, field, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_FieldInfo))
@@ -1090,7 +1127,7 @@ nextm:
             If body.Kind <> BoundKind.Block Then
                 body = Me.Block(body)
             End If
-            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body)
+            CompilationState.AddSynthesizedMethod(Me.CurrentMethod, body, stateMachineType:=Nothing, ImmutableArray(Of StateMachineStateDebugInfo).Empty)
             Me.CurrentMethod = Nothing
         End Sub
 

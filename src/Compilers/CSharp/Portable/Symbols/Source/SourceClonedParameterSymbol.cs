@@ -44,9 +44,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsParams
+        public override bool IsParamsArray
         {
-            get { return !_suppressOptional && _originalParam.IsParams; }
+            get { return !_suppressOptional && _originalParam.IsParamsArray; }
+        }
+
+        public override bool IsParamsCollection
+        {
+            get { return !_suppressOptional && _originalParam.IsParamsCollection; }
         }
 
         internal override bool IsMetadataOptional
@@ -57,6 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _suppressOptional ? _originalParam.HasOptionalAttribute : _originalParam.IsMetadataOptional;
             }
         }
+
+        internal sealed override ScopedKind EffectiveScope => _originalParam.EffectiveScope;
+
+        internal override bool HasUnscopedRefAttribute => _originalParam.HasUnscopedRefAttribute;
+
+        internal sealed override bool UseUpdatedEscapeRules => _originalParam.UseUpdatedEscapeRules;
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {
@@ -71,8 +82,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _originalParam.DefaultValueFromAttributes; }
         }
-
-        public override bool IsNullChecked => _originalParam.IsNullChecked;
 
         #region Forwarded
 
@@ -141,9 +150,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableHashSet<string>.Empty; }
         }
 
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable;
+        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => throw ExceptionUtilities.Unreachable();
 
-        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable;
+        internal override bool HasInterpolatedStringHandlerArgumentError => throw ExceptionUtilities.Unreachable();
 
         #endregion
     }

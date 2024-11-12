@@ -1156,7 +1156,6 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IVariableDeclaration_InvalidIgnoredDimensions_NestedArrayType()
@@ -1414,7 +1413,6 @@ class Program
     }
 }
 ";
-
 
             string expectedOperationTree = @"
 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'int* p = &reference.i1')
@@ -2305,7 +2303,6 @@ class C
                 .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.ParseExpression("y switch { int z => 42 }"))));
             syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
 
-
             string expectedOperationTree = @"
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
       Ignored Dimensions(1):
@@ -2337,7 +2334,7 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must implement 'System.IDisposable'.
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/){}
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[y switch { int z => 42 }] x = new int[0]").WithArguments("int[]").WithLocation(7, 25),
                 // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -2367,7 +2364,6 @@ class C
                 .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.ParseExpression("y switch { int z => 42 }"))));
             syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
 
-
             string expectedOperationTree = @"
     IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
       Ignored Dimensions(1):
@@ -2399,7 +2395,7 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must implement 'System.IDisposable'.
                 //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[y switch { int z => 42 }] x = new int[0]").WithArguments("int[]").WithLocation(7, 25),
                 // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -2458,7 +2454,7 @@ class C
                 // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
-                // file.cs(7,8): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // file.cs(7,8): error CS1674: 'int[]': type used in a using statement must implement 'System.IDisposable'.
                 //        using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;").WithArguments("int[]").WithLocation(7, 8),
                 // file.cs(7,27): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
@@ -2835,7 +2831,6 @@ class C
             var rankSpecifierNew = rankSpecifierOld
                 .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.ParseExpression("y switch { int z => 42 }"))));
             syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
-
 
             string expectedOperationTree = @"
 IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')

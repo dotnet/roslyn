@@ -504,7 +504,7 @@ class Test
   .locals init (System.ReadOnlySpan<char> V_0,
                 int V_1)
   IL_0000:  ldstr      ""hello""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.0
   IL_000c:  stloc.1
@@ -1583,7 +1583,6 @@ struct A
             CompileAndVerify(source, expectedOutput: "5");
         }
 
-
         [Fact, WorkItem(1077204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1077204")]
         public void TestValueTypeIterationVariableFieldsAreReadonly()
         {
@@ -1653,6 +1652,44 @@ struct A
 }";
 
             CompileAndVerify(source, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void Var_ExtensionGetEnumerator()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public readonly List<T> Items;
+                    public MyCollection(params T[] items) { Items = new(items); }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => c.Items.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = new(1, 2, 3);
+                        int total = 0;
+                        foreach (var y in x)
+                            total += y;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decl = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var local = (SourceLocalSymbol)model.GetDeclaredSymbol(decl).GetSymbol<LocalSymbol>();
+            Assert.True(local.IsVar);
+            Assert.Equal("System.Int32", local.Type.ToTestDisplayString());
+
+            comp.VerifyDiagnostics();
         }
     }
 }

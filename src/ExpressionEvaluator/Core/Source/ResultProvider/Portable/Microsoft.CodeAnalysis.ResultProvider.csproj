@@ -7,6 +7,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.ExpressionEvaluator.ResultProvider</AssemblyName>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs">
@@ -36,6 +37,12 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs">
+      <Link>Compilers\InternalUtilities\InterpolatedStringHandlerAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs">
+      <Link>Compilers\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>
@@ -50,6 +57,9 @@
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs">
       <Link>Compiler\Symbols\WellKnownMemberNames.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\CommonGeneratedNames.cs">
+      <Link>Compiler\Symbols\CommonGeneratedNames.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Xml\XmlCharType.cs">
       <Link>Compiler\Xml\XmlCharType.cs</Link>
@@ -75,9 +85,9 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="$(MicrosoftVisualStudioDebuggerMetadataimplementationVersion)" />
-    <PackageReference Include="System.Memory" Version="$(SystemMemoryVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" />
+    <PackageReference Include="System.Memory" />
   </ItemGroup>
   <Import Project="..\ResultProvider.projitems" Label="Shared" />
 </Project>

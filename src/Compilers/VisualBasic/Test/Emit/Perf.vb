@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
     Public Class Perf : Inherits BasicTestBase
@@ -23,14 +24,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
             ' So if the test fails we should fix the product bug that is causing the failure
             ' as opposed to 'fixing' the test by updating the benchmark code.
 
-
             ' If you absolutely need to change the benchmark code - PLEASE SHOOT A MAIL TO SHYAM (GNAMBOO)
             ' so that he can apply the same changes to the copy of this benchmark code that is used in the perf test.
             CompileAndVerify(<compilation>
                                  <file name="VBPerfTest.vb">
                                      <%= TestResources.PerfTests.VBPerfTest %>
                                  </file>
-                             </compilation>, references:={TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
+                             </compilation>, references:={Net40.References.SystemCore}).VerifyDiagnostics()
         End Sub
     End Class
 End Namespace

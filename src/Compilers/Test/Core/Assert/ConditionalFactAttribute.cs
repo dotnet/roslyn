@@ -142,12 +142,6 @@ namespace Roslyn.Test.Utilities
 
     public static class ExecutionConditionUtil
     {
-        public static ExecutionArchitecture Architecture => (IntPtr.Size) switch
-        {
-            4 => ExecutionArchitecture.x86,
-            8 => ExecutionArchitecture.x64,
-            _ => throw new InvalidOperationException($"Unrecognized pointer size {IntPtr.Size}")
-        };
         public static ExecutionConfiguration Configuration =>
 #if DEBUG
             ExecutionConfiguration.Debug;
@@ -163,11 +157,14 @@ namespace Roslyn.Test.Utilities
         public static bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
         public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
+        // IsMonoDesktop means https://github.com/mono/mono
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
-        public static bool IsMono => MonoHelpers.IsRunningOnMono();
+        // IsMonoCore means https://github.com/dotnet/runtime/tree/main/src/mono
+        public static bool IsMonoCore => Type.GetType("Mono.RuntimeStructs") != null;
+        public static bool IsAnyMono => IsMonoCore || IsMonoDesktop;
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
-        public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
+        public static bool IsMonoOrCoreClr => IsMonoDesktop || IsCoreClr;
         public static bool RuntimeSupportsCovariantReturnsOfClasses => Type.GetType("System.Runtime.CompilerServices.RuntimeFeature")?.GetField("CovariantReturnsOfClasses") != null;
 
         private static readonly Lazy<bool> s_operatingSystemRestrictsFileNames = new Lazy<bool>(() =>
@@ -184,23 +181,24 @@ namespace Roslyn.Test.Utilities
         public static bool OperatingSystemRestrictsFileNames => s_operatingSystemRestrictsFileNames.Value;
     }
 
-    public enum ExecutionArchitecture
-    {
-        x86,
-        x64,
-    }
-
     public enum ExecutionConfiguration
     {
         Debug,
         Release,
     }
 
-    public class x86 : ExecutionCondition
+    public class Bitness32 : ExecutionCondition
     {
-        public override bool ShouldSkip => ExecutionConditionUtil.Architecture != ExecutionArchitecture.x86;
+        public override bool ShouldSkip => IntPtr.Size != 4;
 
-        public override string SkipReason => "Target platform is not x86";
+        public override string SkipReason => "Target bitness is not 32-bit";
+    }
+
+    public class Bitness64 : ExecutionCondition
+    {
+        public override bool ShouldSkip => IntPtr.Size != 8;
+
+        public override string SkipReason => "Target bitness is not 64-bit";
     }
 
     public class HasShiftJisDefaultEncoding : ExecutionCondition
@@ -235,6 +233,8 @@ namespace Roslyn.Test.Utilities
 
     public class IsEnglishLocal : ExecutionCondition
     {
+        public static readonly IsEnglishLocal Instance = new IsEnglishLocal();
+
         public override bool ShouldSkip
         {
             get
@@ -263,6 +263,17 @@ namespace Roslyn.Test.Utilities
 #endif
 
         public override string SkipReason => "Test not supported in DEBUG";
+    }
+
+    public class IsNot32BitDebug : ExecutionCondition
+    {
+#if DEBUG
+        public override bool ShouldSkip => !Environment.Is64BitProcess;
+#else
+        public override bool ShouldSkip => false;
+#endif
+
+        public override string SkipReason => "Test not supported in 32bit DEBUG";
     }
 
     public class IsDebug : ExecutionCondition
@@ -322,6 +333,18 @@ namespace Roslyn.Test.Utilities
     {
         public override bool ShouldSkip => MonoHelpers.IsRunningOnMono();
         public override string SkipReason => "Test not supported on Mono";
+    }
+
+    public class NotOnMonoCore : ExecutionCondition
+    {
+        public override bool ShouldSkip => MonoHelpers.IsRunningOnMonoCore();
+        public override string SkipReason => "Test not supported on Mono Core";
+    }
+
+    public class NotOnAnyMono : ExecutionCondition
+    {
+        public override bool ShouldSkip => ExecutionConditionUtil.IsAnyMono;
+        public override string SkipReason => "Test not supported on Mono core or Mono Desktop";
     }
 
     public class CoreClrOnly : ExecutionCondition

@@ -5,107 +5,102 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using System.Runtime.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// An identifier that can be used to retrieve the same <see cref="Document"/> across versions of the
+/// workspace.
+/// </summary>
+[DataContract]
+[DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
+public sealed class DocumentId : IEquatable<DocumentId>
 {
-    /// <summary>
-    /// An identifier that can be used to retrieve the same <see cref="Document"/> across versions of the
-    /// workspace.
-    /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    public sealed class DocumentId : IEquatable<DocumentId>, IObjectWritable
+    [DataMember(Order = 0)]
+    public ProjectId ProjectId { get; }
+    [DataMember(Order = 1)]
+    public Guid Id { get; }
+    [DataMember(Order = 2)]
+    internal bool IsSourceGenerated { get; }
+    [DataMember(Order = 3)]
+    private readonly string? _debugName;
+
+    private DocumentId(ProjectId projectId, Guid guid, bool isSourceGenerated, string? debugName)
     {
-        public ProjectId ProjectId { get; }
-        public Guid Id { get; }
+        this.ProjectId = projectId;
+        this.Id = guid;
+        this.IsSourceGenerated = isSourceGenerated;
+        _debugName = debugName;
+    }
 
-        private readonly string? _debugName;
+    /// <summary>
+    /// Creates a new <see cref="DocumentId"/> instance.
+    /// </summary>
+    /// <param name="projectId">The project id this document id is relative to.</param>
+    /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
+    public static DocumentId CreateNewId(ProjectId projectId, string? debugName = null)
+        => CreateFromSerialized(projectId, Guid.NewGuid(), isSourceGenerated: false, debugName);
 
-        private DocumentId(ProjectId projectId, Guid guid, string? debugName)
-        {
-            this.ProjectId = projectId;
-            this.Id = guid;
-            _debugName = debugName;
-        }
+    public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string? debugName = null)
+        => CreateFromSerialized(projectId, id, isSourceGenerated: false, debugName);
 
-        /// <summary>
-        /// Creates a new <see cref="DocumentId"/> instance.
-        /// </summary>
-        /// <param name="projectId">The project id this document id is relative to.</param>
-        /// <param name="debugName">An optional name to make this id easier to recognize while debugging.</param>
-        public static DocumentId CreateNewId(ProjectId projectId, string? debugName = null)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
+    internal static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, bool isSourceGenerated, string? debugName)
+    {
+        if (projectId == null)
+            throw new ArgumentNullException(nameof(projectId));
 
-            return new DocumentId(projectId, Guid.NewGuid(), debugName);
-        }
+        if (id == Guid.Empty)
+            throw new ArgumentException(nameof(id));
 
-        public static DocumentId CreateFromSerialized(ProjectId projectId, Guid id, string? debugName = null)
-        {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
+        return new DocumentId(projectId, id, isSourceGenerated, debugName);
+    }
 
-            if (id == Guid.Empty)
-            {
-                throw new ArgumentException(nameof(id));
-            }
+    internal string? DebugName => _debugName;
 
-            return new DocumentId(projectId, id, debugName);
-        }
+    internal string GetDebuggerDisplay()
+        => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
 
-        internal string? DebugName => _debugName;
+    public override string ToString()
+        => GetDebuggerDisplay();
 
-        internal string GetDebuggerDisplay()
-            => string.Format("({0}, #{1} - {2})", this.GetType().Name, this.Id, _debugName);
+    public override bool Equals(object? obj)
+        => this.Equals(obj as DocumentId);
 
-        public override string ToString()
-            => GetDebuggerDisplay();
+    public bool Equals(DocumentId? other)
+    {
+        // Technically, we don't need to check project id.
+        return
+            other is not null &&
+            this.Id == other.Id &&
+            this.ProjectId == other.ProjectId;
+    }
 
-        public override bool Equals(object? obj)
-            => this.Equals(obj as DocumentId);
+    public override int GetHashCode()
+        => Hash.Combine(this.ProjectId, this.Id.GetHashCode());
 
-        public bool Equals(DocumentId? other)
-        {
-            // Technically, we don't need to check project id.
-            return
-                other is object &&
-                this.Id == other.Id &&
-                this.ProjectId == other.ProjectId;
-        }
+    public static bool operator ==(DocumentId? left, DocumentId? right)
+        => EqualityComparer<DocumentId?>.Default.Equals(left, right);
 
-        public override int GetHashCode()
-            => Hash.Combine(this.ProjectId, this.Id.GetHashCode());
+    public static bool operator !=(DocumentId? left, DocumentId? right)
+        => !(left == right);
 
-        public static bool operator ==(DocumentId? left, DocumentId? right)
-            => EqualityComparer<DocumentId?>.Default.Equals(left, right);
+    internal void WriteTo(ObjectWriter writer)
+    {
+        this.ProjectId.WriteTo(writer);
+        writer.WriteGuid(Id);
+        writer.WriteBoolean(IsSourceGenerated);
+        writer.WriteString(DebugName);
+    }
 
-        public static bool operator !=(DocumentId? left, DocumentId? right)
-            => !(left == right);
+    internal static DocumentId ReadFrom(ObjectReader reader)
+    {
+        var projectId = ProjectId.ReadFrom(reader);
+        var guid = reader.ReadGuid();
+        var isSourceGenerated = reader.ReadBoolean();
+        var debugName = reader.ReadString();
 
-        bool IObjectWritable.ShouldReuseInSerialization => true;
-
-        void IObjectWritable.WriteTo(ObjectWriter writer)
-        {
-            ProjectId.WriteTo(writer);
-
-            writer.WriteGuid(Id);
-            writer.WriteString(DebugName);
-        }
-
-        internal static DocumentId ReadFrom(ObjectReader reader)
-        {
-            var projectId = ProjectId.ReadFrom(reader);
-
-            var guid = reader.ReadGuid();
-            var debugName = reader.ReadString();
-
-            return CreateFromSerialized(projectId, guid, debugName);
-        }
+        return CreateFromSerialized(projectId, guid, isSourceGenerated, debugName);
     }
 }

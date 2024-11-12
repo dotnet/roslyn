@@ -6,11 +6,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -126,12 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
         }
 
         protected static Action<QuickInfoItem> NoTypeParameterMap
-        {
-            get
-            {
-                return item => AssertSection(string.Empty, item.Sections, QuickInfoSectionKinds.TypeParameters);
-            }
-        }
+            => item => AssertSection(string.Empty, item.Sections, QuickInfoSectionKinds.TypeParameters);
 
         protected static Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {

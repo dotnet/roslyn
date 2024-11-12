@@ -6,7 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)corLibrary != null);
             Debug.Assert(otherNullabilityOpt == null || includeNullability != otherNullabilityOpt.IncludeNullability);
             Debug.Assert(otherNullabilityOpt == null || currentRecursionDepth == otherNullabilityOpt.currentRecursionDepth);
+            Debug.Assert(corLibrary == corLibrary.CorLibrary);
 
             this.corLibrary = corLibrary;
             this.currentRecursionDepth = currentRecursionDepth;
@@ -73,9 +74,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
 
+#nullable enable
+        protected abstract Conversion GetCollectionExpressionConversion(BoundUnconvertedCollectionExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo);
+#nullable disable
+
+        protected abstract bool IsAttributeArgumentBinding { get; }
+
+        protected abstract bool IsParameterDefaultValueBinding { get; }
+
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
 #nullable enable
+
+        /// <summary>
+        /// Derived types should provide non-null value for proper classification of conversions from expression.
+        /// </summary>
+        protected abstract CSharpCompilation? Compilation { get; }
+
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via
         /// any built-in or user-defined implicit conversion.
@@ -83,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Conversion ClassifyImplicitConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(sourceExpression != null);
+            Debug.Assert(Compilation != null);
             Debug.Assert((object)destination != null);
 
             var sourceType = sourceExpression.Type;
@@ -176,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return GetImplicitUserDefinedConversion(null, source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
         }
 
         /// <summary>
@@ -215,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The reason for this helper (as opposed to ClassifyConversionFromType) is that conversions from expressions could be different
         /// from conversions from type. For example expressions of dynamic type are implicitly convertable to any type, while dynamic type itself is not.
         /// </summary>
-        public Conversion ClassifyConversionFromExpressionType(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public Conversion ClassifyConversionFromExpressionType(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -226,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitDynamic;
             }
 
-            return ClassifyConversionFromType(source, destination, ref useSiteInfo);
+            return ClassifyConversionFromType(source, destination, isChecked: isChecked, ref useSiteInfo);
         }
 
         private static bool TryGetVoidConversion(TypeSymbol source, TypeSymbol destination, out Conversion conversion)
@@ -264,9 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// by both an implicit user-defined conversion and a built-in explicit conversion.
         /// In that circumstance, this method classifies the conversion as the implicit conversion or explicit depending on "forCast"
         /// </remarks>
-        public Conversion ClassifyConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast = false)
+        public Conversion ClassifyConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast = false)
         {
             Debug.Assert(sourceExpression != null);
+            Debug.Assert(Compilation != null);
             Debug.Assert((object)destination != null);
 
             if (TryGetVoidConversion(sourceExpression.Type, destination, out var conversion))
@@ -276,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (forCast)
             {
-                return ClassifyConversionFromExpressionForCast(sourceExpression, destination, ref useSiteInfo);
+                return ClassifyConversionFromExpressionForCast(sourceExpression, destination, isChecked: isChecked, ref useSiteInfo);
             }
 
             var result = ClassifyImplicitConversionFromExpression(sourceExpression, destination, ref useSiteInfo);
@@ -285,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            return ClassifyExplicitOnlyConversionFromExpression(sourceExpression, destination, ref useSiteInfo, forCast: false);
+            return ClassifyExplicitOnlyConversionFromExpression(sourceExpression, destination, isChecked: isChecked, ref useSiteInfo, forCast: false);
         }
 
         /// <summary>
@@ -297,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// by both an implicit user-defined conversion and a built-in explicit conversion.
         /// In that circumstance, this method classifies the conversion as the implicit conversion or explicit depending on "forCast"
         /// </remarks>
-        public Conversion ClassifyConversionFromType(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast = false)
+        public Conversion ClassifyConversionFromType(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast = false)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -309,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (forCast)
             {
-                return ClassifyConversionFromTypeForCast(source, destination, ref useSiteInfo);
+                return ClassifyConversionFromTypeForCast(source, destination, isChecked: isChecked, ref useSiteInfo);
             }
 
             // Try using the short-circuit "fast-conversion" path.
@@ -327,19 +344,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Conversion conversion = GetImplicitUserDefinedConversion(null, source, destination, ref useSiteInfo);
+            Conversion conversion = GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
             if (conversion.Exists)
             {
                 return conversion;
             }
 
-            conversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteInfo, forCast: false);
+            conversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, isChecked: isChecked, ref useSiteInfo, forCast: false);
             if (conversion.Exists)
             {
                 return conversion;
             }
 
-            return GetExplicitUserDefinedConversion(null, source, destination, ref useSiteInfo);
+            return GetExplicitUserDefinedConversion(source, destination, isChecked: isChecked, ref useSiteInfo);
         }
 
         /// <summary>
@@ -355,9 +372,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// An explicit conversion exists from a dynamic type to any type. 
         /// When casting we prefer the explicit conversion.
         /// </remarks>
-        private Conversion ClassifyConversionFromExpressionForCast(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion ClassifyConversionFromExpressionForCast(BoundExpression source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(source != null);
+            Debug.Assert(Compilation != null);
             Debug.Assert((object)destination != null);
 
             Conversion implicitConversion = ClassifyImplicitConversionFromExpression(source, destination, ref useSiteInfo);
@@ -366,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return implicitConversion;
             }
 
-            Conversion explicitConversion = ClassifyExplicitOnlyConversionFromExpression(source, destination, ref useSiteInfo, forCast: true);
+            Conversion explicitConversion = ClassifyExplicitOnlyConversionFromExpression(source, destination, isChecked: isChecked, ref useSiteInfo, forCast: true);
             if (explicitConversion.Exists)
             {
                 return explicitConversion;
@@ -408,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// by both an implicit user-defined conversion and a built-in explicit conversion.
         /// In that circumstance, this method classifies the conversion as the built-in conversion.
         /// </remarks>
-        private Conversion ClassifyConversionFromTypeForCast(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion ClassifyConversionFromTypeForCast(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -426,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return implicitBuiltInConversion;
             }
 
-            Conversion explicitBuiltInConversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteInfo, forCast: true);
+            Conversion explicitBuiltInConversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, isChecked: isChecked, ref useSiteInfo, forCast: true);
             if (explicitBuiltInConversion.Exists)
             {
                 return explicitBuiltInConversion;
@@ -453,13 +471,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // fail.
 
-            var conversion = GetExplicitUserDefinedConversion(null, source, destination, ref useSiteInfo);
+            var conversion = GetExplicitUserDefinedConversion(source, destination, isChecked: isChecked, ref useSiteInfo);
             if (conversion.Exists)
             {
                 return conversion;
             }
 
-            return GetImplicitUserDefinedConversion(null, source, destination, ref useSiteInfo);
+            return GetImplicitUserDefinedConversion(source, destination, ref useSiteInfo);
         }
 
         /// <summary>
@@ -478,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.MakeNullableConversion(convKind, FastClassifyConversion(source.StrippedType(), target.StrippedType()));
         }
 
-        public Conversion ClassifyBuiltInConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public Conversion ClassifyBuiltInConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -498,7 +516,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteInfo, forCast: false);
+            return ClassifyExplicitBuiltInOnlyConversion(source, destination, isChecked: isChecked, ref useSiteInfo, forCast: false);
+        }
+
+        /// <summary>
+        /// Determines if the source type is convertible to the destination type via
+        /// any standard implicit or standard explicit conversion.
+        /// </summary>
+        /// <remarks>
+        /// Not all built-in explicit conversions are standard explicit conversions.
+        /// </remarks>
+        public Conversion ClassifyStandardConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return ClassifyStandardConversion(sourceExpression: null, source, destination, ref useSiteInfo);
         }
 
         /// <summary>
@@ -510,6 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public Conversion ClassifyStandardConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert((object)destination != null);
 
@@ -549,33 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private static bool IsStandardImplicitConversionFromExpression(ConversionKind kind)
-        {
-            if (IsStandardImplicitConversionFromType(kind))
-            {
-                return true;
-            }
-
-            // See comment in ClassifyStandardImplicitConversion(BoundExpression, ...)
-            // where the set of standard implicit conversions is extended from the spec
-            // to include conversions from expression.
-            switch (kind)
-            {
-                case ConversionKind.AnonymousFunction:
-                case ConversionKind.MethodGroup:
-                case ConversionKind.ImplicitEnumeration:
-                case ConversionKind.ImplicitDynamic:
-                case ConversionKind.ImplicitNullToPointer:
-                case ConversionKind.ImplicitTupleLiteral:
-                case ConversionKind.StackAllocToPointerType:
-                case ConversionKind.StackAllocToSpanType:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-        // See https://github.com/dotnet/csharplang/blob/main/spec/conversions.md#standard-conversions:
+        // See https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/conversions.md#1042-standard-implicit-conversions:
         // "The standard conversions are those pre-defined conversions that can occur as part of a user-defined conversion."
         private static bool IsStandardImplicitConversionFromType(ConversionKind kind)
         {
@@ -590,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitPointer:
                 case ConversionKind.ImplicitPointerToVoid:
                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitSpan:
                     return true;
                 default:
                     return false;
@@ -598,6 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion ClassifyStandardImplicitConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert(sourceExpression == null || (object)sourceExpression.Type == (object)source);
             Debug.Assert((object)destination != null);
@@ -606,6 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: Identity conversions
             // SPEC: Implicit numeric conversions
             // SPEC: Implicit nullable conversions
+            // SPEC: Null literal conversions
             // SPEC: Implicit reference conversions
             // SPEC: Boxing conversions
             // SPEC: Implicit constant expression conversions
@@ -628,13 +636,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 
             // We extend the definition of standard implicit conversions to include
             // all of the implicit conversions that are allowed based on an expression,
-            // with the exception of the switch expression conversion and the interpolated
-            // string builder conversion.
+            // with the exception of switch expression, interpolated string builder,
+            // and collection expression conversions.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
-            if (conversion.Exists && !conversion.IsInterpolatedStringHandler)
+            if (conversion.Exists &&
+                !conversion.IsInterpolatedStringHandler &&
+                !isImplicitCollectionExpressionConversion(conversion))
             {
-                Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
+                Debug.Assert(isStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
             }
 
@@ -644,6 +654,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
+
+            static bool isImplicitCollectionExpressionConversion(Conversion conversion)
+            {
+                return conversion switch
+                {
+                    { Kind: ConversionKind.CollectionExpression } => true,
+                    { Kind: ConversionKind.ImplicitNullable, UnderlyingConversions: [{ Kind: ConversionKind.CollectionExpression }] } => true,
+                    _ => false,
+                };
+            }
+
+            static bool isStandardImplicitConversionFromExpression(ConversionKind kind)
+            {
+                if (IsStandardImplicitConversionFromType(kind))
+                {
+                    return true;
+                }
+
+                switch (kind)
+                {
+                    case ConversionKind.NullLiteral:
+                    case ConversionKind.AnonymousFunction:
+                    case ConversionKind.MethodGroup:
+                    case ConversionKind.ImplicitEnumeration:
+                    case ConversionKind.ImplicitDynamic:
+                    case ConversionKind.ImplicitNullToPointer:
+                    case ConversionKind.ImplicitTupleLiteral:
+                    case ConversionKind.StackAllocToPointerType:
+                    case ConversionKind.StackAllocToSpanType:
+                    case ConversionKind.InlineArray:
+                    case ConversionKind.InterpolatedString:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
         }
 
         private Conversion ClassifyStandardImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -705,6 +751,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return tupleConversion;
                 }
 
+                if (HasImplicitSpanConversion(source, destination, ref useSiteInfo))
+                {
+                    return Conversion.ImplicitSpan;
+                }
+
                 return Conversion.NoConversion;
             }
         }
@@ -734,7 +785,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversion(conversionResult, isImplicit: true);
         }
 
-        private Conversion ClassifyExplicitBuiltInOnlyConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
+        private Conversion GetImplicitUserDefinedConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return GetImplicitUserDefinedConversion(sourceExpression: null, source, destination, ref useSiteInfo);
+        }
+
+        private Conversion ClassifyExplicitBuiltInOnlyConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -763,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ExplicitEnumeration;
             }
 
-            var nullableConversion = ClassifyExplicitNullableConversion(source, destination, ref useSiteInfo, forCast);
+            var nullableConversion = ClassifyExplicitNullableConversion(source, destination, isChecked: isChecked, ref useSiteInfo, forCast);
             if (nullableConversion.Exists)
             {
                 return nullableConversion;
@@ -779,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.Unboxing;
             }
 
-            var tupleConversion = ClassifyExplicitTupleConversion(source, destination, ref useSiteInfo, forCast);
+            var tupleConversion = ClassifyExplicitTupleConversion(source, destination, isChecked: isChecked, ref useSiteInfo, forCast);
             if (tupleConversion.Exists)
             {
                 return tupleConversion;
@@ -805,13 +861,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ExplicitDynamic;
             }
 
+            if (HasExplicitSpanConversion(source, destination, ref useSiteInfo))
+            {
+                return Conversion.ExplicitSpan;
+            }
+
             return Conversion.NoConversion;
         }
 
-        private Conversion GetExplicitUserDefinedConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private Conversion GetExplicitUserDefinedConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            UserDefinedConversionResult conversionResult = AnalyzeExplicitUserDefinedConversions(sourceExpression, source, destination, ref useSiteInfo);
+            UserDefinedConversionResult conversionResult = AnalyzeExplicitUserDefinedConversions(sourceExpression, source, destination, isChecked: isChecked, ref useSiteInfo);
             return new Conversion(conversionResult, isImplicit: false);
+        }
+
+        private Conversion GetExplicitUserDefinedConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return GetExplicitUserDefinedConversion(sourceExpression: null, source, destination, isChecked, ref useSiteInfo);
         }
 
         private Conversion DeriveStandardExplicitFromOppositeStandardImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -857,6 +923,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Conversion.MakeNullableConversion(ConversionKind.ExplicitNullable, underlyingConversion) :
                         Conversion.NoConversion;
 
+                    break;
+
+                case ConversionKind.ImplicitSpan:
+                    impliedExplicitConversion = Conversion.NoConversion;
                     break;
 
                 default:
@@ -947,6 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.ConditionalExpression:
+                case ConversionKind.ImplicitSpan:
                     return true;
 
                 default:
@@ -957,6 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion ClassifyImplicitBuiltInConversionFromExpression(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(sourceExpression is null || Compilation is not null);
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert(sourceExpression == null || (object)sourceExpression.Type == (object)source);
             Debug.Assert((object)destination != null);
@@ -1016,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.UnboundLambda:
-                    if (HasAnonymousFunctionConversion(sourceExpression, destination))
+                    if (HasAnonymousFunctionConversion(sourceExpression, destination, this.Compilation))
                     {
                         return Conversion.AnonymousFunction;
                     }
@@ -1059,13 +1131,60 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.UnconvertedObjectCreationExpression:
                     return Conversion.ObjectCreation;
+
+                case BoundKind.UnconvertedCollectionExpression:
+                    var collectionExpressionConversion = GetImplicitCollectionExpressionConversion((BoundUnconvertedCollectionExpression)sourceExpression, destination, ref useSiteInfo);
+                    if (collectionExpressionConversion.Exists)
+                    {
+                        return collectionExpressionConversion;
+                    }
+                    break;
+            }
+
+            // Neither Span<T>, nor ReadOnlySpan<T> can be wrapped into a Nullable<T>, therefore, there is no point to check for an attempt to convert to Nullable types here. 
+            if (!IsAttributeArgumentBinding && !IsParameterDefaultValueBinding && // These checks prevent cycles caused by attribute binding when HasInlineArrayAttribute check triggers that.
+                source?.HasInlineArrayAttribute(out _) == true &&
+                source.TryGetInlineArrayElementField() is { TypeWithAnnotations: var elementType } &&
+                (destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions) ||
+                 destination.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions)) &&
+                HasIdentityConversionInternal(((NamedTypeSymbol)destination.OriginalDefinition).Construct(ImmutableArray.Create(elementType)), destination))
+            {
+                return Conversion.InlineArray;
             }
 
             return Conversion.NoConversion;
         }
 
+#nullable enable
+        private Conversion GetImplicitCollectionExpressionConversion(BoundUnconvertedCollectionExpression collectionExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var collectionExpressionConversion = GetCollectionExpressionConversion(collectionExpression, destination, ref useSiteInfo);
+            if (collectionExpressionConversion.Exists)
+            {
+                return collectionExpressionConversion;
+            }
+
+            // strip nullable from the destination
+            //
+            // the following should work and it is an ImplicitNullable conversion
+            //    ImmutableArray<int>? x = [1, 2];
+            if (destination.IsNullableType(out var underlyingDestination))
+            {
+                var underlyingConversion = GetCollectionExpressionConversion(collectionExpression, underlyingDestination, ref useSiteInfo);
+                if (underlyingConversion.Exists)
+                {
+                    return new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(underlyingConversion));
+                }
+            }
+
+            return Conversion.NoConversion;
+        }
+#nullable disable
+
         private Conversion GetSwitchExpressionConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(Compilation is not null);
+
             switch (source)
             {
                 case BoundConvertedSwitchExpression _:
@@ -1093,6 +1212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion GetConditionalExpressionConversion(BoundExpression source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(Compilation is not null);
+
             if (!(source is BoundUnconvertedConditionalOperator conditionalOperator))
                 return Conversion.NoConversion;
 
@@ -1159,11 +1280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    int? x = 1;
             if (destination.Kind == SymbolKind.NamedType)
             {
-                var nt = (NamedTypeSymbol)destination;
-                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
-                    HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type))
+                if (destination.IsNullableType(out var underlyingDestination) &&
+                    HasImplicitConstantExpressionConversion(source, underlyingDestination))
                 {
-                    return new Conversion(ConversionKind.ImplicitNullable, Conversion.ImplicitConstantUnderlying);
+                    return Conversion.ImplicitNullableWithImplicitConstantUnderlying;
                 }
             }
 
@@ -1172,6 +1292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion ClassifyImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(Compilation is not null);
+
             var tupleConversion = GetImplicitTupleLiteralConversion(source, destination, ref useSiteInfo);
             if (tupleConversion.Exists)
             {
@@ -1182,26 +1304,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // the following should work and it is an ImplicitNullable conversion
             //    (int, double)? x = (1,2);
-            if (destination.Kind == SymbolKind.NamedType)
+            if (destination.IsNullableType(out var underlyingDestination))
             {
-                var nt = (NamedTypeSymbol)destination;
-                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T)
+                var underlyingTupleConversion = GetImplicitTupleLiteralConversion(source, underlyingDestination, ref useSiteInfo);
+                if (underlyingTupleConversion.Exists)
                 {
-                    var underlyingTupleConversion = GetImplicitTupleLiteralConversion(source, nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, ref useSiteInfo);
-
-                    if (underlyingTupleConversion.Exists)
-                    {
-                        return new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(underlyingTupleConversion));
-                    }
+                    return new Conversion(ConversionKind.ImplicitNullable, ImmutableArray.Create(underlyingTupleConversion));
                 }
             }
 
             return Conversion.NoConversion;
         }
 
-        private Conversion ClassifyExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
+        private Conversion ClassifyExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
         {
-            var tupleConversion = GetExplicitTupleLiteralConversion(source, destination, ref useSiteInfo, forCast);
+            Debug.Assert(Compilation is not null);
+
+            var tupleConversion = GetExplicitTupleLiteralConversion(source, destination, isChecked: isChecked, ref useSiteInfo, forCast);
             if (tupleConversion.Exists)
             {
                 return tupleConversion;
@@ -1213,10 +1332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    var x = ((byte, string)?)(1,null);
             if (destination.Kind == SymbolKind.NamedType)
             {
-                var nt = (NamedTypeSymbol)destination;
-                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T)
+                if (destination.IsNullableType(out var underlyingDestination))
                 {
-                    var underlyingTupleConversion = GetExplicitTupleLiteralConversion(source, nt.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type, ref useSiteInfo, forCast);
+                    var underlyingTupleConversion = GetExplicitTupleLiteralConversion(source, underlyingDestination, isChecked: isChecked, ref useSiteInfo, forCast);
 
                     if (underlyingTupleConversion.Exists)
                     {
@@ -1230,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool HasImplicitConstantExpressionConversion(BoundExpression source, TypeSymbol destination)
         {
-            var constantValue = source.ConstantValue;
+            var constantValue = source.ConstantValueOpt;
 
             if (constantValue == null || (object)source.Type == null)
             {
@@ -1280,9 +1398,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        private Conversion ClassifyExplicitOnlyConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
+        private Conversion ClassifyExplicitOnlyConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
         {
             Debug.Assert(sourceExpression != null);
+            Debug.Assert(Compilation != null);
             Debug.Assert((object)destination != null);
 
             // NB: need to check for explicit tuple literal conversion before checking for explicit conversion from type
@@ -1290,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     They are, however, observably different conversions via the order of argument evaluations and element-wise conversions
             if (sourceExpression.Kind == BoundKind.TupleLiteral)
             {
-                Conversion tupleConversion = ClassifyExplicitTupleLiteralConversion((BoundTupleLiteral)sourceExpression, destination, ref useSiteInfo, forCast);
+                Conversion tupleConversion = ClassifyExplicitTupleLiteralConversion((BoundTupleLiteral)sourceExpression, destination, isChecked: isChecked, ref useSiteInfo, forCast);
                 if (tupleConversion.Exists)
                 {
                     return tupleConversion;
@@ -1308,7 +1427,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var conversion = ClassifyExplicitBuiltInOnlyConversion(sourceType, destination, ref useSiteInfo, forCast);
+                    var conversion = ClassifyExplicitBuiltInOnlyConversion(sourceType, destination, isChecked: isChecked, ref useSiteInfo, forCast);
                     if (conversion.Exists)
                     {
                         return conversion;
@@ -1316,7 +1435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return GetExplicitUserDefinedConversion(sourceExpression, sourceType, destination, ref useSiteInfo);
+            return GetExplicitUserDefinedConversion(sourceExpression, sourceType, destination, isChecked: isChecked, ref useSiteInfo);
         }
 
         private static bool HasImplicitEnumerationConversion(BoundExpression source, TypeSymbol destination)
@@ -1338,14 +1457,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var sourceConstantValue = source.ConstantValue;
+            var sourceConstantValue = source.ConstantValueOpt;
             return sourceConstantValue != null &&
                 source.Type is object &&
                 IsNumericType(source.Type) &&
                 IsConstantNumericZero(sourceConstantValue);
         }
 
-        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type, bool isTargetExpressionTree)
+        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithDelegate(UnboundLambda anonymousFunction, TypeSymbol type, CSharpCompilation compilation, bool isTargetExpressionTree)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
@@ -1393,7 +1512,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
-                        if (delegateParameters[p].RefKind != anonymousFunction.RefKind(p) ||
+                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
+                                candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
+                                delegateParameterRefKind: delegateParameters[p].RefKind,
+                                compilation) ||
                             !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
@@ -1463,7 +1585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaConversionResult.Success;
         }
 
-        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithExpressionTree(UnboundLambda anonymousFunction, NamedTypeSymbol type)
+        private static LambdaConversionResult IsAnonymousFunctionCompatibleWithExpressionTree(UnboundLambda anonymousFunction, NamedTypeSymbol type, CSharpCompilation compilation)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
@@ -1491,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LambdaConversionResult.ExpressionTreeFromAnonymousMethod;
             }
 
-            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, isTargetExpressionTree: true);
+            return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, delegateType, compilation, isTargetExpressionTree: true);
         }
 
         internal bool IsAssignableFromMulticastDelegate(TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1501,24 +1623,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyImplicitConversionFromType(multicastDelegateType, type, ref useSiteInfo).Exists;
         }
 
-        public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type)
+        public static LambdaConversionResult IsAnonymousFunctionCompatibleWithType(UnboundLambda anonymousFunction, TypeSymbol type, CSharpCompilation compilation)
         {
             Debug.Assert((object)anonymousFunction != null);
             Debug.Assert((object)type != null);
 
             if (type.IsDelegateType())
             {
-                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, isTargetExpressionTree: false);
+                return IsAnonymousFunctionCompatibleWithDelegate(anonymousFunction, type, compilation, isTargetExpressionTree: false);
             }
             else if (type.IsExpressionTree())
             {
-                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type);
+                return IsAnonymousFunctionCompatibleWithExpressionTree(anonymousFunction, (NamedTypeSymbol)type, compilation);
             }
 
             return LambdaConversionResult.BadTargetType;
         }
 
-        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
+        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination, CSharpCompilation compilation)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
@@ -1528,7 +1650,71 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination) == LambdaConversionResult.Success;
+            return IsAnonymousFunctionCompatibleWithType((UnboundLambda)source, destination, compilation) == LambdaConversionResult.Success;
+        }
+
+        internal static CollectionExpressionTypeKind GetCollectionExpressionTypeKind(CSharpCompilation compilation, TypeSymbol destination, out TypeWithAnnotations elementType)
+        {
+            Debug.Assert(compilation is { });
+
+            if (destination is ArrayTypeSymbol arrayType)
+            {
+                if (arrayType.IsSZArray)
+                {
+                    elementType = arrayType.ElementTypeWithAnnotations;
+                    return CollectionExpressionTypeKind.Array;
+                }
+            }
+            else if (IsSpanOrListType(compilation, destination, WellKnownType.System_Span_T, out elementType))
+            {
+                return CollectionExpressionTypeKind.Span;
+            }
+            else if (IsSpanOrListType(compilation, destination, WellKnownType.System_ReadOnlySpan_T, out elementType))
+            {
+                return CollectionExpressionTypeKind.ReadOnlySpan;
+            }
+            else if ((destination as NamedTypeSymbol)?.HasCollectionBuilderAttribute(out _, out _) == true)
+            {
+                elementType = default;
+                return CollectionExpressionTypeKind.CollectionBuilder;
+            }
+            else if (implementsSpecialInterface(compilation, destination, SpecialType.System_Collections_IEnumerable))
+            {
+                // ^ This implementation differs from Binder.CollectionInitializerTypeImplementsIEnumerable().
+                // That method checks for an implicit conversion from IEnumerable to the collection type, to
+                // match earlier implementation, even though it states that walking the implemented interfaces
+                // would be better. If we use CollectionInitializerTypeImplementsIEnumerable() here, we'd need
+                // to check for nullable to disallow: Nullable<StructCollection> s = [];
+                // Instead, we just walk the implemented interfaces.
+                elementType = default;
+                return CollectionExpressionTypeKind.ImplementsIEnumerable;
+            }
+            else if (destination.IsArrayInterface(out elementType))
+            {
+                return CollectionExpressionTypeKind.ArrayInterface;
+            }
+
+            elementType = default;
+            return CollectionExpressionTypeKind.None;
+
+            static bool implementsSpecialInterface(CSharpCompilation compilation, TypeSymbol targetType, SpecialType specialInterface)
+            {
+                var allInterfaces = targetType.GetAllInterfacesOrEffectiveInterfaces();
+                var specialType = compilation.GetSpecialType(specialInterface);
+                return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
+            }
+        }
+
+        internal static bool IsSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
+        {
+            if (targetType is NamedTypeSymbol { Arity: 1 } namedType
+                && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
+            {
+                elementType = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                return true;
+            }
+            elementType = default;
+            return false;
         }
 #nullable disable
 
@@ -1571,7 +1757,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol expectedAttributeType = corLibrary.GetSpecialType(SpecialType.System_Int32);
             BoundLiteral intMaxValueLiteral = new BoundLiteral(syntaxNode, ConstantValue.Create(int.MaxValue), expectedAttributeType);
-            return ClassifyStandardImplicitConversion(intMaxValueLiteral, expectedAttributeType, destination, ref useSiteInfo);
+
+            // Below is a duplication of relevant parts of ClassifyStandardImplicitConversion method.
+            // It needs a compilation instance, but we don't have it and the relevant parts actually do not depend on
+            // a compilation.
+            if (HasImplicitEnumerationConversion(intMaxValueLiteral, destination))
+            {
+                return Conversion.ImplicitEnumeration;
+            }
+
+            var constantConversion = ClassifyImplicitConstantExpressionConversion(intMaxValueLiteral, destination);
+            if (constantConversion.Exists)
+            {
+                return constantConversion;
+            }
+
+            return ClassifyStandardImplicitConversion(expectedAttributeType, destination, ref useSiteInfo);
         }
 
         internal bool HasCallerLineNumberConversion(TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1695,12 +1896,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedUseSiteInfo).Kind != ConversionKind.NoConversion;
         }
 
-        public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
-            where T : TypeSymbol
+        private static bool HasIdentityConversionToAny(NamedTypeSymbol type, ArrayBuilder<(NamedTypeSymbol ParticipatingType, TypeParameterSymbol ConstrainedToTypeOpt)> targetTypes)
         {
             foreach (var targetType in targetTypes)
             {
-                if (HasIdentityConversionInternal(type, targetType, includeNullability: false))
+                if (HasIdentityConversionInternal(type, targetType.ParticipatingType, includeNullability: false))
                 {
                     return true;
                 }
@@ -1709,17 +1909,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public Conversion ConvertExtensionMethodThisArg(TypeSymbol parameterType, TypeSymbol thisType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        public Conversion ConvertExtensionMethodThisArg(TypeSymbol parameterType, TypeSymbol thisType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool isMethodGroupConversion)
         {
             Debug.Assert((object)thisType != null);
-            var conversion = this.ClassifyImplicitExtensionMethodThisArgConversion(null, thisType, parameterType, ref useSiteInfo);
+            var conversion = this.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, thisType, parameterType, ref useSiteInfo, isMethodGroupConversion);
             return IsValidExtensionMethodThisArgConversion(conversion) ? conversion : Conversion.NoConversion;
         }
 
         // Spec 7.6.5.2: "An extension method ... is eligible if ... [an] implicit identity, reference,
-        // or boxing conversion exists from expr to the type of the first parameter"
-        public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        // boxing, or span conversion exists from expr to the type of the first parameter.
+        // Span conversion is not considered when overload resolution is performed for a method group conversion."
+        public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool isMethodGroupConversion)
         {
+            Debug.Assert(sourceExpressionOpt is null || Compilation is not null);
             Debug.Assert(sourceExpressionOpt == null || (object)sourceExpressionOpt.Type == sourceType);
             Debug.Assert((object)destination != null);
 
@@ -1739,6 +1941,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return Conversion.ImplicitReference;
                 }
+
+                if (!isMethodGroupConversion && HasImplicitSpanConversion(sourceType, destination, ref useSiteInfo))
+                {
+                    return Conversion.ImplicitSpan;
+                }
             }
 
             if (sourceExpressionOpt?.Kind == BoundKind.TupleLiteral)
@@ -1751,9 +1958,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteInfo,
                     ConversionKind.ImplicitTupleLiteral,
-                    (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, ref CompoundUseSiteInfo<AssemblySymbol> u, bool a) =>
-                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.Type, ref u),
-                    arg: false);
+                    (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
+                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.Type, ref u, isMethodGroupConversion: false),
+                    isChecked: false,
+                    forCast: false);
                 if (tupleConversion.Exists)
                 {
                     return tupleConversion;
@@ -1767,15 +1975,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteInfo,
                     ConversionKind.ImplicitTuple,
-                    (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, ref CompoundUseSiteInfo<AssemblySymbol> u, bool a) =>
+                    (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool _, ref CompoundUseSiteInfo<AssemblySymbol> u, bool _) =>
                     {
                         if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                         {
                             return Conversion.NoConversion;
                         }
-                        return conversions.ClassifyImplicitExtensionMethodThisArgConversion(null, s.Type, d.Type, ref u);
+                        return conversions.ClassifyImplicitExtensionMethodThisArgConversion(sourceExpressionOpt: null, s.Type, d.Type, ref u, isMethodGroupConversion: false);
                     },
-                    arg: false);
+                    isChecked: false,
+                    forCast: false);
                 if (tupleConversion.Exists)
                 {
                     return tupleConversion;
@@ -1798,6 +2007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.Identity:
                 case ConversionKind.Boxing:
                 case ConversionKind.ImplicitReference:
+                case ConversionKind.ImplicitSpan:
                     return true;
 
                 case ConversionKind.ImplicitTuple:
@@ -1819,132 +2029,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private const bool F = false;
-        private const bool T = true;
-
-        // Notice that there is no implicit numeric conversion from a type to itself. That's an
-        // identity conversion.
-        private static readonly bool[,] s_implicitNumericConversions =
-        {
-            // to     sb  b  s  us i ui  l ul  c  f  d  m
-            // from
-            /* sb */
-         { F, F, T, F, T, F, T, F, F, T, T, T },
-            /*  b */
-         { F, F, T, T, T, T, T, T, F, T, T, T },
-            /*  s */
-         { F, F, F, F, T, F, T, F, F, T, T, T },
-            /* us */
-         { F, F, F, F, T, T, T, T, F, T, T, T },
-            /*  i */
-         { F, F, F, F, F, F, T, F, F, T, T, T },
-            /* ui */
-         { F, F, F, F, F, F, T, T, F, T, T, T },
-            /*  l */
-         { F, F, F, F, F, F, F, F, F, T, T, T },
-            /* ul */
-         { F, F, F, F, F, F, F, F, F, T, T, T },
-            /*  c */
-         { F, F, F, T, T, T, T, T, F, T, T, T },
-            /*  f */
-         { F, F, F, F, F, F, F, F, F, F, T, F },
-            /*  d */
-         { F, F, F, F, F, F, F, F, F, F, F, F },
-            /*  m */
-         { F, F, F, F, F, F, F, F, F, F, F, F }
-        };
-
-        private static readonly bool[,] s_explicitNumericConversions =
-        {
-            // to     sb  b  s us  i ui  l ul  c  f  d  m
-            // from
-            /* sb */
-         { F, T, F, T, F, T, F, T, T, F, F, F },
-            /*  b */
-         { T, F, F, F, F, F, F, F, T, F, F, F },
-            /*  s */
-         { T, T, F, T, F, T, F, T, T, F, F, F },
-            /* us */
-         { T, T, T, F, F, F, F, F, T, F, F, F },
-            /*  i */
-         { T, T, T, T, F, T, F, T, T, F, F, F },
-            /* ui */
-         { T, T, T, T, T, F, F, F, T, F, F, F },
-            /*  l */
-         { T, T, T, T, T, T, F, T, T, F, F, F },
-            /* ul */
-         { T, T, T, T, T, T, T, F, T, F, F, F },
-            /*  c */
-         { T, T, T, F, F, F, F, F, F, F, F, F },
-            /*  f */
-         { T, T, T, T, T, T, T, T, T, F, F, T },
-            /*  d */
-         { T, T, T, T, T, T, T, T, T, T, F, T },
-            /*  m */
-         { T, T, T, T, T, T, T, T, T, T, T, F }
-        };
-
-        private static int GetNumericTypeIndex(SpecialType specialType)
-        {
-            switch (specialType)
-            {
-                case SpecialType.System_SByte: return 0;
-                case SpecialType.System_Byte: return 1;
-                case SpecialType.System_Int16: return 2;
-                case SpecialType.System_UInt16: return 3;
-                case SpecialType.System_Int32: return 4;
-                case SpecialType.System_UInt32: return 5;
-                case SpecialType.System_Int64: return 6;
-                case SpecialType.System_UInt64: return 7;
-                case SpecialType.System_Char: return 8;
-                case SpecialType.System_Single: return 9;
-                case SpecialType.System_Double: return 10;
-                case SpecialType.System_Decimal: return 11;
-                default: return -1;
-            }
-        }
-
 #nullable enable
-        private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
+
+        private static ConversionKind GetNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            int sourceIndex = GetNumericTypeIndex(source.SpecialType);
-            if (sourceIndex < 0)
+            if (!IsNumericType(source) || !IsNumericType(destination))
             {
-                return false;
+                return ConversionKind.UnsetConversionKind;
             }
 
-            int destinationIndex = GetNumericTypeIndex(destination.SpecialType);
-            if (destinationIndex < 0)
+            if (source.SpecialType == destination.SpecialType)
             {
-                return false;
+                // Notice that there is no implicit numeric conversion from a type to itself. That's an
+                // identity conversion.
+                return ConversionKind.UnsetConversionKind;
             }
 
-            return s_implicitNumericConversions[sourceIndex, destinationIndex];
+            var conversionKind = ConversionEasyOut.ClassifyConversion(source, destination);
+            Debug.Assert(conversionKind is ConversionKind.ImplicitNumeric or ConversionKind.ExplicitNumeric);
+            return conversionKind;
+        }
+
+        private static bool HasImplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
+        {
+            return GetNumericConversion(source, destination) == ConversionKind.ImplicitNumeric;
         }
 
         private static bool HasExplicitNumericConversion(TypeSymbol source, TypeSymbol destination)
         {
             // SPEC: The explicit numeric conversions are the conversions from a numeric-type to another 
             // SPEC: numeric-type for which an implicit numeric conversion does not already exist.
-            Debug.Assert((object)source != null);
-            Debug.Assert((object)destination != null);
-
-            int sourceIndex = GetNumericTypeIndex(source.SpecialType);
-            if (sourceIndex < 0)
-            {
-                return false;
-            }
-
-            int destinationIndex = GetNumericTypeIndex(destination.SpecialType);
-            if (destinationIndex < 0)
-            {
-                return false;
-            }
-
-            return s_explicitNumericConversions[sourceIndex, destinationIndex];
+            return GetNumericConversion(source, destination) == ConversionKind.ExplicitNumeric;
         }
 
         private static bool IsConstantNumericZero(ConstantValue value)
@@ -2143,12 +2261,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasIdentityConversionInternal(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
+                return Conversion.ImplicitNullableWithIdentityUnderlying;
             }
 
             if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ImplicitNullable, Conversion.ImplicitNumericUnderlying);
+                return Conversion.ImplicitNullableWithImplicitNumericUnderlying;
             }
 
             var tupleConversion = ClassifyImplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteInfo);
@@ -2160,11 +2278,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private delegate Conversion ClassifyConversionFromExpressionDelegate(ConversionsBase conversions, BoundExpression sourceExpression, TypeWithAnnotations destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool arg);
-        private delegate Conversion ClassifyConversionFromTypeDelegate(ConversionsBase conversions, TypeWithAnnotations source, TypeWithAnnotations destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool arg);
+        private delegate Conversion ClassifyConversionFromExpressionDelegate(ConversionsBase conversions, BoundExpression sourceExpression, TypeWithAnnotations destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast);
+        private delegate Conversion ClassifyConversionFromTypeDelegate(ConversionsBase conversions, TypeWithAnnotations source, TypeWithAnnotations destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast);
 
         private Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            Debug.Assert(Compilation is not null);
+
             // GetTupleLiteralConversion is not used with IncludeNullability currently.
             // If that changes, the delegate below will need to consider top-level nullability.
             Debug.Assert(!IncludeNullability);
@@ -2173,13 +2293,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ImplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, ref CompoundUseSiteInfo<AssemblySymbol> u, bool a)
+                (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast)
                     => conversions.ClassifyImplicitConversionFromExpression(s, d.Type, ref u),
-                arg: false);
+                isChecked: false,
+                forCast: false);
         }
 
-        private Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
+        private Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
         {
+            Debug.Assert(Compilation is not null);
+
             // GetTupleLiteralConversion is not used with IncludeNullability currently.
             // If that changes, the delegate below will need to consider top-level nullability.
             Debug.Assert(!IncludeNullability);
@@ -2188,8 +2311,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ExplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, ref CompoundUseSiteInfo<AssemblySymbol> u, bool a) => conversions.ClassifyConversionFromExpression(s, d.Type, ref u, a),
-                forCast);
+                (ConversionsBase conversions, BoundExpression s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
+                    conversions.ClassifyConversionFromExpression(s, d.Type, isChecked: isChecked, ref u, forCast: forCast),
+                isChecked: isChecked,
+                forCast: forCast);
         }
 
         private Conversion GetTupleLiteralConversion(
@@ -2198,8 +2323,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConversionKind kind,
             ClassifyConversionFromExpressionDelegate classifyConversion,
-            bool arg)
+            bool isChecked,
+            bool forCast)
         {
+            Debug.Assert(Compilation is not null);
+
             var arguments = source.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
@@ -2216,7 +2344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
-                var result = classifyConversion(this, argument, targetElementTypes[i], ref useSiteInfo, arg);
+                var result = classifyConversion(this, argument, targetElementTypes[i], isChecked: isChecked, ref useSiteInfo, forCast: forCast);
                 if (!result.Exists)
                 {
                     argumentConversions.Free();
@@ -2236,7 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ImplicitTuple,
-                (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, ref CompoundUseSiteInfo<AssemblySymbol> u, bool a) =>
+                (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool _, ref CompoundUseSiteInfo<AssemblySymbol> u, bool _) =>
                 {
                     if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
@@ -2244,24 +2372,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     return conversions.ClassifyImplicitConversionFromType(s.Type, d.Type, ref u);
                 },
-                arg: false);
+                isChecked: false,
+                forCast: false);
         }
 
-        private Conversion ClassifyExplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
+        private Conversion ClassifyExplicitTupleConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
         {
             return ClassifyTupleConversion(
                 source,
                 destination,
                 ref useSiteInfo,
                 ConversionKind.ExplicitTuple,
-                (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, ref CompoundUseSiteInfo<AssemblySymbol> u, bool a) =>
+                (ConversionsBase conversions, TypeWithAnnotations s, TypeWithAnnotations d, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> u, bool forCast) =>
                 {
                     if (!conversions.HasTopLevelNullabilityImplicitConversion(s, d))
                     {
                         return Conversion.NoConversion;
                     }
-                    return conversions.ClassifyConversionFromType(s.Type, d.Type, ref u, a);
+                    return conversions.ClassifyConversionFromType(s.Type, d.Type, isChecked: isChecked, ref u, forCast);
                 },
+                isChecked: isChecked,
                 forCast);
         }
 
@@ -2271,7 +2401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
             ConversionKind kind,
             ClassifyConversionFromTypeDelegate classifyConversion,
-            bool arg)
+            bool isChecked,
+            bool forCast)
         {
             ImmutableArray<TypeWithAnnotations> sourceTypes;
             ImmutableArray<TypeWithAnnotations> destTypes;
@@ -2286,7 +2417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nestedConversions = ArrayBuilder<Conversion>.GetInstance(sourceTypes.Length);
             for (int i = 0; i < sourceTypes.Length; i++)
             {
-                var conversion = classifyConversion(this, sourceTypes[i], destTypes[i], ref useSiteInfo, arg);
+                var conversion = classifyConversion(this, sourceTypes[i], destTypes[i], isChecked: isChecked, ref useSiteInfo, forCast);
                 if (!conversion.Exists)
                 {
                     nestedConversions.Free();
@@ -2299,7 +2430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversion(kind, nestedConversions.ToImmutableAndFree());
         }
 
-        private Conversion ClassifyExplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
+        private Conversion ClassifyExplicitNullableConversion(TypeSymbol source, TypeSymbol destination, bool isChecked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool forCast)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -2322,20 +2453,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasIdentityConversionInternal(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.IdentityUnderlying);
+                return Conversion.ExplicitNullableWithIdentityUnderlying;
             }
 
             if (HasImplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ImplicitNumericUnderlying);
+                return Conversion.ExplicitNullableWithImplicitNumericUnderlying;
             }
 
             if (HasExplicitNumericConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ExplicitNumericUnderlying);
+                return Conversion.ExplicitNullableWithExplicitNumericUnderlying;
             }
 
-            var tupleConversion = ClassifyExplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteInfo, forCast);
+            var tupleConversion = ClassifyExplicitTupleConversion(unwrappedSource, unwrappedDestination, isChecked: isChecked, ref useSiteInfo, forCast);
             if (tupleConversion.Exists)
             {
                 return new Conversion(ConversionKind.ExplicitNullable, ImmutableArray.Create(tupleConversion));
@@ -2343,12 +2474,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (HasExplicitEnumerationConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.ExplicitEnumerationUnderlying);
+                return Conversion.ExplicitNullableWithExplicitEnumerationUnderlying;
             }
 
             if (HasPointerToIntegerConversion(unwrappedSource, unwrappedDestination))
             {
-                return new Conversion(ConversionKind.ExplicitNullable, Conversion.PointerToIntegerUnderlying);
+                return Conversion.ExplicitNullableWithPointerToIntegerUnderlying;
             }
 
             return Conversion.NoConversion;
@@ -2729,7 +2860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if ((destination.TypeKind == TypeKind.TypeParameter) &&
+            if (destination is TypeParameterSymbol { AllowsRefLikeType: false } &&
+                !source.AllowsRefLikeType &&
                 source.DependsOn((TypeParameterSymbol)destination))
             {
                 return true;
@@ -2746,6 +2878,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (source.IsValueType)
             {
                 return false; // Not a reference conversion.
+            }
+
+            if (source.AllowsRefLikeType)
+            {
+                return false;
             }
 
             // The following implicit conversions exist for a given type parameter T:
@@ -2766,7 +2903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // * From T to a type parameter U, provided T depends on U.
-            if ((destination.TypeKind == TypeKind.TypeParameter) &&
+            if (destination is TypeParameterSymbol { AllowsRefLikeType: false } &&
                 source.DependsOn((TypeParameterSymbol)destination))
             {
                 return true;
@@ -2802,6 +2939,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitEffectiveInterfaceSetConversion(TypeParameterSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
+            return HasVarianceCompatibleInterfaceInEffectiveInterfaceSet(source, destination, ref useSiteInfo);
+        }
+
+        private bool HasVarianceCompatibleInterfaceInEffectiveInterfaceSet(TypeParameterSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             if (!destination.IsInterfaceType())
             {
                 return false;
@@ -2821,6 +2963,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private bool HasAnyBaseInterfaceConversion(TypeSymbol derivedType, TypeSymbol baseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return ImplementsVarianceCompatibleInterface(derivedType, baseType, ref useSiteInfo);
+        }
+
+        private bool ImplementsVarianceCompatibleInterface(TypeSymbol derivedType, TypeSymbol baseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert((object)derivedType != null);
             Debug.Assert((object)baseType != null);
@@ -2846,11 +2993,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal bool ImplementsVarianceCompatibleInterface(NamedTypeSymbol derivedType, TypeSymbol baseType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            return ImplementsVarianceCompatibleInterface((TypeSymbol)derivedType, baseType, ref useSiteInfo);
+        }
+
+        internal bool HasImplicitConversionToOrImplementsVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool needSupportForRefStructInterfaces)
+        {
+            Debug.Assert(targetInterfaceType.IsErrorType() || targetInterfaceType.IsInterface);
+
+            if (ClassifyImplicitConversionFromType(typeToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit)
+            {
+                needSupportForRefStructInterfaces = false;
+                return true;
+            }
+
+            if (IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo))
+            {
+                needSupportForRefStructInterfaces = true;
+                return true;
+            }
+
+            needSupportForRefStructInterfaces = false;
+            return false;
+        }
+
+        private bool IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(TypeSymbol typeToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (typeToCheck is TypeParameterSymbol typeParameter)
+            {
+                return typeParameter.AllowsRefLikeType && HasVarianceCompatibleInterfaceInEffectiveInterfaceSet(typeParameter, targetInterfaceType, ref useSiteInfo);
+            }
+            else if (typeToCheck.IsRefLikeType)
+            {
+                return ImplementsVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo);
+            }
+
+            return false;
+        }
+
+        internal bool HasImplicitConversionToOrImplementsVarianceCompatibleInterface(BoundExpression expressionToCheck, NamedTypeSymbol targetInterfaceType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, out bool needSupportForRefStructInterfaces)
+        {
+            Debug.Assert(targetInterfaceType.IsErrorType() || targetInterfaceType.IsInterface);
+
+            if (ClassifyImplicitConversionFromExpression(expressionToCheck, targetInterfaceType, ref useSiteInfo).IsImplicit)
+            {
+                needSupportForRefStructInterfaces = false;
+                return true;
+            }
+
+            if (expressionToCheck.Type is TypeSymbol typeToCheck && IsRefLikeOrAllowsRefLikeTypeImplementingVarianceCompatibleInterface(typeToCheck, targetInterfaceType, ref useSiteInfo))
+            {
+                needSupportForRefStructInterfaces = true;
+                return true;
+            }
+
+            needSupportForRefStructInterfaces = false;
+            return false;
+        }
+
         ////////////////////////////////////////////////////////////////////////////////
         // The rules for variant interface and delegate conversions are the same:
         //
         // An interface/delegate type S is convertible to an interface/delegate type T 
-        // if and only if T is U<S1, ... Sn> and T is U<T1, ... Tn> such that for all
+        // if and only if S is U<S1, ... Sn> and T is U<T1, ... Tn> such that for all
         // parameters of U:
         //
         // * if the ith parameter of U is invariant then Si is exactly equal to Ti.
@@ -3051,6 +3257,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Not a boxing conversion; both source and destination are references.
             }
 
+            if (source.AllowsRefLikeType)
+            {
+                return false;
+            }
+
             // The following implicit conversions exist for a given type parameter T:
             //
             // * From T to its effective base class C.
@@ -3069,8 +3280,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC: From T to a type parameter U, provided T depends on U
-            if ((destination.TypeKind == TypeKind.TypeParameter) &&
-                source.DependsOn((TypeParameterSymbol)destination))
+            if (destination is TypeParameterSymbol { AllowsRefLikeType: false } d &&
+                source.DependsOn(d))
             {
                 return true;
             }
@@ -3177,7 +3388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (sourceSig.CallingConvention == Cci.CallingConvention.Unmanaged &&
-                !sourceSig.GetCallingConventionModifiers().SetEquals(destinationSig.GetCallingConventionModifiers()))
+                !sourceSig.GetCallingConventionModifiers().SetEqualsWithoutIntermediateHashSet(destinationSig.GetCallingConventionModifiers()))
             {
                 return false;
             }
@@ -3324,6 +3535,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeParameterSymbol s = source as TypeParameterSymbol;
             TypeParameterSymbol t = destination as TypeParameterSymbol;
 
+            if (s?.AllowsRefLikeType == true || t?.AllowsRefLikeType == true)
+            {
+                return false;
+            }
+
             // SPEC: The following explicit conversions exist for a given type parameter T:
 
             // SPEC: If T is known to be a reference type, the conversions are all classified as explicit reference conversions.
@@ -3370,6 +3586,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeParameterSymbol s = source as TypeParameterSymbol;
             TypeParameterSymbol t = destination as TypeParameterSymbol;
+
+            if (s?.AllowsRefLikeType == true || t?.AllowsRefLikeType == true)
+            {
+                return false;
+            }
 
             // SPEC: The following explicit conversions exist for a given type parameter T:
 
@@ -3717,6 +3938,110 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+#nullable enable
+        private bool IsFeatureFirstClassSpanEnabled
+        {
+            get
+            {
+                // Note: when Compilation is null, we assume latest LangVersion.
+                return Compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != false;
+            }
+        }
+
+        private bool HasImplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (source is null || !IsFeatureFirstClassSpanEnabled)
+            {
+                return false;
+            }
+
+            // SPEC: From any single-dimensional `array_type` with element type `Ei`...
+            if (source is ArrayTypeSymbol { IsSZArray: true, ElementTypeWithAnnotations: { } elementType })
+            {
+                // SPEC: ...to `System.Span<Ei>`.
+                if (destination.IsSpan())
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasIdentityConversion(elementType, spanElementType);
+                }
+
+                // SPEC: ...to `System.ReadOnlySpan<Ui>`, provided that `Ei` is covariance-convertible to `Ui`.
+                if (destination.IsReadOnlySpan())
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasCovariantConversion(elementType, spanElementType, ref useSiteInfo);
+                }
+            }
+            // SPEC: From `System.Span<Ti>` to `System.ReadOnlySpan<Ui>`, provided that `Ti` is covariance-convertible to `Ui`.
+            // SPEC: From `System.ReadOnlySpan<Ti>` to `System.ReadOnlySpan<Ui>`, provided that `Ti` is covariance-convertible to `Ui`.
+            else if (source.IsSpan() || source.IsReadOnlySpan())
+            {
+                if (destination.IsReadOnlySpan())
+                {
+                    var sourceElementType = ((NamedTypeSymbol)source).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    var destinationElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasCovariantConversion(sourceElementType, destinationElementType, ref useSiteInfo);
+                }
+            }
+            // SPEC: From `string` to `System.ReadOnlySpan<char>`.
+            else if (source.IsStringType())
+            {
+                if (destination.IsReadOnlySpan())
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return spanElementType.SpecialType is SpecialType.System_Char;
+                }
+            }
+
+            return false;
+
+            bool hasCovariantConversion(TypeWithAnnotations source, TypeWithAnnotations destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                return hasIdentityConversion(source, destination) ||
+                    HasImplicitReferenceConversion(source, destination, ref useSiteInfo);
+            }
+
+            bool hasIdentityConversion(TypeWithAnnotations source, TypeWithAnnotations destination)
+            {
+                return HasIdentityConversionInternal(source.Type, destination.Type) &&
+                    HasTopLevelNullabilityIdentityConversion(source, destination);
+            }
+        }
+
+        /// <remarks>
+        /// This does not check implicit span conversions, that should be done by the caller.
+        /// </remarks>
+        private bool HasExplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (!IsFeatureFirstClassSpanEnabled)
+            {
+                return false;
+            }
+
+            // SPEC: From any single-dimensional `array_type` with element type `Ti`
+            // to `System.Span<Ui>` or `System.ReadOnlySpan<Ui>`
+            // provided an explicit reference conversion exists from `Ti` to `Ui`.
+            if (source is ArrayTypeSymbol { IsSZArray: true, ElementTypeWithAnnotations: { } elementType } &&
+                (destination.IsSpan() || destination.IsReadOnlySpan()))
+            {
+                var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                return HasIdentityOrReferenceConversion(elementType.Type, spanElementType.Type, ref useSiteInfo) &&
+                    HasTopLevelNullabilityIdentityConversion(elementType, spanElementType);
+            }
+
+            return false;
+        }
+
+        private bool IgnoreUserDefinedSpanConversions(TypeSymbol? source, TypeSymbol? target)
+        {
+            // SPEC: User-defined conversions are not considered when converting between types
+            //       for which an implicit or an explicit span conversion exists.
+            var discarded = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return source is not null && target is not null &&
+                (HasImplicitSpanConversion(source, target, ref discarded) ||
+                HasExplicitSpanConversion(source, target, ref discarded));
         }
     }
 }

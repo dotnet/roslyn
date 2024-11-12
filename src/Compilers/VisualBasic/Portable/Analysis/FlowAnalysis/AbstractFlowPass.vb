@@ -2,18 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
-Imports System.Text
-Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Utilities
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 ' NOTE: VB does not support constant expressions in flow analysis during command-line compilation, but supports them when 
 '       analysis is being called via public API. This distinction is governed by 'suppressConstantExpressions' flag
@@ -333,31 +325,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Not constantValue.BooleanValue
         End Function
 
-        Private Function IsConstantNull(node As BoundExpression) As Boolean
-            If Me._suppressConstantExpressions Then
-                Return False
-            End If
-
-            If Not node.IsConstant Then
-                Return False
-            End If
-            Return node.ConstantValueOpt.IsNull
-        End Function
-
         Protected Shared Function IsNonPrimitiveValueType(type As TypeSymbol) As Boolean
             Debug.Assert(type IsNot Nothing)
             If Not type.IsValueType Then
                 Return False
             End If
             Select Case type.SpecialType
-                Case SpecialType.None,
-                     SpecialType.System_Nullable_T,
-                     SpecialType.System_IntPtr,
-                     SpecialType.System_UIntPtr
-                    Return True
+                Case SpecialType.System_Void,
+                     SpecialType.System_Boolean,
+                     SpecialType.System_Char,
+                     SpecialType.System_SByte,
+                     SpecialType.System_Byte,
+                     SpecialType.System_Int16,
+                     SpecialType.System_UInt16,
+                     SpecialType.System_Int32,
+                     SpecialType.System_UInt32,
+                     SpecialType.System_Int64,
+                     SpecialType.System_UInt64,
+                     SpecialType.System_Decimal,
+                     SpecialType.System_Single,
+                     SpecialType.System_Double,
+                     SpecialType.System_DateTime,
+                     SpecialType.System_TypedReference,
+                     SpecialType.System_ArgIterator,
+                     SpecialType.System_RuntimeArgumentHandle,
+                     SpecialType.System_RuntimeFieldHandle,
+                     SpecialType.System_RuntimeMethodHandle,
+                     SpecialType.System_RuntimeTypeHandle
+                    Return False
 
                 Case Else
-                    Return False
+                    Return True
             End Select
         End Function
 
@@ -528,7 +526,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _labelsSeen = New HashSet(Of LabelSymbol)
             End Sub
         End Class
-
 
         ''' <summary>
         ''' When branching into constructs that don't support jumps into/out of (i.e. lambdas), 
@@ -1203,9 +1200,7 @@ lUnsplitAndFinish:
 
             VisitArguments(node.Arguments, method.Parameters)
 
-            If receiverOpt IsNot Nothing AndAlso receiverOpt.IsLValue Then
-                WriteLValueCallReceiver(receiverOpt, method)
-            End If
+            VisitCallAfterVisitArguments(node)
 
             If callsAreOmitted Then
                 Me.SetState(savedState)
@@ -1213,6 +1208,15 @@ lUnsplitAndFinish:
 
             Return Nothing
         End Function
+
+        Protected Overridable Sub VisitCallAfterVisitArguments(node As BoundCall)
+            Dim receiverOpt As BoundExpression = node.ReceiverOpt
+            Dim method As MethodSymbol = node.Method
+
+            If receiverOpt IsNot Nothing AndAlso receiverOpt.IsLValue Then
+                WriteLValueCallReceiver(receiverOpt, method)
+            End If
+        End Sub
 
         Private Sub VisitCallReceiver(receiver As BoundExpression, method As MethodSymbol)
             Debug.Assert(receiver IsNot Nothing)

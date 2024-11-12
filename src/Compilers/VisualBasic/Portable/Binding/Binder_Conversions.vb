@@ -158,6 +158,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 constantResult = Conversions.TryFoldNothingReferenceConversion(argument, conv, targetType)
             End If
 
+            If Not Conversions.IsIdentityConversion(conv) Then
+                WarnOnLockConversion(sourceType, argument.Syntax, diagnostics)
+            End If
+
             Return New BoundDirectCast(node, argument, conv, constantResult, targetType)
         End Function
 
@@ -256,6 +260,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim constantResult = Conversions.TryFoldNothingReferenceConversion(argument, conv, targetType)
+
+            If Not Conversions.IsIdentityConversion(conv) Then
+                WarnOnLockConversion(sourceType, argument.Syntax, diagnostics)
+            End If
 
             Return New BoundTryCast(node, argument, conv, constantResult, targetType)
         End Function
@@ -588,7 +596,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
 DoneWithDiagnostics:
-
             If (convKind.Key And ConversionKind.UserDefined) <> 0 Then
                 Return CreateUserDefinedConversion(tree, argument, convKind, isExplicit, targetType, reportArrayLiteralElementNarrowingConversion, diagnostics)
             End If
@@ -804,7 +811,6 @@ DoneWithDiagnostics:
             ' (3) and if the source type implemented exactly one binding of it...
             Dim source As NamedTypeSymbol = matchingGenericInstantiation
             Dim destination As NamedTypeSymbol = targetNamedType
-
 
             Dim oneVariantDifference As VarianceSuggestionTypeParameterInfo = Nothing ' for Di/Si/Ti
             Dim oneInvariantConvertibleDifference As TypeParameterSymbol = Nothing 'for Dj/Sj/Tj where Sj<Dj
@@ -1044,6 +1050,11 @@ DoneWithDiagnostics:
 
             Dim tupleElements As BoundConvertedTupleElements = CreateConversionForTupleElements(tree, sourceType, targetType, convKind, isExplicit)
 
+            If (convKind = ConversionKind.WideningReference OrElse convKind = ConversionKind.NarrowingReference) AndAlso
+                sourceType.IsWellKnownTypeLock() Then
+                ReportDiagnostic(diagnostics, argument.Syntax, ERRID.WRN_ConvertingLock)
+            End If
+
             Return New BoundConversion(tree, argument, convKind, CheckOverflow, isExplicit, constantResult, tupleElements, targetType)
         End Function
 
@@ -1164,7 +1175,6 @@ DoneWithDiagnostics:
             diagnostics.Add(tree, useSiteInfo)
             Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, DirectCast(Nothing, ConstantValue), targetType)
         End Function
-
 
         ''' <summary>
         ''' Handle expression reclassification, if any applicable.
@@ -1306,7 +1316,7 @@ DoneWithDiagnostics:
                 Dim anonymousDelegate As BoundExpression = ReclassifyUnboundLambdaExpression(unboundLambda, diagnostics)
 
 #If DEBUG Then
-                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = unboundLambda.InferredAnonymousDelegate
+                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = unboundLambda.InferredAnonymousDelegate
 
                 Debug.Assert(anonymousDelegate.Type Is anonymousDelegateInfo.Key)
 
@@ -1345,7 +1355,7 @@ DoneWithDiagnostics:
                         delegateInvoke = Nothing ' No conversion
 
                     ElseIf unboundLambda.IsInferredDelegateForThisLambda(delegateInvoke.ContainingType) Then
-                        Dim inferenceDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol) = unboundLambda.InferredAnonymousDelegate.Value
+                        Dim inferenceDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol) = unboundLambda.InferredAnonymousDelegate.Value
 
                         diagnostics.AddRange(inferenceDiagnostics)
 
@@ -1608,7 +1618,9 @@ DoneWithDiagnostics:
 
             If (convKind And ConversionKind.InterpolatedString) = ConversionKind.InterpolatedString Then
                 Debug.Assert(targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable)) OrElse targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString)))
-                Return New BoundConversion(tree, node, ConversionKind.InterpolatedString, False, isExplicit, targetType)
+                Return New BoundConversion(tree,
+                                           BindUnconvertedInterpolatedStringToFormattable(tree, node, targetType, diagnostics),
+                                           ConversionKind.InterpolatedString, False, isExplicit, targetType)
             End If
 
             Return node
@@ -1723,6 +1735,12 @@ DoneWithDiagnostics:
                 End If
 
                 diagnostics.AddDependencies(useSiteInfo)
+            End If
+        End Sub
+
+        Private Shared Sub WarnOnLockConversion(sourceType As TypeSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag)
+            If sourceType IsNot Nothing AndAlso sourceType.IsWellKnownTypeLock() Then
+                ReportDiagnostic(diagnostics, syntax, ERRID.WRN_ConvertingLock)
             End If
         End Sub
 

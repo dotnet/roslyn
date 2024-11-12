@@ -3274,7 +3274,86 @@ public class AsyncBug {
 }
 ";
 
-            var v = CompileAndVerify(source, "System.Int32");
+            // See tracking issue https://github.com/dotnet/runtime/issues/96695
+            var verifier = CompileAndVerify(source, expectedOutput: "System.Int32",
+                verify: Verification.FailsILVerify with { ILVerifyMessage = "[MoveNext]: Unrecognized arguments for delegate .ctor. { Offset = 0x6d }" });
+
+            verifier.VerifyIL("AsyncBug.<Boom>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
+{
+  // Code size      169 (0xa9)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter<int> V_1,
+                System.Exception V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int AsyncBug.<Boom>d__1.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_003f
+    IL_000a:  ldc.i4.1
+    IL_000b:  call       "System.Threading.Tasks.Task<int> System.Threading.Tasks.Task.FromResult<int>(int)"
+    IL_0010:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()"
+    IL_0015:  stloc.1
+    IL_0016:  ldloca.s   V_1
+    IL_0018:  call       "bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get"
+    IL_001d:  brtrue.s   IL_005b
+    IL_001f:  ldarg.0
+    IL_0020:  ldc.i4.0
+    IL_0021:  dup
+    IL_0022:  stloc.0
+    IL_0023:  stfld      "int AsyncBug.<Boom>d__1.<>1__state"
+    IL_0028:  ldarg.0
+    IL_0029:  ldloc.1
+    IL_002a:  stfld      "System.Runtime.CompilerServices.TaskAwaiter<int> AsyncBug.<Boom>d__1.<>u__1"
+    IL_002f:  ldarg.0
+    IL_0030:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder AsyncBug.<Boom>d__1.<>t__builder"
+    IL_0035:  ldloca.s   V_1
+    IL_0037:  ldarg.0
+    IL_0038:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, AsyncBug.<Boom>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref AsyncBug.<Boom>d__1)"
+    IL_003d:  leave.s    IL_00a8
+    IL_003f:  ldarg.0
+    IL_0040:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter<int> AsyncBug.<Boom>d__1.<>u__1"
+    IL_0045:  stloc.1
+    IL_0046:  ldarg.0
+    IL_0047:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter<int> AsyncBug.<Boom>d__1.<>u__1"
+    IL_004c:  initobj    "System.Runtime.CompilerServices.TaskAwaiter<int>"
+    IL_0052:  ldarg.0
+    IL_0053:  ldc.i4.m1
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      "int AsyncBug.<Boom>d__1.<>1__state"
+    IL_005b:  ldloca.s   V_1
+    IL_005d:  call       "int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()"
+    IL_0062:  box        "int"
+    IL_0067:  ldftn      "System.Type object.GetType()"
+    IL_006d:  newobj     "System.Func<System.Type>..ctor(object, System.IntPtr)"
+    IL_0072:  callvirt   "System.Type System.Func<System.Type>.Invoke()"
+    IL_0077:  call       "void System.Console.WriteLine(object)"
+    IL_007c:  leave.s    IL_0095
+  }
+  catch System.Exception
+  {
+    IL_007e:  stloc.2
+    IL_007f:  ldarg.0
+    IL_0080:  ldc.i4.s   -2
+    IL_0082:  stfld      "int AsyncBug.<Boom>d__1.<>1__state"
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder AsyncBug.<Boom>d__1.<>t__builder"
+    IL_008d:  ldloc.2
+    IL_008e:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_0093:  leave.s    IL_00a8
+  }
+  IL_0095:  ldarg.0
+  IL_0096:  ldc.i4.s   -2
+  IL_0098:  stfld      "int AsyncBug.<Boom>d__1.<>1__state"
+  IL_009d:  ldarg.0
+  IL_009e:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder AsyncBug.<Boom>d__1.<>t__builder"
+  IL_00a3:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_00a8:  ret
+}
+""");
         }
 
         [Fact]
@@ -3393,7 +3472,7 @@ public class C
 
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (18,28): error CS8178: 'await' cannot be used in an expression containing a call to 'C.P.get' because it returns by reference
+                // (18,28): error CS8178: A reference returned by a call to 'C.P.get' cannot be preserved across 'await' or 'yield' boundary.
                 //         Assign(second: ref P, first: await t);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "P").WithArguments("C.P.get").WithLocation(18, 28)
                 );
@@ -3498,96 +3577,106 @@ namespace System.Text.Json.Serialization
 ";
             var v = CompileAndVerify(source, options: TestOptions.DebugExe);
 
-            v.VerifyIL("Program.<Serialize>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
-    {
-      // Code size      184 (0xb8)
-      .maxstack  3
-      .locals init (int V_0,
-                    System.Runtime.CompilerServices.TaskAwaiter<byte[]> V_1,
-                    Program.<Serialize>d__1 V_2,
-                    System.Exception V_3)
-      IL_0000:  ldarg.0
-      IL_0001:  ldfld      ""int Program.<Serialize>d__1.<>1__state""
-      IL_0006:  stloc.0
-      .try
-      {
-        IL_0007:  ldloc.0
-        IL_0008:  brfalse.s  IL_000c
-        IL_000a:  br.s       IL_000e
-        IL_000c:  br.s       IL_0047
-        IL_000e:  nop
-        IL_000f:  call       ""System.Threading.Tasks.Task<byte[]> Program.TestAsync()""
-        IL_0014:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> System.Threading.Tasks.Task<byte[]>.GetAwaiter()""
-        IL_0019:  stloc.1
-        IL_001a:  ldloca.s   V_1
-        IL_001c:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<byte[]>.IsCompleted.get""
-        IL_0021:  brtrue.s   IL_0063
-        IL_0023:  ldarg.0
-        IL_0024:  ldc.i4.0
-        IL_0025:  dup
-        IL_0026:  stloc.0
-        IL_0027:  stfld      ""int Program.<Serialize>d__1.<>1__state""
-        IL_002c:  ldarg.0
-        IL_002d:  ldloc.1
-        IL_002e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
-        IL_0033:  ldarg.0
-        IL_0034:  stloc.2
-        IL_0035:  ldarg.0
-        IL_0036:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
-        IL_003b:  ldloca.s   V_1
-        IL_003d:  ldloca.s   V_2
-        IL_003f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<byte[]>, Program.<Serialize>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<byte[]>, ref Program.<Serialize>d__1)""
-        IL_0044:  nop
-        IL_0045:  leave.s    IL_00b7
-        IL_0047:  ldarg.0
-        IL_0048:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
-        IL_004d:  stloc.1
-        IL_004e:  ldarg.0
-        IL_004f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
-        IL_0054:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<byte[]>""
-        IL_005a:  ldarg.0
-        IL_005b:  ldc.i4.m1
-        IL_005c:  dup
-        IL_005d:  stloc.0
-        IL_005e:  stfld      ""int Program.<Serialize>d__1.<>1__state""
-        IL_0063:  ldarg.0
-        IL_0064:  ldloca.s   V_1
-        IL_0066:  call       ""byte[] System.Runtime.CompilerServices.TaskAwaiter<byte[]>.GetResult()""
-        IL_006b:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
-        IL_0070:  ldarg.0
-        IL_0071:  ldfld      ""byte[] Program.<Serialize>d__1.<>s__1""
-        IL_0076:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
-        IL_007b:  ldnull
-        IL_007c:  call       ""string System.Text.Json.Serialization.JsonSerializer.Parse<string>(System.ReadOnlySpan<byte>, System.Text.Json.Serialization.JsonSerializerOptions)""
-        IL_0081:  pop
-        IL_0082:  ldarg.0
-        IL_0083:  ldnull
-        IL_0084:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
-        IL_0089:  leave.s    IL_00a3
-      }
-      catch System.Exception
-      {
-        IL_008b:  stloc.3
-        IL_008c:  ldarg.0
-        IL_008d:  ldc.i4.s   -2
-        IL_008f:  stfld      ""int Program.<Serialize>d__1.<>1__state""
-        IL_0094:  ldarg.0
-        IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
-        IL_009a:  ldloc.3
-        IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-        IL_00a0:  nop
-        IL_00a1:  leave.s    IL_00b7
-      }
-      IL_00a3:  ldarg.0
-      IL_00a4:  ldc.i4.s   -2
-      IL_00a6:  stfld      ""int Program.<Serialize>d__1.<>1__state""
-      IL_00ab:  ldarg.0
-      IL_00ac:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
-      IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-      IL_00b6:  nop
-      IL_00b7:  ret
-    }
-", sequencePoints: "Program.Serialize");
+            v.VerifyMethodBody("Program.<Serialize>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+{
+  // Code size      184 (0xb8)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter<byte[]> V_1,
+                Program.<Serialize>d__1 V_2,
+                System.Exception V_3)
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int Program.<Serialize>d__1.<>1__state""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0047
+    // sequence point: {
+    IL_000e:  nop
+    // sequence point: System.Text.Json.Serialization.JsonSerializer.Parse<string>(await TestAsync());
+    IL_000f:  call       ""System.Threading.Tasks.Task<byte[]> Program.TestAsync()""
+    IL_0014:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> System.Threading.Tasks.Task<byte[]>.GetAwaiter()""
+    IL_0019:  stloc.1
+    // sequence point: <hidden>
+    IL_001a:  ldloca.s   V_1
+    IL_001c:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<byte[]>.IsCompleted.get""
+    IL_0021:  brtrue.s   IL_0063
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  dup
+    IL_0026:  stloc.0
+    IL_0027:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+    // async: yield
+    IL_002c:  ldarg.0
+    IL_002d:  ldloc.1
+    IL_002e:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+    IL_0033:  ldarg.0
+    IL_0034:  stloc.2
+    IL_0035:  ldarg.0
+    IL_0036:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+    IL_003b:  ldloca.s   V_1
+    IL_003d:  ldloca.s   V_2
+    IL_003f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<byte[]>, Program.<Serialize>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<byte[]>, ref Program.<Serialize>d__1)""
+    IL_0044:  nop
+    IL_0045:  leave.s    IL_00b7
+    // async: resume
+    IL_0047:  ldarg.0
+    IL_0048:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+    IL_004d:  stloc.1
+    IL_004e:  ldarg.0
+    IL_004f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<byte[]> Program.<Serialize>d__1.<>u__1""
+    IL_0054:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<byte[]>""
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.0
+    IL_005e:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+    IL_0063:  ldarg.0
+    IL_0064:  ldloca.s   V_1
+    IL_0066:  call       ""byte[] System.Runtime.CompilerServices.TaskAwaiter<byte[]>.GetResult()""
+    IL_006b:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+    IL_0070:  ldarg.0
+    IL_0071:  ldfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+    IL_0076:  call       ""System.ReadOnlySpan<byte> System.ReadOnlySpan<byte>.op_Implicit(byte[])""
+    IL_007b:  ldnull
+    IL_007c:  call       ""string System.Text.Json.Serialization.JsonSerializer.Parse<string>(System.ReadOnlySpan<byte>, System.Text.Json.Serialization.JsonSerializerOptions)""
+    IL_0081:  pop
+    IL_0082:  ldarg.0
+    IL_0083:  ldnull
+    IL_0084:  stfld      ""byte[] Program.<Serialize>d__1.<>s__1""
+    IL_0089:  leave.s    IL_00a3
+  }
+  catch System.Exception
+  {
+    // sequence point: <hidden>
+    IL_008b:  stloc.3
+    IL_008c:  ldarg.0
+    IL_008d:  ldc.i4.s   -2
+    IL_008f:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+    IL_0094:  ldarg.0
+    IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+    IL_009a:  ldloc.3
+    IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00a0:  nop
+    IL_00a1:  leave.s    IL_00b7
+  }
+  // sequence point: }
+  IL_00a3:  ldarg.0
+  IL_00a4:  ldc.i4.s   -2
+  IL_00a6:  stfld      ""int Program.<Serialize>d__1.<>1__state""
+  // sequence point: <hidden>
+  IL_00ab:  ldarg.0
+  IL_00ac:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Serialize>d__1.<>t__builder""
+  IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00b6:  nop
+  IL_00b7:  ret
+}
+");
         }
 
         [Fact, WorkItem(37461, "https://github.com/dotnet/roslyn/issues/37461")]
@@ -3700,9 +3789,11 @@ public class P
                 var comp = CreateCompilationWithMscorlibAndSpan(source, options: options);
                 comp.VerifyDiagnostics();
                 comp.VerifyEmitDiagnostics(
-                    // (9,66): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
-                    //         await Async1(F1(), G(F2(), stackalloc int[] { 1, 2, 3 }, await F3()));
-                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await F3()").WithArguments("System.Span<int>").WithLocation(9, 66)
+                    // (8,5): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                    //     {
+                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"{
+        await Async1(F1(), G(F2(), stackalloc int[] { 1, 2, 3 }, await F3()));
+    }").WithArguments("System.Span<int>").WithLocation(8, 5)
                     );
             }
         }
@@ -3808,16 +3899,16 @@ public ref struct S
     public bool P2 => true;
 }
 ";
-            CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,17): error CS4007: Instance of type 'S' cannot be preserved across 'await' or 'yield' boundary.
                 //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
-                );
-            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
-                //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
-                );
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "F").WithArguments("S").WithLocation(9, 17)
+            };
+
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -6200,7 +6291,6 @@ After Assignment b._x is: 42")
   IL_00da:  ret
 }");
         }
-
 
         [Fact]
         [WorkItem(42755, "https://github.com/dotnet/roslyn/issues/42755")]

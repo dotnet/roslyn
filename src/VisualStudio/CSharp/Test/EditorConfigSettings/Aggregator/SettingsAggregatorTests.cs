@@ -5,7 +5,6 @@
 using System;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.UnitTests;
@@ -14,6 +13,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Aggregator
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
     public class SettingsAggregatorTests
     {
         public static Workspace CreateWorkspace(params Type[]? additionalParts)
@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EditorConfigSettings.Ag
             Assert.NotNull(settingsProvider);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingCodeStyleProvider() => TestGettingProvider<CodeStyleSetting>();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
+        [Fact]
         public void TestGettingAnalyzerProvider() => TestGettingProvider<AnalyzerSetting>();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EditorConfigUI)]
-        public void TestGettingWhitespaceProvider() => TestGettingProvider<WhitespaceSetting>();
+        [Fact]
+        public void TestGettingWhitespaceProvider() => TestGettingProvider<Setting>();
     }
 }

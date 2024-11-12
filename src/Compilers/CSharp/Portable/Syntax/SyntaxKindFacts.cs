@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -17,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (int i = (int)SyntaxKind.BoolKeyword; i <= (int)SyntaxKind.ImplicitKeyword; i++)
             {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
                 yield return (SyntaxKind)i;
             }
         }
@@ -45,6 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.AssemblyKeyword:
                 case SyntaxKind.ModuleKeyword:
+                case SyntaxKind.EventKeyword:
+                case SyntaxKind.FieldKeyword:
+                case SyntaxKind.MethodKeyword:
+                case SyntaxKind.ParamKeyword:
+                case SyntaxKind.PropertyKeyword:
+                case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.TypeKeyword:
+                case SyntaxKind.TypeVarKeyword:
                     return true;
                 default:
                     return false;
@@ -134,16 +145,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             yield return SyntaxKind.TrueKeyword;
             yield return SyntaxKind.FalseKeyword;
             yield return SyntaxKind.DefaultKeyword;
-            yield return SyntaxKind.HiddenKeyword;
+
             for (int i = (int)SyntaxKind.ElifKeyword; i <= (int)SyntaxKind.RestoreKeyword; i++)
             {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
                 yield return (SyntaxKind)i;
             }
         }
 
         public static bool IsPunctuation(SyntaxKind kind)
         {
-            return kind >= SyntaxKind.TildeToken && kind <= SyntaxKind.QuestionQuestionEqualsToken;
+            return kind >= SyntaxKind.TildeToken && kind <= SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
         }
 
         public static bool IsLanguagePunctuation(SyntaxKind kind)
@@ -164,10 +176,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetPunctuationKinds()
         {
-            for (int i = (int)SyntaxKind.TildeToken; i <= (int)SyntaxKind.PercentEqualsToken; i++)
+            for (int i = (int)SyntaxKind.TildeToken; i <= (int)SyntaxKind.DotDotToken; i++)
             {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
                 yield return (SyntaxKind)i;
             }
+
+            for (int i = (int)SyntaxKind.SlashGreaterThanToken; i <= (int)SyntaxKind.XmlProcessingInstructionEndToken; i++)
+            {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
+                yield return (SyntaxKind)i;
+            }
+
+            for (int i = (int)SyntaxKind.BarBarToken; i <= (int)SyntaxKind.QuestionQuestionEqualsToken; i++)
+            {
+                Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
+                yield return (SyntaxKind)i;
+            }
+
+            yield return SyntaxKind.GreaterThanGreaterThanGreaterThanToken;
+            yield return SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken;
         }
 
         public static bool IsPunctuationOrKeyword(SyntaxKind kind)
@@ -181,8 +209,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.IdentifierToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringLiteralToken:
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.Utf8SingleLineRawStringLiteralToken:
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.Utf8MultiLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.XmlTextLiteralToken:
@@ -474,6 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.GreaterThanToken:
                 case SyntaxKind.GreaterThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
                 case SyntaxKind.ExclamationEqualsToken:
                     return true;
                 default:
@@ -539,8 +571,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return token switch
             {
                 SyntaxKind.StringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.Utf8StringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.SingleLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.Utf8SingleLineRawStringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.MultiLineRawStringLiteralToken => SyntaxKind.StringLiteralExpression,
+                SyntaxKind.Utf8MultiLineRawStringLiteralToken => SyntaxKind.Utf8StringLiteralExpression,
                 SyntaxKind.CharacterLiteralToken => SyntaxKind.CharacterLiteralExpression,
                 SyntaxKind.NumericLiteralToken => SyntaxKind.NumericLiteralExpression,
                 SyntaxKind.NullKeyword => SyntaxKind.NullLiteralExpression,
@@ -611,6 +646,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.LeftShiftExpression;
                 case SyntaxKind.GreaterThanGreaterThanToken:
                     return SyntaxKind.RightShiftExpression;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                    return SyntaxKind.UnsignedRightShiftExpression;
                 case SyntaxKind.PlusToken:
                     return SyntaxKind.AddExpression;
                 case SyntaxKind.MinusToken:
@@ -640,6 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ExclusiveOrAssignmentExpression:
                 case SyntaxKind.LeftShiftAssignmentExpression:
                 case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.UnsignedRightShiftAssignmentExpression:
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
                 case SyntaxKind.MultiplyAssignmentExpression:
@@ -662,6 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.CaretEqualsToken:
                 case SyntaxKind.LessThanLessThanEqualsToken:
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
                 case SyntaxKind.PlusEqualsToken:
                 case SyntaxKind.MinusEqualsToken:
                 case SyntaxKind.AsteriskEqualsToken:
@@ -688,6 +727,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.LeftShiftAssignmentExpression;
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     return SyntaxKind.RightShiftAssignmentExpression;
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                    return SyntaxKind.UnsignedRightShiftAssignmentExpression;
                 case SyntaxKind.PlusEqualsToken:
                     return SyntaxKind.AddAssignmentExpression;
                 case SyntaxKind.MinusEqualsToken:
@@ -979,21 +1020,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (operatorMetadataName)
             {
-                case WellKnownMemberNames.AdditionOperatorName: return SyntaxKind.PlusToken;
+                case WellKnownMemberNames.CheckedAdditionOperatorName:
+                case WellKnownMemberNames.AdditionOperatorName:
+                    return SyntaxKind.PlusToken;
+
                 case WellKnownMemberNames.BitwiseAndOperatorName: return SyntaxKind.AmpersandToken;
                 case WellKnownMemberNames.BitwiseOrOperatorName: return SyntaxKind.BarToken;
                 // case WellKnownMemberNames.ConcatenateOperatorName:
-                case WellKnownMemberNames.DecrementOperatorName: return SyntaxKind.MinusMinusToken;
-                case WellKnownMemberNames.DivisionOperatorName: return SyntaxKind.SlashToken;
+
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
+                case WellKnownMemberNames.DecrementOperatorName:
+                    return SyntaxKind.MinusMinusToken;
+
+                case WellKnownMemberNames.CheckedDivisionOperatorName:
+                case WellKnownMemberNames.DivisionOperatorName:
+                    return SyntaxKind.SlashToken;
+
                 case WellKnownMemberNames.EqualityOperatorName: return SyntaxKind.EqualsEqualsToken;
                 case WellKnownMemberNames.ExclusiveOrOperatorName: return SyntaxKind.CaretToken;
-                case WellKnownMemberNames.ExplicitConversionName: return SyntaxKind.ExplicitKeyword;
+
+                case WellKnownMemberNames.CheckedExplicitConversionName:
+                case WellKnownMemberNames.ExplicitConversionName:
+                    return SyntaxKind.ExplicitKeyword;
+
                 // case WellKnownMemberNames.ExponentOperatorName:
                 case WellKnownMemberNames.FalseOperatorName: return SyntaxKind.FalseKeyword;
                 case WellKnownMemberNames.GreaterThanOperatorName: return SyntaxKind.GreaterThanToken;
                 case WellKnownMemberNames.GreaterThanOrEqualOperatorName: return SyntaxKind.GreaterThanEqualsToken;
                 case WellKnownMemberNames.ImplicitConversionName: return SyntaxKind.ImplicitKeyword;
-                case WellKnownMemberNames.IncrementOperatorName: return SyntaxKind.PlusPlusToken;
+
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
+                case WellKnownMemberNames.IncrementOperatorName:
+                    return SyntaxKind.PlusPlusToken;
+
                 case WellKnownMemberNames.InequalityOperatorName: return SyntaxKind.ExclamationEqualsToken;
                 //case WellKnownMemberNames.IntegerDivisionOperatorName: 
                 case WellKnownMemberNames.LeftShiftOperatorName: return SyntaxKind.LessThanLessThanToken;
@@ -1002,15 +1061,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // case WellKnownMemberNames.LikeOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName: return SyntaxKind.ExclamationToken;
                 case WellKnownMemberNames.ModulusOperatorName: return SyntaxKind.PercentToken;
-                case WellKnownMemberNames.MultiplyOperatorName: return SyntaxKind.AsteriskToken;
+
+                case WellKnownMemberNames.CheckedMultiplyOperatorName:
+                case WellKnownMemberNames.MultiplyOperatorName:
+                    return SyntaxKind.AsteriskToken;
+
                 case WellKnownMemberNames.OnesComplementOperatorName: return SyntaxKind.TildeToken;
                 case WellKnownMemberNames.RightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanToken;
-                case WellKnownMemberNames.SubtractionOperatorName: return SyntaxKind.MinusToken;
+                case WellKnownMemberNames.UnsignedRightShiftOperatorName: return SyntaxKind.GreaterThanGreaterThanGreaterThanToken;
+
+                case WellKnownMemberNames.CheckedSubtractionOperatorName:
+                case WellKnownMemberNames.SubtractionOperatorName:
+                    return SyntaxKind.MinusToken;
+
                 case WellKnownMemberNames.TrueOperatorName: return SyntaxKind.TrueKeyword;
-                case WellKnownMemberNames.UnaryNegationOperatorName: return SyntaxKind.MinusToken;
+
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
+                case WellKnownMemberNames.UnaryNegationOperatorName:
+                    return SyntaxKind.MinusToken;
+
                 case WellKnownMemberNames.UnaryPlusOperatorName: return SyntaxKind.PlusToken;
                 default:
                     return SyntaxKind.None;
+            }
+        }
+
+        public static bool IsCheckedOperator(string operatorMetadataName)
+        {
+            switch (operatorMetadataName)
+            {
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
+                case WellKnownMemberNames.CheckedAdditionOperatorName:
+                case WellKnownMemberNames.CheckedDivisionOperatorName:
+                case WellKnownMemberNames.CheckedMultiplyOperatorName:
+                case WellKnownMemberNames.CheckedSubtractionOperatorName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
+                    return true;
+
+                default:
+                    return false;
             }
         }
 
@@ -1075,9 +1166,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.UnmanagedKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.AllowsKeyword; i++)
             {
-                yield return (SyntaxKind)i;
+                // 8441 corresponds to a deleted kind (DataKeyword) that was previously shipped.
+                if (i != 8441)
+                {
+                    Debug.Assert(Enum.IsDefined(typeof(SyntaxKind), (SyntaxKind)i));
+                    yield return (SyntaxKind)i;
+                }
             }
         }
 
@@ -1128,6 +1224,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.RecordKeyword:
                 case SyntaxKind.ManagedKeyword:
                 case SyntaxKind.UnmanagedKeyword:
+                case SyntaxKind.RequiredKeyword:
+                case SyntaxKind.ScopedKeyword:
+                case SyntaxKind.FileKeyword:
+                case SyntaxKind.AllowsKeyword:
                     return true;
                 default:
                     return false;
@@ -1247,6 +1347,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.ManagedKeyword;
                 case "unmanaged":
                     return SyntaxKind.UnmanagedKeyword;
+                case "required":
+                    return SyntaxKind.RequiredKeyword;
+                case "scoped":
+                    return SyntaxKind.ScopedKeyword;
+                case "file":
+                    return SyntaxKind.FileKeyword;
+                case "allows":
+                    return SyntaxKind.AllowsKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1364,6 +1472,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ">>";
                 case SyntaxKind.GreaterThanGreaterThanEqualsToken:
                     return ">>=";
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+                    return ">>>";
+                case SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+                    return ">>>=";
                 case SyntaxKind.SlashEqualsToken:
                     return "/=";
                 case SyntaxKind.AsteriskEqualsToken:
@@ -1384,8 +1496,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "??=";
                 case SyntaxKind.DotDotToken:
                     return "..";
-                case SyntaxKind.ExclamationExclamationToken:
-                    return "!!";
 
                 // Keywords
                 case SyntaxKind.BoolKeyword:
@@ -1684,6 +1794,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "managed";
                 case SyntaxKind.UnmanagedKeyword:
                     return "unmanaged";
+                case SyntaxKind.RequiredKeyword:
+                    return "required";
+                case SyntaxKind.ScopedKeyword:
+                    return "scoped";
+                case SyntaxKind.FileKeyword:
+                    return "file";
+                case SyntaxKind.AllowsKeyword:
+                    return "allows";
                 default:
                     return string.Empty;
             }

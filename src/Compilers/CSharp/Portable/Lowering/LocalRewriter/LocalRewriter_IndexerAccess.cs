@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -53,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDynamicIndexerAccess node,
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
@@ -69,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
+            Debug.Assert(node.AccessorKind != AccessorKind.Unknown);
             Debug.Assert(node.Indexer.IsIndexer || node.Indexer.IsIndexedProperty);
             Debug.Assert((object?)node.Indexer.GetOwnOrInheritedGetMethod() != null);
 
@@ -79,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             PropertySymbol indexer = node.Indexer;
             Debug.Assert(indexer.IsIndexer || indexer.IsIndexedProperty);
+            Debug.Assert(node.AccessorKind != AccessorKind.Unknown);
+            Debug.Assert(isLeftOfAssignment || (node.AccessorKind != AccessorKind.Set));
 
             // Rewrite the receiver.
             BoundExpression? rewrittenReceiver = VisitExpression(node.ReceiverOpt);
@@ -94,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.Expanded,
                 node.ArgsToParamsOpt,
                 node.DefaultArguments,
-                node.Type,
                 node,
                 isLeftOfAssignment);
         }
@@ -104,39 +103,71 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenReceiver,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<string?> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
-            TypeSymbol type,
-            BoundIndexerAccess? oldNodeOpt,
+            BoundExpression oldNode,
             bool isLeftOfAssignment)
         {
+            Debug.Assert(oldNode is BoundIndexerAccess or BoundObjectInitializerMember);
+
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
-                // This is an indexer set access. We return a BoundIndexerAccess node here.
-                // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
+                TypeSymbol type = indexer.Type;
+                Debug.Assert(oldNode.Type is not null);
+                Debug.Assert(oldNode.Type.Equals(type, TypeCompareKind.ConsiderEverything));
 
-                return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
-                    new BoundIndexerAccess(syntax, rewrittenReceiver, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
+                // This is an indexer access. We return a BoundIndexerAccess node here. This node will be rewritten
+                // with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
+                return oldNode switch
+                {
+                    BoundIndexerAccess indexerExpr => indexerExpr.Update(
+                        rewrittenReceiver,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        indexer,
+                        arguments,
+                        argumentNamesOpt,
+                        argumentRefKindsOpt,
+                        expanded,
+                        indexerExpr.AccessorKind,
+                        argsToParamsOpt,
+                        defaultArguments,
+                        type),
+                    BoundObjectInitializerMember member => new BoundIndexerAccess(
+                        syntax,
+                        rewrittenReceiver,
+                        initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
+                        indexer,
+                        arguments,
+                        argumentNamesOpt,
+                        argumentRefKindsOpt,
+                        expanded,
+                        member.AccessorKind,
+                        argsToParamsOpt,
+                        defaultArguments,
+                        type),
+                    _ => throw ExceptionUtilities.UnexpectedValue(oldNode)
+                };
             }
             else
             {
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();
                 Debug.Assert(getMethod is not null);
 
-                ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                ArrayBuilder<LocalSymbol>? temps = null;
+                ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                    ref rewrittenReceiver,
+                    captureReceiverMode: ReceiverCaptureMode.Default,
                     arguments,
                     indexer,
                     argsToParamsOpt,
                     argumentRefKindsOpt,
-                    ref rewrittenReceiver!,
-                    out ArrayBuilder<LocalSymbol>? temps);
+                    storesOpt: null,
+                    ref temps);
 
                 rewrittenArguments = MakeArguments(
-                    syntax,
                     rewrittenArguments,
                     indexer,
                     expanded,
@@ -144,7 +175,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref argumentRefKindsOpt,
                     ref temps);
 
-                BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
+                BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentRefKindsOpt, getMethod);
+
+                Debug.Assert(call.Type is not null);
 
                 if (temps.Count == 0)
                 {
@@ -158,29 +191,228 @@ namespace Microsoft.CodeAnalysis.CSharp
                         temps.ToImmutableAndFree(),
                         ImmutableArray<BoundExpression>.Empty,
                         call,
-                        type);
+                        call.Type);
                 }
+            }
+        }
+
+        public override BoundNode? VisitInlineArrayAccess(BoundInlineArrayAccess node)
+        {
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+            Debug.Assert(_diagnostics.DiagnosticBag is { });
+            Debug.Assert(node.Expression.Type is object);
+            Debug.Assert(node.Argument.Type is object);
+
+            var rewrittenReceiver = VisitExpression(node.Expression);
+            BoundAssignmentOperator? receiverStore = null;
+
+            if (node.IsValue && node.GetItemOrSliceHelper == WellKnownMember.System_ReadOnlySpan_T__get_Item)
+            {
+                // Clone receiver because it is a value, but we need a variable to be able to get a span
+                rewrittenReceiver = _factory.StoreToTemp(rewrittenReceiver, out receiverStore);
+            }
+
+            var getItemOrSliceHelper = (MethodSymbol?)_compilation.GetWellKnownTypeMember(node.GetItemOrSliceHelper);
+            Debug.Assert(getItemOrSliceHelper is object);
+
+            BoundExpression result;
+            _ = node.Expression.Type.HasInlineArrayAttribute(out int length);
+
+            if (node.Argument.Type.SpecialType == SpecialType.System_Int32)
+            {
+                result = getElementRef(node, rewrittenReceiver, index: VisitExpression(node.Argument), getItemOrSliceHelper, length);
+            }
+            else
+            {
+                Debug.Assert(length > 0);
+
+                if (TypeSymbol.Equals(node.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.AllIgnoreOptions))
+                {
+                    BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
+                    BoundExpression integerArgument = makePatternIndexOffsetExpression(makeOffsetInput, length, strategy);
+
+                    result = getElementRef(node, rewrittenReceiver, index: integerArgument, getItemOrSliceHelper, length);
+                }
+                else
+                {
+                    // createSpan(ref receiver, length).Slice(range converted to start, range converted to size)
+
+                    Debug.Assert(receiverStore is null);
+                    Debug.Assert(TypeSymbol.Equals(node.Argument.Type, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.AllIgnoreOptions));
+
+                    MethodSymbol createSpan = getCreateSpanHelper(node, spanType: getItemOrSliceHelper.ContainingType, intType: (NamedTypeSymbol)getItemOrSliceHelper.Parameters[0].Type);
+                    getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
+
+                    BoundRangeExpression? rangeExpr;
+                    BoundExpression? startMakeOffsetInput, endMakeOffsetInput, rewrittenRangeArg;
+                    PatternIndexOffsetLoweringStrategy startStrategy, endStrategy;
+                    RewriteRangeParts(node.Argument, out rangeExpr, out startMakeOffsetInput, out startStrategy, out endMakeOffsetInput, out endStrategy, out rewrittenRangeArg);
+
+                    var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+                    var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+
+                    BoundExpression startExpr;
+                    BoundExpression rangeSizeExpr;
+                    if (rangeExpr is not null)
+                    {
+
+                        startExpr = makePatternIndexOffsetExpression(startMakeOffsetInput, length, startStrategy);
+                        BoundExpression endExpr = makePatternIndexOffsetExpression(endMakeOffsetInput, length, endStrategy);
+                        rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
+                    }
+                    else
+                    {
+                        Debug.Assert(rewrittenRangeArg is not null);
+                        DeconstructRange(rewrittenRangeArg, _factory.Literal(length), localsBuilder, sideEffectsBuilder, out startExpr, out rangeSizeExpr);
+                    }
+
+                    BoundExpression possiblyRefCapturedReceiver = rewrittenReceiver;
+
+                    if (sideEffectsBuilder.Count != 0)
+                    {
+                        possiblyRefCapturedReceiver = _factory.StoreToTemp(possiblyRefCapturedReceiver, out var refCapture, createSpan.Parameters[0].RefKind == RefKind.In ? RefKindExtensions.StrictIn : RefKind.Ref);
+                        localsBuilder.Insert(0, ((BoundLocal)possiblyRefCapturedReceiver).LocalSymbol);
+                        sideEffectsBuilder.Insert(0, refCapture);
+                    }
+
+                    if (startExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: 0 } &&
+                        rangeSizeExpr.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: >= 0 and int rangeSizeConst } &&
+                        rangeSizeConst <= length)
+                    {
+                        // No need to call Slice, we can create a Span of the right length from the start.
+                        result = _factory.Call(null, createSpan, possiblyRefCapturedReceiver, rangeSizeExpr, useStrictArgumentRefKinds: true);
+                    }
+                    else
+                    {
+                        result = _factory.Call(_factory.Call(null, createSpan, possiblyRefCapturedReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true),
+                                           getItemOrSliceHelper, startExpr, rangeSizeExpr);
+                    }
+
+                    result = _factory.Sequence(localsBuilder.ToImmutableAndFree(), sideEffectsBuilder.ToImmutableAndFree(), result);
+                }
+            }
+
+            if (receiverStore is not null)
+            {
+                result = _factory.Sequence(ImmutableArray.Create(((BoundLocal)rewrittenReceiver).LocalSymbol),
+                                           ImmutableArray.Create((BoundExpression)receiverStore),
+                                           result);
+            }
+
+            return result;
+
+            BoundExpression makePatternIndexOffsetExpression(BoundExpression? makeOffsetInput, int length, PatternIndexOffsetLoweringStrategy strategy)
+            {
+                BoundExpression integerArgument;
+
+                if (strategy == PatternIndexOffsetLoweringStrategy.SubtractFromLength &&
+                    makeOffsetInput is { ConstantValueOpt.Int32Value: var offset })
+                {
+                    integerArgument = _factory.Literal(length - offset);
+                }
+                else
+                {
+                    integerArgument = MakePatternIndexOffsetExpression(makeOffsetInput, _factory.Literal(length), strategy);
+                }
+
+                return integerArgument;
+            }
+
+            MethodSymbol getCreateSpanHelper(BoundInlineArrayAccess node, NamedTypeSymbol spanType, NamedTypeSymbol intType)
+            {
+                Debug.Assert(node.Expression.Type is object);
+
+                MethodSymbol createSpan;
+                if (node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                {
+                    createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsReadOnlySpanExists(node.Syntax, spanType, intType, _diagnostics.DiagnosticBag);
+                }
+                else
+                {
+                    createSpan = _factory.ModuleBuilderOpt.EnsureInlineArrayAsSpanExists(node.Syntax, spanType, intType, _diagnostics.DiagnosticBag);
+                }
+
+                return createSpan.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementField()!.Type);
+            }
+
+            BoundExpression getElementRef(BoundInlineArrayAccess node, BoundExpression rewrittenReceiver, BoundExpression index, MethodSymbol getItemOrSliceHelper, int length)
+            {
+                Debug.Assert(node.Expression.Type is object);
+                Debug.Assert(index.Type?.SpecialType == SpecialType.System_Int32);
+
+                var intType = (NamedTypeSymbol)index.Type;
+
+                if (index.ConstantValueOpt is { SpecialType: SpecialType.System_Int32, Int32Value: int constIndex })
+                {
+                    if (constIndex == 0)
+                    {
+                        // getFirstElementRef(ref receiver)
+                        MethodSymbol elementRef;
+
+                        if (node.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item)
+                        {
+                            elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayFirstElementRefExists(node.Syntax, _diagnostics.DiagnosticBag);
+                        }
+                        else
+                        {
+                            Debug.Assert(node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item);
+                            elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayFirstElementRefReadOnlyExists(node.Syntax, _diagnostics.DiagnosticBag);
+                        }
+
+                        elementRef = elementRef.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementField()!.Type);
+
+                        return _factory.Call(null, elementRef, rewrittenReceiver, useStrictArgumentRefKinds: true);
+                    }
+                    else if (constIndex > 0 && constIndex < length)
+                    {
+                        // getElementRef(ref receiver, index)
+                        MethodSymbol elementRef;
+
+                        if (node.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item)
+                        {
+                            elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayElementRefExists(node.Syntax, intType, _diagnostics.DiagnosticBag);
+                        }
+                        else
+                        {
+                            Debug.Assert(node.GetItemOrSliceHelper is WellKnownMember.System_ReadOnlySpan_T__get_Item);
+                            elementRef = _factory.ModuleBuilderOpt.EnsureInlineArrayElementRefReadOnlyExists(node.Syntax, intType, _diagnostics.DiagnosticBag);
+                        }
+
+                        elementRef = elementRef.Construct(node.Expression.Type, node.Expression.Type.TryGetInlineArrayElementField()!.Type);
+
+                        return _factory.Call(null, elementRef, rewrittenReceiver, index, useStrictArgumentRefKinds: true);
+                    }
+                }
+
+                Debug.Assert(index.ConstantValueOpt is null); // Binder should have reported an error due to index out of bounds, or should have handled by code above.
+
+                // createSpan(ref receiver, length)[index]
+
+                NamedTypeSymbol spanType = getItemOrSliceHelper.ContainingType;
+                MethodSymbol createSpan = getCreateSpanHelper(node, spanType, intType);
+                getItemOrSliceHelper = getItemOrSliceHelper.AsMember((NamedTypeSymbol)createSpan.ReturnType);
+                return _factory.Call(_factory.Call(null, createSpan, rewrittenReceiver, _factory.Literal(length), useStrictArgumentRefKinds: true), getItemOrSliceHelper, index);
             }
         }
 
         public override BoundNode? VisitListPatternIndexPlaceholder(BoundListPatternIndexPlaceholder node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitListPatternReceiverPlaceholder(BoundListPatternReceiverPlaceholder node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitSlicePatternRangePlaceholder(BoundSlicePatternRangePlaceholder node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitSlicePatternReceiverPlaceholder(BoundSlicePatternReceiverPlaceholder node)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitImplicitIndexerReceiverPlaceholder(BoundImplicitIndexerReceiverPlaceholder node)
@@ -221,6 +453,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitIndexPatternIndexerAccess(BoundImplicitIndexerAccess node, bool isLeftOfAssignment)
         {
+            var locals = ArrayBuilder<LocalSymbol>.GetInstance(2);
+            var sideeffects = ArrayBuilder<BoundExpression>.GetInstance(2);
+
+            BoundExpression rewrittenIndexerAccess = GetUnderlyingIndexerOrSliceAccess(
+                node, isLeftOfAssignment,
+                isRegularAssignmentOrRegularCompoundAssignment: isLeftOfAssignment,
+                cacheAllArgumentsOnly: false,
+                sideeffects, locals);
+
+            return _factory.Sequence(
+                locals.ToImmutableAndFree(),
+                sideeffects.ToImmutableAndFree(),
+                rewrittenIndexerAccess);
+        }
+
+        private BoundExpression GetUnderlyingIndexerOrSliceAccess(
+            BoundImplicitIndexerAccess node,
+            bool isLeftOfAssignment,
+            bool isRegularAssignmentOrRegularCompoundAssignment,
+            bool cacheAllArgumentsOnly,
+            ArrayBuilder<BoundExpression> sideeffects,
+            ArrayBuilder<LocalSymbol> locals)
+        {
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             Debug.Assert(node.IndexerOrSliceAccess is BoundIndexerAccess or BoundArrayAccess);
 
@@ -230,32 +485,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeCompareKind.ConsiderEverything));
 
             var F = _factory;
-
-            var locals = ArrayBuilder<LocalSymbol>.GetInstance(2);
-            var sideeffects = ArrayBuilder<BoundExpression>.GetInstance(2);
+            BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
 
             var receiver = VisitExpression(node.Receiver);
 
-            // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
-            // If length access is a local, then we are evaluating a pattern
-            if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
+            // Do not capture receiver if we're in an initializer
+            if (!cacheAllArgumentsOnly)
             {
-                Debug.Assert(receiver.Type is { });
+                // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
+                // If length access is a local, then we are evaluating a pattern
+                if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
+                {
+                    Debug.Assert(receiver.Type is { });
 
-                var receiverLocal = F.StoreToTemp(
-                    receiver,
-                    out var receiverStore,
-                    // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
-                    receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
-                locals.Add(receiverLocal.LocalSymbol);
-                sideeffects.Add(receiverStore);
+                    var receiverLocal = F.StoreToTemp(
+                        receiver,
+                        out var receiverStore,
+                        // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                        receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
+                    locals.Add(receiverLocal.LocalSymbol);
 
-                receiver = receiverLocal;
+                    if (receiverLocal.LocalSymbol.IsRef &&
+                        CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
+                        !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal) &&
+                        ((isLeftOfAssignment && !isRegularAssignmentOrRegularCompoundAssignment) ||
+                         !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
+                    {
+                        BoundAssignmentOperator? extraRefInitialization;
+                        ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, locals);
+
+                        if (extraRefInitialization is object)
+                        {
+                            sideeffects.Add(extraRefInitialization);
+                        }
+                    }
+
+                    sideeffects.Add(receiverStore);
+
+                    receiver = receiverLocal;
+                }
             }
 
             AddPlaceholderReplacement(node.ReceiverPlaceholder, receiver);
 
-            BoundExpression makeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(node.Argument, out PatternIndexOffsetLoweringStrategy strategy);
             BoundExpression integerArgument;
 
             switch (strategy)
@@ -264,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression lengthAccess = VisitExpression(node.LengthOrCountAccess);
 
                     // ensure we evaluate the input before accessing length, unless it is an array length
-                    if (makeOffsetInput.ConstantValue is null && lengthAccess.Kind is not BoundKind.ArrayLength)
+                    if (makeOffsetInput.ConstantValueOpt is null && lengthAccess.Kind is not BoundKind.ArrayLength)
                     {
                         makeOffsetInput = F.StoreToTemp(makeOffsetInput, out BoundAssignmentOperator inputStore);
                         locals.Add(((BoundLocal)makeOffsetInput).LocalSymbol);
@@ -288,53 +560,72 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(node.ArgumentPlaceholders.Length == 1);
             var argumentPlaceholder = node.ArgumentPlaceholders[0];
-            AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+            Debug.Assert(integerArgument.Type!.SpecialType == SpecialType.System_Int32);
 
             BoundExpression rewrittenIndexerAccess;
 
             if (node.IndexerOrSliceAccess is BoundIndexerAccess indexerAccess)
             {
-                if (isLeftOfAssignment && indexerAccess.Indexer.RefKind == RefKind.None)
+                Debug.Assert(indexerAccess.Arguments.Length == 1);
+                if (isLeftOfAssignment && indexerAccess.GetRefKind() == RefKind.None)
                 {
-                    ImmutableArray<BoundExpression> rewrittenArguments = VisitArguments(
+                    // Note: we currently don't honor cacheAllArgumentsOnly in this branch, and let
+                    // callers do the caching instead
+                    // Tracked by https://github.com/dotnet/roslyn/issues/71056
+                    AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+                    ImmutableArray<BoundExpression> rewrittenArguments = VisitArgumentsAndCaptureReceiverIfNeeded(
+                        ref receiver,
+                        captureReceiverMode: ReceiverCaptureMode.Default,
                         indexerAccess.Arguments,
                         indexerAccess.Indexer,
                         indexerAccess.ArgsToParamsOpt,
                         indexerAccess.ArgumentRefKindsOpt,
-                        ref receiver,
-                        out ArrayBuilder<LocalSymbol>? temps);
+                        storesOpt: null,
+                        ref locals!);
 
-                    if (temps is not null)
-                    {
-                        locals.AddRange(temps);
-                        temps.Free();
-                    }
+                    Debug.Assert(locals is not null);
 
                     rewrittenIndexerAccess = indexerAccess.Update(
-                        receiver, indexerAccess.Indexer, rewrittenArguments,
+                        receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexerAccess.Indexer, rewrittenArguments,
                         indexerAccess.ArgumentNamesOpt, indexerAccess.ArgumentRefKindsOpt,
                         indexerAccess.Expanded,
+                        indexerAccess.AccessorKind,
                         indexerAccess.ArgsToParamsOpt,
                         indexerAccess.DefaultArguments,
                         indexerAccess.Type);
                 }
                 else
                 {
+                    if (cacheAllArgumentsOnly)
+                    {
+                        var integerTemp = F.StoreToTemp(integerArgument, out BoundAssignmentOperator integerStore);
+                        locals.Add(integerTemp.LocalSymbol);
+                        sideeffects.Add(integerStore);
+                        integerArgument = integerTemp;
+                    }
+
+                    AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
                     rewrittenIndexerAccess = VisitIndexerAccess(indexerAccess, isLeftOfAssignment);
                 }
             }
             else
             {
-                rewrittenIndexerAccess = (BoundExpression)VisitArrayAccess(((BoundArrayAccess)node.IndexerOrSliceAccess));
+                if (cacheAllArgumentsOnly)
+                {
+                    var integerTemp = F.StoreToTemp(integerArgument, out BoundAssignmentOperator integerStore);
+                    locals.Add(integerTemp.LocalSymbol);
+                    sideeffects.Add(integerStore);
+                    integerArgument = integerTemp;
+                }
+
+                AddPlaceholderReplacement(argumentPlaceholder, integerArgument);
+                rewrittenIndexerAccess = (BoundExpression)VisitArrayAccess((BoundArrayAccess)node.IndexerOrSliceAccess);
             }
 
             RemovePlaceholderReplacement(argumentPlaceholder);
             RemovePlaceholderReplacement(node.ReceiverPlaceholder);
 
-            return F.Sequence(
-                locals.ToImmutableAndFree(),
-                sideeffects.ToImmutableAndFree(),
-                rewrittenIndexerAccess);
+            return rewrittenIndexerAccess;
         }
 
         /// <summary>
@@ -367,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(lengthAccess is not null);
                     Debug.Assert(loweredExpr.Type!.SpecialType == SpecialType.System_Int32);
 
-                    if (loweredExpr.ConstantValue?.Int32Value == 0)
+                    if (loweredExpr.ConstantValueOpt?.Int32Value == 0)
                     {
                         return lengthAccess;
                     }
@@ -437,8 +728,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (unloweredExpr is BoundObjectCreationExpression { Constructor: MethodSymbol constructor, Arguments: { Length: 2 } arguments, ArgsToParamsOpt: { IsDefaultOrEmpty: true }, InitializerExpressionOpt: null } &&
                      (object)constructor == _compilation.GetWellKnownTypeMember(WellKnownMember.System_Index__ctor) &&
-                     arguments[0] is { Type.SpecialType: SpecialType.System_Int32, ConstantValue.Value: int _ and >= 0 } index &&
-                     arguments[1] is { Type.SpecialType: SpecialType.System_Boolean, ConstantValue.Value: bool fromEnd })
+                     arguments[0] is { Type.SpecialType: SpecialType.System_Int32, ConstantValueOpt.Value: int _ and >= 0 } index &&
+                     arguments[1] is { Type.SpecialType: SpecialType.System_Boolean, ConstantValueOpt.Value: bool fromEnd })
             {
                 if (fromEnd)
                 {
@@ -463,6 +754,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node)
         {
+            var F = _factory;
+            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+
+            var rewrittenIndexerAccess = VisitRangePatternIndexerAccess(node, localsBuilder, sideEffectsBuilder, cacheAllArgumentsOnly: false);
+
+            return F.Sequence(
+                localsBuilder.ToImmutableAndFree(),
+                sideEffectsBuilder.ToImmutableAndFree(),
+                rewrittenIndexerAccess);
+        }
+
+        private BoundExpression VisitRangePatternIndexerAccess(BoundImplicitIndexerAccess node, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder, bool cacheAllArgumentsOnly)
+        {
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
             Debug.Assert(node.IndexerOrSliceAccess is BoundCall);
 
@@ -484,16 +789,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = VisitExpression(node.Receiver);
             var rangeArg = node.Argument;
 
-            var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-            var sideEffectsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+            BoundRangeExpression? rangeExpr;
+            BoundExpression? startMakeOffsetInput, endMakeOffsetInput, rewrittenRangeArg;
+            PatternIndexOffsetLoweringStrategy startStrategy, endStrategy;
+            RewriteRangeParts(rangeArg, out rangeExpr, out startMakeOffsetInput, out startStrategy, out endMakeOffsetInput, out endStrategy, out rewrittenRangeArg);
 
             // Do not capture receiver if it is a local or parameter and we are evaluating a pattern
             // If length access is a local, then we are evaluating a pattern
             if (node.LengthOrCountAccess.Kind is not BoundKind.Local || receiver.Kind is not (BoundKind.Local or BoundKind.Parameter))
             {
-                var receiverLocal = F.StoreToTemp(receiver, out var receiverStore);
+                Debug.Assert(receiver.Type is { });
+
+                var receiverLocal = F.StoreToTemp(
+                    receiver,
+                    out var receiverStore,
+                    // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
+                    receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
 
                 localsBuilder.Add(receiverLocal.LocalSymbol);
+
+                if (receiverLocal.LocalSymbol.IsRef &&
+                    CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiverLocal) &&
+                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverLocal))
+                {
+                    var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(2);
+
+                    if (startMakeOffsetInput is not null)
+                    {
+                        argumentsBuilder.Add(startMakeOffsetInput);
+                    }
+
+                    if (endMakeOffsetInput is not null)
+                    {
+                        argumentsBuilder.Add(endMakeOffsetInput);
+                    }
+
+                    if (rewrittenRangeArg is not null)
+                    {
+                        argumentsBuilder.Add(rewrittenRangeArg);
+                    }
+
+                    if (!CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsBuilder.ToImmutableAndFree()))
+                    {
+                        BoundAssignmentOperator? extraRefInitialization;
+                        ReferToTempIfReferenceTypeReceiver(receiverLocal, ref receiverStore, out extraRefInitialization, localsBuilder);
+
+                        if (extraRefInitialization is object)
+                        {
+                            sideEffectsBuilder.Add(extraRefInitialization);
+                        }
+                    }
+                }
+
                 sideEffectsBuilder.Add(receiverStore);
 
                 receiver = receiverLocal;
@@ -503,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression startExpr;
             BoundExpression rangeSizeExpr;
-            if (rangeArg is BoundRangeExpression rangeExpr)
+            if (rangeExpr is not null)
             {
                 // If we know that the input is a range expression, we can
                 // optimize by pulling it apart inline, so
@@ -517,37 +864,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // int start = start.GetOffset(length)
                 // int rangeSize = end.GetOffset(length) - start
 
-                BoundExpression? startMakeOffsetInput;
-                PatternIndexOffsetLoweringStrategy startStrategy;
-
-                if (rangeExpr.LeftOperandOpt is BoundExpression left)
-                {
-                    startMakeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(left, out startStrategy);
-                }
-                else
-                {
-                    startStrategy = PatternIndexOffsetLoweringStrategy.Zero;
-                    startMakeOffsetInput = null;
-                }
-
-                BoundExpression? endMakeOffsetInput;
-                PatternIndexOffsetLoweringStrategy endStrategy;
-
-                if (rangeExpr.RightOperandOpt is BoundExpression right)
-                {
-                    endMakeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(right, out endStrategy);
-                }
-                else
-                {
-                    endStrategy = PatternIndexOffsetLoweringStrategy.Length;
-                    endMakeOffsetInput = null;
-                }
-
                 const int captureStartOffset = 1 << 0;
                 const int captureEndOffset = 1 << 1;
                 const int useLength = 1 << 2;
                 const int captureLength = 1 << 3;
-                const int captureStartValue = 1 << 4;
 
                 int rewriteFlags;
 
@@ -565,27 +885,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case (PatternIndexOffsetLoweringStrategy.UseAsIs, PatternIndexOffsetLoweringStrategy.Length):
                     case (PatternIndexOffsetLoweringStrategy.UseAsIs, PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI):
-                        rewriteFlags = useLength | captureStartValue;
+                        rewriteFlags = useLength;
                         break;
                     case (PatternIndexOffsetLoweringStrategy.UseAsIs, PatternIndexOffsetLoweringStrategy.SubtractFromLength):
                         rewriteFlags = captureStartOffset | captureEndOffset | useLength;
                         break;
                     case (PatternIndexOffsetLoweringStrategy.UseAsIs, PatternIndexOffsetLoweringStrategy.UseAsIs):
-                        rewriteFlags = captureStartValue;
+                        rewriteFlags = 0;
                         break;
                     case (PatternIndexOffsetLoweringStrategy.SubtractFromLength, PatternIndexOffsetLoweringStrategy.Length):
                     case (PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI, PatternIndexOffsetLoweringStrategy.Length):
-                        rewriteFlags = captureStartOffset | useLength | captureLength | captureStartValue;
+                        rewriteFlags = captureStartOffset | useLength | captureLength;
                         break;
                     case (PatternIndexOffsetLoweringStrategy.SubtractFromLength, PatternIndexOffsetLoweringStrategy.SubtractFromLength):
                     case (PatternIndexOffsetLoweringStrategy.SubtractFromLength, PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI):
                     case (PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI, PatternIndexOffsetLoweringStrategy.SubtractFromLength):
                     case (PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI, PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI):
-                        rewriteFlags = captureStartOffset | captureEndOffset | useLength | captureLength | captureStartValue;
+                        rewriteFlags = captureStartOffset | captureEndOffset | useLength | captureLength;
                         break;
                     case (PatternIndexOffsetLoweringStrategy.SubtractFromLength, PatternIndexOffsetLoweringStrategy.UseAsIs):
                     case (PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI, PatternIndexOffsetLoweringStrategy.UseAsIs):
-                        rewriteFlags = captureStartOffset | captureEndOffset | useLength | captureStartValue;
+                        rewriteFlags = captureStartOffset | captureEndOffset | useLength;
                         break;
 
                     default:
@@ -593,7 +913,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 Debug.Assert(startStrategy != PatternIndexOffsetLoweringStrategy.Zero || (rewriteFlags & captureStartOffset) == 0);
-                Debug.Assert(startStrategy != PatternIndexOffsetLoweringStrategy.Zero || (rewriteFlags & captureStartValue) == 0);
                 Debug.Assert((rewriteFlags & captureEndOffset) == 0 || (rewriteFlags & captureStartOffset) != 0 || startStrategy == PatternIndexOffsetLoweringStrategy.Zero);
                 Debug.Assert((rewriteFlags & captureStartOffset) == 0 || (rewriteFlags & captureEndOffset) != 0 || endStrategy == PatternIndexOffsetLoweringStrategy.Length);
                 Debug.Assert(endStrategy != PatternIndexOffsetLoweringStrategy.Length || (rewriteFlags & captureEndOffset) == 0);
@@ -602,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((rewriteFlags & captureStartOffset) != 0)
                 {
                     Debug.Assert(startMakeOffsetInput is not null);
-                    if (startMakeOffsetInput.ConstantValue is null)
+                    if (startMakeOffsetInput.ConstantValueOpt is null)
                     {
                         startMakeOffsetInput = F.StoreToTemp(startMakeOffsetInput, out BoundAssignmentOperator inputStore);
                         localsBuilder.Add(((BoundLocal)startMakeOffsetInput).LocalSymbol);
@@ -613,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((rewriteFlags & captureEndOffset) != 0)
                 {
                     Debug.Assert(endMakeOffsetInput is not null);
-                    if (endMakeOffsetInput.ConstantValue is null)
+                    if (endMakeOffsetInput.ConstantValueOpt is null)
                     {
                         endMakeOffsetInput = F.StoreToTemp(endMakeOffsetInput, out BoundAssignmentOperator inputStore);
                         localsBuilder.Add(((BoundLocal)endMakeOffsetInput).LocalSymbol);
@@ -638,65 +957,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 startExpr = MakePatternIndexOffsetExpression(startMakeOffsetInput, lengthAccess, startStrategy);
+                BoundExpression endExpr = MakePatternIndexOffsetExpression(endMakeOffsetInput, lengthAccess, endStrategy);
+                rangeSizeExpr = MakeRangeSize(ref startExpr, endExpr, localsBuilder, sideEffectsBuilder);
 
-                if ((rewriteFlags & captureStartValue) != 0 && startExpr.ConstantValue is null)
+                if (cacheAllArgumentsOnly)
                 {
                     var startLocal = F.StoreToTemp(startExpr, out var startStore);
                     localsBuilder.Add(startLocal.LocalSymbol);
                     sideEffectsBuilder.Add(startStore);
                     startExpr = startLocal;
-                }
 
-                BoundExpression endExpr = MakePatternIndexOffsetExpression(endMakeOffsetInput, lengthAccess, endStrategy);
-
-                if (startExpr.ConstantValue?.Int32Value == 0)
-                {
-                    rangeSizeExpr = endExpr;
-                }
-                else if (startExpr.ConstantValue is { Int32Value: var startConst } && endExpr.ConstantValue is { Int32Value: var endConst })
-                {
-                    rangeSizeExpr = F.Literal(unchecked(endConst - startConst));
-                }
-                else
-                {
-                    rangeSizeExpr = F.IntSubtract(endExpr, startExpr);
+                    var rangeSizeLocal = F.StoreToTemp(rangeSizeExpr, out var rangeSizeStore);
+                    localsBuilder.Add(rangeSizeLocal.LocalSymbol);
+                    sideEffectsBuilder.Add(rangeSizeStore);
+                    rangeSizeExpr = startLocal;
                 }
             }
             else
             {
-                var rangeLocal = F.StoreToTemp(VisitExpression(rangeArg), out var rangeStore);
-                localsBuilder.Add(rangeLocal.LocalSymbol);
-                sideEffectsBuilder.Add(rangeStore);
-
-                var lengthAccess = VisitExpression(node.LengthOrCountAccess);
-
-                var lengthLocal = F.StoreToTemp(lengthAccess, out var lengthStore);
-                localsBuilder.Add(lengthLocal.LocalSymbol);
-                sideEffectsBuilder.Add(lengthStore);
-
-                var startLocal = F.StoreToTemp(
-                    F.Call(
-                        F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_Start)),
-                        F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
-                        lengthLocal),
-                    out var startStore);
-
-                localsBuilder.Add(startLocal.LocalSymbol);
-                sideEffectsBuilder.Add(startStore);
-                startExpr = startLocal;
-
-                var rangeSizeLocal = F.StoreToTemp(
-                    F.IntSubtract(
-                        F.Call(
-                            F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_End)),
-                            F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
-                            lengthLocal),
-                        startExpr),
-                    out var rangeSizeStore);
-
-                localsBuilder.Add(rangeSizeLocal.LocalSymbol);
-                sideEffectsBuilder.Add(rangeSizeStore);
-                rangeSizeExpr = rangeSizeLocal;
+                Debug.Assert(rewrittenRangeArg is not null);
+                DeconstructRange(rewrittenRangeArg, VisitExpression(node.LengthOrCountAccess), localsBuilder, sideEffectsBuilder, out startExpr, out rangeSizeExpr);
             }
 
             Debug.Assert(node.ArgumentPlaceholders.Length == 2);
@@ -710,10 +990,128 @@ namespace Microsoft.CodeAnalysis.CSharp
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);
             RemovePlaceholderReplacement(node.ReceiverPlaceholder);
 
-            return F.Sequence(
-                localsBuilder.ToImmutableAndFree(),
-                sideEffectsBuilder.ToImmutableAndFree(),
-                rewrittenIndexerAccess);
+            return rewrittenIndexerAccess;
+        }
+
+        private BoundExpression MakeRangeSize(ref BoundExpression startExpr, BoundExpression endExpr, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)
+        {
+            var F = _factory;
+
+            BoundExpression rangeSizeExpr;
+
+            if (startExpr.ConstantValueOpt?.Int32Value == 0)
+            {
+                rangeSizeExpr = endExpr;
+            }
+            else if (startExpr.ConstantValueOpt is { Int32Value: var startConst } && endExpr.ConstantValueOpt is { Int32Value: var endConst })
+            {
+                rangeSizeExpr = F.Literal(unchecked(endConst - startConst));
+            }
+            else
+            {
+                if (startExpr.ConstantValueOpt is null &&
+                    startExpr is not BoundLocal { LocalSymbol.SynthesizedKind: not SynthesizedLocalKind.UserDefined })
+                {
+                    var startLocal = F.StoreToTemp(startExpr, out var startStore);
+                    localsBuilder.Add(startLocal.LocalSymbol);
+                    sideEffectsBuilder.Add(startStore);
+                    startExpr = startLocal;
+                }
+
+                rangeSizeExpr = F.IntSubtract(endExpr, startExpr);
+            }
+
+            return rangeSizeExpr;
+        }
+
+        private void DeconstructRange(BoundExpression rewrittenRangeArg, BoundExpression lengthAccess, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder, out BoundExpression startExpr, out BoundExpression rangeSizeExpr)
+        {
+            var F = _factory;
+
+            var rangeLocal = F.StoreToTemp(rewrittenRangeArg, out var rangeStore);
+            localsBuilder.Add(rangeLocal.LocalSymbol);
+            sideEffectsBuilder.Add(rangeStore);
+
+            if (lengthAccess.ConstantValueOpt is null)
+            {
+                var lengthLocal = F.StoreToTemp(lengthAccess, out var lengthStore);
+                localsBuilder.Add(lengthLocal.LocalSymbol);
+                sideEffectsBuilder.Add(lengthStore);
+                lengthAccess = lengthLocal;
+            }
+
+            var startLocal = F.StoreToTemp(
+                F.Call(
+                    F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_Start)),
+                    F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
+                    lengthAccess),
+                out var startStore);
+
+            localsBuilder.Add(startLocal.LocalSymbol);
+            sideEffectsBuilder.Add(startStore);
+            startExpr = startLocal;
+
+            var rangeSizeLocal = F.StoreToTemp(
+                F.IntSubtract(
+                    F.Call(
+                        F.Call(rangeLocal, F.WellKnownMethod(WellKnownMember.System_Range__get_End)),
+                        F.WellKnownMethod(WellKnownMember.System_Index__GetOffset),
+                        lengthAccess),
+                    startExpr),
+                out var rangeSizeStore);
+
+            localsBuilder.Add(rangeSizeLocal.LocalSymbol);
+            sideEffectsBuilder.Add(rangeSizeStore);
+            rangeSizeExpr = rangeSizeLocal;
+        }
+
+        private void RewriteRangeParts(BoundExpression rangeArg, out BoundRangeExpression? rangeExpr, out BoundExpression? startMakeOffsetInput, out PatternIndexOffsetLoweringStrategy startStrategy, out BoundExpression? endMakeOffsetInput, out PatternIndexOffsetLoweringStrategy endStrategy, out BoundExpression? rewrittenRangeArg)
+        {
+            startMakeOffsetInput = null;
+            startStrategy = default;
+            endMakeOffsetInput = null;
+            endStrategy = default;
+            rewrittenRangeArg = null;
+            rangeExpr = rangeArg as BoundRangeExpression;
+
+            if (rangeExpr is not null)
+            {
+                // If we know that the input is a range expression, we can
+                // optimize by pulling it apart inline, so
+                // 
+                // Range range = argumentExpr;
+                // int start = range.Start.GetOffset(length)
+                // int rangeSize = range.End.GetOffset(length) - start
+                //
+                // is, with `start..end`:
+                //
+                // int start = start.GetOffset(length)
+                // int rangeSize = end.GetOffset(length) - start
+
+                if (rangeExpr.LeftOperandOpt is BoundExpression left)
+                {
+                    startMakeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(left, out startStrategy);
+                }
+                else
+                {
+                    startStrategy = PatternIndexOffsetLoweringStrategy.Zero;
+                    startMakeOffsetInput = null;
+                }
+
+                if (rangeExpr.RightOperandOpt is BoundExpression right)
+                {
+                    endMakeOffsetInput = DetermineMakePatternIndexOffsetExpressionStrategy(right, out endStrategy);
+                }
+                else
+                {
+                    endStrategy = PatternIndexOffsetLoweringStrategy.Length;
+                    endMakeOffsetInput = null;
+                }
+            }
+            else
+            {
+                rewrittenRangeArg = VisitExpression(rangeArg);
+            }
         }
     }
 }

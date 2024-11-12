@@ -52,17 +52,16 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// Includes both command buffers as well as language buffers.
         /// Does not include the current buffer unless it has been submitted.
         /// </remarks>
-        private readonly List<ITextBuffer> _submittedBuffers = new();
+        private readonly List<ITextBuffer> _submittedBuffers = [];
 
         #endregion
 
         public IContentType ContentType { get; }
 
         public InteractiveEvaluatorResetOptions ResetOptions { get; set; }
-            = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
+            = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Core);
 
         internal CSharpInteractiveEvaluator(
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
             IContentType contentType,
@@ -70,10 +69,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             IViewClassifierAggregatorService classifierAggregator,
             IInteractiveWindowCommandsFactory commandsFactory,
             ImmutableArray<IInteractiveWindowCommand> commands,
+            ITextDocumentFactoryService textDocumentFactoryService,
+            EditorOptionsService editorOptionsService,
             InteractiveEvaluatorLanguageInfoProvider languageInfo,
             string initialWorkingDirectory)
         {
-            Debug.Assert(languageInfo.InteractiveResponseFileName.IndexOfAny(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }) == -1);
+            Debug.Assert(languageInfo.InteractiveResponseFileName.IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) == -1);
 
             _threadingContext = threadingContext;
             ContentType = contentType;
@@ -82,9 +83,17 @@ namespace Microsoft.CodeAnalysis.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices, globalOptions);
+            _workspace = new InteractiveWindowWorkspace(hostServices);
 
-            _session = new InteractiveSession(_workspace, threadingContext, listener, languageInfo, initialWorkingDirectory);
+            _session = new InteractiveSession(
+                _workspace,
+                threadingContext,
+                listener,
+                textDocumentFactoryService,
+                editorOptionsService,
+                languageInfo,
+                initialWorkingDirectory);
+
             _session.Host.ProcessInitialized += ProcessInitialized;
         }
 
@@ -250,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             }
             catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                throw ExceptionUtilities.Unreachable();
             }
         }
 

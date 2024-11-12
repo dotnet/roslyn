@@ -5,240 +5,197 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EditAndContinue
+namespace Microsoft.CodeAnalysis.EditAndContinue;
+
+/// <summary>
+/// Facade used to call remote <see cref="IRemoteEditAndContinueService"/> methods.
+/// Encapsulates all RPC logic as well as dispatching to the local service if the remote service is disabled.
+/// THe facade is useful for targeted testing of serialization/deserialization of EnC service calls.
+/// </summary>
+internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServices services)
 {
-    /// <summary>
-    /// Facade used to call remote <see cref="IRemoteEditAndContinueService"/> methods.
-    /// Encapsulates all RPC logic as well as dispatching to the local service if the remote service is disabled.
-    /// THe facade is useful for targeted testing of serialization/deserialization of EnC service calls.
-    /// </summary>
-    internal readonly partial struct RemoteEditAndContinueServiceProxy
+    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteEditAndContinueService)), Shared]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class CallbackDispatcher() : RemoteServiceCallbackDispatcher, IRemoteEditAndContinueService.ICallback
     {
-        [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteEditAndContinueService)), Shared]
-        internal sealed class CallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteEditAndContinueService.ICallback
+        public ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(RemoteServiceCallbackId callbackId, DocumentId? documentId, string filePath, CancellationToken cancellationToken)
+            => ((ActiveStatementSpanProviderCallback)GetCallback(callbackId)).GetSpansAsync(documentId, filePath, cancellationToken);
+
+        public ValueTask<string?> TryGetMatchingSourceTextAsync(RemoteServiceCallbackId callbackId, string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
+            => ((DebuggingSessionCallback)GetCallback(callbackId)).TryGetMatchingSourceTextAsync(filePath, requiredChecksum, checksumAlgorithm, cancellationToken);
+
+        public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+            => ((DebuggingSessionCallback)GetCallback(callbackId)).GetActiveStatementsAsync(cancellationToken);
+
+        public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
+            => ((DebuggingSessionCallback)GetCallback(callbackId)).GetAvailabilityAsync(mvid, cancellationToken);
+
+        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
+            => ((DebuggingSessionCallback)GetCallback(callbackId)).GetCapabilitiesAsync(cancellationToken);
+
+        public ValueTask PrepareModuleForUpdateAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
+            => ((DebuggingSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
+    }
+
+    private sealed class DebuggingSessionCallback(IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider)
+    {
+        private readonly IManagedHotReloadService _debuggerService = debuggerService;
+        private readonly IPdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
+
+        public async ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public CallbackDispatcher()
+            try
             {
+                return await _sourceTextProvider.TryGetMatchingSourceTextAsync(filePath, requiredChecksum, checksumAlgorithm, cancellationToken).ConfigureAwait(false);
             }
-
-            public ValueTask<ImmutableArray<ActiveStatementSpan>> GetSpansAsync(RemoteServiceCallbackId callbackId, DocumentId? documentId, string filePath, CancellationToken cancellationToken)
-                => ((ActiveStatementSpanProviderCallback)GetCallback(callbackId)).GetSpansAsync(documentId, filePath, cancellationToken);
-
-            public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-                => ((EditSessionCallback)GetCallback(callbackId)).GetActiveStatementsAsync(cancellationToken);
-
-            public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
-                => ((EditSessionCallback)GetCallback(callbackId)).GetAvailabilityAsync(mvid, cancellationToken);
-
-            public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
-                => ((EditSessionCallback)GetCallback(callbackId)).GetCapabilitiesAsync(cancellationToken);
-
-            public ValueTask PrepareModuleForUpdateAsync(RemoteServiceCallbackId callbackId, Guid mvid, CancellationToken cancellationToken)
-                => ((EditSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
-        }
-
-        private sealed class EditSessionCallback
-        {
-            private readonly IManagedHotReloadService _debuggerService;
-
-            public EditSessionCallback(IManagedHotReloadService debuggerService)
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                _debuggerService = debuggerService;
-            }
-
-            public async ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
-            {
-                try
-                {
-                    return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                {
-                    return ImmutableArray<ManagedActiveStatementDebugInfo>.Empty;
-                }
-            }
-
-            public async ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                {
-                    return new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.InternalError, e.Message);
-                }
-            }
-
-            public async ValueTask PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                {
-                    // nop
-                }
-            }
-
-            public async ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-            {
-                try
-                {
-                    return await _debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
-                {
-                    return ImmutableArray<string>.Empty;
-                }
+                return null;
             }
         }
 
-        public readonly Workspace Workspace;
-
-        public RemoteEditAndContinueServiceProxy(Workspace workspace)
+        public async ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
         {
-            Workspace = workspace;
+            try
+            {
+                return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                return [];
+            }
         }
 
-        private IEditAndContinueWorkspaceService GetLocalService()
-            => Workspace.Services.GetRequiredService<IEditAndContinueWorkspaceService>();
-
-        public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
-            Solution solution,
-            IManagedHotReloadService debuggerService,
-            ImmutableArray<DocumentId> captureMatchingDocuments,
-            bool captureAllMatchingDocuments,
-            bool reportDiagnostics,
-            CancellationToken cancellationToken)
+        public async ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid mvid, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            try
             {
-                var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
-                return new RemoteDebuggingSessionProxy(Workspace, LocalConnection.Instance, sessionId);
+                return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
             }
-
-            // need to keep the providers alive until the edit session ends:
-            var connection = client.CreateConnection<IRemoteEditAndContinueService>(
-                callbackTarget: new EditSessionCallback(debuggerService));
-
-            var sessionIdOpt = await connection.TryInvokeAsync(
-                solution,
-                async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
-                cancellationToken).ConfigureAwait(false);
-
-            if (sessionIdOpt.HasValue)
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return new RemoteDebuggingSessionProxy(Workspace, connection, sessionIdOpt.Value);
+                return new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.InternalError, e.Message);
             }
-
-            connection.Dispose();
-            return null;
         }
 
-        public async ValueTask<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, Document designTimeDocument, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+        public async ValueTask PrepareModuleForUpdateAsync(Guid mvid, CancellationToken cancellationToken)
         {
-            var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            try
             {
-                var diagnostics = await GetLocalService().GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-
-                if (designTimeDocument != document)
-                {
-                    diagnostics = diagnostics.SelectAsArray(diagnostic => RemapLocation(designTimeDocument, DiagnosticData.Create(diagnostic, document.Project)));
-                }
-
-                return diagnostics;
+                await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
             }
-
-            var diagnosticData = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DiagnosticData>>(
-                document.Project.Solution,
-                (service, solutionInfo, callbackId, cancellationToken) => service.GetDocumentDiagnosticsAsync(solutionInfo, callbackId, document.Id, cancellationToken),
-                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
-                cancellationToken).ConfigureAwait(false);
-
-            if (!diagnosticData.HasValue)
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
-                return ImmutableArray<Diagnostic>.Empty;
+                // nop
             }
-
-            var project = document.Project;
-
-            using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var result);
-            foreach (var data in diagnosticData.Value)
-            {
-                Debug.Assert(data.DataLocation != null);
-
-                Diagnostic diagnostic;
-
-                // Workaround for solution crawler not supporting mapped locations to make Razor work.
-                // We pretend the diagnostic is in the original document, but use the mapped line span.
-                // Razor will ignore the column (which will be off because #line directives can't currently map columns) and only use the line number.
-                if (designTimeDocument != document)
-                {
-                    diagnostic = RemapLocation(designTimeDocument, data);
-                }
-                else
-                {
-                    diagnostic = await data.ToDiagnosticAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                }
-
-                result.Add(diagnostic);
-            }
-
-            return result.ToImmutable();
         }
 
-        private static Diagnostic RemapLocation(Document designTimeDocument, DiagnosticData data)
+        public async ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
         {
-            Debug.Assert(data.DataLocation != null);
-            Debug.Assert(designTimeDocument.FilePath != null);
+            try
+            {
+                return await _debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            {
+                return [];
+            }
+        }
+    }
 
-            // If the location in the generated document is in a scope of user-visible #line mapping use the mapped span,
-            // otherwise (if it's hidden) display the diagnostic at the start of the file.
-            var span = data.DataLocation.IsMapped ? data.DataLocation.GetFileLinePositionSpan().Span : default;
-            var location = Location.Create(designTimeDocument.FilePath, textSpan: default, span);
+    private IEditAndContinueService GetLocalService()
+        => services.GetRequiredService<IEditAndContinueWorkspaceService>().Service;
 
-            return data.ToDiagnostic(location, ImmutableArray<Location>.Empty);
+    public async ValueTask<RemoteDebuggingSessionProxy?> StartDebuggingSessionAsync(
+        Solution solution,
+        IManagedHotReloadService debuggerService,
+        IPdbMatchingSourceTextProvider sourceTextProvider,
+        ImmutableArray<DocumentId> captureMatchingDocuments,
+        bool captureAllMatchingDocuments,
+        bool reportDiagnostics,
+        CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+        {
+            var sessionId = await GetLocalService().StartDebuggingSessionAsync(solution, debuggerService, sourceTextProvider, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false);
+            return new RemoteDebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
         }
 
-        public async ValueTask OnSourceFileUpdatedAsync(Document document, CancellationToken cancellationToken)
-        {
-            var client = await RemoteHostClient.TryGetClientAsync(Workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-            {
-                GetLocalService().OnSourceFileUpdated(document);
-                return;
-            }
+        // need to keep the providers alive until the session ends:
+        var connection = client.CreateConnection<IRemoteEditAndContinueService>(
+            callbackTarget: new DebuggingSessionCallback(debuggerService, sourceTextProvider));
 
+        var sessionIdOpt = await connection.TryInvokeAsync(
+            solution,
+            async (service, solutionInfo, callbackId, cancellationToken) => await service.StartDebuggingSessionAsync(solutionInfo, callbackId, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics, cancellationToken).ConfigureAwait(false),
+            cancellationToken).ConfigureAwait(false);
+
+        if (sessionIdOpt.HasValue)
+        {
+            return new RemoteDebuggingSessionProxy(solution.Services, connection, sessionIdOpt.Value);
+        }
+
+        connection.Dispose();
+        return null;
+    }
+
+    public async ValueTask<ImmutableArray<DiagnosticData>> GetDocumentDiagnosticsAsync(Document document, ActiveStatementSpanProvider activeStatementSpanProvider, CancellationToken cancellationToken)
+    {
+        // filter out documents that are not synchronized to remote process before we attempt remote invoke:
+        if (!RemoteSupportedLanguages.IsSupported(document.Project.Language))
+        {
+            return [];
+        }
+
+        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+        {
+            var diagnostics = await GetLocalService().GetDocumentDiagnosticsAsync(document, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+            return diagnostics.SelectAsArray(diagnostic => DiagnosticData.Create(document.Project.Solution, diagnostic, document.Project));
+        }
+
+        var diagnosticData = await client.TryInvokeAsync<IRemoteEditAndContinueService, ImmutableArray<DiagnosticData>>(
+            document.Project.Solution,
+            (service, solutionInfo, callbackId, cancellationToken) => service.GetDocumentDiagnosticsAsync(solutionInfo, callbackId, document.Id, cancellationToken),
+            callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
+            cancellationToken).ConfigureAwait(false);
+
+        return diagnosticData.HasValue ? diagnosticData.Value : [];
+    }
+
+    public async ValueTask SetFileLoggingDirectoryAsync(string? logDirectory, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+        {
+            GetLocalService().SetFileLoggingDirectory(logDirectory);
+        }
+        else
+        {
             await client.TryInvokeAsync<IRemoteEditAndContinueService>(
-               document.Project.Solution,
-               (service, solutionInfo, cancellationToken) => service.OnSourceFileUpdatedAsync(solutionInfo, document.Id, cancellationToken),
-               cancellationToken).ConfigureAwait(false);
+                (service, cancellationToken) => service.SetFileLoggingDirectoryAsync(logDirectory, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
         }
+    }
 
-        private sealed class LocalConnection : IDisposable
+    private sealed class LocalConnection : IDisposable
+    {
+        public static readonly LocalConnection Instance = new();
+
+        public void Dispose()
         {
-            public static readonly LocalConnection Instance = new();
-
-            public void Dispose()
-            {
-            }
         }
     }
 }

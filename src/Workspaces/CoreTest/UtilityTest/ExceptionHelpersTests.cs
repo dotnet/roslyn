@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
                 catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
                 {
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
                 }
 
                 Assert.True(false, "Should not get here because an exception should be thrown before this point.");
@@ -54,6 +55,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             Assert.True(false, "Should have returned in the catch block before this point.");
+        }
+
+        [Fact]
+        public void ErrorReporting_SerializesException()
+        {
+            FatalError.SetHandlers(delegate { }, delegate { });
+
+            var e = new Exception("Hello");
+            FatalError.ReportNonFatalError(e);
+
+            Assert.NotEmpty(e.Data);
+            Assert.NotNull(JsonSerializer.Serialize(e));
+            Assert.NotNull(Newtonsoft.Json.JsonConvert.SerializeObject(e));
         }
     }
 }

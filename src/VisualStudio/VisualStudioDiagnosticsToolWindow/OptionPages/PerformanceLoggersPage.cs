@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -28,7 +27,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         private IGlobalOptionService _globalOptions;
         private IThreadingContext _threadingContext;
-        private HostWorkspaceServices _workspaceServices;
+        private SolutionServices _workspaceServices;
 
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
@@ -40,10 +39,10 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 _threadingContext = componentModel.GetService<IThreadingContext>();
 
                 var workspace = componentModel.GetService<VisualStudioWorkspace>();
-                _workspaceServices = workspace.Services;
+                _workspaceServices = workspace.Services.SolutionServices;
             }
 
-            return new InternalOptionsControl(nameof(LoggerOptions), optionStore);
+            return new InternalOptionsControl(FunctionIdOptions.GetOptions(), optionStore);
         }
 
         protected override void OnApply(PageApplyEventArgs e)
@@ -53,7 +52,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             SetLoggers(_globalOptions, _threadingContext, _workspaceServices);
         }
 
-        public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, HostWorkspaceServices workspaceServices)
+        public static void SetLoggers(IGlobalOptionService globalOptions, IThreadingContext threadingContext, SolutionServices workspaceServices)
         {
             var loggerTypeNames = GetLoggerTypes(globalOptions).ToImmutableArray();
 
@@ -78,17 +77,17 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 
         private static IEnumerable<string> GetLoggerTypes(IGlobalOptionService globalOptions)
         {
-            if (globalOptions.GetOption(LoggerOptions.EtwLoggerKey))
+            if (globalOptions.GetOption(LoggerOptionsStorage.EtwLoggerKey))
             {
                 yield return nameof(EtwLogger);
             }
 
-            if (globalOptions.GetOption(LoggerOptions.TraceLoggerKey))
+            if (globalOptions.GetOption(LoggerOptionsStorage.TraceLoggerKey))
             {
                 yield return nameof(TraceLogger);
             }
 
-            if (globalOptions.GetOption(LoggerOptions.OutputWindowLoggerKey))
+            if (globalOptions.GetOption(LoggerOptionsStorage.OutputWindowLoggerKey))
             {
                 yield return nameof(OutputWindowLogger);
             }

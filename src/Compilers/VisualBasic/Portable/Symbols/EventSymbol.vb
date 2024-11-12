@@ -22,7 +22,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Inherits Symbol
         Implements IEventSymbol
 
-
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
         ' Do not make any changes to the public interface without making the corresponding change
@@ -195,7 +194,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function CalculateUseSiteInfo() As UseSiteInfo(Of AssemblySymbol)
             Debug.Assert(Me.IsDefinition)
             ' Check event type.
-            Dim useSiteInfo = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
+            Dim useSiteInfo = New UseSiteInfo(Of AssemblySymbol)(PrimaryDependency)
+            MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type))
             Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
 
             If errorInfo IsNot Nothing Then
@@ -237,16 +237,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return useSiteInfo
         End Function
 
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedType1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedType1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
                 Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
-                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedEvent1)
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedEvent1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -331,6 +329,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitEvent(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitEvent(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

@@ -22,13 +22,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public ReadOnly DelegateConversions As ConversionKind
             Public ReadOnly Target As MethodSymbol
             Public ReadOnly MethodConversions As MethodConversionKind
-            Public ReadOnly Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+            Public ReadOnly Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
 
             Public Sub New(
                 DelegateConversions As ConversionKind,
                 Target As MethodSymbol,
                 MethodConversions As MethodConversionKind,
-                Diagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol)
+                Diagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol)
             )
                 Me.DelegateConversions = DelegateConversions
                 Me.Target = Target
@@ -129,7 +129,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          delegateType,
                                                                          boundFirstArgument,
                                                                          diagnostics:=diagnostics)
-
 
                             If boundFirstArgument.Syntax IsNot node Then
                                 ' We must have a bound node that corresponds to that syntax node for GetSemanticInfo.
@@ -596,7 +595,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     couldTryZeroArgumentRelaxation = False
                 End If
 
-
                 Dim unused = resolutionBinder.ReportOverloadResolutionFailureAndProduceBoundNode(
                     addressOfExpression.MethodGroup.Syntax,
                     addressOfMethodGroup,
@@ -688,10 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Conversions.IsDelegateRelaxationSupportedFor(methodConversions) Then
-                Dim typeArgumentInferenceDiagnosticsOpt = analysisResult.TypeArgumentInferenceDiagnosticsOpt
-                If typeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
-                    diagnostics.AddRange(typeArgumentInferenceDiagnosticsOpt)
-                End If
+                diagnostics.AddRange(analysisResult.TypeArgumentInferenceDiagnosticsOpt)
 
                 If addressOfExpression.MethodGroup.ResultKind = LookupResultKind.Good Then
                     addressOfExpression.Binder.CheckMemberTypeAccessibility(diagnostics, addressOfOperandSyntax, targetMethodSymbol)
@@ -1055,7 +1050,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          newReceiver,
                                                          sourceMethodGroup.QualificationKind)
 
-
             ' the delegate creation has the lambda stored internally to not clutter the bound tree with synthesized nodes 
             ' in the first pass. Later on in the DelegateRewriter the node get's rewritten with the lambda if needed.
             Return New BoundDelegateCreationExpression(syntaxNode,
@@ -1124,7 +1118,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  warnIfResultOfAsyncMethodIsDroppedDueToRelaxation,
                                                  diagnostics)
         End Function
-
 
         ''' <summary>
         ''' Build a lambda that has a shape of the [delegateInvoke] and calls 
@@ -1287,7 +1280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundLambda = New BoundLambda(syntaxNode,
                                           lambdaSymbol,
                                           lambdaBody,
-                                          ImmutableBindingDiagnostic(Of AssemblySymbol).Empty,
+                                          ReadOnlyBindingDiagnostic(Of AssemblySymbol).Empty,
                                           Nothing,
                                           delegateRelaxation,
                                           MethodConversionKind.Identity)

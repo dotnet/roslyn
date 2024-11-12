@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get; }
 
         /// <summary>
-        /// Gets the attributes for the symbol. Returns an empty <see cref="IEnumerable{ISymbolAttribute}"/>
+        /// Gets the attributes for the symbol. Returns an empty <see cref="ImmutableArray{AttributeData}"/>
         /// if there are no attributes.
         /// </summary>
         ImmutableArray<AttributeData> GetAttributes();
@@ -211,6 +210,7 @@ namespace Microsoft.CodeAnalysis
 
         void Accept(SymbolVisitor visitor);
         TResult? Accept<TResult>(SymbolVisitor<TResult> visitor);
+        TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument);
 
         /// <summary>
         /// Returns the Documentation Comment ID for the symbol, or null if the symbol doesn't

@@ -7,15 +7,23 @@
     <UseWpf>true</UseWpf>
     <RootNamespace></RootNamespace>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
+    <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="UnifiedSettings\visualBasicSettings.registration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  </ItemGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefInstalledProduct Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}" Name="Microsoft Visual Basic" DisplayName="#113" ProductDetails="#114" />
-    <PkgDefPackageRegistration Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}" Name="VisualBasicPackage" Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage" AllowsBackgroundLoad="true" />
+    <!-- Cannot load in background until the VisualBasicPackage constructor has no more UI dependencies -->
+    <PkgDefPackageRegistration Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}" Name="VisualBasicPackage" Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage" AllowsBackgroundLoad="false" />
     <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -42,12 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Roslyn.Utilities" />
-    <Import Include="System.Threading.Tasks"/>
+    <Import Include="System.Threading.Tasks" />
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="BasicVSResources.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <EmbeddedResource Update="VSPackage.resx">
+    <EmbeddedResource Update="VSPackage.resx" GenerateSource="true">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>

@@ -2,71 +2,58 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PasteTracking;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddMissingImports
+namespace Microsoft.CodeAnalysis.AddMissingImports;
+
+internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefactoringProvider
 {
-    internal abstract class AbstractAddMissingImportsRefactoringProvider : CodeRefactoringProvider
+    protected abstract string CodeActionTitle { get; }
+
+    public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
-        private readonly IPasteTrackingService _pasteTrackingService;
-        protected abstract string CodeActionTitle { get; }
+        var (document, _, cancellationToken) = context;
 
-        public AbstractAddMissingImportsRefactoringProvider(IPasteTrackingService pasteTrackingService)
-            => _pasteTrackingService = pasteTrackingService;
+        // If we aren't in a host that supports paste tracking (known by having exactly one export of type
+        // IPasteTrackingService), we can't do anything. This is just to avoid creating MEF part rejections for
+        // things composing the Features layer.
+        var services = document.Project.Solution.Workspace.Services.HostServices as IMefHostExportProvider;
+        var pasteTrackingService = services?.GetExports<IPasteTrackingService>().SingleOrDefault()?.Value;
+        if (pasteTrackingService is null)
+            return;
 
-        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        // Currently this refactoring requires the SourceTextContainer to have a pasted text span.
+        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        if (!pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var textSpan))
         {
-            var (document, _, cancellationToken) = context;
-            // Currently this refactoring requires the SourceTextContainer to have a pasted text span.
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            if (!_pasteTrackingService.TryGetPastedTextSpan(sourceText.Container, out var textSpan))
-            {
-                return;
-            }
-
-            // Check pasted text span for missing imports
-            var addMissingImportsService = document.GetLanguageService<IAddMissingImportsFeatureService>();
-
-            var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
-            var options = new AddMissingImportsOptions(context.Options.HideAdvancedMembers, placement);
-
-            var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
-            if (!analysis.CanAddMissingImports)
-            {
-                return;
-            }
-
-            var addImportsCodeAction = new AddMissingImportsCodeAction(
-                CodeActionTitle,
-                cancellationToken => AddMissingImportsAsync(document, addMissingImportsService, analysis, cancellationToken));
-
-            context.RegisterRefactoring(addImportsCodeAction, textSpan);
+            return;
         }
 
-        private static async Task<Solution> AddMissingImportsAsync(Document document, IAddMissingImportsFeatureService addMissingImportsService, AddMissingImportsAnalysisResult analysis, CancellationToken cancellationToken)
+        // Check pasted text span for missing imports
+        var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
+
+        var analysis = await addMissingImportsService.AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+        if (!analysis.CanAddMissingImports)
         {
-            var modifiedDocument = await addMissingImportsService.AddMissingImportsAsync(document, analysis, cancellationToken).ConfigureAwait(false);
-            return modifiedDocument.Project.Solution;
+            return;
         }
 
-        private class AddMissingImportsCodeAction : CodeActions.CodeAction.SolutionChangeAction
-        {
-            public AddMissingImportsCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution)
-                : base(title, createChangedSolution, title)
-            {
-            }
-        }
+        var addImportsCodeAction = CodeAction.Create(
+            CodeActionTitle,
+            async (progressTracker, cancellationToken) =>
+                (await addMissingImportsService.AddMissingImportsAsync(document, analysis, progressTracker, cancellationToken).ConfigureAwait(false)).Project.Solution,
+            CodeActionTitle);
+
+        context.RegisterRefactoring(addImportsCodeAction, textSpan);
     }
 }

@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using AnalyzerRunner;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnosers;
-using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -34,7 +33,6 @@ namespace IdeCoreBenchmarks
         public void GlobalSetup()
         {
             RestoreCompilerSolution();
-            SetUpWorkspace();
         }
 
         [IterationSetup]
@@ -43,31 +41,22 @@ namespace IdeCoreBenchmarks
         private static void RestoreCompilerSolution()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, "Compilers.sln");
+            var solutionPath = Path.Combine(roslynRoot, "Compilers.slnf");
             var restoreOperation = Process.Start("dotnet", $"restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true {solutionPath}");
             restoreOperation.WaitForExit();
             if (restoreOperation.ExitCode != 0)
                 throw new ArgumentException($"Unable to restore {solutionPath}");
         }
 
-        private static void SetUpWorkspace()
-        {
-            // QueryVisualStudioInstances returns Visual Studio installations on .NET Framework, and .NET Core SDK
-            // installations on .NET Core. We use the one with the most recent version.
-            var msBuildInstance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).First();
-
-            MSBuildLocator.RegisterInstance(msBuildInstance);
-        }
-
         private async Task LoadSolutionAsync()
         {
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
-            var solutionPath = Path.Combine(roslynRoot, "Compilers.sln");
+            var solutionPath = Path.Combine(roslynRoot, "Compilers.slnf");
 
             if (!File.Exists(solutionPath))
-                throw new ArgumentException("Couldn't find Compilers.sln");
+                throw new ArgumentException("Couldn't find Compilers.slnf");
 
-            Console.WriteLine("Found Compilers.sln: " + Process.GetCurrentProcess().Id);
+            Console.WriteLine("Found Compilers.slnf: " + Process.GetCurrentProcess().Id);
 
             var assemblies = MSBuildMefHostServices.DefaultAssemblies
                 .Add(typeof(AnalyzerRunnerHelper).Assembly)
@@ -83,9 +72,6 @@ namespace IdeCoreBenchmarks
             if (_workspace == null)
                 throw new ArgumentException("Couldn't create workspace");
 
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
-                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
-
             Console.WriteLine("Opening roslyn.  Attach to: " + Process.GetCurrentProcess().Id);
 
             var start = DateTime.Now;
@@ -94,14 +80,12 @@ namespace IdeCoreBenchmarks
 
             // Force a storage instance to be created.  This makes it simple to go examine it prior to any operations we
             // perform, including seeing how big the initial string table is.
-            var storageService = _workspace.Services.GetPersistentStorageService(_workspace.CurrentSolution.Options);
+            var storageService = _workspace.Services.SolutionServices.GetPersistentStorageService();
             if (storageService == null)
                 throw new ArgumentException("Couldn't get storage service");
 
-            using (var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None))
-            {
-                Console.WriteLine("Sucessfully got persistent storage instance");
-            }
+            var storage = await storageService.GetStorageAsync(SolutionKey.ToSolutionKey(_workspace.CurrentSolution), CancellationToken.None);
+            Console.WriteLine("Successfully got persistent storage instance");
 
             // There might be multiple projects with this name.  That's ok.  FAR goes and finds all the linked-projects
             // anyways  to perform the search on all the equivalent symbols from them.  So the end perf cost is the

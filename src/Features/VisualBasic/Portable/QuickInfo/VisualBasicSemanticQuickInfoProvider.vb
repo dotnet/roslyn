@@ -4,12 +4,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 context As QuickInfoContext,
                 token As SyntaxToken) As Task(Of QuickInfoItem)
             Dim semanticModel = Await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(False)
-            Dim services = context.Document.Project.Solution.Workspace.Services
+            Dim services = context.Document.Project.Solution.Services
             Dim info = Await BuildQuickInfoAsync(services, semanticModel, token, context.Options, context.CancellationToken).ConfigureAwait(False)
             If info IsNot Nothing Then
                 Return info
@@ -49,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Function
 
         Private Overloads Shared Async Function BuildQuickInfoAsync(
-                services As HostWorkspaceServices,
+                services As SolutionServices,
                 semanticModel As SemanticModel,
                 token As SyntaxToken,
                 options As SymbolDescriptionOptions,
@@ -161,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Function
 
         Private Overloads Shared Async Function BuildContentAsync(
-                services As HostWorkspaceServices,
+                services As SolutionServices,
                 semanticModel As SemanticModel,
                 token As SyntaxToken,
                 declarators As SeparatedSyntaxList(Of VariableDeclaratorSyntax),
@@ -196,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
                 Return QuickInfoItem.Create(token.Span, sections:=ImmutableArray.Create(QuickInfoSection.Create(QuickInfoSectionKinds.Description, ImmutableArray.Create(New TaggedText(TextTags.Text, VBFeaturesResources.Multiple_Types)))))
             End If
 
-            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, options, cancellationToken).ConfigureAwait(False)
+            Return Await CreateContentAsync(services, semanticModel, token, New TokenInformation(types), supportedPlatforms:=Nothing, options, onTheFlyDocsInfo:=Nothing, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Shared Function BuildContentForIntrinsicOperator(

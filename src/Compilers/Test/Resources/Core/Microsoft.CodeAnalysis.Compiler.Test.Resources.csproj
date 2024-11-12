@@ -7,11 +7,15 @@
     <RootNamespace></RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IsShipping>false</IsShipping>
+    <IsPackable>true</IsPackable>
+    <PackageId>Microsoft.CodeAnalysis.Compiler.Test.Resources</PackageId>
+    <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
+    <NoWarn>$(NoWarn),NU5100,NU5106,CS1591</NoWarn>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-  </ItemGroup>
-  <ItemGroup>
+
     <EmbeddedResource Include="ExpressionCompiler\*.*" LogicalName="ExpressionCompiler.%(FileName)%(Extension)" />
     <EmbeddedResource Include="DiagnosticTests\badresfile.res" />
     <Content Include="DiagnosticTests\ErrTestLib01.cs" />
@@ -80,11 +84,16 @@
     <Content Include="NetFX\aacorlib\Key.snk" />
     <EmbeddedResource Include="NetFX\Minimal\minasync.dll" />
     <EmbeddedResource Include="NetFX\Minimal\mincorlib.dll" />
+    <EmbeddedResource Include="NetFX\PortableProfile7\mscorlib.dll" />
+    <EmbeddedResource Include="NetFX\PortableProfile7\System.Runtime.dll" />
+    <EmbeddedResource Include="NetFX\WinRt\System.Runtime.WindowsRuntime.dll" />
+    <EmbeddedResource Include="NetFX\WinRt\System.Runtime.WindowsRuntime.UI.Xaml.dll" />
     <Content Include="NetFX\Minimal\build.cmd" />
     <Content Include="NetFX\Minimal\Key.snk" />
     <Content Include="NetFX\Minimal\minasync.cs" />
     <EmbeddedResource Include="NetFX\Minimal\minasynccorlib.dll" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
+    <EmbeddedResource Include="NetFX\Minimal\mincorlib.cs" />
     <EmbeddedResource Include="NetFX\ValueTuple\System.ValueTuple.dll" />
     <EmbeddedResource Include="SymbolsTests\Metadata\public-and-private.dll" />
     <EmbeddedResource Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.dll" />
@@ -98,7 +107,6 @@
     <EmbeddedResource Include="SymbolsTests\CorLibrary\GuidTest2.exe" />
     <EmbeddedResource Include="SymbolsTests\CorLibrary\NoMsCorLibRef.dll" />
     <Content Include="SymbolsTests\CorLibrary\NoMsCorLibRef.il" />
-    <Content Include="SymbolsTests\CustomModifiers\CppCli.cpp" />
     <EmbeddedResource Include="SymbolsTests\CustomModifiers\CppCli.dll" />
     <EmbeddedResource Include="SymbolsTests\CustomModifiers\Modifiers.dll" />
     <Content Include="SymbolsTests\CustomModifiers\Modifiers.il" />
@@ -160,6 +168,8 @@
     <EmbeddedResource Include="SymbolsTests\Interface\MDInterfaceMapping.dll" />
     <EmbeddedResource Include="SymbolsTests\Interface\StaticMethodInInterface.dll" />
     <Content Include="SymbolsTests\Interface\StaticMethodInInterface.il" />
+    <EmbeddedResource Include="SymbolsTests\RefAssembly\MVID1.dll" />
+    <EmbeddedResource Include="SymbolsTests\RefAssembly\MVID2.dll" />
     <EmbeddedResource Include="SymbolsTests\MDTestLib1.dll" />
     <Content Include="SymbolsTests\MDTestLib1.vb" />
     <EmbeddedResource Include="SymbolsTests\MDTestLib2.dll" />
@@ -183,6 +193,7 @@
     <EmbeddedResource Include="SymbolsTests\Metadata\MDTestAttributeDefLib.dll" />
     <Content Include="SymbolsTests\Metadata\MDTestAttributeDefLib.vb" />
     <EmbeddedResource Include="SymbolsTests\Metadata\MscorlibNamespacesAndTypes.bsl" />
+    <EmbeddedResource Include="SymbolsTests\Metadata\BadDefaultParameterValue.dll" />
     <EmbeddedResource Include="SymbolsTests\Methods\ByRefReturn.dll" />
     <Content Include="SymbolsTests\Methods\ByRefReturn.il" />
     <Content Include="SymbolsTests\Methods\CSMethods.cs" />
@@ -364,19 +375,16 @@
     <Content Include="WinRt\WImpl.il" />
     <EmbeddedResource Include="WinRt\WImpl.winmd" />
     <EmbeddedResource Include="PerfTests\VBPerfTest.vb" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="NetFX\ValueTuple\ValueTuple.cs" />
     <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
-    <Content Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.cpp" />
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
-  </ItemGroup>
-  <ItemGroup>
+    <Content Include="Analyzers\README.md" />
+    <Compile Include="Analyzers\DoNothingAnalyzer.cs" />
+    <Compile Include="Analyzers\DoNothingGenerator.cs" />
+    <Compile Include="Analyzers\DoNothingSuppressor.cs" />
     <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
   </ItemGroup>
 </Project>

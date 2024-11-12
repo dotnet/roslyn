@@ -148,15 +148,15 @@ public class Test
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
+                // (11,18): error CS9135: A constant value of type 'int' is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "test").WithArguments("int").WithLocation(11, 18)
+            );
             CreateCompilation(text).VerifyDiagnostics(
-                // (11,18): error CS0150: A constant value is expected
+                // (11,18): error CS9135: A constant value of type 'int' is expected
                 //             case test:
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "test").WithLocation(11, 18)
-                );
+                Diagnostic(ErrorCode.ERR_ConstantValueOfTypeExpected, "test").WithArguments("int").WithLocation(11, 18)
+            );
         }
 
         [Fact]
@@ -1041,24 +1041,24 @@ class C
                 // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
-                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
+                // (9,17): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
-                );
+            );
             CreateCompilation(text).VerifyDiagnostics(
                 // (8,19): error CS0150: A constant value is expected
                 //             case (1+(o.GetType().Name.Length)):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(o.GetType().Name.Length)").WithLocation(8, 19),
-                // (9,17): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'C.M(object)'
+                // (9,17): error CS7036: There is no argument given that corresponds to the required parameter 'o' of 'C.M(object)'
                 //                 M();
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("o", "C.M(object)").WithLocation(9, 17),
                 // (12,13): error CS0152: The switch statement contains multiple cases with the label value '0'
                 //             case 0:
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 0:").WithArguments("0").WithLocation(12, 13)
-                );
+            );
         }
 
         [Fact]
@@ -2392,7 +2392,7 @@ switch (1)
     case 2:
         Console.WriteLine(2);
 }";
-            CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (4,5): error CS0163: Control cannot fall through from one case label ('default:') to another
                 //     default:
                 Diagnostic(ErrorCode.ERR_SwitchFallThrough, "default:").WithArguments("default:").WithLocation(4, 5),
@@ -2749,8 +2749,7 @@ class SwitchTest
             CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (10,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case true when true:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case true when true:").WithArguments("pattern matching", "7.0").WithLocation(10, 13)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case").WithArguments("pattern matching", "7.0").WithLocation(10, 13));
             CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
             CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
         }
@@ -3558,7 +3557,7 @@ namespace System.Runtime.CompilerServices
     IL_008a:  br.s       IL_0097
     IL_008c:  ldloc.1
     IL_008d:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int>>""
-    IL_0092:  call       ""ThrowSwitchExpressionException""
+    IL_0092:  call       ""void <PrivateImplementationDetails>.ThrowSwitchExpressionException(object)""
     IL_0097:  ldloc.0
     IL_0098:  call       ""void System.Console.WriteLine(int)""
     IL_009d:  leave.s    IL_00ac
@@ -3688,7 +3687,7 @@ namespace System.Runtime.CompilerServices
     IL_009f:  br.s       IL_00ac
     IL_00a1:  ldloc.1
     IL_00a2:  box        ""System.ValueTuple<int, int, int, int, int, int, int, System.ValueTuple<int, int>>""
-    IL_00a7:  call       ""ThrowSwitchExpressionException""
+    IL_00a7:  call       ""void <PrivateImplementationDetails>.ThrowSwitchExpressionException(object)""
     IL_00ac:  ldloc.0
     IL_00ad:  call       ""void System.Console.WriteLine(int)""
     IL_00b2:  leave.s    IL_00c1

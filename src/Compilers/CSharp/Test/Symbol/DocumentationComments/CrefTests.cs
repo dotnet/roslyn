@@ -2286,7 +2286,7 @@ class C
         }
 
         [Fact]
-        public void UnaryOperator_NoParameters()
+        public void UnaryOperator_NoParameters_01()
         {
             var source = @"
 /// <summary>
@@ -2307,6 +2307,33 @@ class C
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
 
             Assert.Equal(expectedSymbol, actualSymbol);
+        }
+
+        [Fact]
+        public void UnaryOperator_NoParameters_02()
+        {
+            var source = @"
+/// <summary>
+/// See <see cref=""operator -""/>.
+/// </summary>
+class C
+{
+    public static C operator -(C c)
+    {
+        return null;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            var crefSyntax = GetCrefSyntaxes(compilation).Single();
+
+            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
+                // (3,20): warning CS1574: XML comment has cref attribute 'operator -' that could not be resolved
+                // /// See <see cref="operator -"/>.
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "operator -").WithArguments("operator -").WithLocation(3, 20)
+                );
+
+            Assert.Null(actualSymbol);
         }
 
         [Fact]
@@ -4458,30 +4485,30 @@ class C
             // BREAK: dev11 doesn't report CS1581 for "Q[]" or "Q*" because it only checks for error
             // types and it finds an array type and a pointer type, respectively.
             CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
-                // (2,16): warning CS1581: Invalid return type in XML comment cref attribute
+                // (2,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithArguments("Q", "explicit operator Q"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q").WithLocation(2, 34),
                 // (2,16): warning CS1574: XML comment has cref attribute 'explicit operator Q' that could not be resolved
                 // /// <see cref="explicit operator Q"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q"),
-                // (3,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q").WithArguments("explicit operator Q").WithLocation(2, 16),
+                // (3,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithArguments("C{Q}", "explicit operator C{Q}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "C{Q}").WithLocation(3, 34),
                 // (3,16): warning CS1574: XML comment has cref attribute 'explicit operator C{Q}' that could not be resolved
                 // /// <see cref="explicit operator C{Q}"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}"),
-                // (4,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator C{Q}").WithArguments("explicit operator C{Q}").WithLocation(3, 16),
+                // (4,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithArguments("Q[]", "explicit operator Q[]"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q[]").WithLocation(4, 34),
                 // (4,16): warning CS1574: XML comment has cref attribute 'explicit operator Q[]' that could not be resolved
                 // /// <see cref="explicit operator Q[]"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]"),
-                // (5,16): warning CS1581: Invalid return type in XML comment cref attribute
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q[]").WithArguments("explicit operator Q[]").WithLocation(4, 16),
+                // (5,34): warning CS1581: Invalid return type in XML comment cref attribute
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithArguments("Q*", "explicit operator Q*"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefReturnType, "Q*").WithLocation(5, 34),
                 // (5,16): warning CS1574: XML comment has cref attribute 'explicit operator Q*' that could not be resolved
                 // /// <see cref="explicit operator Q*"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*"));
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "explicit operator Q*").WithArguments("explicit operator Q*").WithLocation(5, 16));
         }
 
         [Fact]
@@ -6584,7 +6611,7 @@ class Cat { }
 
         private static IEnumerable<CrefSyntax> GetCrefSyntaxes(Compilation compilation) => GetCrefSyntaxes((CSharpCompilation)compilation);
 
-        private static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
+        internal static IEnumerable<CrefSyntax> GetCrefSyntaxes(CSharpCompilation compilation)
         {
             return compilation.SyntaxTrees.SelectMany(tree =>
             {
@@ -6593,7 +6620,7 @@ class Cat { }
             });
         }
 
-        private static Symbol GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
+        internal static Symbol GetReferencedSymbol(CrefSyntax crefSyntax, CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
             Symbol ambiguityWinner;
             var references = GetReferencedSymbols(crefSyntax, compilation, out ambiguityWinner, expectedDiagnostics);
@@ -6676,9 +6703,203 @@ class Test
 
             var parameter = cref.Parameters.Parameters.Single();
             Assert.Equal(SyntaxKind.InKeyword, parameter.RefKindKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, parameter.ReadOnlyKeyword.Kind());
 
             var parameterSymbol = ((IMethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
             Assert.Equal(RefKind.In, parameterSymbol.RefKind);
+        }
+
+        [Fact]
+        public void CRef_RefReadonlyParameter()
+        {
+            var source = """
+                class Test
+                {
+                    void M(ref readonly int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(ref readonly int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+                // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     void M(ref readonly int x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
+                // (8,26): warning CS1658: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.. See also error CS9058.
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.", "9058").WithLocation(8, 26)));
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics());
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+                var parameter = cref.Parameters.Parameters.Single();
+                Assert.Equal(SyntaxKind.RefKeyword, parameter.RefKindKeyword.Kind());
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.ReadOnlyKeyword.Kind());
+
+                var parameterSymbol = ((IMethodSymbol)model.GetSymbolInfo(cref).Symbol).Parameters.Single();
+                Assert.Equal(RefKind.RefReadOnlyParameter, parameterSymbol.RefKind);
+            }
+        }
+
+        [Fact]
+        public void CRef_RefReadonlyParameter_ReadonlyRef()
+        {
+            var source = """
+                class Test
+                {
+                    void M(ref readonly int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(readonly ref int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+                // (3,16): error CS9058: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.
+                //     void M(ref readonly int x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "readonly").WithArguments("ref readonly parameters", "12.0").WithLocation(3, 16),
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)));
+
+            var expectedDiagnostics = new[]
+            {
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+                Assert.Empty(cref.Parameters.Parameters);
+            }
+        }
+
+        [Fact]
+        public void CRef_ReadonlyRefParameter()
+        {
+            var source = """
+                class Test
+                {
+                    void M(readonly ref int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(readonly ref int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly ref int x)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
+                // (8,20): warning CS1584: XML comment has syntactically incorrect cref attribute 'M(readonly ref int)'
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(").WithArguments("M(readonly ref int)").WithLocation(8, 20),
+                // (8,22): warning CS1658: ) expected. See also error CS1026.
+                //     /// <see cref="M(readonly ref int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments(") expected", "1026").WithLocation(8, 22)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+                Assert.Empty(cref.Parameters.Parameters);
+            }
+        }
+
+        [Fact]
+        public void CRef_ReadonlyRefParameter_RefReadonly()
+        {
+            var source = """
+                class Test
+                {
+                    void M(readonly ref int x)
+                    {
+                    }
+
+                    /// <summary>
+                    /// <see cref="M(ref readonly int)"/>
+                    /// </summary>
+                    void S()
+                    {
+                    }
+                }
+                """;
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular11.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly ref int x)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
+                // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "M(ref readonly int)").WithArguments("M(ref readonly int)").WithLocation(8, 20),
+                // (8,26): warning CS1658: Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.. See also error CS9058.
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "readonly").WithArguments("Feature 'ref readonly parameters' is not available in C# 11.0. Please use language version 12.0 or greater.", "9058").WithLocation(8, 26)));
+
+            var expectedDiagnostics = new[]
+            {
+                // (3,12): error CS9190: 'readonly' modifier must be specified after 'ref'.
+                //     void M(readonly ref int x)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyWrongOrdering, "readonly").WithLocation(3, 12),
+                // (8,20): warning CS1574: XML comment has cref attribute 'M(ref readonly int)' that could not be resolved
+                //     /// <see cref="M(ref readonly int)"/>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "M(ref readonly int)").WithArguments("M(ref readonly int)").WithLocation(8, 20)
+            };
+
+            verify(CreateCompilation(source, parseOptions: TestOptions.Regular12.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+            verify(CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose)).VerifyDiagnostics(expectedDiagnostics));
+
+            static void verify(CSharpCompilation compilation)
+            {
+                var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+                var cref = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
+
+                var parameter = cref.Parameters.Parameters.Single();
+                Assert.Equal(SyntaxKind.RefKeyword, parameter.RefKindKeyword.Kind());
+                Assert.Equal(SyntaxKind.ReadOnlyKeyword, parameter.ReadOnlyKeyword.Kind());
+
+                Assert.True(model.GetSymbolInfo(cref).IsEmpty);
+            }
         }
 
         [Fact]

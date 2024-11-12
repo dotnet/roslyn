@@ -10,63 +10,67 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
-{
-    public class CheckedStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
-    {
-        internal override Type GetHighlighterType()
-            => typeof(CheckedStatementHighlighter);
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-@"class C
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public class CheckedStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    void M()
-    {
-        short x = 0;
-        short y = 100;
-        while (true)
-        {
-            {|Cursor:[|checked|]|}
-            {
-                x++;
-            }
+    internal override Type GetHighlighterType()
+        => typeof(CheckedStatementHighlighter);
 
-            unchecked
+    [Fact]
+    public async Task TestExample1_1()
+    {
+        await TestAsync(
+            """
+            class C
             {
-                y++;
+                void M()
+                {
+                    short x = 0;
+                    short y = 100;
+                    while (true)
+                    {
+                        {|Cursor:[|checked|]|}
+                        {
+                            x++;
+                        }
+
+                        unchecked
+                        {
+                            y++;
+                        }
+                    }
+                }
             }
-        }
+            """);
     }
-}");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_2()
-        {
-            await TestAsync(
-@"class C
-{
-    void M()
+    [Fact]
+    public async Task TestExample1_2()
     {
-        short x = 0;
-        short y = 100;
-        while (true)
-        {
-            checked
+        await TestAsync(
+            """
+            class C
             {
-                x++;
-            }
+                void M()
+                {
+                    short x = 0;
+                    short y = 100;
+                    while (true)
+                    {
+                        checked
+                        {
+                            x++;
+                        }
 
-            {|Cursor:[|unchecked|]|}
-            {
-                y++;
+                        {|Cursor:[|unchecked|]|}
+                        {
+                            y++;
+                        }
+                    }
+                }
             }
-        }
-    }
-}");
-        }
+            """);
     }
 }

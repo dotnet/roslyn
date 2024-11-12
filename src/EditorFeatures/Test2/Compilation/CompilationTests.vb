@@ -13,8 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 
-        <Fact>
-        <WorkItem(1107492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107492")>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107492")>
         Public Async Function TestProjectThatDoesntSupportCompilations() As Tasks.Task
             Dim workspaceDefinition =
 <Workspace>
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
                 GetType(NoCompilationContentTypeLanguageService),
                 GetType(NoCompilationContentTypeDefinitions))
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim project = GetProject(workspace.CurrentSolution, "TestAssembly")
                 Assert.Null(Await project.GetCompilationAsync())
 

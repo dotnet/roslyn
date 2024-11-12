@@ -366,7 +366,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.BadToken AndAlso
                          DirectCast(CurrentToken, BadTokenSyntax).SubKind = SyntaxSubKind.BeginDocTypeToken, "ParseDTD called on wrong token.")
 
-
             Dim builder = SyntaxListBuilder(Of GreenNode).Create()
 
             Dim beginDocType = DirectCast(CurrentToken, BadTokenSyntax)
@@ -549,7 +548,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         GetNextToken(enclosingState)
 
-                        Dim unexpectedSyntax = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(SyntaxList.List(divideToken, greaterThan))
+                        Dim unexpectedSyntax = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(
+                            CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(divideToken, greaterThan))
 
                         endEmptyElementToken = AddLeadingSyntax(New PunctuationSyntax(SyntaxKind.SlashGreaterThanToken, "", Nothing, Nothing),
                                                                 unexpectedSyntax,
@@ -883,7 +883,7 @@ LessThanSlashTokenCase:
                     If slashToken.Kind = SyntaxKind.SlashToken Then
                         If lessThan.HasTrailingTrivia Or slashToken.HasLeadingTrivia Then
                             beginEndElement = AddLeadingSyntax(beginEndElement,
-                                SyntaxList.List(lessThan, slashToken),
+                                CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(lessThan, slashToken),
                                 ERRID.ERR_IllegalXmlWhiteSpace)
                         Else
                             beginEndElement = DirectCast(InternalSyntaxFactory.Token(lessThan.GetLeadingTrivia,
@@ -994,7 +994,6 @@ LessThanSlashTokenCase:
                         value = ParseXmlString(ScannerState.Element)
                         Result = SyntaxFactory.XmlAttribute(Name, equals, value)
                     End If
-
 
                 ElseIf Name.Kind = SyntaxKind.XmlEmbeddedExpression Then
                     ' // In this case, the Name is some expression which may evaluate to an attribute

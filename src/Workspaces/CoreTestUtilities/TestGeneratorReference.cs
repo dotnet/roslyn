@@ -13,12 +13,12 @@ namespace Roslyn.Test.Utilities
     /// A simple deriviation of <see cref="AnalyzerReference"/> that returns the source generator
     /// passed, for ease in unit tests.
     /// </summary>
-    public sealed class TestGeneratorReference : AnalyzerReference, IChecksummedObject
+    public class TestGeneratorReference : AnalyzerReference
     {
         private readonly ISourceGenerator _generator;
-        private readonly Checksum _checksum;
+        internal readonly Checksum Checksum;
 
-        public TestGeneratorReference(ISourceGenerator generator)
+        public TestGeneratorReference(ISourceGenerator generator, string? analyzerFilePath = null)
         {
             _generator = generator;
             Guid = Guid.NewGuid();
@@ -30,22 +30,22 @@ namespace Roslyn.Test.Utilities
             // We'll make up a checksum here so we can "serialize" it to our unit test in-proc "remote" host.
             var checksumArray = Guid.ToByteArray();
             Array.Resize(ref checksumArray, Checksum.HashSize);
-            _checksum = Checksum.From(checksumArray);
+            this.Checksum = Checksum.From(checksumArray);
+
+            FullPath = analyzerFilePath;
         }
 
-        public TestGeneratorReference(IIncrementalGenerator generator)
-            : this(generator.AsSourceGenerator())
+        public TestGeneratorReference(IIncrementalGenerator generator, string? analyzerFilePath = null)
+            : this(generator.AsSourceGenerator(), analyzerFilePath)
         {
         }
 
-        public override string? FullPath => null;
+        public override string? FullPath { get; }
         public override object Id => this;
         public Guid Guid { get; }
 
-        Checksum IChecksummedObject.Checksum => _checksum;
-
-        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language) => ImmutableArray<DiagnosticAnalyzer>.Empty;
-        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages() => ImmutableArray<DiagnosticAnalyzer>.Empty;
-        public override ImmutableArray<ISourceGenerator> GetGenerators(string language) => ImmutableArray.Create(_generator);
+        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language) => [];
+        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages() => [];
+        public override ImmutableArray<ISourceGenerator> GetGenerators(string language) => [_generator];
     }
 }

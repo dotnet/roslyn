@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -308,7 +308,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -478,7 +478,6 @@ End Class
     </file>
 </compilation>, TestOptions.ReleaseExe)
 
-
             CompileAndVerify(compilation, <![CDATA[
 True
 1234
@@ -548,7 +547,6 @@ Namespace System.Runtime.CompilerServices
 End Namespace
     </file>
 </compilation>)
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <result>
@@ -1640,7 +1638,6 @@ End Class
                     "Sub C1.C1Sub1()"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1694,7 +1691,6 @@ End Class
                     "Sub ImplementationClass1.Sub2()"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1743,7 +1739,6 @@ End Module
                     "me2 As System.Int32"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1788,7 +1783,6 @@ End Module
                     "me1 As System.Int32"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1825,7 +1819,6 @@ End Module
                     "x1 As System.Object"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1858,7 +1851,6 @@ End Module
                 {
                     "x1 As System.Object"
                 }
-
 
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
@@ -1895,7 +1887,6 @@ End Module
                     "x1 As System.Object"
                 }
 
-
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
@@ -1930,7 +1921,6 @@ End Module
                 {
                     "x1 As System.Object"
                 }
-
 
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
 

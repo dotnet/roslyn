@@ -931,7 +931,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: '/*<bind>
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(7, 6),
                 // file.cs(7,6): error CS1003: Syntax error, '(' expected
                 //     {
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(7, 6),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(7, 6),
                 // file.cs(7,6): error CS1525: Invalid expression term 'else'
                 //     {
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(7, 6),
@@ -1036,7 +1036,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(20, 14),
                 // file.cs(20,14): error CS1003: Syntax error, '(' expected
                 //             }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(20, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(20, 14),
                 // file.cs(20,14): error CS1525: Invalid expression term 'else'
                 //             }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(20, 14),
@@ -1108,7 +1108,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 28),
                 // file.cs(12,28): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/if (flag)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(12, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 28),
                 // file.cs(12,28): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/if (flag)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 28),
@@ -1190,7 +1190,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(12, 20),
                 // file.cs(12,20): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/{
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(12, 20),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(12, 20),
                 // file.cs(12,20): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/{
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(12, 20),
@@ -1208,7 +1208,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null, IsInvalid) (Syn
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(15, 14),
                 // file.cs(15,14): error CS1003: Syntax error, '(' expected
                 //             }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(15, 14),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(15, 14),
                 // file.cs(15,14): error CS1525: Invalid expression term 'else'
                 //             }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(15, 14),
@@ -1395,7 +1395,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
                 Diagnostic(ErrorCode.ERR_ElseCannotStartStatement, "").WithLocation(10, 30),
                 // file.cs(10,30): error CS1003: Syntax error, '(' expected
                 //         /*<bind>*/if (a == 1)
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "else").WithLocation(10, 30),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(10, 30),
                 // file.cs(10,30): error CS1525: Invalid expression term 'else'
                 //         /*<bind>*/if (a == 1)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("else").WithLocation(10, 30),
@@ -3696,6 +3696,155 @@ Block[B2] - Block
     Next (Regular) Block[B3]
 Block[B3] - Exit
     Predecessors: [B1] [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_25()
+        {
+            string source = @"
+class P
+{
+    void M(bool a, bool b)
+/*<bind>*/{
+        if (a)
+        {
+            a = false;
+        }
+        else if (b)
+        {
+            b = false;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = false;')
+            Expression:
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'a = false')
+                Left:
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+                Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Next (Regular) Block[B5]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B5]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = false;')
+            Expression:
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = false')
+                Left:
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B2] [B3] [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void IfFlow_26()
+        {
+            string source = @"
+class P
+{
+    void M(bool a, bool b, bool c)
+/*<bind>*/{
+        if (a)
+        {
+            a = false;
+        }
+        else if (b)
+        {
+            b = false;
+        }
+        else
+        {
+            c = false;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = false;')
+            Expression:
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'a = false')
+                Left:
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+                Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Next (Regular) Block[B6]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B5]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = false;')
+            Expression:
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = false')
+                Left:
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Next (Regular) Block[B6]
+Block[B5] - Block
+    Predecessors: [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = false;')
+            Expression:
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'c = false')
+                Left:
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+                Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B2] [B4] [B5]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

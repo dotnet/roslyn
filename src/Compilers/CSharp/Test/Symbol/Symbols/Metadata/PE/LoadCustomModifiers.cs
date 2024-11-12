@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -24,11 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var modifiersModule = assemblies[0].Modules[0];
-
 
             var modifiers = modifiersModule.GlobalNamespace.GetTypeMembers("Modifiers").Single();
 
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -179,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -210,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -229,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -248,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
                     TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 });
 
             var globalNamespace = assemblies[0].GlobalNamespace;

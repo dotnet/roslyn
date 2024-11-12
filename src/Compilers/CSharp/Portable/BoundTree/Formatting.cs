@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(this.Type is { }, $"Unexpected null type in {this.GetType().Name}");
+                RoslynDebug.Assert(this.Type is { }, $"Unexpected null type in {this.GetType().Name}");
                 return this.Type;
             }
         }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return ConstantValue?.IsNull == true ? MessageID.IDS_NULL.Localize() : base.Display; }
+            get { return ConstantValueOpt?.IsNull == true ? MessageID.IDS_NULL.Localize() : base.Display; }
         }
     }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
     }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { throw ExceptionUtilities.Unreachable; }
+            get { throw ExceptionUtilities.Unreachable(); }
         }
     }
 
@@ -165,6 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
             => (Type is null) ? MessageID.IDS_FeatureTargetTypedConditional.Localize() : base.Display;
+    }
+
+    internal partial class BoundUnconvertedCollectionExpression
+    {
+        public override object Display
+            => (Type is null) ? MessageID.IDS_FeatureCollectionExpressions.Localize() : base.Display;
     }
 
     internal partial class BoundPassByCopy

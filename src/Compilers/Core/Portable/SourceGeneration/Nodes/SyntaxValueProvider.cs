@@ -6,21 +6,30 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SourceGeneration;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Allows a user to create Syntax based input nodes for incremental generation
     /// </summary>
-    public readonly struct SyntaxValueProvider
+    public readonly partial struct SyntaxValueProvider
     {
+        private readonly IncrementalGeneratorInitializationContext _context;
         private readonly ArrayBuilder<SyntaxInputNode> _inputNodes;
         private readonly Action<IIncrementalGeneratorOutputNode> _registerOutput;
+        private readonly ISyntaxHelper _syntaxHelper;
 
-        internal SyntaxValueProvider(ArrayBuilder<SyntaxInputNode> inputNodes, Action<IIncrementalGeneratorOutputNode> registerOutput)
+        internal SyntaxValueProvider(
+            IncrementalGeneratorInitializationContext context,
+            ArrayBuilder<SyntaxInputNode> inputNodes,
+            Action<IIncrementalGeneratorOutputNode> registerOutput,
+            ISyntaxHelper syntaxHelper)
         {
+            _context = context;
             _inputNodes = inputNodes;
             _registerOutput = registerOutput;
+            _syntaxHelper = syntaxHelper;
         }
 
         /// <summary>
@@ -33,7 +42,11 @@ namespace Microsoft.CodeAnalysis
         public IncrementalValuesProvider<T> CreateSyntaxProvider<T>(Func<SyntaxNode, CancellationToken, bool> predicate, Func<GeneratorSyntaxContext, CancellationToken, T> transform)
         {
             // registration of the input is deferred until we know the node is used
-            return new IncrementalValuesProvider<T>(new SyntaxInputNode<T>(new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(), transform.WrapUserFunction()), RegisterOutputAndDeferredInput));
+            return new IncrementalValuesProvider<T>(
+                new SyntaxInputNode<T>(
+                    new PredicateSyntaxStrategy<T>(predicate.WrapUserFunction(_context.CatchAnalyzerExceptions), transform.WrapUserFunction(_context.CatchAnalyzerExceptions), _syntaxHelper),
+                    RegisterOutputAndDeferredInput),
+                _context.CatchAnalyzerExceptions);
         }
 
         /// <summary>
@@ -41,9 +54,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal IncrementalValueProvider<ISyntaxContextReceiver?> CreateSyntaxReceiverProvider(SyntaxContextReceiverCreator creator)
         {
-            var node = new SyntaxInputNode<ISyntaxContextReceiver?>(new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput), RegisterOutputAndDeferredInput);
+            var node = new SyntaxInputNode<ISyntaxContextReceiver?>(
+                new SyntaxReceiverStrategy<ISyntaxContextReceiver?>(creator, _registerOutput, _syntaxHelper), RegisterOutputAndDeferredInput);
             _inputNodes.Add(node);
-            return new IncrementalValueProvider<ISyntaxContextReceiver?>(node);
+            return new IncrementalValueProvider<ISyntaxContextReceiver?>(node, _context.CatchAnalyzerExceptions);
         }
 
         private void RegisterOutputAndDeferredInput(SyntaxInputNode node, IIncrementalGeneratorOutputNode output)

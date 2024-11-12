@@ -4,20 +4,20 @@
 
 #nullable disable
 
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.Composition;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public class CSharpTestWorkspaceFixture : TestWorkspaceFixture
     {
-        protected override TestWorkspace CreateWorkspace(ExportProvider exportProvider = null)
+        protected override EditorTestWorkspace CreateWorkspace(TestComposition composition = null)
         {
-            return TestWorkspace.CreateCSharp2(
-                new string[] { string.Empty, },
-                new CSharpParseOptions[] { new CSharpParseOptions(kind: SourceCodeKind.Regular), },
-                exportProvider: exportProvider);
+            return EditorTestWorkspace.CreateWithSingleEmptySourceFile(
+                LanguageNames.CSharp,
+                compilationOptions: null,
+                parseOptions: new CSharpParseOptions(kind: SourceCodeKind.Regular),
+                composition: composition);
         }
     }
 }

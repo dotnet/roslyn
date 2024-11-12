@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
 
             Private ReadOnly _createAliasSet As Func(Of ImmutableHashSet(Of String)) =
                 Function()
-                    Dim model = DirectCast(Me._semanticModel.GetOriginalSemanticModel(), SemanticModel)
+                    Dim model = Me._semanticModel.GetOriginalSemanticModel()
 
                     ' root should be already available
                     If Not model.SyntaxTree.HasCompilationUnitRoot Then

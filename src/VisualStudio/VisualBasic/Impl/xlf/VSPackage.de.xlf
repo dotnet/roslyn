@@ -29,8 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">Neu zugewiesene Variablen unterstreichen;Inlinehinweise anzeigen;Automatisches Einfügen von Endkonstrukten;Einstellungen für ziemliche Auflistung ändern;Gliederungsmodus ändern;Automatisches Einfügen von Schnittstellen- und MustOverride-Membern;Prozedurzeilentrennzeichen ein- oder ausblenden;Fehlerkorrekturvorschläge aktivieren oder deaktivieren;Aktivieren oder Deaktivieren der Hervorhebung von Verweisen und Schlüsselwörtern;Regulärer Ausdruck;Reguläre Ausdrücke farbisieren;Verwandte Komponenten unter dem Cursor hervorheben;Ungültige reguläre Ausdrücke melden;regex;regulärer Ausdruck;Erweiterte Farben verwenden;Editor-Farbschema;Vererbungsrand;Importdirektiven;</target>
+        <target state="translated">Neu zugewiesene Variablen unterstreichen;Inlinehinweise anzeigen;Automatisches Einfügen von Endkonstrukten;Einstellungen für ziemliche Auflistung ändern;Gliederungsmodus ändern;Automatisches Einfügen von Schnittstellen- und MustOverride-Membern;Prozedurzeilentrennzeichen ein- oder ausblenden;Fehlerkorrekturvorschläge aktivieren oder deaktivieren;Aktivieren oder Deaktivieren der Hervorhebung von Verweisen und Schlüsselwörtern;
+Regex;
+reguläre Ausdrücke;
+zugehörigen Komponenten unter dem Cursor;
+Ungültige reguläre Ausdrücke melden;
+regex;
+regulärer Ausdruck;
+JSON;
+Farbig machen von JSON-Zeichenfolgen;
+Ungültige JSON-Zeichenfolgen melden;
+Editorfeatures für JSON-Zeichenfolgen erkennen und anbieten;
+#regions beim Öffnen der Datei reduzieren;
+Importe beim Öffnen der Datei reduzieren;
+Metadatenimplementierungen beim Öffnen der Datei reduzieren;
+Erweiterte Farben verwenden;Editor-Farbschema;Vererbungsspielraum;Richtlinien importieren;</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -113,14 +130,34 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</s
         <target state="translated">Visual Basic-Tools</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Eine leere Visual Basic-Skriptdatei.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Nach Drücken der EINGABETASTE immer neue Zeile hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Visual Basic-Skript</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Schnipsel immer einschließen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Schnipsel einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Nach Drücken der EINGABETASTE niemals neue Zeile hinzufügen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Schnipsel nie einschließen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Nach Drücken der EINGABETASTE nur nach dem Ende eines vollständigen Worts neue Zeile hinzufügen</target>
         <note />
       </trans-unit>
     </body>

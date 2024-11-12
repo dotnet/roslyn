@@ -88,7 +88,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var snapshotText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var snapshotText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var snapshotChecksum = snapshotText.GetChecksum();
 
                 using var fileStream = File.OpenRead(document.FilePath);
@@ -99,7 +99,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
                 {
                     lock (gate)
                     {
-                        output.AppendLine($"{document.FilePath}: {BitConverter.ToString(snapshotChecksum.ToArray())} : {BitConverter.ToString(fileChecksum.ToArray())}");
+                        output.AppendLine($"{document.FilePath}: {BitConverter.ToString([.. snapshotChecksum])} : {BitConverter.ToString([.. fileChecksum])}");
                         outOfDateCount++;
                     }
                 }
@@ -107,9 +107,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            output.AppendLine(outOfDateCount == 0 ?
-                "All closed documents up to date." :
-                $"{Environment.NewLine}{outOfDateCount} documents out of date.");
+            output.AppendLine(outOfDateCount == 0
+                ? "All closed documents up to date."
+                : $"{Environment.NewLine}{outOfDateCount} documents out of date.");
         }
     }
 }

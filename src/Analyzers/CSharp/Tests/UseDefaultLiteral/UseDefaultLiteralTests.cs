@@ -2,648 +2,812 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseDefaultLiteral;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    CSharpUseDefaultLiteralDiagnosticAnalyzer,
+    CSharpUseDefaultLiteralCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+public class UseDefaultLiteralTests
 {
-    public class UseDefaultLiteralTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    [Fact]
+    public async Task TestNotInCSharp7()
     {
-        public UseDefaultLiteralTests(ITestOutputHelper logger)
-          : base(logger)
+        var code = """
+            class C
+            {
+                void Goo(string s = default(string))
+                {
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
         {
-        }
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7
+        }.RunAsync();
+    }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpUseDefaultLiteralDiagnosticAnalyzer(), new CSharpUseDefaultLiteralCodeFixProvider());
-
-        private static readonly CSharpParseOptions s_parseOptions =
-            CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
-
-        private static readonly TestParameters s_testParameters =
-            new TestParameters(parseOptions: s_parseOptions);
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotInCSharp7()
+    [Fact]
+    public async Task TestInParameterList()
+    {
+        await new VerifyCS.Test
         {
-            await TestMissingAsync(
-@"
-class C
-{
-    void Goo(string s = [||]default(string))
-    {
+            TestCode = """
+                class C
+                {
+                    void Goo(string s = [|default(string)|])
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s = default)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}", parameters: new TestParameters(
-    parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInParameterList()
+    [Fact]
+    public async Task TestInIfCheck()
+    {
+        await new VerifyCS.Test
         {
-            await TestAsync(
-@"
-class C
-{
-    void Goo(string s = [||]default(string))
-    {
+            TestCode = """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        if (s == [|default(string)|]) { }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(string s)
+                    {
+                        if (s == default) { }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}",
-@"
-class C
-{
-    void Goo(string s = default)
-    {
-    }
-}", parseOptions: s_parseOptions);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInIfCheck()
+    [Fact]
+    public async Task TestInReturnStatement()
+    {
+        await new VerifyCS.Test
         {
-            await TestAsync(
-@"
-class C
-{
-    void Goo(string s)
-    {
-        if (s == [||]default(string)) { }
+            TestCode = """
+                class C
+                {
+                    string Goo()
+                    {
+                        return [|default(string)|];
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    string Goo()
+                    {
+                        return default;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}",
-@"
-class C
-{
-    void Goo(string s)
-    {
-        if (s == default) { }
-    }
-}", parseOptions: s_parseOptions);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInReturnStatement()
+    [Fact]
+    public async Task TestInReturnStatement2()
+    {
+        var code = """
+            class C
+            {
+                string Goo()
+                {
+                    return {|CS0029:default(int)|};
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
         {
-            await TestAsync(
-@"
-class C
-{
-    string Goo()
-    {
-        return [||]default(string);
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}",
-@"
-class C
-{
-    string Goo()
-    {
-        return default;
-    }
-}", parseOptions: s_parseOptions);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInReturnStatement2()
+    [Fact]
+    public async Task TestInLambda1()
+    {
+        await new VerifyCS.Test
         {
-            await TestMissingAsync(
-@"
-class C
-{
-    string Goo()
-    {
-        return [||]default(int);
-    }
-}", parameters: s_testParameters);
-        }
+            TestCode = """
+                using System;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInLambda1()
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<string> f = () => [|default(string)|];
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void Goo()
+                    {
+                        Func<string> f = () => default;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInLambda2()
+    {
+        var code = """
+            using System;
+
+            class C
+            {
+                void Goo()
+                {
+                    Func<string> f = () => {|CS1662:{|CS0029:default(int)|}|};
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
         {
-            await TestAsync(
-@"
-using System;
-
-class C
-{
-    void Goo()
-    {
-        Func<string> f = () => [||]default(string);
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}",
-@"
-using System;
 
-class C
-{
-    void Goo()
+    [Fact]
+    public async Task TestInLocalInitializer()
     {
-        Func<string> f = () => [||]default;
-    }
-}", parseOptions: s_parseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInLambda2()
+        await new VerifyCS.Test
         {
-            await TestMissingAsync(
-@"
-using System;
-
-class C
-{
-    void Goo()
-    {
-        Func<string> f = () => [||]default(int);
-    }
-}", parameters: s_testParameters);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInLocalInitializer()
-        {
-            await TestAsync(
-@"
-class C
-{
-    void Goo()
-    {
-        string s = [||]default(string);
-    }
-}",
-@"
-class C
-{
-    void Goo()
-    {
-        string s = default;
-    }
-}", parseOptions: s_parseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInLocalInitializer2()
-        {
-            await TestMissingAsync(
-@"
-class C
-{
-    void Goo()
-    {
-        string s = [||]default(int);
-    }
-}", parameters: s_testParameters);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotForVar()
-        {
-            await TestMissingAsync(
-@"
-class C
-{
-    void Goo()
-    {
-        var s = [||]default(string);
-    }
-}", parameters: s_testParameters);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInInvocationExpression()
-        {
-            await TestAsync(
-@"
-class C
-{
-    void Goo()
-    {
-        Bar([||]default(string));
+            TestCode = """
+                class C
+                {
+                    void Goo()
+                    {
+                        string s = [|default(string)|];
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo()
+                    {
+                        string s = default;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
 
-    void Bar(string s) { }
-}",
-@"
-class C
-{
-    void Goo()
+    [Fact]
+    public async Task TestInLocalInitializer2()
     {
-        Bar(default);
+        var code = """
+            class C
+            {
+                void Goo()
+                {
+                    string s = {|CS0029:default(int)|};
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
 
-    void Bar(string s) { }
-}", parseOptions: s_parseOptions);
-        }
+    [Fact]
+    public async Task TestNotForVar()
+    {
+        var code = """
+            class C
+            {
+                void Goo()
+                {
+                    var s = default(string);
+                }
+            }
+            """;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotWithMultipleOverloads()
+        await new VerifyCS.Test()
         {
-            await TestMissingAsync(
-@"
-class C
-{
-    void Goo()
-    {
-        Bar([||]default(string));
-    }
-
-    void Bar(string s) { }
-    void Bar(int i);
-}", parameters: s_testParameters);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestLeftSideOfTernary()
-        {
-            await TestAsync(
-@"
-class C
-{
-    void Goo(bool b)
-    {
-        var v = b ? [||]default(string) : default(string);
-    }
-}",
-@"
-class C
-{
-    void Goo(bool b)
-    {
-        var v = b ? default : default(string);
-    }
-}", parseOptions: s_parseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestRightSideOfTernary()
-        {
-            await TestAsync(
-@"
-class C
-{
-    void Goo(bool b)
-    {
-        var v = b ? default(string) : [||]default(string);
-    }
-}",
-@"
-class C
-{
-    void Goo(bool b)
-    {
-        var v = b ? default(string) : default;
-    }
-}", parseOptions: s_parseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestFixAll1()
-        {
-            await TestAsync(
-@"
-class C
-{
-    void Goo()
-    {
-        string s1 = {|FixAllInDocument:default|}(string);
-        string s2 = default(string);
-    }
-}",
-@"
-class C
-{
-    void Goo()
-    {
-        string s1 = default;
-        string s2 = default;
-    }
-}", parseOptions: s_parseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestFixAll2()
-        {
-            await TestAsync(
-@"
-class C
-{
-    void Goo(bool b)
-    {
-        string s1 = b ? {|FixAllInDocument:default|}(string) : default(string);
-    }
-}",
-@"
-class C
-{
-    void Goo(bool b)
-    {
-        string s1 = b ? default : default(string);
-    }
-}", parseOptions: s_parseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestFixAll3()
-        {
-            await TestAsync(
-@"
-class C
-{
-    void Goo()
-    {
-        string s1 = {|FixAllInDocument:default|}(string);
-        string s2 = default(int);
-    }
-}",
-@"
-class C
-{
-    void Goo()
-    {
-        string s1 = default;
-        string s2 = default(int);
-    }
-}", parseOptions: s_parseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestDoNotOfferIfTypeWouldChange()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-struct S
-{
-    void M()
-    {
-        var s = new S();
-        s.Equals([||]default(S));
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
 
-    public override bool Equals(object obj)
+    [Fact]
+    public async Task TestInInvocationExpression()
     {
-        return base.Equals(obj);
-    }
-}", new TestParameters(parseOptions: s_parseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestDoNotOfferIfTypeWouldChange2()
+        await new VerifyCS.Test
         {
-            await TestMissingInRegularAndScriptAsync(
-@"
-struct S<T>
-{
-    void M()
-    {
-        var s = new S<int>();
-        s.Equals([||]default(S<int>));
-    }
+            TestCode = """
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar([|default(string)|]);
+                    }
 
-    public override bool Equals(object obj)
-    {
-        return base.Equals(obj);
-    }
-}", new TestParameters(parseOptions: s_parseOptions));
-        }
+                    void Bar(string s) { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo()
+                    {
+                        Bar(default);
+                    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestOnShadowedMethod()
-        {
-            await TestAsync(
-@"
-struct S
-{
-    void M()
-    {
-        var s = new S();
-        s.Equals([||]default(S));
+                    void Bar(string s) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
 
-    public new bool Equals(S s) => true;
-}",
+    [Fact]
+    public async Task TestNotWithMultipleOverloads()
+    {
+        var code = """
+            class C
+            {
+                void Goo()
+                {
+                    Bar(default(string));
+                }
 
-@"
-struct S
-{
-    void M()
-    {
-        var s = new S();
-        s.Equals(default);
+                void Bar(string s) { }
+                void Bar(int i) { }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
 
-    public new bool Equals(S s) => true;
-}", parseOptions: s_parseOptions);
-        }
+    [Fact]
+    public async Task TestLeftSideOfTernary()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void Goo(bool b)
+                    {
+                        var v = b ? [|default(string)|] : [|default(string)|];
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(bool b)
+                    {
+                        var v = b ? default : default(string);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1,
+            DiagnosticSelector = d => d[0],
+            CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne | Testing.CodeFixTestBehaviors.SkipFixAllCheck
+        }.RunAsync();
+    }
 
-        [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotInSwitchCase()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestRightSideOfTernary()
     {
-        switch (true)
+        await new VerifyCS.Test
         {
-            case [||]default(bool):
-        }
+            TestCode = """
+                class C
+                {
+                    void Goo(bool b)
+                    {
+                        var v = b ? [|default(string)|] : [|default(string)|];
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(bool b)
+                    {
+                        var v = b ? default(string) : default;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1,
+            DiagnosticSelector = d => d[1],
+            CodeFixTestBehaviors = Testing.CodeFixTestBehaviors.FixOne | Testing.CodeFixTestBehaviors.SkipFixAllCheck
+        }.RunAsync();
     }
-}", s_testParameters);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotInSwitchCase_InsideParentheses()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestFixAll1()
     {
-        switch (true)
+        await new VerifyCS.Test
         {
-            case ([||]default(bool)):
-        }
+            TestCode = """
+                class C
+                {
+                    void Goo()
+                    {
+                        string s1 = [|default(string)|];
+                        string s2 = [|default(string)|];
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo()
+                    {
+                        string s1 = default;
+                        string s2 = default;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}", s_testParameters);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInSwitchCase_InsideCast()
-        {
-            await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestFixAll2()
     {
-        switch (true)
+        await new VerifyCS.Test
         {
-            case (bool)[||]default(bool):
-        }
+            TestCode = """
+                class C
+                {
+                    void Goo(bool b)
+                    {
+                        string s1 = b ? [|default(string)|] : [|default(string)|];
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(bool b)
+                    {
+                        string s1 = b ? default : default(string);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}",
-@"
-class C
-{
-    void M()
-    {
-        switch (true)
-        {
-            case (bool)[||]default:
-        }
-    }
-}", parameters: s_testParameters);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotInPatternSwitchCase()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestFixAll3()
     {
-        switch (true)
+        await new VerifyCS.Test
         {
-            case [||]default(bool) when true:
-        }
+            TestCode = """
+                class C
+                {
+                    void Goo()
+                    {
+                        string s1 = [|default(string)|];
+                        string s2 = {|CS0029:default(int)|};
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo()
+                    {
+                        string s1 = default;
+                        string s2 = {|CS0029:default(int)|};
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}", s_testParameters);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotInPatternSwitchCase_InsideParentheses()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestDoNotOfferIfTypeWouldChange()
     {
-        switch (true)
-        {
-            case ([||]default(bool)) when true:
-        }
-    }
-}", s_testParameters);
-        }
+        var code = """
+            struct S
+            {
+                void M()
+                {
+                    var s = new S();
+                    s.Equals(default(S));
+                }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInPatternSwitchCase_InsideCast()
-        {
-            await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
-    {
-        switch (true)
-        {
-            case (bool)[||]default(bool) when true:
-        }
-    }
-}",
-@"
-class C
-{
-    void M()
-    {
-        switch (true)
-        {
-            case (bool)[||]default when true:
-        }
-    }
-}", parameters: s_testParameters);
-        }
+                public override bool Equals(object obj)
+                {
+                    return base.Equals(obj);
+                }
+            }
+            """;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInPatternSwitchCase_InsideWhenClause()
+        await new VerifyCS.Test()
         {
-            await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
-    {
-        switch (true)
-        {
-            case default(bool) when [||]default(bool):
-        }
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}",
-@"
-class C
-{
-    void M()
-    {
-        switch (true)
-        {
-            case default(bool) when default:
-        }
-    }
-}", parameters: s_testParameters);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotInPatternIs()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestDoNotOfferIfTypeWouldChange2()
     {
-        if (true is [||]default(bool));
-    }
-}", s_testParameters);
-        }
+        var code = """
+            struct S<T>
+            {
+                void M()
+                {
+                    var s = new S<int>();
+                    s.Equals(default(S<int>));
+                }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestNotInPatternIs_InsideParentheses()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"
-class C
-{
-    void M()
-    {
-        if (true is ([||]default(bool)));
-    }
-}", s_testParameters);
-        }
+                public override bool Equals(object obj)
+                {
+                    return base.Equals(obj);
+                }
+            }
+            """;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
-        public async Task TestInPatternIs_InsideCast()
+        await new VerifyCS.Test()
         {
-            await TestInRegularAndScript1Async(
-@"
-class C
-{
-    void M()
-    {
-        if (true is (bool)[||]default(bool));
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}",
-@"
-class C
-{
-    void M()
+
+    [Fact]
+    public async Task TestOnShadowedMethod()
     {
-        if (true is (bool)default);
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                struct S
+                {
+                    void M()
+                    {
+                        var s = new S();
+                        s.Equals([|default(S)|]);
+                    }
+
+                    public new bool Equals(S s) => true;
+                }
+                """,
+            FixedCode = """
+                struct S
+                {
+                    void M()
+                    {
+                        var s = new S();
+                        s.Equals(default);
+                    }
+
+                    public new bool Equals(S s) => true;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
-}", parameters: s_testParameters);
-        }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/25456")]
+    public async Task TestNotInSwitchCase()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    switch (true)
+                    {
+                        case default(bool):
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInSwitchCase_InsideParentheses()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    switch (true)
+                    {
+                        case (default(bool)):
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInSwitchCase_InsideCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        switch (true)
+                        {
+                            case (bool)[|default(bool)|]:
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        switch (true)
+                        {
+                            case (bool)default:
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInPatternSwitchCase()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    switch (true)
+                    {
+                        case default(bool) when true:
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInPatternSwitchCase_InsideParentheses()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    switch (true)
+                    {
+                        case (default(bool)) when true:
+                    }
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInPatternSwitchCase_InsideCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        switch (true)
+                        {
+                            case (bool)[|default(bool)|] when true:
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        switch (true)
+                        {
+                            case (bool)default when true:
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInPatternSwitchCase_InsideWhenClause()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        switch (true)
+                        {
+                            case default(bool) when [|default(bool)|]:
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        switch (true)
+                        {
+                            case default(bool) when default:
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInPatternIs()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    if (true is default(bool));
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNotInPatternIs_InsideParentheses()
+    {
+        var code = """
+            class C
+            {
+                void M()
+                {
+                    if (true is (default(bool)));
+                }
+            }
+            """;
+
+        await new VerifyCS.Test()
+        {
+            TestCode = code,
+            FixedCode = code,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestInPatternIs_InsideCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M()
+                    {
+                        if (true is (bool)[|default(bool)|]);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M()
+                    {
+                        if (true is (bool)default);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_1
+        }.RunAsync();
     }
 }

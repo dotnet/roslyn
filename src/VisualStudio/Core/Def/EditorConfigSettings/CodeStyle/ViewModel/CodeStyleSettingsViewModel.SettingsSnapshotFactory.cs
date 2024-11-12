@@ -7,16 +7,15 @@ using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel
-{
-    internal partial class CodeStyleSettingsViewModel
-    {
-        internal sealed class SettingsSnapshotFactory : SettingsSnapshotFactoryBase<CodeStyleSetting, SettingsEntriesSnapshot>
-        {
-            public SettingsSnapshotFactory(ISettingsProvider<CodeStyleSetting> data) : base(data) { }
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.ViewModel;
 
-            protected override SettingsEntriesSnapshot CreateSnapshot(ImmutableArray<CodeStyleSetting> data, int currentVersionNumber)
-                => new(data, currentVersionNumber);
-        }
+internal partial class CodeStyleSettingsViewModel
+{
+    internal sealed class SettingsSnapshotFactory : SettingsSnapshotFactoryBase<CodeStyleSetting, SettingsEntriesSnapshot>
+    {
+        public SettingsSnapshotFactory(ISettingsProvider<CodeStyleSetting> data) : base(data) { }
+
+        protected override SettingsEntriesSnapshot CreateSnapshot(ImmutableArray<CodeStyleSetting> data, int currentVersionNumber)
+            => new(data, currentVersionNumber);
     }
 }

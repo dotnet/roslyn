@@ -97,7 +97,7 @@ class Maine
 extern alias Bar;
 Bar::NS.Goo d = new Bar::NS.Goo();
 ";
-            var comp = CreateCompilationWithMscorlib45(src, options: TestOptions.DebugExe, parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib461(src, options: TestOptions.DebugExe, parseOptions: TestOptions.Script);
             comp = comp.AddReferences(Goo1, Goo2);
             comp.VerifyDiagnostics();
         }
@@ -488,6 +488,8 @@ class Test
             var externAliasSymbol = model.GetDeclaredSymbol(externAliasSyntax);
             Assert.Equal("A", externAliasSymbol.Name);
             Assert.Equal(aliasedGlobalNamespace, externAliasSymbol.Target);
+            Assert.Equal(1, externAliasSymbol.DeclaringSyntaxReferences.Length);
+            Assert.Same(externAliasSyntax, externAliasSymbol.DeclaringSyntaxReferences.Single().GetSyntax());
 
             var usingAliasSymbol = model.GetDeclaredSymbol(usingSyntax);
             Assert.Equal("C", usingAliasSymbol.Name);

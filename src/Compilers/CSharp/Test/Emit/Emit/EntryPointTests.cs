@@ -277,7 +277,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[]
                 {
                     Parse(csx, options: TestOptions.Script),
@@ -368,7 +368,7 @@ public static int Main = 1;
 System.Console.WriteLine(Main);
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -389,7 +389,7 @@ int Main(string[] x) { return 2; }
 System.Console.WriteLine(Main());
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -722,7 +722,7 @@ public class G
 System.Console.WriteLine(1);
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Script) },
                 options: TestOptions.ReleaseExe);
 
@@ -743,7 +743,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -777,7 +777,7 @@ public class D
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),
@@ -852,7 +852,6 @@ interface I { }
                 // (2,6): error CS1556: 'C' specified for Main method must be a valid class or struct
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "C").WithArguments("C"));
 
-
             compilation = CreateCompilation(
                 source,
                 options: TestOptions.ReleaseExe.WithMainTypeName("D"));
@@ -860,7 +859,6 @@ interface I { }
             compilation.VerifyDiagnostics(
                 // (3,15): error CS1556: 'D' specified for Main method must be a valid class or struct
                 Diagnostic(ErrorCode.ERR_MainClassNotClass, "D").WithArguments("D"));
-
 
             compilation = CreateCompilation(
                 source,
@@ -926,7 +924,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(csx, options: TestOptions.Script),

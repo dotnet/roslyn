@@ -91,6 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             get { return false; }
         }
 
+        bool IPropertySymbol.IsRequired => _underlying.IsRequired;
+
         ImmutableArray<CustomModifier> IPropertySymbol.TypeCustomModifiers
         {
             get { return _underlying.TypeWithAnnotations.CustomModifiers; }
@@ -107,6 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         RefKind IPropertySymbol.RefKind => _underlying.RefKind;
 
+#nullable enable
+        IPropertySymbol? IPropertySymbol.PartialDefinitionPart => _underlying.PartialDefinitionPart.GetPublicSymbol();
+
+        IPropertySymbol? IPropertySymbol.PartialImplementationPart => _underlying.PartialImplementationPart.GetPublicSymbol();
+
+        bool IPropertySymbol.IsPartialDefinition => (_underlying as SourcePropertySymbol)?.IsPartialDefinition ?? false;
+#nullable disable
+
         #region ISymbol Members
 
         protected override void Accept(SymbolVisitor visitor)
@@ -117,6 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         protected override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
         {
             return visitor.VisitProperty(this);
+        }
+
+        protected override TResult Accept<TArgument, TResult>(SymbolVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitProperty(this, argument);
         }
 
         #endregion

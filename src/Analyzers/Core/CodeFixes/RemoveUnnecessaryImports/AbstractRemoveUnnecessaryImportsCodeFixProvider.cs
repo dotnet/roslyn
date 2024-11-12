@@ -8,43 +8,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
+namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
+
+internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
 {
-    internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFixProvider
+    protected abstract ISyntaxFormatting GetSyntaxFormatting();
+
+    public sealed override ImmutableArray<string> FixableDiagnosticIds
+        => [RemoveUnnecessaryImportsConstants.DiagnosticFixableId];
+
+    public sealed override FixAllProvider GetFixAllProvider()
+        => WellKnownFixAllProviders.BatchFixer;
+
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer.DiagnosticFixableId);
+        var title = GetTitle();
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                title,
+                c => RemoveUnnecessaryImportsAsync(context.Document, c),
+                title),
+            context.Diagnostics);
+        return Task.CompletedTask;
+    }
 
-        public sealed override FixAllProvider GetFixAllProvider()
-            => WellKnownFixAllProviders.BatchFixer;
+    protected abstract string GetTitle();
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    GetTitle(),
-                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
-                context.Diagnostics);
-            return Task.CompletedTask;
-        }
-
-        protected abstract string GetTitle();
-
-        private static Task<Document> RemoveUnnecessaryImportsAsync(
-            Document document, CancellationToken cancellationToken)
-        {
-            var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
-            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument, title)
-            {
-            }
-        }
+    private static async Task<Document> RemoveUnnecessaryImportsAsync(
+        Document document,
+        CancellationToken cancellationToken)
+    {
+        var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
+        return await service.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
     }
 }

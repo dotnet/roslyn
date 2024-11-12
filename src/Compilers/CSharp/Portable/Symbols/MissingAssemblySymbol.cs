@@ -84,6 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasImportedFromTypeLibAttribute => false;
+
+        internal override bool HasPrimaryInteropAssemblyAttribute => false;
+
         public override int GetHashCode()
         {
             return identity.GetHashCode();
@@ -119,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void SetLinkedReferencedAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetLinkedReferencedAssemblies()
@@ -129,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void SetNoPiaResolutionAssemblies(ImmutableArray<AssemblySymbol> assemblies)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override ImmutableArray<AssemblySymbol> GetNoPiaResolutionAssemblies()
@@ -161,16 +165,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override NamedTypeSymbol LookupTopLevelMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies, bool digThroughForwardedTypes)
+#nullable enable
+
+        internal override NamedTypeSymbol LookupDeclaredOrForwardedTopLevelMetadataType(ref MetadataTypeName emittedName, ConsList<AssemblySymbol>? visitedAssemblies)
         {
-            var result = this.moduleSymbol.LookupTopLevelMetadataType(ref emittedName);
-            Debug.Assert(result is MissingMetadataTypeSymbol);
-            return result;
+            return new MissingMetadataTypeSymbol.TopLevel(this.moduleSymbol, ref emittedName);
         }
 
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal override NamedTypeSymbol? LookupDeclaredTopLevelMetadataType(ref MetadataTypeName emittedName)
         {
-            throw ExceptionUtilities.Unreachable;
+            return null;
+        }
+
+#nullable disable
+
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
+        {
+            throw ExceptionUtilities.Unreachable();
         }
 
         internal override bool AreInternalsVisibleToThisAssembly(AssemblySymbol other)
@@ -183,6 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return SpecializedCollections.EmptyEnumerable<ImmutableArray<byte>>();
         }
 
+        internal override IEnumerable<string> GetInternalsVisibleToAssemblyNames()
+        {
+            return SpecializedCollections.EmptyEnumerable<string>();
+        }
+
         public override bool MightContainExtensionMethods
         {
             get
@@ -191,11 +207,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override TypeConversions TypeConversions => CorLibrary.TypeConversions;
+
         public override AssemblyMetadata GetMetadata() => null;
 
         internal sealed override IEnumerable<NamedTypeSymbol> GetAllTopLevelForwardedTypes()
         {
             return SpecializedCollections.EmptyEnumerable<NamedTypeSymbol>();
+        }
+
+#nullable enable
+        internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
         }
     }
 }

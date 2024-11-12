@@ -6,6 +6,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Build and add synthesized attributes for this symbol.
         ''' </summary>
-        Friend Overridable Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Friend Overridable Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
         End Sub
 
         ''' <summary>
@@ -155,6 +156,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 kind = ObsoleteAttributeKind.Obsolete
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.DeprecatedAttribute) Then
                 kind = ObsoleteAttributeKind.Deprecated
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.WindowsExperimentalAttribute) Then
+                kind = ObsoleteAttributeKind.WindowsExperimental
             ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ExperimentalAttribute) Then
                 kind = ObsoleteAttributeKind.Experimental
             Else
@@ -195,8 +198,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MarkEmbeddedAttributeTypeReference(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation)
             ReportExtensionAttributeUseSiteInfo(arguments.Attribute, arguments.AttributeSyntaxOpt, compilation, DirectCast(arguments.Diagnostics, BindingDiagnosticBag))
 
-            If arguments.Attribute.IsTargetAttribute(Me, AttributeDescription.SkipLocalsInitAttribute) Then
+            If arguments.Attribute.IsTargetAttribute(AttributeDescription.SkipLocalsInitAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_AttributeNotSupportedInVB, arguments.AttributeSyntaxOpt.Location, AttributeDescription.SkipLocalsInitAttribute.FullName)
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.CompilerFeatureRequiredAttribute) Then
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseCompilerFeatureRequired, arguments.AttributeSyntaxOpt.Location)
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.RequiredMemberAttribute) Then
+                DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_DoNotUseRequiredMember, arguments.AttributeSyntaxOpt.Location)
+            ElseIf arguments.Attribute.IsTargetAttribute(AttributeDescription.ExperimentalAttribute) Then
+                If Not SyntaxFacts.IsValidIdentifier(DirectCast(arguments.Attribute.CommonConstructorArguments(0).ValueInternal, String)) Then
+                    Dim attrArgumentLocation = VisualBasicAttributeData.GetFirstArgumentLocation(arguments.AttributeSyntaxOpt)
+                    DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_InvalidExperimentalDiagID, attrArgumentLocation)
+                End If
             End If
         End Sub
 
@@ -383,12 +395,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Return explicitTarget = symbolPart
             End If
-        End Function
-
-        Private Shared Function GetAttributesToBind(attributeBlockSyntaxList As SyntaxList(Of AttributeListSyntax)) As ImmutableArray(Of AttributeSyntax)
-            Dim attributeSyntaxBuilder As ArrayBuilder(Of AttributeSyntax) = Nothing
-            GetAttributesToBind(attributeBlockSyntaxList, attributeSyntaxBuilder)
-            Return If(attributeSyntaxBuilder IsNot Nothing, attributeSyntaxBuilder.ToImmutableAndFree(), ImmutableArray(Of AttributeSyntax).Empty)
         End Function
 
         Friend Shared Sub GetAttributesToBind(attributeBlockSyntaxList As SyntaxList(Of AttributeListSyntax), ByRef attributeSyntaxBuilder As ArrayBuilder(Of AttributeSyntax))
@@ -618,13 +624,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary>
-        ''' Ensure that attributes are bound and the ObsoleteState of this symbol is known.
+        ''' Ensure that attributes are bound and the ObsoleteState/ExperimentalState of this symbol is known.
         ''' </summary>
         Friend Sub ForceCompleteObsoleteAttribute()
-            If Me.ObsoleteState = ThreeState.Unknown Then
+            If Me.ObsoleteKind = ObsoleteAttributeKind.Uninitialized Then
                 Me.GetAttributes()
             End If
             Debug.Assert(Me.ObsoleteState <> ThreeState.Unknown, "ObsoleteState should be true or false now.")
+            Debug.Assert(Me.ExperimentalState <> ThreeState.Unknown, "ExperimentalState should be true or false now.")
+
+            Me.ContainingSymbol?.ForceCompleteObsoleteAttribute()
         End Sub
     End Class
 End Namespace

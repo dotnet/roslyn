@@ -2,49 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeStyle
+namespace Microsoft.CodeAnalysis.CodeStyle;
+
+internal readonly partial record struct NotificationOption2
 {
-    internal sealed partial class NotificationOption2
-    {
-        [return: NotNullIfNotNull("notificationOption")]
-        public static explicit operator NotificationOption2?(NotificationOption? notificationOption)
+    public static explicit operator NotificationOption(NotificationOption2 notificationOption)
+        => notificationOption.Severity switch
         {
-            if (notificationOption is null)
-            {
-                return null;
-            }
+            ReportDiagnostic.Suppress => NotificationOption.None,
+            ReportDiagnostic.Hidden => NotificationOption.Silent,
+            ReportDiagnostic.Info => NotificationOption.Suggestion,
+            ReportDiagnostic.Warn => NotificationOption.Warning,
+            ReportDiagnostic.Error => NotificationOption.Error,
+            _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity),
+        };
+}
 
-            return notificationOption.Severity switch
-            {
-                ReportDiagnostic.Suppress => None,
-                ReportDiagnostic.Hidden => Silent,
-                ReportDiagnostic.Info => Suggestion,
-                ReportDiagnostic.Warn => Warning,
-                ReportDiagnostic.Error => Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity),
-            };
-        }
-
-        [return: NotNullIfNotNull("notificationOption")]
-        public static explicit operator NotificationOption?(NotificationOption2? notificationOption)
+internal static partial class Extensions
+{
+    public static string GetDisplayString(this ReportDiagnostic severity)
+        => severity switch
         {
-            if (notificationOption is null)
-            {
-                return null;
-            }
-
-            return notificationOption.Severity switch
-            {
-                ReportDiagnostic.Suppress => NotificationOption.None,
-                ReportDiagnostic.Hidden => NotificationOption.Silent,
-                ReportDiagnostic.Info => NotificationOption.Suggestion,
-                ReportDiagnostic.Warn => NotificationOption.Warning,
-                ReportDiagnostic.Error => NotificationOption.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(notificationOption.Severity),
-            };
-        }
-    }
+            ReportDiagnostic.Suppress => WorkspacesResources.None,
+            ReportDiagnostic.Hidden => WorkspacesResources.Refactoring_Only,
+            ReportDiagnostic.Info => WorkspacesResources.Suggestion,
+            ReportDiagnostic.Warn => WorkspacesResources.Warning,
+            ReportDiagnostic.Error => WorkspacesResources.Error,
+            _ => throw ExceptionUtilities.UnexpectedValue(severity)
+        };
 }

@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -32,7 +31,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         internal CodeModelState State { get; }
 
-        internal CodeModelProjectCache(IThreadingContext threadingContext, ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, ProjectCodeModelFactory projectFactory, IServiceProvider serviceProvider, HostLanguageServices languageServices, VisualStudioWorkspace workspace)
+        internal CodeModelProjectCache(
+            IThreadingContext threadingContext,
+            ProjectId projectId,
+            ICodeModelInstanceFactory codeModelInstanceFactory,
+            ProjectCodeModelFactory projectFactory,
+            IServiceProvider serviceProvider,
+            Microsoft.CodeAnalysis.Host.LanguageServices languageServices,
+            VisualStudioWorkspace workspace)
         {
             State = new CodeModelState(threadingContext, serviceProvider, languageServices, workspace, projectFactory);
             _projectId = projectId;
@@ -100,8 +106,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
 
             // Check that we know about this file!
-            var documentId = State.Workspace.CurrentSolution.GetDocumentIdsWithFilePath(filePath).Where(id => id.ProjectId == _projectId).FirstOrDefault();
-            if (documentId == null)
+            var solution = State.Workspace.CurrentSolution;
+            var documentId = solution.GetDocumentIdsWithFilePath(filePath).Where(id => id.ProjectId == _projectId).FirstOrDefault();
+            if (documentId == null || solution.GetDocument(documentId) == null)
             {
                 // Matches behavior of native (C#) implementation
                 throw Exceptions.ThrowENotImpl();
@@ -140,10 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEUnexpected();
             }
 
-            if (_rootCodeModel == null)
-            {
-                _rootCodeModel = RootCodeModel.Create(State, parent, _projectId);
-            }
+            _rootCodeModel ??= RootCodeModel.Create(State, parent, _projectId);
 
             return _rootCodeModel;
         }
@@ -197,10 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
             }
 
-            if (comHandle != null)
-            {
-                comHandle.Value.Object.Shutdown();
-            }
+            comHandle?.Object.Shutdown();
         }
 
         public void OnSourceFileRenaming(string oldFileName, string newFileName)

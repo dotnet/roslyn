@@ -4,7 +4,9 @@
 
 #nullable disable
 
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -13,6 +15,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 {
+    using static CSharpSyntaxTokens;
+    using static SyntaxFactory;
+
     [UseExportProvider]
     public class AddAttributesTests
     {
@@ -26,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
+                    metadataReferences: [NetFramework.mscorlib]));
 
             return emptyProject.AddDocument("test.cs", code);
         }
@@ -34,16 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
         private static async Task TestAsync(string initialText, string attributeAddedText)
         {
             var doc = GetDocument(initialText);
-            var options = await doc.GetOptionsAsync();
 
             var attributeList =
-                SyntaxFactory.AttributeList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Attribute(
-                            SyntaxFactory.IdentifierName("System.Reflection.AssemblyVersion(\"1.0.0.0\")"))))
+                AttributeList(
+                    [Attribute(
+                        IdentifierName("System.Reflection.AssemblyVersion(\"1.0.0.0\")"))])
                 .WithTarget(
-                    SyntaxFactory.AttributeTargetSpecifier(
-                        SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)));
+                    AttributeTargetSpecifier(
+                        AssemblyKeyword));
 
             var syntaxRoot = await doc.GetSyntaxRootAsync();
             var editor = await DocumentEditor.CreateAsync(doc);
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 
             if (attributeAddedText != null)
             {
-                var formatted = await Formatter.FormatAsync(changedDoc, SyntaxAnnotation.ElasticAnnotation, options);
+                var formatted = await Formatter.FormatAsync(changedDoc, SyntaxAnnotation.ElasticAnnotation, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
                 var actualText = (await formatted.GetTextAsync()).ToString();
 
                 Assert.Equal(attributeAddedText, actualText);

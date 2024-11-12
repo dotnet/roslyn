@@ -714,10 +714,58 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (4,17): error CS1988: Async methods cannot have ref, in or out parameters
                 //     D d = async delegate { };
-                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate"),
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "delegate").WithLocation(4, 17),
                 // (4,17): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     D d = async delegate { };
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "delegate").WithLocation(4, 17));
+        }
+
+        [Fact]
+        public void AnonymousMethodWithRefParameter()
+        {
+            var source =
+@"delegate void D(ref int x);
+class C
+{
+    D d = delegate { };
+}";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var anonymousMethod = root.DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+
+            Assert.Equal("delegate { }", anonymousMethod.ToString());
+            var parameter = model.GetSymbolInfo(anonymousMethod).Symbol.GetParameters()[0];
+            Assert.Equal("ref System.Int32 <p0>", parameter.ToTestDisplayString());
+            Assert.Equal(RefKind.Ref, parameter.RefKind);
+        }
+
+        [Fact]
+        public void AnonymousMethodWithOutParameter()
+        {
+            var source =
+@"delegate void D(out int x);
+class C
+{
+    D d = delegate { };
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,11): error CS1688: Cannot convert anonymous method block without a parameter list to delegate type 'D' because it has one or more out parameters
+                //     D d = delegate { };
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethNoParams, "delegate").WithArguments("D").WithLocation(4, 11));
+
+            var syntaxTree = comp.SyntaxTrees.Single();
+            var root = syntaxTree.GetRoot();
+            var model = comp.GetSemanticModel(syntaxTree);
+
+            var anonymousMethod = root.DescendantNodes().OfType<AnonymousMethodExpressionSyntax>().Single();
+
+            Assert.Equal("delegate { }", anonymousMethod.ToString());
+            Assert.Empty(model.GetSymbolInfo(anonymousMethod).Symbol.GetParameters());
         }
 
         [Fact]
@@ -725,7 +773,7 @@ class C
         {
             var source = @"delegate ref int D();";
 
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -742,7 +790,7 @@ class C
         {
             var source = @"delegate ref readonly int D(in int arg);";
 
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -772,7 +820,7 @@ class C
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(new SyntaxTree[] { tree }).VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -789,6 +837,36 @@ class C
             Assert.False(lambda.ReturnsByRef);
             Assert.True(lambda.ReturnsByRefReadonly);
             Assert.Equal(RefKind.In, lambda.Parameters[0].RefKind);
+        }
+
+        [Fact]
+        public void PartialPublicDelegate()
+        {
+            CreateCompilation("partial public delegate void M();").VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial public delegate void M();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                // (1,30): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial public delegate void M();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "M").WithLocation(1, 30));
+        }
+
+        [Fact]
+        public void PublicPartialDelegate()
+        {
+            CreateCompilation("public partial delegate void M();").VerifyDiagnostics(
+                // (1,30): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // public partial delegate void M();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "M").WithLocation(1, 30));
+        }
+
+        [Fact]
+        public void PartialDelegate()
+        {
+            CreateCompilation("public partial delegate void M();").VerifyDiagnostics(
+                // (1,30): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // public partial delegate void M();
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "M").WithLocation(1, 30));
         }
     }
 }

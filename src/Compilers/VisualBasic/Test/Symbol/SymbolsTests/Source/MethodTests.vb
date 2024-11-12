@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -1421,7 +1422,6 @@ Interface Interface1
     Overloads Sub Banana(x as integer)
 End Interface
     </file>
-
 </compilation>)
             ' "Overloads" specified, so all methods should match methods in base
             Dim interface1 = compilation.GetTypeByMetadataName("Interface1")
@@ -1463,7 +1463,6 @@ Interface Interface1
     Overloads Sub Banana(x as integer)
 End Interface
     </file>
-
 </compilation>)
             ' "Overloads" specified, but base methods have multiple casing, so don't use it.
             Dim interface1 = compilation.GetTypeByMetadataName("Interface1")
@@ -1591,7 +1590,7 @@ Module M2
 
 End Module
 ]]></file>
-</compilation>, references:={TestMetadata.Net40.SystemCore, TestMetadata.Net40.System}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
+</compilation>, references:={Net40.References.SystemCore, Net40.References.System}, options:=TestOptions.ReleaseDll.WithGlobalImports(GlobalImport.Parse("AnExt=System.Runtime.CompilerServices.ExtensionAttribute")))
 
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             Dim sourceMod = DirectCast(compilation.SourceModule, SourceModuleSymbol)
@@ -1657,7 +1656,6 @@ End Module
             Dim badext6 = DirectCast(modM2.GetMembers("badext6").Single(), MethodSymbol)
             Assert.False(badext6.IsExtensionMethod)
             Assert.True(badext6.MayBeReducibleExtensionMethod)
-
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
                                                <expected>

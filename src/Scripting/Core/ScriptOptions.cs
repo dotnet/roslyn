@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Specifies the encoding to be used when debugging scripts loaded from a file, or saved to a file for debugging purposes.
         /// If it's null, the compiler will attempt to detect the necessary encoding for debugging
         /// </summary>
-        public Encoding FileEncoding { get; private set; }
+        public Encoding? FileEncoding { get; private set; }
 
         /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
@@ -139,7 +138,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public int WarningLevel { get; private set; }
 
-        internal ParseOptions ParseOptions { get; private set; }
+        internal ParseOptions? ParseOptions { get; private set; }
+
+        internal Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> CreateFromFileFunc { get; private set; }
 
         internal ScriptOptions(
             string filePath,
@@ -148,12 +149,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             MetadataReferenceResolver metadataResolver,
             SourceReferenceResolver sourceResolver,
             bool emitDebugInformation,
-            Encoding fileEncoding,
+            Encoding? fileEncoding,
             OptimizationLevel optimizationLevel,
             bool checkOverflow,
             bool allowUnsafe,
             int warningLevel,
-            ParseOptions parseOptions)
+            ParseOptions? parseOptions,
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
         {
             Debug.Assert(filePath != null);
             Debug.Assert(!references.IsDefault);
@@ -173,6 +175,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             AllowUnsafe = allowUnsafe;
             WarningLevel = warningLevel;
             ParseOptions = parseOptions;
+            CreateFromFileFunc = createFromFileFunc ?? Script.CreateFromFile;
         }
 
         private ScriptOptions(ScriptOptions other)
@@ -187,7 +190,8 @@ namespace Microsoft.CodeAnalysis.Scripting
                    checkOverflow: other.CheckOverflow,
                    allowUnsafe: other.AllowUnsafe,
                    warningLevel: other.WarningLevel,
-                   parseOptions: other.ParseOptions)
+                   parseOptions: other.ParseOptions,
+                   createFromFileFunc: other.CreateFromFileFunc)
         {
         }
 
@@ -198,195 +202,196 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the <see cref="FilePath"/> changed.
         /// </summary>
-        public ScriptOptions WithFilePath(string filePath) =>
-            (FilePath == filePath) ? this : new ScriptOptions(this) { FilePath = filePath ?? "" };
+        public ScriptOptions WithFilePath(string? filePath)
+            => (FilePath == filePath) ? this : new ScriptOptions(this) { FilePath = filePath ?? "" };
 
-        private static MetadataReference CreateUnresolvedReference(string reference) =>
-            new UnresolvedMetadataReference(reference, s_assemblyReferenceProperties);
-
-        /// <summary>
-        /// Creates a new <see cref="ScriptOptions"/> with the references changed.
-        /// </summary>
-        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
-        private ScriptOptions WithReferences(ImmutableArray<MetadataReference> references) =>
-            MetadataReferences.Equals(references) ? this : new ScriptOptions(this) { MetadataReferences = CheckImmutableArray(references, nameof(references)) };
+        private static MetadataReference CreateUnresolvedReference(string reference)
+            => new UnresolvedMetadataReference(reference, s_assemblyReferenceProperties);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithReferences(IEnumerable<MetadataReference> references) =>
-            WithReferences(ToImmutableArrayChecked(references, nameof(references)));
+        private ScriptOptions WithReferences(ImmutableArray<MetadataReference> references)
+            => MetadataReferences.Equals(references) ? this : new ScriptOptions(this) { MetadataReferences = CheckImmutableArray(references, nameof(references)) };
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithReferences(params MetadataReference[] references) =>
-            WithReferences((IEnumerable<MetadataReference>)references);
+        public ScriptOptions WithReferences(IEnumerable<MetadataReference> references)
+            => WithReferences(ToImmutableArrayChecked(references, nameof(references)));
+
+        /// <summary>
+        /// Creates a new <see cref="ScriptOptions"/> with the references changed.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
+        public ScriptOptions WithReferences(params MetadataReference[] references)
+            => WithReferences((IEnumerable<MetadataReference>)references);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
-        public ScriptOptions AddReferences(IEnumerable<MetadataReference> references) =>
-            WithReferences(ConcatChecked(MetadataReferences, references, nameof(references)));
+        public ScriptOptions AddReferences(IEnumerable<MetadataReference> references)
+            => WithReferences(ConcatChecked(MetadataReferences, references, nameof(references)));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
-        public ScriptOptions AddReferences(params MetadataReference[] references) =>
-            AddReferences((IEnumerable<MetadataReference>)references);
+        public ScriptOptions AddReferences(params MetadataReference[] references)
+            => AddReferences((IEnumerable<MetadataReference>)references);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
-        public ScriptOptions WithReferences(IEnumerable<Assembly> references) =>
-            WithReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
+        public ScriptOptions WithReferences(IEnumerable<Assembly> references)
+            => WithReferences(SelectChecked(references, nameof(references), CreateFromAssembly));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
-        public ScriptOptions WithReferences(params Assembly[] references) =>
-            WithReferences((IEnumerable<Assembly>)references);
+        public ScriptOptions WithReferences(params Assembly[] references)
+            => WithReferences((IEnumerable<Assembly>)references);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
-        public ScriptOptions AddReferences(IEnumerable<Assembly> references) =>
-            AddReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
+        public ScriptOptions AddReferences(IEnumerable<Assembly> references)
+            => AddReferences(SelectChecked(references, nameof(references), CreateFromAssembly));
 
-        private static MetadataReference CreateReferenceFromAssembly(Assembly assembly)
-        {
-            return MetadataReference.CreateFromAssemblyInternal(assembly, s_assemblyReferenceProperties);
-        }
+        private MetadataImageReference CreateFromAssembly(Assembly assembly) =>
+            Script.CreateFromAssembly(assembly, s_assemblyReferenceProperties, CreateFromFileFunc);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
-        public ScriptOptions AddReferences(params Assembly[] references) =>
-            AddReferences((IEnumerable<Assembly>)references);
+        public ScriptOptions AddReferences(params Assembly[] references)
+            => AddReferences((IEnumerable<Assembly>)references);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithReferences(IEnumerable<string> references) =>
-            WithReferences(SelectChecked(references, nameof(references), CreateUnresolvedReference));
+        public ScriptOptions WithReferences(IEnumerable<string> references)
+            => WithReferences(SelectChecked(references, nameof(references), CreateUnresolvedReference));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithReferences(params string[] references) =>
-            WithReferences((IEnumerable<string>)references);
+        public ScriptOptions WithReferences(params string[] references)
+            => WithReferences((IEnumerable<string>)references);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
-        public ScriptOptions AddReferences(IEnumerable<string> references) =>
-            AddReferences(SelectChecked(references, nameof(references), CreateUnresolvedReference));
+        public ScriptOptions AddReferences(IEnumerable<string> references)
+            => AddReferences(SelectChecked(references, nameof(references), CreateUnresolvedReference));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
         /// </summary>
-        public ScriptOptions AddReferences(params string[] references) =>
-            AddReferences((IEnumerable<string>)references);
+        public ScriptOptions AddReferences(params string[] references)
+            => AddReferences((IEnumerable<string>)references);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="MetadataResolver"/>.
         /// </summary>
-        public ScriptOptions WithMetadataResolver(MetadataReferenceResolver resolver) =>
-            MetadataResolver == resolver ? this : new ScriptOptions(this) { MetadataResolver = resolver };
+        public ScriptOptions WithMetadataResolver(MetadataReferenceResolver resolver)
+            => MetadataResolver == resolver ? this : new ScriptOptions(this) { MetadataResolver = resolver };
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="SourceResolver"/>.
         /// </summary>
-        public ScriptOptions WithSourceResolver(SourceReferenceResolver resolver) =>
-            SourceResolver == resolver ? this : new ScriptOptions(this) { SourceResolver = resolver };
+        public ScriptOptions WithSourceResolver(SourceReferenceResolver resolver)
+            => SourceResolver == resolver ? this : new ScriptOptions(this) { SourceResolver = resolver };
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
-        private ScriptOptions WithImports(ImmutableArray<string> imports) =>
-            Imports.Equals(imports) ? this : new ScriptOptions(this) { Imports = CheckImmutableArray(imports, nameof(imports)) };
+        private ScriptOptions WithImports(ImmutableArray<string> imports)
+            => Imports.Equals(imports) ? this : new ScriptOptions(this) { Imports = CheckImmutableArray(imports, nameof(imports)) };
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithImports(IEnumerable<string> imports) =>
-            WithImports(ToImmutableArrayChecked(imports, nameof(imports)));
+        public ScriptOptions WithImports(IEnumerable<string> imports)
+            => WithImports(ToImmutableArrayChecked(imports, nameof(imports)));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the <see cref="Imports"/> changed.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
-        public ScriptOptions WithImports(params string[] imports) =>
-            WithImports((IEnumerable<string>)imports);
+        public ScriptOptions WithImports(params string[] imports)
+            => WithImports((IEnumerable<string>)imports);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with <see cref="Imports"/> added.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
-        public ScriptOptions AddImports(IEnumerable<string> imports) =>
-            WithImports(ConcatChecked(Imports, imports, nameof(imports)));
+        public ScriptOptions AddImports(IEnumerable<string> imports)
+            => WithImports(ConcatChecked(Imports, imports, nameof(imports)));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with <see cref="Imports"/> added.
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="imports"/> is null or contains a null reference.</exception>
-        public ScriptOptions AddImports(params string[] imports) =>
-            AddImports((IEnumerable<string>)imports);
+        public ScriptOptions AddImports(params string[] imports)
+            => AddImports((IEnumerable<string>)imports);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with debugging information enabled.
         /// </summary>
-        public ScriptOptions WithEmitDebugInformation(bool emitDebugInformation) =>
-            emitDebugInformation == EmitDebugInformation ? this : new ScriptOptions(this) { EmitDebugInformation = emitDebugInformation };
+        public ScriptOptions WithEmitDebugInformation(bool emitDebugInformation)
+            => emitDebugInformation == EmitDebugInformation ? this : new ScriptOptions(this) { EmitDebugInformation = emitDebugInformation };
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with specified <see cref="FileEncoding"/>.
         /// </summary>
-        public ScriptOptions WithFileEncoding(Encoding encoding) =>
-            encoding == FileEncoding ? this : new ScriptOptions(this) { FileEncoding = encoding };
+        public ScriptOptions WithFileEncoding(Encoding encoding)
+            => encoding == FileEncoding ? this : new ScriptOptions(this) { FileEncoding = encoding };
 
         /// <summary>
         /// Create a new <see cref="ScriptOptions"/> with the specified <see cref="OptimizationLevel"/>.
         /// </summary>
         /// <returns></returns>
-        public ScriptOptions WithOptimizationLevel(OptimizationLevel optimizationLevel) =>
-            optimizationLevel == OptimizationLevel ? this : new ScriptOptions(this) { OptimizationLevel = optimizationLevel };
+        public ScriptOptions WithOptimizationLevel(OptimizationLevel optimizationLevel)
+            => optimizationLevel == OptimizationLevel ? this : new ScriptOptions(this) { OptimizationLevel = optimizationLevel };
 
         /// <summary>
         /// Create a new <see cref="ScriptOptions"/> with unsafe code regions allowed.
         /// </summary>
-        public ScriptOptions WithAllowUnsafe(bool allowUnsafe) =>
-            allowUnsafe == AllowUnsafe ? this : new ScriptOptions(this) { AllowUnsafe = allowUnsafe };
+        public ScriptOptions WithAllowUnsafe(bool allowUnsafe)
+            => allowUnsafe == AllowUnsafe ? this : new ScriptOptions(this) { AllowUnsafe = allowUnsafe };
 
         /// <summary>
         /// Create a new <see cref="ScriptOptions"/> with bounds checking on integer arithmetic enforced.
         /// </summary>
-        public ScriptOptions WithCheckOverflow(bool checkOverflow) =>
-            checkOverflow == CheckOverflow ? this : new ScriptOptions(this) { CheckOverflow = checkOverflow };
+        public ScriptOptions WithCheckOverflow(bool checkOverflow)
+            => checkOverflow == CheckOverflow ? this : new ScriptOptions(this) { CheckOverflow = checkOverflow };
 
         /// <summary>
         /// Create a new <see cref="ScriptOptions"/> with the specific <see cref="WarningLevel"/>.
         /// </summary>
-        public ScriptOptions WithWarningLevel(int warningLevel) =>
-            warningLevel == WarningLevel ? this : new ScriptOptions(this) { WarningLevel = warningLevel };
+        public ScriptOptions WithWarningLevel(int warningLevel)
+            => warningLevel == WarningLevel ? this : new ScriptOptions(this) { WarningLevel = warningLevel };
 
-        internal ScriptOptions WithParseOptions(ParseOptions parseOptions) =>
-            parseOptions == ParseOptions ? this : new ScriptOptions(this) { ParseOptions = parseOptions };
+        internal ScriptOptions WithParseOptions(ParseOptions parseOptions)
+            => parseOptions == ParseOptions ? this : new ScriptOptions(this) { ParseOptions = parseOptions };
+
+        internal ScriptOptions WithCreateFromFileFunc(Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> createFromFileFunc)
+            => new ScriptOptions(this) { CreateFromFileFunc = createFromFileFunc };
     }
 }

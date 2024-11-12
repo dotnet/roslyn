@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -31,7 +31,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
 
@@ -44,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected readonly ISyntaxFactsService SyntaxFactsService;
 
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
         private readonly AbstractNodeNameGenerator _nodeNameGenerator;
         private readonly AbstractNodeLocator _nodeLocator;
         private readonly AbstractCodeModelEventCollector _eventCollector;
@@ -56,18 +55,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
+            EditorOptionsService editorOptionsService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             AbstractFormattingRule lineAdjustmentFormattingRule,
             AbstractFormattingRule endRegionFormattingRule,
             IThreadingContext threadingContext)
         {
             RoslynDebug.AssertNotNull(languageServiceProvider);
-            RoslynDebug.AssertNotNull(editorOptionsFactoryService);
+            RoslynDebug.AssertNotNull(editorOptionsService);
 
             this.SyntaxFactsService = languageServiceProvider.GetRequiredService<ISyntaxFactsService>();
 
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
             _lineAdjustmentFormattingRule = lineAdjustmentFormattingRule;
             _endRegionFormattingRule = endRegionFormattingRule;
             _threadingContext = threadingContext;
@@ -78,7 +77,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         protected string GetNewLineCharacter(SourceText text)
-            => _editorOptionsFactoryService.GetEditorOptions(text).GetNewLineCharacter();
+        {
+            var textBuffer = text.Container.TryGetTextBuffer();
+            var editorOptions = (textBuffer != null) ? _editorOptionsService.Factory.GetOptions(textBuffer) : _editorOptionsService.Factory.GlobalOptions;
+            return editorOptions.GetNewLineCharacter();
+        }
 
         protected SyntaxToken GetTokenWithoutAnnotation(SyntaxToken current, Func<SyntaxToken, SyntaxToken> nextTokenGetter)
         {
@@ -474,7 +477,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract EnvDTE.CodeElement CreateUnknownCodeElement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node);
         public abstract EnvDTE.CodeElement CreateUnknownRootNamespaceCodeElement(CodeModelState state, FileCodeModel fileCodeModel);
 
-        [return: NotNullIfNotNull("name")]
+        [return: NotNullIfNotNull(nameof(name))]
         public abstract string? GetUnescapedName(string? name);
 
         public abstract string GetName(SyntaxNode node);
@@ -520,10 +523,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract string GetExternalSymbolName(ISymbol symbol);
         public abstract string GetExternalSymbolFullName(ISymbol symbol);
 
-        public VirtualTreePoint? GetStartPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetStartPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
             => _nodeLocator.GetStartPoint(node, options, part);
 
-        public VirtualTreePoint? GetEndPoint(SyntaxNode node, OptionSet options, EnvDTE.vsCMPart? part)
+        public VirtualTreePoint? GetEndPoint(SyntaxNode node, LineFormattingOptions options, EnvDTE.vsCMPart? part)
             => _nodeLocator.GetEndPoint(node, options, part);
 
         public abstract EnvDTE.vsCMAccess GetAccess(ISymbol symbol);
@@ -1039,11 +1042,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             return _threadingContext.JoinableTaskFactory.Run(async () =>
             {
-                var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 return await Formatter.FormatAsync(
                     document,
-                    new TextSpan[] { formattingSpan },
+                    [formattingSpan],
                     options,
                     formattingRules,
                     cancellationToken).ConfigureAwait(false);
@@ -1083,13 +1086,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!batchMode)
             {
-                document = _threadingContext.JoinableTaskFactory.Run(() =>
-                    Simplifier.ReduceAsync(
-                        document,
-                        annotation,
-                        optionSet: null,
-                        cancellationToken: cancellationToken)
-                );
+                document = _threadingContext.JoinableTaskFactory.Run(async () =>
+                {
+                    var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    return await Simplifier.ReduceAsync(document, annotation, simplifierOptions, cancellationToken).ConfigureAwait(false);
+                });
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);

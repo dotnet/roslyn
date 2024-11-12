@@ -53,6 +53,9 @@ Highlight references to symbol under cursor;
 Highlight related keywords under cursor;
 Outlining;
 Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse usings on file open;
+Collapse metadata implementations on file open;
 Show procedure line separators;
 Show outlining for declaration level constructs;
 Show outlining for code level constructs;
@@ -91,55 +94,66 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">再割り当てされる変数に下線を引く;
-インラインのヒントを表示する;
-閉じているファイルの診断結果を表示する;
-正規表現をカラー化する;
-カーソルの下にある関連コンポーネントを強調表示する;
-無効な正規表現を報告する;
-完全ソリューション解析を有効にする;
-外部プロセスでエディター機能解析を実行する;
-逆コンパイルされたソースへのナビゲーションを有効にする;
-ディレクティブを使用する;
-using を並べ替える際に、system ディレクティブを先頭に配置する;
-using ディレクティブ グループを分離する;
-参照アセンブリの型に using を提案する;
-NuGet パッケージの型に using を提案する;
-強調表示;
-カーソルの下にあるシンボルへの参照を強調表示する;
-カーソルの下にある関連キーワードを強調表示する;
-アウトライン;
-ファイルを開くときにアウトライン モードに入る;
-プロシージャ行の区切り記号を表示する;
-宣言レベルのコンストラクトのアウトラインを表示する;
-コード レベルのコンストラクトのアウトラインを表示する;
-コメントとプリプロセッサ領域のアウトラインを表示する;
-定義を折りたたむときに regions を折りたたむ;
-フェード;
-未使用の using をフェードアウトする;
-到達できないコードをフェードアウトする;
-ブロック構造のガイド;
-宣言レベルのコンストラクトのガイドを表示する;
-コード レベルのコンストラクトのガイドを表示する;
-エディターのヘルプ;
-/// が入力されたとき、XML ドキュメント コメントを生成する;
-/* */ コメントを記述する際、新しい行の先頭に * を挿入する;
-名前変更追跡のプレビューを表示する;
-Enter で文字列リテラルを分割する;
-string.Format の呼び出しで無効なプレースホルダーをレポートする;
-メソッドを抽出する;
-カスタム構造体に ref または out を設定しない;
-インターフェイスまたは抽象クラスを実装する;
-プロパティ、イベント、メソッドを挿入する際には、次の場所に挿入する;
-同じ種類の他のメンバーと共に;
-末尾;
-プロパティの生成時;
-スロー プロパティを優先する;
-自動プロパティを優先する;
-RegEx;
-正規表現;
-拡張された色を使用する;
-エディターの配色;
+        <target state="translated">再割り当てされた変数に下線を引く; 
+インラインのヒントを表示する; 
+閉じているファイルの診断結果を表示する; 
+正規表現をカラー化する; 
+カーソルの下にある関連コンポーネントを強調表示する; 
+無効な正規表現を報告する; 
+完全ソリューション解析を有効にする; 
+外部プロセスでエディター機能解析を実行する; 
+逆コンパイルされたソースへのナビゲーションを有効にする; 
+ナビゲーションには常に既定のシンボル サーバーを使用する; 
+using ディレクティブ; 
+using を並べ替える際に、システム ディレクティブを先頭に配置する; 
+using ディレクティブ グループを分離する; 
+参照アセンブリの型に using を提案する; 
+NuGet パッケージの型に using を提案する; 
+強調表示; 
+カーソルの下にあるシンボルへの参照を強調表示する; 
+カーソルの下にある関連キーワードを強調表示する; 
+アウトライン; 
+ファイルを開くときにアウトライン モードを入力する; 
+ファイルを開くときに #regionsを折りたたむ; 
+ファイルを開くときに usings を折りたたむ; 
+ファイルを開くときにメタデータを折りたたむ; 
+プロシージャ行の区切り記号を表示する; 
+宣言レベルのコンストラクトのアウトラインを表示する; 
+コード レベルのコンストラクトのアウトラインを表示する; 
+コメントとプリプロセッサ リージョンのアウトラインを表示する; 
+定義を折りたたむときにリージョンを折りたたむ; 
+フェード中; 
+未使用の using をフェードアウトする; 
+到達できないコードをフェードアウトする; 
+ブロック構造のガイド; 
+宣言レベルのコンストラクトのガイドを表示する; 
+コード レベルのコンストラクトのガイドを表示する; 
+エディターのヘルプ; 
+/// の XML ドキュメント コメントを生成する; 
+/* */ コメントを記述する際、新しい行の先頭に * を挿入する; 
+名前変更追跡のプレビューを表示する; 
+Enter で文字列リテラルを分割する; 
+string.Format の呼び出しで無効なプレースホルダーをレポートする; 
+メソッドを抽出する; 
+カスタム構造体に ref または out を設定しない; 
+インターフェイスまたは抽象クラスを実装する; 
+プロパティ、イベント、メソッドを挿入する際には、次の場所に挿入する; 
+同じ種類の他のメンバーと共に; 
+末尾; 
+プロパティの生成時; 
+スロー プロパティを優先する; 
+自動プロパティを優先する; 
+RegEx; 
+正規表現; 
+正規表現の色付け; 
+カーソルの下の関連コンポーネントの強調表示; 
+無効な正規表現の報告; 
+JSON; 
+JSON 文字列の色付け; 
+無効な JSON 文字列の報告; 
+JSON 文字列のエディター機能の検出と提供; 
+拡張された色を使用する; 
+エディターの配色; 
 継承余白;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
@@ -396,14 +410,39 @@ Enter キーで常に新しい行を追加する;
         <target state="translated">IDE で使用する C# コンポーネント。プロジェクトの種類や設定に応じて、異なるバージョンのコンパイラを使用できます。</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">空の C# スクリプト ファイルです。</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Enter を押すと常に新しい行を追加します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Visual C# スクリプト</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">常にスニペットを含める</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default">
+        <source>Default</source>
+        <target state="translated">既定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when Tab is typed after an identifier</source>
+        <target state="translated">識別子の後に Tab を入力したときにスニペットを含める</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Enter 時に新しい行を追加しません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">スニペットを含めない</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">単語を完全に入力した後 Enter キーで新しい行のみを追加する</target>
         <note />
       </trans-unit>
     </body>

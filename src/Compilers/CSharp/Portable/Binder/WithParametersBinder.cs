@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// Binder used to place the parameters of a method, property, indexer, or delegate
-    /// in scope when binding &lt;param&gt; tags inside of XML documentation comments.
+    /// in scope when binding &lt;param&gt; tags inside of XML documentation comments
+    /// and `nameof` in certain attribute positions.
     /// </summary>
     internal sealed class WithParametersBinder : Binder
     {
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parameters = parameters;
         }
 
-        protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
+        internal override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
             if (options.CanConsiderLocals())
             {

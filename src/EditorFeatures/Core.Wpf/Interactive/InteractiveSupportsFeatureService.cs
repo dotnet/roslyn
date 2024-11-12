@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     internal sealed class InteractiveSupportsFeatureService
     {
-        [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), WorkspaceKind.Interactive), Shared]
+        [ExportWorkspaceService(typeof(ITextBufferSupportsFeatureService), [WorkspaceKind.Interactive]), Shared]
         internal class InteractiveTextBufferSupportsFeatureService : ITextBufferSupportsFeatureService
         {
             [ImportingConstructor]
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 => true;
         }
 
-        [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), WorkspaceKind.Interactive), Shared]
+        [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), [WorkspaceKind.Interactive]), Shared]
         internal class InteractiveDocumentSupportsFeatureService : IDocumentSupportsFeatureService
         {
             [ImportingConstructor]
@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public bool SupportsNavigationToAnyPosition(Document document)
                 => true;
+
+            public bool SupportsSemanticSnippets(Document document)
+                => false;
         }
     }
 }

@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Operator
 
         ''' <summary>
-        ''' Creates a <seealso cref="CommonConversion"/> from this Visual Basic conversion.
+        ''' Creates a <see cref="CommonConversion"/> from this Visual Basic conversion.
         ''' </summary>
         ''' <returns>The <see cref="CommonConversion"/> that represents this conversion.</returns>
         ''' <remarks>
@@ -239,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' from the <see cref="CommonConversion"/> struct.
         ''' </remarks>
         Public Function ToCommonConversion() As CommonConversion Implements IConvertibleConversion.ToCommonConversion
-            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, IsNullableValueType, MethodSymbol)
+            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, IsNullableValueType, MethodSymbol, constrainedToType:=Nothing)
         End Function
 
         ''' <summary>
@@ -274,6 +274,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Returns a string that represents the current object.
         ''' </summary>
         Public Overrides Function ToString() As String
+            ' Work around runtime change on Enum.ToString behavior for Flags values
+            If _convKind = ConversionKind.DelegateRelaxationLevelNone Then
+                Return "DelegateRelaxationLevelNone"
+            End If
             Return _convKind.ToString()
         End Function
     End Structure
@@ -1085,7 +1089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 leastRelaxationLevel = ConversionKind.DelegateRelaxationLevelWideningToNonLambda
 
                 ' Infer Anonymous Delegate as the target for the lambda.
-                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ImmutableBindingDiagnostic(Of AssemblySymbol)) = source.InferredAnonymousDelegate
+                Dim anonymousDelegateInfo As KeyValuePair(Of NamedTypeSymbol, ReadOnlyBindingDiagnostic(Of AssemblySymbol)) = source.InferredAnonymousDelegate
 
                 ' If we have errors for the inference, we know that there is no conversion.
                 If Not anonymousDelegateInfo.Value.Diagnostics.IsDefault AndAlso anonymousDelegateInfo.Value.Diagnostics.HasAnyErrors() Then
@@ -1108,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If source.IsInferredDelegateForThisLambda(delegateInvoke.ContainingType) Then
-                    Dim inferenceDiagnostics As ImmutableBindingDiagnostic(Of AssemblySymbol) = source.InferredAnonymousDelegate.Value
+                    Dim inferenceDiagnostics As ReadOnlyBindingDiagnostic(Of AssemblySymbol) = source.InferredAnonymousDelegate.Value
 
                     ' If we have errors for the inference, we know that there is no conversion.
                     If Not inferenceDiagnostics.Diagnostics.IsDefault AndAlso inferenceDiagnostics.Diagnostics.HasAnyErrors() Then
@@ -1522,7 +1526,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '  - No conversion
             Return conv
         End Function
-
 
         Private Shared Function ClassifyGroupTypeInferenceLambdaConversion(source As GroupTypeInferenceLambda, destination As TypeSymbol) As ConversionKind
 
@@ -2029,6 +2032,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             While candidate IsNot Nothing
                 If ConstraintsHelper.CheckConstraints(constructedSymbol:=Nothing,
+                                                      LanguageVersion.Latest, ' Classifying conversions from/to type parameters. This is meaningful only when they and their constraints are declared in source
                                                       substitution:=Nothing,
                                                       typeParameter:=typeParam,
                                                       typeArgument:=candidate,
@@ -2555,7 +2559,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ((forwardConv Or backwardConv) And ConversionKind.MightSucceedAtRuntime)
         End Function
 
-
         ''' <summary>
         ''' Helper structure to classify conversions from named types to interfaces
         ''' in accumulating fashion.
@@ -2691,7 +2694,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
         End Structure
-
 
         Private Shared Function ClassifyImmediateVarianceCompatibility(
             source As NamedTypeSymbol,
@@ -3068,7 +3070,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return conv
         End Function
-
 
         Private Shared Function ClassifyArrayConversionBasedOnElementTypes(
             srcElem As TypeSymbol,
@@ -3720,7 +3721,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-
         Private Shared Function ClassifyConversionFromTypeParameter(
             typeParameter As TypeParameterSymbol,
             destination As TypeSymbol,
@@ -4260,7 +4260,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DetermineDelegateRelaxationLevel(methodConversion)
         End Function
 
-
         ''' <summary>
         ''' Determine the relaxation level of a given conversion. This will be used by
         ''' overload resolution in case of conflict. This is to prevent applications that compiled in VB8
@@ -4291,7 +4290,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return result
         End Function
-
 
         Public Shared Function IsDelegateRelaxationSupportedFor(methodConversion As MethodConversionKind) As Boolean
             Return (methodConversion And MethodConversionKind.AllErrorReasons) = 0
@@ -4334,7 +4332,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (methodConversion And checkForBits) <> 0
         End Function
 
-
         Public Shared Function InvertConversionRequirement(restriction As RequiredConversion) As RequiredConversion
 
             Debug.Assert(RequiredConversion.Count = 8, "If you've updated the type argument inference restrictions, then please also update InvertConversionRequirement()")
@@ -4364,7 +4361,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return restriction
         End Function
 
-
         ' Strengthens the restriction to at least ReferenceRestriction or ReverseReferenceRestriction
         ' Note: AnyConversionAndReverse strengthens to Identity
         Public Shared Function StrengthenConversionRequirementToReference(restriction As RequiredConversion) As RequiredConversion
@@ -4384,7 +4380,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return restriction
             End If
         End Function
-
 
         ' Combining inference restrictions: the least upper bound of the two restrictions
         Public Shared Function CombineConversionRequirements(
@@ -4440,7 +4435,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' otherwise we've crossed chains
             Return RequiredConversion.Identity
         End Function
-
 
         Public Shared Function IsWideningConversion(conv As ConversionKind) As Boolean
             Debug.Assert(NoConversion(conv) OrElse

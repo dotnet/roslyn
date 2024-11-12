@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -923,7 +923,6 @@ End Class
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
 
-
         End Sub
 
         <Fact>
@@ -1376,7 +1375,7 @@ End Class
             Assert.Equal(TypeKind.Structure, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function System.Int32.op_Multiply(left As System.Int32, right As System.Int32) As System.Int32",
+            Assert.Equal("Function System.Int32.op_CheckedMultiply(left As System.Int32, right As System.Int32) As System.Int32",
                          semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
@@ -1723,7 +1722,6 @@ End Class
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub ImplementsClause5()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -1764,7 +1762,6 @@ End Class
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub ImplementsClause6()
@@ -2092,7 +2089,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <Fact>
         Public Sub InvocExprWithImplicitlyTypedArgument()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -2341,7 +2337,6 @@ End Namespace
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub TypeAlias()
@@ -2898,7 +2893,6 @@ End Module
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <WorkItem(541240, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541240")>
         <Fact()>
         Public Sub ConstFieldInitializer()
@@ -3229,8 +3223,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
-
 
         <WorkItem(541270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541270")>
         <Fact()>
@@ -3682,7 +3674,6 @@ End Namespace
             Assert.True(semanticInfo.ConstantValue.HasValue)
             Assert.Equal("parameter", semanticInfo.ConstantValue.Value)
         End Sub
-
 
         <Fact()>
         Public Sub TestAttributeClassNameOnReturnValue()
@@ -4734,7 +4725,6 @@ End Class
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
         <WorkItem(540580, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540580")>
         <Fact()>
         Public Sub PropertyPassedByRef()
@@ -5514,7 +5504,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningValue, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function System.Int32.op_Addition(left As System.Int32, right As System.Int32) As System.Int32",
+            Assert.Equal("Function System.Int32.op_CheckedAddition(left As System.Int32, right As System.Int32) As System.Int32",
                          semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
@@ -5544,7 +5534,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningValue, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Function System.Int32.op_Addition(left As System.Int32, right As System.Int32) As System.Int32",
+            Assert.Equal("Function System.Int32.op_CheckedAddition(left As System.Int32, right As System.Int32) As System.Int32",
                          semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
@@ -5637,7 +5627,6 @@ End Module
             Assert.Equal(System_Int64, semanticInfo.ConvertedType.SpecialType)
         End Sub
 
-
         <Fact()>
         Public Sub IdentityCIntConversion()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -5671,7 +5660,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <WorkItem(528541, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528541")>
         <Fact()>
@@ -5776,7 +5764,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -5992,7 +5980,6 @@ End Module
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
-
 
         <WorkItem(541412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541412")>
         <Fact()>
@@ -6234,25 +6221,15 @@ End Class
             Dim current = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), PropertySymbol)
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                     useParent:=useBlock),
+                                            ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(current, semanticInfoEx.CurrentProperty)
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                Assert.Equal(current, semanticInfoEx.CurrentProperty)
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6286,25 +6263,15 @@ End Class
             Dim current = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), PropertySymbol)
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(current, semanticInfoEx.CurrentProperty)
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                Assert.Equal(current, semanticInfoEx.CurrentProperty)
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6334,25 +6301,15 @@ End Class
             Dim current = DirectCast(getEnumerator.ReturnType.GetMember("get_Current"), MethodSymbol)
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(DirectCast(current.AssociatedSymbol, PropertySymbol), semanticInfoEx.CurrentProperty)
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                Assert.Equal(DirectCast(current.AssociatedSymbol, PropertySymbol), semanticInfoEx.CurrentProperty)
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6400,26 +6357,15 @@ End Class
             Dim moveNext = DirectCast(compilation.GlobalNamespace.GetTypeMember("Custom").GetTypeMember("CustomEnumerator").GetMember("MoveNext"), MethodSymbol)
             Dim current = DirectCast(compilation.GlobalNamespace.GetTypeMember("Custom").GetTypeMember("CustomEnumerator").GetMember("Current"), PropertySymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(current, semanticInfoEx.CurrentProperty)
-                    Assert.Null(semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                Assert.Equal(current, semanticInfoEx.CurrentProperty)
+                Assert.Null(semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6473,25 +6419,15 @@ End Class
             Dim current = DirectCast(compilation.GlobalNamespace.GetTypeMember("Custom").GetTypeMember("CustomEnumerator").GetMember("Current"), PropertySymbol)
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(current, semanticInfoEx.CurrentProperty)
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                Assert.Equal(current, semanticInfoEx.CurrentProperty)
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6550,26 +6486,15 @@ BC30149: Class 'CustomEnumerator' must implement 'Sub Dispose()' for interface '
             ' the type claimed to implement IDisposable and we believed it ...
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(current, semanticInfoEx.CurrentProperty)
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                Assert.Equal(current, semanticInfoEx.CurrentProperty)
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6616,25 +6541,15 @@ End Class
 
             Dim getEnumerator = DirectCast(compilation.GlobalNamespace.GetTypeMember("Custom").GetMember("GetEnumerator"), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod) ' methods are partly present up to the point where the pattern was violated.
-                    Assert.Null(semanticInfoEx.MoveNextMethod)
-                    Assert.Null(semanticInfoEx.CurrentProperty)
-                    Assert.Null(semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod) ' methods are partly present up to the point where the pattern was violated.
+                Assert.Null(semanticInfoEx.MoveNextMethod)
+                Assert.Null(semanticInfoEx.CurrentProperty)
+                Assert.Null(semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6670,25 +6585,15 @@ End Class
             Dim current = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__Current), PropertySymbol)
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(current, semanticInfoEx.CurrentProperty)
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                Assert.Equal(current, semanticInfoEx.CurrentProperty)
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6728,25 +6633,15 @@ End Class
             Dim current = DirectCast(ienumerator.GetMember("Current"), PropertySymbol)
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    Assert.Equal(current, semanticInfoEx.CurrentProperty)
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal(getEnumerator, semanticInfoEx.GetEnumeratorMethod)
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                Assert.Equal(current, semanticInfoEx.CurrentProperty)
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6771,28 +6666,18 @@ End Class
             Dim moveNext = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), MethodSymbol)
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Equal("Function System.Collections.Generic.IEnumerable(Of System.Int32).GetEnumerator() As System.Collections.Generic.IEnumerator(Of System.Int32)",
-                                 semanticInfoEx.GetEnumeratorMethod.ToDisplayString(SymbolDisplayFormat.TestFormat))
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-                    ' the first matching symbol on IEnumerable(Of T)
-                    Assert.Equal("ReadOnly Property System.Collections.Generic.IEnumerator(Of System.Int32).Current As System.Int32",
-                                 semanticInfoEx.CurrentProperty.ToDisplayString(SymbolDisplayFormat.TestFormat))
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal("Function System.Collections.Generic.IEnumerable(Of System.Int32).GetEnumerator() As System.Collections.Generic.IEnumerator(Of System.Int32)",
+                             semanticInfoEx.GetEnumeratorMethod.ToDisplayString(SymbolDisplayFormat.TestFormat))
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
+                ' the first matching symbol on IEnumerable(Of T)
+                Assert.Equal("ReadOnly Property System.Collections.Generic.IEnumerator(Of System.Int32).Current As System.Int32",
+                             semanticInfoEx.CurrentProperty.ToDisplayString(SymbolDisplayFormat.TestFormat))
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6815,25 +6700,15 @@ End Class
 ]]></file>
 </compilation>)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
-
-                    Assert.Null(semanticInfoEx.GetEnumeratorMethod)
-                    Assert.Null(semanticInfoEx.MoveNextMethod)
-                    Assert.Null(semanticInfoEx.CurrentProperty)
-                    Assert.Null(semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Null(semanticInfoEx.GetEnumeratorMethod)
+                Assert.Null(semanticInfoEx.MoveNextMethod)
+                Assert.Null(semanticInfoEx.CurrentProperty)
+                Assert.Null(semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -6858,28 +6733,18 @@ End Class
             Dim moveNext = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext), MethodSymbol)
             Dim dispose = DirectCast(compilation.GetSpecialType(System_Object).ContainingAssembly.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol)
 
-            For Each useInterface In {True, False}
-                For Each useBlock In {True, False}
+            For Each useBlock In {True, False}
+                Dim semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax)(compilation, "a.vb",
+                                                                                                                          useParent:=useBlock),
+                                                ForEachStatementInfo)
 
-                    Dim semanticInfoEx As ForEachStatementInfo
-                    If useInterface Then
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, SemanticModel)(compilation, "a.vb",
-                                                                                                                              useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    Else
-                        semanticInfoEx = DirectCast(GetBlockOrStatementInfoForTest(Of ForEachStatementSyntax, VBSemanticModel)(compilation, "a.vb",
-                                                                                                                             useParent:=useBlock),
-                                                    ForEachStatementInfo)
-                    End If
+                Assert.Equal("Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator",
+                             semanticInfoEx.GetEnumeratorMethod.ToDisplayString(SymbolDisplayFormat.TestFormat))
+                Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
 
-                    Assert.Equal("Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator",
-                                 semanticInfoEx.GetEnumeratorMethod.ToDisplayString(SymbolDisplayFormat.TestFormat))
-                    Assert.Equal(moveNext, semanticInfoEx.MoveNextMethod)
-
-                    Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object",
-                                 semanticInfoEx.CurrentProperty.ToDisplayString(SymbolDisplayFormat.TestFormat))
-                    Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
-                Next
+                Assert.Equal("ReadOnly Property System.Collections.IEnumerator.Current As System.Object",
+                             semanticInfoEx.CurrentProperty.ToDisplayString(SymbolDisplayFormat.TestFormat))
+                Assert.Equal(dispose, semanticInfoEx.DisposeMethod)
             Next
         End Sub
 
@@ -7530,7 +7395,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+</compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -7735,7 +7600,6 @@ End Module
             Assert.NotEqual(containingMethod1, containingMethod2)
         End Sub
 
-
         <WorkItem(542301, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542301")>
         <Fact()>
         Public Sub Bug9489()
@@ -7756,7 +7620,7 @@ End Module
 
 
     ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+</compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of GenericNameSyntax)(compilation, "a.vb")
 
@@ -8626,8 +8490,6 @@ End Module
             Assert.Equal(alias2, alias2b)
         End Sub
 
-
-
         <Fact()>
         Public Sub StaticLocals()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -8658,7 +8520,6 @@ End Class
                                                         Dim i = model.GetDeclaredSymbolFromSyntaxNode(SLDeclaration)
                                                     End Sub)
 
-
             Dim containingType = DirectCast(model, SemanticModel).GetEnclosingSymbol(SLDeclaration.SpanStart)
             Assert.Equal("Function C.goo() As System.Int32", DirectCast(containingType, Symbol).ToTestDisplayString())
 
@@ -8669,7 +8530,6 @@ End Class
             Dim mG = DirectCast(model, SemanticModel).GetAliasInfo(SLDeclaration)
 
             Dim lus1 = DirectCast(model, SemanticModel).LookupSymbols(SLDeclaration.SpanStart, name:="i")
-
 
             'GetAliasImports - only applicable for Imports statements
             'ConstantValue
@@ -9212,7 +9072,6 @@ End Class
             Assert.Equal("Sub X..ctor(x As System.String)", sortedMethodGroup(1).ToTestDisplayString())
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
 
-
             typeInfo = model.GetTypeInfo(creation)
             Assert.Equal("X", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Object", typeInfo.ConvertedType.ToTestDisplayString())
@@ -9273,7 +9132,6 @@ End Class
             Assert.Equal("Sub X..ctor(x As System.Int32)", symbolInfo.Symbol.ToTestDisplayString())
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
-
 
             typeInfo = model.GetTypeInfo(creation)
             Assert.Equal("X", typeInfo.Type.ToTestDisplayString())
@@ -9465,7 +9323,6 @@ End Class
             Assert.Equal("Sub X..ctor(x As System.Int32)", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
 
-
             typeInfo = model.GetTypeInfo(creation)
             Assert.Equal("X", typeInfo.Type.ToTestDisplayString())
             Assert.Equal("System.Object", typeInfo.ConvertedType.ToTestDisplayString())
@@ -9643,7 +9500,6 @@ End Class
     ]]></file>
 </compilation>)
 
-
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
             Assert.Equal("A1", semanticInfo.Type.ToTestDisplayString())
             Assert.Equal(TypeKind.[Class], semanticInfo.Type.TypeKind)
@@ -9663,7 +9519,6 @@ End Class
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
 
-
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
         Public Sub AliasAttributeName_02_AttributeSyntax()
@@ -9677,7 +9532,6 @@ Class C
 End Class
     ]]></file>
 </compilation>)
-
 
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of AttributeSyntax)(compilation, "a.vb")
             Assert.Equal("System.ObsoleteAttribute", semanticInfo.Type.ToTestDisplayString())
@@ -9699,7 +9553,6 @@ End Class
             Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
-
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
@@ -9735,7 +9588,6 @@ End Class
             Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
-
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <ConditionalFact(GetType(WindowsOnly), Reason:="https://github.com/dotnet/roslyn/issues/29531")>
@@ -9806,7 +9658,6 @@ End Class
             Assert.Equal("GooAttribute=System.ObsoleteAttribute", aliasInfo.ToTestDisplayString())
             Assert.Equal(SymbolKind.[Alias], aliasInfo.Kind)
         End Sub
-
 
         <WorkItem(543515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543515")>
         <Fact()>
@@ -9888,7 +9739,6 @@ end class
             Assert.[False](semanticInfo.ConstantValue.HasValue)
             Assert.[False](SyntaxFacts.IsAttributeName((DirectCast(semanticInfo.Symbol, SourceNamedTypeSymbol)).SyntaxReferences.First().GetSyntax()), "IsAttributeName can be true only for alias name being qualified")
         End Sub
-
 
         <Fact()>
         Public Sub AliasQualifiedAttributeName_03()

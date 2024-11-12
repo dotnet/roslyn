@@ -1415,7 +1415,7 @@ IInvocationOperation (void System.Console.Write(System.String format, System.Obj
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib45, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib461, expectedDiagnostics);
         }
 
         /// <summary>
@@ -2588,6 +2588,9 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 // (6,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 5]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "5").WithArguments("System.Int32").WithLocation(6, 37),
+                // (6,16): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(6, 16),
                 // (5,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 27),
@@ -2766,6 +2769,9 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (5,16): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(5, 16),
                 // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
@@ -3038,7 +3044,6 @@ IInvocationOperation (void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKin
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
-
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
@@ -3544,9 +3549,15 @@ IPropertyReferenceOperation: System.Int32 P.this[params System.Int32[] array] { 
 [assembly: /*<bind>*/System.CLSCompliant(isCompliant: true)/*</bind>*/]
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: System.CLSCompliantAttribute) (Syntax: 'System.CLSC ... iant: true)')
-  Children(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'System.CLSC ... iant: true)')
+  IObjectCreationOperation (Constructor: System.CLSCompliantAttribute..ctor(System.Boolean isCompliant)) (OperationKind.ObjectCreation, Type: System.CLSCompliantAttribute, IsImplicit) (Syntax: 'System.CLSC ... iant: true)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: isCompliant) (OperationKind.Argument, Type: null) (Syntax: 'isCompliant: true')
+          ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -3629,7 +3640,7 @@ IInvocationOperation (void P.M2([System.Int32? x = 10])) (OperationKind.Invocati
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3660,7 +3671,7 @@ IInvocationOperation (void P.M2([System.Int32? x = null])) (OperationKind.Invoca
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -3824,6 +3835,9 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
                 // (5,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 0]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 37),
+                // (5,16): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(5, 16),
                 // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
@@ -3898,6 +3912,9 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
                 // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (5,16): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(5, 16),
                 // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
@@ -4059,7 +4076,7 @@ class C
             string expectedOperationTree = @"
 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'M0();')
   Expression: 
-    IInvocationOperation ( void C.M0([E? e = 1])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M0()')
+    IInvocationOperation ( void C.M0([E? e = E.E1])) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M0()')
       Instance Receiver: 
         IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M0')
       Arguments(1):
@@ -4111,7 +4128,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2(1, 2)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "M2").WithArguments("M2").WithLocation(6, 19)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, useLatestFrameworkReferences: true);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, targetFramework: TargetFramework.Mscorlib46Extended);
         }
 
         private class IndexerAccessArgumentVerifier : OperationWalker

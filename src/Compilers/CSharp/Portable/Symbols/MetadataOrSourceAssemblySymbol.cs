@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private NamedTypeSymbol[] _lazySpecialTypes;
 
+        private TypeConversions _lazyTypeConversions;
+
         /// <summary>
         /// How many Cor types have we cached so far.
         /// </summary>
@@ -33,12 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private NativeIntegerTypeSymbol[] _lazyNativeIntegerTypes;
 
+#nullable enable 
+
         /// <summary>
         /// Lookup declaration for predefined CorLib type in this Assembly.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal sealed override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal sealed override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
 #if DEBUG
             foreach (var module in this.Modules)
@@ -51,16 +55,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 MetadataTypeName emittedName = MetadataTypeName.FromFullName(type.GetMetadataName(), useCLSCompliantNameArityEncoding: true);
                 ModuleSymbol module = this.Modules[0];
-                NamedTypeSymbol result = module.LookupTopLevelMetadataType(ref emittedName);
-                if (result.Kind != SymbolKind.ErrorType && result.DeclaredAccessibility != Accessibility.Public)
+                NamedTypeSymbol? result = module.LookupTopLevelMetadataType(ref emittedName);
+
+                Debug.Assert(result?.IsErrorType() != true);
+
+                if (result is null || result.DeclaredAccessibility != Accessibility.Public)
                 {
                     result = new MissingMetadataTypeSymbol.TopLevel(module, ref emittedName, type);
                 }
+
                 RegisterDeclaredSpecialType(result);
             }
 
+            Debug.Assert(_lazySpecialTypes is not null);
             return _lazySpecialTypes[(int)type];
         }
+
+#nullable disable
 
         /// <summary>
         /// Register declaration of predefined CorLib type in this Assembly.
@@ -68,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="corType"></param>
         internal sealed override void RegisterDeclaredSpecialType(NamedTypeSymbol corType)
         {
-            SpecialType typeId = corType.SpecialType;
+            ExtendedSpecialType typeId = corType.ExtendedSpecialType;
             Debug.Assert(typeId != SpecialType.None);
             Debug.Assert(ReferenceEquals(corType.ContainingAssembly, this));
             Debug.Assert(corType.ContainingModule.Ordinal == 0);
@@ -77,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_lazySpecialTypes == null)
             {
                 Interlocked.CompareExchange(ref _lazySpecialTypes,
-                    new NamedTypeSymbol[(int)SpecialType.Count + 1], null);
+                    new NamedTypeSymbol[(int)InternalSpecialType.NextAvailable], null);
             }
 
             if ((object)Interlocked.CompareExchange(ref _lazySpecialTypes[(int)typeId], corType, null) != null)
@@ -89,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 Interlocked.Increment(ref _cachedSpecialTypes);
-                Debug.Assert(_cachedSpecialTypes > 0 && _cachedSpecialTypes <= (int)SpecialType.Count);
+                Debug.Assert(_cachedSpecialTypes > 0 && _cachedSpecialTypes < (int)InternalSpecialType.NextAvailable);
             }
         }
 
@@ -101,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ReferenceEquals(this.CorLibrary, this) && _cachedSpecialTypes < (int)SpecialType.Count;
+                return ReferenceEquals(this.CorLibrary, this) && _cachedSpecialTypes < (int)InternalSpecialType.NextAvailable - 1;
             }
         }
 
@@ -123,6 +134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override NamedTypeSymbol GetNativeIntegerType(NamedTypeSymbol underlyingType)
         {
+            Debug.Assert(!underlyingType.IsNativeIntegerType);
+
             if (_lazyNativeIntegerTypes == null)
             {
                 Interlocked.CompareExchange(ref _lazyNativeIntegerTypes, new NativeIntegerTypeSymbol[2], null);
@@ -189,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var descriptor = SpecialMembers.GetDescriptor(member);
-                NamedTypeSymbol type = GetDeclaredSpecialType((SpecialType)descriptor.DeclaringTypeId);
+                NamedTypeSymbol type = GetDeclaredSpecialType(descriptor.DeclaringSpecialType);
                 Symbol result = null;
 
                 if (!type.IsErrorType())
@@ -259,6 +272,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_assembliesToWhichInternalAccessHasBeenAnalyzed == null)
                     Interlocked.CompareExchange(ref _assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblySymbol, IVTConclusion>(), null);
                 return _assembliesToWhichInternalAccessHasBeenAnalyzed;
+            }
+        }
+
+        internal sealed override TypeConversions TypeConversions
+        {
+            get
+            {
+                if (this != CorLibrary)
+                {
+                    return CorLibrary.TypeConversions;
+                }
+
+                if (_lazyTypeConversions is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
+                }
+
+                return _lazyTypeConversions;
             }
         }
 

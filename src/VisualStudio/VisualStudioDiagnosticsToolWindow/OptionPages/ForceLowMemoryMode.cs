@@ -12,13 +12,8 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
     internal sealed class ForceLowMemoryMode
     {
-        private const string FeatureName = "ForceLowMemoryMode";
-
-        public static readonly Option2<bool> Enabled = new(FeatureName, "Enabled", defaultValue: false,
-            storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\ForceLowMemoryMode\Enabled"));
-
-        public static readonly Option2<int> SizeInMegabytes = new(FeatureName, "SizeInMegabytes", defaultValue: 500,
-            storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\ForceLowMemoryMode\SizeInMegabytes"));
+        public static readonly Option2<bool> Enabled = new("ForceLowMemoryMode_Enabled", defaultValue: false);
+        public static readonly Option2<int> SizeInMegabytes = new("ForceLowMemoryMode_Enabled", defaultValue: 500);
 
         private readonly IGlobalOptionService _globalOptions;
         private MemoryHogger? _hogger;
@@ -27,14 +22,14 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
             _globalOptions = globalOptions;
 
-            globalOptions.OptionChanged += Options_OptionChanged;
+            globalOptions.AddOptionChangedHandler(this, Options_OptionChanged);
 
             RefreshFromSettings();
         }
 
-        private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
+        private void Options_OptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
-            if (e.Option.Feature == FeatureName)
+            if (e.HasOption(static option => option.Equals(Enabled) || option.Equals(SizeInMegabytes)))
             {
                 RefreshFromSettings();
             }
@@ -62,7 +57,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             private const int BlockSize = 1024 * 1024; // megabyte blocks
             private const int MonitorDelay = 10000; // 10 seconds
 
-            private readonly List<byte[]> _blocks = new List<byte[]>();
+            private readonly List<byte[]> _blocks = [];
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
             public MemoryHogger()

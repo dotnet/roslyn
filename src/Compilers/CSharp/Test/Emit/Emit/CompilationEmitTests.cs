@@ -24,7 +24,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -83,8 +83,6 @@ public class X
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithMainTypeName("\"abc.X\""));
             compilation.VerifyDiagnostics(// error CS1555: Could not find '"abc.X"' specified for Main method
                                           Diagnostic(ErrorCode.ERR_MainClassNotFound).WithArguments("\"abc.X\""));
-
-
 
             // Verify use of Cyrillic namespace results in same behavior
             source = @"
@@ -1377,9 +1375,9 @@ public static class Extensions
     ref readonly int VerifyDelegate(in int y) => throw null;
 }",
 comp => comp.VerifyDiagnostics(
-                // (12,9): error CS8329: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
+                // (12,9): error CS8329: Cannot use variable 'y' as a ref or out value because it is a readonly variable
                 //         y.R_extension(); // error 1
-                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "in int").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "y").WithArguments("variable", "y").WithLocation(12, 9),
                 // (13,9): error CS1510: A ref or out value must be an assignable variable
                 //         1.R_extension(); // error 2
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "1").WithLocation(13, 9)
@@ -1407,9 +1405,9 @@ public struct S
     }
 }",
 comp => comp.VerifyDiagnostics(
-                // (7,45): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
+                // (7,45): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('S')
                 //             System.Console.WriteLine(sizeof(S*));
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S").WithLocation(7, 45)
+                Diagnostic(ErrorCode.WRN_ManagedAddr, "S*").WithArguments("S").WithLocation(7, 45)
                 ));
         }
 
@@ -2123,14 +2121,15 @@ public class PublicClass
 }
 ";
             CSharpCompilation comp = CreateEmptyCompilation(source, references: new[] { MscorlibRef },
-                parseOptions: TestOptions.Regular7_2,
+                parseOptions: TestOptions.Regular7_2.WithNoRefSafetyRulesAttribute(),
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
             CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
-            var compWithReal = CreateEmptyCompilation("", references: new[] { MscorlibRef, realImage },
+            var compWithReal = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, realImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             AssertEx.Equal(
                 new[] { "<Module>", "<>f__AnonymousType0<<anonymous>j__TPar>", "PublicClass" },
@@ -2161,7 +2160,7 @@ public class PublicClass
             CompileAndVerify(comp, emitOptions: emitRegularWithoutPrivateMembers, verify: Verification.Passes);
 
             var realImage2 = comp.EmitToImageReference(emitRegularWithoutPrivateMembers);
-            var compWithReal2 = CreateEmptyCompilation("", references: new[] { MscorlibRef, realImage2 },
+            var compWithReal2 = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, realImage2 },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             AssertEx.Equal(
                 new[] { "<Module>", "<>f__AnonymousType0<<anonymous>j__TPar>", "PublicClass" },
@@ -2189,7 +2188,7 @@ public class PublicClass
             CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
-            var compWithMetadata = CreateEmptyCompilation("", references: new[] { MscorlibRef, metadataImage },
+            var compWithMetadata = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, metadataImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             AssertEx.Equal(
                 new[] { "<Module>", "PublicClass" },
@@ -2218,7 +2217,7 @@ public class PublicClass
             CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
-            var compWithRef = CreateEmptyCompilation("", references: new[] { MscorlibRef, refImage },
+            var compWithRef = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             AssertEx.Equal(
                 new[] { "<Module>", "PublicClass" },
@@ -2259,14 +2258,15 @@ public class C : I
     }
 }
 ";
-            CSharpCompilation comp = CreateEmptyCompilation(source, references: new[] { MscorlibRef },
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            CSharpCompilation comp = CreateEmptyCompilation(source, parseOptions: parseOptions, references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
             CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
-            var compWithReal = CreateEmptyCompilation("", references: new[] { MscorlibRef, realImage },
+            var compWithReal = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, realImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyPropertyWasEmitted(compWithReal);
@@ -2276,7 +2276,7 @@ public class C : I
             CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
-            var compWithMetadata = CreateEmptyCompilation("", references: new[] { MscorlibRef, metadataImage },
+            var compWithMetadata = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, metadataImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyPropertyWasEmitted(compWithMetadata);
@@ -2288,7 +2288,7 @@ public class C : I
             CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
-            var compWithRef = CreateEmptyCompilation("", references: new[] { MscorlibRef, refImage },
+            var compWithRef = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyPropertyWasEmitted(compWithRef);
@@ -2325,14 +2325,15 @@ public class C : I
     }
 }
 ";
-            CSharpCompilation comp = CreateEmptyCompilation(source, references: new[] { MscorlibRef },
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            CSharpCompilation comp = CreateEmptyCompilation(source, parseOptions: parseOptions, references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
             CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
-            var compWithReal = CreateEmptyCompilation("", references: new[] { MscorlibRef, realImage },
+            var compWithReal = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, realImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyEventWasEmitted(compWithReal);
@@ -2342,7 +2343,7 @@ public class C : I
             CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
-            var compWithMetadata = CreateEmptyCompilation("", references: new[] { MscorlibRef, metadataImage },
+            var compWithMetadata = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, metadataImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyEventWasEmitted(compWithMetadata);
@@ -2354,7 +2355,7 @@ public class C : I
             CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
-            var compWithRef = CreateEmptyCompilation("", references: new[] { MscorlibRef, refImage },
+            var compWithRef = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyEventWasEmitted(compWithRef);
@@ -2391,14 +2392,15 @@ public class C : I
     }
 }
 ";
-            CSharpCompilation comp = CreateEmptyCompilation(source, references: new[] { MscorlibRef },
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            CSharpCompilation comp = CreateEmptyCompilation(source, parseOptions: parseOptions, references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the regular assembly
             CompileAndVerify(comp, emitOptions: EmitOptions.Default, verify: Verification.Passes);
 
             var realImage = comp.EmitToImageReference(EmitOptions.Default);
-            var compWithReal = CreateEmptyCompilation("", references: new[] { MscorlibRef, realImage },
+            var compWithReal = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, realImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyIndexerWasEmitted(compWithReal);
@@ -2408,7 +2410,7 @@ public class C : I
             CompileAndVerify(comp, emitOptions: emitMetadataOnly, verify: Verification.Passes);
 
             var metadataImage = comp.EmitToImageReference(emitMetadataOnly);
-            var compWithMetadata = CreateEmptyCompilation("", references: new[] { MscorlibRef, metadataImage },
+            var compWithMetadata = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, metadataImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyIndexerWasEmitted(compWithMetadata);
@@ -2420,7 +2422,7 @@ public class C : I
             CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
-            var compWithRef = CreateEmptyCompilation("", references: new[] { MscorlibRef, refImage },
+            var compWithRef = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             verifyIndexerWasEmitted(compWithRef);
@@ -2450,7 +2452,8 @@ internal struct InternalStruct
     internal int P { get; set; }
 }
 ";
-            CSharpCompilation comp = CreateEmptyCompilation(source, references: new[] { MscorlibRef },
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            CSharpCompilation comp = CreateEmptyCompilation(source, parseOptions: parseOptions, references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the ref assembly
@@ -2458,7 +2461,7 @@ internal struct InternalStruct
             CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
-            var compWithRef = CreateEmptyCompilation("", references: new[] { MscorlibRef, refImage },
+            var compWithRef = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var globalNamespace = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace;
@@ -2494,7 +2497,8 @@ struct S
     private PrivateType field;
 }
 ";
-            CSharpCompilation comp = CreateEmptyCompilation(source, references: new[] { MscorlibRef },
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            CSharpCompilation comp = CreateEmptyCompilation(source, parseOptions: parseOptions, references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
 
             // verify metadata (types, members, attributes) of the ref assembly
@@ -2502,7 +2506,7 @@ struct S
             CompileAndVerify(comp, emitOptions: emitRefOnly, verify: Verification.Passes);
 
             var refImage = comp.EmitToImageReference(emitRefOnly);
-            var compWithRef = CreateEmptyCompilation("", references: new[] { MscorlibRef, refImage },
+            var compWithRef = CreateEmptyCompilation("", parseOptions: parseOptions, references: new[] { MscorlibRef, refImage },
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             AssertEx.Equal(
                 new[] { "<Module>", "S" },
@@ -3137,7 +3141,6 @@ public class Test
             CompileAndVerify(source, expectedOutput: "True");
         }
 
-
         [WorkItem(541840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541840")]
         [Fact]
         public void EmitSwitchOnCharTypeBoundary()
@@ -3459,7 +3462,7 @@ class C
             var compilation = CSharpCompilation.Create(
                 "v2Fx.exe",
                 new[] { Parse(source) },
-                new[] { Net20.mscorlib });
+                new[] { Net20.References.mscorlib });
 
             //EDMAURER this is built with a 2.0 mscorlib. The runtimeMetadataVersion should be the same as the runtimeMetadataVersion stored in the assembly
             //that contains System.Object.
@@ -4038,7 +4041,12 @@ public class Test
             var extension = ".netmodule";
             var outputName = "b";
 
-            var compilation = CreateCompilation("class A { }", options: TestOptions.ReleaseModule.WithModuleName(name + extension), assemblyName: null);
+            var compilation = CSharpCompilation.Create(
+                assemblyName: null,
+                syntaxTrees: [SyntaxFactory.ParseSyntaxTree("class A { }")],
+                references: TargetFrameworkUtil.GetReferences(TargetFramework.Standard),
+                options: TestOptions.ReleaseModule.WithModuleName(name + extension));
+
             compilation.VerifyDiagnostics();
 
             var assembly = compilation.Assembly;
@@ -4584,8 +4592,7 @@ class C
 
         [Fact]
         [WorkItem(545651, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545651")]
-
-        private void TestReferenceToNestedGenericType()
+        public void TestReferenceToNestedGenericType()
         {
             string p1 = @"public class Goo<T> { }";
             string p2 = @"using System;
@@ -4662,12 +4669,13 @@ class Program
         public void PlatformMismatch_01()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateEmptyCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateEmptyCompilation(refSource, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
             var compRef = new CSharpCompilationReference(refCompilation);
@@ -4681,31 +4689,31 @@ public interface IUsePlatform
 ";
             var useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -4713,7 +4721,7 @@ public interface IUsePlatform
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -4721,7 +4729,7 @@ public interface IUsePlatform
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.X86));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.X86));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -4729,7 +4737,7 @@ public interface IUsePlatform
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.X86));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.X86));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -4746,12 +4754,13 @@ public interface IUsePlatform
         public void PlatformMismatch_02()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateEmptyCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateEmptyCompilation(refSource, parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
             var imageRef = refCompilation.EmitToImageReference();
@@ -4764,7 +4773,7 @@ public interface IUsePlatform
 ";
             var useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // error CS8010: Agnostic assembly cannot have a processor specific module 'PlatformMismatch.netmodule'.
@@ -4772,7 +4781,7 @@ public interface IUsePlatform
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.X86));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // error CS8011: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
@@ -4780,7 +4789,7 @@ public interface IUsePlatform
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu));
 
             // no CS8010 when building a module and adding a module that has a conflict.
             useCompilation.VerifyEmitDiagnostics(emitOptions);
@@ -4790,12 +4799,13 @@ public interface IUsePlatform
         public void PlatformMismatch_03()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateEmptyCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.X86), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateEmptyCompilation(refSource, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.X86), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
             var compRef = new CSharpCompilationReference(refCompilation);
@@ -4810,7 +4820,7 @@ public interface IUsePlatform
 
             var useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -4818,7 +4828,7 @@ public interface IUsePlatform
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -4826,7 +4836,7 @@ public interface IUsePlatform
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -4834,7 +4844,7 @@ public interface IUsePlatform
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // warning CS8012: Referenced assembly 'PlatformMismatch, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' targets a different processor.
@@ -4845,12 +4855,13 @@ public interface IUsePlatform
         public void PlatformMismatch_04()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateEmptyCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.X86), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateEmptyCompilation(refSource, parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.X86), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
             var imageRef = refCompilation.EmitToImageReference();
@@ -4864,7 +4875,7 @@ public interface IUsePlatform
 
             var useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions,
                 // error CS8011: Assembly and module 'PlatformMismatch.netmodule' cannot target different processors.
@@ -4875,12 +4886,13 @@ public interface IUsePlatform
         public void PlatformMismatch_05()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateEmptyCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateEmptyCompilation(refSource, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.AnyCpu), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
             var compRef = new CSharpCompilationReference(refCompilation);
@@ -4895,25 +4907,25 @@ public interface IUsePlatform
 
             var useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
@@ -4922,12 +4934,13 @@ public interface IUsePlatform
         public void PlatformMismatch_06()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateEmptyCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateEmptyCompilation(refSource, parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.AnyCpu), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
             var imageRef = refCompilation.EmitToImageReference();
@@ -4941,7 +4954,7 @@ public interface IUsePlatform
 
             var useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
@@ -4950,12 +4963,13 @@ public interface IUsePlatform
         public void PlatformMismatch_07()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateEmptyCompilation(refSource, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateEmptyCompilation(refSource, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
             var compRef = new CSharpCompilationReference(refCompilation);
@@ -4970,25 +4984,25 @@ public interface IUsePlatform
 
             var useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { compRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
 
             useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
@@ -4997,12 +5011,13 @@ public interface IUsePlatform
         public void PlatformMismatch_08()
         {
             var emitOptions = new EmitOptions(runtimeMetadataVersion: "v1234");
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
             string refSource = @"
 public interface ITestPlatform
 {}
 ";
-            var refCompilation = CreateEmptyCompilation(refSource, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
+            var refCompilation = CreateEmptyCompilation(refSource, parseOptions: parseOptions, options: TestOptions.ReleaseModule.WithPlatform(Platform.Itanium), assemblyName: "PlatformMismatch");
 
             refCompilation.VerifyEmitDiagnostics(emitOptions);
 
@@ -5017,7 +5032,7 @@ public interface IUsePlatform
 
             var useCompilation = CreateEmptyCompilation(useSource,
                 new MetadataReference[] { imageRef },
-                options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
+                parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithPlatform(Platform.Itanium));
 
             useCompilation.VerifyEmitDiagnostics(emitOptions);
         }
@@ -5025,7 +5040,7 @@ public interface IUsePlatform
         [Fact, WorkItem(769741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769741")]
         public void Bug769741()
         {
-            var comp = CreateEmptyCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
             // modules not supported in ref emit
             // PEVerify: [HRESULT 0x8007000B] - An attempt was made to load a program with an incorrect format.
             // ILVerify: Internal.IL.VerifierException : No system module specified
@@ -5336,7 +5351,7 @@ class C6
 {
     object F = new { Ab = 5 };
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll);
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {
@@ -5398,7 +5413,7 @@ class C4
         return d(ref o, 2);
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, references: new[] { CSharpRef });
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.ReleaseDll, references: new[] { CSharpRef });
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {
@@ -5407,10 +5422,10 @@ class C4
                 var expectedNames = new[]
                     {
                         "<Module>",
-                        "<>A{00000010}`3",
-                        "<>A{00000140}`5",
-                        "<>F{00000010}`5",
+                        "<>A{00000040}`3",
+                        "<>A{00001200}`5",
                         "<>F{00000040}`5",
+                        "<>F{00000200}`5",
                         "C1",
                         "C2",
                         "C3",

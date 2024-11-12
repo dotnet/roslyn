@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -28,10 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestResources.General.MDTestLib2,
                     TestResources.SymbolsTests.Methods.CSMethods,
                     TestResources.SymbolsTests.Methods.VBMethods,
-                    ResourcesNet40.mscorlib,
+                    Net40.Resources.mscorlib,
                     TestResources.SymbolsTests.Methods.ByRefReturn
                 }, importInternals:=True)
-
 
             Dim module1 = assemblies(0).Modules(0)
             Dim module2 = assemblies(1).Modules(0)
@@ -176,7 +175,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(1, console.GetMembers("WriteLine").OfType(Of MethodSymbol)().Where(Function(m) m.IsVararg).Count())
             Assert.True(console.GetMembers("WriteLine").OfType(Of MethodSymbol)().Where(Function(m) m.IsVararg).Single().IsShared)
-
 
             Dim VB_Modifiers1 = module4.GlobalNamespace.GetTypeMembers("Modifiers1").Single()
 
@@ -323,7 +321,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Assert.True(CS_Modifiers1_M4.IsOverloads)
             Assert.False(CS_Modifiers1_M4.IsOverrides)
 
-
             Dim CS_Modifiers2 = module3.GlobalNamespace.GetTypeMembers("Modifiers2").Single()
 
             Dim CS_Modifiers2_M1 = DirectCast(CS_Modifiers2.GetMembers("M1").Single(), MethodSymbol)
@@ -433,7 +430,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationGeneric()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {Net451.mscorlib,
+                {NetFramework.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -465,7 +462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationConstructed()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {Net451.mscorlib,
+                {NetFramework.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
@@ -528,7 +525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestExplicitImplementationOfUnrelatedGenericInterfaceMethod()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {Net451.mscorlib,
+                {NetFramework.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.IL})
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace
 
@@ -557,7 +554,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
         <Fact>
         Public Sub TestTypeParameterPositions()
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
-                {Net451.mscorlib,
+                {NetFramework.mscorlib,
                  TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Methods.CSharp})
 
             Dim globalNamespace = assemblies.ElementAt(1).GlobalNamespace

@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 this.Syntax;
 
                             Binder.CheckRestrictedTypeInAsyncMethod(localSymbol.ContainingSymbol, type.Type, diagnosticsOpt, typeOrDesignationSyntax);
+
+                            if (localSymbol.Scope == ScopedKind.ScopedValue && !type.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
+                            {
+                                diagnosticsOpt.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly,
+                                                   (typeOrDesignationSyntax is TypeSyntax typeSyntax ? typeSyntax.SkipScoped(out _).SkipRef() : typeOrDesignationSyntax).Location);
+                            }
                         }
                     }
 
@@ -71,9 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;
-                    var inferenceDiagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance()
+                    var inferenceDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies:
 #if DEBUG
-                                                                        , PooledHashSet<AssemblySymbol>.GetInstance()
+                                                                                                                         true
+#else
+                                                                                                                         false
 #endif
                                                                         );
 
@@ -120,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     designation = (SingleVariableDesignationSyntax)this.Syntax;
                     break;
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.Unreachable();
             }
 
             Binder.Error(

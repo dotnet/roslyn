@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -1988,7 +1988,7 @@ Class MyAttribute
     End Sub
 End Class
     ]]></file>
-    </compilation>, references:={Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "(From x In q Select x).Count()"))
+    </compilation>, references:={Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "(From x In q Select x).Count()"))
         End Sub
 
         <WorkItem(542967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542967")>
@@ -2015,7 +2015,7 @@ Class MyAttribute
     End Sub
 End Class
     ]]></file>
-    </compilation>, references:={Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadInstanceMemberAccess, "F1"))
+    </compilation>, references:={Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_BadInstanceMemberAccess, "F1"))
         End Sub
 
         <WorkItem(542967, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542967")>
@@ -2043,7 +2043,7 @@ Class MyAttribute
     End Sub
 End Class
     ]]></file>
-    </compilation>, references:={Net40.SystemCore}).VerifyDiagnostics({Diagnostic(ERRID.ERR_RequiredConstExpr, "(From x In ""s"" Select x).Count()"),
+    </compilation>, references:={Net40.References.SystemCore}).VerifyDiagnostics({Diagnostic(ERRID.ERR_RequiredConstExpr, "(From x In ""s"" Select x).Count()"),
                                                                     Diagnostic(ERRID.ERR_ObjectReferenceNotSupplied, "Program.F1")})
         End Sub
 
@@ -2306,7 +2306,6 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 </expected>)
         End Sub
 
-
         <WorkItem(575055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/575055")>
         <Fact>
         Public Sub BC30068ERR_IdentifierWithSameNameDifferentScope()
@@ -2332,7 +2331,6 @@ End Module
                                                                                                  Diagnostic(ERRID.ERR_LValueRequired, "i"),
                                                                                                  Diagnostic(ERRID.ERR_LValueRequired, "i"))
         End Sub
-
 
         ' change error 30098 to 30068
         <WorkItem(538107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538107")>
@@ -2658,7 +2656,6 @@ End Module
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -2696,7 +2693,6 @@ End Module
 </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-
 </expected>)
         End Sub
 
@@ -5146,7 +5142,6 @@ End Module        </file>
             CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedEOS, "{"),
                                                                                                  Diagnostic(ERRID.ERR_TypeMismatch2, "{1, 2, 3}").WithArguments("Integer()", "System.Collections.Generic.List(Of Integer)"))
 
-
             ' This 2nd scenario will produce 1 error because it passed the parsing stage and now 
             ' fails in the binding
             source =
@@ -5162,7 +5157,6 @@ End Module        </file>
 </compilation>
             CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "{1, 2, 3}").WithArguments("Integer()", "System.Collections.Generic.List(Of Integer)"))
         End Sub
-
 
         <Fact(), WorkItem(542069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542069")>
         Public Sub BC30337ERR_ForLoopType1()
@@ -5584,7 +5578,7 @@ BC30375: 'New' cannot be used on an interface.
         End Class
     </file>
 </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_NewOnAbstractClass, "New C1"),
-    Diagnostic(ERRID.ERR_CantThrowNonException, "Throw (New C1)").WithArguments("C1"))
+    Diagnostic(ERRID.ERR_CantThrowNonException, "Throw (New C1)"))
 
         End Sub
 
@@ -5915,7 +5909,7 @@ Class DerivedClass
     End Sub
 End Class
     </file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30393: 'Exit Try' can only appear inside a 'Try' statement.
@@ -8182,7 +8176,7 @@ Class DerivedClass
     End Sub
 End Class
     </file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30101: Branching out of a 'Finally' is not valid.
@@ -11518,7 +11512,7 @@ Module M
     End Function
 End Module
         </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             Dim expectedErrors1 = <errors>
 BC30978: Range variable 'foo' hides a variable in an enclosing block or a range variable previously defined in the query expression.
@@ -11546,7 +11540,7 @@ BC30978: Range variable 'foo' hides a variable in an enclosing block or a range 
                 End Sub
             End Module
         </file>
-    </compilation>, {Net40.SystemCore}, options:=TestOptions.ReleaseExe)
+    </compilation>, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe)
 
             Dim expectedErrors1 = <errors>
 BC30978: Range variable 'x' hides a variable in an enclosing block or a range variable previously defined in the query expression.
@@ -14078,6 +14072,52 @@ BC31440: 'AddressOf' cannot be applied to 'Private Sub Foo()' because 'Private S
 </expected>)
         End Sub
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72431")>
+        <Fact>
+        Public Sub BC31440ERR_NoPartialMethodInAddressOf_02()
+            Dim source =
+"Delegate Sub D()
+Partial Class Program
+    Shared Sub Main()
+        M1(AddressOf M2(Of Integer))
+    End Sub
+    Shared Sub M1(d As D)
+    End Sub
+    Private Shared Partial Sub M2(Of T)()
+    End Sub
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseEmitDiagnostics(
+<expected>
+    BC31440: 'AddressOf' cannot be applied to 'Private Shared Sub M2(Of Integer)()' because 'Private Shared Sub M2(Of Integer)()' is a partial method without an implementation.
+        M1(AddressOf M2(Of Integer))
+                     ~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72431")>
+        <Fact>
+        Public Sub BC31440ERR_NoPartialMethodInAddressOf_03()
+            Dim source =
+"Delegate Sub D()
+Partial Class C(Of T)
+    Shared Sub M1()
+        M2(AddressOf C(Of Integer).M3)
+    End Sub
+    Shared Sub M2(d As D)
+    End Sub
+    Private Shared Partial Sub M3()
+    End Sub
+End Class"
+            Dim comp = CreateCompilation(source)
+            comp.AssertTheseEmitDiagnostics(
+<expected>
+    BC31440: 'AddressOf' cannot be applied to 'Private Shared Sub M3()' because 'Private Shared Sub M3()' is a partial method without an implementation.
+        M2(AddressOf C(Of Integer).M3)
+                     ~~~~~~~~~~~~~~~~
+</expected>)
+        End Sub
+
         <Fact()>
         Public Sub BC31500ERR_BadAttributeSharedProperty1()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
@@ -14445,7 +14485,7 @@ BC32006: 'Char' values cannot be converted to 'Short'. Use 'Microsoft.VisualBasi
         Public Structure S
         End Structure
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC32006: 'Char' values cannot be converted to 'Integer'. Use 'Microsoft.VisualBasic.AscW' to interpret a character as a Unicode value or 'Microsoft.VisualBasic.Val' to interpret it as a digit.
@@ -16307,7 +16347,7 @@ BC36532: Nested function does not have the same signature as delegate 'Func(Of E
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
@@ -16335,7 +16375,7 @@ BC36533: 'ByRef' parameter 'filterValue' cannot be used in a query expression.
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -16354,7 +16394,7 @@ BC36533: 'ByRef' parameter 'filterValue' cannot be used in a query expression.
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC36534: Expression cannot be converted into an expression tree.
@@ -16378,7 +16418,7 @@ BC36534: Expression cannot be converted into an expression tree.
             End Sub
         End Structure
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36535: Instance members and 'Me' cannot be used within query expressions in structures.
@@ -16402,7 +16442,7 @@ BC36535: Instance members and 'Me' cannot be used within query expressions in st
             End Sub
         End Structure
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36535: Instance members and 'Me' cannot be used within query expressions in structures.
@@ -16454,7 +16494,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Object()'.
             End Sub
         End Module
     </file>
-    </compilation>, references:={Net40.SystemCore})
+    </compilation>, references:={Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36538: References to 'ByRef' parameters cannot be converted to an expression tree.
@@ -16500,7 +16540,7 @@ BC36547: Anonymous type member or property 'GetHashCode' is already declared.
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.System, Net40.SystemCore, Net40.MicrosoftVisualBasic})
+    </compilation>, {Net40.References.System, Net40.References.SystemCore, Net40.References.MicrosoftVisualBasic})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36548: Cannot convert anonymous type to an expression tree because a property of the type is used to initialize another property.
@@ -16519,7 +16559,7 @@ BC36548: Cannot convert anonymous type to an expression tree because a property 
             Dim x = New With {.y = 1, .z = From y In "" Select .y}
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             CompilationUtils.AssertTheseEmitDiagnostics(compilation,
     <expected>
@@ -16632,7 +16672,7 @@ BC36558: The custom-designed version of 'System.Runtime.CompilerServices.Extensi
             End Function
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36559: Anonymous type member property 'X' cannot be used to infer the type of another member property because the type of 'X' is not yet established.
@@ -16718,7 +16758,7 @@ Imports System
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
@@ -16745,7 +16785,7 @@ BC36582: Too many arguments to extension method 'Public Sub FooGeneric01()' defi
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_NamedArgAlsoOmitted3, "Y").WithArguments("Y", "Public Sub ABC([Y As Byte = 0], [Z As Byte = 0])", "M"))
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_NamedArgAlsoOmitted3, "Y").WithArguments("Y", "Public Sub ABC([Y As Byte = 0], [Z As Byte = 0])", "M"))
         End Sub
 
         <Fact()>
@@ -16765,7 +16805,7 @@ BC36582: Too many arguments to extension method 'Public Sub FooGeneric01()' defi
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_NamedArgUsedTwice3, "Y").WithArguments("Y", "Public Sub ABC(Y As Byte, [Z As Byte = 0])", "M"),
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_NamedArgUsedTwice3, "Y").WithArguments("Y", "Public Sub ABC(Y As Byte, [Z As Byte = 0])", "M"),
     Diagnostic(ERRID.ERR_NamedArgUsedTwice3, "Y").WithArguments("Y", "Public Sub ABC(Y As Byte, [Z As Byte = 0])", "M"))
 
         End Sub
@@ -16795,7 +16835,7 @@ BC36582: Too many arguments to extension method 'Public Sub FooGeneric01()' defi
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_QueryOperatorNotFound, "Group Join").WithArguments("GroupJoin"))
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_QueryOperatorNotFound, "Group Join").WithArguments("GroupJoin"))
 
         End Sub
 
@@ -16821,7 +16861,7 @@ BC36582: Too many arguments to extension method 'Public Sub FooGeneric01()' defi
             Implements Ifoo(Of T)
         End Class
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC42104: Variable 'x' is used before it has been assigned a value. A null reference exception could result at runtime.
@@ -16855,7 +16895,7 @@ BC36590: Too few type arguments to extension method 'Public Sub foo(Of t2, t3)(p
             Implements Ifoo(Of T)
         End Class
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
@@ -16902,7 +16942,7 @@ BC36593: Expression of type 'S1' is not queryable. Make sure you are not missing
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36594: Definition of method 'y' is not accessible in this context.
@@ -16952,7 +16992,7 @@ BC36597: 'Goto Label1' is not valid because 'Label1' is inside a scope that defi
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_QueryAnonymousTypeFieldNameInference, "Nothing"),
@@ -16984,7 +17024,7 @@ BC36597: 'Goto Label1' is not valid because 'Label1' is inside a scope that defi
             End Function
         End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(
     Diagnostic(ERRID.ERR_QueryDuplicateAnonTypeMemberName1, "Bar").WithArguments("Bar"))
 
         End Sub
@@ -17001,7 +17041,7 @@ BC36597: 'Goto Label1' is not valid because 'Label1' is inside a scope that defi
             Dim q = From x% In New Integer() {1}
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
@@ -17072,7 +17112,7 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36603: Multi-dimensional array cannot be converted to an expression tree.
@@ -17094,7 +17134,7 @@ BC36603: Multi-dimensional array cannot be converted to an expression tree.
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36604: Late binding operations cannot be converted to an expression tree.
@@ -17115,7 +17155,7 @@ BC36604: Late binding operations cannot be converted to an expression tree.
             Dim x = From y In "" Select ToString()
         End Class
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36606: Range variable name cannot match the name of a member of the 'Object' class.
@@ -17126,7 +17166,7 @@ BC36606: Range variable name cannot match the name of a member of the 'Object' c
 
         <Fact()>
         Public Sub BC36610ERR_QueryNameNotDeclared()
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(references:={Net40.SystemCore}, source:=
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(references:={Net40.References.SystemCore}, source:=
     <compilation name="QueryNameNotDeclared">
         <file name="a.vb">
 Imports System
@@ -17194,7 +17234,7 @@ BC36614: Range variable name cannot be inferred from an XML identifier that is n
             End Function
         End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeCharOnAggregation, "Bar$"),
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeCharOnAggregation, "Bar$"),
     Diagnostic(ERRID.ERR_QueryAnonymousTypeDisallowsTypeChar, "Bar$"))
 
         End Sub
@@ -17315,7 +17355,7 @@ Module M1
     End Sub
 End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_IterationVariableShadowLocal2, "implicit").WithArguments("implicit"),
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_IterationVariableShadowLocal2, "implicit").WithArguments("implicit"),
     Diagnostic(ERRID.ERR_IterationVariableShadowLocal2, "implicit").WithArguments("implicit"),
     Diagnostic(ERRID.ERR_IterationVariableShadowLocal2, "implicit").WithArguments("implicit"),
     Diagnostic(ERRID.ERR_IterationVariableShadowLocal2, "implicit").WithArguments("implicit"),
@@ -17400,7 +17440,7 @@ BC36635: Lambda expressions are not valid in the first expression of a 'Select C
             End Sub
         End Structure
     </file>
-    </compilation>, references:={Net40.SystemCore})
+    </compilation>, references:={Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36638: Instance members and 'Me' cannot be used within a lambda expression in structures.
@@ -17735,7 +17775,7 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_LambdaBindingMismatch2,
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(Diagnostic(ERRID.ERR_LambdaBindingMismatch2,
             <![CDATA[Sub(x As Integer(,))
                            Action()
                        End Sub]]>.Value.Replace(vbLf, Environment.NewLine)).WithArguments("System.Action")
@@ -17759,7 +17799,7 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
             End Sub
         End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(
             Diagnostic(ERRID.ERR_StatementLambdaInExpressionTree, <![CDATA[Function()
                                                                                                Return x
                                                                                                End Function]]>.Value.Replace(vbLf, Environment.NewLine)))
@@ -17792,7 +17832,7 @@ BC42104: Variable 'y' is used before it has been assigned a value. A null refere
             End Function
         End Module
     </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(
     Diagnostic(ERRID.ERR_DelegateBindingMismatchStrictOff3, "o.moo(Of Integer)").WithArguments("Public Function moo(Of Integer)(y As Integer) As String", "Delegate Function M.del1g(Of String)(x As String) As String", "m1"))
 
         End Sub
@@ -17819,7 +17859,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, targetFramework:=TargetFramework.Mscorlib45AndVBRuntime, references:=Net451XmlReferences)
+</compilation>, targetFramework:=TargetFramework.Mscorlib461AndVBRuntime, references:=Net461XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC36710: Extension Method 'Public Function E2(y As Object) As Object' defined in 'M' does not have a signature compatible with delegate 'Delegate Function D() As Object'.
     Private F2 As New D(AddressOf <x/>.E2)
@@ -18354,7 +18394,7 @@ Module Extension01
     End Sub
 End Module
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
 BC36907: Extension method 'Public Sub FooGeneric01()' defined in 'Extension01' is not generic (or has no free type parameters) and so cannot have type arguments.
@@ -19122,7 +19162,7 @@ Class E
     End Property
 End Class
         </file>
-    </compilation>, {Net40.SystemCore}).VerifyDiagnostics(
+    </compilation>, {Net40.References.SystemCore}).VerifyDiagnostics(
             Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "1"))
         End Sub
 
@@ -21263,7 +21303,7 @@ Class DerivedClass
     End Sub
 End Class
                 </file>
-            </compilation>, {Net40.SystemCore})
+            </compilation>, {Net40.References.SystemCore})
 
             VerifyDiagnostics(compilation, Diagnostic(ERRID.WRN_DefAsgNoRetValFuncVal1, "End Function").WithArguments("<anonymous method>"))
         End Sub
@@ -21291,7 +21331,7 @@ Class DerivedClass
     End Sub
 End Class
                 </file>
-            </compilation>, {Net40.SystemCore})
+            </compilation>, {Net40.References.SystemCore})
 
             AssertTheseDiagnostics(compilation,
                                    <expected><![CDATA[
@@ -21350,7 +21390,7 @@ Class DerivedClass
     End Sub
 End Class
                 </file>
-            </compilation>, {Net40.SystemCore})
+            </compilation>, {Net40.References.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -23608,7 +23648,7 @@ Return item.ToString() = ""
 End Function).ToList()    
 End Sub 
     </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             VerifyDiagnostics(compilation, Diagnostic(ERRID.ERR_Syntax, """"""),
                 Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Return lab1"),
                 Diagnostic(ERRID.ERR_InvalidEndFunction, "End Function"),
@@ -24107,7 +24147,6 @@ Font)
 
             Dim bindInfo1 As SemanticInfoSummary = semanticModel.GetSemanticInfoSummary(DirectCast(node, ExpressionSyntax))
 
-
         End Sub
 
         <WorkItem(566606, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566606")>
@@ -24117,10 +24156,8 @@ Font)
                 CreateCompilationWithMscorlib40AndVBRuntime(
                 <compilation>
                     <file name="a.vb">
-
                     </file>
                 </compilation>)
-
 
             Dim text = <![CDATA[
 Imports System                        
@@ -24223,8 +24260,6 @@ End Namespace
                                                                                                                                          Diagnostic(ERRID.ERR_UndefinedType1, "Attribute").WithArguments("Attribute"),
                                                                                                                                          Diagnostic(ERRID.ERR_OverrideNotNeeded3, "TypeId").WithArguments("property", "TypeId"))
 
-
-
         End Sub
 
         <Fact()>
@@ -24255,7 +24290,7 @@ Class Test
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {Net40.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24293,7 +24328,7 @@ Class Test
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {Net40.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24328,7 +24363,7 @@ Class Test
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {Net40.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24376,7 +24411,7 @@ Class C1
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {Net40.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -24419,7 +24454,7 @@ Class C1
     End Sub
 End Class
                     ]]></file>
-                </compilation>, {Net40.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+                </compilation>, {Net40.References.SystemCore}, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -26099,7 +26134,7 @@ End Module
         ]]></file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore})
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore})
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>

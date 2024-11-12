@@ -67,6 +67,11 @@
         <target state="translated">查找使用情况</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_FullyQualify">
+        <source>Fully qualify</source>
+        <target state="translated">完全限定</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_GlobalNotificationDelivery">
         <source>Global notification delivery</source>
         <target state="translated">全局通知传送</target>
@@ -75,6 +80,16 @@
       <trans-unit id="FeatureName_InheritanceMargin">
         <source>Inheritance margin</source>
         <target state="translated">继承边距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_KeepAlive">
+        <source>Keep alive service</source>
+        <target state="translated">保持活动状态的服务</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_LegacySolutionEventsAggregation">
+        <source>Solution Events</source>
+        <target state="translated">解决方案事件</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_MissingImportDiscovery">
@@ -102,6 +117,11 @@
         <target state="translated">项目遥测集合</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_RelatedDocuments">
+        <source>Related documents</source>
+        <target state="translated">相关文档</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
         <target state="translated">重命名</target>
@@ -112,9 +132,19 @@
         <target state="translated">语义分类</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">语义搜索</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">资产提供商</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">源生成</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
@@ -132,9 +162,14 @@
         <target state="translated">符号搜索</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_TodoCommentsDiscovery">
-        <source>TODO comments discovery</source>
-        <target state="translated">TODO 注释发现</target>
+      <trans-unit id="FeatureName_TaskList">
+        <source>Task list</source>
+        <target state="translated">任务列表</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_UnitTestingSearch">
+        <source>Unit testing search</source>
+        <target state="translated">单元测试搜索</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_UnusedReferenceAnalysis">

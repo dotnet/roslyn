@@ -77,9 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ParameterDefaultValue = 1 << 23,
 
         /// <summary>
-        /// In the debugger, one can take the address of a managed object.
+        /// In the debugger, one can take the address of a moveable variable.
         /// </summary>
-        AllowManagedAddressOf = 1 << 24,
+        AllowMoveableAddressOf = 1 << 24,
 
         /// <summary>
         /// In the debugger, the context is always unsafe, but one can still await.
@@ -111,6 +111,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The current context is an expression tree
         /// </summary>
         InExpressionTree = 1 << 30,
+
+        /// <summary>
+        /// Indicates the binder is used during collection expression conversion
+        /// to verify applicable methods are available.
+        /// </summary>
+        CollectionExpressionConversionValidation = 1u << 31,
 
         // Groups
 

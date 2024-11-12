@@ -6,37 +6,29 @@ using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ConvertTupleToStruct
+namespace Microsoft.CodeAnalysis.ConvertTupleToStruct;
+
+internal interface IRemoteConvertTupleToStructCodeRefactoringService
 {
-    internal interface IRemoteConvertTupleToStructCodeRefactoringService
-    {
-        ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
-            PinnedSolutionInfo solutionInfo,
-            DocumentId documentId,
-            TextSpan span,
-            Scope scope,
-            bool isRecord,
-            CancellationToken cancellationToken);
-    }
+    ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
+        Checksum solutionChecksum,
+        DocumentId documentId,
+        TextSpan span,
+        Scope scope,
+        bool isRecord,
+        CancellationToken cancellationToken);
+}
 
-    [DataContract]
-    internal readonly struct SerializableConvertTupleToStructResult
-    {
-        [DataMember(Order = 0)]
-        public readonly ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges;
+[DataContract]
+internal readonly struct SerializableConvertTupleToStructResult(
+    ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
+    (DocumentId, TextSpan) renamedToken)
+{
+    [DataMember(Order = 0)]
+    public readonly ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> DocumentTextChanges = documentTextChanges;
 
-        [DataMember(Order = 1)]
-        public readonly (DocumentId, TextSpan) RenamedToken;
-
-        public SerializableConvertTupleToStructResult(
-            ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges,
-            (DocumentId, TextSpan) renamedToken)
-        {
-            DocumentTextChanges = documentTextChanges;
-            RenamedToken = renamedToken;
-        }
-    }
+    [DataMember(Order = 1)]
+    public readonly (DocumentId, TextSpan) RenamedToken = renamedToken;
 }

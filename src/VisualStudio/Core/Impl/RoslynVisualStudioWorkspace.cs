@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -105,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (symbolInfo.Symbol == null)
                 return false;
 
-            return await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+            return await GoToDefinitionHelpers.TryNavigateToLocationAsync(
                 symbolInfo.Symbol, currentProject.Solution,
                 _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
         }
@@ -151,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return null;
             }
 
-            var codeModelService = project.LanguageServices.GetService<ICodeModelService>();
+            var codeModelService = project.Services.GetService<ICodeModelService>();
             if (codeModelService == null)
             {
                 return null;

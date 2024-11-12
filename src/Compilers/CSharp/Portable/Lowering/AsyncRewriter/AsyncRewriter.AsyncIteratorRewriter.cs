@@ -36,10 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol method,
                 int methodOrdinal,
                 AsyncStateMachine stateMachineType,
+                ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
                 BindingDiagnosticBag diagnostics)
-                : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
+                : base(body, method, methodOrdinal, stateMachineType, stateMachineStateDebugInfoBuilder, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
 
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Add a field: bool disposeMode
                 _disposeModeField = F.StateMachineField(boolType, GeneratedNames.MakeDisposeModeFieldName());
 
-                if (_isEnumerable && this.method.Parameters.Any(p => p.IsSourceParameterWithEnumeratorCancellationAttribute()))
+                if (_isEnumerable && this.method.Parameters.Any(static p => p.IsSourceParameterWithEnumeratorCancellationAttribute()))
                 {
                     // Add a field: CancellationTokenSource combinedTokens
                     _combinedTokensField = F.StateMachineField(
@@ -174,10 +175,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
+                if (instanceIdField is not null &&
+                    F.WellKnownMethod(WellKnownMember.Microsoft_CodeAnalysis_Runtime_LocalStoreTracker__GetNewStateMachineInstanceId) is { } getId)
+                {
+                    // this.instanceId = LocalStoreTracker.GetNewStateMachineInstanceId();
+                    bodyBuilder.Add(F.Assignment(F.InstanceField(instanceIdField), F.Call(receiver: null, getId)));
+                }
 
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
-                bodyBuilder = null;
             }
 
             private BoundExpressionStatement GenerateCreateAndAssignBuilder()
@@ -194,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void InitializeStateMachine(ArrayBuilder<BoundStatement> bodyBuilder, NamedTypeSymbol frameType, LocalSymbol stateMachineLocal)
             {
                 // var stateMachineLocal = new {StateMachineType}({initialState})
-                int initialState = _isEnumerable ? StateMachineStates.FinishedStateMachine : StateMachineStates.InitialAsyncIteratorStateMachine;
+                var initialState = _isEnumerable ? StateMachineState.FinishedState : StateMachineState.InitialAsyncIteratorState;
                 bodyBuilder.Add(
                     F.Assignment(
                         F.Local(stateMachineLocal),
@@ -322,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineState.FinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(moveNextAsyncReturnType)));
 
@@ -432,13 +438,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundStatement ifInvalidState = F.If(
                     // if (state >= StateMachineStates.NotStartedStateMachine /* -1 */)
-                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.NotStartedStateMachine)),
+                    F.IntGreaterThanOrEqual(F.InstanceField(stateField), F.Literal(StateMachineState.NotStartedOrRunningState)),
                     // throw new NotSupportedException();
                     thenClause: F.Throw(F.New(F.WellKnownType(WellKnownType.System_NotSupportedException))));
 
                 BoundStatement ifFinished = F.If(
                     // if (state == StateMachineStates.FinishedStateMachine)
-                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
+                    F.IntEqual(F.InstanceField(stateField), F.Literal(StateMachineState.FinishedState)),
                     // return default;
                     thenClause: F.Return(F.Default(returnType)));
 
@@ -650,10 +656,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     .AsMember(IAsyncEnumerableOfElementType);
 
                 BoundExpression managedThreadId = null;
-                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineStates.InitialAsyncIteratorStateMachine);
+                GenerateIteratorGetEnumerator(IAsyncEnumerableOfElementType_GetEnumerator, ref managedThreadId, initialState: StateMachineState.InitialAsyncIteratorState);
             }
 
-            protected override void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, int initialState)
+            protected override void GenerateResetInstance(ArrayBuilder<BoundStatement> builder, StateMachineState initialState)
             {
                 // this.state = {initialState};
                 // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
@@ -694,9 +700,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F: F,
                     state: stateField,
                     builder: _builderField,
+                    instanceIdField: instanceIdField,
                     hoistedVariables: hoistedVariables,
                     nonReusableLocalProxies: nonReusableLocalProxies,
                     synthesizedLocalOrdinals: synthesizedLocalOrdinals,
+                    stateMachineStateDebugInfoBuilder,
                     slotAllocatorOpt: slotAllocatorOpt,
                     nextFreeHoistedLocalSlot: nextFreeHoistedLocalSlot,
                     diagnostics: diagnostics);

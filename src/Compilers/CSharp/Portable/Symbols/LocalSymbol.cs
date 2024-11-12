@@ -6,6 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
@@ -37,7 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract SyntaxNode ScopeDesignatorOpt { get; }
 
-        internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(SynthesizedLocalKind kind, SyntaxNode syntax);
+        internal abstract LocalSymbol WithSynthesizedLocalKindAndSyntax(
+            SynthesizedLocalKind kind, SyntaxNode syntax
+#if DEBUG
+            ,
+            [CallerLineNumber] int createdAtLineNumber = 0,
+            [CallerFilePath] string createdAtFilePath = null
+#endif
+            );
 
         internal abstract bool IsImportedFromMetadata
         {
@@ -75,6 +83,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// that is pinned.
         /// </remarks>
         internal abstract bool IsPinned
+        {
+            get;
+        }
+
+        /// <summary>
+        /// This property is used to avoid creating unnecessary
+        /// copies of reference type receivers for
+        /// constrained calls.
+        /// </summary>
+        internal abstract bool IsKnownToReferToTempIfReferenceType
         {
             get;
         }
@@ -176,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal abstract ScopedKind Scope { get; }
+
         internal sealed override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLocal(this, argument);
@@ -253,7 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the syntax node that declares the variable.
+        /// Returns the syntax node that declares the variable.  Should always return a value if <see
+        /// cref="HasSourceLocation"/> returns <see langword="true"/>.  May throw if it returns <see langword="false"/>.
         /// </summary>
         /// <remarks>
         /// All user-defined and long-lived synthesized variables must return a reference to a node that is 
@@ -263,6 +284,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The location of the declarator is used to calculate <see cref="LocalDebugId.SyntaxOffset"/> during emit.
         /// </remarks>
         internal abstract SyntaxNode GetDeclaratorSyntax();
+
+        /// <summary>
+        /// <see langword="true"/> if this has a real syntax location in source code, <see langword="false"/> otherwise.
+        /// A common example of a local without a source location is an EE local symbol.
+        /// </summary>
+        internal abstract bool HasSourceLocation { get; }
 
         /// <summary>
         /// Describes whether this represents a modifiable variable. Note that
@@ -333,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract ConstantValue GetConstantValue(SyntaxNode node, LocalSymbol inProgress, BindingDiagnosticBag diagnostics = null);
 
-        internal abstract ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue);
+        internal abstract ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue);
 
         public bool IsRef => RefKind != RefKind.None;
 
@@ -341,18 +368,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get;
         }
-
-        /// <summary>
-        /// Returns the scope to which a local can "escape" ref assignments or other form of aliasing
-        /// Makes sense only for locals with formal scopes - i.e. source locals
-        /// </summary>
-        internal abstract uint RefEscapeScope { get; }
-
-        /// <summary>
-        /// Returns the scope to which values of a local can "escape" via ordinary assignments
-        /// Makes sense only for ref-like locals with formal scopes - i.e. source locals
-        /// </summary>
-        internal abstract uint ValEscapeScope { get; }
 
         /// <summary>
         /// When a local variable's type is inferred, it may not be used in the

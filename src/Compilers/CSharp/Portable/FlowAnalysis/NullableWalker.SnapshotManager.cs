@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class NullableWalker
     {
-#nullable enable
         internal sealed class SnapshotManager
         {
             /// <summary>
@@ -118,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Fail($"Did not find a snapshot for {node} `{node.Syntax}.`");
                 }
-                Debug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
+                RoslynDebug.Assert(_walkerSharedStates.Length > _incrementalSnapshots[position].snapshot.SharedStateIndex, $"Did not find shared state for {node} `{node.Syntax}`.");
             }
 
             internal void VerifyUpdatedSymbols()
@@ -126,10 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var ((expr, originalSymbol), updatedSymbol) in _updatedSymbolsMap)
                 {
                     var debugText = expr?.Syntax.ToFullString() ?? originalSymbol.ToDisplayString();
-                    Debug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
+                    RoslynDebug.Assert((object)originalSymbol != updatedSymbol, $"Recorded exact same symbol for {debugText}");
                     RoslynDebug.Assert(originalSymbol is object, $"Recorded null original symbol for {debugText}");
                     RoslynDebug.Assert(updatedSymbol is object, $"Recorded null updated symbol for {debugText}");
-                    Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
+                    RoslynDebug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), @$"Symbol for `{debugText}` changed:
 Was {originalSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}
 Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
                 }
@@ -250,7 +247,7 @@ Now {updatedSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
         /// <summary>
         /// Contains the shared state used to restore the walker at a specific point
         /// </summary>
-        internal struct SharedWalkerState
+        internal readonly struct SharedWalkerState
         {
             internal readonly VariablesSnapshot Variables;
 

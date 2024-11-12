@@ -28,6 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.IGenericMethodParameter,
         Cci.IGenericTypeParameter
     {
+        public bool IsEncDeleted
+            => false;
+
         bool Cci.ITypeReference.IsEnum
         {
             get { return false; }
@@ -150,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         void Cci.IReference.Dispatch(Cci.MetadataVisitor visitor)
         {
-            throw ExceptionUtilities.Unreachable;
+            throw ExceptionUtilities.Unreachable();
             //We've not yet discovered a scenario in which we need this.
             //If you're hitting this exception, uncomment the code below
             //and add a unit test.
@@ -296,6 +299,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return AdaptedTypeParameterSymbol.HasValueTypeConstraint || AdaptedTypeParameterSymbol.HasUnmanagedTypeConstraint;
+            }
+        }
+
+        bool Cci.IGenericParameter.AllowsRefLikeType
+        {
+            get
+            {
+                return AdaptedTypeParameterSymbol.AllowsRefLikeType;
             }
         }
 

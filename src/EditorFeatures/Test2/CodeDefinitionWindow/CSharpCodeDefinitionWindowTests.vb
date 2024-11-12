@@ -7,10 +7,11 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
     <UseExportProvider>
+    <Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
     Public Class CSharpCodeDefinitionWindowTests
         Inherits AbstractCodeDefinitionWindowTests
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function ClassFromDefinition() As Task
             Const code As String = "
 class $$[|C|]
@@ -20,7 +21,7 @@ class $$[|C|]
             Await VerifyContextLocationAsync(code, "class C")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function ClassFromReference() As Task
             Const code As String = "
 class [|C|]
@@ -34,7 +35,7 @@ class [|C|]
             Await VerifyContextLocationAsync(code, "class C")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function MethodFromDefinition() As Task
             Const code As String = "
 class C
@@ -47,7 +48,7 @@ class C
             Await VerifyContextLocationAsync(code, "void C.M()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function MethodFromReference() As Task
             Const code As String = "
 class C
@@ -61,7 +62,7 @@ class C
             Await VerifyContextLocationAsync(code, "void C.M()")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function ReducedGenericExtensionMethod() As Task
             Const code As String = "
 using System.Collections.Generic;
@@ -82,7 +83,7 @@ class C
             Await VerifyContextLocationAsync(code, "static void Ex.M<T>(List<T>)")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        <Fact>
         Public Async Function ToMetadataAsSource() As Task
             Const code As String = "
 class C
@@ -94,8 +95,31 @@ class C
 
         End Function
 
-        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As TestWorkspace
-            Return TestWorkspace.CreateCSharp(code, composition:=testComposition)
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71680")>
+        <InlineData("ValueTuple<int> valueTuple1;", "System.ValueTuple<int>")>
+        <InlineData("ValueTuple<int, int> valueTuple2;", "(int, int)")>
+        <InlineData("ValueTuple<int, int, int> valueTuple3;", "(int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int> valueTuple4;", "(int, int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int, int> valueTuple5;", "(int, int, int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int, int, int> valueTuple6;", "(int, int, int, int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int, int, int, int> valueTuple7;", "(int, int, int, int, int, int, int)")>
+        <InlineData("ValueTuple<int, int, int, int, int, int, int, int> valueTuple8;", "System.ValueTuple<int, int, int, int, int, int, int, int>")>
+        Public Async Function ToValueTupleMetadataAsSource(expression As String, expectedDisplayName As String) As Task
+            Dim code As String = $"using System;
+class C
+{{
+    void M()
+    {{
+        $${expression} valueTuple;
+    }}
+}}"
+
+            Await VerifyContextLocationInMetadataAsSource(code, expectedDisplayName, "ValueTuple.cs")
+
+        End Function
+
+        Protected Overrides Function CreateWorkspace(code As String, testComposition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateCSharp(code, composition:=testComposition)
         End Function
     End Class
 End Namespace

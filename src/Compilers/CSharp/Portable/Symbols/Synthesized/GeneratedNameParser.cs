@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Text.RegularExpressions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -44,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (closeBracketOffset >= 0 && closeBracketOffset + 1 < name.Length)
                 {
                     int c = name[closeBracketOffset + 1];
-                    if (c is >= '1' and <= '9' or >= 'a' and <= 'z') // Note '0' is not special.
+                    if (c is >= '1' and <= '9' or >= 'a' and <= 'z' or >= 'A' and <= 'Z') // Note '0' is not special.
                     {
                         kind = (GeneratedNameKind)c;
                         return true;
@@ -169,6 +172,81 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             propertyName = null;
             return false;
+        }
+
+        internal static bool TryParsePrimaryConstructorParameterFieldName(string fieldName, [NotNullWhen(true)] out string? parameterName)
+        {
+            Debug.Assert((char)GeneratedNameKind.PrimaryConstructorParameter == 'P');
+
+            if (fieldName.StartsWith("<", StringComparison.Ordinal) &&
+                fieldName.EndsWith(">P", StringComparison.Ordinal))
+            {
+                parameterName = fieldName.Substring(1, fieldName.Length - 3);
+                return true;
+            }
+
+            parameterName = null;
+            return false;
+        }
+
+        public const char FileTypeNameStartChar = '<';
+
+        private const int sha256LengthBytes = 32;
+        private const int sha256LengthHexChars = sha256LengthBytes * 2;
+        private static readonly string s_regexPatternString = $@"<([a-zA-Z_0-9]*)>F([0-9A-F]{{{sha256LengthHexChars}}})__";
+
+        static GeneratedNameParser()
+        {
+            Debug.Assert(s_regexPatternString[0] == FileTypeNameStartChar);
+        }
+
+        // A full metadata name for a generic file-local type looks like:
+        // <ContainingFile>FN__ClassName`A
+        // where 'N' is the SHA256 checksum of the original file path, 'A' is the arity,
+        // and 'ClassName' is the source name of the type.
+        //
+        // The "unmangled" name of a generic file-local type looks like:
+        // <ContainingFile>FN__ClassName
+        private static readonly Regex s_fileTypeOrdinalPattern = new Regex(s_regexPatternString, RegexOptions.Compiled);
+
+        /// <remarks>
+        /// This method will work with either unmangled or mangled type names as input, but it does not remove any arity suffix if present.
+        /// </remarks>
+        internal static bool TryParseFileTypeName(string generatedName, [NotNullWhen(true)] out string? displayFileName, [NotNullWhen(true)] out byte[]? checksum, [NotNullWhen(true)] out string? originalTypeName)
+        {
+            if (s_fileTypeOrdinalPattern.Match(generatedName) is Match { Success: true, Groups: var groups, Index: var index, Length: var length })
+            {
+                displayFileName = groups[1].Value;
+
+                var checksumString = groups[2].Value;
+                var builder = new byte[sha256LengthBytes];
+                for (var i = 0; i < sha256LengthBytes; i++)
+                {
+                    builder[i] = (byte)((hexCharToByte(checksumString[i * 2]) << 4) | hexCharToByte(checksumString[i * 2 + 1]));
+                }
+                checksum = builder;
+
+                var prefixEndsAt = index + length;
+                originalTypeName = generatedName.Substring(prefixEndsAt);
+                return true;
+            }
+
+            checksum = null;
+            displayFileName = null;
+            originalTypeName = null;
+            return false;
+
+            static byte hexCharToByte(char c)
+            {
+                return c switch
+                {
+                    >= '0' and <= '9' => (byte)(c - '0'),
+                    >= 'A' and <= 'F' => (byte)(10 + c - 'A'),
+                    _ => @throw(c)
+                };
+
+                static byte @throw(char c) => throw ExceptionUtilities.UnexpectedValue(c);
+            }
         }
     }
 }

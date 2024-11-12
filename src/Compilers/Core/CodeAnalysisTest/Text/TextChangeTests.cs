@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestSubTextAfterMultipleChanges()
         {
-            var text = SourceText.From("Hello World", Encoding.Unicode, SourceHashAlgorithm.Sha256);
+            var text = SourceText.From("Hello World", Encoding.Unicode, SourceHashAlgorithms.Default);
             var newText = text.WithChanges(
                 new TextChange(new TextSpan(4, 1), string.Empty),
                 new TextChange(new TextSpan(6, 5), "Universe"));
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var subText = newText.GetSubText(new TextSpan(3, 4));
             Assert.Equal("l Un", subText.ToString());
 
-            Assert.Equal(SourceHashAlgorithm.Sha256, subText.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, subText.ChecksumAlgorithm);
             Assert.Same(Encoding.Unicode, subText.Encoding);
         }
 
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestGetTextChangesToChangedText()
         {
-            var text = SourceText.From(new string('.', 2048), Encoding.Unicode, SourceHashAlgorithm.Sha256); // start bigger than GetText() copy buffer
+            var text = SourceText.From(new string('.', 2048), Encoding.Unicode, SourceHashAlgorithms.Default); // start bigger than GetText() copy buffer
             var changes = new TextChange[] {
                 new TextChange(new TextSpan(0, 1), "[1]"),
                 new TextChange(new TextSpan(1, 1), "[2]"),
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             };
 
             var newText = text.WithChanges(changes);
-            Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
+            Assert.Equal(SourceHashAlgorithms.Default, newText.ChecksumAlgorithm);
             Assert.Same(Encoding.Unicode, newText.Encoding);
 
             var result = newText.GetTextChanges(text).ToList();
@@ -320,14 +320,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestOptimizedSourceTextLinesBrakeCrLf()
+        public void TestOptimizedSourceTextLinesBreakCrLf()
         {
             AssertChangedTextLinesHelper("Test\r\nMessage",
                 new TextChange(new TextSpan(5, 0), "aaaaaa"));
         }
 
         [Fact]
-        public void TestOptimizedSourceTextLinesBrakeCrLfWithLfPrefixedAndCrSuffixed()
+        public void TestOptimizedSourceTextLinesBreakCrLfWithLfPrefixedAndCrSuffixed()
         {
             AssertChangedTextLinesHelper("Test\r\nMessage",
                 new TextChange(new TextSpan(5, 0), "\naaaaaa\r"));
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private SourceText CreateLargeText(params char[][] chunks)
         {
-            return new LargeText(ImmutableArray.Create(chunks), Encoding.UTF8, default(ImmutableArray<byte>), SourceHashAlgorithm.Sha256, default(ImmutableArray<byte>));
+            return new LargeText(ImmutableArray.Create(chunks), Encoding.UTF8, default(ImmutableArray<byte>), SourceHashAlgorithms.Default, default(ImmutableArray<byte>));
         }
 
         private ImmutableArray<char[]> GetChunks(SourceText text)
@@ -1117,7 +1117,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var change2 = change1.WithChanges(new TextChange(new TextSpan(0, 0), "b"), new TextChange(new TextSpan(2, 0), "b"), new TextChange(new TextSpan(3, 4), "bbbbb"), new TextChange(new TextSpan(9, 5), "bbbbb"), new TextChange(new TextSpan(15, 3), ""));
             Assert.Equal("aaaaa12aaaa45aaaaa7", change1.ToString());
             Assert.Equal("baababbbbbaabbbbba7", change2.ToString());
-
 
             var changes = change2.GetTextChanges(originalText);
             Assert.Equal("baababbbbbaabbbbba7", originalText.WithChanges(changes).ToString());

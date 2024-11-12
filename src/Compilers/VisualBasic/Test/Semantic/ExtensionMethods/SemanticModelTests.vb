@@ -5,8 +5,8 @@
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
 
@@ -193,11 +193,9 @@ End Namespace
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
-
     End Class
 
 End Namespace
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -1422,7 +1420,7 @@ Module E
     End Sub
 End Module
 ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC30456: 'F' is not a member of 'B'.
         _b.F()

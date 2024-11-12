@@ -66,10 +66,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView,
                     supportsFavorites: false);
                 var expansion = other.Expansion;
-                if (expansion != null)
-                {
-                    expansion.GetRows(resultProvider, rows, inspectionContext, other.ToDataItem(), other.Value, startIndex, count, visitAll, ref index);
-                }
+                expansion?.GetRows(resultProvider, rows, inspectionContext, other.ToDataItem(), other.Value, startIndex, count, visitAll, ref index);
             }
         }
     }

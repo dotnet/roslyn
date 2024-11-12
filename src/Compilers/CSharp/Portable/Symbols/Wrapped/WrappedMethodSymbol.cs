@@ -186,9 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
-            return UnderlyingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
+            return UnderlyingMethod.IsMetadataVirtual(option);
         }
 
         internal override bool IsMetadataFinal
@@ -358,5 +358,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
 
         internal override bool IsInitOnly => UnderlyingMethod.IsInitOnly;
+
+        protected sealed override bool HasSetsRequiredMembersImpl => UnderlyingMethod.HasSetsRequiredMembers;
+
+        internal sealed override bool HasUnscopedRefAttribute => UnderlyingMethod.HasUnscopedRefAttribute;
+
+        internal sealed override bool UseUpdatedEscapeRules => UnderlyingMethod.UseUpdatedEscapeRules;
+
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return UnderlyingMethod.TryGetOverloadResolutionPriority();
+        }
     }
 }

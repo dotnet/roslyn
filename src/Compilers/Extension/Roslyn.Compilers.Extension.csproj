@@ -5,6 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Compilers.Extension</RootNamespace>
     <TargetFramework>net472</TargetFramework>
+    <IsShipping>false</IsShipping>
 
     <!-- VSIX -->
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -12,7 +13,7 @@
     <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
     <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
   <ItemGroup Label="PkgDef">
     <PkgDefPackageRegistration Include="{31c0675e-87a4-4061-a0dd-a4e510fccf97}"
@@ -28,15 +29,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader.Native" />
-    <NuGetPackageToIncludeInVsix Include="System.Buffers" />
-    <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
-    <NuGetPackageToIncludeInVsix Include="System.Memory" />
-    <NuGetPackageToIncludeInVsix Include="System.Numerics.Vectors" />
-    <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
-    <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.CodePages" />
-    <NuGetPackageToIncludeInVsix Include="System.Runtime.CompilerServices.Unsafe" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
+    <PackageReference Include="System.Buffers" IncludeInVsix="true" />
+    <PackageReference Include="System.Collections.Immutable" IncludeInVsix="true" />
+    <PackageReference Include="System.Memory" IncludeInVsix="true" />
+    <PackageReference Include="System.Reflection.Metadata" IncludeInVsix="true" />
+    <PackageReference Include="System.Numerics.Vectors" IncludeInVsix="true" />
+    <PackageReference Include="System.Text.Encoding.CodePages" IncludeInVsix="true" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" IncludeInVsix="true" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" IncludeInVsix="true" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -71,14 +71,14 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\Server\VBCSCompiler\VBCSCompiler.csproj">
+    <ProjectReference Include="..\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <!-- Workaround for https://github.com/dotnet/sdk/issues/433#issuecomment-320024771 . Remove once resolved. -->
       <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\csc\csc.csproj">
+    <ProjectReference Include="..\CSharp\csc\AnyCpu\csc.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -94,7 +94,7 @@
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\vbc\vbc.csproj">
+    <ProjectReference Include="..\VisualBasic\vbc\AnyCpu\vbc.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -108,19 +108,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="$(MicrosoftVisualStudioProjectSystemManagedVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Sdk" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" />
   </ItemGroup>
 </Project>

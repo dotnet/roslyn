@@ -6,7 +6,7 @@ using System;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 
 #if DEBUG
 using System.Diagnostics;
@@ -63,7 +63,7 @@ namespace Roslyn.Utilities
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static readonly Entry[] s_sharedTable = new Entry[SharedSize];
+        private static readonly SegmentedArray<Entry> s_sharedTable = new SegmentedArray<Entry>(SharedSize);
 
         // essentially a random number 
         // the usage pattern will randomly use and increment this
@@ -283,7 +283,6 @@ namespace Roslyn.Utilities
             return chars;
         }
 
-
         private static string? FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
             var arr = s_sharedTable;
@@ -493,7 +492,6 @@ namespace Roslyn.Utilities
             return e;
         }
 
-
         private string AddItem(char[] chars, int start, int len, int hashCode)
         {
             var text = new String(chars, start, len);
@@ -521,7 +519,6 @@ namespace Roslyn.Utilities
             AddCore(text, hashCode);
             return text;
         }
-
 
         private void AddCore(string chars, int hashCode)
         {
@@ -585,7 +582,7 @@ foundIdx:
             return text;
         }
 
-        internal static string AddSharedUTF8(ReadOnlySpan<byte> bytes)
+        internal static string AddSharedUtf8(ReadOnlySpan<byte> bytes)
         {
             int hashCode = Hash.GetFNVHashCode(bytes, out bool isAscii);
 
@@ -614,7 +611,7 @@ foundIdx:
             }
 
             // Don't add non-ascii strings to table. The hashCode we have here is not correct and we won't find them again.
-            // Non-ascii in UTF8-encoded parts of metadata (the only use of this at the moment) is assumed to be rare in 
+            // Non-ascii in UTF-8 encoded parts of metadata (the only use of this at the moment) is assumed to be rare in 
             // practice. If that turns out to be wrong, we could decode to pooled memory and rehash here.
             if (isAscii)
             {
@@ -701,6 +698,16 @@ foundIdx:
                 return false;
             }
 
+#if NETCOREAPP3_1_OR_GREATER
+            int chunkOffset = 0;
+            foreach (var chunk in text.GetChunks())
+            {
+                if (!chunk.Span.Equals(array.AsSpan().Slice(chunkOffset, chunk.Length), StringComparison.Ordinal))
+                    return false;
+
+                chunkOffset += chunk.Length;
+            }
+#else
             // interestingly, stringbuilder holds the list of chunks by the tail
             // so accessing positions at the beginning may cost more than those at the end.
             for (var i = array.Length - 1; i >= 0; i--)
@@ -710,6 +717,7 @@ foundIdx:
                     return false;
                 }
             }
+#endif
 
             return true;
         }
@@ -719,7 +727,7 @@ foundIdx:
 #if DEBUG
             for (var i = 0; i < ascii.Length; i++)
             {
-                Debug.Assert((ascii[i] & 0x80) == 0, $"The {nameof(ascii)} input to this method must be valid ASCII.");
+                RoslynDebug.Assert((ascii[i] & 0x80) == 0, $"The {nameof(ascii)} input to this method must be valid ASCII.");
             }
 #endif
 

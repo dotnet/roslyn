@@ -5,15 +5,14 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
         private readonly ITextEditorFactoryService _textEditorFactoryService;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
-        private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+        private readonly EditorOptionsService _editorOptionsService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -39,13 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             ITextEditorFactoryService textEditorFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService)
+            EditorOptionsService editorOptionsService)
         {
             _threadingContext = threadingContext;
             _textEditorFactoryService = textEditorFactoryService;
             _contentTypeRegistryService = contentTypeRegistryService;
             _projectionBufferFactoryService = projectionBufferFactoryService;
-            _editorOptionsFactoryService = editorOptionsFactoryService;
+            _editorOptionsService = editorOptionsService;
         }
 
         public void AttachToolTipToControl(FrameworkElement element, Func<DisposableToolTip> createToolTip)
@@ -58,13 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             // Create the actual tooltip around the region of that text buffer we want to show.
             var toolTip = new ToolTip
             {
-                Content = control,
-                Background = (Brush)Application.Current.Resources[backgroundResourceKey]
+                Content = control
             };
 
-            // Create a preview workspace for this text buffer and open it's corresponding 
-            // document. 
-            // 
+            toolTip.SetResourceReference(Control.BackgroundProperty, backgroundResourceKey);
+
+            // Create a preview workspace for this text buffer and open it's corresponding
+            // document.
+            //
             // our underlying preview tagger and mechanism to attach tagger to associated buffer of
             // opened document will light up automatically
             var workspace = new PreviewWorkspace(document.Project.Solution);
@@ -80,9 +80,10 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
             // Create the actual tooltip around the region of that text buffer we want to show.
             var toolTip = new ToolTip
             {
-                Content = control,
-                Background = (Brush)Application.Current.Resources[backgroundResourceKey]
+                Content = control
             };
+
+            toolTip.SetResourceReference(Control.BackgroundProperty, backgroundResourceKey);
 
             // we have stand alone view that is not associated with roslyn solution
             return new DisposableToolTip(toolTip, workspaceOpt: null);
@@ -103,9 +104,9 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
 
             var contentControl = ProjectionBufferContent.Create(
                 _threadingContext,
-                ImmutableArray.Create(snapshotSpan),
+                [snapshotSpan],
                 _projectionBufferFactoryService,
-                _editorOptionsFactoryService,
+                _editorOptionsService,
                 _textEditorFactoryService,
                 contentType,
                 roleSet);

@@ -7,35 +7,28 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+
+[ExportLanguageServiceFactory(typeof(ITypeImportCompletionService), LanguageNames.CSharp), Shared]
+internal sealed class TypeImportCompletionServiceFactory : ILanguageServiceFactory
 {
-    [ExportLanguageServiceFactory(typeof(ITypeImportCompletionService), LanguageNames.CSharp), Shared]
-    internal sealed class TypeImportCompletionServiceFactory : ILanguageServiceFactory
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TypeImportCompletionServiceFactory()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TypeImportCompletionServiceFactory()
-        {
-        }
+    }
 
-        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-            => new CSharpTypeImportCompletionService(languageServices.WorkspaceServices.Workspace);
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        => new CSharpTypeImportCompletionService(languageServices.LanguageServices.SolutionServices);
 
-        private class CSharpTypeImportCompletionService : AbstractTypeImportCompletionService
-        {
-            public CSharpTypeImportCompletionService(Workspace workspace)
-                : base(workspace)
-            {
-            }
+    private sealed class CSharpTypeImportCompletionService(SolutionServices services) : AbstractTypeImportCompletionService(services)
+    {
+        protected override string GenericTypeSuffix
+            => "<>";
 
-            protected override string GenericTypeSuffix
-                => "<>";
+        protected override bool IsCaseSensitive => true;
 
-            protected override bool IsCaseSensitive => true;
-
-            protected override string Language => LanguageNames.CSharp;
-        }
+        protected override string Language => LanguageNames.CSharp;
     }
 }

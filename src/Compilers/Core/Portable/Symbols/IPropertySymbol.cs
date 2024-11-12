@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis
         bool IsWriteOnly { get; }
 
         /// <summary>
+        /// True if this property is required to be set in an object initializer during construction.
+        /// </summary>
+        bool IsRequired { get; }
+
+        /// <summary>
         /// Returns true if this property is an auto-created WithEvents property that takes place of
         /// a field member when the field is marked as WithEvents.
         /// </summary>
@@ -105,5 +110,22 @@ namespace Microsoft.CodeAnalysis
         /// The list of custom modifiers, if any, associated with the type of the property. 
         /// </summary>
         ImmutableArray<CustomModifier> TypeCustomModifiers { get; }
+
+        /// <summary>
+        /// If this is a partial property implementation part, returns the corresponding
+        /// definition part.  Otherwise null.
+        /// </summary>
+        IPropertySymbol? PartialDefinitionPart { get; }
+
+        /// <summary>
+        /// If this is a partial property definition part, returns the corresponding
+        /// implementation part.  Otherwise null.
+        /// </summary>
+        IPropertySymbol? PartialImplementationPart { get; }
+
+        /// <summary>
+        /// Returns true if this is a partial definition part.  Otherwise false.
+        /// </summary>
+        bool IsPartialDefinition { get; }
     }
 }

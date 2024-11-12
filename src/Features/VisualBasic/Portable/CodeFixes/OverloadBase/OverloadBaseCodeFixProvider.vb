@@ -4,7 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 

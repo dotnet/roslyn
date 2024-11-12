@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Basic.Reference.Assemblies;
 
@@ -20,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             return CSharpCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
-                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { NetStandard13.SystemRuntime },
+                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
+                new[] { NetStandard13.References.SystemRuntime },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
@@ -29,8 +30,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             return VisualBasicCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
-                new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(source) },
-                new[] { NetStandard13.SystemRuntime },
+                new[] { VisualBasic.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
+                new[] { NetStandard13.References.SystemRuntime },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }
 
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             return CSharpCompilation.Create(
                 assemblyName ?? Guid.NewGuid().ToString(),
-                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(source) },
+                new[] { CSharp.SyntaxFactory.ParseSyntaxTree(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
                 references,
                 options ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         }

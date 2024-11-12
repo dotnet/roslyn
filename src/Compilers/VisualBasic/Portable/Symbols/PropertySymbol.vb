@@ -2,12 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -15,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class PropertySymbol
         Inherits Symbol
-        Implements IPropertySymbol
+        Implements IPropertySymbol, IPropertySymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -219,7 +217,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         End Function
 
-
         ''' <summary>
         ''' Gets the associated "get" method for this property. If this property
         ''' has no get accessor, returns Nothing.
@@ -404,36 +401,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(IsDefinition)
 
             ' Check return type.
-            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = MergeUseSiteInfo(New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency), DeriveUseSiteInfoFromType(Me.Type))
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = New UseSiteInfo(Of AssemblySymbol)(Me.PrimaryDependency)
 
-            If useSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
+            If MergeUseSiteInfo(useSiteInfo, DeriveUseSiteInfoFromType(Me.Type)) Then
                 Return useSiteInfo
             End If
 
             ' Check return type custom modifiers.
             Dim refModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.RefCustomModifiers)
 
-            If refModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
-                Return refModifiersUseSiteInfo
+            If MergeUseSiteInfo(useSiteInfo, refModifiersUseSiteInfo) Then
+                Return useSiteInfo
             End If
 
             Dim typeModifiersUseSiteInfo = DeriveUseSiteInfoFromCustomModifiers(Me.TypeCustomModifiers)
 
-            If typeModifiersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
-                Return typeModifiersUseSiteInfo
+            If MergeUseSiteInfo(useSiteInfo, typeModifiersUseSiteInfo) Then
+                Return useSiteInfo
             End If
 
             ' Check parameters.
             Dim parametersUseSiteInfo = DeriveUseSiteInfoFromParameters(Me.Parameters)
 
-            If parametersUseSiteInfo.DiagnosticInfo?.Code = ERRID.ERR_UnsupportedProperty1 Then
-                Return parametersUseSiteInfo
+            If MergeUseSiteInfo(useSiteInfo, parametersUseSiteInfo) Then
+                Return useSiteInfo
             End If
 
-            Dim errorInfo As DiagnosticInfo = If(useSiteInfo.DiagnosticInfo,
-                                              If(refModifiersUseSiteInfo.DiagnosticInfo,
-                                              If(typeModifiersUseSiteInfo.DiagnosticInfo,
-                                                 parametersUseSiteInfo.DiagnosticInfo)))
+            Dim errorInfo As DiagnosticInfo = useSiteInfo.DiagnosticInfo
 
             ' If the member is in an assembly with unified references, 
             ' we check if its definition depends on a type from a unified reference.
@@ -464,16 +458,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Return error code that has highest priority while calculating use site error for this symbol. 
         ''' </summary>
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedProperty1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedProperty1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
         Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
                 Dim info As DiagnosticInfo = GetUseSiteInfo().DiagnosticInfo
-                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedProperty1
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedProperty1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -539,6 +531,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend MustOverride Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean
 
+        Public MustOverride ReadOnly Property IsRequired As Boolean
+
 #Region "IPropertySymbol"
 
         Private ReadOnly Property IPropertySymbol_ExplicitInterfaceImplementations As ImmutableArray(Of IPropertySymbol) Implements IPropertySymbol.ExplicitInterfaceImplementations
@@ -574,6 +568,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_SetMethod As IMethodSymbol Implements IPropertySymbol.SetMethod
             Get
                 Return Me.SetMethod
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_IsRequired As Boolean Implements IPropertySymbol.IsRequired
+            Get
+                Return Me.IsRequired
             End Get
         End Property
 
@@ -619,12 +619,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IPropertySymbol_PartialDefinitionPart As IPropertySymbol Implements IPropertySymbol.PartialDefinitionPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_PartialImplementationPart As IPropertySymbol Implements IPropertySymbol.PartialImplementationPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_IsPartialDefinition As Boolean Implements IPropertySymbol.IsPartialDefinition
+            Get
+                ' Feature not supported in VB
+                Return False
+            End Get
+        End Property
+
+        Public ReadOnly Property IPropertySymbolInternal_PartialImplementationPart As IPropertySymbolInternal Implements IPropertySymbolInternal.PartialImplementationPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property IPropertySymbolInternal_PartialDefinitionPart As IPropertySymbolInternal Implements IPropertySymbolInternal.PartialDefinitionPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitProperty(Me)
         End Sub
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitProperty(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitProperty(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

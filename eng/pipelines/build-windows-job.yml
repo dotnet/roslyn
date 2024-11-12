@@ -9,10 +9,9 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
-- name: queueName
-  type: string
-  default: ''
-- name: vmImageName
+- name: poolParameters
+  type: object
+- name: restoreArguments
   type: string
   default: ''
 - name: buildArguments
@@ -21,14 +20,14 @@ parameters:
 
 jobs:
 - job: ${{ parameters.jobName }}
-  pool:
-    ${{ if ne(parameters.queueName, '') }}:
-      name: NetCore1ESPool-Public
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-
-    ${{ if ne(parameters.vmImageName, '') }}:
-      vmImage: ${{ parameters.vmImageName }}
+  pool: ${{ parameters.poolParameters }}
   timeoutInMinutes: 40
+  variables:
+    - template: variables-build.yml
+      parameters:
+        configuration: ${{ parameters.configuration }}
+    - name: artifactName
+      value: ${{ parameters.testArtifactName }}
 
   steps:
     - template: checkout-windows-task.yml
@@ -37,25 +36,27 @@ jobs:
       displayName: Restore
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLog
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
 
-    - task: PowerShell@2 
+    - task: PowerShell@2
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -publish -binaryLog -skipDocumentation ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
 
-    - task: PowerShell@2 
+    - task: PowerShell@2
       displayName: Prepare Unit Tests
       inputs:
         filePath: eng/prepare-tests.ps1
         arguments: -configuration ${{ parameters.configuration }}
+      condition: and(ne(variables['artifactName'], ''), succeeded())
 
     - task: PublishPipelineArtifact@1
       displayName: Publish Test Payload
       inputs:
         targetPath: '$(Build.SourcesDirectory)\artifacts\testPayload'
         artifactName: ${{ parameters.testArtifactName }}
+      condition: and(ne(variables['artifactName'], ''), succeeded())
 
     - template: publish-logs.yml
       parameters:

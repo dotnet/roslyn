@@ -1936,7 +1936,7 @@ class Program
 ";
             //EDMAURER ensure that we use System.Environment.CurrentManagedThreadId when compiling against 4.5
             var parsed = new[] { Parse(source) };
-            var comp = CreateCompilationWithMscorlib45(parsed);
+            var comp = CreateCompilationWithMscorlib461(parsed);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
             Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
@@ -2386,7 +2386,8 @@ public class C
     }
 }";
             // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
-            var compilation = CreateEmptyCompilation(new[] { Parse(source), Parse(corlib) });
+            var parseOptions = TestOptions.Regular.WithNoRefSafetyRulesAttribute();
+            var compilation = CreateEmptyCompilation(new[] { Parse(source, options: parseOptions), Parse(corlib, options: parseOptions) });
             // PEVerify: System.Enum must extend System.ValueType.
             var verifier = CompileAndVerify(compilation, verify: Verification.FailsPEVerify);
             verifier.VerifyDiagnostics(
@@ -2431,7 +2432,7 @@ public class C
 {
     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source, options: TestOptions.Regular.WithNoRefSafetyRulesAttribute()) });
 
             compilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2495,7 +2496,7 @@ public class C
 {
     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source, options: TestOptions.Regular.WithNoRefSafetyRulesAttribute()) });
 
             // No error about IEnumerable
             compilation.VerifyEmitDiagnostics(

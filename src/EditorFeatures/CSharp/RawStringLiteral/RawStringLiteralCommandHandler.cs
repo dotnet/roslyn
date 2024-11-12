@@ -8,33 +8,30 @@ using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
+namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral;
+
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[Name(nameof(RawStringLiteralCommandHandler))]
+[Order(After = nameof(SplitStringLiteralCommandHandler))]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class RawStringLiteralCommandHandler(
+    ITextUndoHistoryRegistry undoHistoryRegistry,
+    IGlobalOptionService globalOptions,
+    IEditorOperationsFactoryService editorOperationsFactoryService,
+    EditorOptionsService editorOptionsService,
+    IIndentationManagerService indentationManager)
 {
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [Name(nameof(RawStringLiteralCommandHandler))]
-    [Order(After = nameof(SplitStringLiteralCommandHandler))]
-    internal partial class RawStringLiteralCommandHandler
-    {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IGlobalOptionService _globalOptions;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+    private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+    private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+    private readonly IIndentationManagerService _indentationManager = indentationManager;
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RawStringLiteralCommandHandler(
-            ITextUndoHistoryRegistry undoHistoryRegistry,
-            IGlobalOptionService globalOptions,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _globalOptions = globalOptions;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-        }
-
-        public string DisplayName => CSharpEditorResources.Split_raw_string;
-    }
+    public string DisplayName => CSharpEditorResources.Split_raw_string;
 }

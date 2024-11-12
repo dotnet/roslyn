@@ -19,6 +19,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Run_background_code_analysis_for As String =
             ServicesVSResources.Run_background_code_analysis_for_colon
 
+        Public ReadOnly Property Option_analyze_source_generated_files As String =
+             ServicesVSResources.Analyze_source_generated_files
+
         Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
             ServicesVSResources.None
 
@@ -35,13 +38,40 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BackgroundAnalysisScope.None
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File_Tag As BackgroundAnalysisScope =
-            BackgroundAnalysisScope.ActiveFile
+            BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_Tag As BackgroundAnalysisScope =
             BackgroundAnalysisScope.OpenFiles
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution_Tag As BackgroundAnalysisScope =
             BackgroundAnalysisScope.FullSolution
+
+        Public ReadOnly Property Option_Show_compiler_errors_and_warnings_for As String =
+            ServicesVSResources.Show_compiler_errors_and_warnings_for_colon
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_None As String =
+            ServicesVSResources.None
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files As String =
+            ServicesVSResources.Current_document ' We show "Current document" to users for consistency with term used elsewhere.
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Open_Files As String =
+            ServicesVSResources.Open_documents
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Full_Solution As String =
+            ServicesVSResources.Entire_solution
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_None_Tag As CompilerDiagnosticsScope =
+            CompilerDiagnosticsScope.None
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Visible_Files_Tag As CompilerDiagnosticsScope =
+            CompilerDiagnosticsScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Open_Files_Tag As CompilerDiagnosticsScope =
+            CompilerDiagnosticsScope.OpenFiles
+
+        Public ReadOnly Property Option_Compiler_Diagnostics_Scope_Full_Solution_Tag As CompilerDiagnosticsScope =
+            CompilerDiagnosticsScope.FullSolution
 
         Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
@@ -51,6 +81,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Underline_reassigned_variables As String =
             ServicesVSResources.Underline_reassigned_variables
+
+        Public ReadOnly Property Option_Strike_out_obsolete_symbols As String =
+            ServicesVSResources.Strike_out_obsolete_symbols
 
         Public ReadOnly Property Option_Display_all_hints_while_pressing_Alt_F1 As String =
             ServicesVSResources.Display_all_hints_while_pressing_Alt_F1
@@ -115,11 +148,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Quick_Actions As String =
             ServicesVSResources.Quick_Actions
 
-        Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
-            ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
-
         Public ReadOnly Property Option_EnableOutlining As String =
             BasicVSResources.Enter_outlining_mode_when_files_open
+
+        Public ReadOnly Property Option_Collapse_regions_on_file_open As String =
+            ServicesVSResources.Collapse_regions_on_file_open
+
+        Public ReadOnly Property Option_Collapse_imports_on_file_open As String =
+            BasicVSResources.Collapse_imports_on_file_open
+
+        Public ReadOnly Property Option_Collapse_sourcelink_embedded_decompiled_files_on_open As String =
+            ServicesVSResources.Collapse_sourcelink_embedded_decompiled_files_on_open
+
+        Public ReadOnly Property Option_Collapse_metadata_signature_files_on_open As String =
+            ServicesVSResources.Collapse_metadata_signature_files_on_open
 
         Public ReadOnly Property Option_ExtractMethod As String =
             BasicVSResources.Extract_Method
@@ -181,23 +223,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_OptimizeForSolutionSize_Small As String
-            Get
-                Return BasicVSResources.Small
-            End Get
-        End Property
+        Public ReadOnly Property Option_OptimizeForSolutionSize_Small As String =
+            BasicVSResources.Small
 
-        Public ReadOnly Property Option_OptimizeForSolutionSize_Regular As String
-            Get
-                Return BasicVSResources.Regular
-            End Get
-        End Property
+        Public ReadOnly Property Option_OptimizeForSolutionSize_Regular As String =
+            BasicVSResources.Regular
 
-        Public ReadOnly Property Option_OptimizeForSolutionSize_Large As String
-            Get
-                Return BasicVSResources.Large
-            End Get
-        End Property
+        Public ReadOnly Property Option_OptimizeForSolutionSize_Large As String =
+            BasicVSResources.Large
 
         Public ReadOnly Property Option_Outlining As String = ServicesVSResources.Outlining
 
@@ -225,26 +258,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_guides_for_code_level_constructs As String =
             ServicesVSResources.Show_guides_for_code_level_constructs
 
-        Public ReadOnly Property Option_Fading As String = ServicesVSResources.Fading
-        Public ReadOnly Property Option_Fade_out_unused_imports As String = BasicVSResources.Fade_out_unused_imports
+        Public ReadOnly Property Option_Show_guides_for_comments_and_preprocessor_regions As String =
+            ServicesVSResources.Show_guides_for_comments_and_preprocessor_regions
 
-        Public ReadOnly Property Option_Performance As String
-            Get
-                Return BasicVSResources.Performance
-            End Get
-        End Property
+        Public ReadOnly Property Option_Fading As String =
+            ServicesVSResources.Fading
 
-        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String
-            Get
-                Return BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
-            End Get
-        End Property
+        Public ReadOnly Property Option_Fade_out_unused_imports As String =
+            BasicVSResources.Fade_out_unused_imports
 
-        Public ReadOnly Property Option_RenameTrackingPreview As String
-            Get
-                Return BasicVSResources.Show_preview_for_rename_tracking
-            End Get
-        End Property
+        Public ReadOnly Property Option_Performance As String =
+            BasicVSResources.Performance
+
+        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String =
+            BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
+
+        Public ReadOnly Property Option_RenameTrackingPreview As String =
+            BasicVSResources.Show_preview_for_rename_tracking
 
         Public ReadOnly Property Option_Import_Directives As String =
             BasicVSResources.Import_Directives
@@ -312,9 +342,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
             ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
 
-        Public ReadOnly Property Enable_all_features_in_opened_files_from_source_generators_experimental As String =
-             ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental
-
         Public ReadOnly Property Option_Enable_file_logging_for_diagnostics As String =
             ServicesVSResources.Enable_file_logging_for_diagnostics
 
@@ -327,6 +354,52 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Combine_inheritance_margin_with_indicator_margin As String =
             ServicesVSResources.Combine_inheritance_margin_with_indicator_margin
 
-        Public ReadOnly Property Inheritance_Margin As String = ServicesVSResources.Inheritance_Margin
+        Public ReadOnly Property Include_global_imports As String =
+            ServicesVSResources.Include_global_imports
+
+        Public ReadOnly Property Inheritance_Margin As String =
+            ServicesVSResources.Inheritance_Margin
+
+        Public ReadOnly Property Option_Go_To_Definition As String =
+            ServicesVSResources.Go_To_Definition
+
+        Public ReadOnly Property Option_Navigate_asynchronously_exerimental As String =
+            ServicesVSResources.Navigate_asynchronously_exerimental
+
+        Public ReadOnly Property Option_Rename As String =
+            ServicesVSResources.Rename
+
+        Public ReadOnly Property Option_Rename_asynchronously_experimental As String =
+            ServicesVSResources.Rename_asynchronously_experimental
+
+        Public ReadOnly Property Where_should_the_rename_UI_be_shown As String =
+            ServicesVSResources.Where_should_the_rename_UI_be_shown
+
+        Public ReadOnly Property Option_Show_UI_inline As String =
+            ServicesVSResources.Show_UI_inline
+
+        Public ReadOnly Property Option_Show_UI_as_dashboard_in_top_right As String =
+            ServicesVSResources.Show_UI_as_dashboard_in_top_right
+
+        Public ReadOnly Property Document_Outline As String =
+            ServicesVSResources.Document_Outline
+
+        Public ReadOnly Property Option_Enable_document_outline_experimental_requires_restart As String =
+            ServicesVSResources.Enable_document_outline_experimental_requires_restart
+
+        Public ReadOnly Property Option_Source_Generators As String =
+            ServicesVSResources.Source_Generators
+
+        Public ReadOnly Property Option_Source_generator_execution_requires_restart As String =
+            ServicesVSResources.Source_generator_execution_requires_restart
+
+        Public ReadOnly Property Option_Automatic_Run_generators_after_any_change As String =
+            ServicesVSResources.Automatic_Run_generators_after_any_change
+
+        Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
+            ServicesVSResources.Balanced_Run_generators_after_saving_or_building
+
+        Public ReadOnly Property Option_Automatically_reload_updated_analyzers_and_generators As String =
+            ServicesVSResources.Automatically_reload_updated_analyzers_and_generators
     End Module
 End Namespace

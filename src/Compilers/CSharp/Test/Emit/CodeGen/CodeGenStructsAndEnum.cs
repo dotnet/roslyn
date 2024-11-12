@@ -259,8 +259,7 @@ class Program
     }
 }
 ";
-            // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of '[...]S1', Expected = address of '[...]S1' }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"");
+            var compilation = CompileAndVerify(source, expectedOutput: @"");
 
             compilation.VerifyIL("S1.Equals(object)",
 @"
@@ -449,8 +448,7 @@ namespace NS
     }
 }
 ";
-            // ILVerify: Unexpected type on the stack. { Offset = 31, Found = readonly address of '[...]NS.N2.S`2<string,uint8>', Expected = address of '[...]NS.N2.S`2<string,uint8>' }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
+            var compilation = CompileAndVerify(source, expectedOutput: @"
 Abc
 255
 q");
@@ -1554,17 +1552,19 @@ public class D
 
             var compilation = CompileAndVerify(source, expectedOutput: "S1", verify: Verification.Skipped);
 
-            compilation.VerifyIL("Program.Main",
-@"
+            compilation.VerifyIL("Program.Main", @"
 {
-  // Code size       27 (0x1b)
+  // Code size       30 (0x1e)
   .maxstack  1
+  .locals init (S1 V_0)
   IL_0000:  newobj     ""C1..ctor()""
-  IL_0005:  ldflda     ""S1 C1.field""
-  IL_000a:  constrained. ""S1""
-  IL_0010:  callvirt   ""string object.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ret
+  IL_0005:  ldfld      ""S1 C1.field""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  constrained. ""S1""
+  IL_0013:  callvirt   ""string object.ToString()""
+  IL_0018:  call       ""void System.Console.WriteLine(string)""
+  IL_001d:  ret
 }
 ");
             compilation = CompileAndVerify(source, expectedOutput: "S1", parseOptions: TestOptions.Regular.WithPEVerifyCompatFeature());
@@ -2327,7 +2327,6 @@ public class Test
 ");
         }
 
-
         [Fact]
         public void FieldLoad001()
         {
@@ -2367,8 +2366,7 @@ public class Test
     }
 
 ";
-            // ILVerify: Unexpected type on the stack. { Offset = 10, Found = readonly address of '[...]C1', Expected = address of '[...]C1' }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: "0");
+            var compilation = CompileAndVerify(source, expectedOutput: "0");
 
             compilation.VerifyIL("Program.Main",
 @"

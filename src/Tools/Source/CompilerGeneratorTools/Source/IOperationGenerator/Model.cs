@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -24,6 +25,7 @@ namespace IOperationGenerator
         public List<TreeType> Types;
     }
 
+    [DebuggerDisplay("{Name, nq}")]
     public class TreeType
     {
         [XmlAttribute]
@@ -114,6 +116,10 @@ namespace IOperationGenerator
         [XmlAttribute(AttributeName = "Internal")]
         public string? IsInternalText;
         public bool IsInternal => IsInternalText == "true";
+
+        [XmlAttribute(AttributeName = "Override")]
+        public string? IsOverrideText;
+        public bool IsOverride => IsOverrideText == "true";
 
         [XmlAttribute(AttributeName = "SkipGeneration")]
         public string? SkipGenerationText;

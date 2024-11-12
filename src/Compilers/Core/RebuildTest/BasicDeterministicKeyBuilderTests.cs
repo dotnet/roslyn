@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         {
             verifyCount<ParseOptions>(11);
             verifyCount<VisualBasicParseOptions>(10);
-            verifyCount<CompilationOptions>(62);
+            verifyCount<CompilationOptions>(63);
             verifyCount<VisualBasicCompilationOptions>(22);
 
             static void verifyCount<T>(int expected)
@@ -70,7 +70,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
                 Assert.Equal(expected, count);
             }
         }
-
 
         [Theory]
         [InlineData(@"hello world")]
@@ -160,7 +159,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""DEBUG"": null
 }", ("DEBUG", null));
 
-
             assert(@"
 {
   ""DEBUG"": null,
@@ -178,7 +176,6 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""DEBUG"": ""4.2"",
   ""TRACE"": true
 }", ("TRACE", true), ("DEBUG", 4.2));
-
 
             void assert(string? expected, params (string Key, object? Value)[] values)
             {
@@ -223,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
       ""specifiedLanguageVersion"": ""VisualBasic15"",
       ""preprocessorSymbols"": {
         ""TARGET"": ""exe"",
-        ""VBC_VER"": ""16.9""
+        ""VBC_VER"": ""17.13""
       }
     }
   }
@@ -363,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         ""specifiedLanguageVersion"": ""Default"",
         ""preprocessorSymbols"": {{
           ""TARGET"": ""library"",
-          ""VBC_VER"": ""16.9"",
+          ""VBC_VER"": ""17.13"",
           ""_MYTYPE"": ""Empty""
         }}
       }}
@@ -388,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
           ""specifiedLanguageVersion"": ""Default"",
           ""preprocessorSymbols"": {{
             ""TARGET"": ""library"",
-            ""VBC_VER"": ""16.9"",
+            ""VBC_VER"": ""17.13"",
             ""_MYTYPE"": ""Empty""
           }}
         }}

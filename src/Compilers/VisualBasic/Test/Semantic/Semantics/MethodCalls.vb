@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -3001,9 +3002,7 @@ Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 True
 ]]>)
 
-
         End Sub
-
 
         <Fact>
         Public Sub ByRefParametersOnProperties1()
@@ -3125,7 +3124,6 @@ set_P1(129)
 129
 ]]>)
 
-
         End Sub
 
         <Fact>
@@ -3163,7 +3161,6 @@ PassByRef: 2, 1.
 set_P1(1)
 1
 ]]>)
-
 
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
@@ -3235,7 +3232,6 @@ set_P1(1)
 1
 ]]>)
 
-
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
 {
@@ -3304,7 +3300,6 @@ PassByRef: 2, 1.
 set_P1(1)
 1
 ]]>)
-
 
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
@@ -3379,7 +3374,6 @@ set_P1(1)
 1
 ]]>)
 
-
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
 {
@@ -3451,7 +3445,6 @@ PassByRef: 2, 1.
 set_P1(1)
 1
 ]]>)
-
 
             compilationVerifier.VerifyIL("Module1.DoTest",
             <![CDATA[
@@ -4084,7 +4077,6 @@ set_P1(123)
 123
 ]]>)
 
-
         End Sub
 
         <Fact>
@@ -4224,7 +4216,6 @@ End Module
 0
 ]]>)
 
-
         End Sub
 
         <Fact>
@@ -4302,7 +4293,6 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
                                                            ~~~
 </expected>)
         End Sub
-
 
         <Fact>
         Public Sub NamedArgumentsAndOverriding()
@@ -4765,7 +4755,6 @@ End Module
 98
 ]]>)
 
-
             compilationVerifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
@@ -4795,7 +4784,6 @@ End Module
 97
 98
 ]]>)
-
 
             compilationVerifier.VerifyIL("Module1.Test1",
             <![CDATA[
@@ -4882,7 +4870,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4922,7 +4910,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5251,7 +5239,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5454,8 +5442,6 @@ Class Module1
 End Class
     ]]></file>
 </compilation>, {library.EmitToImageReference()}, TestOptions.ReleaseDll)
-
-
 
             Dim verifier = CompileAndVerify(compilation)
 

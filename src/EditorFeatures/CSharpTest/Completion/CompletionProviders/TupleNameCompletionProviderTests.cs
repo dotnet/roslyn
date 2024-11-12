@@ -11,159 +11,170 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProvid
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources;
+
+[Trait(Traits.Feature, Traits.Features.Completion)]
+public class TupleNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
 {
-    public class TupleNameCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    internal override Type GetCompletionProviderType() => typeof(TupleNameCompletionProvider);
+
+    [Fact]
+    public async Task AfterOpenParen()
     {
-        internal override Type GetCompletionProviderType() => typeof(TupleNameCompletionProvider);
+        await VerifyItemExistsAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int word, int zword) t = ($$
+                }
+            }
+            """, "word", displayTextSuffix: ":");
+    }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterOpenParen()
-        {
-            await VerifyItemExistsAsync(@"
-class Program
-{
-    static void Main(string[] args)
+    [Fact]
+    public async Task AfterOpenParenWithBraceCompletion()
     {
-        (int word, int zword) t = ($$
+        await VerifyItemExistsAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int word, int zword) t = ($$)
+                }
+            }
+            """, "word", displayTextSuffix: ":");
     }
-}", "word", displayTextSuffix: ":");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterOpenParenWithBraceCompletion()
-        {
-            await VerifyItemExistsAsync(@"
-class Program
-{
-    static void Main(string[] args)
+    [Fact]
+    public async Task AfterOpenParenInTupleExpression()
     {
-        (int word, int zword) t = ($$)
+        await VerifyItemExistsAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int word, int zword) t = ($$, zword: 2
+                }
+            }
+            """, "word", displayTextSuffix: ":");
     }
-}", "word", displayTextSuffix: ":");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterOpenParenInTupleExpression()
-        {
-            await VerifyItemExistsAsync(@"
-class Program
-{
-    static void Main(string[] args)
+    [Fact]
+    public async Task AfterOpenParenInTupleExpressionWithBraceCompletion()
     {
-        (int word, int zword) t = ($$, zword: 2
+        await VerifyItemExistsAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int word, int zword) t = ($$, zword: 2
+                }
+            }
+            """, "word", displayTextSuffix: ":");
     }
-}", "word", displayTextSuffix: ":");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterOpenParenInTupleExpressionWithBraceCompletion()
-        {
-            await VerifyItemExistsAsync(@"
-class Program
-{
-    static void Main(string[] args)
+    [Fact]
+    public async Task AfterComma()
     {
-        (int word, int zword) t = ($$, zword: 2
+        await VerifyItemExistsAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int word, int zword) t = (1, $$
+                }
+            }
+            """, "zword", displayTextSuffix: ":");
     }
-}", "word", displayTextSuffix: ":");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterComma()
-        {
-            await VerifyItemExistsAsync(@"
-class Program
-{
-    static void Main(string[] args)
+    [Fact]
+    public async Task AfterCommaWithBraceCompletion()
     {
-        (int word, int zword) t = (1, $$
+        await VerifyItemExistsAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int word, int zword) t = (1, $$)
+                }
+            }
+            """, "zword", displayTextSuffix: ":");
     }
-}", "zword", displayTextSuffix: ":");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterCommaWithBraceCompletion()
-        {
-            await VerifyItemExistsAsync(@"
-class Program
-{
-    static void Main(string[] args)
+    [Fact]
+    public async Task InTupleAsArgument()
     {
-        (int word, int zword) t = (1, $$)
+        await VerifyItemExistsAsync("""
+            class Program
+            {
+                static void Main((int word, int zword) args)
+                {
+                     Main(($$))
+                }
+            }
+            """, "word", displayTextSuffix: ":");
     }
-}", "zword", displayTextSuffix: ":");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InTupleAsArgument()
-        {
-            await VerifyItemExistsAsync(@"
-class Program
-{
-    static void Main((int word, int zword) args)
+    [Fact]
+    public async Task MultiplePossibleTuples()
     {
-         Main(($$))
+        var markup = """
+            class Program
+            {
+                static void Main((int number, int znumber) args) { }
+                static void Main((string word, int zword) args) {
+                    Main(($$
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "word", displayTextSuffix: ":");
+        await VerifyItemExistsAsync(markup, "number", displayTextSuffix: ":");
     }
-}", "word", displayTextSuffix: ":");
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task MultiplePossibleTuples()
-        {
-            var markup = @"
-class Program
-{
-    static void Main((int number, int znumber) args) { }
-    static void Main((string word, int zword) args) {
-        Main(($$
-    }
-}";
-            await VerifyItemExistsAsync(markup, "word", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "number", displayTextSuffix: ":");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task MultiplePossibleTuplesAfterComma()
-        {
-            var markup = @"
-class Program
-{
-    static void Main((int number, int znumber) args) { }
-    static void Main((string word, int zword) args) {
-        Main((1, $$
-    }
-}";
-            await VerifyItemExistsAsync(markup, "zword", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "znumber", displayTextSuffix: ":");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AtIndexGreaterThanNumberOfTupleElements()
-        {
-            var markup = @"
-class Program
-{
-    static void Main(string[] args)
+    [Fact]
+    public async Task MultiplePossibleTuplesAfterComma()
     {
-        (int word, int zword) t = (1, 2, 3, 4, $$ 
+        var markup = """
+            class Program
+            {
+                static void Main((int number, int znumber) args) { }
+                static void Main((string word, int zword) args) {
+                    Main((1, $$
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "zword", displayTextSuffix: ":");
+        await VerifyItemExistsAsync(markup, "znumber", displayTextSuffix: ":");
     }
-}";
-            await VerifyNoItemsExistAsync(markup);
-        }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task ConvertCastToTupleExpression()
-        {
-            var markup = @"
-class C
-{
-    void goo()
+    [Fact]
+    public async Task AtIndexGreaterThanNumberOfTupleElements()
     {
-        (int goat, int moat) x = (g$$)1;
+        var markup = """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    (int word, int zword) t = (1, 2, 3, 4, $$ 
+                }
+            }
+            """;
+        await VerifyNoItemsExistAsync(markup);
     }
-}";
-            await VerifyItemExistsAsync(markup, "goat", displayTextSuffix: ":");
-        }
+
+    [Fact]
+    public async Task ConvertCastToTupleExpression()
+    {
+        var markup = """
+            class C
+            {
+                void goo()
+                {
+                    (int goat, int moat) x = (g$$)1;
+                }
+            }
+            """;
+        await VerifyItemExistsAsync(markup, "goat", displayTextSuffix: ":");
     }
 }

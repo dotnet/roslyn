@@ -19,8 +19,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an invalid operation with one or more child operations.
     /// <para>
     /// Current usage:
-    ///  (1) C# invalid expression or invalid statement.
-    ///  (2) VB invalid expression or invalid statement.
+    /// <list type="number">
+    ///   <item><description>C# invalid expression or invalid statement</description></item>
+    ///   <item><description>VB invalid expression or invalid statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -38,8 +40,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a block containing a sequence of operations and local declarations.
     /// <para>
     /// Current usage:
-    ///  (1) C# "{ ... }" block statement.
-    ///  (2) VB implicit block statement for method bodies and other block scoped statements.
+    /// <list type="number">
+    ///   <item><description>C# "{ ... }" block statement</description></item>
+    ///   <item><description>VB implicit block statement for method bodies and other block scoped statements</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -63,16 +67,18 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a variable declaration statement.
-    /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) C# local declaration statement
-    ///   (2) C# fixed statement
-    ///   (3) C# using statement
-    ///   (4) C# using declaration
-    ///   (5) VB Dim statement
-    ///   (6) VB Using statement
+    /// <list type="number">
+    ///   <item><description>C# local declaration statement</description></item>
+    ///   <item><description>C# fixed statement</description></item>
+    ///   <item><description>C# using statement</description></item>
+    ///   <item><description>C# using declaration</description></item>
+    ///   <item><description>VB Dim statement</description></item>
+    ///   <item><description>VB Using statement</description></item>
+    /// </list>
     /// </para>
+    /// </summary>
     /// <remarks>
     /// <para>This node is associated with the following operation kinds:</para>
     /// <list type="bullet">
@@ -95,8 +101,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a switch operation with a value to be switched upon and switch cases.
     /// <para>
     /// Current usage:
-    ///  (1) C# switch statement.
-    ///  (2) VB Select Case statement.
+    /// <list type="number">
+    ///   <item><description>C# switch statement</description></item>
+    ///   <item><description>VB Select Case statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -130,8 +138,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a loop operation.
     /// <para>
     /// Current usage:
-    ///   (1) C# 'while', 'for', 'foreach' and 'do' loop statements
-    ///   (2) VB 'While', 'ForTo', 'ForEach', 'Do While' and 'Do Until' loop statements
+    /// <list type="number">
+    ///   <item><description>C# 'while', 'for', 'foreach' and 'do' loop statements</description></item>
+    ///   <item><description>VB 'While', 'ForTo', 'ForEach', 'Do While' and 'Do Until' loop statements</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -165,8 +175,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a for each loop.
     /// <para>
     /// Current usage:
-    ///  (1) C# 'foreach' loop statement
-    ///  (2) VB 'For Each' loop statement
+    /// <list type="number">
+    ///   <item><description>C# 'foreach' loop statement</description></item>
+    ///   <item><description>VB 'For Each' loop statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -198,7 +210,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a for loop.
     /// <para>
     /// Current usage:
-    ///  (1) C# 'for' loop statement
+    /// <list type="number">
+    ///   <item><description>C# 'for' loop statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -230,7 +244,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a for to loop with loop control variable and initial, limit and step values for the control variable.
     /// <para>
     /// Current usage:
-    ///  (1) VB 'For ... To ... Step' loop statement
+    /// <list type="number">
+    ///   <item><description>VB 'For ... To ... Step' loop statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -257,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation StepValue { get; }
         /// <summary>
-        /// <code>true</code> if arithmetic operations behind this loop are 'checked'.
+        /// <see langword="true" /> if arithmetic operations behind this loop are 'checked'.
         /// </summary>
         bool IsChecked { get; }
         /// <summary>
@@ -269,8 +285,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a while or do while loop.
     /// <para>
     /// Current usage:
-    ///  (1) C# 'while' and 'do while' loop statements.
-    ///  (2) VB 'While', 'Do While' and 'Do Until' loop statements.
+    /// <list type="number">
+    ///   <item><description>C# 'while' and 'do while' loop statements</description></item>
+    ///   <item><description>VB 'While', 'Do While' and 'Do Until' loop statements</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -304,8 +322,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation with a label.
     /// <para>
     /// Current usage:
-    ///  (1) C# labeled statement.
-    ///  (2) VB label statement.
+    /// <list type="number">
+    ///   <item><description>C# labeled statement</description></item>
+    ///   <item><description>VB label statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -331,8 +351,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a branch operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# goto, break, or continue statement.
-    ///  (2) VB GoTo, Exit ***, or Continue *** statement.
+    /// <list type="number">
+    ///   <item><description>C# goto, break, or continue statement</description></item>
+    ///   <item><description>VB GoTo, Exit ***, or Continue *** statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -358,7 +380,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an empty or no-op operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# empty statement.
+    /// <list type="number">
+    ///   <item><description>C# empty statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -376,8 +400,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a return from the method with an optional return value.
     /// <para>
     /// Current usage:
-    ///  (1) C# return statement and yield statement.
-    ///  (2) VB Return statement.
+    /// <list type="number">
+    ///   <item><description>C# return statement and yield statement</description></item>
+    ///   <item><description>VB Return statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -401,8 +427,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a <see cref="Body" /> of operations that are executed while holding a lock onto the <see cref="LockedValue" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# lock statement.
-    ///  (2) VB SyncLock statement.
+    /// <list type="number">
+    ///   <item><description>C# lock statement</description></item>
+    ///   <item><description>VB SyncLock statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -428,8 +456,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a try operation for exception handling code with a body, catch clauses and a finally handler.
     /// <para>
     /// Current usage:
-    ///  (1) C# try statement.
-    ///  (2) VB Try statement.
+    /// <list type="number">
+    ///   <item><description>C# try statement</description></item>
+    ///   <item><description>VB Try statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -463,8 +493,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a <see cref="Body" /> of operations that are executed while using disposable <see cref="Resources" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# using statement.
-    ///  (2) VB Using statement.
+    /// <list type="number">
+    ///   <item><description>C# using statement</description></item>
+    ///   <item><description>VB Using statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -499,8 +531,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that drops the resulting value and the type of the underlying wrapped <see cref="Operation" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# expression statement.
-    ///  (2) VB expression statement.
+    /// <list type="number">
+    ///   <item><description>C# expression statement</description></item>
+    ///   <item><description>VB expression statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -522,7 +556,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a local function defined within a method.
     /// <para>
     /// Current usage:
-    ///  (1) C# local function statement.
+    /// <list type="number">
+    ///   <item><description>C# local function statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -558,7 +594,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation to stop or suspend execution of code.
     /// <para>
     /// Current usage:
-    ///  (1) VB Stop statement.
+    /// <list type="number">
+    ///   <item><description>VB Stop statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -576,7 +614,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that stops the execution of code abruptly.
     /// <para>
     /// Current usage:
-    ///  (1) VB End Statement.
+    /// <list type="number">
+    ///   <item><description>VB End Statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -594,7 +634,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation for raising an event.
     /// <para>
     /// Current usage:
-    ///  (1) VB raise event statement.
+    /// <list type="number">
+    ///   <item><description>VB raise event statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -624,8 +666,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a textual literal numeric, string, etc.
     /// <para>
     /// Current usage:
-    ///  (1) C# literal expression.
-    ///  (2) VB literal expression.
+    /// <list type="number">
+    ///   <item><description>C# literal expression</description></item>
+    ///   <item><description>VB literal expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -643,8 +687,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a type conversion.
     /// <para>
     /// Current usage:
-    ///  (1) C# conversion expression.
-    ///  (2) VB conversion expression.
+    /// <list type="number">
+    ///   <item><description>C# conversion expression</description></item>
+    ///   <item><description>VB conversion expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -665,6 +711,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+        /// Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
         /// <summary>
         /// Gets the underlying common conversion information.
         /// </summary>
@@ -688,15 +739,25 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an invocation of a method.
     /// <para>
     /// Current usage:
-    ///  (1) C# method invocation expression.
-    ///  (2) C# collection element initializer.
-    ///      For example, in the following collection initializer: <code>new C() { 1, 2, 3 }</code>, we will have
-    ///      3 <see cref="IInvocationOperation" /> nodes, each of which will be a call to the corresponding Add method
-    ///      with either 1, 2, 3 as the argument.
-    ///  (3) VB method invocation expression.
-    ///  (4) VB collection element initializer.
-    ///      Similar to the C# example, <code>New C() From {1, 2, 3}</code> will have 3 <see cref="IInvocationOperation" />
-    ///      nodes with 1, 2, and 3 as their arguments, respectively.
+    /// <list type="number">
+    ///   <item><description>C# method invocation expression</description></item>
+    ///   <item>
+    ///     <description>
+    ///       C# collection element initializer.
+    ///       For example, in the following collection initializer: <c>new C() { 1, 2, 3 }</c>, we will have
+    ///       3 <see cref="IInvocationOperation" /> nodes, each of which will be a call to the corresponding <c>Add</c> method
+    ///       with either 1, 2, 3 as the argument
+    ///     </description>
+    ///   </item>
+    ///   <item><description>VB method invocation expression</description></item>
+    ///   <item>
+    ///     <description>
+    ///       VB collection element initializer.
+    ///       Similar to the C# example, <c>New C() From {1, 2, 3}</c> will have 3 <see cref="IInvocationOperation" />
+    ///       nodes with 1, 2, and 3 as their arguments, respectively
+    ///     </description>
+    ///   </item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -713,6 +774,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Method to be invoked.
         /// </summary>
         IMethodSymbol TargetMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="TargetMethod" />.
+        /// Null if <see cref="TargetMethod" /> is resolved statically, or is an instance method.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
         /// <summary>
         /// 'This' or 'Me' instance to be supplied to the method, or null if the method is static.
         /// </summary>
@@ -734,8 +800,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to an array element.
     /// <para>
     /// Current usage:
-    ///  (1) C# array element reference expression.
-    ///  (2) VB array element reference expression.
+    /// <list type="number">
+    ///   <item><description>C# array element reference expression</description></item>
+    ///   <item><description>VB array element reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -761,8 +829,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a declared local variable.
     /// <para>
     /// Current usage:
-    ///  (1) C# local reference expression.
-    ///  (2) VB local reference expression.
+    /// <list type="number">
+    ///   <item><description>C# local reference expression</description></item>
+    ///   <item><description>VB local reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -789,8 +859,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a parameter.
     /// <para>
     /// Current usage:
-    ///  (1) C# parameter reference expression.
-    ///  (2) VB parameter reference expression.
+    /// <list type="number">
+    ///   <item><description>C# parameter reference expression</description></item>
+    ///   <item><description>VB parameter reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -812,8 +884,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a member of a class, struct, or interface.
     /// <para>
     /// Current usage:
-    ///  (1) C# member reference expression.
-    ///  (2) VB member reference expression.
+    /// <list type="number">
+    ///   <item><description>C# member reference expression</description></item>
+    ///   <item><description>VB member reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -830,13 +904,20 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Referenced member.
         /// </summary>
         ISymbol Member { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="Member" />.
+        /// Null if <see cref="Member" /> is resolved statically, or is an instance member.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents a reference to a field.
     /// <para>
     /// Current usage:
-    ///  (1) C# field reference expression.
-    ///  (2) VB field reference expression.
+    /// <list type="number">
+    ///   <item><description>C# field reference expression</description></item>
+    ///   <item><description>VB field reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -866,8 +947,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a method other than as the target of an invocation.
     /// <para>
     /// Current usage:
-    ///  (1) C# method reference expression.
-    ///  (2) VB method reference expression.
+    /// <list type="number">
+    ///   <item><description>C# method reference expression</description></item>
+    ///   <item><description>VB method reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -893,8 +976,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a property.
     /// <para>
     /// Current usage:
-    ///  (1) C# property reference expression.
-    ///  (2) VB property reference expression.
+    /// <list type="number">
+    ///   <item><description>C# property reference expression</description></item>
+    ///   <item><description>VB property reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -924,8 +1009,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to an event.
     /// <para>
     /// Current usage:
-    ///  (1) C# event reference expression.
-    ///  (2) VB event reference expression.
+    /// <list type="number">
+    ///   <item><description>C# event reference expression</description></item>
+    ///   <item><description>VB event reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -947,8 +1034,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation with one operand and a unary operator.
     /// <para>
     /// Current usage:
-    ///  (1) C# unary operation expression.
-    ///  (2) VB unary operation expression.
+    /// <list type="number">
+    ///   <item><description>C# unary operation expression</description></item>
+    ///   <item><description>VB unary operation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -985,13 +1074,20 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+        /// Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents an operation with two operands and a binary operator that produces a result with a non-null type.
     /// <para>
     /// Current usage:
-    ///  (1) C# binary operator expression.
-    ///  (2) VB binary operator expression.
+    /// <list type="number">
+    ///   <item><description>C# binary operator expression</description></item>
+    ///   <item><description>VB binary operator expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1036,16 +1132,26 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />
+        /// or corresponding true/false operator, if any.
+        /// Null if operators are resolved statically, or are not used.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents a conditional operation with:
-    /// (1) <see cref="Condition" /> to be tested,
-    /// (2) <see cref="WhenTrue" /> operation to be executed when <see cref="Condition" /> is true and
-    /// (3) <see cref="WhenFalse" /> operation to be executed when the <see cref="Condition" /> is false.
+    /// <list type="number">
+    ///   <item><description><see cref="Condition" /> to be tested</description></item>
+    ///   <item><description><see cref="WhenTrue" /> operation to be executed when <see cref="Condition" /> is true and</description></item>
+    ///   <item><description><see cref="WhenFalse" /> operation to be executed when the <see cref="Condition" /> is false</description></item>
+    /// </list>
     /// <para>
     /// Current usage:
-    ///  (1) C# ternary expression "a ? b : c" and if statement.
-    ///  (2) VB ternary expression "If(a, b, c)" and If Else statement.
+    /// <list type="number">
+    ///   <item><description>C# ternary expression <c>a ? b : c</c> and if statement</description></item>
+    ///   <item><description>VB ternary expression <c>If(a, b, c)</c> and If Else statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1071,18 +1177,25 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation? WhenFalse { get; }
         /// <summary>
-        /// Is result a managed reference
+        /// <see langword="true" /> if the result is by-reference.
         /// </summary>
+        /// <remarks>
+        /// This occurs in C# for ternaries whose branches use <see langword="ref" />.
+        /// </remarks>
         bool IsRef { get; }
     }
     /// <summary>
     /// Represents a coalesce operation with two operands:
-    /// (1) <see cref="Value" />, which is the first operand that is unconditionally evaluated and is the result of the operation if non null.
-    /// (2) <see cref="WhenNull" />, which is the second operand that is conditionally evaluated and is the result of the operation if <see cref="Value" /> is null.
+    /// <list type="number">
+    ///   <item><description><see cref="Value" />, which is the first operand that is unconditionally evaluated and is the result of the operation if non null</description></item>
+    ///   <item><description><see cref="WhenNull" />, which is the second operand that is conditionally evaluated and is the result of the operation if <see cref="Value" /> is null</description></item>
+    /// </list>
     /// <para>
     /// Current usage:
-    ///  (1) C# null-coalescing expression "Value ?? WhenNull".
-    ///  (2) VB binary conditional expression "If(Value, WhenNull)".
+    /// <list type="number">
+    ///   <item><description>C# null-coalescing expression <c>Value ?? WhenNull</c></description></item>
+    ///   <item><description>VB binary conditional expression <c>If(Value, WhenNull)</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1115,8 +1228,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an anonymous function operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# lambda expression.
-    ///  (2) VB anonymous delegate expression.
+    /// <list type="number">
+    ///   <item><description>C# lambda expression</description></item>
+    ///   <item><description>VB anonymous delegate expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1142,8 +1257,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents creation of an object instance.
     /// <para>
     /// Current usage:
-    ///  (1) C# new expression.
-    ///  (2) VB New expression.
+    /// <list type="number">
+    ///   <item><description>C# new expression</description></item>
+    ///   <item><description>VB New expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1177,8 +1294,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a creation of a type parameter object, i.e. new T(), where T is a type parameter with new constraint.
     /// <para>
     /// Current usage:
-    ///  (1) C# type parameter object creation expression.
-    ///  (2) VB type parameter object creation expression.
+    /// <list type="number">
+    ///   <item><description>C# type parameter object creation expression</description></item>
+    ///   <item><description>VB type parameter object creation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1200,8 +1319,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents the creation of an array instance.
     /// <para>
     /// Current usage:
-    ///  (1) C# array creation expression.
-    ///  (2) VB array creation expression.
+    /// <list type="number">
+    ///   <item><description>C# array creation expression</description></item>
+    ///   <item><description>VB array creation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1227,10 +1348,12 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an implicit/explicit reference to an instance.
     /// <para>
     /// Current usage:
-    ///  (1) C# this or base expression.
-    ///  (2) VB Me, MyClass, or MyBase expression.
-    ///  (3) C# object or collection or 'with' expression initializers.
-    ///  (4) VB With statements, object or collection initializers.
+    /// <list type="number">
+    ///   <item><description>C# this or base expression</description></item>
+    ///   <item><description>VB Me, MyClass, or MyBase expression</description></item>
+    ///   <item><description>C# object or collection or 'with' expression initializers</description></item>
+    ///   <item><description>VB With statements, object or collection initializers</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1252,8 +1375,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that tests if a value is of a specific type.
     /// <para>
     /// Current usage:
-    ///  (1) C# "is" operator expression.
-    ///  (2) VB "TypeOf" and "TypeOf IsNot" expression.
+    /// <list type="number">
+    ///   <item><description>C# "is" operator expression</description></item>
+    ///   <item><description>VB "TypeOf" and "TypeOf IsNot" expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1285,8 +1410,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an await operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# await expression.
-    ///  (2) VB await expression.
+    /// <list type="number">
+    ///   <item><description>C# await expression</description></item>
+    ///   <item><description>VB await expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1308,8 +1435,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a base interface for assignments.
     /// <para>
     /// Current usage:
-    ///  (1) C# simple, compound and deconstruction assignment expressions.
-    ///  (2) VB simple and compound assignment expressions.
+    /// <list type="number">
+    ///   <item><description>C# simple, compound and deconstruction assignment expressions</description></item>
+    ///   <item><description>VB simple and compound assignment expressions</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1331,8 +1460,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a simple assignment operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# simple assignment expression.
-    ///  (2) VB simple assignment expression.
+    /// <list type="number">
+    ///   <item><description>C# simple assignment expression</description></item>
+    ///   <item><description>VB simple assignment expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1354,8 +1485,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a compound assignment that mutates the target with the result of a binary operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# compound assignment expression.
-    ///  (2) VB compound assignment expression.
+    /// <list type="number">
+    ///   <item><description>C# compound assignment expression</description></item>
+    ///   <item><description>VB compound assignment expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1393,12 +1526,19 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+        /// Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents a parenthesized operation.
     /// <para>
     /// Current usage:
-    ///  (1) VB parenthesized expression.
+    /// <list type="number">
+    ///   <item><description>VB parenthesized expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1420,8 +1560,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a binding of an event.
     /// <para>
     /// Current usage:
-    ///  (1) C# event assignment expression.
-    ///  (2) VB Add/Remove handler statement.
+    /// <list type="number">
+    ///   <item><description>C# event assignment expression</description></item>
+    ///   <item><description>VB Add/Remove handler statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1452,8 +1594,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// of <see cref="Operation" /> within <see cref="WhenNotNull" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# conditional access expression (? or ?. operator).
-    ///  (2) VB conditional access expression (? or ?. operator).
+    /// <list type="number">
+    ///   <item><description>C# conditional access expression (<c>?</c> or <c>?.</c> operator)</description></item>
+    ///   <item><description>VB conditional access expression (<c>?</c> or <c>?.</c> operator)</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1481,8 +1625,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// See https://github.com/dotnet/roslyn/issues/21279#issuecomment-323153041 for more details.
     /// <para>
     /// Current usage:
-    ///  (1) C# conditional access instance expression.
-    ///  (2) VB conditional access instance expression.
+    /// <list type="number">
+    ///   <item><description>C# conditional access instance expression</description></item>
+    ///   <item><description>VB conditional access instance expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1523,8 +1669,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a creation of anonymous object.
     /// <para>
     /// Current usage:
-    ///  (1) C# "new { ... }" expression
-    ///  (2) VB "New With { ... }" expression
+    /// <list type="number">
+    ///   <item><description>C# <c>new { ... }</c> expression</description></item>
+    ///   <item><description>VB <c>New With { ... }</c> expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1548,10 +1696,16 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization for an object or collection creation.
     /// <para>
     /// Current usage:
-    ///  (1) C# object or collection initializer expression.
-    ///  (2) VB object or collection initializer expression.
-    /// For example, object initializer "{ X = x }" within object creation "new Class() { X = x }" and
-    /// collection initializer "{ x, y, 3 }" within collection creation "new MyList() { x, y, 3 }".
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       C# object or collection initializer expression.
+    ///       For example, object initializer <c>{ X = x }</c> within object creation <c>new Class() { X = x }</c> and
+    ///       collection initializer <c>{ x, y, 3 }</c> within collection creation <c>new MyList() { x, y, 3 }</c>
+    ///     </description>
+    ///   </item>
+    ///   <item><description>VB object or collection initializer expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1573,9 +1727,16 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of member within an object initializer with a nested object or collection initializer.
     /// <para>
     /// Current usage:
-    ///  (1) C# nested member initializer expression.
-    ///   For example, given an object creation with initializer "new Class() { X = x, Y = { x, y, 3 }, Z = { X = z } }",
-    ///   member initializers for Y and Z, i.e. "Y = { x, y, 3 }", and "Z = { X = z }" are nested member initializers represented by this operation.
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       C# nested member initializer expression.
+    ///       For example, given an object creation with initializer <c>new Class() { X = x, Y = { x, y, 3 }, Z = { X = z } }</c>,
+    ///       member initializers for Y and Z, i.e. <c>Y = { x, y, 3 }</c>, and <c>Z = { X = z }</c> are nested member initializers represented by this operation
+    ///     </description>
+    ///   </item>
+    ///   <item><description>VB object or collection initializer expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1624,8 +1785,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that gets a string value for the <see cref="Argument" /> name.
     /// <para>
     /// Current usage:
-    ///  (1) C# nameof expression.
-    ///  (2) VB NameOf expression.
+    /// <list type="number">
+    ///   <item><description>C# nameof expression</description></item>
+    ///   <item><description>VB NameOf expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1647,8 +1810,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a tuple with one or more elements.
     /// <para>
     /// Current usage:
-    ///  (1) C# tuple expression.
-    ///  (2) VB tuple expression.
+    /// <list type="number">
+    ///   <item><description>C# tuple expression</description></item>
+    ///   <item><description>VB tuple expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1676,8 +1841,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an object creation with a dynamically bound constructor.
     /// <para>
     /// Current usage:
-    ///  (1) C# "new" expression with dynamic argument(s).
-    ///  (2) VB late bound "New" expression.
+    /// <list type="number">
+    ///   <item><description>C# <c>new</c> expression with dynamic argument(s)</description></item>
+    ///   <item><description>VB late bound <c>New</c> expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1703,8 +1870,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference to a member of a class, struct, or module that is dynamically bound.
     /// <para>
     /// Current usage:
-    ///  (1) C# dynamic member reference expression.
-    ///  (2) VB late bound member reference expression.
+    /// <list type="number">
+    ///   <item><description>C# dynamic member reference expression</description></item>
+    ///   <item><description>VB late bound member reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1738,15 +1907,25 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a invocation that is dynamically bound.
     /// <para>
     /// Current usage:
-    ///  (1) C# dynamic invocation expression.
-    ///  (2) C# dynamic collection element initializer.
-    ///      For example, in the following collection initializer: <code>new C() { do1, do2, do3 }</code> where
-    ///      the doX objects are of type dynamic, we'll have 3 <see cref="IDynamicInvocationOperation" /> with do1, do2, and
-    ///      do3 as their arguments.
-    ///  (3) VB late bound invocation expression.
-    ///  (4) VB dynamic collection element initializer.
-    ///      Similar to the C# example, <code>New C() From {do1, do2, do3}</code> will generate 3 <see cref="IDynamicInvocationOperation" />
-    ///      nodes with do1, do2, and do3 as their arguments, respectively.
+    /// <list type="number">
+    ///   <item><description>C# dynamic invocation expression</description></item>
+    ///   <item>
+    ///     <description>
+    ///       C# dynamic collection element initializer.
+    ///       For example, in the following collection initializer: <c>new C() { do1, do2, do3 }</c> where
+    ///       the doX objects are of type dynamic, we'll have 3 <see cref="IDynamicInvocationOperation" /> with do1, do2, and
+    ///       do3 as their arguments
+    ///     </description>
+    ///   </item>
+    ///   <item><description>VB late bound invocation expression</description></item>
+    ///   <item>
+    ///     <description>
+    ///       VB dynamic collection element initializer.
+    ///       Similar to the C# example, <c>New C() From {do1, do2, do3}</c> will generate 3 <see cref="IDynamicInvocationOperation" />
+    ///       nodes with do1, do2, and do3 as their arguments, respectively
+    ///     </description>
+    ///   </item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1772,7 +1951,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an indexer access that is dynamically bound.
     /// <para>
     /// Current usage:
-    ///  (1) C# dynamic indexer access expression.
+    /// <list type="number">
+    ///   <item><description>C# dynamic indexer access expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1803,8 +1984,10 @@ namespace Microsoft.CodeAnalysis.Operations
     ///         IInvocationExpression ('From' invocation for "from x in set")
     /// <para>
     /// Current usage:
-    ///  (1) C# query expression.
-    ///  (2) VB query expression.
+    /// <list type="number">
+    ///   <item><description>C# query expression</description></item>
+    ///   <item><description>VB query expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1826,8 +2009,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a delegate creation. This is created whenever a new delegate is created.
     /// <para>
     /// Current usage:
-    ///  (1) C# delegate creation expression.
-    ///  (2) VB delegate creation expression.
+    /// <list type="number">
+    ///   <item><description>C# delegate creation expression</description></item>
+    ///   <item><description>VB delegate creation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1849,7 +2034,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a default value operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# default value expression.
+    /// <list type="number">
+    ///   <item><description>C# default value expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1867,8 +2054,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that gets <see cref="System.Type" /> for the given <see cref="TypeOperand" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# typeof expression.
-    ///  (2) VB GetType expression.
+    /// <list type="number">
+    ///   <item><description>C# typeof expression</description></item>
+    ///   <item><description>VB GetType expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1890,7 +2079,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation to compute the size of a given type.
     /// <para>
     /// Current usage:
-    ///  (1) C# sizeof expression.
+    /// <list type="number">
+    ///   <item><description>C# sizeof expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1912,7 +2103,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that creates a pointer value by taking the address of a reference.
     /// <para>
     /// Current usage:
-    ///  (1) C# address of expression
+    /// <list type="number">
+    ///   <item><description>C# address of expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1934,7 +2127,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an operation that tests if a value matches a specific pattern.
     /// <para>
     /// Current usage:
-    ///  (1) C# is pattern expression. For example, "x is int i".
+    /// <list type="number">
+    ///   <item><description>C# is pattern expression. For example, <c>x is int i</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1962,7 +2157,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// while unary operator expression does not mutate it's operand.
     /// <para>
     /// Current usage:
-    ///  (1) C# increment expression or decrement expression.
+    /// <list type="number">
+    ///   <item><description>C# increment expression or decrement expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -1999,14 +2196,21 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         IMethodSymbol? OperatorMethod { get; }
+        /// <summary>
+        /// Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="OperatorMethod" />, if any.
+        /// Null if <see cref="OperatorMethod" /> is resolved statically, or is null.
+        /// </summary>
+        ITypeSymbol? ConstrainedToType { get; }
     }
     /// <summary>
     /// Represents an operation to throw an exception.
     /// <para>
     /// Current usage:
-    ///  (1) C# throw expression.
-    ///  (2) C# throw statement.
-    ///  (2) VB Throw statement.
+    /// <list type="number">
+    ///   <item><description>C# throw expression</description></item>
+    ///   <item><description>C# throw statement</description></item>
+    ///   <item><description>VB Throw statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2028,7 +2232,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a assignment with a deconstruction.
     /// <para>
     /// Current usage:
-    ///  (1) C# deconstruction assignment expression.
+    /// <list type="number">
+    ///   <item><description>C# deconstruction assignment expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2046,10 +2252,18 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a declaration expression operation. Unlike a regular variable declaration <see cref="IVariableDeclaratorOperation" /> and <see cref="IVariableDeclarationOperation" />, this operation represents an "expression" declaring a variable.
     /// <para>
     /// Current usage:
-    ///  (1) C# declaration expression. For example,
-    ///  (a) "var (x, y)" is a deconstruction declaration expression with variables x and y.
-    ///  (b) "(var x, var y)" is a tuple expression with two declaration expressions.
-    ///  (c) "M(out var x);" is an invocation expression with an out "var x" declaration expression.
+    /// <list type="number">
+    ///   <item>
+    ///     <description>
+    ///       C# deconstruction assignment expression. For example:
+    ///       <list type="bullet">
+    ///         <item><description><c>var (x, y)</c> is a deconstruction declaration expression with variables <c>x</c> and <c>y</c></description></item>
+    ///         <item><description><c>(var x, var y)</c> is a tuple expression with two declaration expressions</description></item>
+    ///         <item><description><c>M(out var x);</c> is an invocation expression with an out <c>var x</c> declaration expression</description></item>
+    ///       </list>
+    ///     </description>
+    ///   </item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2071,7 +2285,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an argument value that has been omitted in an invocation.
     /// <para>
     /// Current usage:
-    ///  (1) VB omitted argument in an invocation expression.
+    /// <list type="number">
+    ///   <item><description>VB omitted argument in an invocation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2089,8 +2305,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initializer for a field, property, parameter or a local variable declaration.
     /// <para>
     /// Current usage:
-    ///  (1) C# field, property, parameter or local variable initializer.
-    ///  (2) VB field(s), property, parameter or local variable initializer.
+    /// <list type="number">
+    ///   <item><description>C# field, property, parameter or local variable initializer</description></item>
+    ///   <item><description>VB field(s), property, parameter or local variable initializer</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2112,8 +2330,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of a field.
     /// <para>
     /// Current usage:
-    ///  (1) C# field initializer with equals value clause.
-    ///  (2) VB field(s) initializer with equals value clause or AsNew clause. Multiple fields can be initialized with AsNew clause in VB.
+    /// <list type="number">
+    ///   <item><description>C# field initializer with equals value clause</description></item>
+    ///   <item><description>VB field(s) initializer with equals value clause or AsNew clause. Multiple fields can be initialized with AsNew clause in VB</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2135,8 +2355,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of a local variable.
     /// <para>
     /// Current usage:
-    ///  (1) C# local variable initializer with equals value clause.
-    ///  (2) VB local variable initializer with equals value clause or AsNew clause.
+    /// <list type="number">
+    ///   <item><description>C# local variable initializer with equals value clause</description></item>
+    ///   <item><description>VB local variable initializer with equals value clause or AsNew clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2154,8 +2376,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of a property.
     /// <para>
     /// Current usage:
-    ///  (1) C# property initializer with equals value clause.
-    ///  (2) VB property initializer with equals value clause or AsNew clause. Multiple properties can be initialized with 'WithEvents' declaration with AsNew clause in VB.
+    /// <list type="number">
+    ///   <item><description>C# property initializer with equals value clause</description></item>
+    ///   <item><description>VB property initializer with equals value clause or AsNew clause. Multiple properties can be initialized with 'WithEvents' declaration with AsNew clause in VB</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2177,8 +2401,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an initialization of a parameter at the point of declaration.
     /// <para>
     /// Current usage:
-    ///  (1) C# parameter initializer with equals value clause.
-    ///  (2) VB parameter initializer with equals value clause.
+    /// <list type="number">
+    ///   <item><description>C# parameter initializer with equals value clause</description></item>
+    ///   <item><description>VB parameter initializer with equals value clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2200,8 +2426,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents the initialization of an array instance.
     /// <para>
     /// Current usage:
-    ///  (1) C# array initializer.
-    ///  (2) VB array initializer.
+    /// <list type="number">
+    ///   <item><description>C# array initializer</description></item>
+    ///   <item><description>VB array initializer</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2221,14 +2449,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a single variable declarator and initializer.
-    /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) C# variable declarator
-    ///   (2) C# catch variable declaration
-    ///   (3) VB single variable declaration
-    ///   (4) VB catch variable declaration
+    /// <list type="number">
+    ///   <item><description>C# variable declarator</description></item>
+    ///   <item><description>C# catch variable declaration</description></item>
+    ///   <item><description>VB single variable declaration</description></item>
+    ///   <item><description>VB catch variable declaration</description></item>
+    /// </list>
     /// </para>
+    /// </summary>
     /// <remarks>
     /// In VB, the initializer for this node is only ever used for explicit array bounds initializers. This node corresponds to
     /// the VariableDeclaratorSyntax in C# and the ModifiedIdentifierSyntax in VB.
@@ -2262,14 +2492,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a declarator that declares multiple individual variables.
-    /// </summary>
     /// <para>
     /// Current Usage:
-    ///   (1) C# VariableDeclaration
-    ///   (2) C# fixed declarations
-    ///   (3) VB Dim statement declaration groups
-    ///   (4) VB Using statement variable declarations
+    /// <list type="number">
+    ///   <item><description>C# VariableDeclaration</description></item>
+    ///   <item><description>C# fixed declarations</description></item>
+    ///   <item><description>VB Dim statement declaration groups</description></item>
+    ///   <item><description>VB Using statement variable declarations</description></item>
+    /// </list>
     /// </para>
+    /// </summary>
     /// <remarks>
     /// The initializer of this node is applied to all individual declarations in <see cref="Declarators" />. There cannot
     /// be initializers in both locations except in invalid code scenarios.
@@ -2309,8 +2541,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an argument to a method invocation.
     /// <para>
     /// Current usage:
-    ///  (1) C# argument to an invocation expression, object creation expression, etc.
-    ///  (2) VB argument to an invocation expression, object creation expression, etc.
+    /// <list type="number">
+    ///   <item><description>C# argument to an invocation expression, object creation expression, etc.</description></item>
+    ///   <item><description>VB argument to an invocation expression, object creation expression, etc.</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2348,8 +2582,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a catch clause.
     /// <para>
     /// Current usage:
-    ///  (1) C# catch clause.
-    ///  (2) VB Catch clause.
+    /// <list type="number">
+    ///   <item><description>C# catch clause</description></item>
+    ///   <item><description>VB Catch clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2391,8 +2627,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a switch case section with one or more case clauses to match and one or more operations to execute within the section.
     /// <para>
     /// Current usage:
-    ///  (1) C# switch section for one or more case clause and set of statements to execute.
-    ///  (2) VB case block with a case statement for one or more case clause and set of statements to execute.
+    /// <list type="number">
+    ///   <item><description>C# switch section for one or more case clause and set of statements to execute</description></item>
+    ///   <item><description>VB case block with a case statement for one or more case clause and set of statements to execute</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2422,8 +2660,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a case clause.
     /// <para>
     /// Current usage:
-    ///  (1) C# case clause.
-    ///  (2) VB Case clause.
+    /// <list type="number">
+    ///   <item><description>C# case clause</description></item>
+    ///   <item><description>VB Case clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2445,8 +2685,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a default case clause.
     /// <para>
     /// Current usage:
-    ///  (1) C# default clause.
-    ///  (2) VB Case Else clause.
+    /// <list type="number">
+    ///   <item><description>C# default clause</description></item>
+    ///   <item><description>VB Case Else clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2486,7 +2728,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a case clause with range of values for comparison.
     /// <para>
     /// Current usage:
-    ///  (1) VB range case clause of the form "Case x To y".
+    /// <list type="number">
+    ///   <item><description>VB range case clause of the form <c>Case x To y</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2508,7 +2752,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a case clause with custom relational operator for comparison.
     /// <para>
     /// Current usage:
-    ///  (1) VB relational case clause of the form "Case Is op x".
+    /// <list type="number">
+    ///   <item><description>VB relational case clause of the form <c>Case Is op x</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2530,8 +2776,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a case clause with a single value for comparison.
     /// <para>
     /// Current usage:
-    ///  (1) C# case clause of the form "case x"
-    ///  (2) VB case clause of the form "Case x".
+    /// <list type="number">
+    ///   <item><description>C# case clause of the form <c>case x</c></description></item>
+    ///   <item><description>VB case clause of the form <c>Case x</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2549,8 +2797,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constituent part of an interpolated string.
     /// <para>
     /// Current usage:
-    ///  (1) C# interpolated string content.
-    ///  (2) VB interpolated string content.
+    /// <list type="number">
+    ///   <item><description>C# interpolated string content</description></item>
+    ///   <item><description>VB interpolated string content</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2564,8 +2814,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constituent string literal part of an interpolated string operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# interpolated string text.
-    ///  (2) VB interpolated string text.
+    /// <list type="number">
+    ///   <item><description>C# interpolated string text</description></item>
+    ///   <item><description>VB interpolated string text</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2587,8 +2839,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constituent interpolation part of an interpolated string operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# interpolation part.
-    ///  (2) VB interpolation part.
+    /// <list type="number">
+    ///   <item><description>C# interpolation part</description></item>
+    ///   <item><description>VB interpolation part</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2618,7 +2872,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a pattern matching operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# pattern.
+    /// <list type="number">
+    ///   <item><description>C# pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2640,7 +2896,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a pattern with a constant value.
     /// <para>
     /// Current usage:
-    ///  (1) C# constant pattern.
+    /// <list type="number">
+    ///   <item><description>C# constant pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2662,7 +2920,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a pattern that declares a symbol.
     /// <para>
     /// Current usage:
-    ///  (1) C# declaration pattern.
+    /// <list type="number">
+    ///   <item><description>C# declaration pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2676,7 +2936,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IDeclarationPatternOperation : IPatternOperation
     {
         /// <summary>
-        /// The type explicitly specified, or null if it was inferred (e.g. using <code>var</code> in C#).
+        /// The type explicitly specified, or null if it was inferred (e.g. using <see langword="var" /> in C#).
         /// </summary>
         ITypeSymbol? MatchedType { get; }
         /// <summary>
@@ -2694,7 +2954,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a comparison of two operands that returns a bool type.
     /// <para>
     /// Current usage:
-    ///  (1) C# tuple binary operator expression.
+    /// <list type="number">
+    ///   <item><description>C# tuple binary operator expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2725,7 +2987,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# method body
+    /// <list type="number">
+    ///   <item><description>C# method body</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2747,7 +3011,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# method body for non-constructor
+    /// <list type="number">
+    ///   <item><description>C# method body for non-constructor</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2766,7 +3032,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a constructor method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# method body for constructor declaration
+    /// <list type="number">
+    ///   <item><description>C# method body for constructor declaration</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2792,7 +3060,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a discard operation.
     /// <para>
-    /// Current usage: C# discard expressions
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# discard expressions</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2812,12 +3083,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     /// <summary>
     /// Represents a coalesce assignment operation with a target and a conditionally-evaluated value:
-    /// (1) <see cref="IAssignmentOperation.Target" /> is evaluated for null. If it is null, <see cref="IAssignmentOperation.Value" /> is evaluated and assigned to target.
-    /// (2) <see cref="IAssignmentOperation.Value" /> is conditionally evaluated if <see cref="IAssignmentOperation.Target" /> is null, and the result is assigned into <see cref="IAssignmentOperation.Target" />.
-    /// The result of the entire expression is<see cref="IAssignmentOperation.Target" />, which is only evaluated once.
+    /// <list type="number">
+    ///   <item><description><see cref="IAssignmentOperation.Target" /> is evaluated for null. If it is null, <see cref="IAssignmentOperation.Value" /> is evaluated and assigned to target</description></item>
+    ///   <item><description><see cref="IAssignmentOperation.Value" /> is conditionally evaluated if <see cref="IAssignmentOperation.Target" /> is null, and the result is assigned into <see cref="IAssignmentOperation.Target" /></description></item>
+    /// </list>
+    /// The result of the entire expression is <see cref="IAssignmentOperation.Target" />, which is only evaluated once.
     /// <para>
     /// Current usage:
-    ///  (1) C# null-coalescing assignment operation <code>Target ??= Value</code>.
+    /// <list type="number">
+    ///   <item><description>C# null-coalescing assignment operation <c>Target ??= Value</c></description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2835,7 +3110,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a range operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# range expressions
+    /// <list type="number">
+    ///   <item><description>C# range expressions</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2857,7 +3134,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IOperation? RightOperand { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'lifted' range operation.  When there is an
+        /// <see langword="true" /> if this is a 'lifted' range operation.  When there is an
         /// operator that is defined to work on a value type, 'lifted' operators are
         /// created to work on the <see cref="System.Nullable{T}" /> versions of those
         /// value types.
@@ -2873,7 +3150,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents the ReDim operation to re-allocate storage space for array variables.
     /// <para>
     /// Current usage:
-    ///  (1) VB ReDim statement.
+    /// <list type="number">
+    ///   <item><description>VB ReDim statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2899,7 +3178,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents an individual clause of an <see cref="IReDimOperation" /> to re-allocate storage space for a single array variable.
     /// <para>
     /// Current usage:
-    ///  (1) VB ReDim clause.
+    /// <list type="number">
+    ///   <item><description>VB ReDim clause</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2939,8 +3220,8 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         ITypeSymbol MatchedType { get; }
         /// <summary>
-        /// The symbol, if any, used for the fetching values for subpatterns. This is either a <code>Deconstruct</code>
-        /// method, the type <code>System.Runtime.CompilerServices.ITuple</code>, or null (for example, in
+        /// The symbol, if any, used for the fetching values for subpatterns. This is either a <c>Deconstruct</c>
+        /// method, the type <c>System.Runtime.CompilerServices.ITuple</c>, or null (for example, in
         /// error cases or when matching a tuple type).
         /// </summary>
         ISymbol? DeconstructSymbol { get; }
@@ -2960,7 +3241,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a discard pattern.
     /// <para>
-    /// Current usage: C# discard pattern
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# discard pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -2978,7 +3262,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a switch expression.
     /// <para>
     /// Current usage:
-    ///  (1) C# switch expression.
+    /// <list type="number">
+    ///   <item><description>C# switch expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3096,8 +3382,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
     /// <para>
     /// Current usage:
-    ///  (1) C# NoPia interface instance creation expression.
-    ///  (2) VB NoPia interface instance creation expression.
+    /// <list type="number">
+    ///   <item><description>C# NoPia interface instance creation expression</description></item>
+    ///   <item><description>VB NoPia interface instance creation expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3127,7 +3415,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a reference through a pointer.
     /// <para>
     /// Current usage:
-    ///  (1) C# pointer indirection reference expression.
+    /// <list type="number">
+    ///   <item><description>C# pointer indirection reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3145,7 +3435,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a <see cref="Body" /> of operations that are executed with implicit reference to the <see cref="Value" /> for member references.
     /// <para>
     /// Current usage:
-    ///  (1) VB With statement.
+    /// <list type="number">
+    ///   <item><description>VB With statement</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3167,8 +3459,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents using variable declaration, with scope spanning across the parent <see cref="IBlockOperation" />.
     /// <para>
     /// Current Usage:
-    ///  (1) C# using declaration
-    ///  (1) C# asynchronous using declaration
+    /// <list type="number">
+    ///   <item><description>C# using declaration</description></item>
+    ///   <item><description>C# asynchronous using declaration</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3193,8 +3487,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a negated pattern.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# negated pattern.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# negated pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3215,8 +3511,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a binary ("and" or "or") pattern.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# "and" and "or" patterns.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# "and" and "or" patterns</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3245,8 +3543,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a pattern comparing the input with a given type.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# type pattern.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# type pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3260,7 +3560,7 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface ITypePatternOperation : IPatternOperation
     {
         /// <summary>
-        /// The type explicitly specified, or null if it was inferred (e.g. using <code>var</code> in C#).
+        /// The type explicitly specified, or null if it was inferred (e.g. using <see langword="var" /> in C#).
         /// </summary>
         ITypeSymbol MatchedType { get; }
     }
@@ -3268,7 +3568,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// Represents a pattern comparing the input with a constant value using a relational operator.
     /// <para>
     /// Current usage:
-    ///  (1) C# relational pattern.
+    /// <list type="number">
+    ///   <item><description>C# relational pattern</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3293,8 +3595,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents cloning of an object instance.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# with expression.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# with expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3508,8 +3812,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents a reference to an implicit System.Index or System.Range indexer over a non-array type.
     /// <para>
-    ///   Current usage:
-    ///   (1) C# implicit System.Index or System.Range indexer reference expression.
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# implicit System.Index or System.Range indexer reference expression</description></item>
+    /// </list>
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3538,6 +3844,154 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Symbol for the underlying indexer or a slice method that is used to implement the implicit indexer.
         /// </summary>
         ISymbol IndexerSymbol { get; }
+    }
+    /// <summary>
+    /// Represents a UTF-8 encoded byte representation of a string.
+    /// <para>
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# UTF-8 string literal expression</description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.Utf8String"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IUtf8StringOperation : IOperation
+    {
+        /// <summary>
+        /// The underlying string value.
+        /// </summary>
+        string Value { get; }
+    }
+    /// <summary>
+    /// Represents the application of an attribute.
+    /// <para>
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# attribute application</description></item>
+    ///   <item><description>VB attribute application</description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.Attribute"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IAttributeOperation : IOperation
+    {
+        /// <summary>
+        /// The operation representing the attribute. This can be a <see cref="IObjectCreationOperation" /> in non-error cases, or an <see cref="IInvalidOperation" /> in error cases.
+        /// </summary>
+        IOperation Operation { get; }
+    }
+    /// <summary>
+    /// Represents an element reference or a slice operation over an inline array type.
+    /// <para>
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# inline array access</description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.InlineArrayAccess"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface IInlineArrayAccessOperation : IOperation
+    {
+        /// <summary>
+        /// Instance of the inline array type to be accessed.
+        /// </summary>
+        IOperation Instance { get; }
+        /// <summary>
+        /// System.Int32, System.Index or System.Range value.
+        /// </summary>
+        IOperation Argument { get; }
+    }
+    /// <summary>
+    /// Represents a collection expression.
+    /// <para>
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# collection expression</description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.CollectionExpression"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface ICollectionExpressionOperation : IOperation
+    {
+        /// <summary>
+        /// Method used to construct the collection.
+        /// <para>
+        ///   If the collection type is an array, span, array interface, or type parameter, the method is null;
+        ///   if the collection type has a [CollectionBuilder] attribute, the method is the builder method;
+        ///   otherwise, the method is the collection type constructor.
+        /// </para>
+        /// </summary>
+        IMethodSymbol? ConstructMethod { get; }
+        /// <summary>
+        /// Collection expression elements.
+        /// <para>
+        ///   If the element is an expression, the entry is the expression, with a conversion to
+        ///   the target element type if necessary;
+        ///   otherwise, the entry is an ISpreadOperation.
+        /// </para>
+        /// </summary>
+        ImmutableArray<IOperation> Elements { get; }
+    }
+    /// <summary>
+    /// Represents a collection expression spread element.
+    /// <para>
+    /// Current usage:
+    /// <list type="number">
+    ///   <item><description>C# spread element</description></item>
+    /// </list>
+    /// </para>
+    /// </summary>
+    /// <remarks>
+    /// <para>This node is associated with the following operation kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="OperationKind.Spread"/></description></item>
+    /// </list>
+    /// <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.</para>
+    /// </remarks>
+    public interface ISpreadOperation : IOperation
+    {
+        /// <summary>
+        /// Collection being spread.
+        /// </summary>
+        IOperation Operand { get; }
+        /// <summary>
+        /// Type of the elements in the collection.
+        /// </summary>
+        ITypeSymbol? ElementType { get; }
+        /// <summary>
+        /// Conversion from the type of the collection element to the target element type
+        /// of the containing collection expression.
+        /// </summary>
+        CommonConversion ElementConversion { get; }
     }
     #endregion
 
@@ -4697,16 +5151,18 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class InvocationOperation : Operation, IInvocationOperation
     {
-        internal InvocationOperation(IMethodSymbol targetMethod, IOperation? instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal InvocationOperation(IMethodSymbol targetMethod, ITypeSymbol? constrainedToType, IOperation? instance, bool isVirtual, ImmutableArray<IArgumentOperation> arguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             TargetMethod = targetMethod;
+            ConstrainedToType = constrainedToType;
             Instance = SetParentOperation(instance, this);
             IsVirtual = isVirtual;
             Arguments = SetParentOperation(arguments, this);
             Type = type;
         }
         public IMethodSymbol TargetMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         public IOperation? Instance { get; }
         public bool IsVirtual { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
@@ -4882,6 +5338,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Instance = SetParentOperation(instance, this);
         }
         public IOperation? Instance { get; }
+        public abstract ITypeSymbol? ConstrainedToType { get; }
     }
     internal sealed partial class FieldReferenceOperation : BaseMemberReferenceOperation, IFieldReferenceOperation
     {
@@ -4940,14 +5397,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class MethodReferenceOperation : BaseMemberReferenceOperation, IMethodReferenceOperation
     {
-        internal MethodReferenceOperation(IMethodSymbol method, bool isVirtual, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal MethodReferenceOperation(IMethodSymbol method, ITypeSymbol? constrainedToType, bool isVirtual, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
             Method = method;
+            ConstrainedToType = constrainedToType;
             IsVirtual = isVirtual;
             Type = type;
         }
         public IMethodSymbol Method { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         public bool IsVirtual { get; }
         internal override int ChildOperationsCount =>
             (Instance is null ? 0 : 1);
@@ -4994,14 +5453,16 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class PropertyReferenceOperation : BaseMemberReferenceOperation, IPropertyReferenceOperation
     {
-        internal PropertyReferenceOperation(IPropertySymbol property, ImmutableArray<IArgumentOperation> arguments, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal PropertyReferenceOperation(IPropertySymbol property, ITypeSymbol? constrainedToType, ImmutableArray<IArgumentOperation> arguments, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
             Property = property;
+            ConstrainedToType = constrainedToType;
             Arguments = SetParentOperation(arguments, this);
             Type = type;
         }
         public IPropertySymbol Property { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         public ImmutableArray<IArgumentOperation> Arguments { get; }
         internal override int ChildOperationsCount =>
             Arguments.Length +
@@ -5061,13 +5522,15 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class EventReferenceOperation : BaseMemberReferenceOperation, IEventReferenceOperation
     {
-        internal EventReferenceOperation(IEventSymbol @event, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal EventReferenceOperation(IEventSymbol @event, ITypeSymbol? constrainedToType, IOperation? instance, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(instance, semanticModel, syntax, isImplicit)
         {
             Event = @event;
+            ConstrainedToType = constrainedToType;
             Type = type;
         }
         public IEventSymbol Event { get; }
+        public override ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Instance is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
@@ -5113,7 +5576,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class UnaryOperation : Operation, IUnaryOperation
     {
-        internal UnaryOperation(UnaryOperatorKind operatorKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+        internal UnaryOperation(UnaryOperatorKind operatorKind, IOperation operand, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             OperatorKind = operatorKind;
@@ -5121,6 +5584,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsLifted = isLifted;
             IsChecked = isChecked;
             OperatorMethod = operatorMethod;
+            ConstrainedToType = constrainedToType;
             OperationConstantValue = constantValue;
             Type = type;
         }
@@ -5129,6 +5593,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsLifted { get; }
         public bool IsChecked { get; }
         public IMethodSymbol? OperatorMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Operand is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
@@ -5174,7 +5639,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class BinaryOperation : Operation, IBinaryOperation
     {
-        internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol? operatorMethod, IMethodSymbol? unaryOperatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
+        internal BinaryOperation(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, IMethodSymbol? unaryOperatorMethod, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, ConstantValue? constantValue, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             OperatorKind = operatorKind;
@@ -5184,6 +5649,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsChecked = isChecked;
             IsCompareText = isCompareText;
             OperatorMethod = operatorMethod;
+            ConstrainedToType = constrainedToType;
             UnaryOperatorMethod = unaryOperatorMethod;
             OperationConstantValue = constantValue;
             Type = type;
@@ -5195,6 +5661,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsChecked { get; }
         public bool IsCompareText { get; }
         public IMethodSymbol? OperatorMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         public IMethodSymbol? UnaryOperatorMethod { get; }
         internal override int ChildOperationsCount =>
             (LeftOperand is null ? 0 : 1) +
@@ -5836,7 +6303,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class CompoundAssignmentOperation : BaseAssignmentOperation, ICompoundAssignmentOperation
     {
-        internal CompoundAssignmentOperation(IConvertibleConversion inConversion, IConvertibleConversion outConversion, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, IOperation target, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal CompoundAssignmentOperation(IConvertibleConversion inConversion, IConvertibleConversion outConversion, BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, IOperation target, IOperation value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(target, value, semanticModel, syntax, isImplicit)
         {
             InConversionConvertible = inConversion;
@@ -5845,6 +6312,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsLifted = isLifted;
             IsChecked = isChecked;
             OperatorMethod = operatorMethod;
+            ConstrainedToType = constrainedToType;
             Type = type;
         }
         internal IConvertibleConversion InConversionConvertible { get; }
@@ -5855,6 +6323,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsLifted { get; }
         public bool IsChecked { get; }
         public IMethodSymbol? OperatorMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Target is null ? 0 : 1) +
             (Value is null ? 0 : 1);
@@ -6784,7 +7253,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class IncrementOrDecrementOperation : Operation, IIncrementOrDecrementOperation
     {
-        internal IncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol? operatorMethod, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal IncrementOrDecrementOperation(bool isPostfix, bool isLifted, bool isChecked, IOperation target, IMethodSymbol? operatorMethod, ITypeSymbol? constrainedToType, OperationKind kind, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
             IsPostfix = isPostfix;
@@ -6792,6 +7261,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsChecked = isChecked;
             Target = SetParentOperation(target, this);
             OperatorMethod = operatorMethod;
+            ConstrainedToType = constrainedToType;
             Type = type;
             Kind = kind;
         }
@@ -6800,6 +7270,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public bool IsChecked { get; }
         public IOperation Target { get; }
         public IMethodSymbol? OperatorMethod { get; }
+        public ITypeSymbol? ConstrainedToType { get; }
         internal override int ChildOperationsCount =>
             (Target is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
@@ -10062,6 +10533,253 @@ namespace Microsoft.CodeAnalysis.Operations
         public override void Accept(OperationVisitor visitor) => visitor.VisitImplicitIndexerReference(this);
         public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitImplicitIndexerReference(this, argument);
     }
+    internal sealed partial class Utf8StringOperation : Operation, IUtf8StringOperation
+    {
+        internal Utf8StringOperation(string value, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Value = value;
+            Type = type;
+        }
+        public string Value { get; }
+        internal override int ChildOperationsCount => 0;
+        internal override IOperation GetCurrent(int slot, int index) => throw ExceptionUtilities.UnexpectedValue((slot, index));
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex) => (false, int.MinValue, int.MinValue);
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Utf8String;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitUtf8String(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitUtf8String(this, argument);
+    }
+    internal sealed partial class AttributeOperation : Operation, IAttributeOperation
+    {
+        internal AttributeOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Operation = SetParentOperation(operation, this);
+        }
+        public IOperation Operation { get; }
+        internal override int ChildOperationsCount =>
+            (Operation is null ? 0 : 1);
+        internal override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Operation != null
+                    => Operation,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (Operation != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case -1:
+                    return (false, -1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Attribute;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitAttribute(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitAttribute(this, argument);
+    }
+    internal sealed partial class InlineArrayAccessOperation : Operation, IInlineArrayAccessOperation
+    {
+        internal InlineArrayAccessOperation(IOperation instance, IOperation argument, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Instance = SetParentOperation(instance, this);
+            Argument = SetParentOperation(argument, this);
+            Type = type;
+        }
+        public IOperation Instance { get; }
+        public IOperation Argument { get; }
+        internal override int ChildOperationsCount =>
+            (Instance is null ? 0 : 1) +
+            (Argument is null ? 0 : 1);
+        internal override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Instance != null
+                    => Instance,
+                1 when Argument != null
+                    => Argument,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                    if (Argument != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                case 2:
+                    return (false, 2, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (Argument != null) return (true, 1, 0);
+                    else goto case 1;
+                case 1:
+                    if (Instance != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case -1:
+                    return (false, -1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.InlineArrayAccess;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitInlineArrayAccess(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitInlineArrayAccess(this, argument);
+    }
+    internal sealed partial class CollectionExpressionOperation : Operation, ICollectionExpressionOperation
+    {
+        internal CollectionExpressionOperation(IMethodSymbol? constructMethod, ImmutableArray<IOperation> elements, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            ConstructMethod = constructMethod;
+            Elements = SetParentOperation(elements, this);
+            Type = type;
+        }
+        public IMethodSymbol? ConstructMethod { get; }
+        public ImmutableArray<IOperation> Elements { get; }
+        internal override int ChildOperationsCount =>
+            Elements.Length;
+        internal override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when index < Elements.Length
+                    => Elements[index],
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (!Elements.IsEmpty) return (true, 0, 0);
+                    else goto case 0;
+                case 0 when previousIndex + 1 < Elements.Length:
+                    return (true, 0, previousIndex + 1);
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (!Elements.IsEmpty) return (true, 0, Elements.Length - 1);
+                    else goto case 0;
+                case 0 when previousIndex > 0:
+                    return (true, 0, previousIndex - 1);
+                case 0:
+                case -1:
+                    return (false, -1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type { get; }
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.CollectionExpression;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitCollectionExpression(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitCollectionExpression(this, argument);
+    }
+    internal sealed partial class SpreadOperation : Operation, ISpreadOperation
+    {
+        internal SpreadOperation(IOperation operand, ITypeSymbol? elementType, IConvertibleConversion elementConversion, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
+            : base(semanticModel, syntax, isImplicit)
+        {
+            Operand = SetParentOperation(operand, this);
+            ElementType = elementType;
+            ElementConversionConvertible = elementConversion;
+        }
+        public IOperation Operand { get; }
+        public ITypeSymbol? ElementType { get; }
+        internal IConvertibleConversion ElementConversionConvertible { get; }
+        public CommonConversion ElementConversion => ElementConversionConvertible.ToCommonConversion();
+        internal override int ChildOperationsCount =>
+            (Operand is null ? 0 : 1);
+        internal override IOperation GetCurrent(int slot, int index)
+            => slot switch
+            {
+                0 when Operand != null
+                    => Operand,
+                _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
+            };
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case -1:
+                    if (Operand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case 1:
+                    return (false, 1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        internal override (bool hasNext, int nextSlot, int nextIndex) MoveNextReversed(int previousSlot, int previousIndex)
+        {
+            switch (previousSlot)
+            {
+                case int.MaxValue:
+                    if (Operand != null) return (true, 0, 0);
+                    else goto case 0;
+                case 0:
+                case -1:
+                    return (false, -1, 0);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
+            }
+        }
+        public override ITypeSymbol? Type => null;
+        internal override ConstantValue? OperationConstantValue => null;
+        public override OperationKind Kind => OperationKind.Spread;
+        public override void Accept(OperationVisitor visitor) => visitor.VisitSpread(this);
+        public override TResult? Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument) where TResult : default => visitor.VisitSpread(this, argument);
+    }
     #endregion
     #region Cloner
     internal sealed partial class OperationCloner : OperationVisitor<object?, IOperation>
@@ -10072,7 +10790,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public OperationCloner() { }
         [return: NotNullIfNotNull("node")]
         private T? Visit<T>(T? node) where T : IOperation? => (T?)Visit(node, argument: null);
-        public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable;
+        public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable();
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this)!;
         private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this)!;
         public override IOperation VisitBlock(IBlockOperation operation, object? argument)
@@ -10183,7 +10901,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitInvocation(IInvocationOperation operation, object? argument)
         {
             var internalOperation = (InvocationOperation)operation;
-            return new InvocationOperation(internalOperation.TargetMethod, Visit(internalOperation.Instance), internalOperation.IsVirtual, VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new InvocationOperation(internalOperation.TargetMethod, internalOperation.ConstrainedToType, Visit(internalOperation.Instance), internalOperation.IsVirtual, VisitArray(internalOperation.Arguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, object? argument)
         {
@@ -10208,27 +10926,27 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitMethodReference(IMethodReferenceOperation operation, object? argument)
         {
             var internalOperation = (MethodReferenceOperation)operation;
-            return new MethodReferenceOperation(internalOperation.Method, internalOperation.IsVirtual, Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new MethodReferenceOperation(internalOperation.Method, internalOperation.ConstrainedToType, internalOperation.IsVirtual, Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, object? argument)
         {
             var internalOperation = (PropertyReferenceOperation)operation;
-            return new PropertyReferenceOperation(internalOperation.Property, VisitArray(internalOperation.Arguments), Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new PropertyReferenceOperation(internalOperation.Property, internalOperation.ConstrainedToType, VisitArray(internalOperation.Arguments), Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitEventReference(IEventReferenceOperation operation, object? argument)
         {
             var internalOperation = (EventReferenceOperation)operation;
-            return new EventReferenceOperation(internalOperation.Event, Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new EventReferenceOperation(internalOperation.Event, internalOperation.ConstrainedToType, Visit(internalOperation.Instance), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, object? argument)
         {
             var internalOperation = (UnaryOperation)operation;
-            return new UnaryOperation(internalOperation.OperatorKind, Visit(internalOperation.Operand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+            return new UnaryOperation(internalOperation.OperatorKind, Visit(internalOperation.Operand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, internalOperation.ConstrainedToType, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, object? argument)
         {
             var internalOperation = (BinaryOperation)operation;
-            return new BinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.IsCompareText, internalOperation.OperatorMethod, internalOperation.UnaryOperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
+            return new BinaryOperation(internalOperation.OperatorKind, Visit(internalOperation.LeftOperand), Visit(internalOperation.RightOperand), internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.IsCompareText, internalOperation.OperatorMethod, internalOperation.ConstrainedToType, internalOperation.UnaryOperatorMethod, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.OperationConstantValue, internalOperation.IsImplicit);
         }
         public override IOperation VisitConditional(IConditionalOperation operation, object? argument)
         {
@@ -10283,7 +11001,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitCompoundAssignment(ICompoundAssignmentOperation operation, object? argument)
         {
             var internalOperation = (CompoundAssignmentOperation)operation;
-            return new CompoundAssignmentOperation(internalOperation.InConversionConvertible, internalOperation.OutConversionConvertible, internalOperation.OperatorKind, internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, Visit(internalOperation.Target), Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new CompoundAssignmentOperation(internalOperation.InConversionConvertible, internalOperation.OutConversionConvertible, internalOperation.OperatorKind, internalOperation.IsLifted, internalOperation.IsChecked, internalOperation.OperatorMethod, internalOperation.ConstrainedToType, Visit(internalOperation.Target), Visit(internalOperation.Value), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitParenthesized(IParenthesizedOperation operation, object? argument)
         {
@@ -10378,7 +11096,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, object? argument)
         {
             var internalOperation = (IncrementOrDecrementOperation)operation;
-            return new IncrementOrDecrementOperation(internalOperation.IsPostfix, internalOperation.IsLifted, internalOperation.IsChecked, Visit(internalOperation.Target), internalOperation.OperatorMethod, internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new IncrementOrDecrementOperation(internalOperation.IsPostfix, internalOperation.IsLifted, internalOperation.IsChecked, Visit(internalOperation.Target), internalOperation.OperatorMethod, internalOperation.ConstrainedToType, internalOperation.Kind, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
         public override IOperation VisitThrow(IThrowOperation operation, object? argument)
         {
@@ -10660,6 +11378,31 @@ namespace Microsoft.CodeAnalysis.Operations
             var internalOperation = (ImplicitIndexerReferenceOperation)operation;
             return new ImplicitIndexerReferenceOperation(Visit(internalOperation.Instance), Visit(internalOperation.Argument), internalOperation.LengthSymbol, internalOperation.IndexerSymbol, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
         }
+        public override IOperation VisitUtf8String(IUtf8StringOperation operation, object? argument)
+        {
+            var internalOperation = (Utf8StringOperation)operation;
+            return new Utf8StringOperation(internalOperation.Value, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitAttribute(IAttributeOperation operation, object? argument)
+        {
+            var internalOperation = (AttributeOperation)operation;
+            return new AttributeOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitInlineArrayAccess(IInlineArrayAccessOperation operation, object? argument)
+        {
+            var internalOperation = (InlineArrayAccessOperation)operation;
+            return new InlineArrayAccessOperation(Visit(internalOperation.Instance), Visit(internalOperation.Argument), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitCollectionExpression(ICollectionExpressionOperation operation, object? argument)
+        {
+            var internalOperation = (CollectionExpressionOperation)operation;
+            return new CollectionExpressionOperation(internalOperation.ConstructMethod, VisitArray(internalOperation.Elements), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+        }
+        public override IOperation VisitSpread(ISpreadOperation operation, object? argument)
+        {
+            var internalOperation = (SpreadOperation)operation;
+            return new SpreadOperation(Visit(internalOperation.Operand), internalOperation.ElementType, internalOperation.ElementConversionConvertible, internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
+        }
     }
     #endregion
     
@@ -10797,6 +11540,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual void VisitListPattern(IListPatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitSlicePattern(ISlicePatternOperation operation) => DefaultVisit(operation);
         public virtual void VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation) => DefaultVisit(operation);
+        public virtual void VisitUtf8String(IUtf8StringOperation operation) => DefaultVisit(operation);
+        public virtual void VisitAttribute(IAttributeOperation operation) => DefaultVisit(operation);
+        public virtual void VisitInlineArrayAccess(IInlineArrayAccessOperation operation) => DefaultVisit(operation);
+        public virtual void VisitCollectionExpression(ICollectionExpressionOperation operation) => DefaultVisit(operation);
+        public virtual void VisitSpread(ISpreadOperation operation) => DefaultVisit(operation);
     }
     public abstract partial class OperationVisitor<TArgument, TResult>
     {
@@ -10931,6 +11679,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult? VisitListPattern(IListPatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitSlicePattern(ISlicePatternOperation operation, TArgument argument) => DefaultVisit(operation, argument);
         public virtual TResult? VisitImplicitIndexerReference(IImplicitIndexerReferenceOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitUtf8String(IUtf8StringOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitAttribute(IAttributeOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitInlineArrayAccess(IInlineArrayAccessOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitCollectionExpression(ICollectionExpressionOperation operation, TArgument argument) => DefaultVisit(operation, argument);
+        public virtual TResult? VisitSpread(ISpreadOperation operation, TArgument argument) => DefaultVisit(operation, argument);
     }
     #endregion
 }

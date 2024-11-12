@@ -11,8 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-#nullable enable
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -66,10 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_usedAssemblyReferencesFrozen && !Volatile.Read(ref _usedAssemblyReferencesFrozen))
             {
-                var diagnostics = new BindingDiagnosticBag(DiagnosticBag.GetInstance(), new ConcurrentSet<AssemblySymbol>());
+                var diagnostics = BindingDiagnosticBag.GetConcurrentInstance();
                 RoslynDebug.Assert(diagnostics.DiagnosticBag is object);
 
-                GetDiagnosticsWithoutFiltering(CompilationStage.Declare, includeEarlierStages: true, diagnostics, cancellationToken);
+                GetDiagnosticsWithoutSeverityFiltering(CompilationStage.Declare, includeEarlierStages: true, diagnostics, symbolFilter: null, cancellationToken);
 
                 bool seenErrors = diagnostics.HasAnyErrors();
                 if (!seenErrors)
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 completeTheSetOfUsedAssemblies(seenErrors, cancellationToken);
 
-                diagnostics.DiagnosticBag.Free();
+                diagnostics.Free();
             }
 
             return _lazyUsedAssemblyReferences;

@@ -28,20 +28,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
 
         private static byte[] LoadBytes(string name)
         {
-            using (var resourceStream = GetResourceStream(name))
-            {
-                var bytes = new byte[resourceStream.Length];
-                resourceStream.Read(bytes, 0, (int)resourceStream.Length);
-                return bytes;
-            }
+            using var resourceStream = GetResourceStream(name);
+            var bytes = new byte[resourceStream.Length];
+            resourceStream.Read(bytes, 0, (int)resourceStream.Length);
+            return bytes;
         }
 
         private static string LoadText(string name)
         {
-            using (var streamReader = new StreamReader(GetResourceStream(name)))
-            {
-                return streamReader.ReadToEnd();
-            }
+            using var streamReader = new StreamReader(GetResourceStream(name));
+            return streamReader.ReadToEnd();
         }
 
         private static readonly Func<string, byte[]> s_bytesLoader = LoadBytes;
@@ -58,10 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
 
             result = loader(name);
 
-            if (cache == null)
-            {
-                cache = new Dictionary<string, TResult>();
-            }
+            cache ??= [];
 
             cache[name] = result;
 
@@ -106,6 +99,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
             public static string NonExistentProject => GetText("SolutionFiles.NonExistentProject.sln");
             public static string ProjectLoadErrorOnMissingDebugType => GetText("SolutionFiles.ProjectLoadErrorOnMissingDebugType.sln");
             public static string SolutionFolder => GetText("SolutionFiles.SolutionFolder.sln");
+            public static string VisualBasic => GetText("SolutionFiles.VisualBasic.sln");
             public static string VB_and_CSharp => GetText("SolutionFiles.VB_and_CSharp.sln");
         }
 
@@ -138,9 +132,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ExternAlias => GetText("ProjectFiles.CSharp.ExternAlias.csproj");
                 public static string ExternAlias2 => GetText("ProjectFiles.CSharp.ExternAlias2.csproj");
                 public static string ForEmittedOutput => GetText("ProjectFiles.CSharp.ForEmittedOutput.csproj");
+                public static string InvalidTFM => GetText("ProjectFiles.CSharp.InvalidTFM.csproj");
                 public static string Issue30174_InspectedLibrary => GetText("Issue30174.InspectedLibrary.InspectedLibrary.csproj");
                 public static string Issue30174_ReferencedLibrary => GetText("Issue30174.ReferencedLibrary.ReferencedLibrary.csproj");
-                public static string MsbuildError => GetText("ProjectFiles.CSharp.MsbuildError.csproj");
+                public static string MSBuildExecutionError => GetText("ProjectFiles.CSharp.MSBuildExecutionError.csproj");
+                public static string MSBuildEvaluationErrorWithSyntax => GetText("ProjectFiles.CSharp.MSBuildEvaluationErrorWithSyntax.csproj");
+                public static string MSBuildEvaluationErrorWithExpressionInputs => GetText("ProjectFiles.CSharp.MSBuildEvaluationErrorWithExpressionInputs.csproj");
                 public static string MallformedAdditionalFilePath => GetText("ProjectFiles.CSharp.MallformedAdditionalFilePath.csproj");
                 public static string NetCoreApp_Project => GetText("NetCoreApp.Project.csproj");
                 public static string NetCoreAppAndLibrary_Project => GetText("NetCoreAppAndLibrary.Project.csproj");
@@ -163,7 +160,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string WithoutCSharpTargetsImported => GetText("ProjectFiles.CSharp.WithoutCSharpTargetsImported.csproj");
                 public static string WithDiscoverEditorConfigFiles => GetText("ProjectFiles.CSharp.WithDiscoverEditorConfigFiles.csproj");
                 public static string WithPrefer32Bit => GetText("ProjectFiles.CSharp.WithPrefer32Bit.csproj");
+                public static string WithChecksumAlgorithm => GetText("ProjectFiles.CSharp.WithChecksumAlgorithm.csproj");
                 public static string WithLink => GetText("ProjectFiles.CSharp.WithLink.csproj");
+                public static string WithClassNotInProjectFolder => GetText("ProjectFiles.CSharp.WithClassNotInProjectFolder.csproj");
                 public static string WithSystemNumerics => GetText("ProjectFiles.CSharp.WithSystemNumerics.csproj");
                 public static string WithXaml => GetText("ProjectFiles.CSharp.WithXaml.csproj");
                 public static string WithoutPrefer32Bit => GetText("ProjectFiles.CSharp.WithoutPrefer32Bit.csproj");
@@ -189,6 +188,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string VisualBasicProject => GetText("ProjectFiles.VisualBasic.VisualBasicProject.vbproj");
                 public static string VisualBasicProject_3_5 => GetText("ProjectFiles.VisualBasic.VisualBasicProject_3_5.vbproj");
                 public static string WithPrefer32Bit => GetText("ProjectFiles.VisualBasic.WithPrefer32Bit.vbproj");
+                public static string WithChecksumAlgorithm => GetText("ProjectFiles.VisualBasic.WithChecksumAlgorithm.vbproj");
                 public static string WithoutPrefer32Bit => GetText("ProjectFiles.VisualBasic.WithoutPrefer32Bit.vbproj");
                 public static string WithoutVBTargetsImported => GetText("ProjectFiles.VisualBasic.WithoutVBTargetsImported.vbproj");
                 public static string VBNetCoreAppWithGlobalImportAndLibrary_VBProject => GetText("VBNetCoreAppWithGlobalImportAndLibrary.VBProject.vbproj");

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 using System.IO;
+using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -97,16 +98,16 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Continues the script with given code snippet.
         /// </summary>
-        public Script<object> ContinueWith(string code, ScriptOptions options = null) =>
-            ContinueWith<object>(code, options);
+        public Script<object> ContinueWith(string code, ScriptOptions options = null)
+            => ContinueWith<object>(code, options);
 
         /// <summary>
         /// Continues the script with given <see cref="Stream"/> representing code.
         /// </summary>
         /// <exception cref="ArgumentNullException">Stream is null.</exception>
         /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
-        public Script<object> ContinueWith(Stream code, ScriptOptions options = null) =>
-            ContinueWith<object>(code, options);
+        public Script<object> ContinueWith(Stream code, ScriptOptions options = null)
+            => ContinueWith<object>(code, options);
 
         /// <summary>
         /// Continues the script with given code snippet.
@@ -161,8 +162,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The result of the last code snippet.</returns>
-        internal Task<object> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
-            CommonEvaluateAsync(globals, cancellationToken);
+        internal Task<object> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
+            => CommonEvaluateAsync(globals, cancellationToken);
 
         internal abstract Task<object> CommonEvaluateAsync(object globals, CancellationToken cancellationToken);
 
@@ -175,8 +176,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        public Task<ScriptState> RunAsync(object globals, CancellationToken cancellationToken) =>
-            CommonRunAsync(globals, null, cancellationToken);
+        public Task<ScriptState> RunAsync(object globals, CancellationToken cancellationToken)
+            => CommonRunAsync(globals, null, cancellationToken);
 
         /// <summary>
         /// Runs the script from the beginning.
@@ -191,8 +192,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        public Task<ScriptState> RunAsync(object globals = null, Func<Exception, bool> catchException = null, CancellationToken cancellationToken = default(CancellationToken)) =>
-            CommonRunAsync(globals, catchException, cancellationToken);
+        public Task<ScriptState> RunAsync(object globals = null, Func<Exception, bool> catchException = null, CancellationToken cancellationToken = default(CancellationToken))
+            => CommonRunAsync(globals, catchException, cancellationToken);
 
         internal abstract Task<ScriptState> CommonRunAsync(object globals, Func<Exception, bool> catchException, CancellationToken cancellationToken);
 
@@ -204,8 +205,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        public Task<ScriptState> RunFromAsync(ScriptState previousState, CancellationToken cancellationToken) =>
-            CommonRunFromAsync(previousState, null, cancellationToken);
+        public Task<ScriptState> RunFromAsync(ScriptState previousState, CancellationToken cancellationToken)
+            => CommonRunFromAsync(previousState, null, cancellationToken);
 
         /// <summary>
         /// Run the script from the specified state.
@@ -219,8 +220,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>A <see cref="ScriptState"/> that represents the state after running the script, including all declared variables and return value.</returns>
-        public Task<ScriptState> RunFromAsync(ScriptState previousState, Func<Exception, bool> catchException = null, CancellationToken cancellationToken = default(CancellationToken)) =>
-            CommonRunFromAsync(previousState, catchException, cancellationToken);
+        public Task<ScriptState> RunFromAsync(ScriptState previousState, Func<Exception, bool> catchException = null, CancellationToken cancellationToken = default(CancellationToken))
+            => CommonRunFromAsync(previousState, catchException, cancellationToken);
 
         internal abstract Task<ScriptState> CommonRunFromAsync(ScriptState previousState, Func<Exception, bool> catchException, CancellationToken cancellationToken);
 
@@ -228,8 +229,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Forces the script through the compilation step.
         /// If not called directly, the compilation step will occur on the first call to Run.
         /// </summary>
-        public ImmutableArray<Diagnostic> Compile(CancellationToken cancellationToken = default(CancellationToken)) =>
-            CommonCompile(cancellationToken);
+        public ImmutableArray<Diagnostic> Compile(CancellationToken cancellationToken = default(CancellationToken))
+            => CommonCompile(cancellationToken);
 
         internal abstract ImmutableArray<Diagnostic> CommonCompile(CancellationToken cancellationToken);
         internal abstract Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken);
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 if (Previous == null)
                 {
-                    var corLib = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
+                    var corLib = CreateFromAssembly(typeof(object).GetTypeInfo().Assembly, default, Options.CreateFromFileFunc);
                     references.Add(corLib);
 
                     if (GlobalsType != null)
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                         // the host has to add reference to the metadata where globals type is located explicitly.
                         if (MetadataReference.HasMetadata(globalsAssembly))
                         {
-                            references.Add(MetadataReference.CreateFromAssemblyInternal(globalsAssembly, HostAssemblyReferenceProperties));
+                            references.Add(CreateFromAssembly(globalsAssembly, HostAssemblyReferenceProperties, Options.CreateFromFileFunc));
                         }
                     }
 
@@ -308,6 +309,32 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             return GetCompilation().HasSubmissionResult();
         }
+
+        internal static MetadataImageReference CreateFromAssembly(
+            Assembly assembly,
+            MetadataReferenceProperties properties,
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> createFromFileFunc)
+        {
+            // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
+            // which might also lock the file until the reference is GC'd.
+            var filePath = MetadataReference.GetAssemblyFilePath(assembly, properties);
+            return createFromFileFunc(filePath, PEStreamOptions.Default, properties);
+        }
+
+        /// <summary>
+        /// <see cref="MetadataReference.CreateFromFile(string, PEStreamOptions, MetadataReferenceProperties, DocumentationProvider)"/>
+        /// </summary>
+        /// <remarks>
+        /// This API exists as the default for reading <see cref="MetadataReference"/> from files. It is handy 
+        /// to have this separate method when trying to track down unit tests that aren't going through the 
+        /// proper helpers in ScriptTestBase to hook loading from file. Can set a breakpoint here, debug the 
+        /// tests and fix any hits.
+        /// </remarks>
+        internal static MetadataImageReference CreateFromFile(
+            string filePath,
+            PEStreamOptions options,
+            MetadataReferenceProperties properties) =>
+            MetadataReference.CreateFromFile(filePath, options, properties);
     }
 
     public sealed class Script<T> : Script
@@ -348,14 +375,14 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal override Func<object[], Task> CommonGetExecutor(CancellationToken cancellationToken)
             => GetExecutor(cancellationToken);
 
-        internal override Task<object> CommonEvaluateAsync(object globals, CancellationToken cancellationToken) =>
-            EvaluateAsync(globals, cancellationToken).CastAsync<T, object>();
+        internal override Task<object> CommonEvaluateAsync(object globals, CancellationToken cancellationToken)
+            => EvaluateAsync(globals, cancellationToken).CastAsync<T, object>();
 
-        internal override Task<ScriptState> CommonRunAsync(object globals, Func<Exception, bool> catchException, CancellationToken cancellationToken) =>
-            RunAsync(globals, catchException, cancellationToken).CastAsync<ScriptState<T>, ScriptState>();
+        internal override Task<ScriptState> CommonRunAsync(object globals, Func<Exception, bool> catchException, CancellationToken cancellationToken)
+            => RunAsync(globals, catchException, cancellationToken).CastAsync<ScriptState<T>, ScriptState>();
 
-        internal override Task<ScriptState> CommonRunFromAsync(ScriptState previousState, Func<Exception, bool> catchException, CancellationToken cancellationToken) =>
-            RunFromAsync(previousState, catchException, cancellationToken).CastAsync<ScriptState<T>, ScriptState>();
+        internal override Task<ScriptState> CommonRunFromAsync(ScriptState previousState, Func<Exception, bool> catchException, CancellationToken cancellationToken)
+            => RunFromAsync(previousState, catchException, cancellationToken).CastAsync<ScriptState<T>, ScriptState>();
 
         /// <exception cref="CompilationErrorException">Compilation has errors.</exception>
         private Func<object[], Task<T>> GetExecutor(CancellationToken cancellationToken)
@@ -425,8 +452,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The result of the last code snippet.</returns>
-        internal new Task<T> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken)) =>
-            RunAsync(globals, cancellationToken).GetEvaluationResultAsync();
+        internal new Task<T> EvaluateAsync(object globals = null, CancellationToken cancellationToken = default(CancellationToken))
+            => RunAsync(globals, cancellationToken).GetEvaluationResultAsync();
 
         /// <summary>
         /// Runs the script from the beginning.

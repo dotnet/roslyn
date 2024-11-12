@@ -8,6 +8,8 @@ docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
 
 eng/ @dotnet/roslyn-infrastructure
+/eng/DotNetBuild.props @dotnet/product-construction
+/eng/SourceBuild* @dotnet/source-build
 scripts/ @dotnet/roslyn-infrastructure
 
 src/Analyzers/ @dotnet/roslyn-ide
@@ -18,22 +20,25 @@ src/Compilers/ @dotnet/roslyn-compiler
 # to happen.
 src/Compilers/Test/Core/Traits/Traits.cs
 src/EditorFeatures/ @dotnet/roslyn-ide
-
-# If we touch the WPF layer or Cocoa layers, the VS for Mac team also should take a look. We do this even if it's
-# only touching WPF since the change might also need to be made (and validated) on the Cocoa side of things.
-src/EditorFeatures/Core.Cocoa/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
-src/EditorFeatures/Core.Wpf/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
-src/EditorFeatures/CSharp.Wpf/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
-
 src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
+src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure
-src/Tools/ @dotnet/roslyn-infrastructure
+src/Tools/AnalyzerRunner @dotnet/roslyn-ide
+src/Tools/BuildActionTelemetryTable @dotnet/roslyn-infrastructure
+src/Tools/BuildBoss @dotnet/roslyn-infrastructure
+src/Tools/BuildValidator @dotnet/roslyn-infrastructure
+src/Tools/dotnet-format @dotnet/roslyn-infrastructure
+src/Tools/ExternalAccess @dotnet/roslyn-ide
+src/Tools/IdeBenchmarks @dotnet/roslyn-ide
+src/Tools/IdeCoreBenchmarks @dotnet/roslyn-ide
+src/Tools/ManifestGenerator @dotnet/roslyn-infrastructure
+src/Tools/PrepareTests @dotnet/roslyn-infrastructure
 src/Tools/Source/CompilerGeneratorTools/ @dotnet/roslyn-compiler
+src/Tools/Source/RunTests @dotnet/roslyn-infrastructure
 src/VisualStudio/ @dotnet/roslyn-ide
-src/VisualStudio/LiveShare @dotnet/roslyn-ide @daytonellwanger @srivatsn @aletsdelarosa
 src/Workspaces/ @dotnet/roslyn-ide
 
 src/Compilers/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
@@ -41,4 +46,6 @@ src/Workspaces/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Features/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 
-src/Tools/ExternalAccess/OmniSharp*/ @333fred @joerobich
+src/Tools/ExternalAccess/OmniSharp*/ @333fred @dibarbet
+src/Tools/ExternalAccess/RazorCompiler*/ @dotnet/roslyn-compiler
+src/Tools/ExternalAccess/CompilerDeveloperSDK/ @333fred

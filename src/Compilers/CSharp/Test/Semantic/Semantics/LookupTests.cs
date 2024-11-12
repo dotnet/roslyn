@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal List<string> GetLookupNames(string testSrc)
         {
             var parseOptions = TestOptions.Regular;
-            var compilation = CreateCompilationWithMscorlib45(testSrc, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithMscorlib461(testSrc, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
         {
             var tree = Parse(testSrc, options: isScript ? TestOptions.Script : TestOptions.Regular);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree }, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
             return model.LookupSymbols(position, container.GetPublicSymbol(), name).Where(s => !arity.HasValue || arity == s.GetSymbol().GetMemberArity()).ToList();
@@ -825,7 +825,6 @@ class MyClass
                 "System.Int32 lambdaParam"
             };
 
-
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
 
@@ -867,7 +866,6 @@ class MyClass
                 "System.Int32 forVar",
             };
 
-
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
 
@@ -907,7 +905,6 @@ class MyClass
                 "System.Int32 number",
             };
 
-
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
 
@@ -944,7 +941,6 @@ class MyClass
                 "System.Int32 j",
                 "System.Int32 k",
             };
-
 
             // Get the list of LookupNames at the location at the end of the /*pos*/ tag
             var actual_lookupNames = GetLookupNames(testSrc);
@@ -1403,7 +1399,7 @@ class Program
         [Fact, WorkItem(546523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546523")]
         public void TestLookupSymbolsNestedNamespacesNotImportedByUsings_02()
         {
-            var usings = new[] { "using X;" };
+            var usings = "using X;";
 
             var source =
 @"
@@ -1443,10 +1439,10 @@ class Program
 }
 ";
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode
-            var actual_lookupSymbols = GetLookupSymbols(usings.ToString() + source, isScript: false);
+            var actual_lookupSymbols = GetLookupSymbols(usings + source, isScript: false);
             TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
 
-            actual_lookupSymbols = GetLookupSymbols(source, isScript: true, globalUsings: usings);
+            actual_lookupSymbols = GetLookupSymbols(source, isScript: true, globalUsings: new[] { usings });
             TestLookupSymbolsNestedNamespaces(actual_lookupSymbols);
 
             Action<ModuleSymbol> validator = (module) =>

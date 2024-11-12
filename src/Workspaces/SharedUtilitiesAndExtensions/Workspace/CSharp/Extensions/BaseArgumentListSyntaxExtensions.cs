@@ -4,40 +4,23 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class BaseArgumentListSyntaxExtensions
 {
-    internal static class BaseArgumentListSyntaxExtensions
-    {
-        public static SyntaxToken GetOpenToken(this BaseArgumentListSyntax node)
+    public static SyntaxToken GetOpenToken(this BaseArgumentListSyntax node)
+        => node switch
         {
-            if (node != null)
-            {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.ArgumentList:
-                        return ((ArgumentListSyntax)node).OpenParenToken;
-                    case SyntaxKind.BracketedArgumentList:
-                        return ((BracketedArgumentListSyntax)node).OpenBracketToken;
-                }
-            }
+            ArgumentListSyntax list => list.OpenParenToken,
+            BracketedArgumentListSyntax bracketedList => bracketedList.OpenBracketToken,
+            _ => default,
+        };
 
-            return default;
-        }
-
-        public static SyntaxToken GetCloseToken(this BaseArgumentListSyntax node)
+    public static SyntaxToken GetCloseToken(this BaseArgumentListSyntax node)
+        => node switch
         {
-            if (node != null)
-            {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.ArgumentList:
-                        return ((ArgumentListSyntax)node).CloseParenToken;
-                    case SyntaxKind.BracketedArgumentList:
-                        return ((BracketedArgumentListSyntax)node).CloseBracketToken;
-                }
-            }
-
-            return default;
-        }
-    }
+            ArgumentListSyntax list => list.CloseParenToken,
+            BracketedArgumentListSyntax bracketedList => bracketedList.CloseBracketToken,
+            _ => default,
+        };
 }

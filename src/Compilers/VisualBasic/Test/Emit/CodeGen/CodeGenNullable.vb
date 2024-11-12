@@ -3351,7 +3351,6 @@ End Module
                 </compilation>, expectedOutput:="")
         End Sub
 
-
 #Region "Diagnostics"
 
         <Fact(), WorkItem(544942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544942"), WorkItem(599013, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/599013")>
@@ -3484,7 +3483,13 @@ End Module
                     </file>
                 </compilation>
 
-            CompileAndVerify(source).VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
+            Dim verifier = CompileAndVerify(source, verify:=Verification.FailsILVerify.WithILVerifyMessage("
+[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x16 }
+[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x2e }
+[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x46 }
+[Main]: Unrecognized arguments for delegate .ctor. { Offset = 0x5d }"))
+
+            verifier.VerifyDiagnostics().VerifyIL("Program.Main", <![CDATA[
 {
   // Code size      124 (0x7c)
   .maxstack  3
@@ -4515,7 +4520,6 @@ End Class
 
 #End Region
 
-
         <Fact()>
         Public Sub Regress14397()
             CompileAndVerify(
@@ -4595,7 +4599,6 @@ End Module
 }
                 ]]>)
         End Sub
-
 
         <Fact()>
         Public Sub DecimalConst()

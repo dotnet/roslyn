@@ -139,9 +139,7 @@
   <data name="Expected_string_or_char_literal" xml:space="preserve">
     <value>Expected string or char literal</value>
   </data>
-  <data name="_0_1_is_not_supported_in_this_version" xml:space="preserve">
-    <value>'{0}.{1}' is not supported in this version</value>
-    <comment>{0}: A type name
-{1}: A member name</comment>
+  <data name="EditorConfig_option_0_contains_unrecognized_value_1" xml:space="preserve">
+    <value>EditorConfig option '{0}' contains unrecognized value '{1}'</value>
   </data>
 </root>

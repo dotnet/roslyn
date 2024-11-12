@@ -2,10 +2,13 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.CSharp.Simplification
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
+    <Trait(Traits.Feature, Traits.Features.Simplification)>
     Public Class ParameterSimplificationTests
         Inherits AbstractSimplificationTests
 
@@ -17,19 +20,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                 Dim project = solution.AddProject(projId, "Project", "Project.dll", LanguageNames.CSharp) _
                     .GetProject(projId)
 
-                Dim document = project.AddMetadataReference(TestMetadata.Net451.mscorlib) _
+                Dim document = project.AddMetadataReference(NetFramework.mscorlib) _
                     .AddDocument("Document", SourceText.From(input))
 
                 Dim annotatedDocument = document.WithSyntaxRoot(
                     (Await document.GetSyntaxRootAsync()).WithAdditionalAnnotations(Simplifier.Annotation))
 
-                Dim simplifiedDocument = Await Simplifier.ReduceAsync(annotatedDocument)
+                Dim simplifiedDocument = Await Simplifier.ReduceAsync(annotatedDocument, CSharpSimplifierOptions.Default, CancellationToken.None)
 
                 Assert.Equal(expected, (Await simplifiedDocument.GetTextAsync()).ToString())
             End Using
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function CSharp_ParameterCanBeSimplified() As System.Threading.Tasks.Task
             Dim code = <![CDATA[
 using System;
@@ -55,7 +58,7 @@ class C
             Await TestDocumentSimplificationAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact>
         Public Async Function CSharp_ParameterCannotBeSimplified() As System.Threading.Tasks.Task
             Dim code = <![CDATA[
 using System;

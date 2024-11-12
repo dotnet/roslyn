@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Scripting.Test;
+using Microsoft.CodeAnalysis.Scripting.TestUtilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         public readonly int Goo;
     }
 
-    public class InteractiveSessionTests : TestBase
+    public class InteractiveSessionTests : CSharpScriptTestBase
     {
         internal static readonly Assembly HostAssembly = typeof(InteractiveSessionTests).GetTypeInfo().Assembly;
 
@@ -49,7 +50,7 @@ class InnerClass
    public string innerStr = null;
    public void Goo() { Goo(""test""); innerStr = outerStr; }       
 }
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 InnerClass iC = new InnerClass();
 iC.Goo();
 ").ContinueWith(@"
@@ -70,7 +71,7 @@ struct InnerStruct
    public string innerStr;
    public void Goo() { Goo(""test""); innerStr = outerStr; }            
 }
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 InnerStruct iS = new InnerStruct();     
 iS.Goo();
 ").ContinueWith(@"
@@ -88,7 +89,7 @@ interface I1 { int Goo();}
 class InnerClass : I1
 {
   public int Goo() { return 1; }
-}").ContinueWith(@"
+}", ScriptOptions).ContinueWith(@"
 I1 iC = new InnerClass();
 ").ContinueWith(@"
 iC.Goo()
@@ -104,7 +105,7 @@ iC.Goo()
 object field;
 object Property { get; set; }
 void Method() { }
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 class C 
 {
     public void Goo() 
@@ -132,7 +133,7 @@ class C
         {
             var script = CSharpScript.Create(@"
 var a = new { f = 1 };
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 var b = new { g = 1 };
 ").ContinueWith<Array>(@"
 var c = new { f = 1 };
@@ -152,7 +153,7 @@ new object[] { new[] { a, c }, new[] { b, d } }
         {
             var script = CSharpScript.Create(@"
 var a = new { f = 1 };
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 var b = new { g = 1 };
 ").ContinueWith(@"
 var c = new { f = 1 };
@@ -166,13 +167,12 @@ object.ReferenceEquals(a.GetType(), c.GetType()).ToString() + "" "" +
             Assert.Equal("True False True", script.EvaluateAsync().Result.ToString());
         }
 
-        [WorkItem(543863, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543863")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543863")]
         public void AnonymousTypes_Redefinition()
         {
             var script = CSharpScript.Create(@"
 var x = new { Goo = ""goo"" };
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 var x = new { Goo = ""goo"" };
 ").ContinueWith(@"
 x.Goo
@@ -187,7 +187,7 @@ x.Goo
         {
             var script = CSharpScript.Create(@"
 var a = new { };
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 var b = new { };
 ").ContinueWith<Array>(@"
 var c = new { };
@@ -208,7 +208,7 @@ new object[] { new[] { a, c }, new[] { b, d } }
         [Fact]
         public void Dynamic_Expando()
         {
-            var options = ScriptOptions.Default.
+            var options = ScriptOptions.
                 AddReferences(
                     typeof(Microsoft.CSharp.RuntimeBinder.RuntimeBinderException).GetTypeInfo().Assembly,
                     typeof(System.Dynamic.ExpandoObject).GetTypeInfo().Assembly).
@@ -239,7 +239,7 @@ public enum Enum1
 Enum1 E = Enum1.C;
 
 E
-");
+", ScriptOptions);
             var e = script.EvaluateAsync().Result;
 
             Assert.True(e.GetType().GetTypeInfo().IsEnum, "Expected enum");
@@ -272,7 +272,7 @@ class C { }
 
 typeof(C)
 ";
-            Type c = CSharpScript.EvaluateAsync<Type>(source).Result;
+            Type c = CSharpScript.EvaluateAsync<Type>(source, ScriptOptions).Result;
             var m = c.DeclaringType.GetTypeInfo().GetDeclaredMethod("M");
             Assert.Equal(MethodImplAttributes.PreserveSig, m.MethodImplementationFlags);
 
@@ -304,7 +304,7 @@ private static int bar() { return 10; }
 private static int f = 100;
 
 goo() + bar() + f
-");
+", ScriptOptions);
             Assert.Equal(111, script.EvaluateAsync().Result);
 
             script = script.ContinueWith<int>(@"
@@ -348,7 +348,7 @@ private class C
         internal static int goo() { return 1; } 
     }
 }
-");
+", ScriptOptions);
             Assert.Equal(1, script.ContinueWith<int>("C.D.goo()").EvaluateAsync().Result);
             Assert.Equal(1, script.ContinueWith<int>("C.F.goo()").EvaluateAsync().Result);
             Assert.Equal(1, script.ContinueWith<int>("C.G.goo()").EvaluateAsync().Result);
@@ -367,7 +367,7 @@ public int j = 2;
 protected int k = 2;
 internal protected int l = 2;
 internal int pi = 2;
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 i = i + i;
 j = j + j;
 k = k + k;
@@ -383,15 +383,14 @@ pi = i + j + k + l;
             Assert.Equal(16, script.ContinueWith<int>("pi").EvaluateAsync().Result);
         }
 
-        [WorkItem(100639, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/100639")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/100639")]
         public void ExternDestructor()
         {
             var script = CSharpScript.Create(
 @"class C
 {
     extern ~C();
-}");
+}", ScriptOptions);
             Assert.Null(script.EvaluateAsync().Result);
         }
 
@@ -402,7 +401,7 @@ pi = i + j + k + l;
         [Fact]
         public void CompilationChain_BasicFields()
         {
-            var script = CSharpScript.Create("var x = 1;").ContinueWith("x");
+            var script = CSharpScript.Create("var x = 1;", ScriptOptions).ContinueWith("x");
             Assert.Equal(1, script.EvaluateAsync().Result);
         }
 
@@ -410,7 +409,7 @@ pi = i + j + k + l;
         public void CompilationChain_GlobalNamespaceAndUsings()
         {
             var result =
-                CSharpScript.Create("using InteractiveFixtures.C;", ScriptOptions.Default.AddReferences(HostAssembly)).
+                CSharpScript.Create("using InteractiveFixtures.C;", ScriptOptions.AddReferences(HostAssembly)).
                 ContinueWith("using InteractiveFixtures.C;").
                 ContinueWith("System.Environment.ProcessorCount").
                 EvaluateAsync().Result;
@@ -421,7 +420,7 @@ pi = i + j + k + l;
         [Fact]
         public void CompilationChain_CurrentSubmissionUsings()
         {
-            var s0 = CSharpScript.RunAsync("", ScriptOptions.Default.AddReferences(HostAssembly));
+            var s0 = CSharpScript.RunAsync("", ScriptOptions.AddReferences(HostAssembly));
 
             var state = s0.
                 ContinueWith("class X { public int goo() { return 1; } }").
@@ -448,7 +447,7 @@ new X().goo()
             var script = CSharpScript.Create(@"
 using System;
 using System;
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 using System;
 using System;
 ").ContinueWith(@"
@@ -461,7 +460,7 @@ Environment.ProcessorCount
         [Fact]
         public void CompilationChain_GlobalImports()
         {
-            var options = ScriptOptions.Default.AddImports("System");
+            var options = ScriptOptions.AddImports("System");
 
             var state = CSharpScript.RunAsync("Environment.ProcessorCount", options);
             Assert.Equal(Environment.ProcessorCount, state.Result.ReturnValue);
@@ -474,7 +473,7 @@ Environment.ProcessorCount
         public void CompilationChain_Accessibility()
         {
             // Submissions have internal and protected access to one another.
-            var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
+            var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1", ScriptOptions);
             var compilation1 = state1.Result.Script.GetCompilation();
             compilation1.VerifyDiagnostics(
                 // (1,39): warning CS0628: 'X': new protected member declared in sealed type
@@ -516,7 +515,7 @@ Environment.ProcessorCount
         [Fact]
         public void CompilationChain_SubmissionSlotResize()
         {
-            var state = CSharpScript.RunAsync("");
+            var state = CSharpScript.RunAsync("", ScriptOptions);
 
             for (int i = 0; i < 17; i++)
             {
@@ -530,7 +529,7 @@ Environment.ProcessorCount
         public void CompilationChain_UsingNotHidingPreviousSubmission()
         {
             int result1 =
-                CSharpScript.Create("using System;").
+                CSharpScript.Create("using System;", ScriptOptions).
                 ContinueWith("int Environment = 1;").
                 ContinueWith<int>("Environment").
                 EvaluateAsync().Result;
@@ -538,7 +537,7 @@ Environment.ProcessorCount
             Assert.Equal(1, result1);
 
             int result2 =
-                CSharpScript.Create("int Environment = 1;").
+                CSharpScript.Create("int Environment = 1;", ScriptOptions).
                 ContinueWith("using System;").
                 ContinueWith<int>("Environment").
                 EvaluateAsync().Result;
@@ -550,7 +549,7 @@ Environment.ProcessorCount
         public void CompilationChain_DefinitionHidesGlobal()
         {
             var result =
-                CSharpScript.Create("int System = 1;").
+                CSharpScript.Create("int System = 1;", ScriptOptions).
                 ContinueWith("System").
                 EvaluateAsync().Result;
 
@@ -570,7 +569,7 @@ Environment.ProcessorCount
         public void CompilationChain_HostObjectMembersHidesGlobal()
         {
             var result =
-                CSharpScript.RunAsync("System", globals: new C1()).
+                CSharpScript.RunAsync("System", options: ScriptOptions, globals: new C1()).
                 Result.ReturnValue;
 
             Assert.Equal(1, result);
@@ -580,7 +579,7 @@ Environment.ProcessorCount
         public void CompilationChain_UsingNotHidingHostObjectMembers()
         {
             var result =
-                CSharpScript.RunAsync("using System;", globals: new C1()).
+                CSharpScript.RunAsync("using System;", options: ScriptOptions, globals: new C1()).
                 ContinueWith("Environment").
                 Result.ReturnValue;
 
@@ -591,7 +590,7 @@ Environment.ProcessorCount
         public void CompilationChain_DefinitionHidesHostObjectMembers()
         {
             var result =
-                CSharpScript.RunAsync("int System = 2;", globals: new C1()).
+                CSharpScript.RunAsync("int System = 2;", options: ScriptOptions, globals: new C1()).
                 ContinueWith("System").
                 Result.ReturnValue;
 
@@ -601,7 +600,7 @@ Environment.ProcessorCount
         [Fact]
         public void Submissions_ExecutionOrder1()
         {
-            var s0 = CSharpScript.Create("int x = 1;");
+            var s0 = CSharpScript.Create("int x = 1;", ScriptOptions);
             var s1 = s0.ContinueWith("int y = 2;");
             var s2 = s1.ContinueWith<int>("x + y");
 
@@ -620,7 +619,7 @@ Environment.ProcessorCount
         [Fact]
         public async Task Submissions_ExecutionOrder2()
         {
-            var s0 = await CSharpScript.RunAsync("int x = 1;");
+            var s0 = await CSharpScript.RunAsync("int x = 1;", ScriptOptions);
 
             Assert.Throws<CompilationErrorException>(() => s0.ContinueWithAsync("invalid$syntax").Result);
 
@@ -647,7 +646,7 @@ Environment.ProcessorCount
         [Fact]
         public async Task ObjectOverrides1()
         {
-            var state0 = await CSharpScript.RunAsync("", globals: new HostObjectWithOverrides());
+            var state0 = await CSharpScript.RunAsync("", options: ScriptOptions, globals: new HostObjectWithOverrides());
 
             var state1 = await state0.ContinueWithAsync<bool>("Equals(null)");
             Assert.True(state1.ReturnValue);
@@ -662,7 +661,7 @@ Environment.ProcessorCount
         [Fact]
         public async Task ObjectOverrides2()
         {
-            var state0 = await CSharpScript.RunAsync("", globals: new object());
+            var state0 = await CSharpScript.RunAsync("", options: ScriptOptions, globals: new object());
             var state1 = await state0.ContinueWithAsync<bool>(@"
 object x = 1;
 object y = x;
@@ -680,7 +679,7 @@ ReferenceEquals(x, y)");
         [Fact]
         public void ObjectOverrides3()
         {
-            var state0 = CSharpScript.RunAsync("");
+            var state0 = CSharpScript.RunAsync("", ScriptOptions);
 
             var src1 = @"
 Equals(null);
@@ -711,7 +710,7 @@ public override string ToString() { return null; }
 
         #region Generics
 
-        [Fact, WorkItem(201759, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/201759")]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/201759")]
         public void CompilationChain_GenericTypes()
         {
             var script = CSharpScript.Create(@"
@@ -719,7 +718,7 @@ class InnerClass<T>
 {
     public int method(int value) { return value + 1; }            
     public int field = 2;
-}").ContinueWith(@"
+}", ScriptOptions).ContinueWith(@"
 InnerClass<int> iC = new InnerClass<int>();
 ").ContinueWith(@"
 iC.method(iC.field)
@@ -728,18 +727,16 @@ iC.method(iC.field)
             Assert.Equal(3, script.EvaluateAsync().Result);
         }
 
-        [WorkItem(529243, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529243")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529243")]
         public void RecursiveBaseType()
         {
             CSharpScript.EvaluateAsync(@"
 class A<T> { }
 class B<T> : A<B<B<T>>> { }
-");
+", ScriptOptions);
         }
 
-        [WorkItem(5378, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(5378, "DevDiv_Projects/Roslyn")]
         public void CompilationChain_GenericMethods()
         {
             var s0 = CSharpScript.Create(@"
@@ -749,7 +746,7 @@ public static T bar<T>(T i)
 {
    return i;
 }
-");
+", ScriptOptions);
 
             Assert.Equal(1, s0.ContinueWith(@"goo<int, int>(1)").EvaluateAsync().Result);
             Assert.Equal(5, s0.ContinueWith(@"bar(5)").EvaluateAsync().Result);
@@ -772,7 +769,7 @@ public class C
    public int gg<T>() { return 20; }
    public virtual int gh<T>() { return 200; }
 }
-");
+", ScriptOptions);
             state = state.ContinueWith(@"
 new System.Func<int>(C.f)() +
 new System.Func<int>(new C().g)() +
@@ -805,7 +802,7 @@ public class C<S>
    public int gg<T>() { return 20; }
    public virtual int gh<T>() { return 200; }
 }
-");
+", ScriptOptions);
             state = state.ContinueWith(@"
 new System.Func<int>(C<byte>.f)() +
 new System.Func<int>(new C<byte>().g)() +
@@ -843,7 +840,7 @@ else
 }
 
 x
-").Result;
+", ScriptOptions).Result;
 
             Assert.Equal(5, result);
         }
@@ -851,18 +848,17 @@ x
         [Fact]
         public void ExprStmtParenthesesUsedToOverrideDefaultEval()
         {
-            Assert.Equal(18, CSharpScript.EvaluateAsync<int>("(4 + 5) * 2").Result);
-            Assert.Equal(1, CSharpScript.EvaluateAsync<long>("6 / (2 * 3)").Result);
+            Assert.Equal(18, CSharpScript.EvaluateAsync<int>("(4 + 5) * 2", ScriptOptions).Result);
+            Assert.Equal(1, CSharpScript.EvaluateAsync<long>("6 / (2 * 3)", ScriptOptions).Result);
         }
 
-        [WorkItem(5397, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(5397, "DevDiv_Projects/Roslyn")]
         public void TopLevelLambda()
         {
             var s = CSharpScript.RunAsync(@"
 using System;
 delegate void TestDelegate(string s);
-");
+", ScriptOptions);
 
             s = s.ContinueWith(@"
 TestDelegate testDelB = delegate (string s) { Console.WriteLine(s); };
@@ -883,7 +879,7 @@ System.Func<int, int> f = (arg) =>
 };
 
 f
-").Result;
+", ScriptOptions).Result;
             Assert.Equal(3, f(2));
         }
 
@@ -900,29 +896,28 @@ List<string> result = new List<string>();
 string s = ""hello"";
 Enumerable.ToList(Enumerable.Range(1, 2)).ForEach(x => result.Add(s));
 result
-").Result;
+", ScriptOptions).Result;
             AssertEx.Equal(new[] { "hello", "hello" }, result);
         }
 
         [Fact]
         public void UseDelegateMixStaticAndDynamic()
         {
-            var f = CSharpScript.RunAsync("using System;").
+            var f = CSharpScript.RunAsync("using System;", ScriptOptions).
                 ContinueWith("int Sqr(int x) {return x*x;}").
                 ContinueWith<Func<int, int>>("new Func<int,int>(Sqr)").Result.ReturnValue;
 
             Assert.Equal(4, f(2));
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Arrays()
         {
             var s = CSharpScript.RunAsync(@"
 int[] arr_1 = { 1, 2, 3 };
 int[] arr_2 = new int[] { 1, 2, 3 };
 int[] arr_3 = new int[5];
-").ContinueWith(@"
+", ScriptOptions).ContinueWith(@"
 arr_2[0] = 5;
 ");
 
@@ -948,7 +943,7 @@ int z = 4 + f;
 result.Add(z);
 result.Add(a * z);
 result
-").Result;
+", ScriptOptions).Result;
             Assert.Equal(3, result.Count);
             Assert.Equal(3, result[0]);
             Assert.Equal(6, result[1]);
@@ -974,7 +969,7 @@ int field = 2;
 result.Add(constant);
 result.Add(field);
 result
-").Result;
+", ScriptOptions).Result;
             Assert.Equal(4, result.Count);
             Assert.Equal(1, result[0]);
             Assert.Equal(2, result[1]);
@@ -987,7 +982,7 @@ result
         {
             var result = CSharpScript.RunAsync(@"
 using System.Collections.Generic;
-static List<int> result = new List<int>();").
+static List<int> result = new List<int>();", ScriptOptions).
             ContinueWith("int x = 1;").
             ContinueWith("System.Func<int> f = () => x++;").
             ContinueWith("result.Add(f());").
@@ -1002,7 +997,7 @@ static List<int> result = new List<int>();").
         [Fact]
         public void ExtensionMethods()
         {
-            var options = ScriptOptions.Default.AddReferences(
+            var options = ScriptOptions.AddReferences(
                 typeof(Enumerable).GetTypeInfo().Assembly);
 
             var result = CSharpScript.EvaluateAsync<int>(@"
@@ -1025,7 +1020,7 @@ string goo(int a) { return null; }
 int goo(string a) { return 0; }
 
 new object[] { x, y, z }
-").Result;
+", ScriptOptions).Result;
             AssertEx.Equal(new object[] { 1, 1, null }, result);
         }
 
@@ -1033,26 +1028,25 @@ new object[] { x, y, z }
         /// Name of PrivateImplementationDetails type needs to be unique across submissions.
         /// The compiler should suffix it with a MVID of the current submission module so we should be fine.
         /// </summary>
-        [WorkItem(949559, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949559")]
-        [WorkItem(540237, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540237")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/2721")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/949559")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540237")]
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [WorkItem(2721, "https://github.com/dotnet/roslyn/issues/2721")]
-        [Fact]
         public async Task PrivateImplementationDetailsType()
         {
-            var result1 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4 }");
+            var result1 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4 }", ScriptOptions);
             AssertEx.Equal(new[] { 1, 2, 3, 4 }, result1);
 
-            var result2 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4,5  }");
+            var result2 = await CSharpScript.EvaluateAsync<int[]>("new int[] { 1,2,3,4,5  }", ScriptOptions);
             AssertEx.Equal(new[] { 1, 2, 3, 4, 5 }, result2);
 
-            var s1 = await CSharpScript.RunAsync<int[]>("new int[] { 1,2,3,4,5,6  }");
+            var s1 = await CSharpScript.RunAsync<int[]>("new int[] { 1,2,3,4,5,6  }", ScriptOptions);
             AssertEx.Equal(new[] { 1, 2, 3, 4, 5, 6 }, s1.ReturnValue);
 
-            var s2 = await s1.ContinueWithAsync<int[]>("new int[] { 1,2,3,4,5,6,7  }");
+            var s2 = await s1.ContinueWithAsync<int[]>("new int[] { 1,2,3,4,5,6,7  }", ScriptOptions);
             AssertEx.Equal(new[] { 1, 2, 3, 4, 5, 6, 7 }, s2.ReturnValue);
 
-            var s3 = await s2.ContinueWithAsync<int[]>("new int[] { 1,2,3,4,5,6,7,8  }");
+            var s3 = await s2.ContinueWithAsync<int[]>("new int[] { 1,2,3,4,5,6,7,8  }", ScriptOptions);
             AssertEx.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8 }, s3.ReturnValue);
         }
 
@@ -1060,7 +1054,7 @@ new object[] { x, y, z }
         public void NoAwait()
         {
             // No await. The return value is Task<int> rather than int.
-            var result = CSharpScript.EvaluateAsync("System.Threading.Tasks.Task.FromResult(1)").Result;
+            var result = CSharpScript.EvaluateAsync("System.Threading.Tasks.Task.FromResult(1)", ScriptOptions).Result;
             Assert.Equal(1, ((Task<int>)result).Result);
         }
 
@@ -1070,7 +1064,7 @@ new object[] { x, y, z }
         [Fact]
         public void Await()
         {
-            Assert.Equal(2, CSharpScript.EvaluateAsync("await System.Threading.Tasks.Task.FromResult(2)").Result);
+            Assert.Equal(2, CSharpScript.EvaluateAsync("await System.Threading.Tasks.Task.FromResult(2)", ScriptOptions).Result);
         }
 
         /// <summary>
@@ -1079,13 +1073,13 @@ new object[] { x, y, z }
         [Fact]
         public void AwaitSubExpression()
         {
-            Assert.Equal(3, CSharpScript.EvaluateAsync<int>("0 + await System.Threading.Tasks.Task.FromResult(3)").Result);
+            Assert.Equal(3, CSharpScript.EvaluateAsync<int>("0 + await System.Threading.Tasks.Task.FromResult(3)", ScriptOptions).Result);
         }
 
         [Fact]
         public void AwaitVoid()
         {
-            var task = CSharpScript.EvaluateAsync<object>("await System.Threading.Tasks.Task.Run(() => { })");
+            var task = CSharpScript.EvaluateAsync<object>("await System.Threading.Tasks.Task.Run(() => { })", ScriptOptions);
             Assert.Null(task.Result);
             Assert.Equal(TaskStatus.RanToCompletion, task.Status);
         }
@@ -1106,7 +1100,7 @@ static T F<T>(Func<Task<T>> f)
 static T G<T>(T t, Func<T, Task<T>> f)
 {
     return f(t).Result;
-}");
+}", ScriptOptions);
 
             var s1 = await s0.ContinueWithAsync("F(async () => await Task.FromResult(4))");
             Assert.Equal(4, s1.ReturnValue);
@@ -1118,7 +1112,7 @@ static T G<T>(T t, Func<T, Task<T>> f)
         [Fact]
         public void AwaitChain1()
         {
-            var options = ScriptOptions.Default.
+            var options = ScriptOptions.
                 AddReferences(typeof(Task).GetTypeInfo().Assembly).
                 AddImports("System.Threading.Tasks");
 
@@ -1136,7 +1130,7 @@ static T G<T>(T t, Func<T, Task<T>> f)
         [Fact]
         public void AwaitChain2()
         {
-            var options = ScriptOptions.Default.
+            var options = ScriptOptions.
                 AddReferences(typeof(Task).GetTypeInfo().Assembly).
                 AddImports("System.Threading.Tasks");
 
@@ -1152,18 +1146,18 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(3, state.ReturnValue);
         }
 
-        [Fact, WorkItem(39548, "https://github.com/dotnet/roslyn/issues/39548")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39548")]
         public async Task PatternVariableDeclaration()
         {
-            var state = await CSharpScript.RunAsync("var x = (false, 4);");
+            var state = await CSharpScript.RunAsync("var x = (false, 4);", ScriptOptions);
             state = await state.ContinueWithAsync("x is (false, var y)");
             Assert.Equal(true, state.ReturnValue);
         }
 
-        [Fact, WorkItem(42368, "https://github.com/dotnet/roslyn/issues/42368")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
         public async Task CSharp9PatternForms()
         {
-            var options = ScriptOptions.Default.WithLanguageVersion(MessageID.IDS_FeatureAndPattern.RequiredVersion());
+            var options = ScriptOptions.WithLanguageVersion(MessageID.IDS_FeatureAndPattern.RequiredVersion());
             var state = await CSharpScript.RunAsync("object x = 1;", options: options);
             state = await state.ContinueWithAsync("x is long or int", options: options);
             Assert.Equal(true, state.ReturnValue);
@@ -1173,6 +1167,30 @@ static T G<T>(T t, Func<T, Task<T>> f)
             Assert.Equal(false, state.ReturnValue);
             state = await state.ContinueWithAsync("x is not > 100", options: options);
             Assert.Equal(true, state.ReturnValue);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63144")]
+        public void InteractiveSession_ImportScopes()
+        {
+            var script = CSharpScript.Create(@"
+1 + 1", ScriptOptions.WithImports("System"));
+
+            var compilation = script.GetCompilation();
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var scopes = semanticModel.GetImportScopes(0);
+            Assert.Single(scopes);
+
+            var scope = scopes.Single();
+            Assert.Empty(scope.Aliases);
+            Assert.Empty(scope.ExternAliases);
+            Assert.Empty(scope.XmlNamespaces);
+
+            Assert.Single(scope.Imports);
+            var import = scope.Imports.Single();
+
+            Assert.True(import.NamespaceOrType is INamespaceSymbol { Name: "System", ContainingNamespace.IsGlobalNamespace: true });
+            Assert.Null(import.DeclaringSyntaxReference);
         }
 
         #endregion
@@ -1198,7 +1216,7 @@ public interface I
 public class C : I
 {
     public int F() => 1;
-}", new MetadataReference[] { NetStandard13.SystemRuntime, lib1.ToMetadataReference() });
+}", new MetadataReference[] { NetStandard13.References.SystemRuntime, lib1.ToMetadataReference() });
 
             lib2.Emit(file2.Path);
 
@@ -1206,11 +1224,11 @@ public class C : I
 #r ""{file1.Path}""
 #r ""{file2.Path}""
 new C()
-").Result;
+", ScriptOptions).Result;
             Assert.NotNull(result);
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseParent()
         {
             var file = Temp.CreateFile();
@@ -1223,12 +1241,12 @@ new C()
 
             var script = CSharpScript.Create(
                 $@"#r ""{Path.Combine("..", libFileName)}""",
-                ScriptOptions.Default.WithFilePath(scriptPath));
+                ScriptOptions.WithFilePath(scriptPath));
 
             script.GetCompilation().VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsOnly)), WorkItem(15860, "https://github.com/dotnet/roslyn/issues/15860")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         public void ReferenceDirective_RelativeToBaseRoot()
         {
             var file = Temp.CreateFile();
@@ -1236,14 +1254,14 @@ new C()
             lib.Emit(file.Path);
 
             string root = Path.GetPathRoot(file.Path);
-            string unrooted = file.Path.Substring(root.Length);
+            string unrooted = file.Path[root.Length..];
 
             string dir = Path.Combine(root, "goo", "bar", "baz");
             string scriptPath = Path.Combine(dir, "a.csx");
 
             var script = CSharpScript.Create(
                 $@"#r ""\{unrooted}""",
-                ScriptOptions.Default.WithFilePath(scriptPath));
+                ScriptOptions.WithFilePath(scriptPath));
 
             script.GetCompilation().VerifyDiagnostics();
         }
@@ -1260,7 +1278,7 @@ new C()
 
             var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
+                new MetadataReference[] { NetStandard13.References.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -1274,7 +1292,7 @@ new C()
             dir.CreateFile(libName + ".exe").WriteAllBytes(exeImage);
             dir.CreateFile(libName + ".winmd").WriteAllBytes(winmdImage);
 
-            var r2 = CSharpScript.Create($@"#r ""{fileMain.Path}""").ContinueWith($@"M.X.F").RunAsync().Result.ReturnValue;
+            var r2 = CSharpScript.Create($@"#r ""{fileMain.Path}""", ScriptOptions).ContinueWith($@"M.X.F").RunAsync().Result.ReturnValue;
             Assert.Equal("exe", r2);
         }
 
@@ -1290,7 +1308,7 @@ new C()
 
             var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
+                new MetadataReference[] { NetStandard13.References.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -1305,7 +1323,7 @@ new C()
             dir.CreateFile(libName + ".dll").WriteAllBytes(dllImage);
             dir.CreateFile(libName + ".winmd").WriteAllBytes(winmdImage);
 
-            var r2 = CSharpScript.Create($@"#r ""{fileMain.Path}""").ContinueWith($@"M.X.F").RunAsync().Result.ReturnValue;
+            var r2 = CSharpScript.Create($@"#r ""{fileMain.Path}""", ScriptOptions).ContinueWith($@"M.X.F").RunAsync().Result.ReturnValue;
             Assert.Equal("dll", r2);
         }
 
@@ -1321,7 +1339,7 @@ public class E { }
             var libRef = CreateCSharpCompilationWithCorlib(source, "lib").EmitToImageReference();
 
             var script = CSharpScript.Create(@"new C()",
-                ScriptOptions.Default.WithReferences(libRef.WithAliases(new[] { "Hidden" })).WithImports("Hidden::N"));
+                ScriptOptions.WithReferences(libRef.WithAliases(new[] { "Hidden" })).WithImports("Hidden::N"));
 
             script.Compile().Verify();
         }
@@ -1338,15 +1356,14 @@ using D = System.Collections.Generic.Dictionary<string, int>;
 D d = new D();
 
 d
-").Result;
+", ScriptOptions).Result;
             Assert.True(result is Dictionary<string, int>, "Expected Dictionary<string, int>");
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Usings1()
         {
-            var options = ScriptOptions.Default.
+            var options = ScriptOptions.
                 AddImports("System", "System.Linq").
                 AddReferences(typeof(Enumerable).GetTypeInfo().Assembly);
 
@@ -1354,11 +1371,10 @@ d
             Assert.Equal(1, result);
         }
 
-        [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [Fact, WorkItem(9229, "DevDiv_Projects/Roslyn")]
         public void Usings2()
         {
-            var options = ScriptOptions.Default.
+            var options = ScriptOptions.
                  AddImports("System", "System.Linq").
                  AddReferences(typeof(Enumerable).GetTypeInfo().Assembly);
 
@@ -1373,7 +1389,7 @@ d
         public void AddNamespaces_Errors()
         {
             // no immediate error, error is reported if the namespace can't be found when compiling:
-            var options = ScriptOptions.Default.AddImports("?1", "?2");
+            var options = ScriptOptions.AddImports("?1", "?2");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS0246: The type or namespace name '?1' could not be found (are you missing a using directive or an assembly reference?)
@@ -1381,19 +1397,19 @@ d
                 // error CS0246: The type or namespace name '?2' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("?2"));
 
-            options = ScriptOptions.Default.AddImports("");
+            options = ScriptOptions.AddImports("");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: ''.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ""));
 
-            options = ScriptOptions.Default.AddImports(".abc");
+            options = ScriptOptions.AddImports(".abc");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: '.abc'.
                 Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("Usings", ".abc"));
 
-            options = ScriptOptions.Default.AddImports("a\0bc");
+            options = ScriptOptions.AddImports("a\0bc");
 
             ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("1", options),
                 // error CS7088: Invalid 'Usings' value: '.abc'.
@@ -1411,13 +1427,13 @@ d
         [Fact]
         public void Submission_HostConversions()
         {
-            Assert.Equal(2, CSharpScript.EvaluateAsync<int>("1+1").Result);
+            Assert.Equal(2, CSharpScript.EvaluateAsync<int>("1+1", ScriptOptions).Result);
 
-            Assert.Null(CSharpScript.EvaluateAsync<string>("null").Result);
+            Assert.Null(CSharpScript.EvaluateAsync<string>("null", ScriptOptions).Result);
 
             try
             {
-                CSharpScript.RunAsync<C<int>>("null");
+                CSharpScript.RunAsync<C<int>>("null", ScriptOptions);
                 Assert.True(false, "Expected an exception");
             }
             catch (CompilationErrorException e)
@@ -1427,7 +1443,7 @@ d
                 // Can't use Verify() because the version number of the test dll is different in the build lab.
             }
 
-            var options = ScriptOptions.Default.AddReferences(HostAssembly);
+            var options = ScriptOptions.AddReferences(HostAssembly);
 
             var cint = CSharpScript.EvaluateAsync<C<int>>("null", options).Result;
             Assert.Null(cint);
@@ -1436,7 +1452,7 @@ d
 
             try
             {
-                CSharpScript.RunAsync<int>("null");
+                CSharpScript.RunAsync<int>("null", ScriptOptions);
                 Assert.True(false, "Expected an exception");
             }
             catch (CompilationErrorException e)
@@ -1449,7 +1465,7 @@ d
 
             try
             {
-                CSharpScript.RunAsync<string>("1+1");
+                CSharpScript.RunAsync<string>("1+1", ScriptOptions);
                 Assert.True(false, "Expected an exception");
             }
             catch (CompilationErrorException e)
@@ -1468,7 +1484,7 @@ d
 using System;
 using System.Collections.Generic;
 new List<ArgumentException>()
-").Result;
+", ScriptOptions).Result;
 
             Assert.Null(value.FirstOrDefault());
         }
@@ -1501,7 +1517,9 @@ new List<ArgumentException>()
 
         public class M<T>
         {
+#pragma warning disable IDE0051 // Remove unused private members
             private int F() => 3;
+#pragma warning restore IDE0051 // Remove unused private members
             public T G() => default(T);
         }
 
@@ -1510,7 +1528,7 @@ new List<ArgumentException>()
         {
             var c = new C();
 
-            var s0 = CSharpScript.RunAsync<int>("x + Y + Z()", globals: c);
+            var s0 = CSharpScript.RunAsync<int>("x + Y + Z()", options: ScriptOptions, globals: c);
             Assert.Equal(6, s0.Result.ReturnValue);
 
             var s1 = s0.ContinueWith<int>("x");
@@ -1526,7 +1544,7 @@ new List<ArgumentException>()
         public void HostObjectBinding_PublicGenericClassMembers()
         {
             var m = new M<string>();
-            var result = CSharpScript.EvaluateAsync<string>("G()", globals: m);
+            var result = CSharpScript.EvaluateAsync<string>("G()", options: ScriptOptions, globals: m);
             Assert.Null(result.Result);
         }
 
@@ -1535,7 +1553,7 @@ new List<ArgumentException>()
         {
             var c = new C();
 
-            var s0 = await CSharpScript.RunAsync<int>("Z()", globals: c, globalsType: typeof(I));
+            var s0 = await CSharpScript.RunAsync<int>("Z()", options: ScriptOptions, globals: c, globalsType: typeof(I));
             Assert.Equal(3, s0.ReturnValue);
 
             ScriptingTestHelpers.AssertCompilationError(s0, @"x + Y",
@@ -1552,7 +1570,7 @@ new List<ArgumentException>()
         {
             var c = new PrivateClass();
 
-            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", globals: c),
+            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", options: ScriptOptions, globals: c),
                 // (1,1): error CS0122: '<Fully Qualified Name of PrivateClass>.Z()' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "Z").WithArguments(typeof(PrivateClass).FullName.Replace("+", ".") + ".Z()"));
         }
@@ -1562,7 +1580,7 @@ new List<ArgumentException>()
         {
             object c = new M<int>();
 
-            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", globals: c),
+            ScriptingTestHelpers.AssertCompilationError(() => CSharpScript.EvaluateAsync("Z()", options: ScriptOptions, globals: c),
                 // (1,1): error CS0103: The name 'z' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Z").WithArguments("Z"));
         }
@@ -1571,14 +1589,14 @@ new List<ArgumentException>()
         public void HostObjectBinding_PrivateClassImplementingPublicInterface()
         {
             var c = new PrivateClass();
-            var result = CSharpScript.EvaluateAsync<int>("Z()", globals: c, globalsType: typeof(I));
+            var result = CSharpScript.EvaluateAsync<int>("Z()", options: ScriptOptions, globals: c, globalsType: typeof(I));
             Assert.Equal(3, result.Result);
         }
 
         [Fact]
         public void HostObjectBinding_StaticMembers()
         {
-            var s0 = CSharpScript.RunAsync("static int goo = StaticField;", globals: new C());
+            var s0 = CSharpScript.RunAsync("static int goo = StaticField;", options: ScriptOptions, globals: new C());
             var s1 = s0.ContinueWith("static int bar { get { return goo; } }");
             var s2 = s1.ContinueWith("class C { public static int baz() { return bar; } }");
             var s3 = s2.ContinueWith("C.baz()");
@@ -1597,7 +1615,7 @@ new List<ArgumentException>()
         [Fact]
         public void HostObjectBinding_Overloads()
         {
-            var s0 = CSharpScript.RunAsync("int goo(double a) { return 2; }", globals: new D());
+            var s0 = CSharpScript.RunAsync("int goo(double a) { return 2; }", options: ScriptOptions, globals: new D());
             var s1 = s0.ContinueWith("goo(1)");
             Assert.Equal(2, s1.Result.ReturnValue);
 
@@ -1609,11 +1627,11 @@ new List<ArgumentException>()
         public void HostObjectInRootNamespace()
         {
             var obj = new InteractiveFixtures_TopLevelHostObject { X = 1, Y = 2, Z = 3 };
-            var r0 = CSharpScript.EvaluateAsync<int>("X + Y + Z", globals: obj);
+            var r0 = CSharpScript.EvaluateAsync<int>("X + Y + Z", options: ScriptOptions, globals: obj);
             Assert.Equal(6, r0.Result);
 
             obj = new InteractiveFixtures_TopLevelHostObject { X = 1, Y = 2, Z = 3 };
-            var r1 = CSharpScript.EvaluateAsync<int>("X", globals: obj);
+            var r1 = CSharpScript.EvaluateAsync<int>("X", options: ScriptOptions, globals: obj);
             Assert.Equal(1, r1.Result);
         }
 
@@ -1622,7 +1640,7 @@ new List<ArgumentException>()
         {
             var scriptCompilation = CSharpScript.Create(
                 "nameof(Microsoft.CodeAnalysis.Scripting)",
-                ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
+                ScriptOptions.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics(
@@ -1679,7 +1697,7 @@ new List<ArgumentException>()
         {
             var scriptCompilation = CSharpScript.Create(
                 "typeof(Microsoft.CodeAnalysis.Scripting.Script)",
-                options: ScriptOptions.Default.
+                options: ScriptOptions.
                     WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance).
                     WithReferences(typeof(CSharpScript).GetTypeInfo().Assembly),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
@@ -1747,7 +1765,7 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
 ";
             var scriptCompilation = CSharpScript.Create(
                 source,
-                ScriptOptions.Default.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
+                ScriptOptions.WithMetadataResolver(TestRuntimeMetadataReferenceResolver.Instance),
                 globalsType: typeof(CommandLineScriptGlobals)).GetCompilation();
 
             scriptCompilation.VerifyDiagnostics();
@@ -1813,8 +1831,7 @@ typeof(Microsoft.CodeAnalysis.Scripting.Script)
             }
         }
 
-        [Fact]
-        [WorkItem(39565, "https://github.com/dotnet/roslyn/issues/39565")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39565")]
         public async Task MethodCallWithImplicitReceiverAndOutVar()
         {
             var code = @"
@@ -1824,7 +1841,7 @@ if(TryGetValue(out var result)){
 return true;
 ";
 
-            var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(E), globals: new E());
+            var result = await CSharpScript.EvaluateAsync<bool>(code, options: ScriptOptions, globalsType: typeof(E), globals: new E());
             Assert.True(result);
         }
 
@@ -1844,15 +1861,14 @@ static bool M()
 return M();
 ";
 
-            var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
+            var script = CSharpScript.Create<bool>(code, options: ScriptOptions, globalsType: typeof(F));
             ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
                     // (4,9): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
                     // 				return Value;
                     Diagnostic(ErrorCode.ERR_ObjectRequired, "Value").WithArguments("Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.InteractiveSessionTests.F.Value").WithLocation(4, 9));
         }
 
-        [Fact]
-        [WorkItem(39581, "https://github.com/dotnet/roslyn/issues/39581")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39581")]
         public void StaticLocalFunctionCannotAccessGlobalInstance()
         {
             var code = @"
@@ -1867,7 +1883,7 @@ bool M()
 return M();
 ";
 
-            var script = CSharpScript.Create<bool>(code, globalsType: typeof(F));
+            var script = CSharpScript.Create<bool>(code, options: ScriptOptions, globalsType: typeof(F));
             ScriptingTestHelpers.AssertCompilationError(() => script.RunAsync(new F()).Wait(),
                     // (7,10): error CS0120: An object reference is required for the non-static field, method, or property 'InteractiveSessionTests.F.Value'
                     // 					return Value;
@@ -1889,7 +1905,7 @@ bool M()
 return M();
 ";
 
-            var result = await CSharpScript.EvaluateAsync<bool>(code, globalsType: typeof(F), globals: new F());
+            var result = await CSharpScript.EvaluateAsync<bool>(code, options: ScriptOptions, globalsType: typeof(F), globals: new F());
             Assert.True(result);
         }
 
@@ -1897,16 +1913,15 @@ return M();
 
         #region Exceptions
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
-        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException1()
         {
             var s0 = CSharpScript.Create(@"
 int i = 10;
 throw new System.Exception(""Bang!"");
 int j = 2;
-");
+", ScriptOptions);
 
             var s1 = s0.ContinueWith(@"
 int F() => i + j;
@@ -1921,14 +1936,13 @@ int F() => i + j;
             Assert.Equal(10, state2.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
-        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException2()
         {
             var s0 = CSharpScript.Create(@"
 int i = 100;
-");
+", ScriptOptions);
 
             var s1 = s0.ContinueWith(@"
 int j = 20;
@@ -1949,14 +1963,13 @@ int F() => i + j + k;
             Assert.Equal(120, state3.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
-        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException3()
         {
             var s0 = CSharpScript.Create(@"
 int i = 1000;
-");
+", ScriptOptions);
             var s1 = s0.ContinueWith(@"
 int j = 200;
 throw new System.Exception(""Bang!"");
@@ -1978,14 +1991,13 @@ int F() => i + j + k + l;
             Assert.Equal(1200, state4.ReturnValue);
         }
 
-        [Fact]
-        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
-        [WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6580")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/10883")]
         public async Task PreservingDeclarationsOnException4()
         {
             var state0 = await CSharpScript.RunAsync(@"
 int i = 1000;
-");
+", ScriptOptions);
             var state1 = await state0.ContinueWithAsync(@"
 int j = 200;
 throw new System.Exception(""Bang 1!"");
@@ -2018,7 +2030,7 @@ i + j + k + l
 
             var s0 = CSharpScript.Create(@"
 int i = 1000;
-", globalsType: globals.GetType());
+", options: ScriptOptions, globalsType: globals.GetType());
 
             var s1 = s0.ContinueWith(@"
 int j = 200;
@@ -2052,7 +2064,7 @@ int F() => i + j + k + l;
 
             var s0 = CSharpScript.Create(@"
 int i = 1000;
-", globalsType: globals.GetType());
+", options: ScriptOptions, globalsType: globals.GetType());
 
             var s1 = s0.ContinueWith(@"
 int j = 200;
@@ -2086,7 +2098,7 @@ int F() => i + j + k + l;
 
             var s0 = CSharpScript.Create(@"
 int i = 1000;
-", globalsType: globals.GetType());
+", options: ScriptOptions, globalsType: globals.GetType());
 
             var s1 = s0.ContinueWith(@"
 int j = 200;
@@ -2118,7 +2130,7 @@ int F() => i + j + k + l;
 {
     return LocalFunction();
     int LocalFunction() => Y;
-}", globals: new C()).
+}", options: ScriptOptions, globals: new C()).
                 ContinueWith(
 @"var lambda = new System.Func<int>(() =>
 {

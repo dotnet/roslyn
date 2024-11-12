@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             var cancellationToken = context.CancellationToken;
 
             // the provider might be invoked in non-interactive context:
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (Workspace.TryGetWorkspace(sourceText.Container, out var workspace))
             {
                 if (workspace is InteractiveWindowWorkspace interactiveWorkspace)

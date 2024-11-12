@@ -10,10 +10,10 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Text;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -24,10 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
     public class WinMdDumpTest : CSharpTestBase
     {
         private readonly MetadataReference _windowsRef = MetadataReference.CreateFromImage(TestResources.WinRt.Windows.AsImmutableOrNull());
-        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemRuntime.AsImmutableOrNull());
-        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemObjectModel.AsImmutableOrNull());
-        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(ProprietaryTestResources.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
-        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(TestMetadata.ResourcesNet451.SystemRuntimeInteropServicesWindowsRuntime.AsImmutableOrNull());
+        private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(Net461.Resources.SystemRuntime.AsImmutableOrNull());
+        private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(Net461.Resources.SystemObjectModel.AsImmutableOrNull());
+        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(TestResources.NetFX.WinRt.SystemRuntimeWindowsRuntimeUIXaml.AsImmutableOrNull());
+        private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(Net461.Resources.SystemRuntimeInteropServicesWindowsRuntime.AsImmutableOrNull());
 
         private void AppendMembers(StringBuilder result, NamespaceOrTypeSymbol container, string indent)
         {
@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 memberIndent = indent;
             }
 
-
             foreach (var member in container.GetMembers().OrderBy(m => m.Name, System.StringComparer.InvariantCulture))
             {
                 switch (member.Kind)
@@ -61,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(memberIndent);
                         result.Append(".class ");
                         MetadataSignatureHelper.AppendTypeAttributes(result, namedType.Flags);
-                        result.Append(" ");
+                        result.Append(' ');
                         result.Append(member);
 
                         if ((object)namedType.BaseType() != null)
@@ -111,10 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         result.Append(".field ");
 
                         MetadataSignatureHelper.AppendFieldAttributes(result, field.Flags);
-                        result.Append(" ");
+                        result.Append(' ');
 
                         result.Append(field.TypeWithAnnotations);
-                        result.Append(" ");
+                        result.Append(' ');
                         result.Append(member.Name);
                         result.AppendLine();
 
@@ -132,11 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         ((PEModuleSymbol)container.ContainingModule).Module.GetPropertyDefPropsOrThrow(property.Handle, out propertyName, out propertyAttrs);
                         if (MetadataSignatureHelper.AppendPropertyAttributes(result, propertyAttrs))
                         {
-                            result.Append(" ");
+                            result.Append(' ');
                         }
 
                         result.Append(property.TypeWithAnnotations);
-                        result.Append(" ");
+                        result.Append(' ');
                         result.Append(property.Name);
                         result.AppendLine();
 
@@ -176,16 +175,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
                         if (MetadataSignatureHelper.AppendEventAttributes(result, eventAttrs))
                         {
-                            result.Append(" ");
+                            result.Append(' ');
                         }
 
                         result.Append(evnt.TypeWithAnnotations);
-                        result.Append(" ");
+                        result.Append(' ');
                         result.Append(evnt.Name);
                         result.AppendLine();
 
                         result.Append(memberIndent);
-                        result.Append("{");
+                        result.Append('{');
                         result.AppendLine();
 
                         AppendCustomAttributes(result, member, memberIndent, inBlock: true);
@@ -241,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 {
                     result.Append("[Missing: ");
                     result.Append(attribute.AttributeClass);
-                    result.Append("]");
+                    result.Append(']');
                 }
                 else
                 {
@@ -275,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     i++;
                 }
 
-                result.Append(")");
+                result.Append(')');
                 result.AppendLine();
             }
 
@@ -291,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
             switch (constant.Kind)
             {
                 case TypedConstantKind.Array:
-                    result.Append("{");
+                    result.Append('{');
                     int i = 0;
 
                     foreach (var item in constant.Values)
@@ -304,13 +303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                         AppendConstant(result, item);
                     }
 
-                    result.Append("}");
+                    result.Append('}');
                     break;
 
                 case TypedConstantKind.Type:
                     result.Append("typeof(");
                     result.Append(constant.Value);
-                    result.Append(")");
+                    result.Append(')');
                     break;
 
                 case TypedConstantKind.Enum:
@@ -318,9 +317,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     var value = constant.Value;
                     if (value.GetType() == typeof(string))
                     {
-                        result.Append("\"");
+                        result.Append('"');
                         result.Append(value);
-                        result.Append("\"");
+                        result.Append('"');
                     }
                     else if (value.GetType() == typeof(bool))
                     {
@@ -340,9 +339,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         private static void AppendMethod(StringBuilder result, PEMethodSymbol method, string indent, bool includeTypeName = false)
         {
             MetadataSignatureHelper.AppendMethodAttributes(result, method.Flags);
-            result.Append(" ");
+            result.Append(' ');
             AppendSignatureType(result, method.ReturnType, RefKind.None);
-            result.Append(" ");
+            result.Append(' ');
 
             if (includeTypeName)
             {
@@ -352,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
             result.Append(method.Name);
 
-            result.Append("(");
+            result.Append('(');
 
             bool hasParameterAttributes = false;
             int i = 0;
@@ -370,11 +369,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
                 if (MetadataSignatureHelper.AppendParameterAttributes(result, parameter.Flags, all: true))
                 {
-                    result.Append(" ");
+                    result.Append(' ');
                 }
 
                 AppendSignatureType(result, parameter.Type, parameter.RefKind);
-                result.Append(" ");
+                result.Append(' ');
                 result.Append(parameter.Name);
                 i++;
             }
@@ -420,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
             if (refKind != RefKind.None)
             {
-                result.Append("&");
+                result.Append('&');
             }
         }
 

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -40,10 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         /// <summary>
         /// Fetches the options processor for this C# project. Equivalent to the underlying member, but fixed to the derived type.
         /// </summary>
-        private new OptionsProcessor VisualStudioProjectOptionsProcessor
+        private new OptionsProcessor ProjectSystemProjectOptionsProcessor
         {
-            get => (OptionsProcessor)base.VisualStudioProjectOptionsProcessor;
-            set => base.VisualStudioProjectOptionsProcessor = value;
+            get => (OptionsProcessor)base.ProjectSystemProjectOptionsProcessor;
+            set => base.ProjectSystemProjectOptionsProcessor = value;
         }
 
         public CSharpProjectShim(
@@ -66,8 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
-            this.ProjectCodeModel = componentModel.GetService<IProjectCodeModelFactory>().CreateProjectCodeModel(VisualStudioProject.Id, this);
-            this.VisualStudioProjectOptionsProcessor = new OptionsProcessor(this.VisualStudioProject, Workspace.Services);
+            this.ProjectCodeModel = componentModel.GetService<IProjectCodeModelFactory>().CreateProjectCodeModel(ProjectSystemProject.Id, this);
+            this.ProjectSystemProjectOptionsProcessor = new OptionsProcessor(this.ProjectSystemProject, Workspace.Services.SolutionServices);
 
             // Ensure the default options are set up
             ResetAllOptions();

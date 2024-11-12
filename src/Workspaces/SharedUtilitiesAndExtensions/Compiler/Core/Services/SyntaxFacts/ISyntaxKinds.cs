@@ -2,172 +2,233 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.LanguageServices
+namespace Microsoft.CodeAnalysis.LanguageService;
+
+/// <summary>
+/// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
+/// in common.
+/// </summary>
+internal interface ISyntaxKinds
 {
+    TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
+    int Convert<TSyntaxKind>(TSyntaxKind kind) where TSyntaxKind : struct;
+
+    #region trivia
+
+    int ConflictMarkerTrivia { get; }
+    int DisabledTextTrivia { get; }
+    int EndOfLineTrivia { get; }
+    int SkippedTokensTrivia { get; }
+    int WhitespaceTrivia { get; }
+    int SingleLineCommentTrivia { get; }
+
     /// <summary>
-    /// Provides a uniform view of SyntaxKinds over C# and VB for constructs they have
-    /// in common.
+    /// Gets the syntax kind for a multi-line comment.
     /// </summary>
-    internal interface ISyntaxKinds
-    {
-        TSyntaxKind Convert<TSyntaxKind>(int kind) where TSyntaxKind : struct;
+    /// <value>
+    /// The raw syntax kind for a multi-line comment; otherwise, <see langword="null"/> if the language does not
+    /// support multi-line comments.
+    /// </value>
+    int? MultiLineCommentTrivia { get; }
 
-        #region trivia
+    int SingleLineDocCommentTrivia { get; }
+    int? MultiLineDocCommentTrivia { get; }
 
-        int ConflictMarkerTrivia { get; }
-        int DisabledTextTrivia { get; }
-        int EndOfLineTrivia { get; }
-        int SkippedTokensTrivia { get; }
-        int WhitespaceTrivia { get; }
-        int SingleLineCommentTrivia { get; }
+    int IfDirectiveTrivia { get; }
+    int ElifDirectiveTrivia { get; }
+    int ElseDirectiveTrivia { get; }
+    int EndIfDirectiveTrivia { get; }
+    int EndRegionDirectiveTrivia { get; }
+    int RegionDirectiveTrivia { get; }
+    int? ShebangDirectiveTrivia { get; }
 
-        /// <summary>
-        /// Gets the syntax kind for a multi-line comment.
-        /// </summary>
-        /// <value>
-        /// The raw syntax kind for a multi-line comment; otherwise, <see langword="null"/> if the language does not
-        /// support multi-line comments.
-        /// </value>
-        int? MultiLineCommentTrivia { get; }
+    #endregion
 
-        int SingleLineDocCommentTrivia { get; }
-        int? MultiLineDocCommentTrivia { get; }
-        int? ShebangDirectiveTrivia { get; }
+    #region keywords
 
-        #endregion
+    int AsyncKeyword { get; }
+    int AwaitKeyword { get; }
+    int DelegateKeyword { get; }
+    int FalseKeyword { get; }
+    int GlobalKeyword { get; }
+    int? GlobalStatement { get; }
+    int IfKeyword { get; }
+    int NewKeyword { get; }
+    int TrueKeyword { get; }
+    int UsingKeyword { get; }
 
-        #region keywords
+    #endregion
 
-        int AwaitKeyword { get; }
-        int AsyncKeyword { get; }
-        int DelegateKeyword { get; }
-        int GlobalKeyword { get; }
-        int IfKeyword { get; }
-        int? GlobalStatement { get; }
-        int TrueKeyword { get; }
-        int FalseKeyword { get; }
+    #region literal tokens
 
-        #endregion
+    int CharacterLiteralToken { get; }
+    int StringLiteralToken { get; }
+    int? SingleLineRawStringLiteralToken { get; }
+    int? MultiLineRawStringLiteralToken { get; }
+    int? Utf8StringLiteralToken { get; }
+    int? Utf8SingleLineRawStringLiteralToken { get; }
+    int? Utf8MultiLineRawStringLiteralToken { get; }
 
-        #region literal tokens
+    #endregion
 
-        int CharacterLiteralToken { get; }
-        int StringLiteralToken { get; }
-        int? SingleLineRawStringLiteralToken { get; }
-        int? MultiLineRawStringLiteralToken { get; }
+    #region tokens
 
-        #endregion
+    int CloseBraceToken { get; }
+    int? CloseBracketToken { get; }
+    int CloseParenToken { get; }
+    int CommaToken { get; }
+    int ColonToken { get; }
+    int DotToken { get; }
+    int EndOfFileToken { get; }
+    int HashToken { get; }
+    int GreaterThanToken { get; }
+    int IdentifierToken { get; }
+    int InterpolatedStringTextToken { get; }
+    int LessThanSlashToken { get; }
+    int LessThanToken { get; }
+    int OpenBraceToken { get; }
+    int? OpenBracketToken { get; }
+    int OpenParenToken { get; }
+    int QuestionToken { get; }
 
-        #region tokens
+    #endregion
 
-        int CloseBraceToken { get; }
-        int ColonToken { get; }
-        int DotToken { get; }
-        int EndOfFileToken { get; }
-        int HashToken { get; }
-        int IdentifierToken { get; }
-        int InterpolatedStringTextToken { get; }
-        int QuestionToken { get; }
+    #region xml tokens
 
-        #endregion
+    int XmlTextLiteralToken { get; }
 
-        #region names
+    #endregion
 
-        int GenericName { get; }
-        int IdentifierName { get; }
-        int QualifiedName { get; }
+    #region names
 
-        #endregion
+    int GenericName { get; }
+    int IdentifierName { get; }
+    int QualifiedName { get; }
 
-        #region types
+    #endregion
 
-        int TupleType { get; }
+    #region types
 
-        #endregion
+    int TupleType { get; }
 
-        #region literal expressions
+    #endregion
 
-        int CharacterLiteralExpression { get; }
-        int DefaultLiteralExpression { get; }
-        int FalseLiteralExpression { get; }
-        int NullLiteralExpression { get; }
-        int NumericLiteralExpression { get; }
-        int StringLiteralExpression { get; }
-        int TrueLiteralExpression { get; }
+    #region literal expressions
 
-        #endregion
+    int CharacterLiteralExpression { get; }
+    int DefaultLiteralExpression { get; }
+    int FalseLiteralExpression { get; }
+    int NullLiteralExpression { get; }
+    int NumericLiteralExpression { get; }
+    int StringLiteralExpression { get; }
+    int TrueLiteralExpression { get; }
 
-        #region expressions
+    #endregion
 
-        int AnonymousObjectCreationExpression { get; }
-        int ArrayCreationExpression { get; }
-        int AwaitExpression { get; }
-        int BaseExpression { get; }
-        int ConditionalAccessExpression { get; }
-        int ConditionalExpression { get; }
-        int? ImplicitArrayCreationExpression { get; }
-        int? ImplicitObjectCreationExpression { get; }
-        int? IndexExpression { get; }
-        int InterpolatedStringExpression { get; }
-        int InvocationExpression { get; }
-        int LogicalAndExpression { get; }
-        int LogicalOrExpression { get; }
-        int LogicalNotExpression { get; }
-        int ObjectCreationExpression { get; }
-        int ParenthesizedExpression { get; }
-        int QueryExpression { get; }
-        int? RangeExpression { get; }
-        int ReferenceEqualsExpression { get; }
-        int ReferenceNotEqualsExpression { get; }
-        int SimpleMemberAccessExpression { get; }
-        int TernaryConditionalExpression { get; }
-        int ThisExpression { get; }
-        int? ThrowExpression { get; }
-        int TupleExpression { get; }
+    #region expressions
 
-        #endregion
+    int AddExpression { get; }
+    int AddressOfExpression { get; }
+    int AnonymousObjectCreationExpression { get; }
+    int ArrayCreationExpression { get; }
+    int AwaitExpression { get; }
+    int BaseExpression { get; }
+    int CollectionInitializerExpression { get; }
+    int ConditionalAccessExpression { get; }
+    int ConditionalExpression { get; }
+    int? ImplicitArrayCreationExpression { get; }
+    int? ImplicitObjectCreationExpression { get; }
+    int? IndexExpression { get; }
+    int InterpolatedStringExpression { get; }
+    int InvocationExpression { get; }
+    int IsTypeExpression { get; }
+    int? IsNotTypeExpression { get; }
+    int? IsPatternExpression { get; }
+    int LogicalAndExpression { get; }
+    int LogicalOrExpression { get; }
+    int LogicalNotExpression { get; }
+    int ObjectCreationExpression { get; }
+    int ParenthesizedExpression { get; }
+    int QueryExpression { get; }
+    int? RangeExpression { get; }
+    int? RefExpression { get; }
+    int ReferenceEqualsExpression { get; }
+    int ReferenceNotEqualsExpression { get; }
+    int SimpleMemberAccessExpression { get; }
+    int? SuppressNullableWarningExpression { get; }
+    int TernaryConditionalExpression { get; }
+    int ThisExpression { get; }
+    int? ThrowExpression { get; }
+    int TupleExpression { get; }
 
-        #region statements
+    #endregion
 
-        int ExpressionStatement { get; }
-        int ForEachStatement { get; }
-        int LocalDeclarationStatement { get; }
-        int? LocalFunctionStatement { get; }
-        int LockStatement { get; }
-        int ReturnStatement { get; }
-        int ThrowStatement { get; }
-        int UsingStatement { get; }
+    #region patterns
 
-        #endregion
+    int? AndPattern { get; }
+    int? ConstantPattern { get; }
+    int? DeclarationPattern { get; }
+    int? ListPattern { get; }
+    int? NotPattern { get; }
+    int? OrPattern { get; }
+    int? ParenthesizedPattern { get; }
+    int? RecursivePattern { get; }
+    int? RelationalPattern { get; }
+    int? TypePattern { get; }
+    int? VarPattern { get; }
 
-        #region members/declarations
+    #endregion
 
-        int Attribute { get; }
-        int ClassDeclaration { get; }
-        int? RecordDeclaration { get; }
-        int? RecordStructDeclaration { get; }
-        int Parameter { get; }
-        int TypeConstraint { get; }
-        int VariableDeclarator { get; }
-        int FieldDeclaration { get; }
+    #region statements
 
-        int IncompleteMember { get; }
-        int TypeArgumentList { get; }
-        int ParameterList { get; }
+    int ExpressionStatement { get; }
+    int ForEachStatement { get; }
+    int ForStatement { get; }
+    int IfStatement { get; }
+    int LocalDeclarationStatement { get; }
+    int? LocalFunctionStatement { get; }
+    int LockStatement { get; }
+    int ReturnStatement { get; }
+    int ThrowStatement { get; }
+    int UsingStatement { get; }
+    int WhileStatement { get; }
+    int YieldReturnStatement { get; }
 
-        #endregion
+    #endregion
 
-        #region clauses
+    #region members/declarations
 
-        int EqualsValueClause { get; }
+    int Attribute { get; }
+    int ClassDeclaration { get; }
+    int ConstructorDeclaration { get; }
+    int EnumDeclaration { get; }
+    int InterfaceDeclaration { get; }
+    int? StructDeclaration { get; }
+    int Parameter { get; }
+    int TypeConstraint { get; }
+    int VariableDeclarator { get; }
+    int FieldDeclaration { get; }
+    int PropertyDeclaration { get; }
 
-        #endregion
+    int IncompleteMember { get; }
+    int TypeArgumentList { get; }
+    int ParameterList { get; }
 
-        #region other
+    #endregion
 
-        int Interpolation { get; }
-        int InterpolatedStringText { get; }
+    #region clauses
 
-        #endregion
-    }
+    int ElseClause { get; }
+    int EqualsValueClause { get; }
+
+    #endregion
+
+    #region other
+
+    int? ImplicitElementAccess { get; }
+    int Interpolation { get; }
+    int InterpolatedStringText { get; }
+    int? IndexerMemberCref { get; }
+
+    #endregion
 }

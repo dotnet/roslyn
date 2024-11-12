@@ -392,7 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation && p.IsOutDeclaration();
         }
 
-#nullable enable
         /// <summary>
         /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn.
         /// </summary>
@@ -455,6 +454,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.RefType:
                         var refTypeSyntax = (RefTypeSyntax)type;
                         stack.Push(refTypeSyntax.Type);
+                        break;
+                    case SyntaxKind.ScopedType:
+                        var scopedTypeSyntax = (ScopedTypeSyntax)type;
+                        stack.Push(scopedTypeSyntax.Type);
                         break;
                     case SyntaxKind.GenericName:
                         var genericNameSyntax = (GenericNameSyntax)type;

@@ -11,6 +11,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
 using System.Reflection.PortableExecutable;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -52,6 +53,33 @@ namespace Microsoft.CodeAnalysis.UnitTests
             fixed (byte* ptr = &netModule[h.MetadataStartOffset])
             {
                 ModuleMetadata.CreateFromMetadata((IntPtr)ptr, h.MetadataSize);
+            }
+        }
+
+        [Fact]
+        public unsafe void CreateFromMetadata_Assembly_Stream()
+        {
+            var assembly = TestResources.Basic.Members;
+            PEHeaders h = new PEHeaders(new MemoryStream(assembly));
+
+            fixed (byte* ptr = &assembly[h.MetadataStartOffset])
+            {
+                var stream = new UnmanagedMemoryStream(ptr, h.MetadataSize);
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+            }
+        }
+
+        [Fact]
+        public unsafe void CreateFromMetadata_Module_Stream()
+        {
+            var netModule = TestResources.MetadataTests.NetModule01.ModuleCS00;
+            PEHeaders h = new PEHeaders(new MemoryStream(netModule));
+
+            fixed (byte* ptr = &netModule[h.MetadataStartOffset])
+            {
+                var stream = new UnmanagedMemoryStream(ptr, h.MetadataSize);
+                ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
             }
         }
 
@@ -101,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Disposal()
         {
-            var md = ModuleMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
+            var md = ModuleMetadata.CreateFromImage(Net461.Resources.mscorlib);
             md.Dispose();
             Assert.Throws<ObjectDisposedException>(() => md.Module);
             md.Dispose();
@@ -110,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ImageOwnership()
         {
-            var m = ModuleMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
+            var m = ModuleMetadata.CreateFromImage(Net461.Resources.mscorlib);
             var copy1 = m.Copy();
             var copy2 = copy1.Copy();
 
@@ -142,6 +170,241 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.Default);
             Assert.Throws<BadImageFormatException>(() => ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.PrefetchMetadata));
             Assert.Throws<BadImageFormatException>(() => ModuleMetadata.CreateFromStream(new MemoryStream(), PEStreamOptions.PrefetchMetadata | PEStreamOptions.PrefetchEntireImage));
+        }
+
+        [Fact]
+        public unsafe void CreateFromUnmanagedMemoryStream_LeaveOpenFalse()
+        {
+            var assembly = TestResources.Basic.Members;
+            fixed (byte* assemblyPtr = assembly)
+            {
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(assemblyPtr, assembly.LongLength)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
+
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should dispose the stream.
+                metadata.Dispose();
+                Assert.True(disposed);
+
+                // We should have never seeked.  The pointer should have been used directly.
+                Assert.False(seeked);
+            }
+        }
+
+        [Fact]
+        public unsafe void CreateFromMetadata_Assembly_Stream_DisposeOwnerTrue()
+        {
+            var assembly = TestResources.Basic.Members;
+            PEHeaders h = new PEHeaders(new MemoryStream(assembly));
+
+            fixed (byte* ptr = &assembly[h.MetadataStartOffset])
+            {
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(ptr, h.MetadataSize)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should dispose the stream.
+                metadata.Dispose();
+                Assert.True(disposed);
+
+                // We should have never seeked.  The pointer should have been used directly.
+                Assert.False(seeked);
+            }
+        }
+
+        [Fact]
+        public unsafe void CreateFromUnmanagedMemoryStream_LeaveOpenTrue()
+        {
+            var assembly = TestResources.Basic.Members;
+            fixed (byte* assemblyPtr = assembly)
+            {
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(assemblyPtr, assembly.LongLength)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: true);
+
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should not dispose the stream.
+                metadata.Dispose();
+                Assert.False(disposed);
+
+                stream.Dispose();
+                Assert.True(disposed);
+
+                // We should have never seeked.  The pointer should have been used directly.
+                Assert.False(seeked);
+            }
+        }
+
+        [Fact]
+        public unsafe void CreateFromMetadata_Assembly_Stream_DisposeOwnerFalse()
+        {
+            var assembly = TestResources.Basic.Members;
+            PEHeaders h = new PEHeaders(new MemoryStream(assembly));
+
+            fixed (byte* ptr = &assembly[h.MetadataStartOffset])
+            {
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(ptr, h.MetadataSize)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length);
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should not dispose the stream.
+                metadata.Dispose();
+                Assert.False(disposed);
+
+                stream.Dispose();
+                Assert.True(disposed);
+
+                // We should have never seeked.  The pointer should have been used directly.
+                Assert.False(seeked);
+            }
+        }
+
+        [Theory]
+        [InlineData(PEStreamOptions.PrefetchEntireImage)]
+        [InlineData(PEStreamOptions.PrefetchMetadata)]
+        [InlineData(PEStreamOptions.PrefetchEntireImage | PEStreamOptions.PrefetchMetadata)]
+        public unsafe void CreateFromUnmanagedMemoryStream_Prefetch_LeaveOpenFalse(PEStreamOptions options)
+        {
+            var assembly = TestResources.Basic.Members;
+            fixed (byte* assemblyPtr = assembly)
+            {
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(assemblyPtr, assembly.LongLength)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromStream(stream, options);
+
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should dispose the stream.
+                metadata.Dispose();
+                Assert.True(disposed);
+
+                // We should have seeked.  This stream will be viewed as a normal stream since we're prefetching
+                // everything.
+                Assert.True(seeked);
+            }
+        }
+
+        [Theory]
+        [InlineData(PEStreamOptions.PrefetchEntireImage)]
+        [InlineData(PEStreamOptions.PrefetchMetadata)]
+        [InlineData(PEStreamOptions.PrefetchEntireImage | PEStreamOptions.PrefetchMetadata)]
+        public unsafe void CreateFromUnmanagedMemoryStream_Prefetcha_LeaveOpenTrue(PEStreamOptions options)
+        {
+            var assembly = TestResources.Basic.Members;
+            fixed (byte* assemblyPtr = assembly)
+            {
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(assemblyPtr, assembly.LongLength)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromStream(stream, options | PEStreamOptions.LeaveOpen);
+
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should not dispose the stream.
+                metadata.Dispose();
+                Assert.False(disposed);
+
+                stream.Dispose();
+                Assert.True(disposed);
+
+                // We should have seeked.  This stream will be viewed as a normal stream since we're prefetching
+                // everything.
+                Assert.True(seeked);
+            }
+        }
+
+        /// <summary>
+        /// Only test in 64-bit process. <see cref="UnmanagedMemoryStream"/> throws if the given length is greater than the size of the available address space.
+        /// </summary>
+        [ConditionalFact(typeof(Bitness64))]
+        public unsafe void CreateFromUnmanagedMemoryStream_LargeIntSize()
+        {
+            var assembly = TestResources.Basic.Members;
+            fixed (byte* assemblyPtr = assembly)
+            {
+                // ensure that having an extremely large stream is not a problem (e.g. that we don't wrap the int around
+                // to be a negative size).
+                var disposed = false;
+                var seeked = false;
+                var stream = new MockUnmanagedMemoryStream(assemblyPtr, (long)int.MaxValue + 1)
+                {
+                    OnDispose = _ => disposed = true,
+                    OnSeek = (_, _) => seeked = true,
+                };
+
+                var metadata = ModuleMetadata.CreateFromStream(stream, leaveOpen: false);
+
+                Assert.Equal(new AssemblyIdentity("Members"), metadata.Module.ReadAssemblyIdentityOrThrow());
+
+                // Disposing the metadata should dispose the stream.
+                metadata.Dispose();
+                Assert.True(disposed);
+
+                // We should have not seeked.  This stream will still be read as a direct memory block.
+                Assert.False(seeked);
+            }
+        }
+
+        private class MockUnmanagedMemoryStream : UnmanagedMemoryStream
+        {
+            public unsafe MockUnmanagedMemoryStream(byte* pointer, long length) : base(pointer, length)
+            {
+            }
+
+            public Action<bool> OnDispose;
+            public Action<long, SeekOrigin> OnSeek;
+
+            protected override void Dispose(bool disposing)
+            {
+                OnDispose?.Invoke(disposing);
+                base.Dispose(disposing);
+            }
+
+            public override long Seek(long offset, SeekOrigin loc)
+            {
+                OnSeek?.Invoke(offset, loc);
+                return base.Seek(offset, loc);
+            }
         }
     }
 }

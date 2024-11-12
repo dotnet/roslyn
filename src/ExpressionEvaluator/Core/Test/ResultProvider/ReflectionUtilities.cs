@@ -41,19 +41,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal static Assembly[] GetMscorlib(params Assembly[] additionalAssemblies)
         {
-            var builder = ArrayBuilder<Assembly>.GetInstance();
-            builder.Add(typeof(object).Assembly); // mscorlib.dll
-            builder.AddRange(additionalAssemblies);
-            return builder.ToArrayAndFree();
+            return
+            [
+                typeof(object).Assembly, // mscorlib.dll
+                .. additionalAssemblies,
+            ];
         }
 
         internal static Assembly[] GetMscorlibAndSystemCore(params Assembly[] additionalAssemblies)
         {
-            var builder = ArrayBuilder<Assembly>.GetInstance();
-            builder.Add(typeof(object).Assembly); // mscorlib.dll
-            builder.Add(typeof(Enumerable).Assembly); // System.Core.dll
-            builder.AddRange(additionalAssemblies);
-            return builder.ToArrayAndFree();
+            return
+            [
+                typeof(object).Assembly, // mscorlib.dll
+                typeof(Enumerable).Assembly, // System.Core.dll
+                .. additionalAssemblies,
+            ];
         }
 
         internal sealed class AssemblyLoadContext : IDisposable

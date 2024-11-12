@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Gets a bad result for a symbol that doesn't match static/instance
         Public Shared Function MustNotBeInstance(sym As Symbol, err As ERRID) As SingleLookupResult
-            Return New SingleLookupResult(LookupResultKind.MustNotBeInstance, sym, New BadSymbolDiagnostic(sym, err))
+            Return New SingleLookupResult(LookupResultKind.MustNotBeInstance, sym, New BadSymbolDiagnostic(sym, err, Array.Empty(Of Object)))
         End Function
 
         ' Gets a bad result for a symbol that doesn't match static/instance, with no error message (special case for API-access)
@@ -527,7 +527,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return True
         End Function
-
 
         ' Merge two results, returning the best. If there are
         ' multiple viable results, either produce a result with both symbols if they can overload each other,

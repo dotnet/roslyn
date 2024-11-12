@@ -43,8 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Me.Methods = methods
 
             If testData IsNot Nothing Then
-                SetMethodTestData(testData.Methods)
-                testData.Module = Me
+                SetTestData(testData)
             End If
         End Sub
 
@@ -81,6 +80,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return Nothing
             End Get
         End Property
+
+        Public Overrides Function TryGetOrCreateSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+            Return Nothing
+        End Function
+
+        Public Overrides Function GetOrCreateHotReloadExceptionConstructorDefinition() As IMethodSymbolInternal
+            ' Should only be called when compiling EnC delta.
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Public Overrides Function GetUsedSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+            Return Nothing
+        End Function
 
         Friend Overrides Function TryCreateVariableSlotAllocator(symbol As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Dim method = TryCast(symbol, EEMethodSymbol)
@@ -181,14 +193,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousClosure(scopeSyntax As SyntaxNode, <Out> ByRef closureId As DebugId) As Boolean
+            Public Overrides Function TryGetPreviousClosure(closureSyntax As SyntaxNode, parentClosureId As DebugId?, structCaptures As ImmutableArray(Of String), ByRef closureId As DebugId, ByRef runtimeRudeEdit As RuntimeRudeEdit?) As Boolean
                 closureId = Nothing
+                runtimeRudeEdit = Nothing
                 Return False
             End Function
 
-            Public Overrides Function TryGetPreviousLambda(lambdaOrLambdaBodySyntax As SyntaxNode, isLambdaBody As Boolean, <Out> ByRef lambdaId As DebugId) As Boolean
+            Public Overrides Function TryGetPreviousLambda(lambdaOrLambdaBodySyntax As SyntaxNode, isLambdaBody As Boolean, closureOrdinal As Integer, structClosureIds As ImmutableArray(Of DebugId), ByRef lambdaId As DebugId, ByRef runtimeRudeEdit As RuntimeRudeEdit?) As Boolean
                 lambdaId = Nothing
+                runtimeRudeEdit = Nothing
                 Return False
+            End Function
+
+            Public Overrides Function TryGetPreviousStateMachineState(syntax As SyntaxNode, awaitId As AwaitDebugId, ByRef state As StateMachineState) As Boolean
+                state = 0
+                Return False
+            End Function
+
+            Public Overrides Function GetFirstUnusedStateMachineState(increasing As Boolean) As StateMachineState?
+                Return Nothing
             End Function
 
             Public Overrides ReadOnly Property PreviousStateMachineTypeName As String

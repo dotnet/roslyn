@@ -2,8 +2,8 @@
 
 ## Summary
 
-Incremental generators are a new API that exists alongside
-[source generators](generators.md) to allow users to specify generation
+Incremental generators are a new API that replaces
+[v1 source generators](source-generators.md) to allow users to specify generation
 strategies that can be applied in a high performance way by the hosting layer.
 
 ### High Level Design Goals
@@ -11,7 +11,7 @@ strategies that can be applied in a high performance way by the hosting layer.
 - Allow for a finer grained approach to defining a generator
 - Scale source generators to support 'Roslyn/CoreCLR' scale projects in Visual Studio
 - Exploit caching between fine grained steps to reduce duplicate work
-- Support generating more items that just source texts
+- Support generating more items than just source texts
 - Exist alongside `ISourceGenerator` based implementations
 
 ## Simple Example
@@ -30,13 +30,13 @@ public class Generator : IIncrementalGenerator
         // define the execution pipeline here via a series of transformations:
 
         // find all additional files that end with .txt
-        IncrementalValuesProvider<AdditionalText> textFiles = context.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".txt"));
+        IncrementalValuesProvider<AdditionalText> textFiles = initContext.AdditionalTextsProvider.Where(static file => file.Path.EndsWith(".txt"));
 
         // read their contents and save their name
         IncrementalValuesProvider<(string name, string content)> namesAndContents = textFiles.Select((text, cancellationToken) => (name: Path.GetFileNameWithoutExtension(text.Path), content: text.GetText(cancellationToken)!.ToString()));
 
         // generate a class that contains their values as const strings
-        context.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
+        initContext.RegisterSourceOutput(namesAndContents, (spc, nameAndContent) =>
         {
             spc.AddSource($"ConstStrings.{nameAndContent.name}", $@"
     public static partial class ConstStrings
@@ -89,7 +89,7 @@ single time for the lifetime of the host.
 Rather than a dedicated `Execute` method, an Incremental Generator instead
 defines an immutable execution pipeline as part of initialization. The
 `Initialize` method receives an instance of
-`IncrementalGeneratorInitializationContext`which is used by the generator to
+`IncrementalGeneratorInitializationContext` which is used by the generator to
 define a set of transformations.
 
 
@@ -160,7 +160,7 @@ IValueProvider<TSource>
    └─────────────┘
 ```
 
-Instead, the generator supplies a set of transformations that ar to be applied to the
+Instead, the generator supplies a set of transformations that are to be applied to the
 data contained within the provider, which in turn creates a new value provider.
 
 ### Select
@@ -169,12 +169,12 @@ The simplest transformation is `Select`. This maps the value in one provider
 into a new provider by applying a transform to it.
 
 ```ascii
- IValueProvider<TSource>                     IValueProvider<TResult>
-    ┌─────────────┐                            ┌─────────────┐
-    │             │  Select<TSource,TResult1>  │             │
-    │   TSource   ├───────────────────────────►│   TResult   │
-    │             │                            │             │
-    └─────────────┘                            └─────────────┘
+ IValueProvider<TSource>                   IValueProvider<TResult>
+    ┌─────────────┐                           ┌─────────────┐
+    │             │  Select<TSource,TResult>  │             │
+    │   TSource   ├──────────────────────────►│   TResult   │
+    │             │                           │             │
+    └─────────────┘                           └─────────────┘
 ```
 
 Generator transformations can be thought of as being conceptually somewhat similar to
@@ -206,18 +206,14 @@ transformations together:
 Consider the following simple example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
-    // apply a 1-to-1 transform on each text, which represents extracting the path
-    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+// apply a 1-to-1 transform on each text, which represents extracting the path
+IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
 
-    // transform each extracted path into something else
-    IncrementalValuesProvider<string> prefixTransform = transformed.Select(static (path, _) => "prefix_" + path);
-
-});
+// transform each extracted path into something else
+IncrementalValuesProvider<string> prefixTransform = transformed.Select(static (path, _) => "prefix_" + path);
 ```
 
 Note how `transformed` and `prefixTransform` are themselves an
@@ -369,17 +365,14 @@ distinct item for generation, effectively splitting a single additional file
 into multiple sub-items.
 
 ``` csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
-    // extract each element from each additional file
-    IncrementalValuesProvider<MyElementType> elements = additionalTexts.SelectMany(static (text, _) => /*transform text into an array of MyElementType*/);
+// extract each element from each additional file
+IncrementalValuesProvider<MyElementType> elements = additionalTexts.SelectMany(static (text, _) => /*transform text into an array of MyElementType*/);
 
-    // now the generator can consider the union of elements in all additional texts, without needing to consider multiple files
-    IncrementalValuesProvider<string> transformed = elements.Select(static (element, _) => /*transform the individual element*/);
-}
+// now the generator can consider the union of elements in all additional texts, without needing to consider multiple files
+IncrementalValuesProvider<string> transformed = elements.Select(static (element, _) => /*transform the individual element*/);
 ```
 
 ### Where
@@ -397,18 +390,18 @@ public static partial class IncrementalValueSourceExtensions
 ```
 
 ```ascii
-                                          Select<TSource, TResult>
+                                               Where<TSource>
                                    .......................................
                                    .                   ┌───────────┐     .
                                    .   predicate(Item1)│           │     .
                                    . ┌────────────────►│   Item1   ├───┐ .
                                    . │                 │           │   │ .
-IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TResult>
-          ┌───────────┐            . │                                 │ .        ┌────────────┐
-          │           │            . │ predicate(Item2)                │ .        │            │
-          │  TSource  ├──────────────┼─────────────────X               ├─────────►│   TResult  │
-          │           │            . │                                 │ .        │            │
-          └───────────┘            . │                                 │ .        └────────────┘
+IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TSource>
+          ┌───────────┐            . │                                 │ .        ┌───────────┐
+          │           │            . │ predicate(Item2)                │ .        │           │
+          │  TSource  ├──────────────┼─────────────────X               ├─────────►│  TSource  │
+          │           │            . │                                 │ .        │           │
+          └───────────┘            . │                                 │ .        └───────────┘
              3 Items               . │                 ┌───────────┐   │ .           2 Items
                                    . │ predicate(Item3)│           │   │ .
                                    . └────────────────►│   Item3   ├───┘ .
@@ -422,14 +415,11 @@ interested in. For example, the generator will likely want to filter additional
 texts on file extensions:
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
-    // filter additional texts by extension
-    IncrementalValuesProvider<string> xmlFiles = additionalTexts.Where(static (text, _) => text.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
-}
+// filter additional texts by extension
+IncrementalValuesProvider<string> xmlFiles = additionalTexts.Where(static (text, _) => text.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
 ```
 
 ### Collect
@@ -464,18 +454,14 @@ IncrementalValuesProvider<TSource>                IncrementalValueProvider<Immut
 ```
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
-    // collect the additional texts into a single item
-    IncrementalValueProvider<AdditionalText[]> collected = context.AdditionalTexts.Collect();
+// collect the additional texts into a single item
+IncrementalValueProvider<AdditionalText[]> collected = additionalTexts.Collect();
 
-    // perform a transformation where you can access all texts at once
-    var transform = collected.Select(static (texts, _) => /* ... */);
-}
-
+// perform a transformation where you can access all texts at once
+var transform = collected.Select(static (texts, _) => /* ... */);
 ```
 
 ### Multi-path pipelines
@@ -520,18 +506,15 @@ Those transforms can then be used as the inputs to new single path transforms, i
 For example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
 
-    // apply a 1-to-1 transform on each text, extracting the path
-    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+// apply a 1-to-1 transform on each text, extracting the path
+IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
 
-    // split the processing into two paths of derived data
-    IncrementalValuesProvider<string> nameTransform = transformed.Select(static (path, _) => "prefix_" + path);
-    IncrementalValuesProvider<string> extensionTransform = transformed.Select(static (path, _) => Path.ChangeExtension(path, ".new"));
-}
+// split the processing into two paths of derived data
+IncrementalValuesProvider<string> nameTransform = transformed.Select(static (path, _) => "prefix_" + path);
+IncrementalValuesProvider<string> extensionTransform = transformed.Select(static (path, _) => Path.ChangeExtension(path, ".new"));
 ```
 
 `nameTransform` and `extensionTransform` produce different values for the same
@@ -671,23 +654,19 @@ With the above transformations the generator author can now take one or more
 inputs and combine them into a single source of data. For example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
+
+// combine each additional text with the parse options
+IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = additionalTexts.Combine(initContext.ParseOptionsProvider);
+
+// perform a transform on each text, with access to the options
+var transformed = combined.Select(static (pair, _) => 
 {
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
-
-    // combine each additional text with the parse options
-    IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = context.AdditionalTextsProvider.Combine(context.ParseOptionsProvider);
-
-    // perform a transform on each text, with access to the options
-    var transformed = combined.Select(static (pair, _) => 
-    {
-        AdditionalText text = pair.Left;
-        ParseOptions parseOptions = pair.Right;
-
-        // do the actual transform ...
-    });
-}
+    AdditionalText text = pair.Left;
+    ParseOptions parseOptions = pair.Right;
+    // do the actual transform ...
+});
 ```
 
 If either of the inputs to a combine change, then subsequent transformation will
@@ -707,7 +686,7 @@ dedicated input node that instead exposes a sub-set of the syntax they are
 interested in. The syntax provider is specialized in this way to achieve a
 desired level of performance.
 
-**CreateSyntaxProvider**:
+#### CreateSyntaxProvider
 
 Currently the provider exposes a single method `CreateSyntaxProvider` that
 allows the author to construct an input node.
@@ -751,12 +730,9 @@ public class Class3 {}
 As an author I can make an input node that extracts the return type information 
 
 ```csharp
-initContext.RegisterExecutionPipeline(static context =>
-{
-    // create a syntax provider that extracts the return type kind of method symbols
-    var returnKinds = context.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
+// create a syntax provider that extracts the return type kind of method symbols
+var returnKinds = initContext.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
                                                                   static (n, _) => ((IMethodSymbol)n.SemanticModel.GetDeclaredSymbol(n.Node)).ReturnType.Kind);
-}
 ```
 
 Initially the `predicate` will run for all syntax nodes, and select the two
@@ -792,18 +768,60 @@ public class Class4
 The `predicate` will be re-run for `file1.cs` as it has changed, and will pick
 out the method symbol `Method1()` again.  Next, because the `transform` is
 re-run for _all_ the methods, the return type kind for `Method2()` is correctly
-changed to `Error` as `Class1` no longer exists.
+changed to `ErrorType` as `Class1` no longer exists.
 
 Note that we didn't need to run the `predicate` over for nodes in `file2.cs`
 even though they referenced something in `file1.cs`. Because the first check is
 purely _syntactic_ we can be sure the results for `file2.cs` would be the same.
 
 While it may seem unfortunate that the driver must run the `transform` for all
-selected syntax nodes, if it did not it could up producing incorrect data
+selected syntax nodes, if it did not it could end up producing incorrect data
 due to cross file dependencies. Because the initial syntactic check
 allows the driver to substantially filter the number of nodes on which the
 semantic checks have to be re-run, significantly improved performance
 characteristics are still observed when editing a syntax tree.
+
+#### ForAttributeWithMetadataName (FAWMN)
+
+One extremely common action we observe generators being written for is taking
+actions driven on attributes applied to specific syntax constructs.
+
+```csharp
+public readonly struct SyntaxValueProvider
+{
+    public IncrementalValuesProvider<T> ForAttributeWithMetadataName<T>(
+        string fullyQualifiedMetadataName,
+        Func<SyntaxNode, CancellationToken, bool> predicate,
+        Func<GeneratorAttributeSyntaxContext, CancellationToken, T> transform);
+}
+```
+
+This area is particularly nice for optimization, as we can efficiently eliminate
+a significant number of syntax nodes and edits before even needing to call the
+provided `predicate` from the user, avoiding realizing a significant number of
+`SyntaxNode` instances. Roslyn can even further optimize this by tracking whether or
+not a given attribute could possibly be the attribute the generator cares about by
+maintaining a small index and comparing type names as an initial heuristic.
+This index is cheap to maintain and, importantly, can only have false positives, not
+false negatives. This allows us to eliminate 99% of syntax in a Compilation from ever
+needing to be checked for semantic information (to eliminate false positives from the
+heuristic cache) or by the user `predicate` function (saving a significant number of
+allocations of `SyntaxNode` instances).
+
+Given this, when at all possible, it is recommended to use attributes to drive source
+generators, rather than other syntax constructs. Real world testing has indicated this
+approach is usually 99x more efficient than `CreateSyntaxProvider`, even when the
+generator is otherwise not well-behaved; some pathological scenarios are even more efficient
+than that.
+
+Attributes are provided by the user as the fully-qualified metadata name, without the
+assembly name portion. For example, given the C# type `My.Namespace.MyAttribute<T>`,
+the fully-qualified metadata-name would be ``My.Namespace.MyAttribute`1``. Given that
+attributes are usually restricted to specific constructs by an `AttributeUsage`
+attribute, it is common that the `predicate` a user provides will simply return `true`.
+For the transformation step, everything stated in the [previous section](#createsyntaxprovider)
+is still relevant; that step will still be rerun with every change to ensure that changed
+semantics are observed.
 
 ## Outputting values
 
@@ -826,7 +844,7 @@ The set of output methods are
 
 **RegisterSourceOutput**:
 
-RegisterSourceOutput allows a generator author to produce source files and
+`RegisterSourceOutput` allows a generator author to produce source files and
 diagnostics that will be included in the users compilation. As input, it takes a
 `Value[s]Provider` and an `Action<SourceProductionContext, TSource>` that will
 be invoked for every value in the value provider.
@@ -856,21 +874,19 @@ For example, a generator can extract out the set of paths for the additional
 files and create a method that prints them out:
 
 ``` csharp
-initContext.RegisterExecutionPipeline(static context =>
+// get the additional text provider
+IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
+
+// apply a 1-to-1 transform on each text, extracting the path
+IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
+
+// collect the paths into a batch
+IncrementalValueProvider<ImmutableArray<string>> collected = transformed.Collect();
+
+// take the file paths from the above batch and make some user visible syntax
+initContext.RegisterSourceOutput(collected, static (sourceProductionContext, filePaths) =>
 {
-    // get the additional text provider
-    IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
-
-    // apply a 1-to-1 transform on each text, extracting the path
-    IncrementalValuesProvider<string> transformed = additionalTexts.Select(static (text, _) => text.Path);
-
-    // collect the paths into a batch
-    IncrementalValueProvider<ImmutableArray<string>> collected = transformed.Collect();
-    
-    // take the file paths from the above batch and make some user visible syntax
-    initContext.RegisterSourceOutput(collected, static (sourceProductionContext, filePaths) =>
-    {
-        sourceProductionContext.AddSource("additionalFiles.cs", @"
+    sourceProductionContext.AddSource("additionalFiles.cs", @"
 namespace Generated
 {
     public class AdditionalTextList
@@ -881,8 +897,7 @@ namespace Generated
         }
     }
 }");
-    });
-}
+});
 ```
 
 **RegisterImplementationSourceOutput**:
@@ -905,15 +920,15 @@ transformations are run, meaning that it will be visible as part of the rest of
 the regular execution pipeline, and an author may ask semantic questions about
 it.
 
-It is particularly useful for adding attributes to the users source code. These
-can then be added by the user their code, and the generator may find the
-attributed code via the semantic model.
+It is particularly useful for adding attribute definitions to the users'
+source code. These can then be applied by the user in their code, and the
+generator may find the attributed code via the semantic model.
 
 ## Handling Cancellation
 
 Incremental generators are designed to be used in interactive hosts such as an
 IDE. As such, it is critically important that generators respect and respond to
-the passed in cancellation tokens.
+the passed-in cancellation tokens.
 
 In general, it is likely that the amount of user computation performed per
 transformation is low, but often will be calling into Roslyn APIs that may have
@@ -928,7 +943,7 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
 {
     var txtFiles = context.AdditionalTextsProvider.Where(static f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
     
-    // ensure we forward the cancellation token to GeText
+    // ensure we forward the cancellation token to GetText
     var fileContents = txtFiles.Select(static (file, cancellationToken) => file.GetText(cancellationToken));   
 }
 ```
@@ -1033,7 +1048,7 @@ the driver knows there can be no work to be done when a `SyntaxTree` changes.
 
 ### Comparing Items
 
-For a user provided result to be comparable across iterations, there needs to be
+For a user-provided result to be comparable across iterations, there needs to be
 some concept of equivalence. By default the host will use `EqualityComparer<T>`
 to determine equivalence. There are obviously times where this is insufficient,
 and there exists an extension method that allows the author to supply a comparer

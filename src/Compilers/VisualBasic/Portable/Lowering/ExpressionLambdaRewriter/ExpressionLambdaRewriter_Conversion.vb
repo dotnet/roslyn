@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If notNullableTo.IsTypeParameter() Then
                     If toIsNullable Then
-                        Return Convert(VisitInternal(Me._factory.Null(Me.ObjectType)), typeTo, False)
+                        Return Convert(Visit(Me._factory.Null(Me.ObjectType)), typeTo, False)
                     Else
                         Return [Default](typeTo)
                     End If
@@ -111,8 +111,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ConvertLambda(node As BoundLambda, type As TypeSymbol) As BoundExpression
             If type.IsExpressionTree(Me._binder) Then
                 type = type.ExpressionTargetDelegate(Me._factory.Compilation)
-                Dim result = VisitLambdaInternal(node, DirectCast(type, NamedTypeSymbol))
-                Return ConvertRuntimeHelperToExpressionTree("Quote", result)
+                Dim result = _factory.Convert(_expressionType, VisitLambdaInternal(node, DirectCast(type, NamedTypeSymbol)))
+                Return ConvertRuntimeHelperToExpressionTree(WellKnownMember.System_Linq_Expressions_Expression__Quote, result)
             Else
                 Return VisitLambdaInternal(node, DirectCast(type, NamedTypeSymbol))
             End If
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case Else
                         Dim helper As MethodSymbol = Me._factory.WellKnownMember(Of MethodSymbol)(WellKnownMember.Microsoft_VisualBasic_CompilerServices_Conversions__ToGenericParameter_T_Object)
-                        Return [Call](_factory.Null(), helper.Construct(typeTo), rewrittenOperand)
+                        Return [Call](_factory.Null(_expressionType), helper.Construct(typeTo), rewrittenOperand)
                 End Select
 
             ElseIf underlyingFrom.IsTypeParameter() Then
@@ -399,7 +399,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateTypeAs(expr As BoundExpression, type As TypeSymbol) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree("TypeAs", expr, _factory.[Typeof](type))
+            Return ConvertRuntimeHelperToExpressionTree(
+                       WellKnownMember.System_Linq_Expressions_Expression__TypeAs,
+                       expr,
+                       _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)))
         End Function
 
         Private Function CreateTypeAsIfNeeded(operand As BoundExpression, oldType As TypeSymbol, newType As TypeSymbol) As BoundExpression
@@ -408,12 +411,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Emit a Convert node to a specific type with no helper method.
         Private Function Convert(expr As BoundExpression, type As TypeSymbol, isChecked As Boolean) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree(If(isChecked, "ConvertChecked", "Convert"), expr, _factory.[Typeof](type))
+            If expr.Type IsNot _expressionType Then
+                expr = _factory.Convert(_expressionType, expr)
+            End If
+
+            Return _factory.Convert(
+                _expressionType,
+                ConvertRuntimeHelperToExpressionTree(
+                    If(isChecked,
+                       WellKnownMember.System_Linq_Expressions_Expression__ConvertChecked,
+                       WellKnownMember.System_Linq_Expressions_Expression__Convert),
+                    expr,
+                    _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type))))
         End Function
 
         ' Emit a Convert node to a specific type with a helper method.
         Private Function Convert(expr As BoundExpression, type As TypeSymbol, helper As MethodSymbol, isChecked As Boolean) As BoundExpression
-            Return ConvertRuntimeHelperToExpressionTree(If(isChecked, "ConvertChecked", "Convert"), expr, _factory.[Typeof](type), _factory.MethodInfo(helper))
+            Return _factory.Convert(
+                _expressionType,
+                ConvertRuntimeHelperToExpressionTree(
+                    If(isChecked, WellKnownMember.System_Linq_Expressions_Expression__ConvertChecked_MethodInfo, WellKnownMember.System_Linq_Expressions_Expression__Convert_MethodInfo),
+                    expr,
+                    _factory.[Typeof](type, _factory.WellKnownType(WellKnownType.System_Type)),
+                    _factory.MethodInfo(helper, _factory.WellKnownType(WellKnownType.System_Reflection_MethodInfo))))
         End Function
 
         ' Emit a convert node if types are different.

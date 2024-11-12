@@ -4,8 +4,11 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -126,6 +129,235 @@ namespace x
         }
 
         [Fact]
+        public void EscapeCharStandalone()
+        {
+            var test = """
+                \e
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (1,1): error CS1056: Unexpected character '\'
+                // \e
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(1, 1),
+                // (1,3): error CS1001: Identifier expected
+                // \e
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 3),
+                // (1,3): error CS1002: ; expected
+                // \e
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 3));
+        }
+
+        [Fact]
+        public void EscapeCharInTypeName_A()
+        {
+            var test = """
+                namespace x
+                {
+                    public class \e
+                    {
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (3,18): error CS1001: Identifier expected
+                //     public class \e
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\").WithLocation(3, 18),
+                // (3,18): error CS1514: { expected
+                //     public class \e
+                Diagnostic(ErrorCode.ERR_LbraceExpected, @"\").WithLocation(3, 18),
+                // (3,18): error CS1513: } expected
+                //     public class \e
+                Diagnostic(ErrorCode.ERR_RbraceExpected, @"\").WithLocation(3, 18),
+                // (3,18): error CS1056: Unexpected character '\'
+                //     public class \e
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 18),
+                // (3,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                //     public class \e
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(3, 19),
+                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     {
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
+                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+        }
+
+        [Fact]
+        public void EscapeCharInTypeName_B()
+        {
+            var test = """
+                namespace x
+                {
+                    public class X\e
+                    {
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (3,19): error CS1514: { expected
+                //     public class X\e
+                Diagnostic(ErrorCode.ERR_LbraceExpected, @"\").WithLocation(3, 19),
+                // (3,19): error CS1513: } expected
+                //     public class X\e
+                Diagnostic(ErrorCode.ERR_RbraceExpected, @"\").WithLocation(3, 19),
+                // (3,19): error CS1056: Unexpected character '\'
+                //     public class X\e
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 19),
+                // (3,20): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                //     public class X\e
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "e").WithLocation(3, 20),
+                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     {
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
+                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+        }
+
+        [Fact]
+        public void EscapeCharInTypeName_C()
+        {
+            var test = """
+                namespace x
+                {
+                    public class \eX
+                    {
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (3,18): error CS1001: Identifier expected
+                //     public class \eX
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\").WithLocation(3, 18),
+                // (3,18): error CS1514: { expected
+                //     public class \eX
+                Diagnostic(ErrorCode.ERR_LbraceExpected, @"\").WithLocation(3, 18),
+                // (3,18): error CS1513: } expected
+                //     public class \eX
+                Diagnostic(ErrorCode.ERR_RbraceExpected, @"\").WithLocation(3, 18),
+                // (3,18): error CS1056: Unexpected character '\'
+                //     public class \eX
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(3, 18),
+                // (3,19): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+                //     public class \eX
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "eX").WithLocation(3, 19),
+                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     {
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(4, 5),
+                // (6,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 1));
+        }
+
+        [Fact]
+        public void EscapeCharInStringCSharp12_A()
+        {
+            var test = """
+                namespace x
+                {
+                    public class a
+                    {
+                        string a = "\e";
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
+                // (5,21): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         string a = "\e";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 21));
+        }
+
+        [Fact]
+        public void EscapeCharInStringCSharp12_B()
+        {
+            var test = """
+                namespace x
+                {
+                    public class a
+                    {
+                        string a = "e\ee";
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
+                // (5,22): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         string a = "e\ee";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 22));
+        }
+
+        [Fact]
+        public void EscapeCharInCharCSharp12_A()
+        {
+            var test = """
+                namespace x
+                {
+                    public class a
+                    {
+                        char a = '\e';
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular12,
+                // (5,19): error CS9202: Feature 'string escape character' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         char a = '\e';
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, @"\e").WithArguments("string escape character", "13.0").WithLocation(5, 19));
+        }
+
+        [Fact]
+        public void EscapeCharInStringCSharpPreview_A()
+        {
+            var test = """
+                namespace x
+                {
+                    public class a
+                    {
+                        string a = "\e";
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
+        }
+
+        [Fact]
+        public void EscapeCharInStringCSharpPreview_B()
+        {
+            var test = """
+                namespace x
+                {
+                    public class a
+                    {
+                        string a = "e\ee";
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
+        }
+
+        [Fact]
+        public void EscapeCharInCharCSharpPreview_A()
+        {
+            var test = """
+                namespace x
+                {
+                    public class a
+                    {
+                        string a = '\e';
+                    }
+                }
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Regular13);
+        }
+
+        [Fact]
         public void CS1010ERR_NewlineInConst()
         {
             var test = @"
@@ -195,13 +427,13 @@ public class C
             ParserErrorMessageTests.ParseAndValidate(test,
                 // (7,15): error CS1031: Type expected
                 //         const const double d = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(7, 15),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(7, 15),
                 // (8,15): error CS1031: Type expected
                 //         const const const long l = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 15),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 15),
                 // (8,21): error CS1031: Type expected
                 //         const const const long l = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(8, 21),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 21),
                 // (9,15): error CS0106: The modifier 'readonly' is not valid for this item
                 //         const readonly readonly readonly const double r = 0;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 15),
@@ -213,7 +445,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(9, 33),
                 // (9,42): error CS1031: Type expected
                 //         const readonly readonly readonly const double r = 0;
-                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithArguments("const").WithLocation(9, 42)
+                Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(9, 42)
             );
         }
 
@@ -282,6 +514,107 @@ public class MainClass
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test, Diagnostic(ErrorCode.ERR_OpenEndedComment, ""));
+        }
+
+        [Fact]
+        public void CS1035ERR_OpenEndedComment_Razor()
+        {
+            var test = @"
+public class MainClass
+    {
+    public static int Main ()
+        {
+        return 1;
+        }
+    }
+//Comment lacks closing */
+@*    
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (10,1): error CS1056: Unexpected character '@'
+                // @*    
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(10, 1),
+                // (10,1): error CS1035: End-of-file found, '*/' expected
+                // @*    
+                Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(10, 1));
+        }
+
+        [Fact]
+        public void CS1035ERR_OpenEndedComment_Razor_InterpolatedString()
+        {
+            var test = """
+                public class MainClass
+                    {
+                    public static int Main ()
+                        {
+                        return $"{1@*   
+                """;
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+                // (5,17): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(5, 17),
+                // (5,20): error CS1056: Unexpected character '@'
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(5, 20),
+                // (5,20): error CS1035: End-of-file found, '*/' expected
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(5, 20),
+                // (5,25): error CS1002: ; expected
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 25),
+                // (5,25): error CS1513: } expected
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 25),
+                // (5,25): error CS1513: } expected
+                //         return $"{1@*   
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 25));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_01()
+        {
+            var test = """
+                var x = @:;
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,9): error CS1525: Invalid expression term ''
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@:;").WithArguments("").WithLocation(1, 9),
+                // (1,10): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 10),
+                // (1,12): error CS1002: ; expected
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_02()
+        {
+            var test = """
+                @:<div>test</div>
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,2): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @:<div>test</div>
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 2));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_03()
+        {
+            var test = """
+                @: M() {}
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,2): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @: M() {}
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 2));
         }
 
         [Fact, WorkItem(526993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526993")]
@@ -389,6 +722,187 @@ class A
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\u0060"));
         }
 
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate1()
+        {
+            var test = $$"""
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int {{'\ud86d'}} = 1;
+                    }
+                }
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "\ud86d").WithLocation(6, 13),
+                // (6,13): error CS1056: Unexpected character '\ud86d'
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\ud86d").WithLocation(6, 13),
+                // (6,15): error CS1002: ; expected
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 15),
+                // (6,15): error CS1525: Invalid expression term '='
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_UnpairedSurrogate2()
+        {
+            var test = $$"""
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int {{'\udce7'}} = 1;
+                    }
+                }
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "\udce7").WithLocation(6, 13),
+                // (6,13): error CS1056: Unexpected character '\udce7'
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"\udce7").WithLocation(6, 13),
+                // (6,15): error CS1002: ; expected
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "=").WithLocation(6, 15),
+                // (6,15): error CS1525: Invalid expression term '='
+                //         int � = 1;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_Surrogate()
+        {
+            var test = """
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int 𫓧龦 = 1;
+                    }
+                }
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (6,13): error CS1001: Identifier expected
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "𫓧").WithLocation(6, 13),
+                // (6,13): error CS1056: Unexpected character '𫓧'
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("𫓧").WithLocation(6, 13),
+                // (6,15): error CS1002: ; expected
+                //         int 𫓧龦 = 1;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "龦").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS1056ERR_UnexpectedCharacter_Surrogate_Long()
+        {
+            // Create a file with 200 slashes in a row.  This will cause 200 'expected character' errors, after which
+            // the compiler will give up and make a single error (with a multi-char message) for the remainder of the doc.
+
+            var test = $$"""
+                using System;
+                class Test
+                {
+                    public static void Main()
+                    {
+                        int {{new string('\\', 200)}}𫓧𫓧 = 1;
+                    }
+                }
+                """;
+
+            var descriptions = new List<DiagnosticDescription>
+            { 
+                // (6,13): error CS1001: Identifier expected
+                //         int \..200 more slashes..\𫓧𫓧 = 1;
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, @"\").WithLocation(6, 13),
+            };
+
+            for (int i = 0; i < 200; i++)
+            {
+                descriptions.Add(
+                    // (6,13 + i): error CS1056: Unexpected character '\'
+                    //         int \..200 more slashes..\𫓧𫓧 = 1;
+                    Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(6, 13 + i));
+            }
+
+            descriptions.Add(
+                // (6,213): error CS1056: Unexpected character '𫓧'
+                //         int \..200 more slashes..\𫓧𫓧 = 1;
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"𫓧").WithLocation(6, 213));
+
+            // (6,214): error CS1056: Unexpected character '龦 = 1;\r\n    }\r\n}'
+            //         int \..200 more slashes..\𫓧𫓧 = 1;
+            if (PathUtilities.IsUnixLikePlatform)
+            {
+                descriptions.Add(Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"𫓧 = 1;\n    }\n}").WithLocation(6, 215));
+            }
+            else
+            {
+                descriptions.Add(Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments(@"𫓧 = 1;\r\n    }\r\n}").WithLocation(6, 215));
+            }
+
+            descriptions.AddRange(new[]
+            { 
+                // (8,2): error CS1002: ; expected
+                // }
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(8, 2),
+                // (8,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
+                // (8,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 2),
+            });
+
+            ParsingTests.ParseAndValidate(test, descriptions.ToArray());
+        }
+
+        [Fact]
+        public void CS1056ERR_RazorComment()
+        {
+            var test = """
+                @* comment *@
+                class C {}
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,1): error CS1056: Unexpected character '@'
+                // @* comment *@
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void CS1056ERR_RazorComment_InterpolatedString()
+        {
+            var test = """
+                $"{@* comment *@}"
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,4): error CS1056: Unexpected character '@'
+                // $"{@* comment *@}"
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "@").WithArguments("@").WithLocation(1, 4),
+                // (1,17): error CS1733: Expected expression
+                // $"{@* comment *@}"
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 17),
+                // (1,19): error CS1002: ; expected
+                // $"{@* comment *@}"
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 19));
+        }
+
         [Fact, WorkItem(535937, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535937")]
         public void CS1646ERR_ExpectedVerbatimLiteral()
         {
@@ -459,7 +973,7 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -478,10 +992,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -500,10 +1014,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,28): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,28): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 28));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 28));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -523,10 +1037,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -545,10 +1059,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,30): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,30): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         @" " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 30));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 30));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -568,10 +1082,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 28));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 28));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -592,10 +1106,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (9,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (9,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(9, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(9, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -615,10 +1129,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 28));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 28));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -638,10 +1152,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,28): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 28));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 28));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -661,10 +1175,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,39): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,39): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                                 " } " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 39));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 39));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -688,7 +1202,7 @@ public class Test
                 // (6,38): error CS1733: Expected expression
                 //       string s = $"x { /* comment */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 38));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (6,38): error CS1733: Expected expression
                 //       string s = $"x { /* comment */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 38));
@@ -745,7 +1259,7 @@ public class Test
                 // (9,1): error CS1513: } expected
                 // 
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 1));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
                 //       string s = $"x { /* comment } y";
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
@@ -818,7 +1332,7 @@ public class Test
                 // (10,1): error CS1513: } expected
                 // 
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 1));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (6,21): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
                 //       string s = $"x { /* comment
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(6, 21),
@@ -854,7 +1368,7 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -873,10 +1387,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 27));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 27));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -902,7 +1416,7 @@ public class Test
                 // (8,29): error CS1733: Expected expression
                 //                          */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(8, 29));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (8,29): error CS1733: Expected expression
                 //                          */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(8, 29));
@@ -923,7 +1437,7 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -942,10 +1456,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 27));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 27));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -970,7 +1484,7 @@ public class Test
                 // (7,23): error CS1733: Expected expression
                 //                       } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (7,23): error CS1733: Expected expression
                 //                       } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 23));
@@ -992,10 +1506,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1014,10 +1528,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 27));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 27));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1044,7 +1558,7 @@ public class Test
                 // (9,23): error CS1733: Expected expression
                 //                       } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(9, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (9,23): error CS1733: Expected expression
                 //                       } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(9, 23));
@@ -1068,10 +1582,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (9,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (9,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(9, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(9, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1092,10 +1606,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (9,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (9,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(9, 27));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(9, 27));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1117,10 +1631,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (10,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(10, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(10, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1145,7 +1659,7 @@ public class Test
                 // (7,39): error CS1733: Expected expression
                 //                         /* comment */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 39));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (7,39): error CS1733: Expected expression
                 //                         /* comment */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 39));
@@ -1167,10 +1681,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (7,41): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (7,41): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         /* comment */ 0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(7, 41));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(7, 41));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1197,7 +1711,7 @@ public class Test
                 // (9,29): error CS1733: Expected expression
                 //                          */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(9, 29));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (9,29): error CS1733: Expected expression
                 //                          */ } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(9, 29));
@@ -1221,10 +1735,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (9,31): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (9,31): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                          */ 0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(9, 31));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(9, 31));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1246,10 +1760,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,27): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (10,27): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                         0 } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(10, 27));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(10, 27));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1277,7 +1791,7 @@ public class Test
                 // (10,23): error CS1733: Expected expression
                 //                       } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(10, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                 // (10,23): error CS1733: Expected expression
                 //                       } y";
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(10, 23));
@@ -1302,10 +1816,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (10,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (10,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(10, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(10, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1328,10 +1842,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (11,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (11,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                       } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(11, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(11, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1356,7 +1870,7 @@ public class Test
                     // (7,23): error CS1733: Expected expression
                     //                       } y";
                     Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                     // (7,23): error CS1733: Expected expression
                     //                       } y";
                     Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 23));
@@ -1384,7 +1898,7 @@ public class Test
                     // (7,24): error CS1733: Expected expression
                     //                        } y";
                     Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 24));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                     // (7,24): error CS1733: Expected expression
                     //                        } y";
                     Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 24));
@@ -1412,7 +1926,7 @@ public class Test
                     // (7,30): error CS1733: Expected expression
                     //                              } " } y";
                     Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 30));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
                     // (7,30): error CS1733: Expected expression
                     //                              } " } y";
                     Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(7, 30));
@@ -1435,10 +1949,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                    // (8,23): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                    // (8,23): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                     //                       } y";
-                    Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 23));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                    Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 23));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1458,7 +1972,7 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics();
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1478,10 +1992,10 @@ public class Test
 
             ParserErrorMessageTests.ParseAndValidate(test);
             CreateCompilation(test, parseOptions: TestOptions.Regular10).VerifyDiagnostics(
-                // (8,34): error CS8967: Newlines inside a non-verbatim interpolated string is not supported in C# 10.0. Please use language version preview or greater.
+                // (8,34): error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 10.0. Please use language version 11.0 or greater.
                 //                              } " } y";
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "preview").WithLocation(8, 34));
-            CreateCompilation(test, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "}").WithArguments("10.0", "11.0").WithLocation(8, 34));
+            CreateCompilation(test, parseOptions: TestOptions.Regular11).VerifyDiagnostics();
         }
 
         #endregion
@@ -1505,10 +2019,18 @@ class Test
 }
 ";
 
-            ParserErrorMessageTests.ParseAndValidate(test,
-Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"),
-Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"),
-Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"));
+            ParserErrorMessageTests.ParseAndValidate(test);
+
+            CreateCompilation(test).VerifyDiagnostics(
+                // (6,20): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //         long l = 25l;   // CS0078
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(6, 20),
+                // (7,21): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //         ulong n1 = 1lu;   // CS0078
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(7, 21),
+                // (8,22): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //         ulong n2 = 10lU;   // CS0078
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(8, 22));
         }
 
         [Fact, WorkItem(530118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530118")]

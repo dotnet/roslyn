@@ -23,9 +23,11 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using SeparatedWithManyChildren = Microsoft.CodeAnalysis.Syntax.SyntaxList.SeparatedWithManyChildren;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -33,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         internal static bool EnableVerifyIOperation { get; } =
 #if ROSLYN_TEST_IOPERATION
-            true;
+                                    true;
 #else
-            !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+                        !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
 #endif
 
         internal static bool EnableVerifyUsedAssemblies { get; } =
@@ -274,10 +276,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var compilation = createCompilation();
             var roots = ArrayBuilder<(IOperation operation, ISymbol associatedSymbol)>.GetInstance();
             var stopWatch = new Stopwatch();
-            if (!System.Diagnostics.Debugger.IsAttached)
-            {
-                stopWatch.Start();
-            }
+            start(stopWatch);
 
             void checkTimeout()
             {
@@ -305,8 +304,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(semanticModel, operation.SemanticModel);
                         Assert.NotSame(semanticModel, ((Operation)operation).OwningSemanticModel);
                         Assert.NotNull(((Operation)operation).OwningSemanticModel);
-                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingModelOrSelf);
-                        Assert.Same(semanticModel, semanticModel.ContainingModelOrSelf);
+                        Assert.Same(semanticModel, ((Operation)operation).OwningSemanticModel.ContainingPublicModelOrSelf);
+                        Assert.Same(semanticModel, semanticModel.ContainingPublicModelOrSelf);
 
                         if (operation.Parent == null)
                         {
@@ -314,6 +313,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         }
                     }
                 }
+
+                tree.VerifyChildNodePositions();
             }
 
             var explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
@@ -342,12 +343,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 stopWatch.Stop();
                 checkControlFlowGraph(root, associatedSymbol);
-                stopWatch.Start();
+                start(stopWatch);
             }
 
             roots.Free();
             stopWatch.Stop();
             return;
+
+            static void start(Stopwatch stopWatch)
+            {
+                if (!System.Diagnostics.Debugger.IsAttached)
+                {
+                    stopWatch.Start();
+                }
+            }
 
             void checkControlFlowGraph(IOperation root, ISymbol associatedSymbol)
             {
@@ -370,8 +379,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
 
                     case IParameterInitializerOperation parameterInitializerOperation:
-                        // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local functions.
-                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+                        // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local and anonymous functions.
+                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind is not (MethodKind.LocalFunction or MethodKind.AnonymousFunction))
                         {
                             ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root), associatedSymbol);
                         }
@@ -380,12 +389,78 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        internal static void VerifyChildNodePositions(this SyntaxTree tree)
+        {
+            var nodes = tree.GetRoot().DescendantNodesAndSelf();
+            foreach (var node in nodes)
+            {
+                var childNodesAndTokens = node.ChildNodesAndTokens();
+                if (childNodesAndTokens.Node is { } container)
+                {
+                    for (int i = 0; i < childNodesAndTokens.Count; i++)
+                    {
+                        if (container.GetNodeSlot(i) is SeparatedWithManyChildren separatedList)
+                        {
+                            verifyPositions(separatedList);
+                        }
+                    }
+                }
+            }
+
+            static void verifyPositions(SeparatedWithManyChildren separatedList)
+            {
+                var green = (Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList)separatedList.Green;
+
+                // Calculate positions from start, using existing cache.
+                int[] positions = getPositionsFromStart(separatedList);
+
+                // Calculate positions from end, using existing cache.
+                AssertEx.Equal(positions, getPositionsFromEnd(separatedList));
+
+                // Avoid testing without caches if the number of children is large.
+                if (separatedList.SlotCount > 100)
+                {
+                    return;
+                }
+
+                // Calculate positions from start, with empty cache.
+                AssertEx.Equal(positions, getPositionsFromStart(new SeparatedWithManyChildren(green, null, separatedList.Position)));
+
+                // Calculate positions from end, with empty cache.
+                AssertEx.Equal(positions, getPositionsFromEnd(new SeparatedWithManyChildren(green, null, separatedList.Position)));
+            }
+
+            // Calculate positions from start, using any existing cache of red nodes on separated list.
+            static int[] getPositionsFromStart(SeparatedWithManyChildren separatedList)
+            {
+                int n = separatedList.SlotCount;
+                var positions = new int[n];
+                for (int i = 0; i < n; i++)
+                {
+                    positions[i] = separatedList.GetChildPosition(i);
+                }
+                return positions;
+            }
+
+            // Calculate positions from end, using any existing cache of red nodes on separated list.
+            static int[] getPositionsFromEnd(SeparatedWithManyChildren separatedList)
+            {
+                int n = separatedList.SlotCount;
+                var positions = new int[n];
+                for (int i = n - 1; i >= 0; i--)
+                {
+                    positions[i] = separatedList.GetChildPositionFromEnd(i);
+                }
+                return positions;
+            }
+        }
+
         /// <summary>
         /// The reference assembly System.Runtime.InteropServices.WindowsRuntime was removed in net5.0. This builds
         /// up <see cref="CompilationReference"/> which contains all of the well known types that were used from that
         /// reference by the compiler.
         /// </summary>
-        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference()
+        public static PortableExecutableReference CreateWindowsRuntimeMetadataReference(TargetFramework targetFramework = TargetFramework.NetCoreApp)
         {
             var source = @"
 namespace System.Runtime.InteropServices.WindowsRuntime
@@ -432,8 +507,8 @@ namespace System.Runtime.InteropServices.WindowsRuntime
             // WellKnownTypes and WellKnownMembers so it can be safely skipped here. 
             var compilation = CSharpCompilation.Create(
                 "System.Runtime.InteropServices.WindowsRuntime",
-                new[] { CSharpSyntaxTree.ParseText(source) },
-                references: TargetFrameworkUtil.GetReferences(TargetFramework.NetCoreApp),
+                new[] { CSharpSyntaxTree.ParseText(SourceText.From(source, encoding: null, SourceHashAlgorithms.Default)) },
+                references: TargetFrameworkUtil.GetReferences(targetFramework),
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.VerifyEmitDiagnostics();
             return compilation.EmitToPortableExecutableReference();

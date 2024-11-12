@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports System.Xml.Linq
 Imports Xunit
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
     Public Class NoPia
@@ -226,7 +227,7 @@ End Class
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(New Object() {
                     compilation1,
                     compilation2,
-                    TestMetadata.Net40.mscorlib
+                    Net40.References.mscorlib
                 })
             Dim localTypes1 = assemblies(0).Modules(0)
             Dim localTypes2 = assemblies(1).Modules(0)
@@ -261,20 +262,20 @@ End Class
             Dim fullName_S1 = MetadataTypeName.FromFullName("S1")
             Dim fullName_S2 = MetadataTypeName.FromFullName("NS1.S2")
 
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes1.LookupTopLevelMetadataType(fullName_I1))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes1.LookupTopLevelMetadataType(fullName_I2))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes1.LookupTopLevelMetadataType(fullName_S1))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes1.LookupTopLevelMetadataType(fullName_S2))
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(fullName_I1))
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(fullName_I2))
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(fullName_S1))
+            Assert.Null(localTypes1.LookupTopLevelMetadataType(fullName_S2))
 
             Assert.Null(assemblies(0).GetTypeByMetadataName(fullName_I1.FullName))
             Assert.Null(assemblies(0).GetTypeByMetadataName(fullName_I2.FullName))
             Assert.Null(assemblies(0).GetTypeByMetadataName(fullName_S1.FullName))
             Assert.Null(assemblies(0).GetTypeByMetadataName(fullName_S2.FullName))
 
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes2.LookupTopLevelMetadataType(fullName_I1))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes2.LookupTopLevelMetadataType(fullName_I2))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes2.LookupTopLevelMetadataType(fullName_S1))
-            Assert.IsType(Of MissingMetadataTypeSymbol.TopLevel)(localTypes2.LookupTopLevelMetadataType(fullName_S2))
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(fullName_I1))
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(fullName_I2))
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(fullName_S1))
+            Assert.Null(localTypes2.LookupTopLevelMetadataType(fullName_S2))
 
             Assert.Null(assemblies(1).GetTypeByMetadataName(fullName_I1.FullName))
             Assert.Null(assemblies(1).GetTypeByMetadataName(fullName_I2.FullName))
@@ -1589,7 +1590,6 @@ End Interface
     ]]></file>
 </compilation>
 
-
             Dim pia1 = CreateCompilationWithMscorlib40(piaSource, options:=TestOptions.ReleaseDll)
             CompileAndVerify(pia1)
 
@@ -1661,7 +1661,7 @@ public delegate Sub Y(addin As List(Of string))
 </compilation>
 
             Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseDll,
-                references:={TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)})
+                references:={TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)})
 
             Dim source2 =
 <compilation>
@@ -1676,14 +1676,14 @@ End Module
 
             Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2,
                 {comp1.EmitToImageReference(),
-                TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
+                TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)},
                 TestOptions.ReleaseExe)
 
             CompileAndVerify(comp2, expectedOutput:="Y").Diagnostics.Verify()
 
             Dim comp3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2,
                 {New VisualBasicCompilationReference(comp1),
-                TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(True)},
+                TestReferences.SymbolsTests.NoPia.StdOleNet40.WithEmbedInteropTypes(True)},
                 TestOptions.ReleaseExe)
 
             CompileAndVerify(comp3, expectedOutput:="Y").Diagnostics.Verify()
@@ -1702,7 +1702,7 @@ Imports System.Runtime.InteropServices
 Public Structure Test
 End Structure
 "
-            Dim piaCompilation = CreateCompilationWithMscorlib45(pia, options:=TestOptions.ReleaseDll, assemblyName:="Pia")
+            Dim piaCompilation = CreateCompilationWithMscorlib461(pia, options:=TestOptions.ReleaseDll, assemblyName:="Pia")
 
             Dim consumer1 = "
 Public Class UsePia1 
@@ -1720,7 +1720,7 @@ Public Class Program
 End Class
 "
             For Each piaRef As MetadataReference In {piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference()}
-                Dim compilation1 = CreateCompilationWithMscorlib45(consumer1, references:={piaRef.WithEmbedInteropTypes(True)}, options:=TestOptions.ReleaseDll)
+                Dim compilation1 = CreateCompilationWithMscorlib461(consumer1, references:={piaRef.WithEmbedInteropTypes(True)}, options:=TestOptions.ReleaseDll)
 
                 For Each consumer1Ref As MetadataReference In {compilation1.EmitToImageReference(), compilation1.ToMetadataReference()}
                     Dim compilation2 = CreateEmptyCompilation(consumer2, references:={MscorlibRef_v46, piaRef, consumer1Ref})

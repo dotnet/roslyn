@@ -358,7 +358,7 @@ namespace Microsoft.DiaSymReader
         [PreserveSig]
         int GetNameFromToken(
             int token,
-            [Out] byte* nameUTF8); // name on the #String heap
+            [Out] byte* nameUtf8); // name on the #String heap
 
         [PreserveSig]
         int EnumUnresolvedMethods(

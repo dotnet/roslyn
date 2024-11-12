@@ -2,45 +2,30 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private sealed class GlobalOptionChangedEventSource(IGlobalOptionService globalOptions, Func<IOption2, bool> predicate) : AbstractTaggerEventSource
     {
-        private class OptionChangedEventSource : AbstractWorkspaceTrackingTaggerEventSource
+        public override void Connect()
         {
-            private readonly IOption _option;
-            private IOptionService? _optionService;
+            globalOptions.AddOptionChangedHandler(this, OnGlobalOptionChanged);
+        }
 
-            public OptionChangedEventSource(ITextBuffer subjectBuffer, IOption option) : base(subjectBuffer)
-                => _option = option;
+        public override void Disconnect()
+        {
+            globalOptions.RemoveOptionChangedHandler(this, OnGlobalOptionChanged);
+        }
 
-            protected override void ConnectToWorkspace(Workspace workspace)
+        private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs e)
+        {
+            if (e.HasOption(predicate))
             {
-                _optionService = workspace.Services.GetService<IOptionService>();
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged += OnOptionChanged;
-                }
-            }
-
-            protected override void DisconnectFromWorkspace(Workspace workspace)
-            {
-                if (_optionService != null)
-                {
-                    _optionService.OptionChanged -= OnOptionChanged;
-                    _optionService = null;
-                }
-            }
-
-            private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
-            {
-                if (e.Option == _option)
-                {
-                    this.RaiseChanged();
-                }
+                RaiseChanged();
             }
         }
     }

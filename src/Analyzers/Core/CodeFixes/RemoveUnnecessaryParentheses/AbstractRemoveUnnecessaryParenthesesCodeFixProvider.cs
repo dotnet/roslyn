@@ -10,54 +10,40 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
+namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
+
+internal abstract class AbstractRemoveUnnecessaryParenthesesCodeFixProvider<TParenthesizedExpressionSyntax>
+    : SyntaxEditorBasedCodeFixProvider
+    where TParenthesizedExpressionSyntax : SyntaxNode
 {
-    internal abstract class AbstractRemoveUnnecessaryParenthesesCodeFixProvider<TParenthesizedExpressionSyntax>
-        : SyntaxEditorBasedCodeFixProvider
-        where TParenthesizedExpressionSyntax : SyntaxNode
+    public override ImmutableArray<string> FixableDiagnosticIds
+       => [IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId];
+
+    protected abstract bool CanRemoveParentheses(
+        TParenthesizedExpressionSyntax current, SemanticModel semanticModel, CancellationToken cancellationToken);
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        public override ImmutableArray<string> FixableDiagnosticIds
-           => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId);
+        RegisterCodeFix(context, AnalyzersResources.Remove_unnecessary_parentheses, nameof(AnalyzersResources.Remove_unnecessary_parentheses));
+        return Task.CompletedTask;
+    }
 
-        internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
+    protected override Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var originalNodes = diagnostics.SelectAsArray(
+            d => (TParenthesizedExpressionSyntax)d.AdditionalLocations[0].FindNode(
+                findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken));
 
-        protected abstract bool CanRemoveParentheses(
-            TParenthesizedExpressionSyntax current, SemanticModel semanticModel, CancellationToken cancellationToken);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            context.RegisterCodeFix(
-                new MyCodeAction(
-                    c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                    context.Diagnostics);
-            return Task.CompletedTask;
-        }
-
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var originalNodes = diagnostics.SelectAsArray(
-                d => (TParenthesizedExpressionSyntax)d.AdditionalLocations[0].FindNode(
-                    findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken));
-
-            return editor.ApplyExpressionLevelSemanticEditsAsync(
-                document, originalNodes,
-                (semanticModel, current) => current != null && CanRemoveParentheses(current, semanticModel, cancellationToken),
-                (_, currentRoot, current) => currentRoot.ReplaceNode(current, syntaxFacts.Unparenthesize(current)),
-                cancellationToken);
-        }
-
-        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
-        {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Remove_unnecessary_parentheses, createChangedDocument, AnalyzersResources.Remove_unnecessary_parentheses)
-            {
-            }
-        }
+        return editor.ApplyExpressionLevelSemanticEditsAsync(
+            document, originalNodes,
+            (semanticModel, current) => current != null && CanRemoveParentheses(current, semanticModel, cancellationToken),
+            (_, currentRoot, current) => currentRoot.ReplaceNode(current, syntaxFacts.Unparenthesize(current)),
+            cancellationToken);
     }
 }

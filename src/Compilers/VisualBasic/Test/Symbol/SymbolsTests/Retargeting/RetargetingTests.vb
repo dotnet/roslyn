@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 #If Not Retargeting Then
@@ -844,8 +845,6 @@ End Class
                    </file>
                </compilation>
 
-
-
             Dim CL1_source =
                <compilation name="C1">
                    <file name="Cl.vb"><![CDATA[
@@ -930,7 +929,6 @@ End Namespace
                    </file>
                </compilation>
 
-
             'Check Expected Behavior - Expect no diagnostic errors without retargeting            
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
 
@@ -939,7 +937,6 @@ End Namespace
                                                    expectedOutput:=<![CDATA[Success
 ]]>)
             main_NoRetarget.VerifyDiagnostics()
-
 
             'Retargetted - should result in No additional Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
@@ -1027,7 +1024,6 @@ End Namespace
             'The test involves compilation with/without retargeting and ensuring same behavior at runtime
             'same diagnostics (or lack off) as compile time
             'and verification of the retargeted types and the underlying source type and pertinent items
-
 
             Dim source =
                <compilation name="App1">
@@ -1173,8 +1169,6 @@ Module Module_Usage
                    </file>
                </compilation>
 
-
-
             Dim CL1_source =
                <compilation name="C1">
                    <file name="Cl.vb"><![CDATA[
@@ -1305,7 +1299,6 @@ End Namespace
 ]]>)
             main_NoRetarget.VerifyDiagnostics()
 
-
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
             ' ILVerify: Multiple modules named 'mscorlib' were found
@@ -1322,7 +1315,6 @@ End Namespace
             Dim retargetingAssembly = Main_Retarget.Compilation.GetReferencedAssemblySymbol(RetargetReference)
             Dim retargetingModule = retargetingAssembly.Modules(0)
             Dim retargetingNamespace As RetargetingNamespaceSymbol = CType(retargetingModule.GlobalNamespace.GetNamespace("ClassLibrary1"), RetargetingNamespaceSymbol)
-
 
             'Comparison of Types
             Dim sourceType As NamedTypeSymbol = Nothing
@@ -1436,8 +1428,6 @@ End Namespace
                    </file>
                </compilation>
 
-
-
             Dim CL1_source =
                <compilation name="C1">
                    <file name="Cl.vb"><![CDATA[
@@ -1487,7 +1477,6 @@ End Namespace
         ]]>
                    </file>
                </compilation>
-
 
             'Check Expected Behavior             
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
@@ -1673,8 +1662,6 @@ Imports System
                    </file>
                </compilation>
 
-
-
             'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
@@ -1691,7 +1678,6 @@ Imports System
 22
 32]]>)
             main_NoRetarget.VerifyDiagnostics()
-
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
@@ -1823,8 +1809,6 @@ End Module
                    </file>
                </compilation>
 
-
-
             Dim CL1_source =
                <compilation name="C1">
                    <file name="Cl.vb"><![CDATA[
@@ -1891,9 +1875,6 @@ Method(Base)
 MethodOverload(Base)
 ]]>)
             main_NoRetarget.VerifyDiagnostics()
-
-
-
 
             '//Retargetted - should result in No Errors also same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
@@ -2098,8 +2079,6 @@ End Module
                    </file>
                </compilation>
 
-
-
             Dim CL1_source =
                <compilation name="C1">
                    <file name="Cl.vb"><![CDATA[
@@ -2155,8 +2134,6 @@ End Class
                    </file>
                </compilation>
 
-
-
             'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
@@ -2172,7 +2149,6 @@ Success
 Success
 Success]]>)
             main_NoRetarget.VerifyDiagnostics()
-
 
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
@@ -2303,8 +2279,6 @@ End Enum
                    </file>
                </compilation>
 
-
-
             Dim CL1_source =
                <compilation name="C1">
                    <file name="Cl.vb"><![CDATA[
@@ -2354,8 +2328,6 @@ End Class
                    </file>
                </compilation>
 
-
-
             'Check Expected Behavior - Expect no diagnostic errors with retargeting
             ' All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(CL1_source, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
@@ -2366,7 +2338,6 @@ End Class
 test
 ]]>)
             main_NoRetarget.VerifyDiagnostics()
-
 
             '//Retargetted - should result in No Errors also
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
@@ -2416,8 +2387,6 @@ test
             CheckTypes(sourceType, retargetingType)
 
         End Sub
-
-
 
         <Fact>
         Public Sub RetargetTest_NoChangeInDiagnostics_CleanCompile()
@@ -2538,7 +2507,6 @@ End Namespace
 ]]>
     </file>
 </compilation>
-
 
             Dim sourceMain =
 <compilation name="Main">
@@ -2697,7 +2665,6 @@ End Class
             main_NoRetarget.VerifyDiagnostics()
         End Sub
 
-
         <Fact>
         Public Sub RetargetTest_NoChangeInDiagnostics_Errors()
             ' Ensure that same errors occur in retargeting for constraint compilation errors
@@ -2817,7 +2784,6 @@ End Namespace
 ]]>
     </file>
 </compilation>
-
 
             Dim sourceMain =
 <compilation name="Main">
@@ -3047,8 +3013,6 @@ End Module
                    </file>
                </compilation>
 
-
-
             Dim CL1_source =
                <compilation name="C1">
                    <file name="Cl.vb"><![CDATA[
@@ -3085,7 +3049,6 @@ End Namespace
 ]]>)
             main_NoRetarget.VerifyDiagnostics()
 
-
             '//Retargetted - should result in No Errors also and same runtime behavior
             Dim RetargetReference = RetargetCompilationToV2MsCorlib(referenceLibrary_Compilation)
             ' ILVerify: Multiple modules named 'mscorlib' were found
@@ -3102,7 +3065,6 @@ End Namespace
             Dim retargetingAssembly = Main_Retarget.Compilation.GetReferencedAssemblySymbol(RetargetReference)
             Dim retargetingModule = retargetingAssembly.Modules(0)
             Dim retargetingNamespace As RetargetingNamespaceSymbol = CType(retargetingModule.GlobalNamespace.GetNamespace("ClassLibrary1"), RetargetingNamespaceSymbol)
-
 
             'Comparison of Types
             Dim sourceType As NamedTypeSymbol = Nothing
@@ -3182,12 +3144,12 @@ End Namespace
                 Else
                     'Retarget to use v2.0 assemblies
                     If AssembliesToRetarget = 1 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=TestMetadata.Net20.mscorlib)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=Net20.References.mscorlib)
                     ElseIf AssembliesToRetarget = 2 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldVBReference, newReference:=TestMetadata.Net20.MicrosoftVisualBasic)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldVBReference, newReference:=Net20.References.MicrosoftVisualBasic)
                     ElseIf AssembliesToRetarget = 3 Then
-                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=TestMetadata.Net20.mscorlib).
-                            ReplaceReference(oldReference:=OldVBReference, newReference:=TestMetadata.Net20.MicrosoftVisualBasic)
+                        NewCompilation = C.ReplaceReference(oldReference:=OldReference, newReference:=Net20.References.mscorlib).
+                            ReplaceReference(oldReference:=OldVBReference, newReference:=Net20.References.MicrosoftVisualBasic)
                     End If
                 End If
             Else
@@ -3299,8 +3261,6 @@ End Class
 
     End Class
 #End If
-
-
 
 End Namespace
 

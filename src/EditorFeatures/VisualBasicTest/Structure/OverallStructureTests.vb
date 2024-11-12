@@ -17,9 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End Get
         End Property
 
-        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
+        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, options As BlockStructureOptions, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
             Dim outliningService = document.GetLanguageService(Of BlockStructureService)()
-            Dim options = GetOptions()
 
             Return (Await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans
         End Function
@@ -35,8 +34,8 @@ End Class|}
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span1", "Class C ...", autoCollapse:=False),
-                Region("span2", "Something", autoCollapse:=False, isDefaultCollapsed:=True))
+                Region("span2", "Something", autoCollapse:=False, isDefaultCollapsed:=True),
+                Region("span1", "Class C ...", autoCollapse:=False))
         End Function
     End Class
 End Namespace

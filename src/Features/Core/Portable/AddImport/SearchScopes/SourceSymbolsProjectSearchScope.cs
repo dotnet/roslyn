@@ -2,68 +2,58 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.AddImport
+namespace Microsoft.CodeAnalysis.AddImport;
+
+internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
+    /// <summary>
+    /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
+    /// i.e. symbols from metadata will not be searched.
+    /// </summary>
+    private sealed class SourceSymbolsProjectSearchScope(
+        AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
+        ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> projectToAssembly,
+        Project project, bool ignoreCase) : ProjectSearchScope(provider, project, ignoreCase)
     {
-        /// <summary>
-        /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
-        /// i.e. symbols from metadata will not be searched.
-        /// </summary>
-        private class SourceSymbolsProjectSearchScope : ProjectSearchScope
+        private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol?>> _projectToAssembly = projectToAssembly;
+
+        protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
+            SymbolFilter filter, SearchQuery searchQuery, CancellationToken cancellationToken)
         {
-            private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
-
-            public SourceSymbolsProjectSearchScope(
-                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
-                ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
-                Project project, bool ignoreCase, CancellationToken cancellationToken)
-                : base(provider, project, ignoreCase, cancellationToken)
+            var service = _project.Solution.Services.GetRequiredService<ISymbolTreeInfoCacheService>();
+            var info = await service.TryGetPotentiallyStaleSourceSymbolTreeInfoAsync(_project, cancellationToken).ConfigureAwait(false);
+            if (info == null)
             {
-                _projectToAssembly = projectToAssembly;
+                // Looks like there was nothing in the cache.  Return no results for now.
+                return [];
             }
 
-            protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                SymbolFilter filter, SearchQuery searchQuery)
-            {
-                var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
-                if (info == null)
-                {
-                    // Looks like there was nothing in the cache.  Return no results for now.
-                    return ImmutableArray<ISymbol>.Empty;
-                }
+            // Don't create the assembly until it is actually needed by the SymbolTreeInfo.FindAsync
+            // code.  Creating the assembly can be costly and we want to avoid it until it is actually
+            // needed.
+            var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
-                // Don't create the assembly until it is actually needed by the SymbolTreeInfo.FindAsync
-                // code.  Creating the assembly can be costly and we want to avoid it until it is actually
-                // needed.
-                var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
+            var declarations = await info.FindAsync(
+                searchQuery, lazyAssembly, filter, cancellationToken).ConfigureAwait(false);
 
-                var declarations = await info.FindAsync(
-                    searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
+            return declarations;
 
-                return declarations;
-            }
-
-            private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
-            {
-                return new AsyncLazy<IAssemblySymbol>(
-                    async c =>
-                    {
-                        var compilation = await project.GetCompilationAsync(c).ConfigureAwait(false);
-                        return compilation.Assembly;
-                    }, cacheResult: true);
-            }
+            static AsyncLazy<IAssemblySymbol?> CreateLazyAssembly(Project project)
+                => AsyncLazy.Create(static async (project, c) =>
+                       {
+                           var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
+                           return (IAssemblySymbol?)compilation.Assembly;
+                       },
+                       arg: project);
         }
     }
 }

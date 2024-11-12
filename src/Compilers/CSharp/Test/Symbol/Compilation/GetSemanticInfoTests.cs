@@ -2479,7 +2479,7 @@ class Program
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
             var sym = model.GetSymbolInfo(expr);
-            Assert.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)", sym.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32 System.Int32.op_CheckedAddition(System.Int32 left, System.Int32 right)", sym.Symbol.ToTestDisplayString());
 
             var info = model.GetTypeInfo(expr);
             var conv = model.GetConversion(expr);
@@ -5943,7 +5943,7 @@ class C
         public void GetSpecialType_ThrowsOnGreaterThanCount()
         {
             var source = "class C1 { }";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
 
             var specialType = SpecialType.Count + 1;
 

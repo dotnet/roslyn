@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 WithSpecificDiagnosticOptions(
                     new[] { KeyValuePairUtil.Create($"CS{(int)ErrorCode.WRN_AlwaysNull:D4}", ReportDiagnostic.Suppress) }));
 
-            var d1 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlignmentMagnitude);
-            var d2 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlwaysNull);
+            var d1 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlignmentMagnitude, "1", "2");
+            var d2 = SimpleDiagnostic.Create(MessageProvider.Instance, (int)ErrorCode.WRN_AlwaysNull, "1");
             var ds = new[] { null, d1, d2 };
 
             var filtered = CompilationWithAnalyzers.GetEffectiveDiagnostics(ds, c);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             DiagnosticAnalyzer analyzer = new AnalyzerWithDisabledRules();
             var analyzers = ImmutableArray.Create(analyzer);
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
-            var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions, CancellationToken.None);
+            var compWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, analyzerOptions);
 
             var analysisResult = compWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
             Assert.Empty(analysisResult.CompilationDiagnostics);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Equal(0, analyzerTelemetry.SymbolActionsCount);
         }
 
-        [Fact]
+        [Fact, Obsolete(message: "IsDiagnosticAnalyzerSuppressed is an obsolete public API")]
         public void TestIsDiagnosticAnalyzerSuppressedWithExceptionInSupportedDiagnostics()
         {
             // Verify IsDiagnosticAnalyzerSuppressed does not throw an exception when 'onAnalyzerException' is null.

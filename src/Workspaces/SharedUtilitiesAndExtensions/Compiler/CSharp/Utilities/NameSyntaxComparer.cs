@@ -5,87 +5,53 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Utilities
+namespace Microsoft.CodeAnalysis.CSharp.Utilities;
+
+internal class NameSyntaxComparer : IComparer<NameSyntax?>
 {
-    internal class NameSyntaxComparer : IComparer<NameSyntax?>
+    private readonly IComparer<SyntaxToken> _tokenComparer;
+    internal readonly TypeSyntaxComparer TypeComparer;
+
+    internal NameSyntaxComparer(IComparer<SyntaxToken> tokenComparer)
     {
-        private readonly IComparer<SyntaxToken> _tokenComparer;
-        internal readonly TypeSyntaxComparer TypeComparer;
+        _tokenComparer = tokenComparer;
+        TypeComparer = new TypeSyntaxComparer(tokenComparer, this);
+    }
 
-        internal NameSyntaxComparer(IComparer<SyntaxToken> tokenComparer)
+    public static IComparer<NameSyntax?> Create()
+        => Create(TokenComparer.NormalInstance);
+
+    public static IComparer<NameSyntax?> Create(IComparer<SyntaxToken> tokenComparer)
+        => new NameSyntaxComparer(tokenComparer);
+
+    public int Compare(NameSyntax? x, NameSyntax? y)
+    {
+        if (x == y)
+            return 0;
+
+        return (x, y) switch
         {
-            _tokenComparer = tokenComparer;
-            TypeComparer = new TypeSyntaxComparer(tokenComparer, this);
-        }
+            (null, null) => 0,
+            (null, _) => -1,
+            (_, null) => 1,
+            ({ IsMissing: true }, { IsMissing: true }) => 0,
+            ({ IsMissing: true }, _) => -1,
+            (_, { IsMissing: true }) => 1,
+            (IdentifierNameSyntax identifierX, IdentifierNameSyntax identifierY) => _tokenComparer.Compare(identifierX.Identifier, identifierY.Identifier),
+            (GenericNameSyntax genericX, GenericNameSyntax genericY) => Compare(genericX, genericY),
+            (IdentifierNameSyntax identifierX, GenericNameSyntax genericY) =>
+                _tokenComparer.Compare(identifierX.Identifier, genericY.Identifier) is var diff && diff != 0
+                    ? diff
+                    : -1, // Goo goes before Goo<T>
+            (GenericNameSyntax genericX, IdentifierNameSyntax identifierY) =>
+                _tokenComparer.Compare(genericX.Identifier, identifierY.Identifier) is var diff && diff != 0
+                    ? diff
+                    : -1, // Goo<T> goes after Goo
+            (_, _) => DecomposeCompare(x, y),
+        };
 
-        public static IComparer<NameSyntax?> Create()
-            => Create(TokenComparer.NormalInstance);
-
-        public static IComparer<NameSyntax?> Create(IComparer<SyntaxToken> tokenComparer)
-            => new NameSyntaxComparer(tokenComparer);
-
-        public int Compare(NameSyntax? x, NameSyntax? y)
+        int DecomposeCompare(NameSyntax x, NameSyntax y)
         {
-            if (x is null)
-                return y is null ? 0 : -1;
-            else if (y is null)
-                return 1;
-
-            if (x == y)
-            {
-                return 0;
-            }
-
-            if (x.IsMissing && y.IsMissing)
-            {
-                return 0;
-            }
-
-            if (x.IsMissing)
-            {
-                return -1;
-            }
-            else if (y.IsMissing)
-            {
-                return 1;
-            }
-
-            // If we have a basic name, then it's simple to compare.  Just
-            // check that token versus whatever the other name has as the
-            // first token.
-            if (x is IdentifierNameSyntax && y is IdentifierNameSyntax)
-            {
-                return _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
-            }
-            else if (x is GenericNameSyntax && y is GenericNameSyntax)
-            {
-                // if both names are generic, then use a specialized routine
-                // that will check the names *and* the arguments.
-                return Compare((GenericNameSyntax)x, (GenericNameSyntax)y);
-            }
-            else if (x is IdentifierNameSyntax && y is GenericNameSyntax)
-            {
-                var compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
-                if (compare != 0)
-                {
-                    return compare;
-                }
-
-                // Goo goes before Goo<T>
-                return -1;
-            }
-            else if (x is GenericNameSyntax && y is IdentifierNameSyntax)
-            {
-                var compare = _tokenComparer.Compare(x.GetFirstToken(includeSkipped: true), y.GetFirstToken());
-                if (compare != 0)
-                {
-                    return compare;
-                }
-
-                // Goo<T> goes after Goo
-                return 1;
-            }
-
             // At this point one or both of the nodes is a dotted name or
             // aliased name.  Break them apart into individual pieces and
             // compare those.
@@ -97,75 +63,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             {
                 var compare = Compare(xNameParts[i], yNameParts[i]);
                 if (compare != 0)
-                {
                     return compare;
-                }
             }
 
             // they matched up to this point.  The shorter one should come
             // first.
             return xNameParts.Count - yNameParts.Count;
         }
+    }
 
-        private IList<SimpleNameSyntax> DecomposeNameParts(NameSyntax name)
+    private static IList<SimpleNameSyntax> DecomposeNameParts(NameSyntax name)
+    {
+        var result = new List<SimpleNameSyntax>();
+        DecomposeNameParts(name, result);
+        return result;
+    }
+
+    private static void DecomposeNameParts(NameSyntax name, List<SimpleNameSyntax> result)
+    {
+        switch (name.Kind())
         {
-            var result = new List<SimpleNameSyntax>();
-            DecomposeNameParts(name, result);
-            return result;
+            case SyntaxKind.QualifiedName:
+                var dottedName = (QualifiedNameSyntax)name;
+                DecomposeNameParts(dottedName.Left, result);
+                DecomposeNameParts(dottedName.Right, result);
+                break;
+            case SyntaxKind.AliasQualifiedName:
+                var aliasedName = (AliasQualifiedNameSyntax)name;
+                result.Add(aliasedName.Alias);
+                DecomposeNameParts(aliasedName.Name, result);
+                break;
+            case SyntaxKind.IdentifierName:
+                result.Add((IdentifierNameSyntax)name);
+                break;
+            case SyntaxKind.GenericName:
+                result.Add((GenericNameSyntax)name);
+                break;
         }
+    }
 
-        private void DecomposeNameParts(NameSyntax name, List<SimpleNameSyntax> result)
-        {
-            switch (name.Kind())
-            {
-                case SyntaxKind.QualifiedName:
-                    var dottedName = (QualifiedNameSyntax)name;
-                    DecomposeNameParts(dottedName.Left, result);
-                    DecomposeNameParts(dottedName.Right, result);
-                    break;
-                case SyntaxKind.AliasQualifiedName:
-                    var aliasedName = (AliasQualifiedNameSyntax)name;
-                    result.Add(aliasedName.Alias);
-                    DecomposeNameParts(aliasedName.Name, result);
-                    break;
-                case SyntaxKind.IdentifierName:
-                    result.Add((IdentifierNameSyntax)name);
-                    break;
-                case SyntaxKind.GenericName:
-                    result.Add((GenericNameSyntax)name);
-                    break;
-            }
-        }
+    private int Compare(GenericNameSyntax x, GenericNameSyntax y)
+    {
+        var compare = _tokenComparer.Compare(x.Identifier, y.Identifier);
+        if (compare != 0)
+            return compare;
 
-        private int Compare(GenericNameSyntax x, GenericNameSyntax y)
+        // The one with less type params comes first.
+        compare = x.Arity - y.Arity;
+        if (compare != 0)
+            return compare;
+
+        // Same name, same parameter count.  Compare each parameter.
+        for (var i = 0; i < x.Arity; i++)
         {
-            var compare = _tokenComparer.Compare(x.Identifier, y.Identifier);
+            var xArg = x.TypeArgumentList.Arguments[i];
+            var yArg = y.TypeArgumentList.Arguments[i];
+
+            compare = TypeComparer.Compare(xArg, yArg);
             if (compare != 0)
-            {
                 return compare;
-            }
-
-            // The one with less type params comes first.
-            compare = x.Arity - y.Arity;
-            if (compare != 0)
-            {
-                return compare;
-            }
-
-            // Same name, same parameter count.  Compare each parameter.
-            for (var i = 0; i < x.Arity; i++)
-            {
-                var xArg = x.TypeArgumentList.Arguments[i];
-                var yArg = y.TypeArgumentList.Arguments[i];
-
-                compare = TypeComparer.Compare(xArg, yArg);
-                if (compare != 0)
-                {
-                    return compare;
-                }
-            }
-
-            return 0;
         }
+
+        return 0;
     }
 }

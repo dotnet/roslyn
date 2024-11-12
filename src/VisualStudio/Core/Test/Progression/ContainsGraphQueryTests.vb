@@ -59,7 +59,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -104,7 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.cs"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -158,7 +158,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.vbproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.vb"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -200,7 +200,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/Project.csproj"/>
                             <Alias n="2" Uri="File=file:///Z:/Project.csx"/>
-                            <Alias n="3" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="3" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
@@ -233,14 +233,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=C)" Target="(@1 Type=C Member=M)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
         End Function
 
-        <WpfFact>
-        <WorkItem(543892, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543892")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543892")>
         Public Async Function NestedTypesContainedInClass() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -265,13 +264,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=(Name=D ParentType=C))" Target="(@1 Type=(Name=E ParentType=(Name=D ParentType=C)))" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
         End Function
 
-        <WpfFact, WorkItem(545018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545018")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545018")>
         Public Async Function EnumMembersInEnum() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -296,13 +295,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                             <Link Source="(@1 Type=E)" Target="(@1 Type=E Member=M)" Category="Contains"/>
                         </Links>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/CSharpAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using
         End Function
 
-        <WpfFact, WorkItem(610147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
         Public Async Function NothingInBrokenCode() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -331,7 +330,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, WorkItem(610147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610147")>
         Public Async Function NothingInBrokenCode2() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -360,7 +359,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
             End Using
         End Function
 
-        <WpfFact, WorkItem(608653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608653")>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608653")>
         Public Async Function NothingInBrokenCode3() As Task
             Using testState = ProgressionTestState.Create(
                     <Workspace>
@@ -384,7 +383,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>
-                            <Alias n="1" Uri="Assembly=file:///Z:/VisualBasicAssembly1.dll"/>
+                            <Alias n="1" Uri="Assembly=file:///Z:/bin/VisualBasicAssembly1.dll"/>
                         </IdentifierAliases>
                     </DirectedGraph>)
             End Using

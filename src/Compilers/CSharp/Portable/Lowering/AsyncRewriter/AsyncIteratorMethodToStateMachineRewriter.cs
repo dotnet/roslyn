@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -41,34 +40,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LabelSymbol _exprReturnLabelTrue;
 
         /// <summary>
-        /// States for `yield return` are decreasing from -3.
+        /// States for `yield return` are decreasing from <see cref="StateMachineState.InitialAsyncIteratorState"/>.
         /// </summary>
-        private int _nextYieldReturnState = StateMachineStates.InitialAsyncIteratorStateMachine;  // -3
+        private readonly ResumableStateMachineStateAllocator _iteratorStateAllocator;
 
-        internal AsyncIteratorMethodToStateMachineRewriter(MethodSymbol method,
+        internal AsyncIteratorMethodToStateMachineRewriter(
+            MethodSymbol method,
             int methodOrdinal,
             AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection,
             AsyncIteratorInfo asyncIteratorInfo,
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
             FieldSymbol builder,
+            FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
-            VariableSlotAllocator slotAllocatorOpt,
+            ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
+            VariableSlotAllocator? slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
             BindingDiagnosticBag diagnostics)
             : base(method, methodOrdinal, asyncMethodBuilderMemberCollection, F,
-                  state, builder, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
-                  slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
+                  state, builder, instanceIdField, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
+                  stateMachineStateDebugInfoBuilder, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
         {
             Debug.Assert(asyncIteratorInfo != null);
 
             _asyncIteratorInfo = asyncIteratorInfo;
             _currentDisposalLabel = _exprReturnLabel;
             _exprReturnLabelTrue = F.GenerateLabel("yieldReturn");
+
+            _iteratorStateAllocator = new ResumableStateMachineStateAllocator(
+                slotAllocatorOpt,
+                firstState: StateMachineState.FirstResumableAsyncIteratorState,
+                increasing: false);
         }
 
+        protected override BoundStatement? GenerateMissingStateDispatch()
+        {
+            var asyncDispatch = base.GenerateMissingStateDispatch();
+
+            var iteratorDispatch = _iteratorStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), HotReloadExceptionCode.CannotResumeSuspendedIteratorMethod);
+            if (iteratorDispatch == null)
+            {
+                return asyncDispatch;
+            }
+
+            return (asyncDispatch != null) ? F.Block(asyncDispatch, iteratorDispatch) : iteratorDispatch;
+        }
+#nullable disable
         protected override BoundStatement GenerateSetResultCall()
         {
             // ... _exprReturnLabel: ...
@@ -197,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't care about state = -2 (method already completed)
 
             // So we only want to enter the finally when the state is -1
-            return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineStates.NotStartedStateMachine));
+            return F.IntEqual(F.Local(cachedState), F.Literal(StateMachineState.NotStartedOrRunningState));
         }
 
         #region Visitors
@@ -216,9 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  this.state = cachedState = -1;
             //  ... rewritten body
 
-            var initialState = _nextYieldReturnState--;
-            Debug.Assert(initialState == -3);
-            AddState(initialState, out GeneratedLabelSymbol resumeLabel);
+            AddState(StateMachineState.InitialAsyncIteratorState, out GeneratedLabelSymbol resumeLabel);
 
             var rewrittenBody = (BoundStatement)Visit(body);
 
@@ -226,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return F.Block(
                 F.Label(resumeLabel), // initialStateResumeLabel:
                 GenerateJumpToCurrentDisposalLabel(), // if (disposeMode) goto _exprReturnLabel;
-                GenerateSetBothStates(StateMachineStates.NotStartedStateMachine), // this.state = cachedState = -1;
+                GenerateSetBothStates(StateMachineState.NotStartedOrRunningState), // this.state = cachedState = -1;
                 rewrittenBody);
         }
 
@@ -245,8 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  _promiseOfValueOrEnd.SetResult(true);
             //  return;
 
-            var stateNumber = _nextYieldReturnState--;
-            AddState(stateNumber, out GeneratedLabelSymbol resumeLabel);
+            AddResumableState(_iteratorStateAllocator, node.Syntax, awaitId: default, out var stateNumber, out GeneratedLabelSymbol resumeLabel);
 
             var rewrittenExpression = (BoundExpression)Visit(node.Expression);
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
@@ -271,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             blockBuilder.Add(
                 // this.state = cachedState = NotStartedStateMachine
-                GenerateSetBothStates(StateMachineStates.NotStartedStateMachine));
+                GenerateSetBothStates(StateMachineState.NotStartedOrRunningState));
 
             Debug.Assert(_currentDisposalLabel is object); // no yield return allowed inside a finally
             blockBuilder.Add(
@@ -298,6 +315,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetDisposeMode(true),
                 // goto currentDisposalLabel;
                 F.Goto(_currentDisposalLabel));
+        }
+
+        protected override BoundStatement MakeAwaitPreamble()
+        {
+            if (_asyncIteratorInfo.CurrentField.Type.IsManagedTypeNoUseSiteDiagnostics)
+            {
+                // _current = default;
+                return GenerateClearCurrent();
+            }
+
+            return null;
         }
 
         private BoundExpressionStatement SetDisposeMode(bool value)

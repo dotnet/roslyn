@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Interface IA(Of T As C) : End Interface
             ' Interface IB(Of T As C) : Inherits IA(Of T) : End Interface
             If checkConstraints AndAlso ShouldCheckConstraints Then
-                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
+                constructedType.CheckConstraintsForNonTuple(Compilation.LanguageVersion, syntaxArguments, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
             End If
 
             constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)
@@ -203,7 +203,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return builder.ToImmutableAndFree()
         End Function
-
 
         ''' <summary>
         ''' The type binder class handles binding of type names.
@@ -375,7 +374,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If rightPart.Kind = SyntaxKind.GenericName Then
                         arity = DirectCast(rightPart, GenericNameSyntax).Arity
-                        fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(currDiagName, arity)
+                        fullName = MetadataHelpers.ComposeAritySuffixedMetadataName(currDiagName, arity, associatedFileIdentifier:=Nothing)
                     End If
 
                     forwardedToAssembly = GetForwardedToAssembly(containingAssembly, fullName, arity, typeSyntax, diagBag)
@@ -744,23 +743,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Binder.GetErrorSymbol(name, result.Diagnostic, DirectCast(result.Diagnostic, AmbiguousSymbolDiagnostic).AmbiguousSymbols, result.Kind)
                 End If
                 Return Binder.GetErrorSymbol(name, result.Diagnostic, result.Symbols.ToImmutable(), result.Kind)
-            End Function
-
-            ''' <summary>
-            ''' Check that the given symbol is a type. If it is a namespace, report an error into the diagnostic bag
-            ''' and return an error symbol.
-            ''' </summary>
-            Private Shared Function CheckSymbolIsType(sym As NamespaceOrTypeSymbol,
-                                                      syntax As VisualBasicSyntaxNode,
-                                                      binder As Binder,
-                                                      diagBag As BindingDiagnosticBag) As TypeSymbol
-                If sym.IsNamespace Then
-                    Dim diagInfo = New BadSymbolDiagnostic(sym, ERRID.ERR_UnrecognizedType)
-                    Binder.ReportDiagnostic(diagBag, syntax, diagInfo)
-                    Return Binder.GetErrorSymbol(sym.Name, diagInfo, ImmutableArray.Create(Of Symbol)(sym), LookupResultKind.NotATypeOrNamespace)
-                Else
-                    Return DirectCast(sym, TypeSymbol)
-                End If
             End Function
 
             ''' <summary>

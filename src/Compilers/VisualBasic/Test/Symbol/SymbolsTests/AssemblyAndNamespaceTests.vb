@@ -187,7 +187,6 @@ End Namespace
 Namespace C
 End Namespace
     </file>
-
     <file name="b.vb">
 Namespace A.B
 End Namespace
@@ -198,7 +197,6 @@ End Namespace
 Namespace e
 End Namespace
     </file>
-
     <file name="c.vb">
 Namespace A.b.D
 End Namespace
@@ -517,7 +515,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim aliasedCorlib = TestMetadata.Net451.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
+            Dim aliasedCorlib = NetFramework.mscorlib.WithAliases(ImmutableArray.Create("Goo"))
 
             Dim comp = CreateEmptyCompilationWithReferences(source, {aliasedCorlib})
 

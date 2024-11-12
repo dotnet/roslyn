@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    originalMethod is LocalFunctionSymbol
                     ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
-                   MakeDeclarationModifiers(closureKind, originalMethod))
+                   MakeDeclarationModifiers(closureKind, originalMethod),
+                   isIterator: originalMethod.IsIterator)
         {
             Debug.Assert(containingType.DeclaringCompilation is not null);
 
@@ -122,14 +123,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 moduleBuilder.EnsureIsReadOnlyAttributeExists();
             }
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(moduleBuilder, Parameters);
+            ParameterHelpers.EnsureRefKindAttributesExist(moduleBuilder, Parameters);
+            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for these methods because it is not a SynthesizedDelegateInvokeMethod
 
-            if (ReturnType.ContainsNativeInteger())
+            if (moduleBuilder.Compilation.ShouldEmitNativeIntegerAttributes())
             {
-                moduleBuilder.EnsureNativeIntegerAttributeExists();
+                if (ReturnType.ContainsNativeIntegerWrapperType())
+                {
+                    moduleBuilder.EnsureNativeIntegerAttributeExists();
+                }
+
+                ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
             }
 
-            ParameterHelpers.EnsureNativeIntegerAttributeExists(moduleBuilder, Parameters);
+            ParameterHelpers.EnsureScopedRefAttributeExists(moduleBuilder, Parameters);
 
             if (compilationState.Compilation.ShouldEmitNullableAttributes(this))
             {
@@ -212,7 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool InheritsBaseMethodAttributes => true;
         internal override bool GenerateDebugInfo => !this.IsAsync;
-        internal override bool IsExpressionBodied => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
@@ -227,5 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
 
         public ClosureKind ClosureKind { get; }
+
+        internal override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false)
+        {
+            throw ExceptionUtilities.Unreachable();
+        }
     }
 }

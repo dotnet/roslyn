@@ -6,34 +6,33 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.ExtractInterface
+namespace Microsoft.CodeAnalysis.ExtractInterface;
+
+internal sealed class ExtractInterfaceTypeAnalysisResult
 {
-    internal class ExtractInterfaceTypeAnalysisResult
+    public readonly bool CanExtractInterface;
+    public readonly Document DocumentToExtractFrom;
+    public readonly SyntaxNode TypeNode;
+    public readonly INamedTypeSymbol TypeToExtractFrom;
+    public readonly IEnumerable<ISymbol> ExtractableMembers;
+    public readonly string ErrorMessage;
+
+    public ExtractInterfaceTypeAnalysisResult(
+        Document documentToExtractFrom,
+        SyntaxNode typeNode,
+        INamedTypeSymbol typeToExtractFrom,
+        IEnumerable<ISymbol> extractableMembers)
     {
-        public readonly bool CanExtractInterface;
-        public readonly Document DocumentToExtractFrom;
-        public readonly SyntaxNode TypeNode;
-        public readonly INamedTypeSymbol TypeToExtractFrom;
-        public readonly IEnumerable<ISymbol> ExtractableMembers;
-        public readonly string ErrorMessage;
+        CanExtractInterface = true;
+        DocumentToExtractFrom = documentToExtractFrom;
+        TypeNode = typeNode;
+        TypeToExtractFrom = typeToExtractFrom;
+        ExtractableMembers = extractableMembers;
+    }
 
-        public ExtractInterfaceTypeAnalysisResult(
-            Document documentToExtractFrom,
-            SyntaxNode typeNode,
-            INamedTypeSymbol typeToExtractFrom,
-            IEnumerable<ISymbol> extractableMembers)
-        {
-            CanExtractInterface = true;
-            DocumentToExtractFrom = documentToExtractFrom;
-            TypeNode = typeNode;
-            TypeToExtractFrom = typeToExtractFrom;
-            ExtractableMembers = extractableMembers;
-        }
-
-        public ExtractInterfaceTypeAnalysisResult(string errorMessage)
-        {
-            CanExtractInterface = false;
-            ErrorMessage = errorMessage;
-        }
+    public ExtractInterfaceTypeAnalysisResult(string errorMessage)
+    {
+        CanExtractInterface = false;
+        ErrorMessage = errorMessage;
     }
 }

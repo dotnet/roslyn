@@ -14,9 +14,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities.TestMetadata
-
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class SemanticModelTests
@@ -84,7 +83,6 @@ End Class
 
     </file>
     </compilation>)
-
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim node = FindNodeFromText(tree, "read = create")
@@ -1266,7 +1264,6 @@ End Module
 
     </file>
     </compilation>)
-
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim node = FindNodeFromText(tree, "Module M1")
@@ -2959,7 +2956,6 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-
         <Fact()>
         Public Sub HandlesContainer_WithEventsHandlesInDerived()
             Dim compilation = CreateCompilationWithMscorlib40(
@@ -3024,7 +3020,6 @@ End Module
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
-
 
         <Fact>
         Public Sub HandledEvent001()
@@ -3894,7 +3889,6 @@ End Module
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-
 #Region "Diagnostics"
 
         <WorkItem(541269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541269")>
@@ -4493,7 +4487,7 @@ Module Program
     End Function
 End Module
         </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             comp.VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -4555,7 +4549,7 @@ Module Program
     End Sub
 End Module
         </file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             comp.AssertNoDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -5298,7 +5292,7 @@ End Namespace End Class
        apInitScenario("7. generic T_Method B ----------------------------
 
 }]]></file>
-    </compilation>, {Net40.SystemCore, Net40.System, Net40.SystemData}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
+    </compilation>, {Net40.References.SystemCore, Net40.References.System, Net40.References.SystemData}, TestOptions.ReleaseDll.WithOptionExplicit(False).WithOptionInfer(True))
 
             compilation.GetDiagnostics()
 
@@ -5985,7 +5979,7 @@ End Module
             Dim symbolInfo = model.GetSymbolInfo(node)
 
             Assert.Null(symbolInfo.Symbol)
-            Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason)
+            Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
         End Sub
 
         <Fact, WorkItem(1068547, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1068547")>
@@ -6396,7 +6390,7 @@ End Class
             Dim exceptionThrown = False
 
             Try
-                compilation.GetSpecialType(type)
+                DirectCast(compilation, Compilation).GetSpecialType(type)
             Catch ex As ArgumentOutOfRangeException
                 exceptionThrown = True
 

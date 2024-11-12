@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public AnalyzerImageReference(ImmutableArray<DiagnosticAnalyzer> analyzers, string? fullPath = null, string? display = null)
         {
-            if (analyzers.Any(a => a == null))
+            if (analyzers.Any(static a => a == null))
             {
                 throw new ArgumentException("Cannot have null-valued analyzer", nameof(analyzers));
             }
@@ -77,14 +77,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 sb.Append(" Path='");
                 sb.Append(_fullPath);
-                sb.Append("'");
+                sb.Append('\'');
             }
 
             if (_display != null)
             {
                 sb.Append(" Display='");
                 sb.Append(_display);
-                sb.Append("'");
+                sb.Append('\'');
             }
 
             return sb.ToString();

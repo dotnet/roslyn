@@ -74,8 +74,9 @@ Class C1
         CheckSingle(Integer.MinValue + 65F, -2147483520)
         CheckSingle(1.99F, 1)
         CheckSingle(Integer.MaxValue - 65F, 2147483520)
-        CheckSingle(Integer.MaxValue - 64F, Integer.MinValue)  ' overflow
-        CheckSingle(Integer.MaxValue -  0F, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckSingle(Integer.MaxValue - 64F, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckSingle(Integer.MaxValue -  0F, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         CheckDouble(Integer.MinValue - 1D, Integer.MinValue)  ' overflow
         CheckDouble(Integer.MinValue - 0.01D, Integer.MinValue)
@@ -87,8 +88,9 @@ Class C1
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.99D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         Console.WriteLine("done")
     End Sub
@@ -528,7 +530,6 @@ done
 ]]>)
         End Sub
 
-
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFix_Implicit_01()
             Dim source =
@@ -595,8 +596,9 @@ Class C1
         CheckSingle(Integer.MinValue + 65F, -2147483520)
         CheckSingle(1.99F, 1)
         CheckSingle(Integer.MaxValue - 65F, 2147483520)
-        CheckSingle(Integer.MaxValue - 64F, Integer.MinValue)  ' overflow
-        CheckSingle(Integer.MaxValue -  0F, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckSingle(Integer.MaxValue - 64F, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckSingle(Integer.MaxValue -  0F, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         CheckDouble(Integer.MinValue - 1D, Integer.MinValue)  ' overflow
         CheckDouble(Integer.MinValue - 0.01D, Integer.MinValue)
@@ -608,8 +610,9 @@ Class C1
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.99D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         Console.WriteLine("done")
     End Sub
@@ -1095,8 +1098,9 @@ Class C1
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.99D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         Console.WriteLine("done")
     End Sub
@@ -1339,7 +1343,6 @@ done
 ]]>)
         End Sub
 
-
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntTruncate_Implicit_01()
             Dim source =
@@ -1386,8 +1389,9 @@ Class C1
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.99D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         Console.WriteLine("done")
     End Sub
@@ -1674,10 +1678,11 @@ Class C1
         CheckDouble(Integer.MaxValue - 1D, 2147483646)
         CheckDouble(Integer.MaxValue - 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 0.01D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 0.99D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 0.01D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 0.99D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         Console.WriteLine("done")
     End Sub
@@ -1936,7 +1941,6 @@ done
 ]]>)
         End Sub
 
-
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntCeiling_Implicit_01()
             Dim source =
@@ -1981,10 +1985,11 @@ Class C1
         CheckDouble(Integer.MaxValue - 1D, 2147483646)
         CheckDouble(Integer.MaxValue - 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 0.01D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 0.99D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 0.01D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 0.99D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         Console.WriteLine("done")
     End Sub
@@ -2289,8 +2294,9 @@ Class C1
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.99D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         Console.WriteLine("done")
     End Sub
@@ -2549,7 +2555,6 @@ done
 ]]>)
         End Sub
 
-
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntFloor_Implicit_01()
             Dim source =
@@ -2596,8 +2601,9 @@ Class C1
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.99D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
         Console.WriteLine("done")
     End Sub
 
@@ -2900,9 +2906,10 @@ Class C1
         CheckDouble(Integer.MaxValue - 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.01D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 0.99D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 0.99D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
         Console.WriteLine("done")
     End Sub
@@ -3161,7 +3168,6 @@ done
 ]]>)
         End Sub
 
-
         <Fact, WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         Public Sub CIntRound_Implicit_01()
             Dim source =
@@ -3207,9 +3213,10 @@ Class C1
         CheckDouble(Integer.MaxValue - 0.01D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0D, Integer.MaxValue)
         CheckDouble(Integer.MaxValue + 0.01D, Integer.MaxValue)
-        CheckDouble(Integer.MaxValue + 0.99D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 1D, Integer.MinValue)  ' overflow
-        CheckDouble(Integer.MaxValue + 2D, Integer.MinValue)  ' overflow
+        ' https://github.com/dotnet/roslyn/issues/74026
+        CheckDouble(Integer.MaxValue + 0.99D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 1D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
+        CheckDouble(Integer.MaxValue + 2D, ]]><%= If(ExecutionConditionUtil.IsMonoOrCoreClr, "Integer.MaxValue", "Integer.MinValue") %><![CDATA[)  ' overflow
 
     Console.WriteLine("done")
     End Sub
@@ -3775,7 +3782,6 @@ done
 }
 ]]>)
         End Sub
-
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>
@@ -4387,7 +4393,6 @@ done
 }
 ]]>)
         End Sub
-
 
         <WorkItem(25692, "https://github.com/dotnet/roslyn/issues/25692")>
         <ConditionalFact(GetType(DesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/28044")>

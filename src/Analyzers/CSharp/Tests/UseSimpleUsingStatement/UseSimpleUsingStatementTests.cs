@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -12,1634 +11,1913 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    UseSimpleUsingStatementDiagnosticAnalyzer,
+    UseSimpleUsingStatementCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+public class UseSimpleUsingStatementTests
 {
-    public partial class UseSimpleUsingStatementTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    [Fact]
+    public async Task TestAboveCSharp8()
     {
-        public UseSimpleUsingStatementTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new UseSimpleUsingStatementDiagnosticAnalyzer(), new UseSimpleUsingStatementCodeFixProvider());
-
-        private static readonly ParseOptions CSharp72ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_2);
-        private static readonly ParseOptions CSharp8ParseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestAboveCSharp8()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b)
-        {
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithOptionOff()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b)
-        {
-        }
-    }
-}",
-new TestParameters(
-    parseOptions: CSharp8ParseOptions,
-    options: Option(CSharpCodeStyleOptions.PreferSimpleUsingStatement, CodeStyleOptions2.FalseWithSilentEnforcement)));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestMultiDeclaration()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b, c = d)
-        {
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b, c = d;
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMissingIfOnSimpleUsingStatement()
-        {
-            await TestMissingAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using var a = b;
-    }
-}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMissingPriorToCSharp8()
-        {
-            await TestMissingAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b)
-        {
-        }
-    }
-}", parameters: new TestParameters(parseOptions: CSharp72ParseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMissingIfExpressionUsing()
-        {
-            await TestMissingAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (a)
-        {
-        }
-    }
-}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMissingIfCodeFollows()
-        {
-            await TestMissingAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b)
-        {
-        }
-        Console.WriteLine();
-    }
-}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestAsyncUsing()
-        {
-            // not actually legal code.
-            await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
-
-class C
-{
-    void M()
-    {
-        async [||]using (var a = b)
-        {
-        }
-    }
-}",
-@"using System;
-using System.Threading.Tasks;
-
-class C
-{
-    void M()
-    {
-        async using var a = b;
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestAwaitUsing()
-        {
-            // not actually legal code.
-            await TestInRegularAndScriptAsync(
-@"using System;
-using System.Threading.Tasks;
-
-class C
-{
-    void M()
-    {
-        await [||]using (var a = b)
-        {
-        }
-    }
-}",
-@"using System;
-using System.Threading.Tasks;
-
-class C
-{
-    void M()
-    {
-        await using var a = b;
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithBlockBodyWithContents()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b)
-        {
-            Console.WriteLine(a);
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithNonBlockBody()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b)
-            Console.WriteLine(a);
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestMultiUsing1()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b)
-        using (var c = d)
-        {
-            Console.WriteLine(a);
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        using var c = d;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestMultiUsingOnlyOnTopmostUsing()
-        {
-            await TestMissingAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using (var a = b)
-        [||]using (var c = d)
-        {
-            Console.WriteLine(a);
-        }
-    }
-}",
-new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestFixAll1()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        {|FixAllInDocument:|}using (var a = b)
-        {
-            using (var c = d)
+            class C
             {
-                Console.WriteLine(a);
-            }
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        using var c = d;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestFixAll2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using (var a = b)
-        {
-            {|FixAllInDocument:|}using (var c = d)
-            {
-                Console.WriteLine(a);
-            }
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        using var c = d;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestFixAll3()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        {|FixAllInDocument:|}using (var a = b)
-        using (var c = d)
-        {
-            using (var e = f)
-            using (var g = h)
-            {
-                Console.WriteLine(a);
-            }
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        using var c = d;
-        using var e = f;
-        using var g = h;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestFixAll4()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        {|FixAllInDocument:|}using (var a = b)
-        using (var c = d)
-        {
-            using (e)
-            using (f)
-            {
-                Console.WriteLine(a);
-            }
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        using var c = d;
-        using (e)
-        using (f)
-        {
-            Console.WriteLine(a);
-        }
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestFixAll5()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        {|FixAllInDocument:|}using (var a = b) { }
-        using (var c = d) { }
-    }
-}",
-new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestFixAll6()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using (var a = b) { }
-        {|FixAllInDocument:|}using (var c = d) { }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using (var a = b) { }
-        using var c = d;
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithFollowingReturn()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b)
-        {
-        }
-        return;
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        return;
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithFollowingBreak()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        switch (0)
-        {
-            case 0:
+                void M()
                 {
-                    [||]using (var a = b)
+                    [|using|] (var a = {|CS0103:b|})
                     {
                     }
-                    break;
                 }
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        switch (0)
-        {
-            case 0:
-                {
-                    using var a = b;
-                    break;
-                }
-        }
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMissingInSwitchSection()
-        {
-            await TestMissingAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        switch (0)
-        {
-            case 0:
-                [||]using (var a = b)
-                {
-                }
-                break;
-        }
-    }
-}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMissingWithJumpInsideToOutside()
-        {
-            await TestMissingAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        label:
-        [||]using (var a = b)
-        {
-            goto label;
-        }
-    }
-}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
-        public async Task TestMissingWithJumpBeforeToAfter()
-        {
-            await TestMissingAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        {
-            goto label;
-            [||]using (var a = b)
-            {
             }
-        }
-        label:
-    }
-}", parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
+            """, """
+            using System;
 
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCollision1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        [||]using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestNoCollision1()
-        {
-            await TestInRegularAndScript1Async(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        [||]using (Stream stream1 = File.OpenRead(""test""))
-        {
-        }
-    }
-}",
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        using Stream stream1 = File.OpenRead(""test"");
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCollision2()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        [||]using (Stream stream1 = File.OpenRead(""test""))
-        {
-            Stream stream;
-        }
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestNoCollision2()
-        {
-            await TestInRegularAndScript1Async(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        [||]using (Stream stream1 = File.OpenRead(""test""))
-        {
-            Stream stream2;
-        }
-    }
-}",
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        using Stream stream1 = File.OpenRead(""test"");
-        Stream stream2;
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCollision3()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        [||]using (Stream stream1 = File.OpenRead(""test""))
-        {
-            Goo(out var stream);
-        }
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestNoCollision3()
-        {
-            await TestInRegularAndScript1Async(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        [||]using (Stream stream1 = File.OpenRead(""test""))
-        {
-            Goo(out var stream2);
-        }
-    }
-}",
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        using Stream stream1 = File.OpenRead(""test"");
-        Goo(out var stream2);
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCollision4()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        [||]using (Stream stream1 = File.OpenRead(""test""))
-            Goo(out var stream);
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestNoCollision4()
-        {
-            await TestInRegularAndScript1Async(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        [||]using (Stream stream1 = File.OpenRead(""test""))
-            Goo(out var stream2);
-    }
-}",
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-        }
-        using Stream stream1 = File.OpenRead(""test"");
-        Goo(out var stream2);
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCollision5()
-        {
-            await TestMissingInRegularAndScriptAsync(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-            Stream stream1;
-        }
-        [||]using (Stream stream1 = File.OpenRead(""test""))
-        {
-        }
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(35879, "https://github.com/dotnet/roslyn/issues/35879")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestNoCollision5()
-        {
-            await TestInRegularAndScript1Async(
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-            Stream stream1;
-        }
-        [||]using (Stream stream2 = File.OpenRead(""test""))
-        {
-        }
-    }
-}",
-@"using System.IO;
-
-class Program
-{
-    static void Main()
-    {
-        using (Stream stream = File.OpenRead(""test""))
-        {
-            Stream stream1;
-        }
-        using Stream stream2 = File.OpenRead(""test"");
-    }
-}",
-parameters: new TestParameters(parseOptions: CSharp8ParseOptions));
-        }
-
-        [WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCopyTrivia()
-        {
-            await TestInRegularAndScript1Async(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        [||]using (var x = y)
-        {
-            // comment
-        }
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        using var x = y;
-        // comment
-    }
-}");
-        }
-
-        [WorkItem(37678, "https://github.com/dotnet/roslyn/issues/37678")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestMultiCopyTrivia()
-        {
-            await TestInRegularAndScript1Async(
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        [||]using (var x = y)
-        using (var a = b)
-        {
-            // comment
-        }
-    }
-}",
-@"class Program
-{
-    static void Main(string[] args)
-    {
-        using var x = y;
-        using var a = b;
-        // comment
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestFixAll_WithTrivia()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        {|FixAllInDocument:|}using (var a = b)
-        {
-            using (var c = d)
+            class C
             {
-                Console.WriteLine(a);
-                // comment1
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                }
             }
-            // comment2
-        }
+            """);
     }
-}",
-@"using System;
 
-class C
-{
-    void M()
+    [Fact]
+    public async Task TestWithOptionOff()
     {
-        using var a = b;
-        using var c = d;
-        Console.WriteLine(a);
-        // comment1
-        // comment2
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCopyCompilerDirectiveTrivia()
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    static void M()
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        using (var a = {|CS0103:b|})
+                        {
+                        }
+                    }
+                }
+                """,
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferSimpleUsingStatement, CodeStyleOption2.FalseWithSilentEnforcement }
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMultiDeclaration()
     {
-        [||]using (var obj = Dummy())
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] ({|CS0819:var a = {|CS0103:b|}, c = {|CS0103:d|}|})
+                    {
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using {|CS0819:var a = {|CS0103:b|}, c = {|CS0103:d|}|};
+                }
+            }
+            """);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+    public async Task TestMissingIfOnSimpleUsingStatement()
+    {
+        await new VerifyCS.Test
         {
-#pragma warning disable CS0618, CS0612
-#if !FOO
-            LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-        }
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        using var a = {|CS0103:b|};
+                    }
+                }
+                """
+        }.RunAsync();
     }
 
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-@"class C
-{
-    static void M()
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+    public async Task TestMissingPriorToCSharp8()
     {
-        using var obj = Dummy();
-#pragma warning disable CS0618, CS0612
-#if !FOO
-        LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-    }
-
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterRestore()
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    static void M()
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        using (var a = {|CS0103:b|})
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp7_2
+        }.RunAsync();
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+    public async Task TestMissingIfExpressionUsing()
     {
-        [||]using (var obj = Dummy())
+        await new VerifyCS.Test
         {
-#pragma warning disable CS0618, CS0612
-#if !FOO
-            LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-        // comment
-        }
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        using ({|CS0103:a|})
+                        {
+                        }
+                    }
+                }
+                """
+        }.RunAsync();
     }
 
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-@"class C
-{
-    static void M()
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+    public async Task TestMissingIfCodeFollows()
     {
-        using var obj = Dummy();
-#pragma warning disable CS0618, CS0612
-#if !FOO
-        LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-        // comment
-    }
-
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeRestore()
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    static void M()
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        using (var a = {|CS0103:b|})
+                        {
+                        }
+                        Console.WriteLine();
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+    public async Task TestAsyncUsing()
     {
-        [||]using (var obj = Dummy())
+        // not actually legal code.
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void M()
+                {
+                    {|CS0103:async|} {|CS1002:[|using|]|} (var a = {|CS0103:b|})
+                    {
+                    }
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void M()
+                {
+                    {|CS0103:async|} {|CS1002:using|} var a = {|CS0103:b|};
+                }
+            }
+            """);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeLocalFunctionStatic)]
+    public async Task TestAwaitUsing()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void M()
+                {
+                    {|CS4033:await|} [|using|] (var a = {|CS0103:b|})
+                    {
+                    }
+                }
+            }
+            """, """
+            using System;
+            using System.Threading.Tasks;
+
+            class C
+            {
+                void M()
+                {
+                    {|CS4033:await|} using var a = {|CS0103:b|};
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithBlockBodyWithContents()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                    {
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    Console.WriteLine(a);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithNonBlockBody()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                        Console.WriteLine(a);
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    Console.WriteLine(a);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMultiUsing()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                    using (var c = {|CS0103:d|})
+                    {
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    using var c = {|CS0103:d|};
+                    Console.WriteLine(a);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFixAll1()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                    {
+                        [|using|] (var c = {|CS0103:d|})
+                        {
+                            Console.WriteLine(a);
+                        }
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    using var c = {|CS0103:d|};
+                    Console.WriteLine(a);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFixAll2()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                    using (var c = {|CS0103:d|})
+                    {
+                        [|using|] (var e = {|CS0103:f|})
+                        using (var g = {|CS0103:h|})
+                        {
+                            Console.WriteLine(a);
+                        }
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    using var c = {|CS0103:d|};
+                    using var e = {|CS0103:f|};
+                    using var g = {|CS0103:h|};
+                    Console.WriteLine(a);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFixAll3()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                    using (var c = {|CS0103:d|})
+                    {
+                        using ({|CS0103:e|})
+                        using ({|CS0103:f|})
+                        {
+                            Console.WriteLine(a);
+                        }
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    using var c = {|CS0103:d|};
+                    using ({|CS0103:e|})
+                    using ({|CS0103:f|})
+                    {
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFixAll4()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using (var a = {|CS0103:b|}) { }
+                    [|using|] (var c = {|CS0103:d|}) { }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using (var a = {|CS0103:b|}) { }
+                    using var c = {|CS0103:d|};
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithFollowingReturn()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                    {
+                    }
+                    return;
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    return;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithFollowingBreak()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    switch (0)
+                    {
+                        case 0:
+                            {
+                                [|using|] (var a = {|CS0103:b|})
+                                {
+                                }
+                                break;
+                            }
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    switch (0)
+                    {
+                        case 0:
+                            {
+                                using var a = {|CS0103:b|};
+                                break;
+                            }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMissingInSwitchSection()
+    {
+        await new VerifyCS.Test
         {
-#pragma warning disable CS0618, CS0612
-#if !FOO
-            LegacyMethod();
-            // comment
-#endif
-#pragma warning restore CS0618, CS0612
-        }
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        switch (0)
+                        {
+                            case 0:
+                                using (var a = {|CS0103:b|})
+                                {
+                                }
+                                break;
+                        }
+                    }
+                }
+                """
+        }.RunAsync();
     }
 
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-@"class C
-{
-    static void M()
+    [Fact]
+    public async Task TestMissingWithJumpInsideToOutside()
     {
-        using var obj = Dummy();
-#pragma warning disable CS0618, CS0612
-#if !FOO
-        LegacyMethod();
-        // comment
-#endif
-#pragma warning restore CS0618, CS0612
-    }
-
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterDisable()
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    static void M()
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        label:
+                        using (var a = {|CS0103:b|})
+                        {
+                            goto label;
+                        }
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestMissingWithJumpBeforeToAfter()
     {
-        [||]using (var obj = Dummy())
+        await new VerifyCS.Test
         {
-#pragma warning disable CS0618, CS0612
-#if !FOO
-            // comment
-            LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-        }
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        {
+                            goto label;
+                            using (var a = {|CS0103:b|})
+                            {
+                            }
+                        }
+                        label:;
+                    }
+                }
+                """
+        }.RunAsync();
     }
 
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-@"class C
-{
-    static void M()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestCollision1()
     {
-        using var obj = Dummy();
-#pragma warning disable CS0618, CS0612
-#if !FOO
-        // comment
-        LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-    }
-
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeDisable()
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    static void M()
+            TestCode = """
+                using System.IO;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (Stream stream = File.OpenRead("test"))
+                        {
+                        }
+                        using (Stream stream = File.OpenRead("test"))
+                        {
+                        }
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestNoCollision1()
     {
-        [||]using (var obj = Dummy())
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    [|using|] (Stream stream1 = File.OpenRead("test"))
+                    {
+                    }
+                }
+            }
+            """, """
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    using Stream stream1 = File.OpenRead("test");
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestCollision2()
+    {
+        await new VerifyCS.Test
         {
-            // comment
-#pragma warning disable CS0618, CS0612
-#if !FOO
-            LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-        }
+            TestCode = """
+                using System.IO;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (Stream stream = File.OpenRead("test"))
+                        {
+                        }
+                        using (Stream stream1 = File.OpenRead("test"))
+                        {
+                            Stream stream;
+                        }
+                    }
+                }
+                """
+        }.RunAsync();
     }
 
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-@"class C
-{
-    static void M()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestNoCollision2()
     {
-        using var obj = Dummy();
-        // comment
-#pragma warning disable CS0618, CS0612
-#if !FOO
-        LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    [|using|] (Stream stream1 = File.OpenRead("test"))
+                    {
+                        Stream stream2;
+                    }
+                }
+            }
+            """, """
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    using Stream stream1 = File.OpenRead("test");
+                    Stream stream2;
+                }
+            }
+            """);
     }
 
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(38737, "https://github.com/dotnet/roslyn/issues/38737")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestCopyCompilerDirectiveTrivia_PreserveCodeBeforeAndAfterDirective()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestCollision3()
+    {
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScriptAsync(
-@"class C
-{
-    static void M()
+            TestCode = """
+                using System.IO;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (Stream stream = File.OpenRead("test"))
+                        {
+                        }
+                        using (Stream stream1 = File.OpenRead("test"))
+                        {
+                            {|CS0103:Goo|}(out var stream);
+                        }
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestNoCollision3()
     {
-        [||]using (var obj = Dummy())
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    [|using|] (Stream stream1 = File.OpenRead("test"))
+                    {
+                        {|CS0103:Goo|}(out var stream2);
+                    }
+                }
+            }
+            """, """
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    using Stream stream1 = File.OpenRead("test");
+                    {|CS0103:Goo|}(out var stream2);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestCollision4()
+    {
+        await new VerifyCS.Test
         {
-            LegacyMethod();
-#pragma warning disable CS0618, CS0612
-#if !FOO
-            LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-            LegacyMethod();
-        }
+            TestCode = """
+                using System.IO;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (Stream stream = File.OpenRead("test"))
+                        {
+                        }
+                        using (Stream stream1 = File.OpenRead("test"))
+                            {|CS0103:Goo|}(out var stream);
+                    }
+                }
+                """
+        }.RunAsync();
     }
 
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-@"class C
-{
-    static void M()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestNoCollision4()
     {
-        using var obj = Dummy();
-        LegacyMethod();
-#pragma warning disable CS0618, CS0612
-#if !FOO
-        LegacyMethod();
-#endif
-#pragma warning restore CS0618, CS0612
-        LegacyMethod();
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    [|using|] (Stream stream1 = File.OpenRead("test"))
+                        {|CS0103:Goo|}(out var stream2);
+                }
+            }
+            """, """
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                    }
+                    using Stream stream1 = File.OpenRead("test");
+                    {|CS0103:Goo|}(out var stream2);
+                }
+            }
+            """);
     }
 
-    static IDisposable Dummy() => throw new NotImplementedException();
-
-    [Obsolete]
-    static void LegacyMethod() => throw new NotImplementedException();
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(38842, "https://github.com/dotnet/roslyn/issues/38842")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestNextLineIndentation1()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestCollision5()
+    {
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScriptAsync(
-@"using System;
+            TestCode = """
+                using System.IO;
 
-class C
-{
-    void Goo(IDisposable disposable)
+                class Program
+                {
+                    static void Main()
+                    {
+                        using (Stream stream = File.OpenRead("test"))
+                        {
+                            Stream stream1;
+                        }
+                        using (Stream stream1 = File.OpenRead("test"))
+                        {
+                        }
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35879")]
+    public async Task TestNoCollision5()
     {
-        [||]using (var v = disposable)
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                        Stream stream1;
+                    }
+                    [|using|] (Stream stream2 = File.OpenRead("test"))
+                    {
+                    }
+                }
+            }
+            """, """
+            using System.IO;
+
+            class Program
+            {
+                static void Main()
+                {
+                    using (Stream stream = File.OpenRead("test"))
+                    {
+                        Stream stream1;
+                    }
+                    using Stream stream2 = File.OpenRead("test");
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37678")]
+    public async Task TestCopyTrivia()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|using|] (var x = {|CS0103:y|})
+                    {
+                        // comment
+                    }
+                }
+            }
+            """, """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    using var x = {|CS0103:y|};
+                    // comment
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37678")]
+    public async Task TestMultiCopyTrivia()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    [|using|] (var x = {|CS0103:y|})
+                    using (var a = {|CS0103:b|})
+                    {
+                        // comment
+                    }
+                }
+            }
+            """, """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    using var x = {|CS0103:y|};
+                    using var a = {|CS0103:b|};
+                    // comment
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFixAll_WithTrivia()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                    {
+                        [|using|] (var c = {|CS0103:d|})
+                        {
+                            Console.WriteLine(a);
+                            // comment1
+                        }
+                        // comment2
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    using var c = {|CS0103:d|};
+                    Console.WriteLine(a);
+                    // comment1
+                    // comment2
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
+    public async Task TestCopyCompilerDirectiveTrivia()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    [|using|] (var obj = Dummy())
+                    {
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                        LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                    }
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    using var obj = Dummy();
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                    LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
+    public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterRestore()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    [|using|] (var obj = Dummy())
+                    {
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                        LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                    // comment
+                    }
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    using var obj = Dummy();
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                    LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                    // comment
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
+    public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeRestore()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    [|using|] (var obj = Dummy())
+                    {
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                        LegacyMethod();
+                        // comment
+            #endif
+            #pragma warning restore CS0618, CS0612
+                    }
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    using var obj = Dummy();
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                    LegacyMethod();
+                    // comment
+            #endif
+            #pragma warning restore CS0618, CS0612
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
+    public async Task TestCopyCompilerDirectiveAndCommentTrivia_AfterDisable()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    [|using|] (var obj = Dummy())
+                    {
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                        // comment
+                        LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                    }
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    using var obj = Dummy();
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                    // comment
+                    LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
+    public async Task TestCopyCompilerDirectiveAndCommentTrivia_BeforeDisable()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    [|using|] (var obj = Dummy())
+                    {
+                        // comment
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                        LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                    }
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    using var obj = Dummy();
+                    // comment
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                    LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38737")]
+    public async Task TestCopyCompilerDirectiveTrivia_PreserveCodeBeforeAndAfterDirective()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    [|using|] (var obj = Dummy())
+                    {
+                        LegacyMethod();
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                        LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                        LegacyMethod();
+                    }
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                static void M()
+                {
+                    using var obj = Dummy();
+                    LegacyMethod();
+            #pragma warning disable CS0618, CS0612
+            #if !FOO
+                    LegacyMethod();
+            #endif
+            #pragma warning restore CS0618, CS0612
+                    LegacyMethod();
+                }
+
+                static IDisposable Dummy() => throw new NotImplementedException();
+
+                [Obsolete]
+                static void LegacyMethod() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38842")]
+    public async Task TestNextLineIndentation1()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void Goo(IDisposable disposable)
+                {
+                    [|using|] (var v = disposable)
+                    {
+                        {|CS0103:Bar|}(1,
+                            2,
+                            3);
+                        {|CS1501:Goo|}(1,
+                            2,
+                            3);
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void Goo(IDisposable disposable)
+                {
+                    using var v = disposable;
+                    {|CS0103:Bar|}(1,
+                        2,
+                        3);
+                    {|CS1501:Goo|}(1,
+                        2,
+                        3);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38842")]
+    public async Task TestNextLineIndentation2()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+            using System.IO;
+
+            class C
+            {
+                static void Main()
+                {
+                    [|using|] (var stream = new MemoryStream())
+                    {
+                        _ = new Action(
+                                () => { }
+                            );
+                    }
+                }
+            }
+            """, """
+            using System;
+            using System.IO;
+
+            class C
+            {
+                static void Main()
+                {
+                    using var stream = new MemoryStream();
+                    _ = new Action(
+                            () => { }
+                        );
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48586")]
+    public async Task TestKeepSurroundingComments()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|})
+                    { // Make sure that...
+                        Console.WriteLine({|CS0103:s|}.CanRead);
+                    } // ...all comments remain
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    // Make sure that...
+                    Console.WriteLine({|CS0103:s|}.CanRead);
+                    // ...all comments remain
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48586")]
+    public async Task TestKeepSurroundingComments2()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    // Make...
+                    [|using|] (var a = {|CS0103:b|}) // ...sure...
+                    { // ...that...
+                        Console.WriteLine({|CS0103:s|}.CanRead); // ...all...
+                    } // ...comments...
+                    // ...remain
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    // Make...
+                    using var a = {|CS0103:b|}; // ...sure...
+                                     // ...that...
+                    Console.WriteLine({|CS0103:s|}.CanRead); // ...all...
+                                                  // ...comments...
+                                                  // ...remain
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48586")]
+    public async Task TestKeepSurroundingComments3()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    // Make...
+                    [|using|] (var a = {|CS0103:b|}) // ...sure...
+                    using (var c = {|CS0103:d|}) // ...that...
+                    // ...really...
+                    using (var e = {|CS0103:f|}) // ...all...
+                    { // ...comments...
+                        Console.WriteLine({|CS0103:s|}.CanRead); // ...are...
+                    } // ...kept...
+                    // ...during...
+                    // ...transformation
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    // Make...
+                    using var a = {|CS0103:b|}; // ...sure...
+                    using var c = {|CS0103:d|}; // ...that...
+                    // ...really...
+                    using var e = {|CS0103:f|}; // ...all...
+                                     // ...comments...
+                    Console.WriteLine({|CS0103:s|}.CanRead); // ...are...
+                                                  // ...kept...
+                                                  // ...during...
+                                                  // ...transformation
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
+    public async Task TestWithBlockBodyWithOpeningBracketOnSameLine()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|}){
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    Console.WriteLine(a);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
+    public async Task TestWithBlockBodyWithOpeningBracketOnSameLine2()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|}) {
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    Console.WriteLine(a);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
+    public async Task TestWithBlockBodyWithOpeningBracketAndCommentOnSameLine()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|}) { //comment
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};  //comment
+                    Console.WriteLine(a);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
+    public async Task TestWithBlockBodyWithOpeningBracketOnSameLineWithNoStatements()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|}) {
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52970")]
+    public async Task TestWithBlockBodyWithOpeningBracketOnSameLineAndCommentInBlock()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var a = {|CS0103:b|}) {
+                        // intentionally empty
+                    }
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    using var a = {|CS0103:b|};
+                    // intentionally empty
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58911")]
+    public async Task TestUsingWithoutSpace()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            public class Test
+            {
+                public IEnumerable<Test> Collection { get; } = new[]
+                {
+                    new Test()
+                    {
+                        Prop = () =>
+                        {
+                            [|using|](var x = Get())
+                            {
+                                int i = 0;
+                            }
+                        }
+                    }
+                };
+
+                public Action Prop { get; set; }
+                public static IDisposable Get() => throw new NotImplementedException();
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+
+            public class Test
+            {
+                public IEnumerable<Test> Collection { get; } = new[]
+                {
+                    new Test()
+                    {
+                        Prop = () =>
+                        {
+                            using var x = Get();
+                                int i = 0;
+                        }
+                    }
+                };
+
+                public Action Prop { get; set; }
+                public static IDisposable Get() => throw new NotImplementedException();
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
+    public async Task TestWithConstantReturn1()
+    {
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.IO;
+
+            class C
+            {
+                bool M()
+                {
+                    [|using|] (var foo = new MemoryStream())
+                    {
+                    }
+
+                    return true;
+                }
+            }
+            """, """
+            using System.IO;
+
+            class C
+            {
+                bool M()
+                {
+                    using var foo = new MemoryStream();
+
+                    return true;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
+    public async Task TestWithNonConstantReturn1()
+    {
+        await new VerifyCS.Test
         {
-            Bar(1,
-                2,
-                3);
-            Goo(1,
-                2,
-                3);
-        }
-    }
-}",
-@"using System;
+            TestCode = """
+                using System.IO;
 
-class C
-{
-    void Goo(IDisposable disposable)
+                class C
+                {
+                    bool M(int a, int b)
+                    {
+                        using (var foo = new MemoryStream())
+                        {
+                        }
+
+                        return a > b;
+                    }
+                }
+                """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
+    public async Task TestWithLocalFunctions1()
     {
-        using var v = disposable;
-        Bar(1,
-            2,
-            3);
-        Goo(1,
-            2,
-            3);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.IO;
 
-        [WorkItem(38842, "https://github.com/dotnet/roslyn/issues/38842")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestNextLineIndentation2()
+            class C
+            {
+                void M()
+                {
+                    [|using|] (var foo = new MemoryStream())
+                    {
+                    }
+
+                    void Inner1() { }
+                    void Inner2() { }
+                }
+            }
+            """, """
+            using System.IO;
+
+            class C
+            {
+                void M()
+                {
+                    using var foo = new MemoryStream();
+
+                    void Inner1() { }
+                    void Inner2() { }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
+    public async Task TestWithLocalFunctions2()
+    {
+        await new VerifyCS.Test
         {
-            await TestInRegularAndScriptAsync(
-@"using System;
-using System.IO;
+            TestCode = """
+                using System.IO;
 
-class C
-{
-    static void Main()
-    {
-        [||]using (var stream = new MemoryStream())
-        {
-            _ = new Action(
-                    () => { }
-                );
-        }
+                class C
+                {
+                    bool M(int a, int b)
+                    {
+                        using (var foo = new MemoryStream())
+                        {
+                        }
+
+                        void Inner1() { }
+                        void Inner2() { }
+
+                        return a > b;
+                    }
+                }
+                """
+        }.RunAsync();
     }
-}",
-@"using System;
-using System.IO;
 
-class C
-{
-    static void Main()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42194")]
+    public async Task TestWithLocalFunctionsAndConstantReturn()
     {
-        using var stream = new MemoryStream();
-        _ = new Action(
-                () => { }
-            );
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.IO;
+
+            class C
+            {
+                bool M(int a, int b)
+                {
+                    [|using|] (var foo = new MemoryStream())
+                    {
+                    }
+
+                    void Inner1() { }
+                    void Inner2() { }
+
+                    return true;
+                }
+            }
+            """, """
+            using System.IO;
+
+            class C
+            {
+                bool M(int a, int b)
+                {
+                    using var foo = new MemoryStream();
+
+                    void Inner1() { }
+                    void Inner2() { }
+
+                    return true;
+                }
+            }
+            """);
     }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
 
-        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestKeepSurroundingComments()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58861")]
+    public async Task TestOpenBraceTrivia1()
     {
-        [||]using (var a = b)
-        { // Make sure that...
-            Console.WriteLine(s.CanRead);
-        } // ...all comments remain
-    }
-}",
-@"using System;
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.Security.Cryptography;
 
-class C
-{
-    void M()
+            class C
+            {
+                public static byte[] ComputeMD5Hash(byte[] source)
+                {
+            #pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+                    [|using|] (var md5 = MD5.Create())
+            #pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+                    {
+                        return md5.ComputeHash(source);
+                    }
+                }
+            }
+            """, """
+            using System.Security.Cryptography;
+
+            class C
+            {
+                public static byte[] ComputeMD5Hash(byte[] source)
+                {
+            #pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+                    using var md5 = MD5.Create();
+            #pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+                    return md5.ComputeHash(source);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58861")]
+    public async Task TestOpenBraceTrivia2()
     {
-        using var a = b;
-        // Make sure that...
-        Console.WriteLine(s.CanRead);
-        // ...all comments remain
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
+        await VerifyCS.VerifyCodeFixAsync("""
+            using System.Security.Cryptography;
 
-        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestKeepSurroundingComments2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
+            class C
+            {
+                public static byte[] ComputeMD5Hash(byte[] source)
+                {
+            #pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+                    [|using|] (var md5 = MD5.Create())
+            #pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+                    { // comment
+                        return md5.ComputeHash(source);
+                    }
+                }
+            }
+            """, """
+            using System.Security.Cryptography;
 
-class C
-{
-    void M()
-    {
-        // Make...
-        [||]using (var a = b) // ...sure...
-        { // ...that...
-            Console.WriteLine(s.CanRead); // ...all...
-        } // ...comments...
-        // ...remain
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        // Make...
-        using var a = b; // ...sure...
-                         // ...that...
-        Console.WriteLine(s.CanRead); // ...all...
-                                      // ...comments...
-                                      // ...remain
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(48586, "https://github.com/dotnet/roslyn/issues/48586")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestKeepSurroundingComments3()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        // Make...
-        [||]using (var a = b) // ...sure...
-        using (var c = d) // ...that...
-        // ...really...
-        using (var e = f) // ...all...
-        { // ...comments...
-            Console.WriteLine(s.CanRead); // ...are...
-        } // ...kept...
-        // ...during...
-        // ...transformation
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        // Make...
-        using var a = b; // ...sure...
-        using var c = d; // ...that...
-        // ...really...
-        using var e = f; // ...all...
-                         // ...comments...
-        Console.WriteLine(s.CanRead); // ...are...
-                                      // ...kept...
-                                      // ...during...
-                                      // ...transformation
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithBlockBodyWithOpeningBracketOnSameLine()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b){
-            Console.WriteLine(a);
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithBlockBodyWithOpeningBracketOnSameLine2()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b) {
-            Console.WriteLine(a);
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithBlockBodyWithOpeningBracketAndCommentOnSameLine()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b) { //comment
-            Console.WriteLine(a);
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;  //comment
-        Console.WriteLine(a);
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithBlockBodyWithOpeningBracketOnSameLineWithNoStatements()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b) {
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
-
-        [WorkItem(52970, "https://github.com/dotnet/roslyn/issues/52970")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-        public async Task TestWithBlockBodyWithOpeningBracketOnSameLineAndCommentInBlock()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        [||]using (var a = b) {
-            // intentionally empty
-        }
-    }
-}",
-@"using System;
-
-class C
-{
-    void M()
-    {
-        using var a = b;
-        // intentionally empty
-    }
-}",
-parseOptions: CSharp8ParseOptions);
-        }
+            class C
+            {
+                public static byte[] ComputeMD5Hash(byte[] source)
+                {
+            #pragma warning disable CA5351 // Do Not Use Broken Cryptographic Algorithms
+                    using var md5 = MD5.Create();
+            #pragma warning restore CA5351 // Do Not Use Broken Cryptographic Algorithms
+                    // comment
+                    return md5.ComputeHash(source);
+                }
+            }
+            """);
     }
 }

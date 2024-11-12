@@ -4,19 +4,18 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature;
+
+internal abstract class ChangeSignatureViewModelFactoryService : IChangeSignatureViewModelFactoryService
 {
-    internal abstract class ChangeSignatureViewModelFactoryService : IChangeSignatureViewModelFactoryService
+    public ChangeSignatureViewModelFactoryService()
     {
-        public ChangeSignatureViewModelFactoryService()
-        {
-        }
-
-        public abstract SymbolDisplayPart[] GeneratePreviewDisplayParts(
-            ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel);
-
-        public abstract bool IsTypeNameValid(string typeName);
-
-        public abstract SyntaxNode GetTypeNode(string typeName);
     }
+
+    public abstract SymbolDisplayPart[] GeneratePreviewDisplayParts(
+        ChangeSignatureDialogViewModel.AddedParameterViewModel addedParameterViewModel);
+
+    public abstract bool IsTypeNameValid(string typeName);
+
+    public abstract SyntaxNode GetTypeNode(string typeName);
 }

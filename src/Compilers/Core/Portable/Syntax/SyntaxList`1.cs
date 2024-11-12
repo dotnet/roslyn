@@ -5,17 +5,49 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    public static class SyntaxList
+    {
+        public static SyntaxList<TNode> Create<TNode>(ReadOnlySpan<TNode> nodes) where TNode : SyntaxNode
+        {
+            if (nodes.Length == 0)
+                return default;
+
+            return new SyntaxList<TNode>(createGreenNode(nodes).CreateRed());
+
+            static GreenNode createGreenNode(ReadOnlySpan<TNode> nodes)
+            {
+                switch (nodes.Length)
+                {
+                    case 1: return nodes[0].Green;
+                    case 2: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green);
+                    case 3: return Syntax.InternalSyntax.SyntaxList.List(nodes[0].Green, nodes[1].Green, nodes[2].Green);
+                    default:
+                        {
+                            var copy = new ArrayElement<GreenNode>[nodes.Length];
+                            for (int i = 0, n = nodes.Length; i < n; i++)
+                                copy[i].Value = nodes[i].Green;
+
+                            return Syntax.InternalSyntax.SyntaxList.List(copy);
+                        }
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// A list of <see cref="SyntaxNode"/>.
     /// </summary>
+    [CollectionBuilder(typeof(SyntaxList), methodName: "Create")]
     public readonly partial struct SyntaxList<TNode> : IReadOnlyList<TNode>, IEquatable<SyntaxList<TNode>>
         where TNode : SyntaxNode
     {
@@ -388,7 +420,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         // for debugging
+#pragma warning disable IDE0051 // Remove unused private members
         private TNode[] Nodes
+#pragma warning restore IDE0051 // Remove unused private members
         {
             get { return this.ToArray(); }
         }
@@ -448,7 +482,9 @@ namespace Microsoft.CodeAnalysis
             return _node?.GetHashCode() ?? 0;
         }
 
-        public static implicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
+        [Obsolete("This method is preserved for binary compatibility only. Use explicit cast instead.", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxList<TNode> op_Implicit(SyntaxList<SyntaxNode> nodes)
         {
             return new SyntaxList<TNode>(nodes._node);
         }
@@ -456,6 +492,11 @@ namespace Microsoft.CodeAnalysis
         public static implicit operator SyntaxList<SyntaxNode>(SyntaxList<TNode> nodes)
         {
             return new SyntaxList<SyntaxNode>(nodes.Node);
+        }
+
+        public static explicit operator SyntaxList<TNode>(SyntaxList<SyntaxNode> nodes)
+        {
+            return new SyntaxList<TNode>(nodes._node);
         }
 
         /// <summary>

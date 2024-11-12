@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis;
-internal class SnippetUtilities
+internal sealed class SnippetUtilities
 {
     public static bool TryGetWordOnLeft(int position, SourceText currentText, ISyntaxFactsService syntaxFactsService, [NotNullWhen(true)] out TextSpan? wordSpan)
     {

@@ -4,24 +4,22 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Linq
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
-Imports System.Text
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
-Imports CS = Microsoft.CodeAnalysis.CSharp
 Imports Roslyn.Test.Utilities.TestHelpers
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
+Imports CS = Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CompilationAPITests
@@ -29,10 +27,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private Function WithDiagnosticOptions(
             tree As SyntaxTree,
-            ParamArray options As (string, ReportDiagnostic)()) As VisualBasicCompilationOptions
+            ParamArray options As (String, ReportDiagnostic)()) As VisualBasicCompilationOptions
 
             Return TestOptions.DebugDll.
-                WithSyntaxTreeOptionsProvider(new TestSyntaxTreeOptionsProvider(tree, options))
+                WithSyntaxTreeOptionsProvider(New TestSyntaxTreeOptionsProvider(tree, options))
         End Function
 
         <Fact>
@@ -45,12 +43,12 @@ Class C
 End Class")
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
                 WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
-            comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+                New TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
+            comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             ' Global options override syntax tree options. This is the opposite of C# behavior
             comp.AssertNoDiagnostics()
         End Sub
@@ -71,7 +69,6 @@ BC42024: Unused local variable: 'x'.
         Dim x As Integer
             ~
                 </errors>)
-
 
             Dim options = WithDiagnosticOptions(tree, ("BC42024", ReportDiagnostic.Suppress))
             Dim comp2 = CreateCompilation({tree}, options:=options)
@@ -109,12 +106,12 @@ End Class")
 
             Dim options = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
                 CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
-                new TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({tree}, options:=options)
+                New TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
+            Dim comp2 = CreateCompilationWithMscorlib461({tree}, options:=options)
             ' Specific diagnostic options should have precedence over tree options
             comp2.AssertNoDiagnostics()
         End Sub
@@ -138,7 +135,7 @@ End Class")
                 New TestSyntaxTreeOptionsProvider(
                     (tree, {("BC42024", ReportDiagnostic.Suppress)}),
                     (newTree, {("BC4024", ReportDiagnostic.Error)})))
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree, newTree}, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'y'.
@@ -288,7 +285,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             listSyntaxTree.Add(t1)
 
             ' System.dll
-            listRef.Add(Net451.System)
+            listRef.Add(NetFramework.System)
             Dim ops = TestOptions.ReleaseExe
 
             ' Create Compilation with Option is not Nothing
@@ -323,7 +320,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
 
         <Fact>
         Public Sub GetSpecialType()
-            Dim comp = VisualBasicCompilation.Create("compilation", Nothing, Nothing, Nothing)
+            Dim comp = DirectCast(VisualBasicCompilation.Create("compilation", Nothing, Nothing, Nothing), Compilation)
             ' Get Special Type by enum
             Dim ntSmb = comp.GetSpecialType(typeId:=SpecialType.Count)
             Assert.Equal(SpecialType.Count, ntSmb.SpecialType)
@@ -350,7 +347,6 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             '    Sub()
             '        comp.GetTypeByNameAndArity(String.Empty, -4)
             '    End Sub)
-
 
             Dim compilationDef =
 <compilation name="compilation">
@@ -385,7 +381,7 @@ End Namespace
             comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             'IsCaseSensitive
-            Assert.Equal(Of Boolean)(False, comp.IsCaseSensitive)
+            AssertEx.Equal(Of Boolean)(False, comp.IsCaseSensitive)
 
             Assert.Equal("D", comp.GetTypeByMetadataName("C+D").Name)
             Assert.Equal("E", comp.GetTypeByMetadataName("C+D+E").Name)
@@ -534,8 +530,8 @@ End Namespace
         Public Sub ReferenceAPITest()
             ' Create Compilation takes two args
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = Net451.mscorlib
-            Dim ref2 = Net451.System
+            Dim ref1 = NetFramework.mscorlib
+            Dim ref2 = NetFramework.System
             Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
@@ -565,19 +561,19 @@ End Namespace
             'WithReferences 
             Dim hs1 As New HashSet(Of MetadataReference) From {ref1, ref2, ref3}
             Dim compCollection1 = VisualBasicCompilation.Create("Compilation")
-            Assert.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(compCollection1.References))
+            AssertEx.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(compCollection1.References))
             Dim c2 As Compilation = compCollection1.WithReferences(hs1)
-            Assert.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c2.References))
+            AssertEx.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c2.References))
 
             'WithReferences 
             Dim compCollection2 = VisualBasicCompilation.Create("Compilation")
-            Assert.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(compCollection2.References))
+            AssertEx.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(compCollection2.References))
             Dim c3 As Compilation = compCollection1.WithReferences(ref1, ref2, ref3)
-            Assert.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c3.References))
+            AssertEx.Equal(Of Integer)(3, Enumerable.Count(Of MetadataReference)(c3.References))
 
             'ReferencedAssemblyNames
             Dim RefAsm_Names As IEnumerable(Of AssemblyIdentity) = c2.ReferencedAssemblyNames
-            Assert.Equal(Of Integer)(2, Enumerable.Count(Of AssemblyIdentity)(RefAsm_Names))
+            AssertEx.Equal(Of Integer)(2, Enumerable.Count(Of AssemblyIdentity)(RefAsm_Names))
             Dim ListNames As New List(Of String)
             Dim I As AssemblyIdentity
             For Each I In RefAsm_Names
@@ -588,7 +584,7 @@ End Namespace
 
             'RemoveAllReferences
             c2 = c2.RemoveAllReferences
-            Assert.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(c2.References))
+            AssertEx.Equal(Of Integer)(0, Enumerable.Count(Of MetadataReference)(c2.References))
 
             ' Overload with Hashset
             Dim hs = New HashSet(Of MetadataReference)() From {ref1, ref2, ref3}
@@ -800,13 +796,13 @@ End Namespace
 
             'ContainsSyntaxTree
             Dim b1 As Boolean = comp.ContainsSyntaxTree(t2)
-            Assert.Equal(Of Boolean)(False, b1)
+            AssertEx.Equal(Of Boolean)(False, b1)
             comp = comp.AddSyntaxTrees({t2})
             b1 = comp.ContainsSyntaxTree(t2)
-            Assert.Equal(Of Boolean)(True, b1)
+            AssertEx.Equal(Of Boolean)(True, b1)
 
             Dim xt As SyntaxTree = Nothing
-            Assert.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
+            AssertEx.Equal(Of Boolean)(False, comp.ContainsSyntaxTree(xt))
 
             comp = comp.RemoveSyntaxTrees({t2})
             Assert.Equal(1, comp.SyntaxTrees.Length)
@@ -817,8 +813,8 @@ End Namespace
             comp = comp.RemoveAllSyntaxTrees
             Assert.Equal(0, comp.SyntaxTrees.Length)
             comp = VisualBasicCompilation.Create("Compilation").AddSyntaxTrees(listSyntaxTree).RemoveSyntaxTrees({t2})
-            Assert.Equal(Of Integer)(1, comp.SyntaxTrees.Length)
-            Assert.Equal(Of String)("Object", comp.ObjectType.Name)
+            AssertEx.Equal(Of Integer)(1, comp.SyntaxTrees.Length)
+            AssertEx.Equal(Of String)("Object", comp.ObjectType.Name)
 
             ' Remove mid SyntaxTree
             listSyntaxTree.Add(t3)
@@ -841,7 +837,7 @@ End Namespace
             ' Create compilation with args is disordered
             Dim comp1 = VisualBasicCompilation.Create("Compilation")
             Dim Err = "c:\file_that_does_not_exist"
-            Dim ref1 = Net451.mscorlib
+            Dim ref1 = NetFramework.mscorlib
             Dim listRef = New List(Of MetadataReference)
             ' this is NOT testing Roslyn
             listRef.Add(ref1)
@@ -1057,8 +1053,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Dim csCompRef = csComp.ToMetadataReference(embedInteropTypes:=True)
 
-            Dim ref1 = Net451.mscorlib
-            Dim ref2 = Net451.System
+            Dim ref1 = NetFramework.mscorlib
+            Dim ref2 = NetFramework.System
 
             ' Add VisualBasicCompilationReference
             comp = VisualBasicCompilation.Create("Test1",
@@ -1173,7 +1169,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ResourcesNet451.System).GetReference()})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(Net461.Resources.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -1183,7 +1179,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Assert.Null(comp.GetReferencedAssemblySymbol(Net451.System))
+            Assert.Null(comp.GetReferencedAssemblySymbol(NetFramework.System))
 
             Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()
             Assert.Null(comp.GetReferencedModuleSymbol(modRef1))
@@ -1194,7 +1190,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = Net451.System
+            Dim ref1 = NetFramework.System
             Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
             Dim ref3 = ref2
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
@@ -1222,7 +1218,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
-            Dim ref2 = Net451.System
+            Dim ref2 = NetFramework.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
 
@@ -1260,8 +1256,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Dim ref1 = Net451.mscorlib
-            Dim ref2 = Net451.System
+            Dim ref1 = NetFramework.mscorlib
+            Dim ref2 = NetFramework.System
             Assert.Throws(Of ArgumentException)(
                 Sub()
                     comp = comp.ReplaceReference(ref1, ref2)
@@ -1734,6 +1730,207 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
             Return type.GetMembers().OfType(Of IPropertySymbol)().SelectAsArray(Function(p) p.NullableAnnotation)
         End Function
 
+        <Theory>
+        <InlineData(WellKnownMemberNames.AdditionOperatorName, "Public Shared Operator +(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.SubtractionOperatorName, "Public Shared Operator -(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.MultiplyOperatorName, "Public Shared Operator *(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.ModulusOperatorName, "Public Shared Operator Mod(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.IntegerDivisionOperatorName, "Public Shared Operator \(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.LeftShiftOperatorName, "Public Shared Operator <<(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.RightShiftOperatorName, "Public Shared Operator >>(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.ExclusiveOrOperatorName, "Public Shared Operator Xor(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.BitwiseOrOperatorName, "Public Shared Operator Or(left As Integer, right As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.BitwiseAndOperatorName, "Public Shared Operator And(left As Integer, right As Integer) As Integer")>
+        Public Sub CreateBuiltinBinaryOperator_Supported(name As String, display As String)
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim op = compilation.CreateBuiltinOperator(name, intType, intType, intType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal(display, result)
+        End Sub
+
+        <Theory>
+        <InlineData(WellKnownMemberNames.EqualityOperatorName, "Public Shared Operator =(left As Integer, right As Integer) As Boolean")>
+        <InlineData(WellKnownMemberNames.InequalityOperatorName, "Public Shared Operator <>(left As Integer, right As Integer) As Boolean")>
+        <InlineData(WellKnownMemberNames.LessThanOrEqualOperatorName, "Public Shared Operator <=(left As Integer, right As Integer) As Boolean")>
+        <InlineData(WellKnownMemberNames.GreaterThanOrEqualOperatorName, "Public Shared Operator >=(left As Integer, right As Integer) As Boolean")>
+        <InlineData(WellKnownMemberNames.LessThanOperatorName, "Public Shared Operator <(left As Integer, right As Integer) As Boolean")>
+        <InlineData(WellKnownMemberNames.GreaterThanOperatorName, "Public Shared Operator >(left As Integer, right As Integer) As Boolean")>
+        Public Sub CreateBuiltinBinaryOperator_Supported_Bool(name As String, display As String)
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim boolType = compilation.GetSpecialType(SpecialType.System_Boolean)
+            Dim op = compilation.CreateBuiltinOperator(name, boolType, intType, intType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal(display, result)
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_Supported_Concatenate()
+            Dim compilation = CreateCompilation("")
+            Dim stringType = compilation.GetSpecialType(SpecialType.System_String)
+            Dim op = compilation.CreateBuiltinOperator(WellKnownMemberNames.ConcatenateOperatorName, stringType, stringType, stringType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal("Public Shared Operator &(left As String, right As String) As String", result)
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_Supported_Like()
+            Dim compilation = CreateCompilation("")
+            Dim stringType = compilation.GetSpecialType(SpecialType.System_String)
+            Dim boolType = compilation.GetSpecialType(SpecialType.System_Boolean)
+            Dim op = compilation.CreateBuiltinOperator(WellKnownMemberNames.LikeOperatorName, boolType, stringType, stringType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal("Public Shared Operator Like(left As String, right As String) As Boolean", result)
+        End Sub
+
+        <Theory>
+        <InlineData(WellKnownMemberNames.DivisionOperatorName, "Public Shared Operator /(left As Double, right As Double) As Double")>
+        <InlineData(WellKnownMemberNames.ExponentOperatorName, "Public Shared Operator ^(left As Double, right As Double) As Double")>
+        Public Sub CreateBuiltinBinaryOperator_Supported_Double(name As String, display As String)
+            Dim compilation = CreateCompilation("")
+            Dim doubleType = compilation.GetSpecialType(SpecialType.System_Double)
+            Dim op = compilation.CreateBuiltinOperator(name, doubleType, doubleType, doubleType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal(display, result)
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_BogusErrorType()
+            Dim compilation = CreateCompilation("")
+            Dim fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity:=0)
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, fakeIntType, fakeIntType, fakeIntType))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_RealErrorType()
+            Dim compilation = CreateCompilation("", references:={}, targetFramework:=TargetFramework.Empty)
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim op = compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, intType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal("Public Shared Operator +(left As Integer, right As Integer) As Integer", result)
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_NotSupported()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(intType)
+
+            ' c# binary operator name
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.IncrementOperatorName, intType, intType, intType))
+
+            ' unary operator name
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, intType))
+
+            ' nullable type 1
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, nullableIntType, intType, intType))
+
+            ' nullable type 2
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, nullableIntType, intType))
+
+            ' nullable type 3
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType, nullableIntType))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_NullChecks()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Assert.Throws(Of ArgumentNullException)("returnType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, Nothing, intType, intType))
+            Assert.Throws(Of ArgumentNullException)("leftType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, Nothing, intType))
+            Assert.Throws(Of ArgumentNullException)("rightType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType, Nothing))
+        End Sub
+
+        <Theory>
+        <InlineData(WellKnownMemberNames.UnaryPlusOperatorName, "Public Shared Operator +(value As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.UnaryNegationOperatorName, "Public Shared Operator -(value As Integer) As Integer")>
+        <InlineData(WellKnownMemberNames.OnesComplementOperatorName, "Public Shared Operator Not(value As Integer) As Integer")>
+        Public Sub CreateBuiltinUnaryOperator_Supported(name As String, display As String)
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim op = compilation.CreateBuiltinOperator(name, intType, intType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal(display, result)
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinUnaryOperator_NotSupported()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(intType)
+
+            ' Binary operator name
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, intType))
+
+            ' Nullable type 1
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, nullableIntType, intType))
+
+            ' Nullable type 2
+            Assert.Throws(Of ArgumentException)("name", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.AdditionOperatorName, intType, nullableIntType))
+
+            ' op_Implicit
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.ImplicitConversionName, intType, intType))
+
+            ' op_Explicit
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.ExplicitConversionName, intType, intType))
+
+            ' op_False
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.FalseOperatorName, intType, intType))
+
+            ' op_True
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.TrueOperatorName, intType, intType))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinUnaryOperator_BogusErrorType()
+            Dim compilation = CreateCompilation("")
+            Dim fakeIntType = compilation.CreateErrorTypeSymbol(compilation.CreateErrorNamespaceSymbol(compilation.GlobalNamespace, "System"), "Int32", arity:=0)
+            Assert.Throws(Of ArgumentException)(Nothing, Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, fakeIntType, fakeIntType))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinUnaryOperator_RealErrorType()
+            Dim compilation = CreateCompilation("", references:={}, targetFramework:=TargetFramework.Empty)
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Dim op = compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, intType)
+            Dim result = op.ToDisplayString()
+            AssertEx.Equal("Public Shared Operator +(value As Integer) As Integer", result)
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinUnaryOperator_NullChecks()
+            Dim compilation = CreateCompilation("")
+            Dim intType = compilation.GetSpecialType(SpecialType.System_Int32)
+            Assert.Throws(Of ArgumentNullException)("returnType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, Nothing, intType))
+            Assert.Throws(Of ArgumentNullException)("operandType", Function() compilation.CreateBuiltinOperator(WellKnownMemberNames.UnaryPlusOperatorName, intType, Nothing))
+        End Sub
+
+        <Fact>
+        Public Sub CreateBuiltinBinaryOperator_CompareToActualSymbols1()
+            Dim Compilation = CreateCompilation("
+class C
+    sub M()
+        dim m = 1 + 1 'BIND:""1 + 1""
+    end sub
+end class")
+            Dim intType = Compilation.GetSpecialType(SpecialType.System_Int32)
+
+            Dim SyntaxTree = Compilation.SyntaxTrees.Single()
+            Dim SemanticModel = Compilation.GetSemanticModel(SyntaxTree)
+
+            Dim expr = FindBindingText(Of BinaryExpressionSyntax)(Compilation)
+            Dim Symbol = SemanticModel.GetSymbolInfo(expr).Symbol
+
+            Assert.NotNull(Symbol)
+
+            Dim subtractBuiltIn = Compilation.CreateBuiltinOperator(WellKnownMemberNames.SubtractionOperatorName, intType, intType, intType)
+            Dim subtractBuiltInChecked = Compilation.CreateBuiltinOperator(WellKnownMemberNames.CheckedSubtractionOperatorName, intType, intType, intType)
+
+            Assert.NotEqual(subtractBuiltIn, Symbol)
+            Assert.NotEqual(subtractBuiltInChecked, Symbol)
+        End Sub
+
         <Fact()>
         <WorkItem(36046, "https://github.com/dotnet/roslyn/issues/36046")>
         Public Sub ConstructTypeWithNullability()
@@ -1937,7 +2134,7 @@ End Class
         <Fact()>
         Public Sub GetEntryPoint_Script()
             Dim source = <![CDATA[System.Console.WriteLine(1)]]>
-            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib461({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
@@ -1957,7 +2154,7 @@ End Class
         End Sub
     End Class
     ]]>
-            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib461({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
@@ -2050,7 +2247,6 @@ End Class
             c2 = c1.WithOptions(TestOptions.ReleaseModule)
             Assert.False(c1.ReferenceManagerEquals(c2))
 
-
             c1 = VisualBasicCompilation.Create("c", options:=TestOptions.ReleaseModule)
 
             c2 = c1.WithOptions(TestOptions.ReleaseExe)
@@ -2128,10 +2324,10 @@ End Class
         <Fact>
         Public Sub ReferenceManagerReuse_WithSyntaxTrees()
             Dim ta = Parse("Imports System")
-            Dim tb = Parse("Imports System", options:=TestOptions.Script)
+            Dim tb = Parse("Imports System", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
             Dim tc = Parse("#r ""bar""  ' error: #r in regular code")
-            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script)
-            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script)
+            Dim tr = Parse("#r ""goo""", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
+            Dim ts = Parse("#r ""bar""", options:=TestOptions.Script.WithLanguageVersion(LanguageVersion.Latest))
 
             Dim a = VisualBasicCompilation.Create("c", syntaxTrees:={ta})
 
@@ -2289,7 +2485,7 @@ End Class
         <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim metadata = Net451.mscorlib
+            Dim metadata = NetFramework.mscorlib
             comp = comp.AddReferences(metadata)
             Dim assemblySmb = comp.GetReferencedAssemblySymbol(metadata)
             Dim reference = comp.GetMetadataReference(assemblySmb)
@@ -2314,7 +2510,6 @@ End Class
             Assert.Null(comp.GetMetadataReference(Nothing))
         End Sub
 
-
         <Fact()>
         Public Sub EqualityOfMergedNamespaces()
             Dim moduleComp = CompilationUtils.CreateEmptyCompilation(
@@ -2335,7 +2530,6 @@ Namespace NS2
 End Namespace
     </file>
 </compilation>, options:=TestOptions.ReleaseModule)
-
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
@@ -2541,7 +2735,6 @@ Namespace System
     End Structure
 End Namespace
 "
-
 
             Dim tuple = "
 Namespace System

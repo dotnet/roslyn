@@ -124,7 +124,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns true if this parameter was declared as a ParamArray. 
         ''' </summary>
-        Public MustOverride ReadOnly Property IsParamArray As Boolean Implements IParameterSymbol.IsParams
+        Public MustOverride ReadOnly Property IsParamArray As Boolean Implements IParameterSymbol.IsParams, IParameterSymbol.IsParamsArray
+
+        Private ReadOnly Property IsParamsCollection As Boolean Implements IParameterSymbol.IsParamsCollection
+            Get
+                Return False
+            End Get
+        End Property
 
         ''' <summary>
         ''' Returns true if this parameter was declared as Optional. 
@@ -276,16 +282,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </remarks>
         Friend MustOverride ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
 
-        Protected Overrides ReadOnly Property HighestPriorityUseSiteError As Integer
-            Get
-                Return ERRID.ERR_UnsupportedType1
-            End Get
-        End Property
+        Protected Overrides Function IsHighestPriorityUseSiteError(code As Integer) As Boolean
+            Return code = ERRID.ERR_UnsupportedType1 OrElse code = ERRID.ERR_UnsupportedCompilerFeature
+        End Function
 
-        Public NotOverridable Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
+        Public Overrides ReadOnly Property HasUnsupportedMetadata As Boolean
             Get
-                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me, HighestPriorityUseSiteError).DiagnosticInfo
-                Return info IsNot Nothing AndAlso info.Code = ERRID.ERR_UnsupportedType1
+                Dim info As DiagnosticInfo = DeriveUseSiteInfoFromParameter(Me).DiagnosticInfo
+                Return info IsNot Nothing AndAlso (info.Code = ERRID.ERR_UnsupportedType1 OrElse info.Code = ERRID.ERR_UnsupportedCompilerFeature)
             End Get
         End Property
 
@@ -297,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IParameterSymbol_RefKind As RefKind Implements IParameterSymbol.RefKind
+        Private ReadOnly Property IParameterSymbol_RefKind As RefKind Implements IParameterSymbol.RefKind, IParameterSymbolInternal.RefKind
             Get
                 ' TODO: Should we check if it has the <Out> attribute and return 'RefKind.Out' in
                 ' that case?
@@ -305,7 +309,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IParameterSymbol_ScopedKind As ScopedKind Implements IParameterSymbol.ScopedKind
+            Get
+                Return ScopedKind.None
+            End Get
+        End Property
+
         Private ReadOnly Property IParameterSymbol_Type As ITypeSymbol Implements IParameterSymbol.Type
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IParameterSymbolInternal_Type As ITypeSymbolInternal Implements IParameterSymbolInternal.Type
             Get
                 Return Me.Type
             End Get
@@ -365,6 +381,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
             Return visitor.VisitParameter(Me)
+        End Function
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As SymbolVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitParameter(Me, argument)
         End Function
 
         Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)

@@ -2,36 +2,25 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Navigation
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
+Imports Microsoft.VisualStudio.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
-    <[UseExportProvider]>
-    Public Class GoToDefinitionCancellationTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestCancellation()
-            ' Run without cancelling.
-            Dim updates = Cancel(Integer.MaxValue, False)
-            Assert.InRange(updates, 0, Integer.MaxValue)
-            Dim i As Integer = 0
-            While i < updates
-                Dim n = Cancel(i, True)
-                Assert.Equal(n, i + 1)
-                i += 1
-            End While
-        End Sub
-
-        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
-        Public Sub TestInLinkedFiles()
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+    Public Class GoToDefinitionCommandHandlerTests
+        <WpfFact>
+        Public Async Function TestInLinkedFiles() As Task
             Dim definition =
 <Workspace>
     <Project Language="C#" CommonReferences="true" AssemblyName="CSProj" PreprocessorSymbols="Proj1">
@@ -56,7 +45,7 @@ class C
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
                 Dim baseDocument = workspace.Documents.First(Function(d) Not d.IsLinkFile)
                 Dim linkDocument = workspace.Documents.First(Function(d) d.IsLinkFile)
@@ -65,50 +54,112 @@ class C
                 Dim mockDocumentNavigationService =
                     DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
-                Dim handler = New GoToDefinitionCommandHandler()
+                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
+                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
+                Dim handler = New GoToDefinitionCommandHandler(
+                    workspace.GetService(Of IGlobalOptionService),
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of IUIThreadOperationExecutor),
+                    provider)
+
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(78, 2), mockDocumentNavigationService._span)
+                Await waiter.ExpeditedWaitAsync()
+
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(78, mockDocumentNavigationService._position)
 
                 workspace.SetDocumentContext(linkDocument.Id)
 
                 handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, baseDocument.GetTextBuffer()), TestCommandExecutionContext.Create())
-                Assert.True(mockDocumentNavigationService._triedNavigationToSpan)
-                Assert.Equal(New TextSpan(121, 2), mockDocumentNavigationService._span)
-            End Using
-        End Sub
+                Await waiter.ExpeditedWaitAsync()
 
-        Private Shared Function Cancel(updatesBeforeCancel As Integer, expectedCancel As Boolean) As Integer
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(121, mockDocumentNavigationService._position)
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function TestAtEndOfFile() As Task
             Dim definition =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
-        <Document>
-            class [|C|] { $$C c; }"
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+        <Document FilePath="C.cs">int x = 0;
+int y = x$$</Document>
+    </Project>
+</Workspace>
+
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
+
+                Dim document = workspace.Documents.First()
+                Dim view = document.GetTextView()
+
+                Dim mockDocumentNavigationService =
+                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
+
+                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
+                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
+                Dim handler = New GoToDefinitionCommandHandler(
+                    workspace.GetService(Of IGlobalOptionService),
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of IUIThreadOperationExecutor),
+                    provider)
+
+                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
+                Await waiter.ExpeditedWaitAsync()
+
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(4, mockDocumentNavigationService._position)
+                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
+            End Using
+        End Function
+
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/43183")>
+        <CombinatorialData>
+        Public Async Function TestWithSelection(reversedSelection As Boolean) As Task
+            Dim definition =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+        <Document FilePath="C.cs">
+class C
+{
+    int X;
+
+    void M()
+    {
+        _ = X%2; // Press F12 with caret between X and %
+    }
+}
         </Document>
     </Project>
 </Workspace>
 
-            Using workspace = TestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
-                Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
-                Dim cursorPosition = cursorDocument.CursorPosition.Value
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=GoToTestHelpers.Composition)
 
-                Dim mockDocumentNavigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
+                Dim document = workspace.Documents.First()
+                Dim view = document.GetTextView()
 
-                Dim navigatedTo = False
-                Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-                Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() navigatedTo = True)
+                Dim mockDocumentNavigationService =
+                    DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationService)
 
-                Dim cursorBuffer = cursorDocument.GetTextBuffer()
-                Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
+                Dim provider = workspace.GetService(Of IAsynchronousOperationListenerProvider)()
+                Dim waiter = provider.GetWaiter(FeatureAttribute.GoToDefinition)
+                Dim handler = New GoToDefinitionCommandHandler(
+                    workspace.GetService(Of IGlobalOptionService),
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of IUIThreadOperationExecutor),
+                    provider)
 
-                Dim goToDefService = New CSharpGoToDefinitionService(threadingContext, presenter)
+                Dim snapshot = document.GetTextBuffer().CurrentSnapshot
+                Dim index = snapshot.GetText().IndexOf("X%")
 
-                Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
-                GoToDefinitionCommandHandler.TestAccessor.ExecuteCommand(document, cursorPosition, goToDefService, New CommandExecutionContext(waitContext))
+                view.SetSelection(New SnapshotSpan(snapshot, New Span(index, 1)), isReversed:=reversedSelection)
 
-                Assert.Equal(navigatedTo OrElse mockDocumentNavigationService._triedNavigationToSpan, Not expectedCancel)
+                handler.ExecuteCommand(New GoToDefinitionCommandArgs(view, document.GetTextBuffer()), TestCommandExecutionContext.Create())
+                Await waiter.ExpeditedWaitAsync()
 
-                Return waitContext.Updates
+                Assert.True(mockDocumentNavigationService._triedNavigationToPosition)
+                Assert.Equal(22, mockDocumentNavigationService._position)
+                Assert.Equal(document.Id, mockDocumentNavigationService._documentId)
             End Using
         End Function
     End Class

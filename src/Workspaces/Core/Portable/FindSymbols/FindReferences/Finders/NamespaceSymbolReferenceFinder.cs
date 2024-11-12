@@ -2,131 +2,138 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
 {
-    internal class NamespaceSymbolReferenceFinder : AbstractReferenceFinder<INamespaceSymbol>
+    protected override bool CanFind(INamespaceSymbol symbol)
+        => true;
+
+    protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(INamespaceSymbol symbol, Project project, CancellationToken cancellationToken)
     {
-        private static readonly SymbolDisplayFormat s_globalNamespaceFormat = new(SymbolDisplayGlobalNamespaceStyle.Included);
+        return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, arity: 0, cancellationToken);
+    }
 
-        protected override bool CanFind(INamespaceSymbol symbol)
-            => true;
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
+        INamespaceSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        if (!symbol.IsGlobalNamespace)
+            await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        else
+            await FindDocumentsWithPredicateAsync(project, documents, static index => index.ContainsGlobalKeyword, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        protected override Task<ImmutableArray<string>> DetermineGlobalAliasesAsync(INamespaceSymbol symbol, Project project, CancellationToken cancellationToken)
+        if (globalAliases != null)
         {
-            return GetAllMatchingGlobalAliasNamesAsync(project, symbol.Name, arity: 0, cancellationToken);
-        }
-
-        protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            INamespaceSymbol symbol,
-            HashSet<string>? globalAliases,
-            Project project,
-            IImmutableSet<Document>? documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-
-            var namespaceName = GetNamespaceIdentifierName(symbol);
-            result.AddRange(await FindDocumentsAsync(
-                project, documents, cancellationToken, namespaceName).ConfigureAwait(false));
-
-            if (globalAliases != null)
+            foreach (var globalAlias in globalAliases)
             {
-                foreach (var globalAlias in globalAliases)
-                {
-                    result.AddRange(await FindDocumentsAsync(
-                        project, documents, cancellationToken, globalAlias).ConfigureAwait(false));
-                }
+                await FindDocumentsAsync(
+                    project, documents, processResult, processResultData, cancellationToken, globalAlias).ConfigureAwait(false);
             }
-
-            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
-            result.AddRange(documentsWithGlobalAttributes);
-
-            return result.ToImmutable();
         }
 
-        private static string GetNamespaceIdentifierName(INamespaceSymbol symbol)
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+    }
+
+    protected override void FindReferencesInDocument<TData>(
+        INamespaceSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        if (symbol.IsGlobalNamespace)
         {
-            return symbol.IsGlobalNamespace
-                ? symbol.ToDisplayString(s_globalNamespaceFormat)
-                : symbol.Name;
+            AddGlobalNamespaceReferences(
+                symbol, state, processResult, processResultData, cancellationToken);
         }
-
-        protected override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            INamespaceSymbol symbol,
-            HashSet<string>? globalAliases,
-            Document document,
-            SemanticModel semanticModel,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
+        else
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var namespaceName = GetNamespaceIdentifierName(symbol);
-
             using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var initialReferences);
 
-            await AddReferencesAsync(
-                symbol, namespaceName, document, semanticModel,
-                initialReferences, cancellationToken).ConfigureAwait(false);
+            var namespaceName = symbol.Name;
+            AddNamedReferences(
+                symbol, namespaceName, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
 
-            if (globalAliases != null)
-            {
-                foreach (var globalAlias in globalAliases)
-                {
-                    // ignore the cases where the global alias might match the namespace name (i.e.
-                    // global alias Collections = System.Collections).  We'll already find those references
-                    // above.
-                    if (syntaxFacts.StringComparer.Equals(namespaceName, globalAlias))
-                        continue;
+            foreach (var globalAlias in state.GlobalAliases)
+                FindReferenceToAlias(symbol, state, initialReferences, namespaceName, globalAlias, cancellationToken);
 
-                    await AddReferencesAsync(
-                        symbol, globalAlias, document, semanticModel,
-                        initialReferences, cancellationToken).ConfigureAwait(false);
-                }
-            }
+            foreach (var localAlias in state.Cache.SyntaxTreeIndex.GetAliases(symbol.Name, arity: 0))
+                FindReferenceToAlias(symbol, state, initialReferences, namespaceName, localAlias, cancellationToken);
 
-            initialReferences.AddRange(await FindLocalAliasReferencesAsync(
-                initialReferences, symbol, document, semanticModel, cancellationToken).ConfigureAwait(false));
+            // The items in initialReferences need to be both reported and used later to calculate additional results.
+            foreach (var location in initialReferences)
+                processResult(location, processResultData);
 
-            initialReferences.AddRange(await FindReferencesInDocumentInsideGlobalSuppressionsAsync(
-                document, semanticModel, symbol, cancellationToken).ConfigureAwait(false));
+            FindLocalAliasReferences(
+                initialReferences, symbol, state, processResult, processResultData, cancellationToken);
 
-            return initialReferences.ToImmutable();
+            FindReferencesInDocumentInsideGlobalSuppressions(
+                symbol, state, processResult, processResultData, cancellationToken);
         }
+    }
 
-        /// <summary>
-        /// Finds references to <paramref name="symbol"/> in this <paramref name="document"/>, but
-        /// only if it referenced though <paramref name="name"/> (which might be the actual name
-        /// of the type, or a global alias to it).
-        /// </summary>
-        private static async Task AddReferencesAsync(
-            INamespaceSymbol symbol,
-            string name,
-            Document document,
-            SemanticModel semanticModel,
-            ArrayBuilder<FinderLocation> initialReferences,
-            CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+    private static void FindReferenceToAlias(
+        INamespaceSymbol symbol, FindReferencesDocumentState state, ArrayBuilder<FinderLocation> initialReferences, string namespaceName, string alias, CancellationToken cancellationToken)
+    {
+        // ignore the cases where the global alias might match the namespace name (i.e.
+        // global alias Collections = System.Collections).  We'll already find those references
+        // above.
+        if (state.SyntaxFacts.StringComparer.Equals(namespaceName, alias))
+            return;
 
-            var tokens = await GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
-                document, semanticModel, name, cancellationToken).ConfigureAwait(false);
+        AddNamedReferences(
+            symbol, alias, state, StandardCallbacks<FinderLocation>.AddToArrayBuilder, initialReferences, cancellationToken);
+    }
 
-            initialReferences.AddRange(await FindReferencesInTokensAsync(
-                symbol,
-                document,
-                semanticModel,
-                tokens,
-                t => syntaxFacts.TextMatch(t.ValueText, name),
-                cancellationToken).ConfigureAwait(false));
-        }
+    /// <summary>
+    /// Finds references to <paramref name="symbol"/> in this <paramref name="state"/>, but only if it referenced
+    /// though <paramref name="name"/> (which might be the actual name of the type, or a global alias to it).
+    /// </summary>
+    private static void AddNamedReferences<TData>(
+        INamespaceSymbol symbol,
+        string name,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        var tokens = FindMatchingIdentifierTokens(state, name, cancellationToken);
+
+        FindReferencesInTokens(
+            symbol, state, tokens, processResult, processResultData, cancellationToken);
+    }
+
+    private static void AddGlobalNamespaceReferences<TData>(
+        INamespaceSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        CancellationToken cancellationToken)
+    {
+        var tokens = state.Root
+            .DescendantTokens()
+            .WhereAsArray(
+                static (token, state) => state.SyntaxFacts.IsGlobalNamespaceKeyword(token),
+                state);
+
+        FindReferencesInTokens(
+            symbol, state, tokens, processResult, processResultData, cancellationToken);
     }
 }

@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -12,296 +11,219 @@ using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal abstract partial class TextDocumentState
 {
-    internal partial class TextDocumentState
+    public readonly SolutionServices SolutionServices;
+    public readonly IDocumentServiceProvider DocumentServiceProvider;
+    public readonly DocumentInfo.DocumentAttributes Attributes;
+    public readonly ITextAndVersionSource TextAndVersionSource;
+    public readonly LoadTextOptions LoadTextOptions;
+
+    // Checksums for this solution state
+    private readonly AsyncLazy<DocumentStateChecksums> _lazyChecksums;
+
+    protected TextDocumentState(
+        SolutionServices solutionServices,
+        IDocumentServiceProvider? documentServiceProvider,
+        DocumentInfo.DocumentAttributes attributes,
+        ITextAndVersionSource textAndVersionSource,
+        LoadTextOptions loadTextOptions)
     {
-        protected readonly SolutionServices solutionServices;
+        SolutionServices = solutionServices;
+        DocumentServiceProvider = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
+        Attributes = attributes;
+        TextAndVersionSource = textAndVersionSource;
+        LoadTextOptions = loadTextOptions;
 
-        /// <summary>
-        /// A direct reference to our source text.  This is only kept around in specialized scenarios.
-        /// Specifically, we keep this around when a document is opened.  By providing this we can allow
-        /// clients to easily get to the text of the document in a non-blocking fashion if that's all
-        /// that they need.
-        ///
-        /// Note: this facility does not extend to getting the version as well.  That's because the
-        /// version of a document depends on both the current source contents and the contents from 
-        /// the previous version of the document.  (i.e. if the contents are the same, then we will
-        /// preserve the same version, otherwise we'll move the version forward).  Because determining
-        /// the version depends on comparing text, and because getting the old text may block, we 
-        /// do not have the ability to know the version of the document up front, and instead can
-        /// only retrieve is asynchronously through <see cref="TextAndVersionSource"/>.
-        /// </summary> 
-        protected readonly SourceText? sourceText;
-        protected ValueSource<TextAndVersion> TextAndVersionSource { get; }
-
-        // Checksums for this solution state
-        private readonly ValueSource<DocumentStateChecksums> _lazyChecksums;
-
-        public DocumentInfo.DocumentAttributes Attributes { get; }
-
-        /// <summary>
-        /// A <see cref="IDocumentServiceProvider"/> associated with this document
-        /// </summary>
-        public IDocumentServiceProvider Services { get; }
-
-        protected TextDocumentState(
-            SolutionServices solutionServices,
-            IDocumentServiceProvider? documentServiceProvider,
-            DocumentInfo.DocumentAttributes attributes,
-            SourceText? sourceText,
-            ValueSource<TextAndVersion> textAndVersionSource)
-        {
-            this.solutionServices = solutionServices;
-            this.sourceText = sourceText;
-            this.TextAndVersionSource = textAndVersionSource;
-
-            Attributes = attributes;
-            Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
-
-            // This constructor is called whenever we're creating a new TextDocumentState from another
-            // TextDocumentState, and so we populate all the fields from the inputs. We will always create
-            // a new AsyncLazy to compute the checksum though, and that's because there's no practical way for
-            // the newly created TextDocumentState to have the same checksum as a previous TextDocumentState:
-            // if we're creating a new state, it's because something changed, and we'll have to create a new checksum.
-            _lazyChecksums = new AsyncLazy<DocumentStateChecksums>(ComputeChecksumsAsync, cacheResult: true);
-        }
-
-        public TextDocumentState(DocumentInfo info, SolutionServices services)
-
-            : this(services,
-                   info.DocumentServiceProvider,
-                   info.Attributes,
-                   sourceText: null,
-                   textAndVersionSource: info.TextLoader != null
-                    ? CreateRecoverableText(info.TextLoader, info.Id, services)
-                    : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath)))
-        {
-        }
-
-        public DocumentId Id => Attributes.Id;
-        public string? FilePath => Attributes.FilePath;
-        public IReadOnlyList<string> Folders => Attributes.Folders;
-        public string Name => Attributes.Name;
-
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextAndVersion text)
-            => new ConstantValueSource<TextAndVersion>(text);
-
-        protected static ValueSource<TextAndVersion> CreateStrongText(TextLoader loader, DocumentId documentId, SolutionServices services)
-        {
-            return new AsyncLazy<TextAndVersion>(
-                asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
-                synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
-                cacheResult: true);
-        }
-
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
-        {
-            var result = new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
-
-            // This RecoverableTextAndVersion is created directly from a TextAndVersion instance. In its initial state,
-            // the RecoverableTextAndVersion keeps a strong reference to the initial TextAndVersion, and only
-            // transitions to a weak reference backed by temporary storage after the first time GetValue (or
-            // GetValueAsync) is called. Since we know we are creating a RecoverableTextAndVersion for the purpose of
-            // avoiding problematic address space overhead, we call GetValue immediately to force the object to weakly
-            // hold its data from the start.
-            result.GetValue();
-
-            return result;
-        }
-
-        protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services)
-        {
-            return new RecoverableTextAndVersion(
-                new AsyncLazy<TextAndVersion>(
-                    asynchronousComputeFunction: cancellationToken => loader.LoadTextAsync(services.Workspace, documentId, cancellationToken),
-                    synchronousComputeFunction: cancellationToken => loader.LoadTextSynchronously(services.Workspace, documentId, cancellationToken),
-                    cacheResult: false),
-                services.TemporaryStorage);
-        }
-
-        public ITemporaryTextStorage? Storage
-        {
-            get
-            {
-                var recoverableText = this.TextAndVersionSource as RecoverableTextAndVersion;
-                if (recoverableText == null)
-                {
-                    return null;
-                }
-
-                return recoverableText.Storage;
-            }
-        }
-
-        public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
-        {
-            if (this.sourceText != null)
-            {
-                text = sourceText;
-                return true;
-            }
-
-            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
-            {
-                text = textAndVersion.Text;
-                return true;
-            }
-            else
-            {
-                text = null;
-                return false;
-            }
-        }
-
-        public bool TryGetTextVersion(out VersionStamp version)
-        {
-            // try fast path first
-            if (this.TextAndVersionSource is ITextVersionable versionable)
-            {
-                return versionable.TryGetTextVersion(out version);
-            }
-
-            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
-            {
-                version = textAndVersion.Version;
-                return true;
-            }
-            else
-            {
-                version = default;
-                return false;
-            }
-        }
-
-        public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
-            => TextAndVersionSource.TryGetValue(out textAndVersion);
-
-        public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
-        {
-            if (sourceText != null)
-            {
-                return new ValueTask<SourceText>(sourceText);
-            }
-
-            if (TryGetText(out var text))
-            {
-                return new ValueTask<SourceText>(text);
-            }
-
-            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-                static (self, cancellationToken) => self.GetTextAndVersionAsync(cancellationToken),
-                static (textAndVersion, _) => textAndVersion.Text,
-                this,
-                cancellationToken);
-        }
-
-        public SourceText GetTextSynchronously(CancellationToken cancellationToken)
-        {
-            var textAndVersion = this.TextAndVersionSource.GetValue(cancellationToken);
-            return textAndVersion.Text;
-        }
-
-        public VersionStamp GetTextVersionSynchronously(CancellationToken cancellationToken)
-        {
-            var textAndVersion = this.TextAndVersionSource.GetValue(cancellationToken);
-            return textAndVersion.Version;
-        }
-
-        public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
-        {
-            // try fast path first
-            if (TryGetTextVersion(out var version))
-            {
-                return version;
-            }
-
-            var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
-            return textAndVersion.Version;
-        }
-
-        public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
-        {
-            var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(newTextAndVersion)
-                : CreateRecoverableText(newTextAndVersion, this.solutionServices);
-
-            return UpdateText(newTextSource, mode, incremental: true);
-        }
-
-        public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
-        {
-            var newVersion = GetNewerVersion();
-            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, FilePath);
-
-            return UpdateText(newTextAndVersion, mode);
-        }
-
-        public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
-        {
-            // don't blow up on non-text documents.
-            var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(loader, Id, solutionServices)
-                : CreateRecoverableText(loader, Id, solutionServices);
-
-            return UpdateText(newTextSource, mode, incremental: false);
-        }
-
-        protected virtual TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
-        {
-            return new TextDocumentState(
-                this.solutionServices,
-                this.Services,
-                this.Attributes,
-                sourceText: null,
-                textAndVersionSource: newTextSource);
-        }
-
-        private ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
-        {
-            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
-            {
-                return new ValueTask<TextAndVersion>(textAndVersion);
-            }
-            else
-            {
-                return new ValueTask<TextAndVersion>(TextAndVersionSource.GetValueAsync(cancellationToken));
-            }
-        }
-
-        internal virtual async Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)
-            => (await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false)).LoadDiagnostic;
-
-        private VersionStamp GetNewerVersion()
-        {
-            if (this.TextAndVersionSource.TryGetValue(out var textAndVersion))
-            {
-                return textAndVersion.Version.GetNewerVersion();
-            }
-
-            return VersionStamp.Create();
-        }
-
-        public virtual async Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
-        {
-            var textAndVersion = await this.TextAndVersionSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return textAndVersion.Version;
-        }
-
-        /// <summary>
-        /// Only checks if the source of the text has changed, no content check is done.
-        /// </summary>
-        public bool HasTextChanged(TextDocumentState oldState, bool ignoreUnchangeableDocument)
-        {
-            if (ignoreUnchangeableDocument && !oldState.CanApplyChange())
-            {
-                return false;
-            }
-
-            return oldState.TextAndVersionSource != TextAndVersionSource;
-        }
-
-        public bool HasInfoChanged(TextDocumentState oldState)
-            => oldState.Attributes != Attributes;
+        // This constructor is called whenever we're creating a new TextDocumentState from another
+        // TextDocumentState, and so we populate all the fields from the inputs. We will always create
+        // a new AsyncLazy to compute the checksum though, and that's because there's no practical way for
+        // the newly created TextDocumentState to have the same checksum as a previous TextDocumentState:
+        // if we're creating a new state, it's because something changed, and we'll have to create a new checksum.
+        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
     }
+
+    public DocumentId Id => Attributes.Id;
+    public string? FilePath => Attributes.FilePath;
+    public IReadOnlyList<string> Folders => Attributes.Folders;
+    public string Name => Attributes.Name;
+
+    public TextDocumentState WithDocumentInfo(DocumentInfo info)
+        => WithAttributes(info.Attributes)
+          .WithDocumentServiceProvider(info.DocumentServiceProvider)
+          .WithTextLoader(info.TextLoader, PreservationMode.PreserveValue);
+
+    public TextDocumentState WithAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => ReferenceEquals(newAttributes, Attributes) ? this : UpdateAttributes(newAttributes);
+
+    public TextDocumentState WithDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => ReferenceEquals(newProvider, DocumentServiceProvider) ? this : UpdateDocumentServiceProvider(newProvider);
+
+    public TextDocumentState WithTextLoader(TextLoader? loader, PreservationMode mode)
+        => ReferenceEquals(loader, TextAndVersionSource.TextLoader) ? this : UpdateText(loader, mode);
+
+    protected abstract TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes);
+    protected abstract TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider);
+    protected abstract TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental);
+
+    private static ConstantTextAndVersionSource CreateStrongText(TextAndVersion text)
+        => new(text);
+
+    private static RecoverableTextAndVersion CreateRecoverableText(TextAndVersion text, SolutionServices services)
+        => new(new ConstantTextAndVersionSource(text), services);
+
+    public ITemporaryStorageTextHandle? StorageHandle
+        => (TextAndVersionSource as RecoverableTextAndVersion)?.StorageHandle;
+
+    public bool TryGetText([NotNullWhen(returnValue: true)] out SourceText? text)
+    {
+        if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
+        {
+            text = textAndVersion.Text;
+            return true;
+        }
+        else
+        {
+            text = null;
+            return false;
+        }
+    }
+
+    public bool TryGetTextVersion(out VersionStamp version)
+        => TextAndVersionSource.TryGetVersion(LoadTextOptions, out version);
+
+    public bool TryGetTextAndVersion([NotNullWhen(true)] out TextAndVersion? textAndVersion)
+        => TextAndVersionSource.TryGetValue(LoadTextOptions, out textAndVersion);
+
+    public ValueTask<SourceText> GetTextAsync(CancellationToken cancellationToken)
+    {
+        if (TryGetText(out var text))
+        {
+            return new ValueTask<SourceText>(text);
+        }
+
+        return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+            static (self, cancellationToken) => self.GetTextAndVersionAsync(cancellationToken),
+            static (textAndVersion, _) => textAndVersion.Text,
+            this,
+            cancellationToken);
+    }
+
+    public SourceText GetTextSynchronously(CancellationToken cancellationToken)
+    {
+        var textAndVersion = this.TextAndVersionSource.GetValue(LoadTextOptions, cancellationToken);
+        return textAndVersion.Text;
+    }
+
+    public VersionStamp GetTextVersionSynchronously(CancellationToken cancellationToken)
+    {
+        var textAndVersion = this.TextAndVersionSource.GetValue(LoadTextOptions, cancellationToken);
+        return textAndVersion.Version;
+    }
+
+    public async Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken)
+    {
+        // try fast path first
+        if (TryGetTextVersion(out var version))
+        {
+            return version;
+        }
+
+        var textAndVersion = await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false);
+        return textAndVersion.Version;
+    }
+
+    public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
+        => UpdateText(mode == PreservationMode.PreserveIdentity
+                ? CreateStrongText(newTextAndVersion)
+                : CreateRecoverableText(newTextAndVersion, SolutionServices),
+            mode,
+            incremental: true);
+
+    public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
+    {
+        var newVersion = GetNewerVersion();
+        var newTextAndVersion = TextAndVersion.Create(newText, newVersion, FilePath);
+
+        return UpdateText(newTextAndVersion, mode);
+    }
+
+    public TextDocumentState UpdateText(TextLoader? loader, PreservationMode mode)
+    {
+        // don't blow up on non-text documents.
+        var newTextSource = CreateTextAndVersionSource(SolutionServices, loader, FilePath, LoadTextOptions, mode);
+
+        return UpdateText(newTextSource, mode, incremental: false);
+    }
+
+    protected static ITextAndVersionSource CreateTextAndVersionSource(SolutionServices solutionServices, TextLoader? loader, string? filePath, LoadTextOptions loadTextOptions, PreservationMode mode = PreservationMode.PreserveValue)
+        => loader != null
+            ? CreateTextFromLoader(solutionServices, loader, mode)
+            : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, filePath));
+
+    private static ITextAndVersionSource CreateTextFromLoader(SolutionServices solutionServices, TextLoader loader, PreservationMode mode)
+    {
+        // If the caller is explicitly stating that identity must be preserved, then we created a source that will load
+        // from the loader the first time, but then cache that result so that hte same result is *always* returned.
+        if (mode == PreservationMode.PreserveIdentity)
+            return new LoadableTextAndVersionSource(loader, cacheResult: true);
+
+        // If the loader asks us to always hold onto it strongly, then we do not want to create a recoverable text
+        // source here.  Instead, we'll go back to the loader each time to get the text.  This is useful for when the
+        // loader knows it can always reconstitute the snapshot exactly as it was before.  For example, if the loader
+        // points at the contents of a memory mapped file in another process.
+        if (loader.AlwaysHoldStrongly)
+            return new LoadableTextAndVersionSource(loader, cacheResult: false);
+
+        // Otherwise, we just want to hold onto this loader by value.  So we create a loader that will load the
+        // contents, but not hold onto them strongly, and we wrap it in a recoverable-text that will then take those
+        // contents and dump it into a memory-mapped-file in this process so that snapshot semantics can be preserved.
+        return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), solutionServices);
+    }
+
+    private ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)
+    {
+        if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
+        {
+            return new ValueTask<TextAndVersion>(textAndVersion);
+        }
+        else
+        {
+            return new ValueTask<TextAndVersion>(TextAndVersionSource.GetValueAsync(LoadTextOptions, cancellationToken));
+        }
+    }
+
+    internal virtual async Task<Diagnostic?> GetLoadDiagnosticAsync(CancellationToken cancellationToken)
+        => (await GetTextAndVersionAsync(cancellationToken).ConfigureAwait(false)).LoadDiagnostic;
+
+    private VersionStamp GetNewerVersion()
+    {
+        if (this.TextAndVersionSource.TryGetValue(LoadTextOptions, out var textAndVersion))
+        {
+            return textAndVersion.Version.GetNewerVersion();
+        }
+
+        return VersionStamp.Create();
+    }
+
+    public virtual ValueTask<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
+        => this.TextAndVersionSource.GetVersionAsync(LoadTextOptions, cancellationToken);
+
+    /// <summary>
+    /// Only checks if the source of the text has changed, no content check is done.
+    /// </summary>
+    public bool HasTextChanged(TextDocumentState oldState, bool ignoreUnchangeableDocument)
+    {
+        if (ignoreUnchangeableDocument && !oldState.CanApplyChange())
+        {
+            return false;
+        }
+
+        return oldState.TextAndVersionSource != TextAndVersionSource;
+    }
+
+    public bool HasInfoChanged(TextDocumentState oldState)
+        => oldState.Attributes != Attributes;
 }

@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return _newLine
         End Function
 
-        Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia) As LineColumnRule
+        Protected Overrides Function GetLineColumnRuleBetween(trivia1 As SyntaxTrivia, existingWhitespaceBetween As LineColumnDelta, implicitLineBreak As Boolean, trivia2 As SyntaxTrivia, cancellationToken As CancellationToken) As LineColumnRule
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' If the doc comment was parsed from a text fragment, there may not be
             ' an end-of-line at all. We need to trim the end before we check the
             ' number of line breaks in the text.
-#If NETCOREAPP Then
+#If NET Then
             Dim textWithoutFinalNewLine = text.TrimEnd()
 #Else
             Dim textWithoutFinalNewLine = text.TrimEnd(Nothing)

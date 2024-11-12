@@ -919,7 +919,7 @@ public class C
             End Using
         End Function
 
-        <WorkItem(56006, "https://github.com/dotnet/roslyn/issues/56006")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/56006")>
         Public Async Function SyntaxIsLikeLocalFunction() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1089,6 +1089,81 @@ static class Program
 }
 ", state.GetDocumentText())
                 Await state.AssertLineTextAroundCaret("        await c!.SomeTask!.ConfigureAwait(false)", ";")
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67952")>
+        Public Async Function AwaitCompletion_AfterLocalFunction1() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    public void Test()
+    {
+        void Image_ImageOpened()
+        {
+        }
+
+        awai$$ Goo();
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+class C
+{
+    public async void Test()
+    {
+        void Image_ImageOpened()
+        {
+        }
+
+        await Goo();
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/67952")>
+        Public Async Function AwaitCompletion_AfterLocalFunction2() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+class C
+{
+    public void Test()
+    {
+        void Image_ImageOpened()
+        {
+        }
+
+        $$ Goo();
+    }
+}
+]]>
+                </Document>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain(displayText:="await", displayTextSuffix:="")
+
+                state.SendTypeChars("awai")
+                state.SendTab()
+                Assert.Equal("
+class C
+{
+    public async void Test()
+    {
+        void Image_ImageOpened()
+        {
+        }
+
+        await Goo();
+    }
+}
+", state.GetDocumentText())
             End Using
         End Function
     End Class

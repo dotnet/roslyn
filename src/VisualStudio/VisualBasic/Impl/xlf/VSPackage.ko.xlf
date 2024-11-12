@@ -29,8 +29,25 @@ JSON;
 Colorize JSON strings;
 Report invalid JSON strings;
 Detect and offer editor features for JSON strings;
+Collapse #regions on file open;
+Collapse Imports on file open;
+Collapse metadata implementations on file open;
 Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="needs-review-translation">다시 할당된 변수에 밑줄 긋기;인라인 힌트 표시; 맺음 구문 자동 삽입; 자동 서식 지정 설정 변경; 개요 모드 변경; 인터페이스 및 MustOverride 멤버 자동 삽입; 프로시저 줄 구분 기호 표시/숨기기; 오류 수정 제안 설정/해제; 참조 및 키워드 강조 표시 설정/해제; Regex; 정규식 색 지정; 커서 아래의 관련 구성 요소 강조 표시; 잘못된 정규식 보고; regex; 정규식; 향상된 색 사용; 편집기 색 구성표;상속 여백;가져오기 지시문</target>
+        <target state="translated">재할당된 변수에 밑줄 표시, 인라인 힌트 표시, 최종 구문 자동 삽입, 예쁜 목록 설정 변경, 개요 모드 변경, Interface 및 MustOverride 구성원 자동 삽입, 절차 줄 구분 기호 표시 또는 숨기기, 오류 수정 제안 켜기 또는 끄기, 참조 강조 표시 끄기 및 키워드 켜기 또는 끄기, 
+정규식,
+정규식,
+커서 아래에 있는 관련 구성 요소,
+잘못된 정규식 보고,
+정규식,
+정규식,
+JSON,
+JSON 문자열 색상 지정,
+잘못된 JSON 문자열 보고,
+감지 및 제공 JSON 문자열용 편집기 기능,
+파일 열기 시 #regions 축소,
+파일 열기 시 가져오기 축소,
+파일 열기 시 메타데이터 구현 축소,
+향상된 색상 사용, 편집기 색상 구성표, 상속 여백, 지시문 가져오기,</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">
@@ -113,14 +130,34 @@ Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</s
         <target state="translated">Visual Basic 도구</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">비어 있는 Visual Basic 스크립트 파일입니다.</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">입력 시 새 줄 항상 추가</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Visual Basic 스크립트</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">코드 조각 항상 포함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">입력 시 새 줄 추가 안 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">코드 조각 포함 안 함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">단어를 모두 입력하고 Enter 키를 누르는 경우에만 새 줄 추가</target>
         <note />
       </trans-unit>
     </body>

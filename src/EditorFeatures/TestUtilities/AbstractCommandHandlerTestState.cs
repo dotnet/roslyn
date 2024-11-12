@@ -9,12 +9,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -22,12 +19,13 @@ using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     internal abstract class AbstractCommandHandlerTestState : IDisposable
     {
-        public readonly TestWorkspace Workspace;
+        public readonly EditorTestWorkspace Workspace;
         public readonly IEditorOperations EditorOperations;
         public readonly ITextUndoHistoryRegistry UndoHistoryRegistry;
         private readonly ITextView _textView;
@@ -61,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             bool makeSeparateBufferForCursor = false,
             ImmutableArray<string> roles = default)
         {
-            Workspace = TestWorkspace.CreateWorkspace(
+            Workspace = EditorTestWorkspace.CreateWorkspace(
                 workspaceElement,
                 composition: composition,
                 workspaceKind: workspaceKind);
@@ -76,15 +74,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             }
             else
             {
-                var cursorDocument = Workspace.Documents.First(d => d.CursorPosition.HasValue);
+                var cursorDocument = Workspace.Documents.First(d => d.CursorPosition.HasValue || d.SelectedSpans.Any(ss => ss.IsEmpty));
                 _textView = cursorDocument.GetTextView();
                 _subjectBuffer = cursorDocument.GetTextBuffer();
+
+                var cursorPosition = cursorDocument.CursorPosition ?? cursorDocument.SelectedSpans.First(ss => ss.IsEmpty).Start;
+                _textView.Caret.MoveTo(
+                    new SnapshotPoint(_subjectBuffer.CurrentSnapshot, cursorPosition));
 
                 if (cursorDocument.AnnotatedSpans.TryGetValue("Selection", out var selectionSpanList))
                 {
                     var firstSpan = selectionSpanList.First();
                     var lastSpan = selectionSpanList.Last();
-                    var cursorPosition = cursorDocument.CursorPosition!.Value;
 
                     Assert.True(cursorPosition == firstSpan.Start || cursorPosition == firstSpan.End
                                 || cursorPosition == lastSpan.Start || cursorPosition == lastSpan.End,
@@ -113,13 +114,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                     }
 
                     _textView.Selection.Select(
-                            new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
-                            isReversed: isReversed);
+                        new SnapshotSpan(boxSelectionStart, boxSelectionEnd),
+                        isReversed: isReversed);
                 }
             }
 
             this.EditorOperations = GetService<IEditorOperationsFactoryService>().GetEditorOperations(_textView);
             this.UndoHistoryRegistry = GetService<ITextUndoHistoryRegistry>();
+
+            _textView.Options.GlobalOptions.SetOptionValue(DefaultOptions.IndentStyleId, IndentingStyle.Smart);
         }
 
         public void Dispose()
@@ -209,8 +212,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var lineCaretPosition = bufferCaretPosition - line.Start.Position;
 
             var text = line.GetText();
-            var textBeforeCaret = text.Substring(0, lineCaretPosition);
-            var textAfterCaret = text.Substring(lineCaretPosition, text.Length - lineCaretPosition);
+            var textBeforeCaret = text[..lineCaretPosition];
+            var textAfterCaret = text[lineCaretPosition..];
 
             return (textBeforeCaret, textAfterCaret);
         }
@@ -294,6 +297,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public void SendPageDown(Action<PageDownKeyCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
             => commandHandler(new PageDownKeyCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
+
+        public void SendCopy(Action<CopyCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
+            => commandHandler(new CopyCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
 
         public void SendCut(Action<CutCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
             => commandHandler(new CutCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());

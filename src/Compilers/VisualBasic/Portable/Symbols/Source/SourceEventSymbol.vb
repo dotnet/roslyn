@@ -8,6 +8,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -39,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             IsDelegateFromImplements = &H2                      ' Bit value valid once m_lazyType is assigned.
             ReportedExplicitImplementationDiagnostics = &H4
             SymbolDeclaredEvent = &H8                           ' Bit value for generating SymbolDeclaredEvent
+            TypeConstraintsChecked = &H10
         End Enum
 
         Private _lazyType As TypeSymbol
@@ -149,7 +151,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Function ComputeType(diagnostics As BindingDiagnosticBag, <Out()> ByRef isTypeInferred As Boolean, <Out()> ByRef isDelegateFromImplements As Boolean) As TypeSymbol
-            Dim binder = CreateBinderForTypeDeclaration()
+            Dim binder = BinderBuilder.CreateBinderForType(ContainingSourceModule, _syntaxRef.SyntaxTree, _containingType)
+            binder = New LocationSpecificBinder(BindingLocation.EventType, Me, binder)
             Dim syntax = DirectCast(_syntaxRef.GetSyntax(), EventStatementSyntax)
 
             isTypeInferred = False
@@ -651,11 +654,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(arguments.AttributeSyntaxOpt IsNot Nothing)
             Dim attrData = arguments.Attribute
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.NonSerializedAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.NonSerializedAttribute) Then
                 ' Although NonSerialized attribute is only applicable on fields we relax that restriction and allow application on events as well
                 ' to allow making the backing field non-serializable.
 
@@ -665,9 +668,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_InvalidNonSerializedUsage, arguments.AttributeSyntaxOpt.GetLocation())
                 End If
 
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.SpecialNameAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.SpecialNameAttribute) Then
                 arguments.GetOrCreateData(Of EventWellKnownAttributeData).HasSpecialNameAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.ExcludeFromCodeCoverageAttribute) Then
                 arguments.GetOrCreateData(Of EventWellKnownAttributeData).HasExcludeFromCodeCoverageAttribute = True
             End If
 
@@ -743,9 +746,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides Sub GenerateDeclarationErrors(cancellationToken As CancellationToken)
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
-            Dim unusedType = Me.Type
+            Dim type = Me.Type
             Dim unusedImplementations = Me.ExplicitInterfaceImplementations
             Me.CheckExplicitImplementationTypes()
+
+            If (_lazyState And StateFlags.TypeConstraintsChecked) = 0 Then
+                Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                type.CheckAllConstraints(DeclaringCompilation.LanguageVersion,
+                                     Locations(0), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
+                sourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.TypeConstraintsChecked, 0, diagnostics)
+                diagnostics.Free()
+            End If
 
             If DeclaringCompilation.EventQueue IsNot Nothing Then
                 Me.ContainingSourceModule.AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
@@ -763,8 +775,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
-            MyBase.AddSynthesizedAttributes(compilationState, attributes)
+        Friend Overrides Sub AddSynthesizedAttributes(moduleBuilder As PEModuleBuilder, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+            MyBase.AddSynthesizedAttributes(moduleBuilder, attributes)
 
             If Me.Type.ContainsTupleNames() Then
                 AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeTupleNamesAttribute(Type))

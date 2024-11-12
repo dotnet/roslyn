@@ -4,20 +4,20 @@
 
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.Classification
-{
-    [DataContract]
-    internal readonly record struct ClassificationOptions(
-        [property: DataMember(Order = 0)] bool ClassifyReassignedVariables = false,
-        [property: DataMember(Order = 1)] bool ColorizeRegexPatterns = true,
-        [property: DataMember(Order = 2)] bool ColorizeJsonPatterns = true,
-        [property: DataMember(Order = 3)] bool ForceFrozenPartialSemanticsForCrossProcessOperations = false)
-    {
-        public ClassificationOptions()
-            : this(ClassifyReassignedVariables: false)
-        {
-        }
+namespace Microsoft.CodeAnalysis.Classification;
 
-        public static readonly ClassificationOptions Default = new();
+[DataContract]
+internal readonly record struct ClassificationOptions
+{
+    [DataMember] public bool ClassifyReassignedVariables { get; init; } = false;
+    [DataMember] public bool ClassifyObsoleteSymbols { get; init; } = true;
+    [DataMember] public bool ColorizeRegexPatterns { get; init; } = true;
+    [DataMember] public bool ColorizeJsonPatterns { get; init; } = true;
+    [DataMember] public bool FrozenPartialSemantics { get; init; } = false;
+
+    public ClassificationOptions()
+    {
     }
+
+    public static readonly ClassificationOptions Default = new();
 }

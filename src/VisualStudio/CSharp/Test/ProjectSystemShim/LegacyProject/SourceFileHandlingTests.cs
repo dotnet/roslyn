@@ -7,7 +7,6 @@
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Interop;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -15,11 +14,10 @@ using Xunit;
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class SourceFileHandlingTests
     {
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
-        [WorkItem(1100114, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100114")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100114")]
         public void IgnoreAdditionsOfXomlFiles()
         {
             using var environment = new TestEnvironment();
@@ -35,7 +33,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddFileExWithLinkPathUsesThatAsAFolder()
         {
             using var environment = new TestEnvironment();
@@ -45,11 +42,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             var document = environment.Workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            Assert.Equal(new[] { "LinkFolder" }, document.Folders);
+            Assert.Equal(["LinkFolder"], document.Folders);
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddFileExWithLinkPathWithoutFolderWorksCorrectly()
         {
             using var environment = new TestEnvironment();
@@ -63,7 +59,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddFileExWithNoLinkPathComputesEmptyFolder()
         {
             using var environment = new TestEnvironment();
@@ -78,7 +73,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         }
 
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddFileExWithNoLinkPathComputesRelativeFolderPath()
         {
             using var environment = new TestEnvironment();
@@ -89,7 +83,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             var document = environment.Workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            Assert.Equal(new[] { "RelativeFolder" }, document.Folders);
+            Assert.Equal(["RelativeFolder"], document.Folders);
         }
     }
 }

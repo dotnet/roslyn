@@ -53,6 +53,9 @@ Highlight references to symbol under cursor;
 Highlight related keywords under cursor;
 Outlining;
 Enter outlining mode when files open;
+Collapse #regions on file open;
+Collapse usings on file open;
+Collapse metadata implementations on file open;
 Show procedure line separators;
 Show outlining for declaration level constructs;
 Show outlining for code level constructs;
@@ -91,7 +94,7 @@ Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
 Inheritance Margin;</source>
-        <target state="needs-review-translation">Podtrhnout znovu přiřazené proměnné;
+        <target state="translated">Podtrhnout znovu přiřazené proměnné;
 Zobrazovat vložené nápovědy;
 Zobrazit diagnostiku pro zavřené soubory;
 Vybarvit regulární výraz;
@@ -100,6 +103,7 @@ Nahlásit neplatné regulární výrazy;
 Povolit úplnou analýzu řešení;
 Provést analýzu funkcí editoru v externím procesu;
 Povolit navigaci na dekompilované zdroje;
+Pro navigaci vždy používat výchozí servery symbolů;
 Direktivy using;
 Při řazení direktiv using umístit systémové direktivy jako první;
 Oddělovat skupiny direktiv using;
@@ -110,6 +114,9 @@ Zvýrazňovat odkazy na symbol pod kurzorem;
 Zvýrazňovat související klíčová slova pod kurzorem;
 Sbalení;
 Po otevření souborů přejít do režimu osnovy;
+Sbalit #regions při otevření souboru;
+Sbalit použití při otevření souboru;
+Sbalit implementace metadat při otevření souboru;
 Zobrazovat oddělovače řádků procedur;
 Zobrazit sbalení pro konstrukty na úrovni deklarace;
 Zobrazit sbalení pro konstrukty na úrovni kódu;
@@ -136,11 +143,18 @@ na konec;
 Při generování vlastnosti;
 preferovat vyvolávací vlastnosti;
 preferovat automatické vlastnosti;
-reg. výr.;
+regex;
 regulární výraz;
-Používat rozšířené barvy;
+Obarvit regulární výrazy;
+Zvýraznit související komponenty pod kurzorem;
+Nahlásit neplatné regulární výrazy;
+JSON;
+Obarvit řetězce JSON;
+Nahlásit neplatné řetězce JSON;
+Rozpoznat a nabízet funkce editoru pro řetězce JSON;
+ rozšířené barvy;
 Barevné schéma editoru;
-Okraj dědičnosti</target>
+Okraj dědičnosti;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -396,14 +410,39 @@ Zobrazit položky z neimportovaných oborů názvů (experimentální);</target>
         <target state="translated">Komponenty C# použité v IDE. V závislosti na typu vašeho projektu a nastavení se může použít jiná verze kompilátoru.</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_CSharp_script_file">
-        <source>An empty C# script file.</source>
-        <target state="translated">Prázdný soubor skriptu C#</target>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Při stisku Enter vždy přidat nový řádek</target>
         <note />
       </trans-unit>
-      <trans-unit id="Visual_CSharp_Script">
-        <source>Visual C# Script</source>
-        <target state="translated">Skript Visual C#</target>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Vždy zahrnovat fragmenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default">
+        <source>Default</source>
+        <target state="translated">Výchozí</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when Tab is typed after an identifier</source>
+        <target state="translated">Zahrnout fragmenty kódu při zadání tabulátoru za identifikátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Při stisku Enter nikdy nepřidávat nový řádek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Nikdy nezahrnovat fragmenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Při stisku Enter přidat nový řádek jenom po dopsání celého slova</target>
         <note />
       </trans-unit>
     </body>

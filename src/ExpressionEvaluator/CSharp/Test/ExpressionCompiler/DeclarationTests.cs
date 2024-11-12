@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int z = 1, F = 2;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size       85 (0x55)
@@ -255,7 +255,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "Test(x, out var z);", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size       47 (0x2f)
@@ -282,7 +282,7 @@ class C
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(13159, "https://github.com/dotnet/roslyn/issues/13159")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/13159")]
         public void ExpressionLocals_ExpressionStatement_02()
         {
             var source =
@@ -311,7 +311,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "Test(x is int z);", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size       69 (0x45)
@@ -436,7 +436,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int z = Test(x, out var F);", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size       88 (0x58)
@@ -616,7 +616,7 @@ class C
                 // Expression with format specifiers but without ';' as statement.
                 result = context.CompileExpression("string.Empty, nq", DkmEvaluationFlags.None, NoAliases, out error);
                 Assert.Null(error);
-                AssertEx.SetEqual(result.FormatSpecifiers, new[] { "nq" });
+                AssertEx.SetEqual(result.FormatSpecifiers, ["nq"]);
 
                 // Expression with format specifiers with ';' as statement.
                 result = context.CompileExpression("string.Empty, nq;", DkmEvaluationFlags.None, NoAliases, out error);
@@ -720,7 +720,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "var x = 1;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       43 (0x2b)
@@ -744,7 +744,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
         public void Dynamic()
         {
             var source =
@@ -765,7 +765,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "dynamic d = 1;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
 @"{
   // Code size       62 (0x3e)
@@ -957,7 +957,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(1094107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094107")]
         public void ReferenceInSameDeclaration()
         {
             var source =
@@ -1066,8 +1066,8 @@ class C
             });
         }
 
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_Parameter()
         {
             var source =
@@ -1091,8 +1091,8 @@ class C
             });
         }
 
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_Local()
         {
             var source =
@@ -1117,8 +1117,8 @@ class C
             });
         }
 
-        [WorkItem(1094104, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         [Fact(Skip = "1094104")]
+        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094104")]
         public void Conflict_OtherDeclaration()
         {
             var source =
@@ -1314,8 +1314,7 @@ class C
         /// <summary>
         /// Should not allow names with '$' prefix.
         /// </summary>
-        [WorkItem(1106819, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1106819")]
         public void NoPrefix()
         {
             var source =
@@ -1421,8 +1420,7 @@ class C
             });
         }
 
-        [WorkItem(1094148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
-        [Fact]
+        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1094148")]
         public void OtherStatements()
         {
             var source =
@@ -1447,7 +1445,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void GenericType_Identifier()
         {
             var source = @"
@@ -1469,7 +1467,7 @@ class Generic<T>
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "Generic<C> g = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       43 (0x2b)
@@ -1493,7 +1491,7 @@ class Generic<T>
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void GenericType_Keyword()
         {
             var source = @"
@@ -1515,7 +1513,7 @@ class Generic<T>
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "Generic<int> g = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       43 (0x2b)
@@ -1539,7 +1537,7 @@ class Generic<T>
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void PointerType_Identifier()
         {
             var source = @"
@@ -1561,7 +1559,7 @@ struct S
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "S* s = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       44 (0x2c)
@@ -1586,7 +1584,7 @@ struct S
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void PointerType_Keyword()
         {
             var source = @"
@@ -1604,7 +1602,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int* p = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       44 (0x2c)
@@ -1629,7 +1627,7 @@ class C
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void NullableType_Identifier()
         {
             var source = @"
@@ -1651,7 +1649,7 @@ struct S
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "S? s = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       55 (0x37)
@@ -1678,7 +1676,7 @@ struct S
         }
 
         [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
-        [WorkItem(3822, "https://github.com/dotnet/roslyn/issues/3822")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/3822")]
         public void NullableType_Keyword()
         {
             var source = @"
@@ -1696,7 +1694,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int? n = null;", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0").VerifyIL(
     @"{
   // Code size       55 (0x37)
@@ -2107,7 +2105,7 @@ class C
                 DkmClrCompilationResultFlags flags;
                 CompilationTestData testData;
                 CompileDeclaration(context, "int z = Test(x is int i);", out flags, out testData);
-                Assert.Equal(flags, DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult);
+                Assert.Equal(DkmClrCompilationResultFlags.PotentialSideEffect | DkmClrCompilationResultFlags.ReadOnlyResult, flags);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
   // Code size      110 (0x6e)

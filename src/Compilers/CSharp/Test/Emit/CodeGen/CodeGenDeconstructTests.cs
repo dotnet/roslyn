@@ -1906,7 +1906,7 @@ class C
     static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
-    static ref int z { get { return ref field; } }
+    static ref int z { get { return ref @field; } }
 
     static void Main()
     {
@@ -1941,7 +1941,7 @@ class C
     static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
-    static ref int z { get { return ref field; } }
+    static ref int z { get { return ref @field; } }
 
     static void Main()
     {
@@ -3001,7 +3001,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/12400")]
+        [Fact]
         [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
         public void AssignWithPostfixOperator()
         {
@@ -3031,9 +3031,41 @@ class C
     }
 }
 ";
-            // https://github.com/dotnet/roslyn/issues/12400
-            // we expect "2 hello" instead, which means the evaluation order is wrong
             var comp = CompileAndVerify(source, expectedOutput: "1 hello");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(12400, "https://github.com/dotnet/roslyn/issues/12400")]
+        public void AssignWithPrefixOperator()
+        {
+            string source = @"
+class C
+{
+    int state = 1;
+
+    static void Main()
+    {
+        long x;
+        string y;
+        C c = new C();
+        (x, y) = ++c;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = state;
+        b = ""hello"";
+    }
+
+    public static C operator ++(C c1)
+    {
+        return new C() { state = 2 };
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "2 hello");
             comp.VerifyDiagnostics();
         }
 
@@ -3724,7 +3756,7 @@ class C
 
                 var x34Var = (DeclarationExpressionSyntax)x3.Parent.Parent;
                 Assert.Equal("var", x34Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x34Var.Type).Symbol); // The var in `var (x3, x4)` has no symbol
+                Assert.Equal("(System.Int32 x3, System.Int32 x4)", model.GetSymbolInfo(x34Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4", sourceSymbolValidator: validator);
@@ -3818,7 +3850,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", sourceSymbolValidator: validator);
@@ -4004,7 +4036,7 @@ class C
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
                 Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetTypeInfo(x12Var).Type.ToTestDisplayString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
 
                 // verify deconstruction info
                 var deconstructionForeach = tree.GetRoot().DescendantNodes().OfType<ForEachVariableStatementSyntax>().Single();
@@ -4111,7 +4143,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 -", sourceSymbolValidator: validator);
@@ -4194,7 +4226,7 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 - 3 4 - 5 6 - 7 8 -", sourceSymbolValidator: validator);
@@ -4305,7 +4337,7 @@ static class Extension
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetSymbolInfo(x12Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 1 - 2 2 - 3 3 - ", sourceSymbolValidator: validator);
@@ -4426,7 +4458,7 @@ class C
                 // extra check on var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 3 4 5 - 6 7 8 9 10 -", sourceSymbolValidator: validator);
@@ -4572,7 +4604,7 @@ class C
                 // extra check on var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.ToTestDisplayString());
             };
 
             string expected =
@@ -5011,7 +5043,7 @@ System.Console.Write($""{x} {y}"");
                 Assert.Equal("alias=System.Int32", model.GetAliasInfo(yType).ToTestDisplayString());
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42", sourceSymbolValidator: validator);
@@ -5084,7 +5116,7 @@ System.Console.Write($""{x} {y}"");
 System.Console.Write(x);
 System.Console.Write(y);
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular9, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
 
@@ -5102,7 +5134,7 @@ System.Console.Write(y);
 (string x, (int y, int z)) = (""hello"", (42, 43));
 System.Console.Write($""{x} {y} {z}"");
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43");
@@ -5116,7 +5148,7 @@ System.Console.Write($""{x} {y} {z}"");
 (var x, var y) = (""hello"", 42);
 System.Console.Write($""{x} {y}"");
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42");
@@ -5159,10 +5191,10 @@ System.Console.Write($""{x1} {x2} {x3}"");
                 // extra check on x2 and x3's var
                 var x23Var = (DeclarationExpressionSyntax)x2.Parent.Parent;
                 Assert.Equal("var", x23Var.Type.ToString());
-                Assert.Null(model.GetSymbolInfo(x23Var.Type).Symbol); // The var in `var (x2, x3)` has no symbol
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetSymbolInfo(x23Var.Type).Symbol.ToTestDisplayString());
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 43", sourceSymbolValidator: validator);
@@ -5177,7 +5209,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
 var (x2, x3) = M(out var x1);
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "1 2 3");
@@ -5286,7 +5318,7 @@ foreach ((string x1, var (x2, x3)) in new[] { (""hello"", (42, ""world"")) })
                 Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
@@ -5322,7 +5354,7 @@ for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
                 Assert.Equal(SymbolKind.Local, x2Symbol.Kind);
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "hello 42 world", sourceSymbolValidator: validator);
@@ -5336,7 +5368,7 @@ for ((string x1, var (x2, x3)) = (""hello"", (42, ""world"")); ; )
 var (x, y) = (1, 2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics(
                 // (2,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
@@ -5356,13 +5388,12 @@ var (x, y) = (1, 2);
 int (x, y) = (1, 2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (2,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // int (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 5)
                 );
-
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -5390,13 +5421,12 @@ int (x, y) = (1, 2);
 (int (x, y), int z) = ((1, 2), 3);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (2,6): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // (int (x, y), int z) = ((1, 2), 3);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x, y)").WithLocation(2, 6)
                 );
-
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -5426,7 +5456,7 @@ var (x1, x2) = (1, 2);
 System.Console.Write(x1);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (3,6): error CS0102: The type 'Script' already contains a definition for 'x1'
                 // var (x1, x2) = (1, 2);
@@ -5461,7 +5491,7 @@ var (x, y) = (1, 2);
 var (z, y) = (1, 2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (3,9): error CS0102: The type 'Script' already contains a definition for 'y'
                 // var (z, y) = (1, 2);
@@ -5492,7 +5522,7 @@ var (z, y) = (1, 2);
 var (x, (y, x)) = (1, (2, ""hello""));
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (2,13): error CS0102: The type 'Script' already contains a definition for 'x'
                 // var (x, (y, x)) = (1, (2, "hello"));
@@ -5524,7 +5554,7 @@ System.Console.Write(x);
 var (x, y) = (1, 2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "0");
 
@@ -5549,7 +5579,7 @@ var (x, y) = (1, 2);
 var (x, y) = (1, null);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.GetDeclarationDiagnostics().Verify(
                 // (2,6): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
                 // var (x, y) = (1, null);
@@ -5597,7 +5627,7 @@ var (x, y) = (1, null);
 var (x1, x2) = (x2, x1);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.GetDeclarationDiagnostics().Verify(
                 // (2,10): error CS7019: Type of 'x2' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var (x1, x2) = (x2, x1);
@@ -5638,7 +5668,7 @@ var (x1, x2) = (y1, y2);
 var (y1, y2) = (x1, x2);
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.GetDeclarationDiagnostics().Verify(
                 // (3,6): error CS7019: Type of 'y1' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // var (y1, y2) = (x1, x2);
@@ -5683,7 +5713,7 @@ var (x1, (x2, x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (3,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // var (x1, (x2, x3)) = (1, (2, 3));
@@ -5708,8 +5738,8 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
-            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            Assert.Equal("System.Byte", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
+            Assert.Equal("System.Byte", model.GetSymbolInfo(x123Var.Type).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -5725,7 +5755,7 @@ var (x1, (x2, x3)) = (1, (2, 3));
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
                 // (6,5): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 // var (x1, (x2, x3)) = (1, (2, 3));
@@ -5750,8 +5780,8 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
-            Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
+            Assert.Equal("Script.var", model.GetTypeInfo(x123Var.Type).Type.ToTestDisplayString());
+            Assert.Equal("Script.var", model.GetSymbolInfo(x123Var.Type).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -5764,7 +5794,7 @@ using @var = System.Byte;
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2 3");
 
@@ -5814,7 +5844,7 @@ class @var
 System.Console.Write($""{x1} {x2} {x3}"");
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "var var var");
 
@@ -6596,40 +6626,39 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7.0").WithLocation(6, 9),
-                // (6,10): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(6, 10),
-                // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7.0").WithLocation(6, 29),
-                // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7.0").WithLocation(7, 13),
-                // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
-                //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(7, 22),
-                // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //         bool b = 3 is int _;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is int _").WithArguments("pattern matching", "7.0").WithLocation(8, 18),
-                // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
-                //             case int _:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
-                // (14,20): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out var _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(14, 20),
-                // (15,20): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out int _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(15, 20),
-                // (16,16): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
-                //         M1(out _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(16, 16),
-                // (24,18): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
-                //             case _: // not a discard
-                Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(24, 18)
-                );
+                    // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7.0").WithLocation(6, 9),
+                    // (6,10): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(6, 10),
+                    // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         (_, var _, int _) = (1, 2, 3);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7.0").WithLocation(6, 29),
+                    // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         var (_, _) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7.0").WithLocation(7, 13),
+                    // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         var (_, _) = (1, 2);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(7, 22),
+                    // (8,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         bool b = 3 is int _;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "is").WithArguments("pattern matching", "7.0").WithLocation(8, 20),
+                    // (11,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                    //             case int _:
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case").WithArguments("pattern matching", "7.0").WithLocation(11, 13),
+                    // (14,12): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out var _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(14, 12),
+                    // (15,12): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out int _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "out").WithArguments("out variable declaration", "7.0").WithLocation(15, 12),
+                    // (16,16): error CS8059: Feature 'discards' is not available in C# 6. Please use language version 7.0 or greater.
+                    //         M1(out _);
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("discards", "7.0").WithLocation(16, 16),
+                    // (24,18): warning CS8512: The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.
+                    //             case _: // not a discard
+                    Diagnostic(ErrorCode.WRN_CaseConstantNamedUnderscore, "_").WithLocation(24, 18));
         }
 
         [Fact]
@@ -6648,7 +6677,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
                 //         System.Threading.Tasks.Task.Delay(new System.TimeSpan(0));
@@ -6845,7 +6874,7 @@ using @alias = System.Int32;
                 Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, sourceSymbolValidator: validator);
@@ -6864,8 +6893,7 @@ public class C
 (string _, string _) = new C();
 ";
 
-
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "ctor");
@@ -6880,7 +6908,7 @@ int M() { System.Console.Write(""M""); return 1; }
 _ = M();
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "M");
         }
@@ -6915,7 +6943,7 @@ System.Console.Write($""{x3}"");
                 Assert.Null(model.GetSymbolInfo(tuple).Symbol);
             };
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "43", sourceSymbolValidator: validator);
@@ -7561,7 +7589,7 @@ class C
             compilation.VerifyDiagnostics(
                 // (6,16): error CS1003: Syntax error, ',' expected
                 //         var (p2) = (1, 2);
-                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",", ")").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(6, 16),
                 // (6,16): error CS1001: Identifier expected
                 //         var (p2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(6, 16)
@@ -8082,12 +8110,11 @@ public class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C..ctor(int, string, ref int)", @"
 {
-  // Code size       39 (0x27)
-  .maxstack  4
+  // Code size       37 (0x25)
+  .maxstack  3
   .locals init (long V_0,
                 string V_1,
-                int V_2,
-                long V_3)
+                int V_2)
   IL_0000:  ldarg.0
   IL_0001:  call       ""object..ctor()""
   IL_0006:  ldarg.0
@@ -8102,15 +8129,57 @@ public class C
   IL_0013:  stloc.2
   IL_0014:  ldarg.0
   IL_0015:  ldloc.0
-  IL_0016:  dup
-  IL_0017:  stloc.3
-  IL_0018:  call       ""void C.X.set""
-  IL_001d:  ldarg.0
-  IL_001e:  ldloc.1
-  IL_001f:  stfld      ""string C.<Y>k__BackingField""
-  IL_0024:  ldloc.2
-  IL_0025:  stind.i4
-  IL_0026:  ret
+  IL_0016:  call       ""void C.X.set""
+  IL_001b:  ldarg.0
+  IL_001c:  ldloc.1
+  IL_001d:  stfld      ""string C.<Y>k__BackingField""
+  IL_0022:  ldloc.2
+  IL_0023:  stind.i4
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(38702, "https://github.com/dotnet/roslyn/issues/38702")]
+        public void AssignInConstructorWithProperties2()
+        {
+            string source = @"
+public class Point
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    public Point(int x, int y) => (X, Y) = (x, y);
+
+    public static void Main()
+    {
+        var p = new Point(1, 2);
+        System.Console.WriteLine(p.X + "" "" + p.Y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Point..ctor(int, int)", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (int V_0,
+              int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""object..ctor()""
+  IL_0006:  ldarg.1
+  IL_0007:  stloc.0
+  IL_0008:  ldarg.2
+  IL_0009:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""void Point.X.set""
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""void Point.Y.set""
+  IL_0018:  ret
 }");
         }
 
@@ -8135,7 +8204,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "3");
         }
@@ -8156,7 +8225,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (8,11): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
@@ -8187,7 +8256,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (x, (y, z)) = (x, (y, z));
@@ -8222,7 +8291,7 @@ class D
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (8,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (x, y) = (x, (C)(D)y);
@@ -8252,7 +8321,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (14,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (_, (x, y)) = (1, (x, b));
@@ -8281,7 +8350,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 );
 
@@ -8337,7 +8406,7 @@ static class Extensions
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
                 // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (x, (y, z)) = (x, y);
@@ -8360,7 +8429,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll); // no ValueTuple reference
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll); // no ValueTuple reference
             comp.VerifyDiagnostics(
                 // (4,5): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //     Error M()
@@ -8372,10 +8441,10 @@ class C
         public void TestDeconstructOnErrorTypeFromImageReference()
         {
             var missing_cs = "public class Missing { }";
-            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+            var missing = CreateCompilationWithMscorlib461(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
 
             var lib_cs = "public class C { public Missing M() { throw null; } }";
-            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var lib = CreateCompilationWithMscorlib461(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
 
             var source =
 @"
@@ -8389,7 +8458,7 @@ class D
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C().M();
@@ -8401,10 +8470,10 @@ class D
         public void TestDeconstructOnErrorTypeFromCompilationReference()
         {
             var missing_cs = "public class Missing { }";
-            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+            var missing = CreateCompilationWithMscorlib461(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
 
             var lib_cs = "public class C { public Missing M() { throw null; } }";
-            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var lib = CreateCompilationWithMscorlib461(lib_cs, references: new[] { missing.ToMetadataReference() }, options: TestOptions.DebugDll);
 
             var source =
 @"
@@ -8418,7 +8487,7 @@ class D
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.ToMetadataReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { lib.ToMetadataReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C().M();
@@ -8900,12 +8969,12 @@ namespace System
                     // (13,20): warning CS0169: The field '(T1, T2).Item2' is never used
                     //         private T2 Item2;
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "Item2").WithArguments("(T1, T2).Item2").WithLocation(13, 20),
-                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                     //         public ValueTuple(T1 item1, T2 item2)
-                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
-                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(14, 16),
+                    // (14,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                     //         public ValueTuple(T1 item1, T2 item2)
-                    Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(14, 16),
+                    Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "ValueTuple").WithArguments("(T1, T2).Item2", "11.0").WithLocation(14, 16),
                     // (17,13): error CS0229: Ambiguity between '(T1, T2).Item2' and '(T1, T2).Item2'
                     //             Item2 = item2;
                     Diagnostic(ErrorCode.ERR_AmbigMember, "Item2").WithArguments("(T1, T2).Item2", "(T1, T2).Item2").WithLocation(17, 13)

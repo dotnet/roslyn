@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -108,6 +109,56 @@ class C
 }";
 
             CompileAndVerify(source, expectedOutput: "hhhe");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70948")]
+        public void NestedAsyncThrow()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    private async Task<object> M(object o)
+                    {
+                        try
+                        {
+                        }
+                        catch (Exception)
+                        {
+                            Func<Task> f = async () =>
+                            {
+                                try
+                                {
+                                }
+                                catch (Exception)
+                                {
+                                    throw;
+                                }
+                                finally
+                                {
+                                }
+                            };
+
+                            await Task.CompletedTask;
+
+                            throw;
+                        }
+                        finally
+                        {
+                        }
+
+                        return null;
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+                // (13,37): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //             Func<Task> f = async () =>
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(13, 37)
+            );
         }
     }
 }
