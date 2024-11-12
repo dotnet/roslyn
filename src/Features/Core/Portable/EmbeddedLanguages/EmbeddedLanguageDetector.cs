@@ -357,7 +357,6 @@ internal readonly struct EmbeddedLanguageDetector(
         // Now look at the next statements that follow for usages of this local variable.
         foreach (var statement in blockFacts.GetExecutableBlockStatements(block))
         {
-
             foreach (var descendent in statement.DescendantNodesAndSelf())
             {
                 cancellationToken.ThrowIfCancellationRequested();
