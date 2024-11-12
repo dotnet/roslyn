@@ -216,6 +216,8 @@ internal readonly struct EmbeddedLanguageDetector(
         Debug.Assert(syntaxFacts.IsLiteralExpression(token.Parent));
         Debug.Assert(!HasLanguageComment(token, syntaxFacts, out identifier, out _));
 
+        // If we're a string used in a collection initializer, treat this as a lang string if the collection itself is
+        // properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
         var container = TryFindContainer(token);
         if (container is null)
             return false;
@@ -291,14 +293,8 @@ internal readonly struct EmbeddedLanguageDetector(
         if (HasLanguageComment(token, syntaxFacts, out identifier, out options))
             return true;
 
-        // If we're a string used in a collection initializer, treat this as a lang string if the collection itself
-        // is properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
-        var tokenParent = TryFindContainer(token);
-        if (tokenParent is null)
-            return false;
-
-        // Check for direct usage of this token that indicates it's an embedded language string.  Like passing it to an
-        // argument which has the StringSyntax attribute on it.
+        // Check for *direct* usage of this token that indicates it's an embedded language string.  Like passing it to
+        // an argument which has the StringSyntax attribute on it.
         if (IsEmbeddedLanguageStringLiteralToken_Direct(
                 token, semanticModel, cancellationToken, out identifier))
         {
@@ -308,24 +304,28 @@ internal readonly struct EmbeddedLanguageDetector(
         // Now check for if the literal was assigned to a local that we then see is passed along to something that
         // indicates an embedded language string at some later point.
 
-        var statement = tokenParent.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+        var container = TryFindContainer(token);
+        if (container is null)
+            return false;
+
+        var statement = container.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
         if (syntaxFacts.IsSimpleAssignmentStatement(statement))
         {
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-            return tokenParent == right &&
+            return container == right &&
                 IsLocalConsumedByApiWithStringSyntaxAttribute(
-                    semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol(), tokenParent, semanticModel, cancellationToken, out identifier);
+                    semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol(), container, semanticModel, cancellationToken, out identifier);
         }
 
-        if (syntaxFacts.IsEqualsValueClause(tokenParent.Parent) &&
-            syntaxFacts.IsVariableDeclarator(tokenParent.Parent.Parent))
+        if (syntaxFacts.IsEqualsValueClause(container.Parent) &&
+            syntaxFacts.IsVariableDeclarator(container.Parent.Parent))
         {
-            var variableDeclarator = tokenParent.Parent.Parent;
+            var variableDeclarator = container.Parent.Parent;
             var symbol =
                 semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
                 semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
 
-            return IsLocalConsumedByApiWithStringSyntaxAttribute(symbol, tokenParent, semanticModel, cancellationToken, out identifier);
+            return IsLocalConsumedByApiWithStringSyntaxAttribute(symbol, container, semanticModel, cancellationToken, out identifier);
         }
 
         return false;
