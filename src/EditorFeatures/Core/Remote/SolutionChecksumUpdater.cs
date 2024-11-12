@@ -3,13 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -62,20 +65,22 @@ internal sealed class SolutionChecksumUpdater
         _workspace = workspace;
         _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
-        _textChangeQueue = new AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)>(
-            DelayTimeSpan.NearImmediate,
-            SynchronizeTextChangesAsync,
-            listener,
-            shutdownToken);
-
         _synchronizeWorkspaceQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.NearImmediate,
             SynchronizePrimaryWorkspaceAsync,
             listener,
             shutdownToken);
 
+        // Text changes and active doc info are tiny messages.  So attempt to send them immediately.  Just batching
+        // things up if we get a flurry of notifications.
+        _textChangeQueue = new AsyncBatchingWorkQueue<(Document oldDocument, Document newDocument)>(
+            TimeSpan.Zero,
+            SynchronizeTextChangesAsync,
+            listener,
+            shutdownToken);
+
         _synchronizeActiveDocumentQueue = new AsyncBatchingWorkQueue(
-            DelayTimeSpan.NearImmediate,
+            TimeSpan.Zero,
             SynchronizeActiveDocumentAsync,
             listener,
             shutdownToken);
@@ -203,55 +208,52 @@ internal sealed class SolutionChecksumUpdater
         ImmutableSegmentedList<(Document oldDocument, Document newDocument)> values,
         CancellationToken cancellationToken)
     {
+        var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
+        if (client == null)
+            return;
+
+        // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
+        // pushing text change worked or not doesn't affect feature's functionality.
+        //
+        // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
+        // send out that text changes to remote side.
+        //
+        // the remote side, once got the text change, will again see whether it can use that text change information
+        // without any high cost and create new snapshot from it.
+        //
+        // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
+        // times we need to do full text synchronization for typing scenario.
+        using var _ = ArrayBuilder<(DocumentId id, Checksum textChecksum, ImmutableArray<TextChange> changes)>.GetInstance(out var builder);
+
         foreach (var (oldDocument, newDocument) in values)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            await SynchronizeTextChangesAsync(oldDocument, newDocument, cancellationToken).ConfigureAwait(false);
-        }
-
-        return;
-
-        async ValueTask SynchronizeTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
-        {
-            // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
-            // pushing text change worked or not doesn't affect feature's functionality.
-            //
-            // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
-            // send out that text changes to remote side.
-            //
-            // the remote side, once got the text change, will again see whether it can use that text change information
-            // without any high cost and create new snapshot from it.
-            //
-            // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
-            // times we need to do full text synchronization for typing scenario.
-
             if (!oldDocument.TryGetText(out var oldText) ||
                 !newDocument.TryGetText(out var newText))
             {
                 // we only support case where text already exist
-                return;
+                continue;
             }
 
             // Avoid allocating text before seeing if we can bail out.
             var changeRanges = newText.GetChangeRanges(oldText).AsImmutable();
             if (changeRanges.Length == 0)
-                return;
+                continue;
 
             // no benefit here. pulling from remote host is more efficient
             if (changeRanges is [{ Span.Length: var singleChangeLength }] && singleChangeLength == oldText.Length)
-                return;
-
-            var textChanges = newText.GetTextChanges(oldText).AsImmutable();
-
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
-            if (client == null)
-                return;
+                continue;
 
             var state = await oldDocument.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 
-            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, state.Text, textChanges, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+            var textChanges = newText.GetTextChanges(oldText).AsImmutable();
+            builder.Add((oldDocument.Id, state.Text, textChanges));
         }
+
+        if (builder.Count == 0)
+            return;
+
+        await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+            (service, cancellationToken) => service.SynchronizeTextAsync(builder.ToImmutableAndClear(), cancellationToken),
+            cancellationToken).ConfigureAwait(false);
     }
 }
