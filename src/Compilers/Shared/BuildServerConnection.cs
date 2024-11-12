@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // of this method.
             clientDirectory = clientDirectory.TrimEnd(Path.DirectorySeparatorChar);
 
-            // Similarly, we don't want multiple servers if the path differs in casing.
+            // Similarly, we don't want multiple servers if the provided launch path differs in casing.
             clientDirectory = clientDirectory.ToLowerInvariant();
 
             var pipeNameInput = $"{userName}.{isAdmin}.{clientDirectory}";
