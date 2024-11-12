@@ -32,24 +32,13 @@ public partial class Solution
             return;
 
         var activeDocumentId = service.TryGetActiveDocument();
-        if (activeDocumentId is null)
-        {
-            // No known active document.  Clear out any cached semantic models we have.
-            localArray = [];
-        }
-        else
-        {
-            var relatedDocumentIds = this.GetRelatedDocumentIds(activeDocumentId);
+        var relatedDocumentIds = activeDocumentId is null ? [] : this.GetRelatedDocumentIds(activeDocumentId);
 
-            // Clear out any entries for cached documents that are no longer active.
-            localArray = localArray.RemoveAll(
-                tuple => !relatedDocumentIds.Contains(tuple.documentId));
+        localArray = localArray.RemoveAll(
+            tuple => !relatedDocumentIds.Contains(tuple.documentId));
 
-            // If this is a semantic model for the active document (or any of its related documents), and we haven't already
-            // cached it, then do so.
-            if (relatedDocumentIds.Contains(documentId))
-                localArray = localArray.Add((documentId, semanticModel));
-        }
+        if (relatedDocumentIds.Contains(documentId))
+            localArray = localArray.Add((documentId, semanticModel));
 
         // Note: this code is racy. We could have two threads executing the code above, while only one thread will win
         // here.  We accept that as this code is just intended to help just by making some strong references to semantic
