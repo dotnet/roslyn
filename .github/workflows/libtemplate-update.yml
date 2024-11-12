@@ -22,6 +22,7 @@ jobs:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
     - name: merge
+      id: merge
       shell: pwsh
       run: |
         $LibTemplateBranch = & ./azure-pipelines/Get-LibTemplateBasis.ps1 -ErrorIfNotRelated
@@ -38,12 +39,14 @@ jobs:
 
         if ((git rev-list FETCH_HEAD ^HEAD --count) -eq 0) {
           Write-Host "There are no Library.Template updates to merge."
+          echo "::set-output name=uptodate::true"
           exit 0
         }
 
         git -c http.extraheader="AUTHORIZATION: bearer $env:GH_TOKEN" push origin -u FETCH_HEAD:refs/heads/auto/libtemplateUpdate
     - name: pull request
       shell: pwsh
+      if: success() && steps.merge.outputs.uptodate != 'true'
       run: |
         # If there is already an active pull request, don't create a new one.
         $existingPR = gh pr list -H auto/libtemplateUpdate --json url | ConvertFrom-Json
