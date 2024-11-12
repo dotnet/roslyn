@@ -115,32 +115,40 @@ internal sealed partial class CSharpSymbolDisplayService
         protected override ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format)
         {
             var displayParts = CodeAnalysis.CSharp.SymbolDisplay.ToMinimalDisplayParts(symbol, semanticModel, position, format);
+            return WrapConstraints(symbol, displayParts);
+        }
 
+        protected override ImmutableArray<SymbolDisplayPart> WrapConstraints(ISymbol symbol, ImmutableArray<SymbolDisplayPart> displayParts)
+        {
             var typeParameter = symbol.GetTypeParameters();
             if (typeParameter.Length == 0)
                 return displayParts;
 
             // For readability, we add every 'where' on its own line if we have two or more constraints to wrap.
             var wrappedConstraints = 0;
-
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(displayParts.Length, out var builder);
-            for (var i = 0; i < displayParts.Length; i++)
-            {
-                // Look for `where<space>type_parameter_name` and add a line break before it.
 
-                var part = displayParts[i];
-                if (i + 2 < displayParts.Length &&
-                    part.Kind == SymbolDisplayPartKind.Keyword &&
-                    displayParts[i + 1].Kind == SymbolDisplayPartKind.Space &&
-                    displayParts[i + 2].Kind == SymbolDisplayPartKind.TypeParameterName &&
-                    part.ToString() == "where")
+            var displayPartsSpans = displayParts.AsSpan();
+            while (displayPartsSpans is [var firstSpan, ..])
+            {
+                // Look for `where T :` and add a line break before it.
+                if (displayPartsSpans is [
+                    { Kind: SymbolDisplayPartKind.Keyword } keyword,
+                    { Kind: SymbolDisplayPartKind.Space },
+                    { Kind: SymbolDisplayPartKind.TypeParameterName },
+                    { Kind: SymbolDisplayPartKind.Space },
+                    { Kind: SymbolDisplayPartKind.Punctuation } punctuation,
+                    ..] &&
+                    keyword.ToString() == "where" &&
+                    punctuation.ToString() == ":")
                 {
                     builder.AddRange(LineBreak());
                     builder.AddRange(Space(4));
                     wrappedConstraints++;
                 }
 
-                builder.Add(part);
+                builder.Add(firstSpan);
+                displayPartsSpans = displayPartsSpans[1..];
             }
 
             if (wrappedConstraints < 2)
@@ -221,7 +229,7 @@ internal sealed partial class CSharpSymbolDisplayService
         private async Task<ImmutableArray<SymbolDisplayPart>> GetInitializerSourcePartsAsync(
             EqualsValueClauseSyntax? equalsValue)
         {
-            if (equalsValue != null && equalsValue.Value != null)
+            if (equalsValue?.Value != null)
             {
                 var semanticModel = GetSemanticModel(equalsValue.SyntaxTree);
                 if (semanticModel != null)
