@@ -922,6 +922,34 @@
         }
       }
     },
+    "textEditor.csharp.advanced.inheritanceMargin.showInheritanceMargin": {
+      "title": "@Show_inheritance_margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 130,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.ShowInheritanceMargin"
+          }
+        }
+      }
+    },
+    "textEditor.csharp.advanced.inheritanceMargin.showGlobalImportsInInheritanceMargin": {
+      "title": "@Include_global_imports;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "defaultValue": true,
+      "order": 140,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.InheritanceMarginIncludeGlobalImports"
+          }
+        }
+      }
+    },
     //
     // Text Editor -> C# -> Intellisense
     //
@@ -1222,6 +1250,10 @@
     "textEditor.csharp.advanced.inlayHints": {
       "title": "@Inline_Hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "order": 110
+    },
+    "textEditor.csharp.advanced.inheritanceMargin": {
+      "title": "@Inheritance_Margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 120
     }
   }
 }
