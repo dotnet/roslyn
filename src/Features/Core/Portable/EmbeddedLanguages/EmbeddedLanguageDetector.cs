@@ -216,49 +216,56 @@ internal readonly struct EmbeddedLanguageDetector(
             return false;
 
         if (syntaxFacts.IsArgument(container.Parent))
-            return IsArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier);
-
-        if (syntaxFacts.IsAttributeArgument(container.Parent))
-            return IsAttributeArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier);
-
-        if (syntaxFacts.IsNamedMemberInitializer(container.Parent))
+        {
+            if (IsArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
+                return true;
+        }
+        else if (syntaxFacts.IsAttributeArgument(container.Parent))
+        {
+            if (IsAttributeArgumentWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out identifier))
+                return true;
+        }
+        else if (syntaxFacts.IsNamedMemberInitializer(container.Parent))
         {
             syntaxFacts.GetPartsOfNamedMemberInitializer(container.Parent, out var name, out _);
-            return IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, name, cancellationToken, out identifier);
+            if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, name, cancellationToken, out identifier))
+                return true;
         }
-
-        var statement = container.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
-        if (syntaxFacts.IsSimpleAssignmentStatement(statement))
+        else
         {
-            syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-            if (container == right)
+            var statement = container.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+            if (syntaxFacts.IsSimpleAssignmentStatement(statement))
             {
-                if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, left, cancellationToken, out identifier))
-                    return true;
+                syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
+                if (container == right)
+                {
+                    if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, left, cancellationToken, out identifier))
+                        return true;
+                }
+
+                return false;
             }
 
-            return false;
-        }
-
-        if (syntaxFacts.IsEqualsValueClause(container.Parent))
-        {
-            if (syntaxFacts.IsVariableDeclarator(container.Parent.Parent))
+            if (syntaxFacts.IsEqualsValueClause(container.Parent))
             {
-                var variableDeclarator = container.Parent.Parent;
-                var symbol =
-                    semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
-                    semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
+                if (syntaxFacts.IsVariableDeclarator(container.Parent.Parent))
+                {
+                    var variableDeclarator = container.Parent.Parent;
+                    var symbol =
+                        semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken) ??
+                        semanticModel.GetDeclaredSymbol(syntaxFacts.GetIdentifierOfVariableDeclarator(variableDeclarator).GetRequiredParent(), cancellationToken);
 
-                if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
-                    return true;
-            }
-            else if (syntaxFacts.IsEqualsValueOfPropertyDeclaration(container.Parent))
-            {
-                var property = container.Parent.GetRequiredParent();
-                var symbol = semanticModel.GetDeclaredSymbol(property, cancellationToken);
+                    if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                        return true;
+                }
+                else if (syntaxFacts.IsEqualsValueOfPropertyDeclaration(container.Parent))
+                {
+                    var property = container.Parent.GetRequiredParent();
+                    var symbol = semanticModel.GetDeclaredSymbol(property, cancellationToken);
 
-                if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
-                    return true;
+                    if (IsFieldOrPropertyWithMatchingStringSyntaxAttribute(symbol, out identifier))
+                        return true;
+                }
             }
         }
 
