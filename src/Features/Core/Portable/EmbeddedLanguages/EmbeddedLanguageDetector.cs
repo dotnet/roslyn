@@ -360,6 +360,9 @@ internal readonly struct EmbeddedLanguageDetector(
                 var otherSymbol = semanticModel.GetSymbolInfo(descendent, cancellationToken).GetAnySymbol();
                 if (localSymbol.Equals(otherSymbol))
                 {
+                    // Only do a direct check here.  We don't want to continually do indirect checks where a string
+                    // literal is assigned to one local, assigned to another local, assigned to another local, and so
+                    // on.
                     if (IsEmbeddedLanguageStringLiteralToken_Direct(identifierToken, semanticModel, cancellationToken, out identifier))
                         return true;
                 }
