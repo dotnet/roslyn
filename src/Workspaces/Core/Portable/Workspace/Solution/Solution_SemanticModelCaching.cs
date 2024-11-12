@@ -25,23 +25,35 @@ public partial class Solution
     {
         var service = this.Services.GetRequiredService<IDocumentTrackingService>();
 
+        var localArray = _activeSemanticModels;
+
+        // No need to do anything if we're already caching this pair.
+        if (localArray.Contains((documentId, semanticModel)))
+            return;
+
         var activeDocumentId = service.TryGetActiveDocument();
         if (activeDocumentId is null)
         {
             // No known active document.  Clear out any cached semantic models we have.
-            _activeSemanticModels = _activeSemanticModels.Clear();
-            return;
+            localArray = localArray.Clear();
+        }
+        else
+        {
+            var relatedDocumentIds = this.GetRelatedDocumentIds(activeDocumentId);
+
+            // Clear out any entries for cached documents that are no longer active.
+            localArray = localArray.RemoveAll(
+                tuple => !relatedDocumentIds.Contains(tuple.documentId));
+
+            // If this is a semantic model for the active document (or any of its related documents), and we haven't already
+            // cached it, then do so.
+            if (relatedDocumentIds.Contains(documentId))
+                localArray = localArray.Add((documentId, semanticModel));
         }
 
-        var relatedDocumentIds = this.GetRelatedDocumentIds(activeDocumentId);
-
-        // Clear out any entries for cached documents that are no longer active.
-        _activeSemanticModels = _activeSemanticModels.RemoveAll(
-            tuple => !relatedDocumentIds.Contains(tuple.documentId));
-
-        // If this is a semantic model for the active document (or any of its related documents), and we haven't already
-        // cached it, then do so.
-        if (!_activeSemanticModels.Contains((documentId, semanticModel)))
-            _activeSemanticModels = _activeSemanticModels.Add((documentId, semanticModel));
+        // Note: this code is racy. We could have two threads executing the code above, while only one thread will win
+        // here.  We accept that as this code is just intended to help just by making some strong references to semantic
+        // models to prevent them from being GC'ed.  We don't need to be perfect about it.
+        _activeSemanticModels = localArray;
     }
 }
