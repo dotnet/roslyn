@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -210,6 +211,10 @@ internal readonly struct EmbeddedLanguageDetector(
     {
         identifier = null;
         var syntaxFacts = Info.SyntaxFacts;
+
+        // Checked by caller
+        Debug.Assert(syntaxFacts.IsLiteralExpression(token.Parent));
+        Debug.Assert(!HasLanguageComment(token, syntaxFacts, out identifier, out _));
 
         var container = TryFindContainer(token);
         if (container is null)
