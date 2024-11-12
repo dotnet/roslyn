@@ -34,6 +34,7 @@ jobs:
           exit $LASTEXITCODE
         }
         $LibTemplateCommit = git rev-parse FETCH_HEAD
+        git diff --stat ...FETCH_HEAD
 
         if ((git rev-list FETCH_HEAD ^HEAD --count) -eq 0) {
           Write-Host "There are no Library.Template updates to merge."
