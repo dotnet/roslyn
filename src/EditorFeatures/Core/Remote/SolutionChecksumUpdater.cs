@@ -90,8 +90,9 @@ internal sealed class SolutionChecksumUpdater
             _globalOperationService.Stopped += OnGlobalOperationStopped;
         }
 
-        // Enqueue the work to sync the initial solution.
-        ResumeSynchronizingPrimaryWorkspace();
+        // Enqueue the work to sync the initial data over.
+        _synchronizeActiveDocumentQueue.AddWork();
+        _synchronizeWorkspaceQueue.AddWork();
     }
 
     public void Shutdown()
@@ -131,7 +132,6 @@ internal sealed class SolutionChecksumUpdater
         lock (_gate)
         {
             _isSynchronizeWorkspacePaused = false;
-            _synchronizeActiveDocumentQueue.AddWork();
             _synchronizeWorkspaceQueue.AddWork();
         }
     }
