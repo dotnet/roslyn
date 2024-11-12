@@ -917,6 +917,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
                                 => containingType.GetMembersUnordered(),
+
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
                                 => getAllTypeAndRequiredMembers(containingType),
 
