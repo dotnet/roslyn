@@ -168,8 +168,8 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Same as <see cref="ForkProject(StateChange, Func{StateChange, TranslationAction?}?,
-    /// bool)"/> except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
+    /// Same as <see cref="ForkProject{TArg}(StateChange, Func{StateChange, TArg, TranslationAction?}, bool, TArg)"/>
+    /// except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
     /// </summary>
     private SolutionCompilationState ForceForkProject(
         StateChange stateChange,
@@ -713,17 +713,6 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
-    /// <inheritdoc cref="SolutionState.AddAnalyzerReferences(ProjectId, ImmutableArray{AnalyzerReference})"/>
-    public SolutionCompilationState AddAnalyzerReferences(StateChange stateChange, ImmutableArray<AnalyzerReference> analyzerReferences)
-    {
-        return ForkProject(
-            stateChange,
-            static (stateChange, analyzerReferences) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, referencesToAdd: analyzerReferences),
-            forkTracker: true,
-            arg: analyzerReferences);
-    }
-
     public SolutionCompilationState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added from
@@ -746,17 +735,6 @@ internal sealed partial class SolutionCompilationState
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that change
         // SGs all come from entrypoints that are specific to a particular project.
         return Branch(this.SolutionState.WithAnalyzerReferences(analyzerReferences));
-    }
-
-    /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
-    public SolutionCompilationState RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
-    {
-        return ForkProject(
-            this.SolutionState.RemoveAnalyzerReference(projectId, analyzerReference),
-            static (stateChange, analyzerReference) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, referencesToRemove: [analyzerReference]),
-            forkTracker: true,
-            arg: analyzerReference);
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAnalyzerReferences"/>

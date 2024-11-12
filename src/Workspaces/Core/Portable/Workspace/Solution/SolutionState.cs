@@ -880,41 +880,6 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
-    /// Create a new solution instance with the project specified updated to include the
-    /// specified analyzer references.
-    /// </summary>
-    public StateChange AddAnalyzerReferences(ProjectId projectId, ImmutableArray<AnalyzerReference> analyzerReferences)
-    {
-        var oldProject = GetRequiredProjectState(projectId);
-        if (analyzerReferences.Length == 0)
-        {
-            return new(this, oldProject, oldProject);
-        }
-
-        var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
-        var newReferences = oldReferences.AddRange(analyzerReferences);
-
-        return ForkProject(oldProject, oldProject.WithAnalyzerReferences(newReferences));
-    }
-
-    /// <summary>
-    /// Create a new solution instance with the project specified updated to no longer include
-    /// the specified analyzer reference.
-    /// </summary>
-    public StateChange RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
-    {
-        var oldProject = GetRequiredProjectState(projectId);
-        var oldReferences = oldProject.AnalyzerReferences.ToImmutableArray();
-        var newReferences = oldReferences.Remove(analyzerReference);
-        if (oldReferences == newReferences)
-        {
-            return new(this, oldProject, oldProject);
-        }
-
-        return ForkProject(oldProject, oldProject.WithAnalyzerReferences(newReferences));
-    }
-
-    /// <summary>
     /// Create a new solution instance with the project specified updated to include only the
     /// specified analyzer references.
     /// </summary>
