@@ -916,8 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 => containingType.AllRequiredMembers.SelectManyAsArray(static kvp => getAllMembersToBeDefaulted(kvp.Value)),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
-                                => containingType.GetMembersUnordered().SelectAsArray(getFieldSymbolToBeInitialized),
-
+                                => containingType.GetMembersUnordered(),
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
                                 => getAllTypeAndRequiredMembers(containingType),
 
@@ -957,21 +956,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 var property = (PropertySymbol)requiredMember;
-                                yield return getFieldSymbolToBeInitialized(property);
+                                yield return property;
 
                                 // If the set method is null (ie missing), that's an error, but we'll recover as best we can
                                 foreach (var notNullMemberName in (property.SetMethod?.NotNullMembers ?? property.NotNullMembers))
                                 {
                                     foreach (var member in property.ContainingType.GetMembers(notNullMemberName))
                                     {
-                                        yield return getFieldSymbolToBeInitialized(member);
+                                        yield return member;
                                     }
                                 }
                             }
                         }
-
-                        static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
-                            => requiredMember is SourcePropertySymbol { IsAutoProperty: true } prop ? prop.BackingField : requiredMember;
                     }
                 }
             }
