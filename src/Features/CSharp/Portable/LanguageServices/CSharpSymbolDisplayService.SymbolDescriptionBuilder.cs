@@ -120,7 +120,9 @@ internal sealed partial class CSharpSymbolDisplayService
             if (typeParameter.Length == 0)
                 return displayParts;
 
-            // For readability, we add every 'where' on its own line.
+            // For readability, we add every 'where' on its own line if we have two or more constraints to wrap.
+            var wrappedConstraints = 0;
+
             using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(displayParts.Length, out var builder);
             for (var i = 0; i < displayParts.Length; i++)
             {
@@ -129,16 +131,20 @@ internal sealed partial class CSharpSymbolDisplayService
                 var part = displayParts[i];
                 if (i + 2 < displayParts.Length &&
                     part.Kind == SymbolDisplayPartKind.Keyword &&
-                    part.ToString() == "where" &&
                     displayParts[i + 1].Kind == SymbolDisplayPartKind.Space &&
-                    displayParts[i + 2].Kind == SymbolDisplayPartKind.TypeParameterName)
+                    displayParts[i + 2].Kind == SymbolDisplayPartKind.TypeParameterName &&
+                    part.ToString() == "where")
                 {
                     builder.AddRange(LineBreak());
                     builder.AddRange(Space(4));
+                    wrappedConstraints++;
                 }
 
                 builder.Add(part);
             }
+
+            if (wrappedConstraints < 2)
+                return displayParts;
 
             return builder.ToImmutableAndClear();
         }
