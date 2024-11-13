@@ -444,5 +444,161 @@ End Module
             CompileAndVerify(compilation, expectedOutput:="22")
         End Sub
 
+        <Fact>
+        Public Sub NarrowingConversions_01()
+            Dim compilationDef = "
+Option Strict Off
+
+Module Module1
+
+    Sub Main()
+        M1(New C1())
+        M1(DirectCast(New C2(), C0))
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As I1)
+        System.Console.Write(1)
+    End Sub
+
+    Sub M1(x As I2)
+        System.Console.Write(2)
+    End Sub
+End Module
+
+Interface I1
+End Interface
+
+Interface I2
+End Interface
+
+Class C0
+End Class
+
+Class C1
+    Inherits C0
+    Implements I1, I2
+End Class
+
+Class C2
+    Inherits C0
+    Implements I2
+End Class
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            ' If the priority filtering for 'M1(DirectCast(New C2(), C0))' was applied - System.InvalidCastException: Unable to cast object of type 'C2' to type 'I1'.
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30519: Overload resolution failed because no accessible 'M1' can be called without a narrowing conversion:
+    'Public Sub M1(x As I1)': Argument matching parameter 'x' narrows from 'C0' to 'I1'.
+    'Public Sub M1(x As I2)': Argument matching parameter 'x' narrows from 'C0' to 'I2'.
+        M1(DirectCast(New C2(), C0))
+        ~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingConversions_02()
+            Dim compilationDef = "
+Option Strict Off
+
+Module Module1
+
+    Sub Main()
+        M1(CObj(New C2()))
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As I1)
+        System.Console.Write(1)
+    End Sub
+
+    Sub M1(x As I2)
+        System.Console.Write(2)
+    End Sub
+End Module
+
+Interface I1
+End Interface
+
+Interface I2
+End Interface
+
+Class C0
+End Class
+
+Class C1
+    Inherits C0
+    Implements I1, I2
+End Class
+
+Class C2
+    Inherits C0
+    Implements I2
+End Class
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            ' If the priority filtering was applied - System.InvalidCastException: Unable to cast object of type 'C2' to type 'I1'.
+            CompileAndVerify(compilation, expectedOutput:="2")
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationLevelNarrowing_01()
+            Dim compilationDef = "
+Option Strict Off
+
+Module Module1
+
+    Sub Main()
+        M1(Function() New C1())
+        M1(Function() DirectCast(New C2(), C0))
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As System.Func(Of I1))
+        x()
+        System.Console.Write(1)
+    End Sub
+
+    Sub M1(x As System.Func(Of I2))
+        x()
+        System.Console.Write(2)
+    End Sub
+End Module
+
+Interface I1
+End Interface
+
+Interface I2
+End Interface
+
+Class C0
+End Class
+
+Class C1
+    Inherits C0
+    Implements I1, I2
+End Class
+
+Class C2
+    Inherits C0
+    Implements I2
+End Class
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            ' If the priority filtering for 'M1(Function() DirectCast(New C2(), C0))' was applied - System.InvalidCastException: Unable to cast object of type 'C2' to type 'I1'.
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30521: Overload resolution failed because no accessible 'M1' is most specific for these arguments:
+    'Public Sub M1(x As Func(Of I1))': Not most specific.
+    'Public Sub M1(x As Func(Of I2))': Not most specific.
+        M1(Function() DirectCast(New C2(), C0))
+        ~~
+</expected>)
+        End Sub
+
     End Class
 End Namespace
