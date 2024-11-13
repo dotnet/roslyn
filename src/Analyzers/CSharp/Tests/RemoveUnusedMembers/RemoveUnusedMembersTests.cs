@@ -3243,7 +3243,7 @@ public class RemoveUnusedMembersTests
         await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31582")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57470")]
     public async Task TestForeach()
     {
         await new VerifyCS.Test
