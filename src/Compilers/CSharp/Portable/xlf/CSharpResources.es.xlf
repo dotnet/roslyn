@@ -2392,6 +2392,11 @@
         <target state="translated">valores devueltos de covariante</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDictionaryExpressions">
+        <source>dictionary expressions</source>
+        <target state="new">dictionary expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">descartes</target>

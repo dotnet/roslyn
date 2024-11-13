@@ -2392,6 +2392,11 @@
         <target state="translated">协变返回</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureDictionaryExpressions">
+        <source>dictionary expressions</source>
+        <target state="new">dictionary expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureDiscards">
         <source>discards</source>
         <target state="translated">弃元</target>
