@@ -1298,13 +1298,19 @@ ResolutionComplete:
                 Dim maxPriority = Integer.MinValue
 
                 For Each info In siblings
+                    Dim candidate = candidates(info.Index)
+
+                    If candidate.RequiresNarrowingConversion OrElse candidate.MaxDelegateRelaxationLevel = ConversionKind.DelegateRelaxationLevelNarrowing Then
+                        Continue For
+                    End If
+
                     If maxPriority < info.Priority Then
                         maxPriority = info.Priority
                     End If
                 Next
 
                 For Each info In siblings
-                    If maxPriority <> info.Priority Then
+                    If maxPriority > info.Priority Then
                         Dim toDeprioritize = candidates(info.Index)
                         applicableCandidates -= 1
                         If toDeprioritize.RequiresNarrowingConversion Then
