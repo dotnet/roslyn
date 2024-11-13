@@ -10464,6 +10464,32 @@ class C<T>
             VerifyMergedProperties(actualProperties, actualFields);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75893")]
+        [Fact]
+        public void SpeculativeSemanticModel()
+        {
+            string source = """
+                class C
+                {
+                    object P { get { return null; } }
+                }
+                """;
+
+            var parseOptions = TestOptions.RegularPreview;
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var previousAccessor = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+
+            var modifiedTree = SyntaxFactory.ParseSyntaxTree(source.Replace("return null;", "return field;"), parseOptions);
+            var modifiedAccessor = modifiedTree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(previousAccessor.Body.SpanStart, modifiedAccessor, out var speculativeModel));
+            var expr = modifiedAccessor.DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+            Assert.Equal("return field;", expr.Parent.ToString());
+            var symbolInfo = speculativeModel.GetSymbolInfo(expr);
+            Assert.Null(symbolInfo.Symbol);
+        }
+
         [Theory]
         [InlineData("{ get; }")]
         [InlineData("{ get; set; }")]
