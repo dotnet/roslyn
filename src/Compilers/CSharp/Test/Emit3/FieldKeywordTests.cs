@@ -10465,13 +10465,21 @@ class C<T>
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/75893")]
-        [Fact]
-        public void SpeculativeSemanticModel()
+        [Theory]
+        [CombinatorialData]
+        public void SpeculativeSemanticModel(bool includeLocal)
         {
-            string source = """
+            string source = $$"""
                 class C
                 {
-                    object P { get { return null; } }
+                    object P
+                    {
+                        get
+                        {
+                            {{(includeLocal ? "object field = null;" : "")}}
+                            return null;
+                        }
+                    }
                 }
                 """;
 
