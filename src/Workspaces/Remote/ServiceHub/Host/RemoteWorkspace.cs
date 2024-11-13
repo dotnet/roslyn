@@ -34,10 +34,7 @@ internal sealed partial class RemoteWorkspace : Workspace
     }
 
     public AssetProvider CreateAssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource)
-    {
-        var serializerService = Services.GetRequiredService<ISerializerService>();
-        return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
-    }
+        => new(solutionChecksum, assetCache, assetSource, this.Services.SolutionServices);
 
     protected internal override bool PartialSemanticsEnabled => true;
 
@@ -263,7 +260,7 @@ internal sealed partial class RemoteWorkspace : Workspace
                 assetProvider, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // Now, bring that solution in line with the snapshot defined by solutionChecksum.
-            var updater = new SolutionCreator(Services.HostServices, assetProvider, solutionToUpdate);
+            var updater = new SolutionCreator(this, assetProvider, solutionToUpdate);
             return await updater.CreateSolutionAsync(newSolutionChecksum, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

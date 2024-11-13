@@ -11,7 +11,7 @@
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset.Framework</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <!-- <Metalama> -->
     <NuspecPackageId>Metalama.Compiler.Framework</NuspecPackageId>
     <PackageDescription>

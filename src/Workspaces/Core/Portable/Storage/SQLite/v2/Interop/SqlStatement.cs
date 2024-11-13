@@ -80,7 +80,7 @@ internal readonly struct SqlStatement(SqlConnection connection, SafeSqliteStatem
             if (utf8ByteCount <= OptimizedLengthThreshold)
             {
                 Span<byte> bytes = stackalloc byte[utf8ByteCount];
-#if NETCOREAPP
+#if NET
                 Contract.ThrowIfFalse(Encoding.UTF8.GetBytes(value.AsSpan(), bytes) == utf8ByteCount);
 #else
                 unsafe

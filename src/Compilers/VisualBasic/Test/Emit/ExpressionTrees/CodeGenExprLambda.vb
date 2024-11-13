@@ -7,7 +7,6 @@ Imports System.Text
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests

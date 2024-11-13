@@ -11604,7 +11604,6 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
             CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (3,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public A(B<delegate*<void>[]>.E e) { }
@@ -11616,7 +11615,14 @@ class C<T> {}
         public void Attribute_TypedDefault_Enum_Implicit_ConstructorArgument_WithUnsafeContext([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
-                class A : System.Attribute
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine((int)arg.Value == 0);
+
+                class A : Attribute
                 {
                     public unsafe A(B<delegate*<void>[]>.E e) { }
                 }
@@ -11630,8 +11636,7 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "True" : null, options: TestOptions.UnsafeDebugExe, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -11673,7 +11678,14 @@ class C<T> {}
         public void Attribute_GenericTypedDefault_Enum_Implicit_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
-                class A<T> : System.Attribute
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType.GetGenericTypeDefinition() == typeof(A<>));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine((int)arg.Value == 0);
+
+                class A<T> : Attribute
                 {
                     public A(T t) { }
                 }
@@ -11687,8 +11699,7 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "True" : null, options: TestOptions.UnsafeDebugExe, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -11730,7 +11741,14 @@ class C<T> {}
         public void Attribute_TypedDefault_Enum_Explicit_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
-                class A : System.Attribute
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine((int)arg.Value == 0);
+
+                class A : Attribute
                 {
                     public unsafe A(B<delegate*<void>[]>.E e) { }
                 }
@@ -11744,8 +11762,7 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "True" : null, options: TestOptions.UnsafeDebugExe, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -12057,7 +12074,14 @@ class C<T> {}
         public void Attribute_GenericTypedConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
-                class A<T> : System.Attribute
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType.GetGenericTypeDefinition() == typeof(A<>));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine((int)arg.Value == 33);
+
+                class A<T> : Attribute
                 {
                     public A(T t) { }
                 }
@@ -12072,8 +12096,7 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "True" : null, options: TestOptions.UnsafeDebugExe, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -12194,7 +12217,14 @@ class C<T> {}
         public void Attribute_TypedConstant_Enum_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
-                class A : System.Attribute
+                using System;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine((int)arg.Value == 33);
+
+                class A : Attribute
                 {
                     public unsafe A(B<delegate*<void>[]>.E o) { }
                 }
@@ -12209,8 +12239,7 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "True" : null, options: TestOptions.UnsafeDebugExe, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -12227,7 +12256,15 @@ class C<T> {}
         public void Attribute_TypedConstant_EnumArray_ConstructorArgument([CombinatorialValues("class", "struct")] string kind)
         {
             var source = $$"""
-                class A : System.Attribute
+                using System;
+                using System.Collections;
+                using System.Linq;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine(!((IEnumerable)arg.Value).Cast<int>().Any());
+
+                class A : Attribute
                 {
                     public unsafe A(B<delegate*<void>[]>.E[] a) { }
                 }
@@ -12241,8 +12278,7 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: static module =>
+            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "True" : null, options: TestOptions.UnsafeDebugExe, symbolValidator: static module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");
@@ -12261,7 +12297,16 @@ class C<T> {}
             [CombinatorialValues("[]{}", "()")] string initializer)
         {
             var source = $$"""
-                class A : System.Attribute
+                using System;
+                using System.Collections;
+                using System.Linq;
+                using System.Reflection;
+
+                var attr = typeof(C).CustomAttributes.Single(d => d.AttributeType == typeof(A));
+                var arg = attr.ConstructorArguments.Single();
+                Console.WriteLine(((IEnumerable)arg.Value).Cast<CustomAttributeTypedArgument>().SingleOrDefault().Value ?? "null");
+
+                class A : Attribute
                 {
                     public unsafe A(params B<delegate*<void>[]>.E[] a) { }
                 }
@@ -12275,8 +12320,9 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            // https://github.com/dotnet/roslyn/issues/66187 tracks enabling runtime reflection support for this scenario.
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, symbolValidator: module =>
+            var expectedOutput = ExecutionConditionUtil.IsMonoOrCoreClr ? (initializer == "()" ? "0" : "null") : null;
+
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput, options: TestOptions.UnsafeDebugExe, symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetTypeMember("C");
                 var attr = c.GetAttributes().Single(d => d.AttributeClass?.Name == "A");

@@ -4393,7 +4393,7 @@ End Class
             Dim nullArray As Integer() = Nothing
             Dim emptyArray As Integer() = {}
 
-            Assert.NotEqual(nullArray, emptyArray)
+            AssertEx.NotEqual(nullArray, emptyArray)
 
             attrs(0).VerifyValue(0, TypedConstantKind.Array, nullArray)
 

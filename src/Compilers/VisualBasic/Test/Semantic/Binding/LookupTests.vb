@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -1623,11 +1622,11 @@ End Module
             Assert.Equal(NamespaceKind.Module, ns.NamespaceKind)
             Assert.Equal("System.ComponentModel", ns.ToTestDisplayString())
 
-            Assert.Equal({"System.ComponentModel", "System.Windows.Forms.ComponentModel"},
+            AssertEx.Equal({"System.ComponentModel", "System.Windows.Forms.ComponentModel"},
                          semanticModel.LookupNamespacesAndTypes(node.Position, name:="ComponentModel").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-            Assert.Equal({"System.ComponentModel", "System.Windows.Forms.ComponentModel"},
+            AssertEx.Equal({"System.ComponentModel", "System.Windows.Forms.ComponentModel"},
                          semanticModel.LookupSymbols(node.Position, name:="ComponentModel").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
         End Sub
@@ -1673,11 +1672,11 @@ BC30112: 'Diagnostics' is a namespace and cannot be used as an expression.
             Assert.Equal(NamespaceKind.Compilation, ns.NamespaceKind)
             Assert.Equal("System.Diagnostics", ns.ToTestDisplayString())
 
-            Assert.Equal({"System.Diagnostics", "Windows.Foundation.Diagnostics"},
+            AssertEx.Equal({"System.Diagnostics", "Windows.Foundation.Diagnostics"},
                          semanticModel.LookupNamespacesAndTypes(node.Position, name:="Diagnostics").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-            Assert.Equal({"System.Diagnostics", "Windows.Foundation.Diagnostics"},
+            AssertEx.Equal({"System.Diagnostics", "Windows.Foundation.Diagnostics"},
                          semanticModel.LookupSymbols(node.Position, name:="Diagnostics").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
         End Sub
@@ -1742,11 +1741,11 @@ End Namespace
             Assert.Equal(NamespaceKind.Module, ns1.NamespaceKind)
             Assert.Equal("NS1.NS3", ns1.ToTestDisplayString())
 
-            Assert.Equal({"NS1.NS3", "NS2.NS3"},
+            AssertEx.Equal({"NS1.NS3", "NS2.NS3"},
                          semanticModel.LookupNamespacesAndTypes(node1.Position, name:="NS3").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-            Assert.Equal({"NS1.NS3", "NS2.NS3"},
+            AssertEx.Equal({"NS1.NS3", "NS2.NS3"},
                          semanticModel.LookupSymbols(node1.Position, name:="NS3").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
         End Sub
@@ -1929,7 +1928,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
                 Assert.Null(info3.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info3.CandidateReason)
                 ' Content of this list should determine content of lists below !!!
-                Assert.Equal({"NS1.NS6.NS7.T1", "NS2.NS6.NS7.T1", "NS4.NS6.NS7.T1", "NS5.NS6.NS7.T1"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6.NS7.T1", "NS2.NS6.NS7.T1", "NS4.NS6.NS7.T1", "NS5.NS6.NS7.T1"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {2, 5, 8, 23}
@@ -1937,7 +1936,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
 
                 Assert.Null(info2.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info2.CandidateReason)
-                Assert.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS4.NS6.NS7", "NS5.NS6.NS7"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS4.NS6.NS7", "NS5.NS6.NS7"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {1, 4, 7, 22}
@@ -1945,13 +1944,13 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
 
                 Assert.Null(info1.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info1.CandidateReason)
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS4.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS4.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
@@ -1961,7 +1960,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
 
                 Assert.Null(info2.Symbol)
                 Assert.Equal(If(i = 16, CandidateReason.Ambiguous, If(i = 19, CandidateReason.NotAnAttributeType, CandidateReason.NotATypeOrNamespace)), info2.CandidateReason)
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {12, 15, 18, 21}
@@ -1970,7 +1969,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
                 Assert.Null(info3.Symbol)
                 Assert.Equal(If(i = 18, CandidateReason.Ambiguous, If(i = 21, CandidateReason.NotAnAttributeType, CandidateReason.NotATypeOrNamespace)), info3.CandidateReason)
                 ' Content of this list should determine content of lists below !!!
-                Assert.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS4.NS6.NS7", "NS5.NS6.NS7", "NS9.NS6.NS7"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS4.NS6.NS7", "NS5.NS6.NS7", "NS9.NS6.NS7"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {11, 14, 17, 20}
@@ -1978,7 +1977,7 @@ BC37229: 'T1' is ambiguous between declarations in namespaces 'NS1.NS6.NS7, NS2.
 
                 Assert.Null(info3.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info3.CandidateReason)
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
         End Sub
 
@@ -2113,11 +2112,11 @@ End Namespace
                 Assert.Equal("NS1.NS6", info1.Symbol.ToTestDisplayString())
                 Assert.Equal(NamespaceKind.Module, DirectCast(info1.Symbol, NamespaceSymbol).NamespaceKind)
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
                              semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
                                 Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS4.NS6", "NS5.NS6", "NS9.NS6"},
                              semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
                                 Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
@@ -2241,27 +2240,27 @@ BC30002: Type 'NS6.NS7.M1' is not defined.
                 Assert.Null(info3.Symbol)
                 Assert.Equal(If(i = 3, CandidateReason.Ambiguous, CandidateReason.NotATypeOrNamespace), info3.CandidateReason)
                 ' Content of this list should determine content of lists below !!!
-                Assert.Equal({"Sub NS1.NS6.NS7.T1.M1()", "Sub NS2.NS6.NS7.T1.M1()", "Sub NS5.NS6.NS7.T1.M1()"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"Sub NS1.NS6.NS7.T1.M1()", "Sub NS2.NS6.NS7.T1.M1()", "Sub NS5.NS6.NS7.T1.M1()"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {2, 5, 8, 11}
                 Dim info2 = semanticModel.GetSymbolInfo(nodes(i))
                 Assert.Null(info2.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info2.CandidateReason)
-                Assert.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS5.NS6.NS7"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS5.NS6.NS7"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {1, 4, 7, 10}
                 Dim info1 = semanticModel.GetSymbolInfo(nodes(i))
                 Assert.Null(info1.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info1.CandidateReason)
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
@@ -2354,7 +2353,7 @@ BC30516: Overload resolution failed because no accessible 'M1' accepts this numb
 
             Assert.Null(info3.Symbol)
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info3.CandidateReason)
-            Assert.Equal({"Sub NS1.NS6.NS7.T1.M1(x As System.Int32)", "Sub NS1.NS6.NS7.T1.M1(x As System.Int64)"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+            AssertEx.Equal({"Sub NS1.NS6.NS7.T1.M1(x As System.Int32)", "Sub NS1.NS6.NS7.T1.M1(x As System.Int64)"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
             Dim node2 As IdentifierNameSyntax = CompilationUtils.FindBindingText(Of IdentifierNameSyntax)(compilation, "a.vb", 2)
 
@@ -2368,11 +2367,11 @@ BC30516: Overload resolution failed because no accessible 'M1' accepts this numb
             Assert.Equal("NS1.NS6", info1.Symbol.ToTestDisplayString())
             Assert.Equal(NamespaceKind.Module, DirectCast(info1.Symbol, NamespaceSymbol).NamespaceKind)
 
-            Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+            AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupNamespacesAndTypes(node1.Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-            Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+            AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupSymbols(node1.Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
         End Sub
@@ -2469,11 +2468,11 @@ End Namespace
             Assert.Equal("NS1.NS6", info1.Symbol.ToTestDisplayString())
             Assert.Equal(NamespaceKind.Module, DirectCast(info1.Symbol, NamespaceSymbol).NamespaceKind)
 
-            Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+            AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupNamespacesAndTypes(node1.Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-            Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+            AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupSymbols(node1.Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
         End Sub
@@ -2599,27 +2598,27 @@ BC30562: 'T1' is ambiguous between declarations in Modules 'NS1.NS6.NS7.Module1,
                 Assert.Null(info3.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info3.CandidateReason)
                 ' Content of this list should determine content of lists below !!!
-                Assert.Equal({"NS1.NS6.NS7.Module1.T1", "NS2.NS6.NS7.Module1.T1", "NS5.NS6.NS7.Module1.T1"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6.NS7.Module1.T1", "NS2.NS6.NS7.Module1.T1", "NS5.NS6.NS7.Module1.T1"}, info3.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {2, 5, 8, 11}
                 Dim info2 = semanticModel.GetSymbolInfo(nodes(i))
                 Assert.Null(info2.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info2.CandidateReason)
-                Assert.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS5.NS6.NS7"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6.NS7", "NS2.NS6.NS7", "NS5.NS6.NS7"}, info2.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
 
             For Each i In {1, 4, 7, 10}
                 Dim info1 = semanticModel.GetSymbolInfo(nodes(i))
                 Assert.Null(info1.Symbol)
                 Assert.Equal(CandidateReason.Ambiguous, info1.CandidateReason)
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS5.NS6"}, info1.CandidateSymbols.AsEnumerable().Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next
@@ -2746,11 +2745,11 @@ BC30109: 'Module1.T1' is a class type and cannot be used as an expression.
                 Assert.Equal("NS1.NS6", info1.Symbol.ToTestDisplayString())
                 Assert.Equal(NamespaceKind.Module, DirectCast(info1.Symbol, NamespaceSymbol).NamespaceKind)
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupNamespacesAndTypes(nodes(i).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
 
-                Assert.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
+                AssertEx.Equal({"NS1.NS6", "NS2.NS6", "NS3.NS6", "NS5.NS6", "NS9.NS6"},
                          semanticModel.LookupSymbols(nodes(i).Position, name:="NS6").AsEnumerable().
                             Select(Function(s) s.ToTestDisplayString()).OrderBy(Function(s) s).ToArray())
             Next

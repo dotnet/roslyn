@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,23 +14,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal partial class SymbolEquivalenceComparer
 {
-    private class EquivalenceVisitor(
+    private sealed class EquivalenceVisitor(
         SymbolEquivalenceComparer symbolEquivalenceComparer,
-        bool compareMethodTypeParametersByIndex,
-        bool objectAndDynamicCompareEqually)
+        bool compareMethodTypeParametersByIndex)
     {
-
         public bool AreEquivalent(ISymbol? x, ISymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
         {
             if (ReferenceEquals(x, y))
-            {
                 return true;
-            }
 
             if (x == null || y == null)
-            {
                 return false;
-            }
 
             var xKind = GetKindAndUnwrapAlias(ref x);
             var yKind = GetKindAndUnwrapAlias(ref y);
@@ -37,19 +32,41 @@ internal partial class SymbolEquivalenceComparer
             // Normally, if they're different types, then they're not the same.
             if (xKind != yKind)
             {
-                // Special case.  If we're comparing signatures then we want to compare 'object'
-                // and 'dynamic' as the same.  However, since they're different types, we don't
-                // want to bail out using the above check.
-                if (objectAndDynamicCompareEqually)
+                // Special case.  If we're comparing signatures then we want to compare 'object' and 'dynamic' as the
+                // same.  However, since they're different types, we don't want to bail out using the above check.
+                if (symbolEquivalenceComparer._objectAndDynamicCompareEqually)
                 {
-                    return (xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
-                           (yKind == SymbolKind.DynamicType && IsObjectType(x));
+                    if ((xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
+                        (yKind == SymbolKind.DynamicType && IsObjectType(x)))
+                    {
+                        return true;
+                    }
+                }
+
+                if (symbolEquivalenceComparer._arrayAndReadOnlySpanCompareEqually)
+                {
+                    if (xKind == SymbolKind.ArrayType && y.IsReadOnlySpan())
+                    {
+                        return AreArrayAndReadOnlySpanEquivalent((IArrayTypeSymbol)x, (INamedTypeSymbol)y, equivalentTypesWithDifferingAssemblies);
+                    }
+                    else if (x.IsReadOnlySpan() && yKind == SymbolKind.ArrayType)
+                    {
+                        return AreArrayAndReadOnlySpanEquivalent((IArrayTypeSymbol)y, (INamedTypeSymbol)x, equivalentTypesWithDifferingAssemblies);
+                    }
                 }
 
                 return false;
             }
 
             return AreEquivalentWorker(x, y, xKind, equivalentTypesWithDifferingAssemblies);
+        }
+
+        private bool AreArrayAndReadOnlySpanEquivalent(IArrayTypeSymbol array, INamedTypeSymbol readOnlySpanType, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
+        {
+            if (array.Rank != 1)
+                return false;
+
+            return AreEquivalent(array.ElementType, readOnlySpanType.TypeArguments.Single(), equivalentTypesWithDifferingAssemblies);
         }
 
         internal bool AreEquivalent(CustomModifier x, CustomModifier y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)

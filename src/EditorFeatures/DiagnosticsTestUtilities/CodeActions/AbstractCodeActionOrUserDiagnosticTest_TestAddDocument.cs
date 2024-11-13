@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             Assert.NotNull(addedDocument);
 
-            AssertEx.Equal(expectedFolders, addedDocument.Folders);
+            AssertEx.Equal(expectedFolders, addedDocument.Folders.AsEnumerable());
             Assert.Equal(expectedDocumentName, addedDocument.Name);
             var actual = (await addedDocument.GetTextAsync()).ToString();
             Assert.Equal(expected, actual);

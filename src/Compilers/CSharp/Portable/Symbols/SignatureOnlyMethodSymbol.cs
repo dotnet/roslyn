@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) { throw ExceptionUtilities.Unreachable(); }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) { throw ExceptionUtilities.Unreachable(); }
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) { throw ExceptionUtilities.Unreachable(); }
 
         internal override bool IsMetadataFinal
         {

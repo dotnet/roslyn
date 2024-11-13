@@ -38,11 +38,10 @@ internal partial class NamingStyleSettingsViewModel : SettingsViewModelBase<
         };
 
     protected override string[] GetFixedColumns()
-        => new[]
-        {
+        => [
             ColumnDefinitions.NamingStyle.Type,
             ColumnDefinitions.NamingStyle.Style,
             ColumnDefinitions.NamingStyle.Severity,
             ColumnDefinitions.NamingStyle.Location
-        };
+        ];
 }

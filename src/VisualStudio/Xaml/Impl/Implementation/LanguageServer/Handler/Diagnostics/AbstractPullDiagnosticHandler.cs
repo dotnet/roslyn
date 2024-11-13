@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
         /// <summary>
         /// If you make change in this method, please also update the corresponding file in
-        /// src\Features\LanguageServer\Protocol\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
+        /// src\\LanguageServer\Protocol\Extensions\ProtocolConversions.Diagnostics.cs
         /// </summary>
         private static DiagnosticTag[] ConvertTags(XamlDiagnostic diagnostic)
         {

@@ -49,12 +49,7 @@ schedules:
     always: true # Run even if there have been no source code changes since the last successful scheduled run
     batch: false # Do not run the pipeline if the previously scheduled run is in-progress
 
-# The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
-  - name: _DotNetArtifactsCategory
-    value: .NETCore
-  - name: _DotNetValidationArtifactsCategory
-    value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
   - name: Codeql.Enabled
     value: true
@@ -124,11 +119,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.11') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.12') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.11
+            MirrorBranch: release/dev17.12
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -308,8 +303,6 @@ extends:
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
                        /p:DotNetSignType=$(SignType)
-                       /p:PublishToSymbolServer=true
-                       /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true

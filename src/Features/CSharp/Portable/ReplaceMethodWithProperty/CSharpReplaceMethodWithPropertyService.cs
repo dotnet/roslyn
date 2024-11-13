@@ -185,6 +185,7 @@ internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWit
                 return accessorDeclaration.WithBody(null)
                                           .WithExpressionBody(arrowExpression)
                                           .WithSemicolonToken(semicolonToken)
+                                          .WithTrailingTrivia(accessorDeclaration.Body.GetTrailingTrivia())
                                           .WithAdditionalAnnotations(Formatter.Annotation);
             }
         }

@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -100,7 +101,9 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckIfDisposed()
         {
-#if NET
+            // <Metalama> NET -> NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
+            // </Metalama>
             ObjectDisposedException.ThrowIf(_isDisposed, this);
 #else
             if (_isDisposed)
@@ -435,7 +438,7 @@ namespace Microsoft.CodeAnalysis
                             return resolvedAssembly;
                         }
                     }
-                    catch
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Diagnostic))
                     {
                         // Ignore if the external resolver throws
                     }

@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private protected override GeneratorDriver CreateGeneratorDriver(string baseDirectory, ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, ImmutableArray<AdditionalText> additionalTexts)
         {
-            return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider, driverOptions: new GeneratorDriverOptions() { BaseDirectory = baseDirectory });
+            return CSharpGeneratorDriver.Create(generators, additionalTexts, (CSharpParseOptions)parseOptions, analyzerConfigOptionsProvider, driverOptions: new GeneratorDriverOptions(disabledOutputs: IncrementalGeneratorOutputKind.Host) { BaseDirectory = baseDirectory });
         }
 
         // <Metalama>
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TransformersResult.Empty(inputCompilation, analyzerConfigProvider);
             }
 
-            var interceptorsNamespaces = (((CSharpParseOptions?)inputCompilation.SyntaxTrees.FirstOrDefault()?.Options)?.InterceptorsPreviewNamespaces).GetValueOrDefault();
+            var interceptorsNamespaces = (((CSharpParseOptions?)inputCompilation.SyntaxTrees.FirstOrDefault()?.Options)?.InterceptorsNamespaces).GetValueOrDefault();
 
             if (!interceptorsNamespaces.IsDefaultOrEmpty)
             {

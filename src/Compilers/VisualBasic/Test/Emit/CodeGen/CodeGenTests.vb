@@ -5,12 +5,10 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -13656,7 +13654,7 @@ End Module
     </file>
 </compilation>
 
-            Dim testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference()
+            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Metadata.BadDefaultParameterValue).GetReference()
             Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[

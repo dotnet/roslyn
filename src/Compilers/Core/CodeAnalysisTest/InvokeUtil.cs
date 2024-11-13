@@ -21,7 +21,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 using Microsoft.CodeAnalysis.VisualBasic;
-#if NETCOREAPP
+#if NET
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
 #else
@@ -31,7 +31,7 @@ using Roslyn.Test.Utilities.Desktop;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
 
-#if NETCOREAPP
+#if NET
 
     public sealed class InvokeUtil
     {

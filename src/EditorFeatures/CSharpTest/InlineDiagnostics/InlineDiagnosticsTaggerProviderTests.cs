@@ -44,7 +44,7 @@ public class InlineDiagnosticsTaggerProviderTests
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(
             files: [],
-            sourceGeneratedFiles: new[] { content },
+            sourceGeneratedFiles: [content],
             composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
 
         return await GetTagSpansAsync(workspace);

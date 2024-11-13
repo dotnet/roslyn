@@ -6,7 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup Label="Project References">

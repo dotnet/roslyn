@@ -224,17 +224,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
     }
 
     [Theory]
-    [InlineData("List<int>")]
-    [InlineData("int[]")]
-    [InlineData("IEnumerable<int>")]
-    [InlineData("ArrayList")]
-    [InlineData("IEnumerable")]
+    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
     public async Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType)
     {
         await VerifySnippetAsync($$"""
-            using System.Collections;
-            using System.Collections.Generic;
-
             class C
             {
                 void M({{collectionType}} enumerable)
@@ -243,9 +236,6 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """, $$"""
-            using System.Collections;
-            using System.Collections.Generic;
-            
             class C
             {
                 void M({{collectionType}} enumerable)
@@ -608,6 +598,69 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             """);
     }
 
+    [Fact]
+    public async Task InsertInlineForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
+    {
+        await VerifySnippetAsync("""
+            using System;
+
+            class C
+            {
+                void M(int[] ints)
+                {
+                    ints.$$
+                    Console.WriteLine();
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M(int[] ints)
+                {
+                    foreach (var {|0:item|} in ints)
+                    {
+                        $$
+                    }
+                    Console.WriteLine();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            using System;
+
+            class C
+            {
+                void M(int[] ints)
+                {
+                    ints.$$ToString();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineForEachSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            using System;
+
+            class C
+            {
+                void M(int[] ints)
+                {
+                    ints.$$var a = 0;
+                }
+            }
+            """);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
     public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordTest1()
     {
@@ -709,5 +762,169 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
+    }
+
+    [Fact]
+    public async Task InsertInlineAwaitForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
+    {
+        await VerifySnippetAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(IAsyncEnumerable<int> ints)
+                {
+                    ints.$$
+                    Console.WriteLine();
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(IAsyncEnumerable<int> ints)
+                {
+                    await foreach (var {|0:item|} in ints)
+                    {
+                        $$
+                    }
+                    Console.WriteLine();
+                }
+            }
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net80);
+    }
+
+    [Fact]
+    public async Task NoInlineAwaitForEachSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(IAsyncEnumerable<int> ints)
+                {
+                    ints.$$ToString();
+                }
+            }
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net80);
+    }
+
+    [Fact]
+    public async Task NoInlineAwaitForEachSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(IAsyncEnumerable<int> ints)
+                {
+                    ints.$$var a = 0;
+                }
+            }
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net80);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForEachSnippetForTypeItselfTest(string collectionType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    {{collectionType}}.$$
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForEachSnippetForTypeItselfTest_Parenthesized(string collectionType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    ({{collectionType}}).$$
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForEachSnippetForTypeItselfTest_BeforeContextualKeyword(string collectionType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void M()
+                {
+                    {{collectionType}}.$$
+                    await Task.Delay(10);
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("ArrayList")]
+    [InlineData("IEnumerable")]
+    [InlineData("MyCollection")]
+    public async Task InsertInlineForEachSnippetForVariableNamedLikeTypeTest(string typeAndVariableName)
+    {
+        await VerifySnippetAsync($$"""
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    {{typeAndVariableName}} {{typeAndVariableName}} = default;
+                    {{typeAndVariableName}}.$$
+                }
+            }
+
+            class MyCollection : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() = null;
+            }
+            """, $$"""
+            using System.Collections;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    {{typeAndVariableName}} {{typeAndVariableName}} = default;
+                    foreach (var {|0:item|} in {{typeAndVariableName}})
+                    {
+                        $$
+                    }
+                }
+            }
+            
+            class MyCollection : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() = null;
+            }
+            """);
     }
 }

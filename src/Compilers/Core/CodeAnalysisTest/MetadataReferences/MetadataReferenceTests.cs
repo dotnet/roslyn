@@ -21,7 +21,6 @@ using Roslyn.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
 using CS = Microsoft.CodeAnalysis.CSharp;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

@@ -12620,5 +12620,67 @@ $$
                 Await state.AssertCompletionItemsContain("SwitchColor", displayTextSuffix:="")
             End Using
         End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73120")>
+        Public Async Function TestAfterPrimaryConstructorAttribute(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C([X] $$ client)
+                {
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("int", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
+        Public Async Function CompletionInsideImplicitObjectCreationInsideCollectionExpression(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Collections.Generic;
+
+public record Parent
+{
+    public List<Child>? Children { get; init; }
+}
+
+public record Child
+{
+    public string? Id { get; init; }
+}
+
+
+internal class Program
+{
+    public string ProgramProp { get; set; }
+
+    public void Main(string[] args)
+    {
+        var V1 = new Parent()
+        {
+            Children = [
+                new()
+                {
+                    $$
+                },
+            ],
+        };
+
+    }
+}]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("Id", displayTextSuffix:="")
+            End Using
+        End Function
     End Class
 End Namespace

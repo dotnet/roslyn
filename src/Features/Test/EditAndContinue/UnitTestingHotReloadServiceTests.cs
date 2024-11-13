@@ -71,7 +71,7 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
         // Rude edit
         result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
         AssertEx.Equal(
-            new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
+            ["ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
             result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         Assert.Empty(result.updates);

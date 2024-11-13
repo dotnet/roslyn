@@ -147,7 +147,12 @@ public partial class Project
     /// <summary>
     /// The options used by analyzers for this project.
     /// </summary>
-    public AnalyzerOptions AnalyzerOptions => State.AnalyzerOptions;
+    public AnalyzerOptions AnalyzerOptions => State.ProjectAnalyzerOptions;
+
+    /// <summary>
+    /// The options used by analyzers for this project.
+    /// </summary>
+    public AnalyzerOptions HostAnalyzerOptions => State.HostAnalyzerOptions;
 
     /// <summary>
     /// The options used when building the compilation for this project.
@@ -827,6 +832,6 @@ public partial class Project
 
     // <Metalama> This code is used by Try.Metalama.
     public Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(CancellationToken cancellationToken)
-        => _solution.CompilationState.GetTransformerDiagnosticsAsync(_projectState, cancellationToken);
+        => Solution.CompilationState.GetTransformerDiagnosticsAsync(State, cancellationToken);
     // </Metalama>
 }

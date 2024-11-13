@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static CSharpParseOptions Default { get; } = new CSharpParseOptions();
 
         private ImmutableDictionary<string, string> _features;
-        private ImmutableArray<ImmutableArray<string>> _interceptorsPreviewNamespaces;
+        private ImmutableArray<ImmutableArray<string>> _interceptorsNamespaces;
 
         /// <summary>
         /// Gets the effective language version, which the compiler uses to select the
@@ -177,21 +177,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal ImmutableArray<ImmutableArray<string>> InterceptorsPreviewNamespaces
+        internal ImmutableArray<ImmutableArray<string>> InterceptorsNamespaces
         {
             get
             {
-                if (!_interceptorsPreviewNamespaces.IsDefault)
+                if (!_interceptorsNamespaces.IsDefault)
                 {
-                    return _interceptorsPreviewNamespaces;
+                    return _interceptorsNamespaces;
                 }
 
                 // e.g. [["System", "Threading"], ["System", "Collections"]]
-                ImmutableArray<ImmutableArray<string>> previewNamespaces = Features.TryGetValue("InterceptorsPreviewNamespaces", out var namespaces) && namespaces.Length > 0
+                ImmutableArray<ImmutableArray<string>> previewNamespaces = Features.TryGetValue("InterceptorsNamespaces", out var namespaces) && namespaces.Length > 0
                     ? makeNamespaces(namespaces)
                     : ImmutableArray<ImmutableArray<string>>.Empty;
 
-                ImmutableInterlocked.InterlockedInitialize(ref _interceptorsPreviewNamespaces, previewNamespaces);
+                ImmutableInterlocked.InterlockedInitialize(ref _interceptorsNamespaces, previewNamespaces);
                 return previewNamespaces;
 
                 static ImmutableArray<ImmutableArray<string>> makeNamespaces(string namespaces)
