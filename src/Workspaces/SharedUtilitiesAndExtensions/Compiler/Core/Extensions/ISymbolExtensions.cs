@@ -101,7 +101,8 @@ internal static partial class ISymbolExtensions
 
         bool TryFindLooseMatch(ISymbol symbol, INamedTypeSymbol baseType, [NotNullWhen(true)] out ISymbol? looseMatch)
         {
-            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var candidateMethods);
+            IMethodSymbol? bestMethod = null;
+            var parameterCount = symbol.GetParameters().Length;
 
             foreach (var member in baseType.GetMembers(symbol.Name))
             {
@@ -123,20 +124,13 @@ internal static partial class ISymbolExtensions
                 }
                 else if (member is IMethodSymbol method)
                 {
-                    // We found a method.  Keep track of this so we can try to find the best possible loose match.
-                    candidateMethods.Add(method);
+                    // Prefer methods that are closed in parameter count to the original method we started with.
+                    if (bestMethod is null || Math.Abs(method.Parameters.Length - parameterCount) < Math.Abs(bestMethod.Parameters.Length - parameterCount))
+                        bestMethod = method;
                 }
             }
 
-            var parameterCount = symbol.GetParameters().Length;
-            candidateMethods.Sort((m1, m2) =>
-            {
-                var parameterDiff1 = Math.Abs(m1.Parameters.Length - parameterCount);
-                var parameterDiff2 = Math.Abs(m2.Parameters.Length - parameterCount);
-                return parameterDiff1 - parameterDiff2;
-            });
-
-            looseMatch = candidateMethods.FirstOrDefault();
+            looseMatch = bestMethod;
             return looseMatch != null;
         }
     }
