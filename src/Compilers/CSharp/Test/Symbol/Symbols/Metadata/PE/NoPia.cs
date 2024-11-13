@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.NoPia.LocalTypes1,
                                         TestReferences.SymbolsTests.NoPia.LocalTypes2,
                                         TestReferences.SymbolsTests.NoPia.Pia1,
-                                        Net40.mscorlib,
+                                        Net40.References.mscorlib,
                                         TestReferences.SymbolsTests.MDTestLib1
                                     });
 
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.NoPia.LocalTypes1,
                                         TestReferences.SymbolsTests.NoPia.LocalTypes2,
                                         TestReferences.SymbolsTests.NoPia.Pia1,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             var localTypes1_2 = assemblies2[0];
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.NoPia.LocalTypes1,
                                         TestReferences.SymbolsTests.NoPia.LocalTypes2,
                                         TestReferences.SymbolsTests.NoPia.Pia1,
-                                        Net40.mscorlib,
+                                        Net40.References.mscorlib,
                                         TestReferences.SymbolsTests.MDTestLib1
                                     });
 
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.NoPia.LocalTypes1,
                                         TestReferences.SymbolsTests.NoPia.LocalTypes2,
                                         TestReferences.SymbolsTests.NoPia.Pia2,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             var localTypes1_5 = assemblies5[0];
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.NoPia.LocalTypes1,
                                         TestReferences.SymbolsTests.NoPia.LocalTypes2,
                                         TestReferences.SymbolsTests.NoPia.Pia3,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             var localTypes1_6 = assemblies6[0];
@@ -251,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.NoPia.LocalTypes1,
                                         TestReferences.SymbolsTests.NoPia.LocalTypes2,
                                         TestReferences.SymbolsTests.NoPia.Pia4,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             var localTypes1_7 = assemblies7[0];
@@ -283,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.NoPia.LocalTypes2,
                                         TestReferences.SymbolsTests.NoPia.Pia4,
                                         TestReferences.SymbolsTests.NoPia.Pia1,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             var localTypes1_8 = assemblies8[0];
@@ -316,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                       TestReferences.SymbolsTests.NoPia.Library1,
                                       TestReferences.SymbolsTests.NoPia.LocalTypes1,
                                       TestReferences.SymbolsTests.NoPia.Pia4,
-                                      Net40.mscorlib
+                                      Net40.References.mscorlib
                                   });
 
             var library1_9 = assemblies9[0];
@@ -327,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                        TestReferences.SymbolsTests.NoPia.Library1,
                                        TestReferences.SymbolsTests.NoPia.LocalTypes1,
                                        TestReferences.SymbolsTests.NoPia.Pia4,
-                                       Net40.mscorlib,
+                                       Net40.References.mscorlib,
                                        TestReferences.SymbolsTests.MDTestLib1
                                    });
 
@@ -362,7 +363,7 @@ public class LocalTypes2
     { }
 }
 ";
-            var mscorlibRef = Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
             var pia1CopyLink = TestReferences.SymbolsTests.NoPia.Pia1Copy.WithEmbedInteropTypes(true);
             var pia1CopyRef = TestReferences.SymbolsTests.NoPia.Pia1Copy.WithEmbedInteropTypes(false);
 
@@ -378,7 +379,7 @@ public class LocalTypes2
             var assemblies1 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                     {
                         TestReferences.SymbolsTests.NoPia.Pia1,
-                        Net40.mscorlib,
+                        Net40.References.mscorlib,
                         TestReferences.SymbolsTests.MDTestLib1,
                         TestReferences.SymbolsTests.MDTestLib2
                     },
@@ -431,7 +432,7 @@ public class LocalTypes2
             var assemblies2 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                                     {
                                         TestReferences.SymbolsTests.NoPia.Pia1,
-                                        Net40.mscorlib,
+                                        Net40.References.mscorlib,
                                         TestReferences.SymbolsTests.MDTestLib1
                                     },
                                 new CSharpCompilation[] { localTypes1, localTypes2 });
@@ -462,7 +463,7 @@ public class LocalTypes2
             var assemblies3 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                                     {
                                         TestReferences.SymbolsTests.NoPia.Pia1,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     },
                                 new CSharpCompilation[] { localTypes1, localTypes2 });
 
@@ -494,7 +495,7 @@ public class LocalTypes2
             var assemblies4 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                                     {
                                         TestReferences.SymbolsTests.NoPia.Pia1,
-                                        Net40.mscorlib,
+                                        Net40.References.mscorlib,
                                         TestReferences.SymbolsTests.MDTestLib1,
                                         TestReferences.SymbolsTests.MDTestLib2
                                     },
@@ -508,7 +509,7 @@ public class LocalTypes2
             var assemblies5 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                                     {
                                         TestReferences.SymbolsTests.NoPia.Pia2,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     },
                                 new CSharpCompilation[] { localTypes1, localTypes2 });
 
@@ -553,7 +554,7 @@ public class LocalTypes2
             var assemblies6 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                                     {
                                         TestReferences.SymbolsTests.NoPia.Pia3,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     },
                                 new CSharpCompilation[] { localTypes1, localTypes2 });
 
@@ -583,7 +584,7 @@ public class LocalTypes2
             var assemblies7 = MetadataTestHelpers.GetSymbolsForReferences(new[]
                                     {
                                         TestReferences.SymbolsTests.NoPia.Pia4,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     },
                                 new CSharpCompilation[] { localTypes1, localTypes2 });
 
@@ -618,7 +619,7 @@ public class LocalTypes2
                                     {
                                         TestReferences.SymbolsTests.NoPia.Pia4,
                                         TestReferences.SymbolsTests.NoPia.Pia1,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     },
                                 new CSharpCompilation[] { localTypes1, localTypes2 });
 
@@ -650,7 +651,7 @@ public class LocalTypes2
                                 {
                     TestReferences.SymbolsTests.NoPia.Library1,
                     TestReferences.SymbolsTests.NoPia.Pia4,
-                    Net40.mscorlib,
+                    Net40.References.mscorlib,
                     new CSharpCompilationReference(localTypes1)
             });
 
@@ -662,7 +663,7 @@ public class LocalTypes2
             var assemblies10 = MetadataTestHelpers.GetSymbolsForReferences(
                 TestReferences.SymbolsTests.NoPia.Library1,
                 TestReferences.SymbolsTests.NoPia.Pia4,
-                Net40.mscorlib,
+                Net40.References.mscorlib,
                 TestReferences.SymbolsTests.MDTestLib1,
                 new CSharpCompilationReference(localTypes1));
 
@@ -728,7 +729,7 @@ public class LocalTypes2
                                 {
                 TestReferences.SymbolsTests.NoPia.LocalTypes3,
                 TestReferences.SymbolsTests.NoPia.Pia1,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             localTypes3 = assemblies[0].GlobalNamespace.GetTypeMembers("LocalTypes3").Single();
@@ -744,7 +745,7 @@ public class LocalTypes2
         [ConditionalFact(typeof(DesktopOnly))]
         public void GenericsClosedOverLocalTypes2()
         {
-            var mscorlibRef = Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
             var pia5Link = TestReferences.SymbolsTests.NoPia.Pia5.WithEmbedInteropTypes(true);
             var pia5Ref = TestReferences.SymbolsTests.NoPia.Pia5.WithEmbedInteropTypes(false);
             var library2Ref = TestReferences.SymbolsTests.NoPia.Library2.WithEmbedInteropTypes(false);
@@ -869,7 +870,7 @@ public class LocalTypes2
         [Fact]
         public void GenericsClosedOverLocalTypes3()
         {
-            var varmscorlibRef = Net40.mscorlib;
+            var varmscorlibRef = Net40.References.mscorlib;
             var varALink = TestReferences.SymbolsTests.NoPia.A.WithEmbedInteropTypes(true);
             var varARef = TestReferences.SymbolsTests.NoPia.A.WithEmbedInteropTypes(false);
             var varBLink = TestReferences.SymbolsTests.NoPia.B.WithEmbedInteropTypes(true);
@@ -1001,7 +1002,7 @@ public class C33
 {}
 ";
 
-            var mscorlibRef = Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
             var pia1CopyLink = TestReferences.SymbolsTests.NoPia.Pia1Copy.WithEmbedInteropTypes(true);
             var pia1CopyRef = TestReferences.SymbolsTests.NoPia.Pia1Copy.WithEmbedInteropTypes(false);
 
@@ -1028,7 +1029,7 @@ public class C33
             assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
                                 {
                                     TestReferences.SymbolsTests.NoPia.Pia1,
-                                    Net40.mscorlib
+                                    Net40.References.mscorlib
                                 },
                                 new CSharpCompilation[] { varC_LocalTypes3 });
 
@@ -1100,7 +1101,7 @@ public interface I7
 }
 ";
 
-            var mscorlibRef = Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
 
             // vbc /t:library /vbruntime- Pia5.vb
             var varC_Pia5 = CSharpCompilation.Create("Pia5", new[] { Parse(pia5Source) }, new[] { mscorlibRef });
@@ -1262,7 +1263,7 @@ public interface I7
         [Fact]
         public void GenericsClosedOverLocalTypes6()
         {
-            var mscorlibRef = Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
 
             var varC_A = CSharpCompilation.Create("A", references: new[] { mscorlibRef });
 

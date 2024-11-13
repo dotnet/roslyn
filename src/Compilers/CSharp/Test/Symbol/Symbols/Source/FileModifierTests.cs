@@ -4373,7 +4373,7 @@ public partial class C
             }
             """;
 
-        var comp2 = CreateCompilation(source2, references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib45);
+        var comp2 = CreateCompilation(source2, references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib461);
         comp2.VerifyDiagnostics(
         // (5,9): error CS0103: The name 'C' does not exist in the current context
         //         C.M();

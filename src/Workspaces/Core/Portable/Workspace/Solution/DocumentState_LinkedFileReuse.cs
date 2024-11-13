@@ -51,11 +51,11 @@ internal partial class DocumentState
         {
             return new DocumentState(
                 LanguageServices,
-                Services,
+                DocumentServiceProvider,
                 Attributes,
-                _options,
                 siblingTextSource,
                 LoadTextOptions,
+                ParseOptions,
                 treeSource: null);
         }
 
@@ -77,7 +77,7 @@ internal partial class DocumentState
         // Defer to static helper to make sure we don't accidentally capture anything else we don't want off of 'this'
         // (like "this.TreeSource").
         return UpdateTextAndTreeContentsWorker(
-            this.Attributes, this.LanguageServices, this.Services, this.LoadTextOptions, this.ParseOptions,
+            this.Attributes, this.LanguageServices, this.DocumentServiceProvider, this.LoadTextOptions, this.ParseOptions,
             originalTreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer);
     }
 
@@ -106,7 +106,7 @@ internal partial class DocumentState
         var newTreeSource = new LinkedFileReuseTreeAndVersionSource(originalTreeSource, lazyComputation);
 
         return new DocumentState(
-            languageServices, services, attributes, parseOptions, siblingTextSource, loadTextOptions, newTreeSource);
+            languageServices, services, attributes, siblingTextSource, loadTextOptions, parseOptions, newTreeSource);
 
         static bool TryReuseSiblingRoot(
             string filePath,
@@ -133,9 +133,13 @@ internal partial class DocumentState
             // with our own data (*except* for the new root).  However, we think it's safe as the encoding really is
             // a property of the file, and that should stay the same even if linked into multiple projects.
 
+            // Attempt to obtain, and subsequently reuse, the SourceText from the sibling tree.
+            siblingTree.TryGetText(out var lazyText);
+
             var newTree = treeFactory.CreateSyntaxTree(
                 filePath,
                 parseOptions,
+                lazyText,
                 siblingTree.Encoding,
                 loadTextOptions.ChecksumAlgorithm,
                 siblingRoot);

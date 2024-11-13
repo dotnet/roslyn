@@ -4386,7 +4386,7 @@
     <value>The specified version string does not conform to the recommended format</value>
   </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
+    <value>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="ERR_InvalidAssemblyCultureForExe" xml:space="preserve">
     <value>Executables cannot be satellite assemblies; culture should always be empty</value>
@@ -5703,5 +5703,8 @@
   </data>
   <data name="WRN_ConvertingLock_Title" xml:space="preserve">
     <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</value>
+  </data>
+  <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
+    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
   </data>
 </root>

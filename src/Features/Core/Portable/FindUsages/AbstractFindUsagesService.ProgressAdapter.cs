@@ -50,7 +50,11 @@ internal abstract partial class AbstractFindUsagesService
     /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
     /// </summary>
     private sealed class FindReferencesProgressAdapter(
-        Solution solution, IFindUsagesContext context, FindReferencesSearchOptions searchOptions, OptionsProvider<ClassificationOptions> classificationOptions)
+        Solution solution,
+        ISymbol symbol,
+        IFindUsagesContext context,
+        FindReferencesSearchOptions searchOptions,
+        OptionsProvider<ClassificationOptions> classificationOptions)
         : IStreamingFindReferencesProgress
     {
         /// <summary>
@@ -85,11 +89,14 @@ internal abstract partial class AbstractFindUsagesService
             {
                 if (!_definitionToItem.TryGetValue(group, out var definitionItem))
                 {
+                    // Ensure that we prioritize the symbol the user is searching for as the primary definition. This
+                    // will ensure it shows up above the rest in the final results.
+                    var isPrimary = group.Symbols.Contains(symbol.OriginalDefinition);
                     definitionItem = await group.ToClassifiedDefinitionItemAsync(
                         classificationOptions,
                         solution,
                         searchOptions,
-                        isPrimary: _definitionToItem.Count == 0,
+                        isPrimary,
                         includeHiddenLocations: false,
                         cancellationToken).ConfigureAwait(false);
 

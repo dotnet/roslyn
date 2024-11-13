@@ -418,4 +418,8 @@
   <data name="Make_anonymous_function_static" xml:space="preserve">
     <value>Make anonymous function static</value>
   </data>
+  <data name="Use_System_Threading_Lock" xml:space="preserve">
+    <value>Use 'System.Threading.Lock'</value>
+    <comment>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</comment>
+  </data>
 </root>

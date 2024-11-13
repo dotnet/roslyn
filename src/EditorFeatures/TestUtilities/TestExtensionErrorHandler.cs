@@ -17,9 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     [Export(typeof(ITestErrorHandler))]
     internal class TestExtensionErrorHandler : IExtensionErrorHandler, ITestErrorHandler
     {
-        private ImmutableList<Exception> _exceptions = ImmutableList<Exception>.Empty;
-
-        public ImmutableList<Exception> Exceptions => _exceptions;
+        public ImmutableList<Exception> Exceptions { get; private set; } = ImmutableList<Exception>.Empty;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             // fail. Unfortuntately throwing an exception here is not going to help because
             // the editor is going to catch and swallow it. Store it here and wait for the 
             // containing workspace to notice it and throw.
-            _exceptions = _exceptions.Add(exception);
+            Exceptions = Exceptions.Add(exception);
         }
     }
 }

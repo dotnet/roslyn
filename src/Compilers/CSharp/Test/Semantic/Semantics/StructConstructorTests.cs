@@ -3232,7 +3232,7 @@ class Program
         Console.WriteLine(new S3().X);
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib461);
             CompileAndVerify(comp, expectedOutput:
 @"2
 0");
@@ -3750,12 +3750,12 @@ ref struct E2
 }";
             var comp = CreateCompilationWithSpan(source);
             comp.VerifyDiagnostics(
-                // (8,45): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                // (8,43): error CS8352: Cannot use variable 'Field = stackalloc byte[512]' in this context because it may expose referenced variables outside of their declaration scope
                 //     public Span<byte> Field = new Example { Field = stackalloc byte[512] }.Field;
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "Field = stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(8, 45),
-                // (9,57): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Field = stackalloc byte[512] }").WithArguments("Field = stackalloc byte[512]").WithLocation(8, 43),
+                // (9,55): error CS8352: Cannot use variable 'Field = stackalloc byte[512]' in this context because it may expose referenced variables outside of their declaration scope
                 //     public Span<byte> Property { get; } = new Example { Field = stackalloc byte[512] }.Field;
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "Field = stackalloc byte[512]").WithArguments("System.Span<byte>").WithLocation(9, 57));
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Field = stackalloc byte[512] }").WithArguments("Field = stackalloc byte[512]").WithLocation(9, 55));
         }
 
         [Theory]

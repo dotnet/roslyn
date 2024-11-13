@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -31,6 +32,11 @@ internal class FileChange : AbstractChange
     public readonly DocumentId Id;
     private readonly ITextBuffer _buffer;
     private readonly IVsImageService2 _imageService;
+
+    private static readonly StringDifferenceOptions s_differenceOptions = new()
+    {
+        DifferenceType = StringDifferenceTypes.Line,
+    };
 
     public FileChange(TextDocument left,
         TextDocument right,
@@ -238,12 +244,6 @@ internal class FileChange : AbstractChange
         var oldText = left.GetTextSynchronously(cancellationToken);
         var newText = right.GetTextSynchronously(cancellationToken);
 
-        var oldString = oldText.ToString();
-        var newString = newText.ToString();
-
-        return diffService.DiffStrings(oldString, newString, new StringDifferenceOptions()
-        {
-            DifferenceType = StringDifferenceTypes.Line,
-        });
+        return diffService.DiffSourceTexts(oldText, newText, s_differenceOptions);
     }
 }

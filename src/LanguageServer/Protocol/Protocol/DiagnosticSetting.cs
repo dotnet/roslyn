@@ -7,10 +7,12 @@ namespace Roslyn.LanguageServer.Protocol;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// Client settings for pull diagnostics.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticClientCapabilities">Language Server Protocol specification</see> for additional information.
+/// Client capabilities specific to pull diagnostics.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#diagnosticClientCapabilities">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 internal class DiagnosticSetting : DynamicRegistrationSetting
 {
     /// <summary>

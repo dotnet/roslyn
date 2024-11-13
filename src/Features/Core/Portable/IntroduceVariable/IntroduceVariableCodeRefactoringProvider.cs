@@ -27,7 +27,7 @@ internal sealed class IntroduceVariableCodeRefactoringProvider() : CodeRefactori
             return;
 
         var service = document.GetRequiredLanguageService<IIntroduceVariableService>();
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, context.CancellationToken).ConfigureAwait(false);
+        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.CancellationToken).ConfigureAwait(false);
         var action = await service.IntroduceVariableAsync(document, textSpan, cleanupOptions, cancellationToken).ConfigureAwait(false);
         if (action != null)
             context.RegisterRefactoring(action, textSpan);

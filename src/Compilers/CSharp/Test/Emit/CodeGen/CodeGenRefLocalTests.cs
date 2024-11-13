@@ -1643,8 +1643,8 @@ class C
 2");
         }
 
-        [Fact]
-        public void RefAssignArrayAccess()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Struct()
         {
             var text = @"
 class Program
@@ -1668,6 +1668,405 @@ class Program
   IL_0008:  ldelema    ""int""
   IL_000d:  stloc.0
   IL_000e:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M()", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldc.i4.1
+  IL_0001:  newarr     ""int""
+  IL_0006:  ldc.i4.0
+  IL_0007:  ldelem.i4
+  IL_0008:  pop
+  IL_0009:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Struct_Readonly()
+        {
+            var text = @"
+class Program
+{
+    static void M(int[] a)
+    {
+        ref readonly int rl = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (int& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""int""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.i4
+  IL_0003:  pop
+  IL_0004:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Class()
+        {
+            var text = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        ref object rl = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""object""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""object""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Class_Readonly()
+        {
+            var text = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        ref readonly object rl = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  .locals init (object& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  readonly.
+  IL_0005:  ldelema    ""object""
+  IL_000a:  stloc.0
+  IL_000b:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  pop
+  IL_0004:  ret
+}");
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Generic(
+            [CombinatorialValues("", "where T : class")] string constraints)
+        {
+            var text = $$"""
+class Program
+{
+    static void M<T>(T[] a) {{constraints}}
+    {
+        ref T rl = ref a[0];
+    }
+}
+""";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (T& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""T""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""T""
+  IL_0007:  pop
+  IL_0008:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Generic_Struct()
+        {
+            var text = """
+class Program
+{
+    static void M<T>(T[] a) where T : struct
+    {
+        ref T rl = ref a[0];
+    }
+}
+""";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (T& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""T""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Generic_Readonly(
+            [CombinatorialValues("", "where T : class")] string constraints)
+        {
+            var text = $$"""
+class Program
+{
+    static void M<T>(T[] a) {{constraints}}
+    {
+        ref readonly T rl = ref a[0];
+    }
+}
+""";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M<T>", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  .locals init (T& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  readonly.
+  IL_0005:  ldelema    ""T""
+  IL_000a:  stloc.0
+  IL_000b:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        public void RefAssignArrayAccess_Generic_Readonly_Struct()
+        {
+            var text = @"
+class Program
+{
+    static void M<T>(T[] a) where T : struct
+    {
+        ref readonly T rl = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (T& V_0) //rl
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    ""T""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [Fact]
+        public void RefAssignArrayAccess_Discard_Struct()
+        {
+            var text = @"
+class Program
+{
+    static void M(int[] a)
+    {
+        _ = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelem.i4
+  IL_0004:  pop
+  IL_0005:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.i4
+  IL_0003:  pop
+  IL_0004:  ret
+}");
+        }
+
+        [Fact]
+        public void RefAssignArrayAccess_Discard_Class()
+        {
+            var text = @"
+class Program
+{
+    static void M(object[] a)
+    {
+        _ = ref a[0];
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelem.ref
+  IL_0004:  pop
+  IL_0005:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+{
+  // Code size        5 (0x5)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  pop
+  IL_0004:  ret
+}");
+        }
+
+        [Theory, CombinatorialData]
+        public void RefAssignArrayAccess_Discard_Generic(
+            [CombinatorialValues("", "where T : class", "where T : struct")] string constraints)
+        {
+            var text = $$"""
+class Program
+{
+    static void M<T>(T[] a) {{constraints}}
+    {
+        _ = ref a[0];
+    }
+}
+""";
+
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  readonly.
+  IL_0005:  ldelema    ""T""
+  IL_000a:  pop
+  IL_000b:  ret
+}");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
 }");
         }
 

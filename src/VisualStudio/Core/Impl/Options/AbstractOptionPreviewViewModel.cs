@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var document = project.AddDocument("document", SourceText.From(text, Encoding.UTF8));
             var fallbackFormattingOptions = OptionStore.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var formattingOptions = formattingService.GetFormattingOptions(OptionStore, fallbackFormattingOptions);
+            var formattingOptions = formattingService.GetFormattingOptions(OptionStore);
             var formatted = Formatter.FormatAsync(document, formattingOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
             var textBuffer = _textBufferCloneService.Clone(formatted.GetTextSynchronously(CancellationToken.None), _contentType);

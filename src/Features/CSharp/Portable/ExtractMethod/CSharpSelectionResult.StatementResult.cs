@@ -18,13 +18,12 @@ internal partial class CSharpSelectionResult
     private class StatementResult(
         TextSpan originalSpan,
         TextSpan finalSpan,
-        ExtractMethodOptions options,
         bool selectionInExpression,
         SemanticDocument document,
         SyntaxAnnotation firstTokenAnnotation,
         SyntaxAnnotation lastTokenAnnotation,
         bool selectionChanged) : CSharpSelectionResult(
-            originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+            originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
     {
         public override bool ContainingScopeHasAsyncKeyword()
         {

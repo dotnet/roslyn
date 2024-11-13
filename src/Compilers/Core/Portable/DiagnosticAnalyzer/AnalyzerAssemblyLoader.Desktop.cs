@@ -34,8 +34,15 @@ namespace Microsoft.CodeAnalysis
             _externalResolvers = externalResolvers;
         }
 
+        private partial void DisposeWorker()
+        {
+            EnsureResolvedUnhooked();
+        }
+
         public bool IsHostAssembly(Assembly assembly)
         {
+            CheckIfDisposed();
+
             // When an assembly is loaded from the GAC then the load result would be the same if 
             // this ran on command line compiler. So there is no consistency issue here, this 
             // is just runtime rules expressing themselves.
@@ -74,6 +81,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool EnsureResolvedHooked()
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 if (!_hookedAssemblyResolve)
@@ -89,6 +98,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool EnsureResolvedUnhooked()
         {
+            // Called from Dispose. We don't want to throw if we're disposed.
+
             lock (_guard)
             {
                 if (_hookedAssemblyResolve)

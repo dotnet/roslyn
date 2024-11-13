@@ -40,8 +40,8 @@ End Module";
 
         await TestServices.Editor.SetTextAsync(editorText, HangMitigatingCancellationToken);
 
-        var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-        Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+        var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        Assert.True(succeed);
 
         await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 

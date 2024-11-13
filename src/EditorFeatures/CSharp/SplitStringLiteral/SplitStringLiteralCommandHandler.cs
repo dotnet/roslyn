@@ -80,7 +80,7 @@ internal partial class SplitStringLiteralCommandHandler(
             return false;
 
         var parsedDocument = ParsedDocument.CreateSynchronously(document, CancellationToken.None);
-        var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
+        var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: false);
 
         // We now go through the verified string literals and split each of them.
         // The list of spans is traversed in reverse order so we do not have to

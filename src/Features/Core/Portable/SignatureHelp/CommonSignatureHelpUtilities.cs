@@ -145,7 +145,7 @@ internal static class CommonSignatureHelpUtilities
     }
 
     public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
-        Document document, SyntaxNode initializer, SignatureHelpOptions options, CancellationToken cancellationToken)
+        Document document, SyntaxNode initializer, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         if (initializer is not { Parent: not null })
             return default;

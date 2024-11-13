@@ -20,15 +20,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.PassInCapturedVariables), Shared]
-internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS8421 = nameof(CS8421); // A static local function can't contain a reference to <variable>.
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public PassInCapturedVariablesAsArgumentsCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS8421];
 
@@ -44,7 +40,7 @@ internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider : Syntax
                 context.RegisterCodeFix(
                     CodeAction.Create(
                         CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments,
-                        cancellationToken => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, context.GetOptionsProvider(), cancellationToken),
+                        cancellationToken => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(document, localFunction, captures, cancellationToken),
                         nameof(CSharpCodeFixesResources.Pass_in_captured_variables_as_arguments)),
                     diagnostic);
 
@@ -53,12 +49,12 @@ internal sealed class PassInCapturedVariablesAsArgumentsCodeFixProvider : Syntax
             context.CancellationToken);
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         => WrapFixAsync(
             document,
             diagnostics,
             (document, localFunction, captures) => MakeLocalFunctionStaticCodeFixHelper.MakeLocalFunctionStaticAsync(
-                document, localFunction, captures, editor, fallbackOptions, cancellationToken),
+                document, localFunction, captures, editor, cancellationToken),
             cancellationToken);
 
     // The purpose of this wrapper is to share some common logic between FixOne and FixAll. The main reason we chose

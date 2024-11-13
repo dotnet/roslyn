@@ -1045,16 +1045,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
         {
             private readonly SolutionId _solutionId;
             private readonly string _storageLocation;
-            private readonly bool _throwOnFailure;
 
             public MockPersistentStorageConfiguration(SolutionId solutionId, string storageLocation, bool throwOnFailure)
             {
                 _solutionId = solutionId;
                 _storageLocation = storageLocation;
-                _throwOnFailure = throwOnFailure;
+                ThrowOnFailure = throwOnFailure;
             }
 
-            public bool ThrowOnFailure => _throwOnFailure;
+            public bool ThrowOnFailure { get; }
 
             public string? TryGetStorageLocation(SolutionKey solutionKey)
                 => solutionKey.Id == _solutionId ? _storageLocation : null;

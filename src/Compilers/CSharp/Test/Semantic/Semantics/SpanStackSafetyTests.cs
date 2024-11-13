@@ -1681,13 +1681,13 @@ public class Program
                 """;
 
             CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (4,1): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,1): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // ReadOnlySpan<int> r = await M();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "ReadOnlySpan<int>").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 1));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ReadOnlySpan<int>").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 1));
 
             var expectedOutput = "5";
 
-            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpan(source, parseOptions: TestOptions.Regular13);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateCompilationWithSpan(source);

@@ -9,30 +9,32 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents the parameter that's sent with the 'workspace/symbol' request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceSymbolParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class WorkspaceSymbolParams : IPartialResultParams<SymbolInformation[]>
+    internal class WorkspaceSymbolParams
+#pragma warning disable CS0618 // SymbolInformation is obsolete but this class is not
+        : IPartialResultParams<SumType<SymbolInformation[], WorkspaceSymbol[]>>, IWorkDoneProgressParams
+#pragma warning restore CS0618
     {
         /// <summary>
         /// Gets or sets the query (a non-empty string).
         /// </summary>
         [JsonPropertyName("query")]
-        public string Query
-        {
-            get;
-            set;
-        }
+        [JsonRequired]
+        public string Query { get; set; }
 
-        /// <summary>
-        /// Gets or sets the value of the Progress instance.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IProgress<SymbolInformation[]>? PartialResultToken
-        {
-            get;
-            set;
-        }
+#pragma warning disable CS0618 // SymbolInformation is obsolete but this property is not
+        public IProgress<SumType<SymbolInformation[], WorkspaceSymbol[]>>? PartialResultToken { get; set; }
+#pragma warning restore CS0618
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
     }
 }

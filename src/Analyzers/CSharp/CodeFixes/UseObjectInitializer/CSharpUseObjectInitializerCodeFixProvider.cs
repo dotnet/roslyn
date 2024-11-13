@@ -17,7 +17,9 @@ using static CSharpSyntaxTokens;
 using ObjectInitializerMatch = Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseObjectInitializer), Shared]
-internal sealed class CSharpUseObjectInitializerCodeFixProvider :
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
     AbstractUseObjectInitializerCodeFixProvider<
         SyntaxKind,
         ExpressionSyntax,
@@ -29,12 +31,6 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider :
         VariableDeclaratorSyntax,
         CSharpUseNamedMemberInitializerAnalyzer>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUseObjectInitializerCodeFixProvider()
-    {
-    }
-
     protected override CSharpUseNamedMemberInitializerAnalyzer GetAnalyzer()
         => CSharpUseNamedMemberInitializerAnalyzer.Allocate();
 

@@ -12,18 +12,13 @@ using Microsoft.CodeAnalysis.UnsealClass;
 namespace Microsoft.CodeAnalysis.CSharp.UnsealClass;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UnsealClass), Shared]
-internal sealed class CSharpUnsealClassCodeFixProvider : AbstractUnsealClassCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpUnsealClassCodeFixProvider() : AbstractUnsealClassCodeFixProvider
 {
     private const string CS0509 = nameof(CS0509); // 'D': cannot derive from sealed type 'C'
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpUnsealClassCodeFixProvider()
-    {
-    }
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        [CS0509];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS0509];
 
     protected override string TitleFormat => CSharpCodeFixesResources.Unseal_class_0;
 }

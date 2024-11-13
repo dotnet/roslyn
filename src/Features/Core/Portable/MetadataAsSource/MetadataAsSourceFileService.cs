@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -71,7 +72,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         ISymbol symbol,
         bool signaturesOnly,
         MetadataAsSourceOptions options,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         if (sourceProject == null)
             throw new ArgumentNullException(nameof(sourceProject));
@@ -162,7 +163,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         Contract.ThrowIfFalse(threadingService.IsOnMainThread);
     }
 
-    public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer)
+    public bool TryAddDocumentToWorkspace(string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
     {
         // If we haven't even created a MetadataAsSource workspace yet, then this file definitely cannot be added to
         // it. This happens when the MiscWorkspace calls in to just see if it can attach this document to the
@@ -170,18 +171,19 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         var workspace = _workspace;
         if (workspace != null)
         {
-            AssertIsMainThread(workspace);
-
             foreach (var provider in _providers.Value)
             {
                 if (!provider.IsValueCreated)
                     continue;
 
-                if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer))
+                if (provider.Value.TryAddDocumentToWorkspace(workspace, filePath, sourceTextContainer, out documentId))
+                {
                     return true;
+                }
             }
         }
 
+        documentId = null;
         return false;
     }
 
@@ -193,8 +195,6 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
         var workspace = _workspace;
         if (workspace != null)
         {
-            AssertIsMainThread(workspace);
-
             foreach (var provider in _providers.Value)
             {
                 if (!provider.IsValueCreated)

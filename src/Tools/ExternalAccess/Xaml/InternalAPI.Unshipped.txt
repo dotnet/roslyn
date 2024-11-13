@@ -17,7 +17,8 @@ Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.DescriptionService
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.GetDescriptionAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.TaggedText>!>!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.GetMarkupContent(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> tags, string! language, bool featureSupportsMarkdown) -> (string! content, bool isMarkdown)
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlLspServiceFactoryAttribute
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlLspServiceFactoryAttribute.ExportXamlLspServiceFactoryAttribute(System.Type! type, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind = Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.Any) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlLspServiceFactoryAttribute.ExportXamlLspServiceFactoryAttribute(System.Type! type) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlLspServiceFactoryAttribute.ExportXamlLspServiceFactoryAttribute(System.Type! type, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlStatelessLspServiceAttribute
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlStatelessLspServiceAttribute.ExportXamlStatelessLspServiceAttribute(System.Type! handlerType) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IClientCapabilityProvider

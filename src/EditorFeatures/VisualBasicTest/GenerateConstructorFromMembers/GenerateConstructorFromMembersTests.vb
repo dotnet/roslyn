@@ -368,8 +368,7 @@ End Class", chosenSymbols:={"i"})
             Dim options = New OptionsCollection(LanguageNames.VisualBasic)
             options.Add(LegacyGlobalOptionsWorkspaceService.s_addNullChecks, True)
 
-            Dim parameters = New TestParameters()
-            parameters = parameters.WithGlobalOptions(options)
+            Dim parameters = New TestParameters(globalOptions:=options)
 
             Await TestWithPickMembersDialogAsync(
 "Class Program

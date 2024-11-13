@@ -25,9 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(threadingContext As IThreadingContext,
                        undoManager As ITextBufferUndoManagerProvider,
-                       globalOptions As IGlobalOptionService,
                        listenerProvider As IAsynchronousOperationListenerProvider)
-            MyBase.New(threadingContext, undoManager, globalOptions, listenerProvider)
+            MyBase.New(threadingContext, undoManager, listenerProvider)
         End Sub
     End Class
 End Namespace

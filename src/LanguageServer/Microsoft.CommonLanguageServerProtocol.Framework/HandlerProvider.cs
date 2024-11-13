@@ -26,11 +26,9 @@ internal class HandlerProvider(ILspServices lspServices, AbstractTypeRefResolver
     public override IMethodHandler GetMethodHandler(string method, TypeRef? requestTypeRef, TypeRef? responseTypeRef, string language)
     {
         var requestHandlerMetadata = new RequestHandlerMetadata(method, requestTypeRef, responseTypeRef, language);
-        var defaultHandlerMetadata = new RequestHandlerMetadata(method, requestTypeRef, responseTypeRef, LanguageServerConstants.DefaultLanguageName);
 
         var requestHandlers = GetRequestHandlers();
-        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler) &&
-            !requestHandlers.TryGetValue(defaultHandlerMetadata, out lazyHandler))
+        if (!requestHandlers.TryGetValue(requestHandlerMetadata, out var lazyHandler))
         {
             throw new InvalidOperationException($"Missing handler for {requestHandlerMetadata.MethodName}");
         }

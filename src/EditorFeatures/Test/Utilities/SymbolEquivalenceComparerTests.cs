@@ -1730,7 +1730,7 @@ End Class
     [Fact]
     public void AssemblyComparer1()
     {
-        var references = new[] { TestMetadata.Net451.mscorlib };
+        var references = new[] { NetFramework.mscorlib };
 
         var source = "public class T {}";
         var sourceV1 = "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")] public class T {}";
@@ -1830,8 +1830,8 @@ End Class
             r2 = MetadataReference.CreateFromImage(bytes);
         }
 
-        var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), new[] { TestMetadata.Net451.mscorlib, r1 });
-        var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), new[] { TestMetadata.Net451.mscorlib, r2 });
+        var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), new[] { NetFramework.mscorlib, r1 });
+        var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), new[] { NetFramework.mscorlib, r2 });
         var type1 = (ITypeSymbol)c1.GlobalNamespace.GetMembers("C").Single();
         var type2 = (ITypeSymbol)c2.GlobalNamespace.GetMembers("C").Single();
 

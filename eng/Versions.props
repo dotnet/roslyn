@@ -19,16 +19,16 @@
 --> 
   <PropertyGroup>
     <!-- <Metalama> -->
-    <RoslynVersion>4.11.0</RoslynVersion>
+    <RoslynVersion>4.12.0</RoslynVersion>
     <!-- The Roslyn version must be changed above.
 
     <MajorVersion>4</MajorVersion>
-    <MinorVersion>11</MinorVersion>
+    <MinorVersion>12</MinorVersion>
     <PatchVersion>0</PatchVersion>
 
     -->
     <!-- The PreReleaseVersionLabel property must be non-empty otherwise a random suffix is generated instead of 'preview'. -->
-    <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
     <VersionPrefix>$(MetalamaCompilerVersionPrefix)</VersionPrefix>
     <VersionSuffix>$(MetalamaCompilerVersionSuffix)</VersionSuffix>
     <PatchVersion>$(MetalamaCompilerVersionPatchNumber)</PatchVersion>
@@ -63,7 +63,7 @@
     <!-- </Metalama> -->
   </PropertyGroup>
   <PropertyGroup>
-    <SystemCommandLineVersion>2.0.0-beta4.24209.3</SystemCommandLineVersion>
+    <SystemCommandLineVersion>2.0.0-beta4.24324.3</SystemCommandLineVersion>
     <SystemCompositionVersion>8.0.0</SystemCompositionVersion>
     <SystemConfigurationConfigurationManagerVersion>8.0.0</SystemConfigurationConfigurationManagerVersion>
     <SystemDiagnosticsEventLogVersion>8.0.0</SystemDiagnosticsEventLogVersion>
@@ -78,7 +78,7 @@
     <SystemSecurityPermissionsVersion>8.0.0</SystemSecurityPermissionsVersion>
     <!-- Note: When updating SystemTextJsonVersion ensure that the version is no higher than what is used by MSBuild. -->
     <SystemTextEncodingsWebVersion>8.0.0</SystemTextEncodingsWebVersion>
-    <SystemTextJsonVersion>8.0.0</SystemTextJsonVersion>
+    <SystemTextJsonVersion>8.0.4</SystemTextJsonVersion>
     <SystemThreadingTasksDataflowVersion>8.0.0</SystemThreadingTasksDataflowVersion>
     <SystemWindowsExtensionsVersion>8.0.0</SystemWindowsExtensionsVersion>
     <MicrosoftBclAsyncInterfacesVersion>8.0.0</MicrosoftBclAsyncInterfacesVersion>
@@ -102,7 +102,7 @@
       So it's not affected by our central package management
     -->
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
-    <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.803</MicrosoftDevDivOptimizationDataPowerShellVersion>
+    <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.865</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftIdentityModelJsonWebTokensVersion>6.34.0</MicrosoftIdentityModelJsonWebTokensVersion>
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
@@ -130,5 +130,7 @@
     -->
     <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
     <UseVSTestRunner>true</UseVSTestRunner>
+    <!-- Prohibit the usage of .NET Standard 1.x dependencies. -->
+    <FlagNetStandard1XDependencies Condition="'$(DotNetBuildSourceOnly)' == 'true'">true</FlagNetStandard1XDependencies>
   </PropertyGroup>
 </Project>

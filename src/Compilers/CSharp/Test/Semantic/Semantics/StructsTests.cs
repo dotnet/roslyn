@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -370,7 +371,7 @@ class Test
         [Fact]
         public void RetargetedSynthesizedStructConstructor()
         {
-            var oldMsCorLib = TestMetadata.Net40.mscorlib;
+            var oldMsCorLib = Net40.References.mscorlib;
 
             var c1 = CSharpCompilation.Create("C1",
                 new[] { Parse(@"public struct S { }") },
@@ -609,7 +610,7 @@ public struct X
     public X? recursiveFld;
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461).VerifyDiagnostics(
                 // (4,15): error CS0523: Struct member 'X.recursiveFld' of type 'X?' causes a cycle in the struct layout
                 //     public X? recursiveFld;
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "recursiveFld").WithArguments("X.recursiveFld", "X?")

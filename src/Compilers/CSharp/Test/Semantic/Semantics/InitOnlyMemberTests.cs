@@ -4581,7 +4581,7 @@ public abstract class ClassITest28 //: ITest28
 }
 ";
 
-            var piaCompilation = CreateCompilationWithMscorlib45(new[] { IsExternalInitTypeDefinition, pia }, options: TestOptions.DebugDll);
+            var piaCompilation = CreateCompilationWithMscorlib461(new[] { IsExternalInitTypeDefinition, pia }, options: TestOptions.DebugDll);
 
             CompileAndVerify(piaCompilation);
 
@@ -4597,7 +4597,7 @@ class UsePia
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(new[] { source },
+            var compilation = CreateCompilationWithMscorlib461(new[] { source },
                 new MetadataReference[] { new CSharpCompilationReference(piaCompilation, embedInteropTypes: true) },
                 options: TestOptions.DebugExe);
 

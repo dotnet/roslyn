@@ -330,8 +330,8 @@ namespace BuildBoss
 
         private static string GetChecksum(Stream stream)
         {
-            using var md5 = MD5.Create();
-            return BitConverter.ToString(md5.ComputeHash(stream));
+            using var hash = SHA256.Create();
+            return BitConverter.ToString(hash.ComputeHash(stream));
         }
 
         /// <summary>

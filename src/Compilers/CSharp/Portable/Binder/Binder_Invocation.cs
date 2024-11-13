@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
             bool ignoreNormalFormIfHasValidParamsParameter = false,
-            bool searchExtensionMethodsIfNecessary = true)
+            bool searchExtensionMethodsIfNecessary = true,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -137,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
+                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
 
             // Query operator can't be called dynamically. 
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
@@ -323,7 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null,
-            bool ignoreNormalFormIfHasValidParamsParameter = false)
+            bool ignoreNormalFormIfHasValidParamsParameter = false,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -349,7 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindMethodGroupInvocation(
                     node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
-                    diagnostics, queryClause, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter, anyApplicableCandidates: out _);
+                    diagnostics, queryClause,
+                    ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                    disallowExpandedNonArrayParams: disallowExpandedNonArrayParams,
+                    anyApplicableCandidates: out _);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -689,7 +695,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
             bool ignoreNormalFormIfHasValidParamsParameter,
-            out bool anyApplicableCandidates)
+            out bool anyApplicableCandidates,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -705,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup, expression, methodName, analyzedArguments,
                 useSiteInfo: ref useSiteInfo,
                 options: (ignoreNormalFormIfHasValidParamsParameter ? OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter : OverloadResolution.Options.None) |
+                         (disallowExpandedNonArrayParams ? OverloadResolution.Options.DisallowExpandedNonArrayParams : OverloadResolution.Options.None) |
                          (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
             diagnostics.Add(expression, useSiteInfo);
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
@@ -848,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsAmbiguousDynamicParamsArgument<TMethodOrPropertySymbol>(ArrayBuilder<BoundExpression> arguments, MemberResolutionResult<TMethodOrPropertySymbol> candidate, out SyntaxNode argumentSyntax)
              where TMethodOrPropertySymbol : Symbol
         {
-            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember, out _) &&
+            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember, disallowExpandedNonArrayParams: false, out _) &&
                 candidate.Result.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
                 var parameters = candidate.Member.GetParameters();

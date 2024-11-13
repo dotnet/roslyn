@@ -102,6 +102,20 @@ End Class
 
     End Sub
 
+    <Fact, WorkItem(30738, "https://github.com/dotnet/roslyn/issues/30738")>
+    Public Sub VersionAttributeWithWildcardAndDeterminism()
+        Dim comp = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("10101.0.*")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseDll.WithDeterministic(True))
+        comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidVersionFormatDeterministic, """10101.0.*""").WithLocation(1, 46))
+    End Sub
+
     <Fact>
     Public Sub VersionAttribute_Overflow()
         Dim comp = CreateCompilationWithMscorlib40(
@@ -172,7 +186,7 @@ BC36962: The specified version string does not conform to the required format - 
 
         CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC36976: The specified version string does not conform to the recommended format - major.minor.build.revision
+BC36976: The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)
 <Assembly: System.Resources.SatelliteContractVersionAttribute("1.2.3.A")>
                                                               ~~~~~~~~~
 ]]></expected>)
@@ -185,7 +199,7 @@ BC36976: The specified version string does not conform to the recommended format
 
         CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC36976: The specified version string does not conform to the recommended format - major.minor.build.revision
+BC36976: The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)
 <Assembly: System.Resources.SatelliteContractVersionAttribute("1.2.*")>
                                                               ~~~~~~~
 ]]></expected>)

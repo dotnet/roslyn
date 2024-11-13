@@ -26,16 +26,20 @@ internal class SignatureHelpItems
     public TextSpan ApplicableSpan { get; }
 
     /// <summary>
-    /// Returns the specified argument index that the provided position is at in the current document.  This 
-    /// index may be greater than the number of arguments in the selected <see cref="SignatureHelpItem"/>.
+    /// Returns the specified <em>parameter</em> index that the provided position is at in the current document.  This 
+    /// index may be greater than the number of actual syntactic arguments in the selected <see cref="SignatureHelpItem"/>.
     /// </summary>
-    public int ArgumentIndex { get; }
+    /// <remarks>
+    /// This relates to the original semantic symbol that was used to create a particular item.  In other words,
+    /// it may be using
+    /// </remarks>
+    public int SemanticParameterIndex { get; }
 
     /// <summary>
     /// Returns the total number of arguments that have been typed in the current document.  This may be 
     /// greater than the ArgumentIndex if there are additional arguments after the provided position.
     /// </summary>
-    public int ArgumentCount { get; }
+    public int SyntacticArgumentCount { get; }
 
     /// <summary>
     /// Returns the name of specified argument at the current position in the document.  
@@ -57,8 +61,8 @@ internal class SignatureHelpItems
     public SignatureHelpItems(
         IList<SignatureHelpItem> items,
         TextSpan applicableSpan,
-        int argumentIndex,
-        int argumentCount,
+        int semanticParameterIndex,
+        int syntacticArgumentCount,
         string? argumentName,
         int? selectedItem = null)
     {
@@ -66,15 +70,8 @@ internal class SignatureHelpItems
         Contract.ThrowIfTrue(items.IsEmpty());
         Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value >= items.Count);
 
-        if (argumentIndex < 0)
-        {
-            throw new ArgumentException($"{nameof(argumentIndex)} < 0. {argumentIndex} < 0", nameof(argumentIndex));
-        }
-
-        if (argumentCount < argumentIndex)
-        {
-            throw new ArgumentException($"{nameof(argumentCount)} < {nameof(argumentIndex)}. {argumentCount} < {argumentIndex}", nameof(argumentIndex));
-        }
+        if (semanticParameterIndex < 0)
+            throw new ArgumentException($"{nameof(semanticParameterIndex)} < 0. {semanticParameterIndex} < 0", nameof(semanticParameterIndex));
 
         // Adjust the `selectedItem` index if duplicates are able to be removed.
         var distinctItems = items.Distinct().ToList();
@@ -96,8 +93,8 @@ internal class SignatureHelpItems
 
         Items = distinctItems;
         ApplicableSpan = applicableSpan;
-        ArgumentIndex = argumentIndex;
-        ArgumentCount = argumentCount;
+        SemanticParameterIndex = semanticParameterIndex;
+        SyntacticArgumentCount = syntacticArgumentCount;
         SelectedItemIndex = selectedItem;
         ArgumentName = argumentName;
     }

@@ -7513,4 +7513,448 @@ partial struct CustomHandler
         var method = model.GetInterceptorMethod(node);
         Assert.Equal($"void Interceptors.M1(this {refKind}S s)", method.ToTestDisplayString());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverCapturedToTemp_StructRvalueReceiver()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    new S().M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.Main", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              .locals init (S V_0)
+              IL_0000:  ldloca.s   V_0
+              IL_0002:  initobj    "S"
+              IL_0008:  ldloca.s   V_0
+              IL_000a:  call       "void C.M1(ref S)"
+              IL_000f:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverCapturedToTemp_StructInReceiver()
+    {
+        // Implicitly capture receiver to temp in 's.M()' because target method needs a writable reference.
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    M0(new S());
+                }
+
+                static void M0(in S s)
+                {
+                    s.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+            {
+              // Code size       15 (0xf)
+              .maxstack  1
+              .locals init (S V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldobj      "S"
+              IL_0006:  stloc.0
+              IL_0007:  ldloca.s   V_0
+              IL_0009:  call       "void C.M1(ref S)"
+              IL_000e:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverNotCapturedToTemp_StructRefReceiver()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    S s = default;
+                    M0(ref s);
+                }
+
+                static void M0(ref S s)
+                {
+                    s.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "void C.M1(ref S)"
+              IL_0006:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverNotCapturedToTemp_StructReadonlyMethod()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                readonly void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    M0(new S());
+                }
+
+                static void M0(in S s)
+                {
+                    s.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this in S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "void C.M1(in S)"
+              IL_0006:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this in S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverNotCapturedToTemp_StructLvalueReceiver()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    M0(new S());
+                }
+
+                static void M0(S s)
+                {
+                    s.M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class C
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.M0", """
+            {
+              // Code size        8 (0x8)
+              .maxstack  1
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  call       "void C.M1(ref S)"
+              IL_0007:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void C.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void ReceiverNotCapturedToTemp_ByValueParameter()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public class C
+            {
+                void M() => Console.WriteLine(0);
+
+                public static void Main()
+                {
+                    new C().M();
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            public static class SC
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this C c) => Console.WriteLine(1);
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "1");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.Main", """
+            {
+              // Code size       11 (0xb)
+              .maxstack  1
+              IL_0000:  newobj     "C..ctor()"
+              IL_0005:  call       "void SC.M1(C)"
+              IL_000a:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void SC.M1(this C c)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void Receiver_RefReturn_NotCapturedToTemp()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                public int F;
+
+                static S s;
+                static ref S RS() => ref s;
+
+                void M() => throw null!;
+
+                public static void Main()
+                {
+                    RS().F = 1;
+                    Console.Write(RS().F);
+                    RS().M();
+                    Console.Write(RS().F);
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "RS().M()");
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            public static class SC
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => s.F = 2;
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "12");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.Main", """
+            {
+              // Code size       52 (0x34)
+              .maxstack  2
+              IL_0000:  call       "ref S S.RS()"
+              IL_0005:  ldc.i4.1
+              IL_0006:  stfld      "int S.F"
+              IL_000b:  call       "ref S S.RS()"
+              IL_0010:  ldfld      "int S.F"
+              IL_0015:  call       "void System.Console.Write(int)"
+              IL_001a:  call       "ref S S.RS()"
+              IL_001f:  call       "void SC.M1(ref S)"
+              IL_0024:  call       "ref S S.RS()"
+              IL_0029:  ldfld      "int S.F"
+              IL_002e:  call       "void System.Console.Write(int)"
+              IL_0033:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void SC.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void CannotReturnRefToImplicitTemp()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+
+            public ref struct S
+            {
+                static Span<int> Test()
+                {
+                    return new S().M();
+                }
+
+                [UnscopedRef]
+                public Span<int> M() => default;
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(8,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         return new S().M();
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(8, 16));
+
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "new S().M()");
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            static class D
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static Span<int> M(this ref S s) => default;
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        comp = CreateCompilation([source, interceptors, s_attributesTree], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(8,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         return new S().M();
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(8, 16));
+
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        AssertEx.Equal("System.Span<System.Int32> D.M(this ref S s)", method.ToTestDisplayString());
+    }
 }

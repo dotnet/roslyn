@@ -188,7 +188,7 @@ internal sealed class GlobalOptionService(
 
     private bool SetGlobalOptions(OneOrMany<KeyValuePair<OptionKey2, object?>> options)
     {
-        var changedOptions = new ArrayBuilder<(OptionKey2, object?)>(options.Count);
+        using var _ = ArrayBuilder<(OptionKey2, object?)>.GetInstance(options.Count, out var changedOptions);
         var persisters = GetOptionPersisters();
 
         lock (_gate)
@@ -254,12 +254,12 @@ internal sealed class GlobalOptionService(
         return true;
     }
 
-    public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+    public void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
     {
         _optionChanged.AddHandler(target, handler);
     }
 
-    public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+    public void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
     {
         _optionChanged.RemoveHandler(target, handler);
     }

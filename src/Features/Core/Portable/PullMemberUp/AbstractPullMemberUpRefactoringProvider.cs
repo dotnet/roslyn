@@ -79,9 +79,9 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRe
             return;
         }
 
-        var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination, context.Options))
+        var allActions = allDestinations.Select(destination => MembersPuller.TryComputeCodeAction(document, selectedMembers, destination))
             .WhereNotNull()
-            .Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service, context.Options))
+            .Concat(new PullMemberUpWithDialogCodeAction(document, selectedMembers, _service))
             .ToImmutableArray();
 
         var title = selectedMembers.IsSingle()

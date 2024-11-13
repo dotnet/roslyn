@@ -499,7 +499,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,25): error CS1031: Type expected
                 //     static ref readonly ref int M(int x)
@@ -539,7 +539,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,9): error CS8331: Cannot assign to method 'M' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         M() = 1;
@@ -585,7 +585,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,9): error CS8331: Cannot assign to property 'P' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         P = 1;
@@ -629,7 +629,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,25): error CS8329: Cannot use method 'M' as a ref or out value because it is a readonly variable
                 //         ref var y = ref M();
@@ -685,7 +685,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* a = & M();
@@ -743,7 +743,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (12,28): error CS8333: Cannot return method 'M' by writable reference because it is a readonly variable
                 //                 return ref M();
@@ -970,7 +970,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
                 // (11,30): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //             return ref M(ref local);
@@ -986,7 +986,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_EscapeCall2, "M1(out local)").WithArguments("Program.M1(out int)", "x").WithLocation(15, 24)
             );
 
-            comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (11,30): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //             return ref M(ref local);
@@ -1014,7 +1014,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,25): error CS8168: Cannot return local 'local' by reference because it is not a ref local
                 //         return ref this[local];
@@ -1041,7 +1041,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,25): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref this[42];
@@ -1071,7 +1071,7 @@ struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (8,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //         return ref this;
@@ -1097,7 +1097,7 @@ struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref 42;
@@ -1121,7 +1121,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(42);
@@ -1148,7 +1148,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref M();
@@ -1176,7 +1176,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (7,22): error CS8156: An expression cannot be used in this context because it may not be returned by reference
                 //         return ref M(b);

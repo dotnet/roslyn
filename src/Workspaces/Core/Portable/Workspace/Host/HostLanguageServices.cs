@@ -3,13 +3,23 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Host;
 
 /// <summary>
-/// Per language services provided by the host environment.
+/// Per-language services provided by the host environment.
 /// </summary>
-public abstract class HostLanguageServices
+/// <remarks>
+/// <para>Language services which implement <see cref="IDisposable"/> are considered ownable, in which case the
+/// owner is responsible for disposing of owned instances when they are no longer in use. The ownership rules are
+/// described in detail for <see cref="HostWorkspaceServices"/>. Instances of <see cref="ILanguageService"/> have
+/// the same ownership rules as <see cref="IWorkspaceService"/>, and instances of
+/// <see cref="ILanguageServiceFactory"/> have the same ownership rules as
+/// <see cref="IWorkspaceServiceFactory"/>.</para>
+/// </remarks>
+public abstract class HostLanguageServices : IDisposable
 {
     /// <summary>
     /// The <see cref="HostWorkspaceServices"/> that originated this language service.
@@ -39,6 +49,11 @@ public abstract class HostLanguageServices
     /// If the host does not provide the service, this method returns null.
     /// </summary>
     public abstract TLanguageService? GetService<TLanguageService>() where TLanguageService : ILanguageService;
+
+    [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Derived types are not allowed to include a finalizer for this pattern.")]
+    public virtual void Dispose()
+    {
+    }
 
     /// <summary>
     /// Gets a language specific service provided by the host identified by the service type. 

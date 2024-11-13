@@ -17,6 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 #If Not Retargeting Then
@@ -25,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         <Fact>
         Public Sub Test1()
-            Dim oldMsCorLib = Net40.mscorlib
+            Dim oldMsCorLib = Net40.References.mscorlib
             Dim c1 = VisualBasicCompilation.Create("C1", references:={oldMsCorLib, TestReferences.SymbolsTests.CustomModifiers.Modifiers.netmodule})
 
             Dim c1Assembly = c1.Assembly
-            Dim newMsCorLib = Net451.mscorlib
+            Dim newMsCorLib = NetFramework.mscorlib
             Dim c2 = VisualBasicCompilation.Create("C2", references:=New MetadataReference() {newMsCorLib, New VisualBasicCompilationReference(c1)})
             Dim mscorlibAssembly = c2.GetReferencedAssemblySymbol(newMsCorLib)
             Assert.NotSame(mscorlibAssembly, c1.GetReferencedAssemblySymbol(oldMsCorLib))
@@ -90,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         <Fact>
         Public Sub Test2()
-            Dim oldMsCorLib = Net40.mscorlib
+            Dim oldMsCorLib = Net40.References.mscorlib
             Dim source = "
 public class Modifiers
 
@@ -103,7 +104,7 @@ End Class"
             Dim c1 = VisualBasicCompilation.Create("C1", {Parse(source)}, {oldMsCorLib})
 
             Dim c1Assembly = c1.Assembly
-            Dim newMsCorLib = Net451.mscorlib
+            Dim newMsCorLib = NetFramework.mscorlib
 
             Dim r1 = New VisualBasicCompilationReference(c1)
             Dim c2 As VisualBasicCompilation = VisualBasicCompilation.Create("C2", references:={newMsCorLib, r1})

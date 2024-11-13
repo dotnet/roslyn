@@ -6,7 +6,6 @@
 #nullable enable
 
 using System;
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,7 +19,6 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 {
     private readonly JsonRpc _jsonRpc;
     protected readonly ILspLogger Logger;
-    protected readonly AbstractTypeRefResolver TypeRefResolver;
 
     /// <summary>
     /// These are lazy to allow implementations to define custom variables that are used by
@@ -52,6 +50,8 @@ internal abstract class AbstractLanguageServer<TRequestContext>
     /// Used when callers need to wait for the server to cleanup.
     /// </summary>
     private readonly TaskCompletionSource<object?> _serverExitedSource = new();
+
+    public AbstractTypeRefResolver TypeRefResolver { get; }
 
     protected AbstractLanguageServer(
         JsonRpc jsonRpc,
@@ -123,7 +123,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 throw new InvalidOperationException($"Language specific handlers for {methodGroup.Key} have mis-matched number of returns:{Environment.NewLine}{string.Join(Environment.NewLine, methodGroup)}");
             }
 
-            var delegatingEntryPoint = CreateDelegatingEntryPoint(methodGroup.Key, methodGroup);
+            var delegatingEntryPoint = CreateDelegatingEntryPoint(methodGroup.Key);
             var methodAttribute = new JsonRpcMethodAttribute(methodGroup.Key)
             {
                 UseSingleObjectParameterDeserialization = true,
@@ -137,12 +137,7 @@ internal abstract class AbstractLanguageServer<TRequestContext>
 
         static bool AllTypesMatch(IEnumerable<TypeRef?> typeRefs)
         {
-            if (typeRefs.All(r => r is null))
-            {
-                return true;
-            }
-
-            if (typeRefs.All(r => r is not null))
+            if (typeRefs.All(r => r is null) || typeRefs.All(r => r is not null))
             {
                 return true;
             }
@@ -177,67 +172,34 @@ internal abstract class AbstractLanguageServer<TRequestContext>
         return _queue.Value;
     }
 
-    protected abstract DelegatingEntryPoint CreateDelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod);
+    public virtual string GetLanguageForRequest(string methodName, object? serializedRequest)
+    {
+        Logger.LogInformation($"Using default language handler for {methodName}");
+        return LanguageServerConstants.DefaultLanguageName;
+    }
+
+    protected abstract DelegatingEntryPoint CreateDelegatingEntryPoint(string method);
+
+    public abstract TRequest DeserializeRequest<TRequest>(object? serializedRequest, RequestHandlerMetadata metadata);
 
     protected abstract class DelegatingEntryPoint
     {
         protected readonly string _method;
-        protected readonly AbstractTypeRefResolver _typeRefResolver;
-        protected readonly Lazy<FrozenDictionary<string, (MethodInfo MethodInfo, RequestHandlerMetadata Metadata)>> _languageEntryPoint;
 
-        private static readonly MethodInfo s_queueExecuteAsyncMethod = typeof(RequestExecutionQueue<TRequestContext>).GetMethod(nameof(RequestExecutionQueue<TRequestContext>.ExecuteAsync))!;
-
-        public DelegatingEntryPoint(string method, AbstractTypeRefResolver typeRefResolver, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
+        public DelegatingEntryPoint(string method)
         {
             _method = method;
-            _typeRefResolver = typeRefResolver;
-            _languageEntryPoint = new Lazy<FrozenDictionary<string, (MethodInfo, RequestHandlerMetadata)>>(() =>
-            {
-                var handlerEntryPoints = new Dictionary<string, (MethodInfo, RequestHandlerMetadata)>();
-                foreach (var metadata in handlersForMethod)
-                {
-                    var noValueType = NoValue.Instance.GetType();
-
-                    var requestType = metadata.RequestTypeRef is TypeRef requestTypeRef
-                        ? _typeRefResolver.Resolve(requestTypeRef) ?? noValueType
-                        : noValueType;
-                    var responseType = metadata.ResponseTypeRef is TypeRef responseTypeRef
-                        ? _typeRefResolver.Resolve(responseTypeRef) ?? noValueType
-                        : noValueType;
-                    var methodInfo = s_queueExecuteAsyncMethod.MakeGenericMethod(requestType, responseType);
-                    handlerEntryPoints[metadata.Language] = (methodInfo, metadata);
-                }
-
-                return handlerEntryPoints.ToFrozenDictionary();
-            });
         }
 
         public abstract MethodInfo GetEntryPoint(bool hasParameter);
 
-        protected (MethodInfo MethodInfo, RequestHandlerMetadata Metadata) GetMethodInfo(string language)
-        {
-            if (!_languageEntryPoint.Value.TryGetValue(language, out var requestInfo)
-                && !_languageEntryPoint.Value.TryGetValue(LanguageServerConstants.DefaultLanguageName, out requestInfo))
-            {
-                throw new InvalidOperationException($"No default or language specific handler was found for {_method} and document with language {language}");
-            }
-
-            return requestInfo;
-        }
-
         protected async Task<object?> InvokeAsync(
-            MethodInfo methodInfo,
             IRequestExecutionQueue<TRequestContext> queue,
             object? requestObject,
-            string language,
             ILspServices lspServices,
             CancellationToken cancellationToken)
         {
-            var task = methodInfo.Invoke(queue, [requestObject, _method, language, lspServices, cancellationToken]) as Task
-                ?? throw new InvalidOperationException($"Queue result task cannot be null");
-            await task.ConfigureAwait(false);
-            var resultProperty = task.GetType().GetProperty("Result") ?? throw new InvalidOperationException("Result property on task cannot be null");
-            var result = resultProperty.GetValue(task);
+            var result = await queue.ExecuteAsync(requestObject, _method, lspServices, cancellationToken).ConfigureAwait(false);
             if (result == NoValue.Instance)
             {
                 return null;
@@ -392,11 +354,6 @@ internal abstract class AbstractLanguageServer<TRequestContext>
                 return requestExecution.GetTestAccessor();
 
             return null;
-        }
-
-        internal Task<TResponse> ExecuteRequestAsync<TRequest, TResponse>(string methodName, string languageName, TRequest request, CancellationToken cancellationToken)
-        {
-            return _server._queue.Value.ExecuteAsync<TRequest, TResponse>(request, methodName, languageName, _server._lspServices.Value, cancellationToken);
         }
 
         internal JsonRpc GetServerRpc() => _server._jsonRpc;

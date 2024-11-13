@@ -41,19 +41,19 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
 
     private protected override async Task VerifyWorkerAsync(
         string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
-        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
         int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
     {
         // We don't need to try writing comments in from of items in doc comments.
         await VerifyAtPositionAsync(
-            code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+            code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
             isComplexTextEdit, matchingFilters, flags, options);
 
         await VerifyAtEndOfFileAsync(
-            code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+            code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
             isComplexTextEdit, matchingFilters, flags, options);
 
@@ -62,12 +62,12 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
         if (!checkForAbsence && expectedItemOrNull != null)
         {
             await VerifyAtPosition_ItemPartiallyWrittenAsync(
-                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
 
             await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
-                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags, options);
         }
@@ -1194,5 +1194,57 @@ public class XmlDocumentationCommentCompletionProviderTests : AbstractCSharpComp
             """, """
             typeparamref name="T"
             """);
+    }
+
+    [Fact]
+    public async Task TriggerOnDeletion_DeleteInsideAttributeName()
+    {
+        TriggerOnDeletion = true;
+
+        await VerifyItemExistsAsync("""
+            /// <see lang$$ord="true" />
+            """,
+            "langword",
+            deletedCharTrigger: 'w');
+    }
+
+    [Fact]
+    public async Task TriggerOnDeletion_DeleteInsideAttributeValue()
+    {
+        TriggerOnDeletion = true;
+
+        await VerifyItemExistsAsync("""
+            /// <see langword="t$$ue" />
+            """,
+            "true",
+            deletedCharTrigger: 'r');
+    }
+
+    [Fact]
+    public async Task TriggerOnDeletion_DeleteInsideTagName_DoesntSuggest()
+    {
+        TriggerOnDeletion = true;
+
+        await VerifyItemIsAbsentAsync("""
+            /// <summ$$ry>
+            /// 
+            /// </summary>
+            """,
+            "see",
+            deletedCharTrigger: 'a');
+    }
+
+    [Fact]
+    public async Task TriggerOnDeletion_DeleteInXmlText_DoesntSuggest()
+    {
+        TriggerOnDeletion = true;
+
+        await VerifyItemIsAbsentAsync("""
+            /// <summary>
+            /// a$$c
+            /// </summary>
+            """,
+            "see",
+            deletedCharTrigger: 'b');
     }
 }

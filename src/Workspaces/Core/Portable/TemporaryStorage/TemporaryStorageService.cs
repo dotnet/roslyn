@@ -137,9 +137,9 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
     }
 
     ITemporaryStorageStreamHandle ITemporaryStorageServiceInternal.WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
-        => WriteToTemporaryStorage(stream, cancellationToken);
+        => WriteToTemporaryStorage(stream);
 
-    public TemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream, CancellationToken cancellationToken)
+    public TemporaryStorageStreamHandle WriteToTemporaryStorage(Stream stream)
     {
         stream.Position = 0;
         var memoryMappedInfo = WriteToMemoryMappedFile();
@@ -148,7 +148,7 @@ internal sealed partial class TemporaryStorageService : ITemporaryStorageService
 
         MemoryMappedInfo WriteToMemoryMappedFile()
         {
-            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
+            using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, CancellationToken.None))
             {
                 var size = stream.Length;
                 var memoryMappedInfo = this.CreateTemporaryStorage(size);

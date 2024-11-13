@@ -23,8 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 internal partial class CSharpSelectionValidator(
     SemanticDocument document,
     TextSpan textSpan,
-    ExtractMethodOptions options,
-    bool localFunction) : SelectionValidator<CSharpSelectionResult, StatementSyntax>(document, textSpan, options)
+    bool localFunction) : SelectionValidator<CSharpSelectionResult, StatementSyntax>(document, textSpan)
 {
     private readonly bool _localFunction = localFunction;
 
@@ -75,7 +74,6 @@ internal partial class CSharpSelectionValidator(
         var result = await CSharpSelectionResult.CreateAsync(
             selectionInfo.OriginalSpan,
             selectionInfo.FinalSpan,
-            Options,
             selectionInfo.SelectionInExpression,
             doc,
             selectionInfo.FirstTokenInFinalSpan,

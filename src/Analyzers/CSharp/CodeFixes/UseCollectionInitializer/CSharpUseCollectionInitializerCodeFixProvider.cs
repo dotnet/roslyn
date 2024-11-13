@@ -35,27 +35,25 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
 
     protected override async Task<(SyntaxNode, SyntaxNode)> GetReplacementNodesAsync(
         Document document,
-        CodeActionOptionsProvider fallbackOptions,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
         ImmutableArray<Match<StatementSyntax>> matches,
         CancellationToken cancellationToken)
     {
         var newObjectCreation = await GetNewObjectCreationAsync(
-            document, fallbackOptions, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+            document, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
         return (objectCreation, newObjectCreation);
     }
 
     private static async Task<ExpressionSyntax> GetNewObjectCreationAsync(
         Document document,
-        CodeActionOptionsProvider fallbackOptions,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
         ImmutableArray<Match<StatementSyntax>> matches,
         CancellationToken cancellationToken)
     {
         return useCollectionExpression
-            ? await CreateCollectionExpressionAsync(document, fallbackOptions, objectCreation, matches, cancellationToken).ConfigureAwait(false)
+            ? await CreateCollectionExpressionAsync(document, objectCreation, matches, cancellationToken).ConfigureAwait(false)
             : CreateObjectInitializerExpression(objectCreation, matches);
     }
 }

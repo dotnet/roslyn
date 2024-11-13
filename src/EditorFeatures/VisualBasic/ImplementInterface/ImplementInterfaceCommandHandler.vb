@@ -31,28 +31,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
             MyBase.New(editorOperationsFactoryService, globalOptions)
         End Sub
 
-        Protected Overrides Function TryGetNewDocument(
+        Protected Overrides Async Function TryGetNewDocumentAsync(
             document As Document,
-            options As ImplementTypeGenerationOptions,
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken
-        ) As Document
+        ) As Task(Of Document)
 
             If typeSyntax.Parent.Kind <> SyntaxKind.ImplementsStatement Then
                 Return Nothing
             End If
 
             Dim service = document.GetLanguageService(Of IImplementInterfaceService)()
-            Dim updatedDocument = service.ImplementInterfaceAsync(
+            Dim options = Await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(False)
+
+            Dim updatedDocument = Await service.ImplementInterfaceAsync(
                 document,
                 options,
                 typeSyntax.Parent,
-                cancellationToken).WaitAndGetResult(cancellationToken)
-            If updatedDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken).Count = 0 Then
-                Return Nothing
+                cancellationToken).ConfigureAwait(False)
+
+            Dim changes = Await updatedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(False)
+            If changes.Any() Then
+                Return updatedDocument
             End If
 
-            Return updatedDocument
+            Return Nothing
         End Function
     End Class
 End Namespace

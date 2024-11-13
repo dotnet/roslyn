@@ -179,6 +179,37 @@ This allows generator authors to avoid *polluting lookup* with interceptors, hel
 
 We may also want to consider adjusting behavior of `[EditorBrowsable]` to work in the same compilation.
 
+### Struct receiver capture
+
+An interceptor whose `this` parameter takes a struct by-reference can generally be used to intercept a struct instance method call, assuming the methods are compatible per [Signature matching](#signature-matching). This includes situations where the receiver must be implicitly captured to temp before the invocation, even if such capture is not permitted when the interceptor is called directly. See also [12.8.9.3 Extension method invocations](https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/expressions.md#12893-extension-method-invocations) in the standard.
+
+
+```cs
+using System.Runtime.CompilerServices;
+
+struct S
+{
+    public void Original() { }
+}
+
+static class Program
+{
+    public static void Main()
+    {
+        new S().Original(); // L1: interception is valid, no errors.
+        new S().Interceptor(); // error CS1510: A ref or out value must be an assignable variable
+    }
+}
+
+static class D
+{
+    [InterceptsLocation(1, "..(refers to call to 'Original()' at L1)")]
+    public static void Interceptor(this ref S s)
+}
+```
+
+The reason we permit implicit receiver capture for the above intercepted call is: we want intercepting to be possible even when the interceptor author doesn't own the original receiver type. If we didn't do this, then intercepting `Original()` in the above example would only be possible by adding instance members to `struct S`.
+
 ### Editor experience
 
 Interceptors are treated like a post-compilation step in this design. Diagnostics are given for misuse of interceptors, but some diagnostics are only given in the command-line build and not in the IDE. There is limited traceability in the editor for which calls in a compilation are actually being intercepted. If this feature is brought forward past the experimental stage, this limitation will need to be re-examined.

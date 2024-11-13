@@ -40,7 +40,7 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
                 if (filteredDiagnostics.Length == 0)
                     return document;
 
-                return await FixAllAsync(document, filteredDiagnostics, fixAllContext.GetOptionsProvider(), fixAllContext.CancellationToken).ConfigureAwait(false);
+                return await FixAllAsync(document, filteredDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
             },
             s_defaultSupportedFixAllScopes);
     }
@@ -54,15 +54,15 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
     protected Func<CancellationToken, Task<Document>> GetDocumentUpdater(CodeFixContext context, Diagnostic? diagnostic = null)
     {
         var diagnostics = ImmutableArray.Create(diagnostic ?? context.Diagnostics[0]);
-        return cancellationToken => FixAllAsync(context.Document, diagnostics, context.GetOptionsProvider(), cancellationToken);
+        return cancellationToken => FixAllAsync(context.Document, diagnostics, cancellationToken);
     }
 
     private Task<Document> FixAllAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+        Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         return FixAllWithEditorAsync(
             document,
-            editor => FixAllAsync(document, diagnostics, editor, options, cancellationToken),
+            editor => FixAllAsync(document, diagnostics, editor, cancellationToken),
             cancellationToken);
     }
 
@@ -83,11 +83,10 @@ internal abstract partial class SyntaxEditorBasedCodeFixProvider(bool supportsFi
     /// <summary>
     /// Fixes all <paramref name="diagnostics"/> in the specified <paramref name="editor"/>.
     /// The fixes are applied to the <paramref name="document"/>'s syntax tree via <paramref name="editor"/>.
-    /// The implementation may query options of any document in the <paramref name="document"/>'s solution
-    /// with <paramref name="fallbackOptions"/> providing default values for options not specified explicitly in the corresponding editorconfig.
+    /// The implementation may query options of any document in the <paramref name="document"/>'s solution.
     /// </summary>
     protected abstract Task FixAllAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken);
 
     /// <summary>
     /// Whether or not this diagnostic should be included when performing a FixAll.  This is useful for providers that

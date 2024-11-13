@@ -426,9 +426,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
         DeclarationBody newBody,
-        bool isNonLeaf);
+        SemanticModel newModel,
+        bool isNonLeaf,
+        CancellationToken cancellationToken);
 
     internal abstract void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType);
     internal abstract void ReportStateMachineSuspensionPointRudeEdits(DiagnosticContext diagnosticContext, SyntaxNode oldNode, SyntaxNode newNode);
@@ -1185,8 +1188,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 TextSpan newSpan;
                 if (hasMatching)
                 {
-                    Debug.Assert(newStatementSyntax != null);
-                    Debug.Assert(newBody != null);
+                    Contract.ThrowIfNull(newStatementSyntax);
+                    Contract.ThrowIfNull(newBody);
+                    Contract.ThrowIfNull(oldModel);
 
                     // The matching node doesn't produce sequence points.
                     // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
@@ -1204,9 +1208,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         enclosingBodyMap.Reverse,
                         oldStatementSyntax,
                         oldBody,
+                        oldModel,
                         newStatementSyntax,
                         newBody,
-                        isNonLeaf);
+                        newModel,
+                        isNonLeaf,
+                        cancellationToken);
                 }
                 else if (enclosingBodyMap.Forward.IsEmpty())
                 {
@@ -1775,6 +1782,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
+    protected void AddRudeTypeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode, ITypeSymbol oldType, ITypeSymbol newType)
+    {
+        diagnostics.Add(new RudeEditDiagnostic(
+            RudeEditKind.TypeUpdateAroundActiveStatement,
+            GetDiagnosticSpan(newNode, EditKind.Update),
+            newNode,
+            [GetDisplayName(newNode, EditKind.Update), oldType.ToDisplayString(), newType.ToDisplayString()]));
+    }
+
     protected void AddRudeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
     {
         diagnostics.Add(new RudeEditDiagnostic(
@@ -1805,13 +1821,17 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     protected void ReportUnmatchedStatements<TSyntaxNode>(
         ArrayBuilder<RudeEditDiagnostic> diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
-        Func<SyntaxNode, bool> nodeSelector,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
         SyntaxNode newEncompassingAncestor,
+        SemanticModel newModel,
+        Func<SyntaxNode, bool> nodeSelector,
+        Func<TSyntaxNode, OneOrMany<SyntaxNode>> getTypedNodes,
         Func<TSyntaxNode, TSyntaxNode, bool> areEquivalent,
-        Func<TSyntaxNode, TSyntaxNode, bool>? areSimilar)
+        Func<TSyntaxNode, TSyntaxNode, bool>? areSimilar,
+        CancellationToken cancellationToken)
         where TSyntaxNode : SyntaxNode
     {
         var newNodes = GetAncestors(newEncompassingAncestor, newActiveStatement, nodeSelector);
@@ -1825,12 +1845,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         int matchCount;
         if (oldNodes != null)
         {
-            matchCount = MatchNodes(oldNodes, newNodes, diagnostics: null, reverseMap, comparer: areEquivalent);
+            matchCount = MatchNodes(oldNodes, oldModel, newNodes, newModel, diagnostics, reverseMap, getTypedNodes, comparer: areEquivalent, exactMatch: true, cancellationToken);
 
             // Do another pass over the nodes to improve error messages.
             if (areSimilar != null && matchCount < Math.Min(oldNodes.Count, newNodes.Count))
             {
-                matchCount += MatchNodes(oldNodes, newNodes, diagnostics, reverseMap: null, comparer: areSimilar);
+                matchCount += MatchNodes(oldNodes, oldModel, newNodes, newModel, diagnostics, reverseMap: null, getTypedNodes, comparer: areSimilar, exactMatch: false, cancellationToken);
             }
         }
         else
@@ -1871,10 +1891,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     private int MatchNodes<TSyntaxNode>(
         List<SyntaxNode?> oldNodes,
+        SemanticModel oldModel,
         List<SyntaxNode?> newNodes,
-        ArrayBuilder<RudeEditDiagnostic>? diagnostics,
+        SemanticModel newModel,
+        ArrayBuilder<RudeEditDiagnostic> diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode>? reverseMap,
-        Func<TSyntaxNode, TSyntaxNode, bool> comparer)
+        Func<TSyntaxNode, OneOrMany<SyntaxNode>> getTypedNodes,
+        Func<TSyntaxNode, TSyntaxNode, bool> comparer,
+        bool exactMatch,
+        CancellationToken cancellationToken)
         where TSyntaxNode : SyntaxNode
     {
         var matchCount = 0;
@@ -1918,15 +1943,44 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
             if (i >= 0)
             {
-                // we have an update or an exact match:
-                oldNodes[i] = null;
-                newNodes[newIndex] = null;
-                matchCount++;
+                // An update or an exact match.
 
-                if (diagnostics != null)
+                oldNode = oldNodes[i];
+                Contract.ThrowIfNull(oldNode);
+
+                // If the nodes don't match exactly report rude edit right away,
+                // otherwise check if the types of temp variable the node generates (if any) changed.
+
+                if (!exactMatch)
                 {
                     AddRudeUpdateAroundActiveStatement(diagnostics, newNode);
                 }
+                else
+                {
+                    var oldTypedNodes = getTypedNodes((TSyntaxNode)oldNode);
+                    var newTypedNodes = getTypedNodes((TSyntaxNode)newNode);
+
+                    // nodes are syntactically equivallent, so they should yield the same amount of types:
+                    Contract.ThrowIfFalse(oldTypedNodes.Count == newTypedNodes.Count);
+
+                    for (var t = 0; t < oldTypedNodes.Count; t++)
+                    {
+                        var oldType = oldModel.GetTypeInfo(oldTypedNodes[t], cancellationToken).Type;
+                        var newType = newModel.GetTypeInfo(newTypedNodes[t], cancellationToken).Type;
+
+                        Contract.ThrowIfNull(oldType);
+                        Contract.ThrowIfNull(newType);
+
+                        if (!TypesEquivalent(oldType, newType, exact: false))
+                        {
+                            AddRudeTypeUpdateAroundActiveStatement(diagnostics, newNode, oldType, newType);
+                        }
+                    }
+                }
+
+                oldNodes[i] = null;
+                newNodes[newIndex] = null;
+                matchCount++;
             }
         }
 
@@ -2673,9 +2727,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     break;
                                 }
 
-                                // If a partial method definition is deleted (and not moved to another partial type declaration, which is handled above)
+                                // If a partial method/property/indexer definition is deleted (and not moved to another partial type declaration, which is handled above)
                                 // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol is IMethodSymbol { IsPartialDefinition: true })
+                                if (newSymbol?.IsPartialDefinition() == true)
                                 {
                                     continue;
                                 }
@@ -2823,7 +2877,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                                 // If a partial method definition is inserted (and not moved to another partial type declaration, which is handled above)
                                 // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol is IMethodSymbol { IsPartialDefinition: true })
+                                if (newSymbol.IsPartialDefinition())
                                 {
                                     continue;
                                 }
@@ -3185,8 +3239,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     // The partial type needs to be specified in the following cases:
                     // 1) partial method is updated (in case both implementation and definition are updated)
                     // 2) partial type is updated
-                    // https://github.com/dotnet/roslyn/issues/73772: do we also need to check IPropertySymbol.PartialDefinitionPart here?
-                    var partialType = editKind == SemanticEditKind.Update && symbol is IMethodSymbol { PartialDefinitionPart: not null }
+                    var partialType = editKind == SemanticEditKind.Update && symbol.IsPartialImplementation()
                         ? symbolCache.GetKey(symbol.ContainingType, cancellationToken)
                         : IsPartialTypeEdit(oldSymbol, newSymbol, oldTree, newTree)
                         ? symbolKey
@@ -3355,8 +3408,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     var result = symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
 
                     // If we were looking for a definition and an implementation is returned the definition does not exist.
-                    // https://github.com/dotnet/roslyn/issues/73772: Does PartialDefinitionPart also need to be checked here?
-                    return symbol is IMethodSymbol { PartialDefinitionPart: not null } && result is IMethodSymbol { IsPartialDefinition: true } ? null : result;
+                    return symbol.IsPartialImplementation() && result?.IsPartialDefinition() == true ? null : result;
                 }
 
                 var symbol = newSymbol ?? oldSymbol;
@@ -3627,9 +3679,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            Debug.Assert(symbol is not IMethodSymbol { IsPartialDefinition: true });
-
-            semanticEdits.Add(SemanticEditInfo.CreateUpdate(SymbolKey.Create(symbol, cancellationToken), syntaxMaps: default, partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateUpdate(symbol, syntaxMaps: default, cancellationToken));
         }
     }
 
@@ -3668,11 +3718,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            // https://github.com/dotnet/roslyn/issues/73772
-            Debug.Assert(symbol is not IMethodSymbol { IsPartialDefinition: true });
-
-            var partialType = symbol is IMethodSymbol { PartialDefinitionPart: not null } ? SymbolKey.Create(symbol.ContainingType, cancellationToken) : (SymbolKey?)null;
-            semanticEdits.Add(SemanticEditInfo.CreateDelete(SymbolKey.Create(symbol, cancellationToken), deletedSymbolContainer, partialType));
+            semanticEdits.Add(SemanticEditInfo.CreateDelete(symbol, deletedSymbolContainer, cancellationToken));
         }
     }
 
@@ -3686,9 +3732,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         // 
         // When inserting a new event we need to insert the entire event, so
         // pevent and method semantics metadata tables can all be updated if/as necessary.
-
-        var partialType = newSymbol is IMethodSymbol { PartialDefinitionPart: not null } ? SymbolKey.Create(newSymbol.ContainingType, cancellationToken) : (SymbolKey?)null;
-        semanticEdits.Add(SemanticEditInfo.CreateInsert(SymbolKey.Create(newSymbol, cancellationToken), partialType));
+        semanticEdits.Add(SemanticEditInfo.CreateInsert(newSymbol, cancellationToken));
     }
 
     private static void AddMemberSignatureOrNameChangeEdits(
@@ -3746,7 +3790,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            semanticEdits.Add(SemanticEditInfo.CreateInsert(SymbolKey.Create(symbol, cancellationToken), partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateInsert(symbol, cancellationToken));
         }
 
         void AddDelete(ISymbol? symbol)
@@ -3754,7 +3798,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            semanticEdits.Add(SemanticEditInfo.CreateDelete(SymbolKey.Create(symbol, cancellationToken), containingSymbolKey, partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateDelete(symbol, containingSymbolKey, cancellationToken));
         }
     }
 

@@ -28,15 +28,13 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         INamedTypeSymbol containingType,
         Accessibility? desiredAccessibility,
         ImmutableArray<ISymbol> viableMembers,
-        ImmutableArray<PickMembersOption> pickMembersOptions,
-        CleanCodeGenerationOptionsProvider fallbackOptions) : CodeActionWithOptions
+        ImmutableArray<PickMembersOption> pickMembersOptions) : CodeActionWithOptions
     {
         private readonly Document _document = document;
         private readonly INamedTypeSymbol _containingType = containingType;
         private readonly Accessibility? _desiredAccessibility = desiredAccessibility;
         private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
         private readonly TextSpan _textSpan = textSpan;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         internal ImmutableArray<ISymbol> ViableMembers { get; } = viableMembers;
         internal ImmutableArray<PickMembersOption> PickMembersOptions { get; } = pickMembersOptions;
@@ -74,7 +72,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             var addNullChecks = (addNullChecksOption?.Value ?? false);
             var state = await State.TryGenerateAsync(
                 _service, _document, _textSpan, _containingType, _desiredAccessibility,
-                result.Members, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                result.Members, cancellationToken).ConfigureAwait(false);
 
             if (state == null)
                 return [];
@@ -87,7 +85,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             {
                 if (state.MatchingConstructor.IsImplicitlyDeclared)
                 {
-                    var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
+                    var codeAction = new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
                     return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -101,8 +99,8 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             else
             {
                 var codeAction = state.DelegatedConstructor != null
-                    ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions)
-                    : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks, _fallbackOptions);
+                    ? new ConstructorDelegatingCodeAction(_service, _document, state, addNullChecks)
+                    : (CodeAction)new FieldDelegatingCodeAction(_service, _document, state, addNullChecks);
 
                 return await codeAction.GetOperationsAsync(solution, progressTracker, cancellationToken).ConfigureAwait(false);
             }

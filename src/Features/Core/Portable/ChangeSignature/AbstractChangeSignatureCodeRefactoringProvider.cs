@@ -28,7 +28,7 @@ internal class ChangeSignatureCodeRefactoringProvider : CodeRefactoringProvider
         if (span.IsEmpty)
         {
             var service = document.GetLanguageService<AbstractChangeSignatureService>();
-            var actions = await service.GetChangeSignatureCodeActionAsync(document, span, context.Options, cancellationToken).ConfigureAwait(false);
+            var actions = await service.GetChangeSignatureCodeActionAsync(document, span, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

@@ -22,7 +22,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
     where TTypeDeclarationNode : SyntaxNode
     where TCodeGenerationContextInfo : CodeGenerationContextInfo
 {
-    protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken);
+    protected abstract Task<string> GetFieldNameAsync(Document document, IPropertySymbol propertySymbol, CancellationToken cancellationToken);
     protected abstract (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
         TCodeGenerationContextInfo info, SyntaxNode property, string fieldName, SyntaxGenerator generator, CancellationToken cancellationToken);
     protected abstract SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property);
@@ -49,7 +49,7 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Convert_to_full_property,
-                c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, context.Options, c),
+                c => ExpandToFullPropertyAsync(document, property, propertySymbol, root, c),
                 nameof(FeaturesResources.Convert_to_full_property)),
             property.Span);
     }
@@ -75,18 +75,17 @@ internal abstract class AbstractConvertAutoPropertyToFullPropertyCodeRefactoring
         SyntaxNode property,
         IPropertySymbol propertySymbol,
         SyntaxNode root,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(document.DocumentState.ParseOptions);
 
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
         var generator = editor.Generator;
-        var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = (TCodeGenerationContextInfo)await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
 
         // Create full property. If the auto property had an initial value
         // we need to remove it and later add it to the backing field
-        var fieldName = await GetFieldNameAsync(document, propertySymbol, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var fieldName = await GetFieldNameAsync(document, propertySymbol, cancellationToken).ConfigureAwait(false);
         var (newGetAccessor, newSetAccessor) = GetNewAccessors(info, property, fieldName, generator, cancellationToken);
         var fullProperty = generator
             .WithAccessorDeclarations(

@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -29,9 +30,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets> _hostAnalyzerStateMap;
 
             /// <summary>
-            /// Analyzers referenced by the project via a PackageReference.
+            /// Analyzers referenced by the project via a PackageReference. Updates are protected by _projectAnalyzerStateMapGuard.
+            /// ImmutableDictionary used to present a safe, non-immutable view to users.
             /// </summary>
-            private readonly ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap;
+            private ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets> _projectAnalyzerStateMap;
+
+            /// <summary>
+            /// Guard around updating _projectAnalyzerStateMap. This is used in UpdateProjectStateSets to avoid
+            /// duplicated calculations for a project during contentious calls.
+            /// </summary>
+            private readonly SemaphoreSlim _projectAnalyzerStateMapGuard = new(1);
 
             /// <summary>
             /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change
@@ -44,15 +52,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _analyzerInfoCache = analyzerInfoCache;
 
                 _hostAnalyzerStateMap = ImmutableDictionary<HostAnalyzerStateSetKey, HostAnalyzerStateSets>.Empty;
-                _projectAnalyzerStateMap = new ConcurrentDictionary<ProjectId, ProjectAnalyzerStateSets>(concurrencyLevel: 2, capacity: 10);
+                _projectAnalyzerStateMap = ImmutableDictionary<ProjectId, ProjectAnalyzerStateSets>.Empty;
             }
-
-            /// <summary>
-            /// Return all <see cref="StateSet"/>.
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// </summary>
-            public IEnumerable<StateSet> GetAllStateSets()
-                => GetAllHostStateSets().Concat(GetAllProjectStateSets());
 
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="ProjectId"/>. 
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 var hostStateSets = GetAllHostStateSets();
 
+                // No need to use _projectAnalyzerStateMapGuard during reads of _projectAnalyzerStateMap
                 return _projectAnalyzerStateMap.TryGetValue(projectId, out var entry)
                     ? hostStateSets.Concat(entry.StateSetMap.Values)
                     : hostStateSets;
@@ -79,37 +81,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
             /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
-            /// It will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
-            /// 
-            /// since this has a side-effect, this should never be called concurrently. and incremental analyzer (solution crawler) should guarantee that.
+            /// it will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
             /// </summary>
-            public ImmutableArray<StateSet> GetOrUpdateStateSets(Project project)
+            public async Task<ImmutableArray<StateSet>> GetOrCreateStateSetsAsync(Project project, CancellationToken cancellationToken)
             {
-                var projectStateSets = GetOrUpdateProjectStateSets(project);
+                var projectStateSets = await GetOrCreateProjectStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
                 return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.AddRange(projectStateSets.StateSetMap.Values);
-            }
-
-            /// <summary>
-            /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
-            /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
-            /// It will create new <see cref="StateSet"/>s for the <see cref="Project"/>.
-            /// Unlike <see cref="GetOrUpdateStateSets(Project)"/>, this has no side effect.
-            /// </summary>
-            public IEnumerable<StateSet> GetOrCreateStateSets(Project project)
-            {
-                var projectStateSets = GetOrCreateProjectStateSets(project);
-                return GetOrCreateHostStateSets(project, projectStateSets).OrderedStateSets.Concat(projectStateSets.StateSetMap.Values);
             }
 
             /// <summary>
             /// Return <see cref="StateSet"/> for the given <see cref="DiagnosticAnalyzer"/> in the context of <see cref="Project"/>.
             /// This will either return already created <see cref="StateSet"/> for the specific snapshot of <see cref="Project"/> or
-            /// It will create new <see cref="StateSet"/> for the <see cref="Project"/>.
-            /// This will not have any side effect.
+            /// it will create new <see cref="StateSet"/> for the <see cref="Project"/>. and update internal state.
             /// </summary>
-            public StateSet? GetOrCreateStateSet(Project project, DiagnosticAnalyzer analyzer)
+            public async Task<StateSet?> GetOrCreateStateSetAsync(Project project, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
             {
-                var projectStateSets = GetOrCreateProjectStateSets(project);
+                var projectStateSets = await GetOrCreateProjectStateSetsAsync(project, cancellationToken).ConfigureAwait(false);
                 if (projectStateSets.StateSetMap.TryGetValue(analyzer, out var stateSet))
                 {
                     return stateSet;
@@ -132,7 +119,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     removed |= stateSet.OnProjectRemoved(projectId);
                 }
 
-                _projectAnalyzerStateMap.TryRemove(projectId, out _);
+                lock (_projectAnalyzerStateMap)
+                {
+                    _projectAnalyzerStateMap = _projectAnalyzerStateMap.Remove(projectId);
+                }
+
                 return removed;
             }
 

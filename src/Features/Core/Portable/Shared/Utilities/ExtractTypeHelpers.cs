@@ -26,14 +26,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal static class ExtractTypeHelpers
 {
-    public static async Task<(Document containingDocument, SyntaxAnnotation typeAnnotation)> AddTypeToExistingFileAsync(Document document, INamedTypeSymbol newType, AnnotatedSymbolMapping symbolMapping, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public static async Task<(Document containingDocument, SyntaxAnnotation typeAnnotation)> AddTypeToExistingFileAsync(Document document, INamedTypeSymbol newType, AnnotatedSymbolMapping symbolMapping, CancellationToken cancellationToken)
     {
         var originalRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var typeDeclaration = originalRoot.GetAnnotatedNodes(symbolMapping.TypeNodeAnnotation).Single();
         var editor = new SyntaxEditor(originalRoot, symbolMapping.AnnotatedSolution.Services);
 
         var context = new CodeGenerationContext(generateMethodBodies: true);
-        var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
         var newTypeNode = info.Service.CreateNamedTypeDeclaration(newType, CodeGenerationDestination.Unspecified, info, cancellationToken)
             .WithAdditionalAnnotations(SimplificationHelpers.SimplifyModuleNameAnnotation);
@@ -55,7 +55,6 @@ internal static class ExtractTypeHelpers
         IEnumerable<string> folders,
         INamedTypeSymbol newSymbol,
         Document hintDocument,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var newDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
@@ -84,13 +83,12 @@ internal static class ExtractTypeHelpers
         var newTypeDocument = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
             new CodeGenerationSolutionContext(
                 newDocument.Project.Solution,
-                context,
-                fallbackOptions),
+                context),
             newSemanticModel.GetEnclosingNamespace(0, cancellationToken),
             newSymbol.GenerateRootNamespaceOrType(namespaceParts.ToArray()),
             cancellationToken).ConfigureAwait(false);
 
-        var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var newCleanupOptions = await newTypeDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var formattingService = newTypeDocument.GetLanguageService<INewDocumentFormattingService>();
         if (formattingService is not null)

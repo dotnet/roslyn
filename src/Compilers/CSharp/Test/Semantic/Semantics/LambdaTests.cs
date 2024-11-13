@@ -368,7 +368,7 @@ public class C
 
             var comp1 = CreateCompilationWithMscorlib40(
                 new[] { Parse(text1) },
-                new[] { TestMetadata.Net451.System });
+                new[] { NetFramework.System });
 
             var text2 = @"
 class Program
@@ -1261,7 +1261,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1282,7 +1282,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1310,7 +1310,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1333,7 +1333,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (11,22): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
@@ -1363,7 +1363,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (9,33): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         var e = new E(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
@@ -1408,7 +1408,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (18,13): error CS8150: By-value returns may only be used in by-value returning methods.
                 //             return i;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),
@@ -1968,7 +1968,7 @@ namespace RoslynAsyncDelegate
 }
 
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
 
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

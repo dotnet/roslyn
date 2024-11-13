@@ -213,7 +213,7 @@ class GraphicsContext
 {
     S<T[]>? P { get; set; }
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461).VerifyDiagnostics(
                 // (3,13): error CS0523: Struct member 'S<T>.P' of type 'S<T[]>?' causes a cycle in the struct layout
                 //     S<T[]>? P { get; set; }
                 Diagnostic(ErrorCode.ERR_StructLayoutCycle, "P").WithArguments("S<T>.P", "S<T[]>?").WithLocation(3, 13));

@@ -17,7 +17,6 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public partial class ProjectDependencyGraph
 {
-    private readonly ImmutableHashSet<ProjectId> _projectIds;
 
     /// <summary>
     /// The map of projects to dependencies. This field is always fully initialized. Projects which do not reference
@@ -29,7 +28,7 @@ public partial class ProjectDependencyGraph
     /// <item><description>Projects which do not reference any other projects do not have a key in this map (i.e.
     /// they are omitted, as opposed to including them with an empty value)</description></item>
     /// <item><description>The keys and values in this map are always contained in
-    /// <see cref="_projectIds"/></description></item>
+    /// <see cref="ProjectIds"/></description></item>
     /// </list>
     /// </summary>
     private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
@@ -97,7 +96,7 @@ public partial class ProjectDependencyGraph
         Contract.ThrowIfNull(transitiveReferencesMap);
         Contract.ThrowIfNull(reverseTransitiveReferencesMap);
 
-        _projectIds = projectIds;
+        ProjectIds = projectIds;
         _referencesMap = referencesMap;
         _lazyReverseReferencesMap = reverseReferencesMap;
         _transitiveReferencesMap = transitiveReferencesMap;
@@ -105,11 +104,11 @@ public partial class ProjectDependencyGraph
         _lazyTopologicallySortedProjects = topologicallySortedProjects;
         _lazyDependencySets = dependencySets;
 
-        ValidateForwardReferences(_projectIds, _referencesMap);
-        ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
+        ValidateForwardReferences(ProjectIds, _referencesMap);
+        ValidateReverseReferences(ProjectIds, _referencesMap, _lazyReverseReferencesMap);
     }
 
-    internal ImmutableHashSet<ProjectId> ProjectIds => _projectIds;
+    internal ImmutableHashSet<ProjectId> ProjectIds { get; }
 
     private static ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> RemoveItemsWithEmptyValues(
         ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> map)
@@ -131,7 +130,7 @@ public partial class ProjectDependencyGraph
 
     internal ProjectDependencyGraph WithProjectReferences(ProjectId projectId, IReadOnlyList<ProjectReference> projectReferences)
     {
-        Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+        Contract.ThrowIfFalse(ProjectIds.Contains(projectId));
 
         if (!_referencesMap.ContainsKey(projectId))
         {
@@ -150,14 +149,14 @@ public partial class ProjectDependencyGraph
         // only include projects contained in the solution:
         var referencedProjectIds = projectReferences.IsEmpty() ? [] :
             projectReferences
-                .Where(r => _projectIds.Contains(r.ProjectId))
+                .Where(r => ProjectIds.Contains(r.ProjectId))
                 .Select(r => r.ProjectId)
                 .ToImmutableHashSet();
 
         var referencesMap = referencedProjectIds.IsEmpty ?
             _referencesMap.Remove(projectId) : _referencesMap.SetItem(projectId, referencedProjectIds);
 
-        return new ProjectDependencyGraph(_projectIds, referencesMap);
+        return new ProjectDependencyGraph(ProjectIds, referencesMap);
     }
 
     /// <summary>
@@ -202,7 +201,7 @@ public partial class ProjectDependencyGraph
         if (_lazyReverseReferencesMap == null)
         {
             _lazyReverseReferencesMap = this.ComputeReverseReferencesMap();
-            ValidateReverseReferences(_projectIds, _referencesMap, _lazyReverseReferencesMap);
+            ValidateReverseReferences(ProjectIds, _referencesMap, _lazyReverseReferencesMap);
         }
 
         return _lazyReverseReferencesMap.GetValueOrDefault(projectId, []);
@@ -366,7 +365,7 @@ public partial class ProjectDependencyGraph
         {
             using var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
             using var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject();
-            this.TopologicalSort(_projectIds, seenProjects.Object, resultList.Object, cancellationToken);
+            this.TopologicalSort(ProjectIds, seenProjects.Object, resultList.Object, cancellationToken);
             _lazyTopologicallySortedProjects = [.. resultList.Object];
         }
     }
@@ -427,7 +426,7 @@ public partial class ProjectDependencyGraph
 
     private void ComputeDependencySets(HashSet<ProjectId> seenProjects, List<IEnumerable<ProjectId>> results, CancellationToken cancellationToken)
     {
-        foreach (var project in _projectIds)
+        foreach (var project in ProjectIds)
         {
             if (seenProjects.Add(project))
             {

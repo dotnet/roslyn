@@ -38,6 +38,7 @@
   <ValueType Name="InterpolatedStringHandlerData"/>
   <ValueType Name="WellKnownMember"/>
   <ValueType Name="CollectionExpressionTypeKind"/>
+  <ValueType Name="AccessorKind" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -658,6 +659,15 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Indices" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </Node>
+
+  <!--
+    Represents an array access that comes from the RHS of an unused ref (non-readonly) assignment.
+    Needed so we can emit with correct side effects (runtime element type check).
+  -->
+  <Node Name="BoundRefArrayAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
   </Node>
 
   <!--
@@ -2020,6 +2030,7 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="AccessorKind" Type="AccessorKind" />
 
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
@@ -2208,6 +2219,7 @@
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
+    <Field Name="AccessorKind" Type="AccessorKind" />
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
     <!--The set of indexer symbols from which this call's indexer was chosen.

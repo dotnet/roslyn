@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
         [Fact]
         public void PartialMethods()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 public partial class C
 {
     static partial void goo() => System.Console.WriteLine(""test"");
@@ -62,7 +62,7 @@ public partial class C
         [Fact]
         public void ExprBodiedProp01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class Program
 {
     public int F = 1;
@@ -117,7 +117,7 @@ class C
 {
     int P => /*<bind>*/P/*</bind>*/;
 }");
-            var comp = CreateCompilationWithMscorlib45(new[] { tree });
+            var comp = CreateCompilationWithMscorlib461(new[] { tree });
 
             var info = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
             Assert.NotNull(info);
@@ -214,7 +214,7 @@ class C
         [Fact]
         public void ExprBodiedFunc01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class Program
 {
     public int M(int i) => /*<bind>*/i/*</bind>*/;
@@ -247,7 +247,7 @@ class Program
         [WorkItem(1009638, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1009638")]
         public void ExprBodiedFunc02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public T M<T>(T t) where T : class => /*<bind>*/t/*</bind>*/;
@@ -270,7 +270,7 @@ class C
         [Fact]
         public void ExprBodiedOperator01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class Program
 {
     public static Program operator ++(Program p) => /*<bind>*/p/*</bind>*/;
@@ -302,7 +302,7 @@ class Program
         [Fact]
         public void ExprBodiedConversion01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class C
 {
     public static C M(int i) => new C();
@@ -413,7 +413,7 @@ public class Program : Base
         [Fact, WorkItem(1069421, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1069421")]
         public void Bug1069421()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 class Program
 {
     private int x => () => { 

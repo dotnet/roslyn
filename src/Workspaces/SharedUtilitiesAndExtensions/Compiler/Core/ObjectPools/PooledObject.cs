@@ -17,23 +17,22 @@ internal struct PooledObject<T> : IDisposable where T : class
 {
     private readonly Action<ObjectPool<T>, T> _releaser;
     private readonly ObjectPool<T> _pool;
-    private T _pooledObject;
 
     public PooledObject(ObjectPool<T> pool, Func<ObjectPool<T>, T> allocator, Action<ObjectPool<T>, T> releaser) : this()
     {
         _pool = pool;
-        _pooledObject = allocator(pool);
+        Object = allocator(pool);
         _releaser = releaser;
     }
 
-    public readonly T Object => _pooledObject;
+    public T Object { get; private set; }
 
     public void Dispose()
     {
-        if (_pooledObject != null)
+        if (Object != null)
         {
-            _releaser(_pool, _pooledObject);
-            _pooledObject = null!;
+            _releaser(_pool, Object);
+            Object = null!;
         }
     }
 

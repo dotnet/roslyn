@@ -20410,7 +20410,7 @@ class C1(string p1)
 {
 }
 ";
-            var comp = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended);
+            var comp = CreateCompilation(src1, targetFramework: TargetFramework.Mscorlib461Extended);
             comp.VerifyDiagnostics(
                 // (7,13): error CS9136: Cannot use primary constructor parameter of type 'ArgIterator' inside an instance member
                 //         _ = a;

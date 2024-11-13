@@ -924,7 +924,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
@@ -998,7 +998,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
@@ -1084,7 +1084,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
@@ -1512,10 +1512,10 @@ public partial class C
                 // (6,17): error CS0274: Cannot specify accessibility modifiers for both accessors of the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyAccessMods, "P2").WithArguments("C.P2").WithLocation(6, 17),
-                // (6,30): error CS0273: The accessibility modifier of the 'C.P2.get' accessor must be more restrictive than the property or indexer 'C.P2'       
+                // (6,30): error CS0273: The accessibility modifier of the 'C.P2.get' accessor must be more restrictive than the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("C.P2.get", "C.P2").WithLocation(6, 30),
-                // (6,43): error CS0273: The accessibility modifier of the 'C.P2.set' accessor must be more restrictive than the property or indexer 'C.P2'       
+                // (6,43): error CS0273: The accessibility modifier of the 'C.P2.set' accessor must be more restrictive than the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "set").WithArguments("C.P2.set", "C.P2").WithLocation(6, 43),
                 // (11,17): error CS8799: Both partial member declarations must have identical accessibility modifiers.
@@ -1524,6 +1524,9 @@ public partial class C
                 // (11,30): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     partial int P1 { private get => 1; private set; }
                 Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "get").WithLocation(11, 30),
+                // (11,48): error CS0501: 'C.P1.set' must declare a body because it is not marked abstract, extern, or partial
+                //     partial int P1 { private get => 1; private set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.P1.set").WithLocation(11, 48),
                 // (11,48): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     partial int P1 { private get => 1; private set; }
                 Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "set").WithLocation(11, 48));
@@ -4802,23 +4805,23 @@ public partial class C
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int P { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(3, 24),
-                // (4,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "13.0").WithLocation(3, 24),
+                // (4,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int P { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(4, 24),
-                // (6,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "13.0").WithLocation(4, 24),
+                // (6,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int this[int i] { get; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(6, 24),
-                // (7,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "13.0").WithLocation(6, 24),
+                // (7,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int this[int i] { get => i; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(7, 24));
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "13.0").WithLocation(7, 24));
         }
 
         [Fact]
@@ -4972,6 +4975,76 @@ public partial class C
             // This is consistent with partial methods.
             Assert.Equal("SourceFile(Program.cs[52..53))", defSymbol.Locations.Single().ToString());
             Assert.Equal("SourceFile(Program.cs[97..98))", implSymbol.Locations.Single().ToString());
+        }
+
+        [Fact]
+        public void OnlyOneAccessorHasBodyOnImplementation()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial int Prop1 { get; set; }
+                    public partial int Prop1 { get => 1; set; }
+
+                    public partial int Prop2 { get; set; }
+                    public partial int Prop2 { get; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,42): error CS0501: 'C.Prop1.set' must declare a body because it is not marked abstract, extern, or partial
+                //     public partial int Prop1 { get => 1; set; }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Prop1.set").WithLocation(4, 42),
+                // (7,32): error CS0501: 'C.Prop2.get' must declare a body because it is not marked abstract, extern, or partial
+                //     public partial int Prop2 { get; set { } }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.Prop2.get").WithLocation(7, 32));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]
+        public void WRN_SequentialOnPartialClass_NotReportedForPartialProperty_01()
+        {
+            var source = """
+                partial struct S
+                {
+                    partial int I { get; }
+                }
+
+                partial struct S
+                {
+                    public S() => i = 42;
+                    private readonly int i;
+                    partial int I => i;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]
+        public void WRN_SequentialOnPartialClass_NotReportedForPartialProperty_02()
+        {
+            var source = """
+                partial struct S
+                {
+                    partial int I { get; }
+                }
+
+                partial struct S
+                {
+                    partial int I => i;
+                }
+
+                partial struct S
+                {
+                    public S() => i = 42;
+                    private readonly int i;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

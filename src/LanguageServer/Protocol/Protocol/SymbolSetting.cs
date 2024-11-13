@@ -7,14 +7,15 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the symbol setting for initialization.
-    ///
+    /// Capabilities specific to the <c>workspace/symbol</c> request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspace_symbol">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class SymbolSetting : DynamicRegistrationSetting
     {
         /// <summary>
-        /// Gets or sets the <see cref="SymbolKindSetting"/> information.
+        /// Specific capabilities for <see cref="SymbolKind"/> in <c>workspace/symbol</c> requests
         /// </summary>
         [JsonPropertyName("symbolKind")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -23,5 +24,25 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+        /// <summary>
+        /// The client supports tags on <see cref="SymbolInformation"/> and <see cref="WorkspaceSymbol"/>.
+        /// <para>
+        /// Clients supporting tags have to handle unknown tags gracefully.
+        /// </para>
+        /// </summary>
+        /// <remarks>Since LSP 3.16</remarks>
+        [JsonPropertyName("tagSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public SymbolTagSupport? TagSupport { get; init; }
+
+        /// <summary>
+        /// The client support partial workspace symbols. The client will send the
+        /// request `workspaceSymbol/resolve` to the server to resolve additional
+        /// properties.
+        /// </summary>
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("resolveSupport")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public WorkspaceSymbolResolveSupport? ResolveSupport { get; init; }
     }
 }

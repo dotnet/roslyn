@@ -3,9 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Composition;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,6 +24,8 @@ public class UriTests : AbstractLanguageServerProtocolTests
     public UriTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
     {
     }
+
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(CustomResolveHandler));
 
     [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/runtime/issues/89538")]
@@ -149,5 +158,160 @@ public class UriTests : AbstractLanguageServerProtocolTests
         var gitText = await gitDocument.GetTextAsync();
         Assert.Equal(gitDocumentUri, gitDocument.GetURI());
         Assert.Equal(gitDocumentText, gitText.ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFindsExistingDocumentWhenUriHasDifferentEncodingAsync(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+        // Execute the request as JSON directly to avoid the test client serializing System.Uri using the encoded Uri to send to the server.
+        var requestJson = """
+            {
+                "textDocument": {
+                    "uri": "git:/c:/Users/dabarbet/source/repos/ConsoleApp10/ConsoleApp10/Program.cs?{{\"path\":\"c:\\\\Users\\\\dabarbet\\\\source\\\\repos\\\\ConsoleApp10\\\\ConsoleApp10\\\\Program.cs\",\"ref\":\"~\"}}",
+                    "languageId": "csharp",
+                    "text": "LSP text"
+                }
+            }
+            """;
+        var jsonDocument = JsonDocument.Parse(requestJson);
+        await testLspServer.ExecutePreSerializedRequestAsync(LSP.Methods.TextDocumentDidOpenName, jsonDocument);
+
+        // Retrieve the URI from the json - this is the unencoded (and not JSON escaped) version of the URI.
+        var unencodedUri = JsonSerializer.Deserialize<LSP.DidOpenTextDocumentParams>(jsonDocument, JsonSerializerOptions)!.TextDocument.Uri;
+
+        // Access the document using the unencoded URI to make sure we find it in the C# misc files.
+        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = unencodedUri }, CancellationToken.None).ConfigureAwait(false);
+        AssertEx.NotNull(lspDocument);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
+        Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
+        var originalText = await lspDocument.GetTextAsync(CancellationToken.None);
+        Assert.Equal("LSP text", originalText.ToString());
+
+        // Now make a request using the encoded document to ensure the server is able to find the document in misc C# files.
+        var encodedUriString = @"git:/c:/Users/dabarbet/source/repos/ConsoleApp10/ConsoleApp10/Program.cs?%7B%7B%22path%22:%22c:%5C%5CUsers%5C%5Cdabarbet%5C%5Csource%5C%5Crepos%5C%5CConsoleApp10%5C%5CConsoleApp10%5C%5CProgram.cs%22,%22ref%22:%22~%22%7D%7D";
+#pragma warning disable RS0030 // Do not use banned APIs
+        var encodedUri = new Uri(encodedUriString, UriKind.Absolute);
+#pragma warning restore RS0030 // Do not use banned APIs
+        var info = await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = encodedUri }), CancellationToken.None);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
+        Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
+
+        var (encodedWorkspace, _, encodedDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = encodedUri }, CancellationToken.None).ConfigureAwait(false);
+        Assert.Same(workspace, encodedWorkspace);
+        AssertEx.NotNull(encodedDocument);
+        Assert.Equal(LanguageNames.CSharp, encodedDocument.Project.Language);
+        var encodedText = await encodedDocument.GetTextAsync(CancellationToken.None);
+        Assert.Equal("LSP text", encodedText.ToString());
+
+        // The text we get back should be the exact same instance that was originally saved by the unencoded request.
+        Assert.Same(originalText, encodedText);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2208409")]
+    public async Task TestFindsExistingDocumentWhenUriHasDifferentCasingForCaseInsensitiveUriAsync(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        var upperCaseUri = new Uri(@"file:///C:/Users/dabarbet/source/repos/XUnitApp1/UnitTest1.cs", UriKind.Absolute);
+        var lowerCaseUri = new Uri(@"file:///c:/Users/dabarbet/source/repos/XUnitApp1/UnitTest1.cs", UriKind.Absolute);
+#pragma warning restore RS0030 // Do not use banned APIs
+
+        // Execute the request as JSON directly to avoid the test client serializing System.Uri.
+        var requestJson = $$$"""
+            {
+                "textDocument": {
+                    "uri": "{{{upperCaseUri.OriginalString}}}",
+                    "languageId": "csharp",
+                    "text": "LSP text"
+                }
+            }
+            """;
+        var jsonDocument = JsonDocument.Parse(requestJson);
+        await testLspServer.ExecutePreSerializedRequestAsync(LSP.Methods.TextDocumentDidOpenName, jsonDocument);
+
+        // Access the document using the upper case to make sure we find it in the C# misc files.
+        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = upperCaseUri }, CancellationToken.None).ConfigureAwait(false);
+        AssertEx.NotNull(lspDocument);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
+        Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
+        var originalText = await lspDocument.GetTextAsync(CancellationToken.None);
+        Assert.Equal("LSP text", originalText.ToString());
+
+        // Now make a request using different case.
+        var info = await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = lowerCaseUri }), CancellationToken.None);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
+        Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
+
+        var (lowerCaseWorkspace, _, lowerCaseDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = lowerCaseUri }, CancellationToken.None).ConfigureAwait(false);
+        Assert.Same(workspace, lowerCaseWorkspace);
+        AssertEx.NotNull(lowerCaseDocument);
+        Assert.Equal(LanguageNames.CSharp, lowerCaseDocument.Project.Language);
+        var lowerCaseText = await lowerCaseDocument.GetTextAsync(CancellationToken.None);
+        Assert.Equal("LSP text", lowerCaseText.ToString());
+
+        // The text we get back should be the exact same instance that was originally saved by the unencoded request.
+        Assert.Same(originalText, lowerCaseText);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2208409")]
+    public async Task TestUsesDifferentDocumentForDifferentCaseWithNonUncUriAsync(bool mutatingLspWorkspace)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+#pragma warning disable RS0030 // Do not use banned APIs
+        var upperCaseUri = new Uri(@"git:/Blah", UriKind.Absolute);
+        var lowerCaseUri = new Uri(@"git:/blah", UriKind.Absolute);
+#pragma warning restore RS0030 // Do not use banned APIs
+
+        // Execute the request as JSON directly to avoid the test client serializing System.Uri.
+        var requestJson = $$$"""
+            {
+                "textDocument": {
+                    "uri": "{{{upperCaseUri.OriginalString}}}",
+                    "languageId": "csharp",
+                    "text": "LSP text"
+                }
+            }
+            """;
+        var jsonDocument = JsonDocument.Parse(requestJson);
+        await testLspServer.ExecutePreSerializedRequestAsync(LSP.Methods.TextDocumentDidOpenName, jsonDocument);
+
+        // Access the document using the upper case to make sure we find it in the C# misc files.
+        var (workspace, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = upperCaseUri }, CancellationToken.None).ConfigureAwait(false);
+        AssertEx.NotNull(lspDocument);
+        Assert.Equal(WorkspaceKind.MiscellaneousFiles, workspace?.Kind);
+        Assert.Equal(LanguageNames.CSharp, lspDocument.Project.Language);
+        var originalText = await lspDocument.GetTextAsync(CancellationToken.None);
+        Assert.Equal("LSP text", originalText.ToString());
+
+        // Now make a request using different case.  This should throw since we have not opened a document with the URI with different case (and not UNC).
+        await Assert.ThrowsAnyAsync<Exception>(async ()
+            => await testLspServer.ExecuteRequestAsync<CustomResolveParams, ResolvedDocumentInfo>(CustomResolveHandler.MethodName,
+                new CustomResolveParams(new LSP.TextDocumentIdentifier { Uri = lowerCaseUri }), CancellationToken.None));
+    }
+
+    private record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);
+    private record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
+
+    [ExportCSharpVisualBasicStatelessLspService(typeof(CustomResolveHandler)), PartNotDiscoverable, Shared]
+    [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    private class CustomResolveHandler() : ILspServiceDocumentRequestHandler<CustomResolveParams, ResolvedDocumentInfo>
+    {
+        public const string MethodName = nameof(CustomResolveHandler);
+
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+        public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(CustomResolveParams request) => request.TextDocument;
+        public Task<ResolvedDocumentInfo> HandleRequestAsync(CustomResolveParams request, RequestContext context, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new ResolvedDocumentInfo(context.Workspace!.Kind!, context.GetRequiredDocument().Project.Language));
+        }
     }
 }

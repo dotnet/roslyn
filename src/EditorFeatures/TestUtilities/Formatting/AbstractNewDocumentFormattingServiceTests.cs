@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
             var languageServices = document.Project.Services;
 
             var cleanupOptions =
-                options?.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: false, fallbackOptions: null) ??
+                options?.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: false) ??
                 CodeCleanupOptions.GetDefault(languageServices);
 
             var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();

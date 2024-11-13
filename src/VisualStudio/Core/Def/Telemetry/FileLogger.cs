@@ -51,7 +51,7 @@ internal sealed class FileLogger : ILogger
     private static string GetLogFileName()
         => DateTime.Now.ToString(CultureInfo.InvariantCulture).Replace(' ', '_').Replace('/', '_').Replace(':', '_') + ".log";
 
-    private void OptionService_OptionChanged(object? sender, OptionChangedEventArgs e)
+    private void OptionService_OptionChanged(object sender, object target, OptionChangedEventArgs e)
     {
         foreach (var (key, newValue) in e.ChangedOptions)
         {

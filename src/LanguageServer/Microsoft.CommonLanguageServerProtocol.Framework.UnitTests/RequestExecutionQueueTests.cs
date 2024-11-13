@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Nerdbank.Streams;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using StreamJsonRpc;
 using Xunit;
 
@@ -51,7 +52,7 @@ public class RequestExecutionQueueTests
         var lspServices = GetLspServices();
 
         // Act & Assert
-        await Assert.ThrowsAsync<NotImplementedException>(() => requestExecutionQueue.ExecuteAsync<int, string>(1, ThrowingHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None));
+        await Assert.ThrowsAsync<NotImplementedException>(() => requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), ThrowingHandler.Name, lspServices, CancellationToken.None));
     }
 
     [Fact]
@@ -72,12 +73,12 @@ public class RequestExecutionQueueTests
             var cancellingRequestCancellationToken = new CancellationToken();
             var completingRequestCancellationToken = new CancellationToken();
 
-            var _ = requestExecutionQueue.ExecuteAsync<int, string>(1, CancellingHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, cancellingRequestCancellationToken);
-            var _1 = requestExecutionQueue.ExecuteAsync<int, string>(1, CompletingHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, completingRequestCancellationToken);
+            var _ = requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), CancellingHandler.Name, lspServices, cancellingRequestCancellationToken);
+            var _1 = requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), CompletingHandler.Name, lspServices, completingRequestCancellationToken);
 
             // Act & Assert
             // A Debug.Assert would throw if the tasks hadn't completed when the mutating request is called.
-            await requestExecutionQueue.ExecuteAsync<int, string>(1, MutatingHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
+            await requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), MutatingHandler.Name, lspServices, CancellationToken.None);
         }
     }
 
@@ -100,8 +101,8 @@ public class RequestExecutionQueueTests
         var requestExecutionQueue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
         var lspServices = GetLspServices();
 
-        var response = await requestExecutionQueue.ExecuteAsync<int, string>(request: 1, TestMethodHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
-        Assert.Equal("stuff", response);
+        var response = (MockResponse?)await requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), TestMethodHandler.Name, lspServices, CancellationToken.None);
+        Assert.Equal("stuff", response?.Response);
     }
 
     [Fact]
@@ -110,8 +111,8 @@ public class RequestExecutionQueueTests
         var requestExecutionQueue = GetRequestExecutionQueue(false, (TestParameterlessMethodHandler.Metadata, TestParameterlessMethodHandler.Instance));
         var lspServices = GetLspServices();
 
-        var response = await requestExecutionQueue.ExecuteAsync<NoValue, bool>(request: NoValue.Instance, TestParameterlessMethodHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
-        Assert.True(response);
+        var response = (MockResponse?)await requestExecutionQueue.ExecuteAsync(serializedRequest: null, TestParameterlessMethodHandler.Name, lspServices, CancellationToken.None);
+        Assert.Equal("true", response?.Response);
     }
 
     [Fact]
@@ -120,7 +121,7 @@ public class RequestExecutionQueueTests
         var requestExecutionQueue = GetRequestExecutionQueue(false, (TestNotificationHandler.Metadata, TestNotificationHandler.Instance));
         var lspServices = GetLspServices();
 
-        var response = await requestExecutionQueue.ExecuteAsync<bool, NoValue>(request: true, TestNotificationHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
+        var response = await requestExecutionQueue.ExecuteAsync(JToken.FromObject(new MockRequest(1)), TestNotificationHandler.Name, lspServices, CancellationToken.None);
         Assert.Same(NoValue.Instance, response);
     }
 
@@ -130,7 +131,7 @@ public class RequestExecutionQueueTests
         var requestExecutionQueue = GetRequestExecutionQueue(false, (TestParameterlessNotificationHandler.Metadata, TestParameterlessNotificationHandler.Instance));
         var lspServices = GetLspServices();
 
-        var response = await requestExecutionQueue.ExecuteAsync<NoValue, NoValue>(request: NoValue.Instance, TestParameterlessNotificationHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
+        var response = await requestExecutionQueue.ExecuteAsync(serializedRequest: null, TestParameterlessNotificationHandler.Name, lspServices, CancellationToken.None);
         Assert.Same(NoValue.Instance, response);
     }
 
@@ -138,11 +139,11 @@ public class RequestExecutionQueueTests
     public async Task Queue_DrainsOnShutdown()
     {
         var requestExecutionQueue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
-        var request = 1;
+        var request = JToken.FromObject(new MockRequest(1));
         var lspServices = GetLspServices();
 
-        var task1 = requestExecutionQueue.ExecuteAsync<int, string>(request, TestMethodHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
-        var task2 = requestExecutionQueue.ExecuteAsync<int, string>(request, TestMethodHandler.Name, LanguageServerConstants.DefaultLanguageName, lspServices, CancellationToken.None);
+        var task1 = requestExecutionQueue.ExecuteAsync(request, TestMethodHandler.Name, lspServices, CancellationToken.None);
+        var task2 = requestExecutionQueue.ExecuteAsync(request, TestMethodHandler.Name, lspServices, CancellationToken.None);
 
         await requestExecutionQueue.DisposeAsync();
 

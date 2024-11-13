@@ -30,6 +30,6 @@ internal class CSharpWrappingCodeRefactoringProvider() : AbstractWrappingCodeRef
             new CSharpCollectionExpressionWrapper(),
         ];
 
-    protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options, CodeActionOptions ideOptions)
-        => options.GetCSharpSyntaxWrappingOptions(ideOptions);
+    protected override SyntaxWrappingOptions GetWrappingOptions(IOptionsReader options)
+        => options.GetCSharpSyntaxWrappingOptions();
 }

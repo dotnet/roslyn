@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -16,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration;
 
-public class GeneratorDriverTests_Attributes_SimpleName : CSharpTestBase
+public sealed class GeneratorDriverTests_Attributes_SimpleName : CSharpTestBase
 {
     #region Non-Incremental tests
 
@@ -33,10 +30,10 @@ public class GeneratorDriverTests_Attributes_SimpleName : CSharpTestBase
     [InlineData("[X][X]")]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration1(string attribute)
     {
-        var source = @$"
-{attribute}
-class C {{ }}
-";
+        var source = $$"""
+            {{attribute}}
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -65,10 +62,10 @@ class C {{ }}
     [InlineData("global::A.X")]
     public void FindFullAttributeNameOnTopLevelClass(string attribute)
     {
-        var source = @$"
-[{attribute}]
-class C {{ }}
-";
+        var source = $$"""
+            [{{attribute}}]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -91,10 +88,10 @@ class C {{ }}
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForDelegateDeclaration1()
     {
-        var source = @"
-[X]
-class C { }
-";
+        var source = """
+            [X]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -116,10 +113,10 @@ class C { }
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForDifferentName()
     {
-        var source = @"
-[X]
-class C { }
-";
+        var source = """
+            [X]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -141,10 +138,10 @@ class C { }
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForSyntaxNode1()
     {
-        var source = @"
-[X]
-class C { }
-";
+        var source = """
+            [X]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -167,12 +164,12 @@ class C { }
     [Fact]
     public void FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration1()
     {
-        var source = @"
-[X]
-class C { }
-[X]
-class D { }
-";
+        var source = """
+            [X]
+            class C { }
+            [X]
+            class D { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -199,12 +196,12 @@ class D { }
     [Fact]
     public void FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration2()
     {
-        var source = @"
-[X]
-class C { }
-[Y]
-class D { }
-";
+        var source = """
+            [X]
+            class C { }
+            [Y]
+            class D { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -231,12 +228,12 @@ class D { }
     [Fact]
     public void FindAttributeOnTopLevelClasses_WhenSearchingForClassDeclaration3()
     {
-        var source = @"
-[Y]
-class C { }
-[X]
-class D { }
-";
+        var source = """
+            [Y]
+            class C { }
+            [X]
+            class D { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -263,14 +260,14 @@ class D { }
     [Fact]
     public void FindAttributeOnNestedClasses_WhenSearchingForClassDeclaration1()
     {
-        var source = @"
-[X]
-class C
-{
-    [X]
-    class D { }
-}
-";
+        var source = """
+            [X]
+            class C
+            {
+                [X]
+                class D { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -297,13 +294,13 @@ class C
     [Fact]
     public void FindAttributeOnClassInNamespace_WhenSearchingForClassDeclaration1()
     {
-        var source = @"
-namespace N
-{
-    [X]
-    class C { }
-}
-";
+        var source = """
+            namespace N
+            {
+                [X]
+                class C { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -326,10 +323,10 @@ namespace N
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_FullAttributeName1()
     {
-        var source = @"
-[X]
-class C { }
-";
+        var source = """
+            [X]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -352,10 +349,10 @@ class C { }
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_ShortAttributeName1()
     {
-        var source = @"
-[X]
-class C { }
-";
+        var source = """
+            [X]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -378,10 +375,10 @@ class C { }
     [Fact]
     public void FindFullAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_FullAttributeName1()
     {
-        var source = @"
-[XAttribute]
-class C { }
-";
+        var source = """
+            [XAttribute]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -409,12 +406,12 @@ class C { }
     [InlineData("A = global::M.XAttribute<int>")]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias1(string alias)
     {
-        var source = @$"
-using {alias};
+        var source = $$"""
+            using {{alias}};
 
-[A]
-class C {{ }}
-";
+            [A]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -437,12 +434,12 @@ class C {{ }}
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias3()
     {
-        var source = @"
-using AAttribute = XAttribute;
+        var source = """
+            using AAttribute = XAttribute;
 
-[AAttribute]
-class C { }
-";
+            [AAttribute]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -465,12 +462,12 @@ class C { }
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias1()
     {
-        var source = @"
-using AAttribute : X;
+        var source = """
+            using AAttribute : X;
 
-[AAttribute]
-class C { }
-";
+            [AAttribute]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -492,12 +489,12 @@ class C { }
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_WithLocalAlias2()
     {
-        var source = @"
-using AAttribute : XAttribute;
+        var source = """
+            using AAttribute : XAttribute;
 
-[B]
-class C { }
-";
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -519,16 +516,16 @@ class C { }
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_ThroughMultipleAliases1()
     {
-        var source = @"
-using B = XAttribute;
-namespace N
-{
-    using A = B;
+        var source = """
+            using B = XAttribute;
+            namespace N
+            {
+                using A = B;
 
-    [A]
-    class C { }
-}
-";
+                [A]
+                class C { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -552,16 +549,16 @@ namespace N
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_OuterAliasReferencesInnerAlias()
     {
         // note: this is not legal.  it's ok if this ever stops working in the futuer.
-        var source = @"
-using BAttribute = AAttribute;
-namespace N
-{
-    using AAttribute = XAttribute;
+        var source = """
+            using BAttribute = AAttribute;
+            namespace N
+            {
+                using AAttribute = XAttribute;
 
-    [B]
-    class C { }
-}
-";
+                [B]
+                class C { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -584,16 +581,16 @@ namespace N
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_ThroughMultipleAliases2()
     {
-        var source = @"
-using B = XAttribute;
-namespace N
-{
-    using AAttribute = B;
+        var source = """
+            using B = XAttribute;
+            namespace N
+            {
+                using AAttribute = B;
 
-    [A]
-    class C { }
-}
-";
+                [A]
+                class C { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -616,16 +613,16 @@ namespace N
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_ThroughMultipleAliases2()
     {
-        var source = @"
-using BAttribute = XAttribute;
-namespace N
-{
-    using AAttribute = B;
+        var source = """
+            using BAttribute = XAttribute;
+            namespace N
+            {
+                using AAttribute = B;
 
-    [A]
-    class C { }
-}
-";
+                [A]
+                class C { }
+            }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -647,13 +644,13 @@ namespace N
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_RecursiveAlias1()
     {
-        var source = @"
-using AAttribute = BAttribute;
-using BAttribute = AAttribute;
+        var source = """
+            using AAttribute = BAttribute;
+            using BAttribute = AAttribute;
 
-[A]
-class C { }
-";
+            [A]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -675,13 +672,13 @@ class C { }
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_RecursiveAlias2()
     {
-        var source = @"
-using A = BAttribute;
-using B = AAttribute;
+        var source = """
+            using A = BAttribute;
+            using B = AAttribute;
 
-[A]
-class C { }
-";
+            [A]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -703,13 +700,13 @@ class C { }
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_RecursiveAlias3()
     {
-        var source = @"
-using A = B;
-using B = A;
+        var source = """
+            using A = B;
+            using B = A;
 
-[A]
-class C { }
-";
+            [A]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -731,13 +728,13 @@ class C { }
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_LocalAliasInDifferentFile1()
     {
-        var source1 = @"
-[A]
-class C { }
-";
-        var source2 = @"
-using A = XAttribute;
-";
+        var source1 = """
+            [A]
+            class C { }
+            """;
+        var source2 = """
+            using A = XAttribute;
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -758,13 +755,13 @@ using A = XAttribute;
     [Fact]
     public void DoNotFindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_LocalAliasInDifferentFile2()
     {
-        var source1 = @"
-[A]
-class C { }
-";
-        var source2 = @"
-using AAttribute = XAttribute;
-";
+        var source1 = """
+            [A]
+            class C { }
+            """;
+        var source2 = """
+            using AAttribute = XAttribute;
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -787,12 +784,12 @@ using AAttribute = XAttribute;
     [InlineData("AAttribute = XAttribute")]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasInSameFile1(string alias)
     {
-        var source = @$"
-global using {alias};
+        var source = $$"""
+            global using {{alias}};
 
-[A]
-class C {{ }}
-";
+            [A]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -817,13 +814,13 @@ class C {{ }}
     [InlineData("BAttribute = AAttribute")]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasInSameFile1(string alias)
     {
-        var source = @$"
-global using AAttribute = XAttribute;
-using {alias};
+        var source = $$"""
+            global using AAttribute = XAttribute;
+            using {{alias}};
 
-[B]
-class C {{ }}
-";
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -848,13 +845,13 @@ class C {{ }}
     [InlineData("AAttribute = XAttribute")]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasDifferentFile1(string alias)
     {
-        var source1 = @"
-[A]
-class C { }
-";
-        var source2 = @$"
-global using {alias};
-";
+        var source1 = """
+            [A]
+            class C { }
+            """;
+        var source2 = $"""
+            global using {alias};
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -876,14 +873,14 @@ global using {alias};
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_BothGlobalAndLocalAliasDifferentFile1()
     {
-        var source1 = @"
-[B]
-class C { }
-";
-        var source2 = @"
-global using AAttribute = XAttribute;
-using B = AAttribute;
-";
+        var source1 = """
+            [B]
+            class C { }
+            """;
+        var source2 = """
+            global using AAttribute = XAttribute;
+            using B = AAttribute;
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -904,14 +901,14 @@ using B = AAttribute;
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAliasLoop1()
     {
-        var source1 = @"
-[A]
-class C { }
-";
-        var source2 = @"
-global using AAttribute = BAttribute;
-global using BAttribute = AAttribute;
-";
+        var source1 = """
+            [A]
+            class C { }
+            """;
+        var source2 = """
+            global using AAttribute = BAttribute;
+            global using BAttribute = AAttribute;
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -932,14 +929,14 @@ global using BAttribute = AAttribute;
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasDifferentFile1()
     {
-        var source1 = @"
-using B = AAttribute;
-[B]
-class C { }
-";
-        var source2 = @"
-global using AAttribute = XAttribute;
-";
+        var source1 = """
+            using B = AAttribute;
+            [B]
+            class C { }
+            """;
+        var source2 = """
+            global using AAttribute = XAttribute;
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -961,14 +958,14 @@ global using AAttribute = XAttribute;
     [Fact]
     public void FindAttributeOnTopLevelClass_WhenSearchingForClassDeclaration_GlobalAndLocalAliasDifferentFile2()
     {
-        var source1 = @"
-using BAttribute = AAttribute;
-[B]
-class C { }
-";
-        var source2 = @"
-global using AAttribute = XAttribute;
-";
+        var source1 = """
+            using BAttribute = AAttribute;
+            [B]
+            class C { }
+            """;
+        var source2 = """
+            global using AAttribute = XAttribute;
+            """;
 
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
@@ -996,10 +993,10 @@ global using AAttribute = XAttribute;
     [Fact]
     public void RerunOnSameCompilationCachesResultFully()
     {
-        var source = @"
-[X]
-class C { }
-";
+        var source = """
+            [X]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1036,10 +1033,10 @@ class C { }
     [Fact]
     public void RerunOnCompilationWithReferencesChangeCachesResultFully()
     {
-        var source = @"
-[X]
-class C { }
-";
+        var source = """
+            [X]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1076,16 +1073,18 @@ class C { }
     [Fact]
     public void TestSourceFileRemoved1()
     {
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1127,16 +1126,18 @@ class C { }
     [Fact]
     public void TestSourceFileChanged_AttributeRemoved1()
     {
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1155,9 +1156,9 @@ class C { }
 
         driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
             compilation.SyntaxTrees.Last(),
-            compilation.SyntaxTrees.Last().WithChangedText(SourceText.From(@"
-class C { }
-"))));
+            compilation.SyntaxTrees.Last().WithChangedText(SourceText.From("""
+                class C { }
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
@@ -1177,15 +1178,17 @@ class C { }
     [Fact]
     public void TestSourceFileChanged_AttributeAdded1()
     {
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-class C { }
-";
+        var source3 = """
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1203,10 +1206,10 @@ class C { }
 
         driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
             compilation.SyntaxTrees.Last(),
-            compilation.SyntaxTrees.Last().WithChangedText(SourceText.From(@"
-[B]
-class C { }
-"))));
+            compilation.SyntaxTrees.Last().WithChangedText(SourceText.From("""
+                [B]
+                class C { }
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
@@ -1229,16 +1232,18 @@ class C { }
     [Fact]
     public void TestSourceFileChanged_NonVisibleChangeToGlobalAttributeFile()
     {
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1257,10 +1262,10 @@ class C { }
 
         driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
             compilation.SyntaxTrees.First(),
-            compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-global using AAttribute = XAttribute;
-class Dummy {}
-"))));
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+                global using AAttribute = XAttribute;
+                class Dummy {}
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
@@ -1280,16 +1285,18 @@ class Dummy {}
     [Fact]
     public void TestRemoveGlobalAttributeFile1()
     {
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1336,16 +1343,18 @@ class C { }
     {
         var source0 = "";
 
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source0, source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1386,13 +1395,14 @@ class C { }
     [Fact]
     public void TestAddGlobalAttributeFile1()
     {
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1409,8 +1419,9 @@ class C { }
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
 
         driver = driver.RunGenerators(compilation.AddSyntaxTrees(
-            compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-global using AAttribute = XAttribute;"))));
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+                global using AAttribute = XAttribute;
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
@@ -1433,10 +1444,10 @@ global using AAttribute = XAttribute;"))));
     [Fact]
     public void TestAddGlobalAttributeFile2()
     {
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1453,8 +1464,9 @@ class C { }
         Assert.False(runResult.TrackedSteps.ContainsKey("result_ForAttribute"));
 
         driver = driver.RunGenerators(compilation.AddSyntaxTrees(
-            compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-global using BAttribute = XAttribute;"))));
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+                global using BAttribute = XAttribute;
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
@@ -1475,16 +1487,18 @@ global using BAttribute = XAttribute;"))));
     [Fact]
     public void TestAddSourceFileWithoutAttribute()
     {
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1502,8 +1516,9 @@ class C { }
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
         driver = driver.RunGenerators(compilation.AddSyntaxTrees(
-            compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-class D { }"))));
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+                class D { }
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
@@ -1523,16 +1538,18 @@ class D { }"))));
     [Fact]
     public void TestAddSourceFileWithAttribute()
     {
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1550,9 +1567,10 @@ class C { }
             step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C" }));
 
         driver = driver.RunGenerators(compilation.AddSyntaxTrees(
-            compilation.SyntaxTrees.First().WithChangedText(SourceText.From(@"
-[A]
-class D { }"))));
+            compilation.SyntaxTrees.First().WithChangedText(SourceText.From("""
+                [A]
+                class D { }
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],
@@ -1581,16 +1599,18 @@ class D { }"))));
     [Fact]
     public void TestReplaceSourceFileWithDifferentAttribute()
     {
-        var source1 = @"
-global using AAttribute = XAttribute;";
+        var source1 = """
+            global using AAttribute = XAttribute;
+            """;
 
-        var source2 = @"
-global using BAttribute = AAttribute;";
+        var source2 = """
+            global using BAttribute = AAttribute;
+            """;
 
-        var source3 = @"
-[B]
-class C { }
-";
+        var source3 = """
+            [B]
+            class C { }
+            """;
         var parseOptions = TestOptions.RegularPreview;
         Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
 
@@ -1609,9 +1629,10 @@ class C { }
 
         driver = driver.RunGenerators(compilation.ReplaceSyntaxTree(
             compilation.SyntaxTrees.Last(),
-            compilation.SyntaxTrees.Last().WithChangedText(SourceText.From(@"
-[A]
-class D { }"))));
+            compilation.SyntaxTrees.Last().WithChangedText(SourceText.From("""
+                [A]
+                class D { }
+                """))));
         runResult = driver.GetRunResult().Results[0];
 
         Assert.Collection(runResult.TrackedSteps["individualFileGlobalAliases_ForAttribute"],

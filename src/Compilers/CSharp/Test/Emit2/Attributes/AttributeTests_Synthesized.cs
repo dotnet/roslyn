@@ -480,7 +480,7 @@ class C
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var goo = module.GlobalNamespace.GetMember<MethodSymbol>("C.Goo");
                 AssertEx.SetEqual(options.OptimizationLevel == OptimizationLevel.Debug ?
@@ -538,7 +538,7 @@ class B : A
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var attributes = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0").GetAttributes();
 
@@ -576,7 +576,7 @@ class B : A
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var baseMethodWrapper = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0");
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
@@ -619,7 +619,7 @@ class B : A
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var baseMethodWrapper = module.GlobalNamespace.GetTypeMember("B").GetMember<MethodSymbol>("<>n__0");
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute", "DebuggerHiddenAttribute" }, GetAttributeNames(baseMethodWrapper.GetAttributes()));
@@ -1671,7 +1671,7 @@ class Test
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 var stateMachine = type.GetTypeMember("<F>d__0");
@@ -1714,7 +1714,7 @@ class Test
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetTypeMember("<>c");
                 var stateMachine = type.GetTypeMember("<<F>b__0_0>d");
@@ -1756,7 +1756,7 @@ public class Test<T>
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 var stateMachine = type.GetTypeMember("<F>d__0");
@@ -1797,10 +1797,10 @@ class Test
 
             var referenceOptions = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
-            var reference = CreateCompilationWithMscorlib45(source, options: referenceOptions).EmitToImageReference(options: new EmitOptions(metadataOnly: true));
+            var reference = CreateCompilationWithMscorlib461(source, options: referenceOptions).EmitToImageReference(options: new EmitOptions(metadataOnly: true));
 
             var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            var compilation = CreateCompilationWithMscorlib45("", new[] { reference }, options: options);
+            var compilation = CreateCompilationWithMscorlib461("", new[] { reference }, options: options);
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             Assert.Equal(new[] { "F", ".ctor" }, type.GetMembers().SelectAsArray(m => m.Name));
@@ -1837,7 +1837,7 @@ class Test
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 var stateMachine = type.GetTypeMember("<F>d__0");
@@ -1867,7 +1867,7 @@ public class Test<T>
             var options = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(source, options: options), symbolValidator: module =>
+            CompileAndVerify(CreateCompilationWithMscorlib461(source, options: options), symbolValidator: module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 var stateMachine = type.GetTypeMember("<F>d__0");
@@ -1896,10 +1896,10 @@ public class Test<T>
 
             var referenceOptions = TestOptions.CreateTestOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel)
                 .WithMetadataImportOptions(MetadataImportOptions.All);
-            var reference = CreateCompilationWithMscorlib45(source, options: referenceOptions).EmitToImageReference(options: new EmitOptions(metadataOnly: true));
+            var reference = CreateCompilationWithMscorlib461(source, options: referenceOptions).EmitToImageReference(options: new EmitOptions(metadataOnly: true));
 
             var options = TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All);
-            var compilation = CreateCompilationWithMscorlib45("", new[] { reference }, options: options);
+            var compilation = CreateCompilationWithMscorlib461("", new[] { reference }, options: options);
 
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             Assert.Equal(new[] { "F", ".ctor" }, type.GetMembers().SelectAsArray(m => m.Name));
