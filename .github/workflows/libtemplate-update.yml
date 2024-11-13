@@ -77,6 +77,8 @@ jobs:
         $prTitle = "Merge latest Library.Template"
         $prBody = "This merges the latest features and fixes from [Library.Template's  branch](https://github.com/AArnott/Library.Template/tree/).
 
+        ⚠️ Do **not** squash this pull request when completing it. You must *merge* it."
+
         <details>
         <summary>Merge conflicts?</summary>
         Resolve merge conflicts locally by carrying out these steps:
@@ -90,8 +92,6 @@ jobs:
         git push
         ```
         </details>
-
-        ⚠️ Do **not** squash this pull request when completing it. You must *merge* it."
 
         gh pr create -H auto/libtemplateUpdate -b $prBody -t $prTitle
       env:
