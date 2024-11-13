@@ -266,7 +266,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             if (!IsListLike(current))
                 return false;
 
-            AddArgumentsInReverse(postMatchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread);
+            AddArgumentsInReverse(postMatchesInReverse, GetArguments(currentInvocationExpression.ArgumentList, unwrapArgument), useSpread);
             return true;
         }
 

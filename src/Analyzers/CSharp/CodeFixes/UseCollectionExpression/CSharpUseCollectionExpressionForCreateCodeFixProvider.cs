@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpCollectionExpressionRewriter;
 using static SyntaxFactory;
+using static UseCollectionExpressionHelpers;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForCreate), Shared]
 [method: ImportingConstructor]
@@ -39,8 +40,8 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateCodeFixProvi
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
-        var unwrapArgument = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UnwrapArgument);
-        var useSpread = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UseSpread);
+        var unwrapArgument = properties.ContainsKey(UnwrapArgument);
+        var useSpread = properties.ContainsKey(UseSpread);
 
         // We want to replace `XXX.Create(...)` with the new collection expression.  To do this, we go through the
         // following steps.  First, we replace `XXX.Create(a, b, c)` with `new(a, b, c)` (a dummy object creation
@@ -52,7 +53,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateCodeFixProvi
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         // Get the expressions that we're going to fill the new collection expression with.
-        var arguments = UseCollectionExpressionHelpers.GetArguments(invocationExpression, unwrapArgument);
+        var arguments = GetArguments(invocationExpression.ArgumentList, unwrapArgument);
 
         var dummyObjectAnnotation = new SyntaxAnnotation();
         var dummyObjectCreation = ImplicitObjectCreationExpression(ArgumentList(arguments), initializer: null)

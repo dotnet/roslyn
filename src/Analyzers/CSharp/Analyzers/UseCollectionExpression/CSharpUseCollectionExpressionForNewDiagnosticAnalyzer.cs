@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -21,9 +23,9 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
         EnforceOnBuildValues.UseCollectionExpressionForNew)
 {
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
-        => context.RegisterSyntaxNodeAction(context => AnalyzeObjectCcreationExpression(context, expressionType), SyntaxKind.ObjectCreationExpression);
+        => context.RegisterSyntaxNodeAction(context => AnalyzeObjectCreationExpression(context, expressionType), SyntaxKind.ObjectCreationExpression);
 
-    private void AnalyzeObjectCcreationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
+    private void AnalyzeObjectCreationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var compilation = semanticModel.Compilation;
@@ -41,10 +43,13 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
 
         var symbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
         if (symbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [var parameter] } ||
-            !IsIEnumerableOfTParameter(compilation, parameter))
+            parameter.Type.Name != nameof(IEnumerable<int>))
         {
             return;
         }
+
+        if (!Equals(compilation.IEnumerableOfTType(), parameter.Type.OriginalDefinition))
+            return;
 
         if (!IsArgumentCompatibleWithIEnumerableOfT(semanticModel, argument, out var unwrapArgument, out var useSpread, cancellationToken))
             return;

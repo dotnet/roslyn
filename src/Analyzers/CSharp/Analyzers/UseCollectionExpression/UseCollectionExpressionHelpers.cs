@@ -1028,9 +1028,16 @@ internal static class UseCollectionExpressionHelpers
             if (originalCreateMethod.Name is CreateRangeName)
             {
                 // If we have `CreateRange<T>(IEnumerable<T> values)` this is legal if we have an array, or no-arg object creation.
-                if (originalCreateMethod.Parameters is [var parameter] &&
-                    IsIEnumerableOfTParameter(compilation, parameter) &&
-                    arguments.Count == 1)
+                if (arguments.Count == 1 &&
+                    originalCreateMethod.Parameters is [var parameter] &&
+                    parameter is
+                    {
+                        Type: INamedTypeSymbol
+                        {
+                            Name: nameof(IEnumerable<int>),
+                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                        } enumerableType
+                    } && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
                 {
                     return IsArgumentCompatibleWithIEnumerableOfT(semanticModel, arguments[0], out unwrapArgument, out useSpread, cancellationToken);
                 }
@@ -1069,13 +1076,13 @@ internal static class UseCollectionExpressionHelpers
                 if (arguments.Count == 1 &&
                     compilation.SupportsRuntimeCapability(RuntimeCapability.InlineArrayTypes) &&
                     originalCreateMethod.Parameters is [
+                    {
+                        Type: INamedTypeSymbol
                         {
-                            Type: INamedTypeSymbol
-                            {
-                                Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
-                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                            } spanType
-                        }])
+                            Name: nameof(Span<int>) or nameof(ReadOnlySpan<int>),
+                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                        } spanType
+                    }])
                 {
                     if (spanType.OriginalDefinition.Equals(compilation.SpanOfTType()) ||
                         spanType.OriginalDefinition.Equals(compilation.ReadOnlySpanOfTType()))
@@ -1133,20 +1140,6 @@ internal static class UseCollectionExpressionHelpers
         }
 
         return false;
-    }
-
-    public static bool IsIEnumerableOfTParameter(
-         Compilation compilation, IParameterSymbol parameter)
-    {
-        return parameter is
-        {
-            Type: INamedTypeSymbol
-            {
-                Name: nameof(IEnumerable<int>),
-                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-            }
-            enumerableType
-        } && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType());
     }
 
     public static bool IsIterable(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
@@ -1287,9 +1280,9 @@ internal static class UseCollectionExpressionHelpers
         }
     }
 
-    public static SeparatedSyntaxList<ArgumentSyntax> GetArguments(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
+    public static SeparatedSyntaxList<ArgumentSyntax> GetArguments(ArgumentListSyntax argumentList, bool unwrapArgument)
     {
-        var arguments = invocationExpression.ArgumentList.Arguments;
+        var arguments = argumentList.Arguments;
 
         // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
         // expressions the user wrote out.
