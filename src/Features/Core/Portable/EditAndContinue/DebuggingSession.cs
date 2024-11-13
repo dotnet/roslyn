@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -638,8 +637,10 @@ internal sealed class DebuggingSession : IDisposable
             }
         }
 
-        // TODO:
-        // _editSessionTelemetry.LogUpdateBaselines();
+        foreach (var projectId in rebuiltProjects)
+        {
+            _editSessionTelemetry.LogUpdatedBaseline(solution.GetRequiredProject(projectId).State.ProjectInfo.Attributes.TelemetryId);
+        }
 
         // Restart edit session reusing previous non-remappable regions and break state:
         RestartEditSession(nonRemappableRegions: null, inBreakState: null);

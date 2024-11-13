@@ -265,16 +265,11 @@ internal sealed class EditAndContinueLanguageService(
         }
 
         _committedDesignTimeSolution = currentDesignTimeSolution;
+        var projectIds = await GetProjectIdsAsync(projectPaths, currentCompileTimeSolution, cancellationToken).ConfigureAwait(false);
 
-        // TODO: log projects that are not found
-        var projectIds = from path in projectPaths
-                         let projectId = currentCompileTimeSolution.Projects.FirstOrDefault(project => project.FilePath == path)?.Id
-                         where projectId != null
-                         select projectId;
         try
         {
-
-            await GetDebuggingSession().UpdateBaselinesAsync(currentCompileTimeSolution, projectIds.ToImmutableArray(), cancellationToken).ConfigureAwait(false);
+            await GetDebuggingSession().UpdateBaselinesAsync(currentCompileTimeSolution, projectIds, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -284,6 +279,29 @@ internal sealed class EditAndContinueLanguageService(
         {
             workspaceProvider.Value.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId, forceRegeneration: false);
         }
+    }
+
+    private async ValueTask<ImmutableArray<ProjectId>> GetProjectIdsAsync(ImmutableArray<string> projectPaths, Solution solution, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var projectIds);
+        foreach (var path in projectPaths)
+        {
+            var projectId = solution.Projects.FirstOrDefault(project => project.FilePath == path)?.Id;
+            if (projectId != null)
+            {
+                projectIds.Add(projectId);
+            }
+            else
+            {
+                await _logger.LogAsync(new HotReloadLogMessage(
+                    HotReloadVerbosity.Diagnostic,
+                    $"Project with path '{path}' not found in the current solution.",
+                    errorLevel: HotReloadDiagnosticErrorLevel.Warning),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return projectIds.ToImmutable();
     }
 
     public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
