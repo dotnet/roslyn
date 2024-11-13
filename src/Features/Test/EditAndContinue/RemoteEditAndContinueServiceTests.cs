@@ -173,11 +173,12 @@ public class RemoteEditAndContinueServiceTests
 
         var diagnosticDescriptor1 = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
 
-        mockEncService.EmitSolutionUpdateImpl = (solution, activeStatementSpanProvider) =>
+        mockEncService.EmitSolutionUpdateImpl = (solution, runningProjects, activeStatementSpanProvider) =>
         {
             var project = solution.GetRequiredProject(projectId);
             Assert.Equal("proj", project.Name);
             AssertEx.Equal(activeSpans1, activeStatementSpanProvider(documentId, "test.cs", CancellationToken.None).AsTask().Result);
+            AssertEx.Equal([project.Id], runningProjects);
 
             var deltas = ImmutableArray.Create(new ManagedHotReloadUpdate(
                 module: moduleId1,
@@ -209,11 +210,13 @@ public class RemoteEditAndContinueServiceTests
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
                 RudeEdits = [],
-                SyntaxError = syntaxError
+                SyntaxError = syntaxError,
+                ProjectsToRebuild = [project.Id],
+                ProjectsToRestart = [project.Id],
             };
         };
 
-        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, activeStatementSpanProvider, CancellationToken.None);
+        var results = await sessionProxy.EmitSolutionUpdateAsync(localWorkspace.CurrentSolution, runningProjects: [project.Id], activeStatementSpanProvider, CancellationToken.None);
         AssertEx.Equal($"[{projectId}] Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error")}", Inspect(results.SyntaxError!));
 
         Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
