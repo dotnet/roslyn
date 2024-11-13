@@ -50,7 +50,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
         CancellationToken cancellationToken)
     {
-        // If constructor wasn't called with any arguments, then there's nothing to validate.
+        // Constructor wasn't called with any arguments.  Nothing to validate.
         var argumentList = _objectCreationExpression.ArgumentList;
         if (argumentList is null || argumentList.Arguments.Count == 0)
             return true;
