@@ -99,7 +99,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
         }
 
         [Fact]
-        public async Task IntelliSensePageTests()
+        public async Task IntelliSensePageTest()
         {
             using var registrationFileStream = typeof(CSharpIntellisenseUnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.CSharp.UnitTests.csharpSettings.registration.json");
             using var reader = new StreamReader(registrationFileStream);
