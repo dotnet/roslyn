@@ -26,7 +26,7 @@ using static UseCollectionExpressionHelpers;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class CSharpUseCollectionExpressionForNewCodeFixProvider()
-    : AbstractUseCollectionExpressionCodeFixProvider<ObjectCreationExpressionSyntax>(
+    : AbstractUseCollectionExpressionCodeFixProvider<BaseObjectCreationExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForNewDiagnosticId)
 {
@@ -35,7 +35,7 @@ internal sealed partial class CSharpUseCollectionExpressionForNewCodeFixProvider
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        ObjectCreationExpressionSyntax objectCreationExpression,
+        BaseObjectCreationExpressionSyntax objectCreationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {

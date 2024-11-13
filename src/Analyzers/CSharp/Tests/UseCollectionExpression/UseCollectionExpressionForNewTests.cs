@@ -19,12 +19,14 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionExpression)]
 public sealed class UseCollectionExpressionForNewTests
 {
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75870")]
-    public async Task TestIEnumerablePassedToListConstructor()
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75870")]
+    [InlineData("List<int>")]
+    [InlineData("")]
+    public async Task TestIEnumerablePassedToListConstructor(string typeName)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
+            TestCode = $$"""
                 using System.Linq;
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
@@ -33,7 +35,7 @@ public sealed class UseCollectionExpressionForNewTests
                 {
                     List<int> GetNumbers()
                     {
-                        return [|[|new|] List<int>(|]Enumerable.Range(1, 10));
+                        return [|[|new|] {{typeName}}(|]Enumerable.Range(1, 10));
                     }
                 }
                 """,
@@ -54,12 +56,15 @@ public sealed class UseCollectionExpressionForNewTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75870")]
-    public async Task TestArrayPassedToListConstructor()
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75870")]
+    [InlineData("List<int>")]
+    [InlineData("")]
+    public async Task TestArrayPassedToListConstructor(string typeName)
     {
         await new VerifyCS.Test
         {
-            TestCode = """
+            TestCode = $$"""
                 using System.Linq;
                 using System.Collections.Generic;
                 using System.Collections.Immutable;
@@ -68,7 +73,7 @@ public sealed class UseCollectionExpressionForNewTests
                 {
                     List<int> GetNumbers()
                     {
-                        return [|[|new|] List<int>(|]new[] { 1, 2, 3 });
+                        return [|[|new|] {{typeName}}(|]new[] { 1, 2, 3 });
                     }
                 }
                 """,

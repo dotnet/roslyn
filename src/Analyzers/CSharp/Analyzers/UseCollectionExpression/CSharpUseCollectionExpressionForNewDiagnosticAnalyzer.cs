@@ -23,22 +23,31 @@ internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnaly
         EnforceOnBuildValues.UseCollectionExpressionForNew)
 {
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
-        => context.RegisterSyntaxNodeAction(context => AnalyzeObjectCreationExpression(context, expressionType), SyntaxKind.ObjectCreationExpression);
+    {
+        context.RegisterSyntaxNodeAction(context => AnalyzeObjectCreationExpression(context, expressionType), SyntaxKind.ObjectCreationExpression);
+        context.RegisterSyntaxNodeAction(context => AnalyzeImplicitObjectCreationExpression(context, expressionType), SyntaxKind.ImplicitObjectCreationExpression);
+    }
 
     private void AnalyzeObjectCreationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
+        => AnalyzeBaseObjectCreationExpression(context, (BaseObjectCreationExpressionSyntax)context.Node, expressionType);
+
+    private void AnalyzeImplicitObjectCreationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
+        => AnalyzeBaseObjectCreationExpression(context, (BaseObjectCreationExpressionSyntax)context.Node, expressionType);
+
+    private void AnalyzeBaseObjectCreationExpression(
+        SyntaxNodeAnalysisContext context, BaseObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
         var compilation = semanticModel.Compilation;
         var syntaxTree = semanticModel.SyntaxTree;
         var cancellationToken = context.CancellationToken;
 
+        if (objectCreationExpression is not { ArgumentList.Arguments: [var argument], Initializer: null })
+            return;
+
         // no point in analyzing if the option is off.
         var option = context.GetAnalyzerOptions().PreferCollectionExpression;
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
-            return;
-
-        var objectCreationExpression = (ObjectCreationExpressionSyntax)context.Node;
-        if (objectCreationExpression is not { ArgumentList.Arguments: [var argument] })
             return;
 
         var symbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
