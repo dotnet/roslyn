@@ -5,6 +5,7 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.SimplifyLinqExpression;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.SimplifyLinqExpressi
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpSimplifyLinqExpressionDiagnosticAnalyzer,
-    CSharpSimplifyLinqExpressionCodeFixProvider>;
+    SimplifyLinqExpressionCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
 public partial class CSharpSimplifyLinqExpressionTests
