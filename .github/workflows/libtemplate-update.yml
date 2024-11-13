@@ -1,8 +1,8 @@
 name: Library.Template update
 
-# PREREQUISITE: This workflow requires the repo to be configured to allow workflows to push commits and create pull requests.
+# PREREQUISITE: This workflow requires the repo to be configured to allow workflows to create pull requests.
 # Visit https://github.com/USER/REPO/settings/actions
-# Under "Workflow permissions", select "Read and write permissions" and check "Allow GitHub Actions to create ...pull requests"
+# Under "Workflow permissions" check "Allow GitHub Actions to create ...pull requests"
 # Click Save.
 
 on:
