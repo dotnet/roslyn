@@ -80,7 +80,13 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
     protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
     protected abstract bool CanUseCollectionExpression(
-        SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowSemanticsChange, CancellationToken cancellationToken, out bool changesSemantics);
+        SemanticModel semanticModel,
+        TObjectCreationExpressionSyntax objectCreationExpression,
+        INamedTypeSymbol? expressionType,
+        ImmutableArray<CollectionMatch<SyntaxNode>> matches,
+        bool allowSemanticsChange,
+        CancellationToken cancellationToken,
+        out bool changesSemantics);
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -218,15 +224,17 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!this.AreCollectionExpressionsSupported(context.Compilation))
                 return null;
 
-            var (_, matches) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
+            var (preMatches, postMatches) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
 
             // If analysis failed, we can't change this, no matter what.
-            if (matches.IsDefault)
+            if (preMatches.IsDefault || postMatches.IsDefault)
                 return null;
+
+            var matches = preMatches.Concat(postMatches);
 
             // Check if it would actually be legal to use a collection expression here though.
             var allowSemanticsChange = preferExpressionOption.Value == CollectionExpressionPreference.WhenTypesLooselyMatch;
-            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowSemanticsChange, cancellationToken, out var changesSemantics))
+            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, matches, allowSemanticsChange, cancellationToken, out var changesSemantics))
                 return null;
 
             return (matches, shouldUseCollectionExpression: true, changesSemantics);
