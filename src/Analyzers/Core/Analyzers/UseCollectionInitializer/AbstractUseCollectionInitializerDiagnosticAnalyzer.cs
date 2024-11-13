@@ -83,7 +83,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         SemanticModel semanticModel,
         TObjectCreationExpressionSyntax objectCreationExpression,
         INamedTypeSymbol? expressionType,
-        ImmutableArray<CollectionMatch<SyntaxNode>> matches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
         bool allowSemanticsChange,
         CancellationToken cancellationToken,
         out bool changesSemantics);
@@ -230,14 +230,12 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (preMatches.IsDefault || postMatches.IsDefault)
                 return null;
 
-            var matches = preMatches.Concat(postMatches);
-
             // Check if it would actually be legal to use a collection expression here though.
             var allowSemanticsChange = preferExpressionOption.Value == CollectionExpressionPreference.WhenTypesLooselyMatch;
-            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, matches, allowSemanticsChange, cancellationToken, out var changesSemantics))
+            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, preMatches, allowSemanticsChange, cancellationToken, out var changesSemantics))
                 return null;
 
-            return (matches, shouldUseCollectionExpression: true, changesSemantics);
+            return (preMatches.Concat(postMatches), shouldUseCollectionExpression: true, changesSemantics);
         }
     }
 

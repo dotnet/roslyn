@@ -30,9 +30,7 @@ internal sealed partial class CSharpUseCollectionInitializerCodeFixProvider
             objectCreation,
             preMatches,
             postMatches,
-            // We don't return any initializer in the case of converting a `new List<int> { 1, 2, 3 }` to a collection
-            // expr.  This is because `1, 2, 3` will be in the preMatches instead.
-            getInitializer: static _ => null,
+            static objectCreation => objectCreation.Initializer,
             static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
             cancellationToken);
     }
