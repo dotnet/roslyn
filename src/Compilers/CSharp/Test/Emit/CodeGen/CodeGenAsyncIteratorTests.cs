@@ -9556,7 +9556,6 @@ class C
     }
 }
 """;
-            // Note: hoisted nested local gets cleared when exiting nested scope normally
             var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("4242"), references: [libComp.EmitToImageReference()],
                 verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
 
