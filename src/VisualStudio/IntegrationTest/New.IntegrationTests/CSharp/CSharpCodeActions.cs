@@ -25,13 +25,8 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
-public class CSharpCodeActions : AbstractEditorTest
+public sealed class CSharpCodeActions() : AbstractEditorTest(nameof(CSharpCodeActions))
 {
-    public CSharpCodeActions()
-        : base(nameof(CSharpCodeActions))
-    {
-    }
-
     protected override string LanguageName => LanguageNames.CSharp;
 
     [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
