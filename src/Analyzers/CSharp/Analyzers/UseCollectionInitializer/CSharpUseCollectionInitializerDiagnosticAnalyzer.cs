@@ -58,18 +58,19 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
     {
         // Synthesize the final collection expression we would replace this object-creation with.  That will allow us to
         // determine if we end up calling the right overload in cases of overloaded methods.
-        var replacement = CollectionExpression(SeparatedList(preMatches
-            .Where(m => m.Node is ExpressionSyntax)
-            .Select(CreateElement)
-            .Concat(GetInitializerElements(objectCreationExpression.Initializer))));
+        var replacement = CollectionExpression(SeparatedList(
+            GetMatchElements(preMatches).Concat(GetInitializerElements(objectCreationExpression.Initializer))));
 
         return UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
             semanticModel, objectCreationExpression, replacement, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
 
-        static CollectionElementSyntax CreateElement(CollectionMatch<SyntaxNode> match)
+        static IEnumerable<CollectionElementSyntax> GetMatchElements(ImmutableArray<CollectionMatch<SyntaxNode>> preMatches)
         {
-            var expression = (ExpressionSyntax)match.Node;
-            return match.UseSpread ? SpreadElement(expression) : ExpressionElement(expression);
+            foreach (var match in preMatches)
+            {
+                if (match.Node is ExpressionSyntax expression)
+                    yield return match.UseSpread ? SpreadElement(expression) : ExpressionElement(expression);
+            }
         }
 
         static IEnumerable<CollectionElementSyntax> GetInitializerElements(InitializerExpressionSyntax? initializer)
