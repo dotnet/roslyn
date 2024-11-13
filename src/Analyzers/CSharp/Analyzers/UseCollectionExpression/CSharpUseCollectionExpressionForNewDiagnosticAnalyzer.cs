@@ -15,17 +15,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using static UseCollectionExpressionHelpers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer()
+internal sealed partial class CSharpUseCollectionExpressionForNewDiagnosticAnalyzer()
     : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(
-        IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId,
-        EnforceOnBuildValues.UseCollectionExpressionForCreate)
+        IDEDiagnosticIds.UseCollectionExpressionForNewDiagnosticId,
+        EnforceOnBuildValues.UseCollectionExpressionForNew)
 {
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
-        => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
+        => context.RegisterSyntaxNodeAction(context => AnalyzeObjectCcreationExpression(context, expressionType), SyntaxKind.ObjectCreationExpression);
 
-    private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
+    private void AnalyzeObjectCcreationExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
     {
         var semanticModel = context.SemanticModel;
+        var compilation = semanticModel.Compilation;
         var syntaxTree = semanticModel.SyntaxTree;
         var cancellationToken = context.CancellationToken;
 
@@ -34,24 +35,34 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var invocationExpression = (InvocationExpressionSyntax)context.Node;
-        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var memberAccess, out var unwrapArgument, out var useSpread, cancellationToken))
+        var objectCreationExpression = (ObjectCreationExpressionSyntax)context.Node;
+        if (objectCreationExpression is not { ArgumentList.Arguments: [var argument] })
+            return;
+
+        var symbol = semanticModel.GetSymbolInfo(objectCreationExpression, cancellationToken).Symbol;
+        if (symbol is not IMethodSymbol { MethodKind: MethodKind.Constructor, Parameters: [var parameter] } ||
+            !IsIEnumerableOfTParameter(compilation, parameter))
+        {
+            return;
+        }
+
+        if (!IsArgumentCompatibleWithIEnumerableOfT(semanticModel, argument, out var unwrapArgument, out var useSpread, cancellationToken))
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
         var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, invocationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+                semanticModel, objectCreationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
         {
             return;
         }
 
-        var locations = ImmutableArray.Create(invocationExpression.GetLocation());
+        var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
         var properties = GetDiagnosticProperties(unwrapArgument, useSpread, changesSemantics);
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
-            memberAccess.Name.Identifier.GetLocation(),
+            objectCreationExpression.NewKeyword.GetLocation(),
             option.Notification,
             context.Options,
             additionalLocations: locations,
@@ -59,9 +70,9 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
 
         var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
-                invocationExpression.SpanStart,
-                invocationExpression.ArgumentList.OpenParenToken.Span.End)),
-            invocationExpression.ArgumentList.CloseParenToken.GetLocation());
+                objectCreationExpression.SpanStart,
+                objectCreationExpression.ArgumentList.OpenParenToken.Span.End)),
+            objectCreationExpression.ArgumentList.CloseParenToken.GetLocation());
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             UnnecessaryCodeDescriptor,
