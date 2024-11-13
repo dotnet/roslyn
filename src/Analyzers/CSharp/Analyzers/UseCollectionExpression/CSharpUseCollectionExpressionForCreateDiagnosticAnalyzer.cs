@@ -21,9 +21,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         EnforceOnBuildValues.UseCollectionExpressionForCreate)
 {
     public const string UnwrapArgument = nameof(UnwrapArgument);
-
-    private static readonly ImmutableDictionary<string, string?> s_unwrapArgumentProperties =
-        ImmutableDictionary<string, string?>.Empty.Add(UnwrapArgument, UnwrapArgument);
+    public const string UseSpread = nameof(UseSpread);
 
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeInvocationExpression(context, expressionType), SyntaxKind.InvocationExpression);
@@ -40,7 +38,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
             return;
 
         var invocationExpression = (InvocationExpressionSyntax)context.Node;
-        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var memberAccess, out var unwrapArgument, cancellationToken))
+        if (!IsCollectionFactoryCreate(semanticModel, invocationExpression, out var memberAccess, out var unwrapArgument, out var useSpread, cancellationToken))
             return;
 
         // Make sure we can actually use a collection expression in place of the full invocation.
@@ -52,7 +50,14 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         }
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var properties = unwrapArgument ? s_unwrapArgumentProperties : ImmutableDictionary<string, string?>.Empty;
+        var properties = ImmutableDictionary<string, string?>.Empty;
+
+        if (unwrapArgument)
+            properties = properties.Add(UnwrapArgument, "");
+
+        if (useSpread)
+            properties = properties.Add(UseSpread, "");
+
         if (changesSemantics)
             properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
 

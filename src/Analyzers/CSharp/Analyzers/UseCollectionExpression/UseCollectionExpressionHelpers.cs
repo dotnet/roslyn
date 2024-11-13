@@ -29,6 +29,17 @@ internal static class UseCollectionExpressionHelpers
 {
     private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
 
+    /// <summary>
+    /// Set of type-names that are blocked from moving over to collection expressions because the semantics of them are
+    /// known to be specialized, and thus could change semantics in undesirable ways if the compiler emitted its own
+    /// code as an replacement.
+    /// </summary>
+    public static readonly ImmutableHashSet<string?> BannedTypes = [
+        nameof(ParallelEnumerable),
+        nameof(ParallelQuery),
+        // Special internal runtime interface that is optimized for fast path conversions of collections.
+        "IIListProvider"];
+
     private static readonly SymbolEquivalenceComparer s_tupleNamesCanDifferComparer = SymbolEquivalenceComparer.Create(
         // Not relevant.  We are not comparing method signatures.
         distinguishRefFromOut: true,
@@ -941,12 +952,14 @@ internal static class UseCollectionExpressionHelpers
         InvocationExpressionSyntax invocationExpression,
         [NotNullWhen(true)] out MemberAccessExpressionSyntax? memberAccess,
         out bool unwrapArgument,
+        out bool useSpread,
         CancellationToken cancellationToken)
     {
         const string CreateName = nameof(ImmutableArray.Create);
         const string CreateRangeName = nameof(ImmutableArray.CreateRange);
 
         unwrapArgument = false;
+        useSpread = false;
         memberAccess = null;
 
         // Looking for `XXX.Create(...)`
@@ -988,16 +1001,18 @@ internal static class UseCollectionExpressionHelpers
         //  `Create(params T[])` (passing as individual elements, or an array with an initializer)
         //  `Create(ReadOnlySpan<T>)` (passing as a stack-alloc with an initializer)
         //  `Create(IEnumerable<T>)` (passing as something with an initializer.
-        if (!IsCompatibleSignatureAndArguments(createMethod.OriginalDefinition, out unwrapArgument))
+        if (!IsCompatibleSignatureAndArguments(createMethod.OriginalDefinition, out unwrapArgument, out useSpread))
             return false;
 
         return true;
 
         bool IsCompatibleSignatureAndArguments(
             IMethodSymbol originalCreateMethod,
-            out bool unwrapArgument)
+            out bool unwrapArgument,
+            out bool useSpread)
         {
             unwrapArgument = false;
+            useSpread = false;
 
             var arguments = invocationExpression.ArgumentList.Arguments;
 
@@ -1038,6 +1053,14 @@ internal static class UseCollectionExpressionHelpers
                             return false;
 
                         unwrapArgument = true;
+                        return true;
+                    }
+
+                    if (IsIterable(semanticModel, argExpression, cancellationToken))
+                    {
+                        // Convert `ImmutableArray.Create(someEnumerable)` to `[.. someEnumerable]`
+                        unwrapArgument = false;
+                        useSpread = true;
                         return true;
                     }
                 }
@@ -1100,6 +1123,38 @@ internal static class UseCollectionExpressionHelpers
 
             return false;
         }
+    }
+
+    public static bool IsIterable(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+    {
+        var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+        if (type is null or IErrorTypeSymbol)
+            return false;
+
+        if (BannedTypes.Contains(type.Name))
+            return false;
+
+        var compilation = semanticModel.Compilation;
+        return EqualsOrImplements(type, compilation.IEnumerableOfTType()) ||
+            type.Equals(compilation.SpanOfTType()) ||
+            type.Equals(compilation.ReadOnlySpanOfTType());
+    }
+
+    public static bool EqualsOrImplements(ITypeSymbol type, INamedTypeSymbol? interfaceType)
+    {
+        if (interfaceType != null)
+        {
+            if (type.OriginalDefinition.Equals(interfaceType))
+                return true;
+
+            foreach (var baseInterface in type.AllInterfaces)
+            {
+                if (interfaceType.Equals(baseInterface.OriginalDefinition))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     public static bool IsCollectionEmptyAccess(

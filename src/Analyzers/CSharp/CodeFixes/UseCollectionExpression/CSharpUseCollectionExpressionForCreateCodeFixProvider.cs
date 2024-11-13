@@ -40,6 +40,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateCodeFixProvi
         CancellationToken cancellationToken)
     {
         var unwrapArgument = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UnwrapArgument);
+        var useSpread = properties.ContainsKey(CSharpUseCollectionExpressionForCreateDiagnosticAnalyzer.UseSpread);
 
         // We want to replace `XXX.Create(...)` with the new collection expression.  To do this, we go through the
         // following steps.  First, we replace `XXX.Create(a, b, c)` with `new(a, b, c)` (a dummy object creation
@@ -62,7 +63,7 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateCodeFixProvi
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
         dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
         var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
-        var matches = expressions.SelectAsArray(static e => new CollectionMatch<ExpressionSyntax>(e, UseSpread: false));
+        var matches = expressions.SelectAsArray(e => new CollectionMatch<ExpressionSyntax>(e, useSpread));
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
