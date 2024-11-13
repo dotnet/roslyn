@@ -16,8 +16,9 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
     Partial Public MustInherit Class UnifiedSettingsTests
+
         ' Onboarded options in Unified Settings registration file
-        Friend MustOverride ReadOnly Property OnboardedOptions As ImmutableArray(Of IOption2)
+        Friend MustOverride ReadOnly Property OnboardedOptions2 As ImmutableArray(Of (unifiedSettingsPath As String, roslynOption As IOption2))
 
         ' Override this method to if the option use different default value.
         Friend Overridable Function GetOptionsDefaultValue([option] As IOption2) As Object
@@ -38,31 +39,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
                 OrderBy(Function(name) name).
                 ToArray()
 
-            Dim expectedAllSettings = OnboardedOptions.Select(Function(onboardedOption) s_unifiedSettingsStorage(onboardedOption.Definition.ConfigName).GetUnifiedSettingsPath(languageName)).
+            Dim expectedAllSettings = OnboardedOptions2.Select(Function(settingNameToOption) settingNameToOption.unifiedSettingsPath).
                 OrderBy(Function(name) name).
                 ToArray()
+
             Assert.Equal(expectedAllSettings, actualAllSettings)
 
-            For Each onboardedOption In OnboardedOptions
-                Dim optionName = onboardedOption.Definition.ConfigName
-                Dim settingStorage As UnifiedSettingsStorage = Nothing
-                If s_unifiedSettingsStorage.TryGetValue(optionName, settingStorage) Then
-                    Dim unifiedSettingsPath = settingStorage.GetUnifiedSettingsPath(languageName)
-                    VerifyType(registrationJsonObject, unifiedSettingsPath, onboardedOption)
+            For Each settingNameToOption In OnboardedOptions2
+                Dim unifiedSettingsPath = settingNameToOption.unifiedSettingsPath
+                Dim onboardedOption = settingNameToOption.roslynOption
 
-                    Dim expectedDefaultValue = GetOptionsDefaultValue(onboardedOption)
-                    Dim actualDefaultValue = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingsPath}').default")
-                    Assert.Equal(expectedDefaultValue.ToString().ToCamelCase(), actualDefaultValue.ToString().ToCamelCase())
+                VerifyType(registrationJsonObject, unifiedSettingsPath, onboardedOption)
 
-                    If onboardedOption.Type.IsEnum Then
-                        ' Enum settings contains special setup.
-                        VerifyEnum(registrationJsonObject, unifiedSettingsPath, onboardedOption, languageName)
-                    Else
-                        VerifySettings(registrationJsonObject, unifiedSettingsPath, onboardedOption, languageName)
-                    End If
+                Dim expectedDefaultValue = GetOptionsDefaultValue(onboardedOption)
+                Dim actualDefaultValue = registrationJsonObject.SelectToken($"$.properties('{unifiedSettingsPath}').default")
+                Assert.Equal(expectedDefaultValue.ToString().ToCamelCase(), actualDefaultValue.ToString().ToCamelCase())
+
+                If onboardedOption.Type.IsEnum Then
+                    ' Enum settings contains special setup.
+                    VerifyEnum(registrationJsonObject, unifiedSettingsPath, onboardedOption, languageName)
                 Else
-                    ' Can't find the option in the storage dictionary
-                    Throw ExceptionUtilities.UnexpectedValue(optionName)
+                    VerifySettings(registrationJsonObject, unifiedSettingsPath, onboardedOption, languageName)
                 End If
             Next
 

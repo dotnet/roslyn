@@ -21,21 +21,19 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
 {
     public class CSharpIntellisenseUnifiedSettingsTests : UnifiedSettingsTests
     {
-        internal override ImmutableArray<IOption2> OnboardedOptions
-            => [
-            CompletionOptionsStorage.TriggerOnTypingLetters,
-            CompletionOptionsStorage.TriggerOnDeletion,
-            CompletionOptionsStorage.TriggerInArgumentLists,
-            CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems,
-            CompletionViewOptionsStorage.ShowCompletionItemFilters,
-            CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon,
-            CompletionOptionsStorage.SnippetsBehavior,
-            CompletionOptionsStorage.EnterKeyBehavior,
-            CompletionOptionsStorage.ShowNameSuggestions,
-            CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
-            CompletionViewOptionsStorage.EnableArgumentCompletionSnippets,
-            CompletionOptionsStorage.ShowNewSnippetExperienceUserOption,
-        ];
+        internal override ImmutableArray<(string unifiedSettingsPath, IOption2 roslynOption)> OnboardedOptions2
+            => [("textEditor.csharp.intellisense.triggerCompletionOnTypingLetters", CompletionOptionsStorage.TriggerOnTypingLetters),
+                ("textEditor.csharp.intellisense.triggerCompletionOnDeletion", CompletionOptionsStorage.TriggerOnDeletion),
+                ("textEditor.csharp.intellisense.triggerCompletionInArgumentLists", CompletionOptionsStorage.TriggerInArgumentLists),
+                ("textEditor.csharp.intellisense.highlightMatchingPortionsOfCompletionListItems", CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems),
+                ("textEditor.csharp.intellisense.showCompletionItemFilters", CompletionViewOptionsStorage.ShowCompletionItemFilters),
+                ("textEditor.csharp.intellisense.completeStatementOnSemicolon", CompleteStatementOptionsStorage.AutomaticallyCompleteStatementOnSemicolon),
+                ("textEditor.csharp.intellisense.snippetsBehavior", CompletionOptionsStorage.SnippetsBehavior),
+                ("textEditor.csharp.intellisense.returnKeyCompletionBehavior", CompletionOptionsStorage.EnterKeyBehavior),
+                ("textEditor.csharp.intellisense.showNameCompletionSuggestions", CompletionOptionsStorage.ShowNameSuggestions),
+                ("textEditor.csharp.intellisense.showCompletionItemsFromUnimportedNamespaces", CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces),
+                ("textEditor.csharp.intellisense.enableArgumentCompletionSnippets", CompletionViewOptionsStorage.EnableArgumentCompletionSnippets),
+                ("textEditor.csharp.intellisense.showNewSnippetExperience", CompletionOptionsStorage.ShowNewSnippetExperienceUserOption)];
 
         internal override object[] GetEnumOptionValues(IOption2 option)
         {
