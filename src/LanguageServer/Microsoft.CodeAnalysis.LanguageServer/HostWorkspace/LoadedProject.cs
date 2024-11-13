@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -19,6 +20,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// </summary>
 internal sealed class LoadedProject : IDisposable
 {
+    private readonly string _projectFilePath;
+    private readonly string _projectDirectory;
+
     private readonly ProjectSystemProject _projectSystemProject;
     private readonly ProjectSystemProjectOptionsProcessor _optionsProcessor;
     private readonly IFileChangeContext _fileChangeContext;
@@ -28,6 +32,10 @@ internal sealed class LoadedProject : IDisposable
     /// The most recent version of the project design time build information; held onto so the next reload we can diff against this.
     /// </summary>
     private ProjectFileInfo? _mostRecentFileInfo;
+    /// <summary>
+    /// The most recent version of the file glob matcher.  Held onto 
+    /// </summary>
+    private Lazy<ImmutableArray<Matcher>>? _mostRecentFileMatchers;
     private IWatchedFile? _mostRecentProjectAssetsFileWatcher;
     private ImmutableArray<CommandLineReference> _mostRecentMetadataReferences = ImmutableArray<CommandLineReference>.Empty;
     private ImmutableArray<CommandLineAnalyzerReference> _mostRecentAnalyzerReferences = ImmutableArray<CommandLineAnalyzerReference>.Empty;
@@ -35,6 +43,7 @@ internal sealed class LoadedProject : IDisposable
     public LoadedProject(ProjectSystemProject projectSystemProject, SolutionServices solutionServices, IFileChangeWatcher fileWatcher, ProjectTargetFrameworkManager targetFrameworkManager)
     {
         Contract.ThrowIfNull(projectSystemProject.FilePath);
+        _projectFilePath = projectSystemProject.FilePath;
 
         _projectSystemProject = projectSystemProject;
         _optionsProcessor = new ProjectSystemProjectOptionsProcessor(projectSystemProject, solutionServices);
@@ -42,22 +51,49 @@ internal sealed class LoadedProject : IDisposable
 
         // We'll watch the directory for all source file changes
         // TODO: we only should listen for add/removals here, but we can't specify such a filter now
-        var projectDirectory = Path.GetDirectoryName(projectSystemProject.FilePath)!;
+        _projectDirectory = Path.GetDirectoryName(_projectFilePath)!;
 
         _fileChangeContext = fileWatcher.CreateContext([
-            new(projectDirectory, ".cs"),
-            new(projectDirectory, ".cshtml"),
-            new(projectDirectory, ".razor")
+            new(_projectDirectory, ".cs"),
+            new(_projectDirectory, ".cshtml"),
+            new(_projectDirectory, ".razor")
         ]);
         _fileChangeContext.FileChanged += FileChangedContext_FileChanged;
 
         // Start watching for file changes for the project file as well
-        _fileChangeContext.EnqueueWatchingFile(projectSystemProject.FilePath);
+        _fileChangeContext.EnqueueWatchingFile(_projectFilePath);
     }
 
     private void FileChangedContext_FileChanged(object? sender, string filePath)
     {
-        NeedsReload?.Invoke(this, EventArgs.Empty);
+        // If the project file itself changed, we almost certainly need to reload the project.
+        if (string.Equals(filePath, _projectFilePath, StringComparison.OrdinalIgnoreCase))
+        {
+            NeedsReload?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        var matchers = _mostRecentFileMatchers?.Value;
+        if (matchers is null)
+        {
+            return;
+        }
+
+        // Check if the file path matches any of the globs in the project file.
+        foreach (var matcher in matchers)
+        {
+            // CPS re-creates the msbuild globs from the includes/excludes/removes and the project XML directory and
+            // ignores the MSBuildGlob.FixedDirectoryPart.  We'll do the same here and match using the project directory as the relative path.
+            // See https://devdiv.visualstudio.com/DevDiv/_git/CPS?path=/src/Microsoft.VisualStudio.ProjectSystem/Build/MsBuildGlobFactory.cs
+            var relativeDirectory = _projectDirectory;
+
+            var matches = matcher.Match(relativeDirectory, filePath);
+            if (matches.HasMatches)
+            {
+                NeedsReload?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+        }
     }
 
     public event EventHandler? NeedsReload;
@@ -186,6 +222,17 @@ internal sealed class LoadedProject : IDisposable
 
         var needsRestore = ProjectDependencyHelper.NeedsRestore(newProjectInfo, _mostRecentFileInfo, logger);
 
+        _mostRecentFileMatchers = new Lazy<ImmutableArray<Matcher>>(() =>
+        {
+            return newProjectInfo.FileGlobs.Select(glob =>
+            {
+                var matcher = new Matcher();
+                matcher.AddIncludePatterns(glob.Includes);
+                matcher.AddExcludePatterns(glob.Excludes);
+                matcher.AddExcludePatterns(glob.Removes);
+                return matcher;
+            }).ToImmutableArray();
+        });
         _mostRecentFileInfo = newProjectInfo;
 
         Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");

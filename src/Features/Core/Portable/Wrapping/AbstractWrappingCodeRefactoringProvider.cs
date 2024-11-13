@@ -43,7 +43,7 @@ internal abstract class AbstractWrappingCodeRefactoringProvider : CodeRefactorin
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var token = root.FindToken(position);
 
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await document.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         var options = GetWrappingOptions(configOptions);
 
         foreach (var node in token.GetRequiredParent().AncestorsAndSelf())

@@ -3217,7 +3217,7 @@ public interface I1
                     // (4,34): error CS1014: A get or set accessor expected
                     //     static abstract int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 34),
-                    // (4,25): error CS8050: Only auto-implemented properties can have initializers.
+                    // (4,25): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                     //     static abstract int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 25),
                     // (4,25): error CS0548: 'I1.P1': property or indexer must have at least one accessor
@@ -3245,14 +3245,17 @@ public interface I1
                                                      targetFramework: TargetFramework.Net60);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyEmitDiagnostics(
-                    // (4,13): error CS1014: A get, set or init accessor expected
-                    //     int P1 {add; remove;} = 0;
+                    // (4,28): error CS1014: A get or set accessor expected
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 28),
-                    // (4,18): error CS1014: A get, set or init accessor expected
-                    //     int P1 {add; remove;} = 0;
+                    // (4,33): error CS1014: A get or set accessor expected
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 33),
-                    // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
-                    //     int P1 {add; remove;} = 0;
+                    // (4,24): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static virtual int P1 {add; remove;} = 0;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 24),
+                    // (4,24): error CS0548: 'I1.P1': property or indexer must have at least one accessor
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 24)
                     );
 
@@ -3306,7 +3309,7 @@ public interface I1
                                                      targetFramework: TargetFramework.Net60);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyEmitDiagnostics(
-                    // (4,25): error CS8050: Only auto-implemented properties can have initializers.
+                    // (4,25): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                     //     static abstract int P1 {get; set;} = 0;
                     Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 25)
                     );
@@ -3343,7 +3346,7 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_109(bool isStatic)
+        public void PropertyImplementation_109A(bool isStatic, bool useCSharp13)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3366,23 +3369,48 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
-            // we don't want to allow only one accessor to have an implementation.
-            compilation1.VerifyDiagnostics(
-                // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
-                //         set;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P1.set").WithLocation(11, 9)
-                );
+            switch (isStatic, useCSharp13)
+            {
+                case (true, true):
+                    compilation1.VerifyDiagnostics(
+                        // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static virtual int P1 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+                    break;
+                case (true, false):
+                    compilation1.VerifyDiagnostics();
+                    break;
+                case (false, true):
+                    compilation1.VerifyDiagnostics(
+                        // (4,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 9),
+                        // (4,9): error CS0525: Interfaces cannot contain instance fields
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                    break;
+                case (false, false):
+                    // See also earlier LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
+                    // we don't want to allow only one accessor to have an implementation.
+                    compilation1.VerifyDiagnostics(
+                        // (4,9): error CS0525: Interfaces cannot contain instance fields
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                    break;
+            }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
             var getP1 = p1.GetMethod;
             var setP1 = p1.SetMethod;
             Assert.False(p1.IsReadOnly);
             Assert.False(p1.IsWriteOnly);
+
+            var field1 = ((SourcePropertySymbolBase)p1).BackingField;
+            Assert.Equal("System.Int32 I1.<P1>k__BackingField", field1?.ToTestDisplayString());
 
             Assert.False(p1.IsAbstract);
             Assert.True(p1.IsVirtual);
@@ -3403,7 +3431,72 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_110(bool isStatic)
+        public void PropertyImplementation_109B(bool useCSharp13)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get P1"");
+            return 0;
+        }
+        set;
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            if (useCSharp13)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static int P1 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 16));
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics();
+            }
+
+            var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
+            var getP1 = p1.GetMethod;
+            var setP1 = p1.SetMethod;
+            Assert.False(p1.IsReadOnly);
+            Assert.False(p1.IsWriteOnly);
+
+            var field1 = ((SourcePropertySymbolBase)p1).BackingField;
+            Assert.Equal("System.Int32 I1.<P1>k__BackingField", field1?.ToTestDisplayString());
+
+            Assert.False(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(getP1.IsAbstract);
+            Assert.False(getP1.IsVirtual);
+            Assert.False(setP1.IsAbstract);
+            Assert.False(setP1.IsVirtual);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(getP1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(setP1));
+
+            Assert.False(getP1.IsMetadataVirtual());
+            Assert.False(setP1.IsMetadataVirtual());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementation_110A(bool isStatic, bool useCSharp13)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3422,23 +3515,48 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
-            // we don't want to allow only one accessor to have an implementation.
-            compilation1.VerifyDiagnostics(
-                // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
-                //         get;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(6, 9)
-                );
+            switch (isStatic, useCSharp13)
+            {
+                case (true, true):
+                    compilation1.VerifyDiagnostics(
+                        // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static virtual int P1 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+                    break;
+                case (true, false):
+                    compilation1.VerifyDiagnostics();
+                    break;
+                case (false, true):
+                    compilation1.VerifyDiagnostics(
+                        // (4,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 9),
+                        // (4,9): error CS0525: Interfaces cannot contain instance fields
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                    break;
+                case (false, false):
+                    // See also earlier LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
+                    // we don't want to allow only one accessor to have an implementation.
+                    compilation1.VerifyDiagnostics(
+                        // (4,9): error CS0525: Interfaces cannot contain instance fields
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                    break;
+            }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
             var getP1 = p1.GetMethod;
             var setP1 = p1.SetMethod;
             Assert.False(p1.IsReadOnly);
             Assert.False(p1.IsWriteOnly);
+
+            var field1 = ((SourcePropertySymbolBase)p1).BackingField;
+            Assert.Equal("System.Int32 I1.<P1>k__BackingField", field1?.ToTestDisplayString());
 
             Assert.False(p1.IsAbstract);
             Assert.True(p1.IsVirtual);
@@ -3455,6 +3573,67 @@ class Test1 : I1
 
             Assert.True(getP1.IsMetadataVirtual());
             Assert.True(setP1.IsMetadataVirtual());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementation_110B(bool useCSharp13)
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int P1 
+    {
+        get;
+        set => System.Console.WriteLine(""set P1"");
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            if (useCSharp13)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static int P1 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 16));
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics();
+            }
+
+            var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
+            var getP1 = p1.GetMethod;
+            var setP1 = p1.SetMethod;
+            Assert.False(p1.IsReadOnly);
+            Assert.False(p1.IsWriteOnly);
+
+            var field1 = ((SourcePropertySymbolBase)p1).BackingField;
+            Assert.Equal("System.Int32 I1.<P1>k__BackingField", field1?.ToTestDisplayString());
+
+            Assert.False(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(getP1.IsAbstract);
+            Assert.False(getP1.IsVirtual);
+            Assert.False(setP1.IsAbstract);
+            Assert.False(setP1.IsVirtual);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(getP1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(setP1));
+
+            Assert.False(getP1.IsMetadataVirtual());
+            Assert.False(setP1.IsMetadataVirtual());
         }
 
         [Theory]
@@ -56681,7 +56860,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
-                // (9,28): error CS8050: Only auto-implemented properties can have initializers.
+                // (9,28): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     static abstract int I1.P1 { get; set; } = 0;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -56739,7 +56918,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
-                // (9,28): error CS8050: Only auto-implemented properties can have initializers.
+                // (9,28): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     static abstract int I1.P1 { get; } = 0;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -56797,7 +56976,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
-                // (9,28): error CS8050: Only auto-implemented properties can have initializers.
+                // (9,28): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     static abstract int I1.P1 { set; } = 0;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -67575,6 +67754,9 @@ interface IC
                 // (9,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     static ref int PB { get; set;}
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 30),
+                // (14,20): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PC").WithLocation(14, 20),
                 // (14,20): error CS8146: Properties which return by reference must have a get accessor
                 //     static ref int PC { set;}
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithLocation(14, 20)
