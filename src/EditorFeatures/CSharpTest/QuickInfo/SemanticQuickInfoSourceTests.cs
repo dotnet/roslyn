@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security;
 using System.Threading;
@@ -23,15 +24,21 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo;
 
 [Trait(Traits.Feature, Traits.Features.QuickInfo)]
-public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
+public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
 {
-    private static async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
+    private static async Task TestWithOptionsAsync(
+        CSharpParseOptions options,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(markup, options);
         await TestWithOptionsAsync(workspace, expectedResults);
     }
 
-    private static async Task TestWithOptionsAsync(CSharpCompilationOptions options, string markup, params Action<QuickInfoItem>[] expectedResults)
+    private static async Task TestWithOptionsAsync(
+        CSharpCompilationOptions options,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(markup, compilationOptions: options);
         await TestWithOptionsAsync(workspace, expectedResults);
@@ -83,7 +90,9 @@ public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
         }
     }
 
-    private static async Task VerifyWithMscorlib45Async(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private static async Task VerifyWithMscorlib45Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var xmlString = string.Format("""
             <Workspace>
@@ -98,7 +107,9 @@ public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
         await VerifyWithMarkupAsync(xmlString, expectedResults);
     }
 
-    private static async Task VerifyWithNet8Async(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private static async Task VerifyWithNet8Async(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var xmlString = string.Format("""
             <Workspace>
@@ -141,42 +152,56 @@ public class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSourceTests
         }
     }
 
-    protected override async Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+    protected override async Task TestAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         await TestWithOptionsAsync(Options.Regular, markup, expectedResults);
         await TestWithOptionsAsync(Options.Script, markup, expectedResults);
     }
 
-    private async Task TestWithUsingsAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private async Task TestWithUsingsAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var markupWithUsings =
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
-" + markup;
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            """ + markup;
 
         await TestAsync(markupWithUsings, expectedResults);
     }
 
-    private Task TestInClassAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private Task TestInClassAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var markupInClass = "class C { " + markup + " }";
         return TestWithUsingsAsync(markupInClass, expectedResults);
     }
 
-    private Task TestInMethodAsync(string markup, params Action<QuickInfoItem>[] expectedResults)
+    private Task TestInMethodAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var markupInMethod = "class C { void M() { " + markup + " } }";
         return TestWithUsingsAsync(markupInMethod, expectedResults);
     }
 
-    private Task TestInMethodAsync(string markup, string extraSource, params Action<QuickInfoItem>[] expectedResults)
+    private Task TestInMethodAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string extraSource,
+        params Action<QuickInfoItem>[] expectedResults)
     {
         var markupInMethod = "class C { void M() { " + markup + " } }" + extraSource;
         return TestWithUsingsAsync(markupInMethod, expectedResults);
     }
 
-    private static async Task TestWithReferenceAsync(string sourceCode,
+    private static async Task TestWithReferenceAsync(
+        string sourceCode,
         string referencedCode,
         string sourceLanguage,
         string referencedLanguage,
@@ -199,19 +224,20 @@ using System.Linq;
         string referencedLanguage,
         params Action<QuickInfoItem>[] expectedResults)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-        <MetadataReferenceFromSource Language=""{2}"" CommonReferences=""true"" IncludeXmlDocComments=""true"">
-            <Document FilePath=""ReferencedDocument"">
-{3}
-            </Document>
-        </MetadataReferenceFromSource>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode),
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true">
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                    <MetadataReferenceFromSource Language="{2}" CommonReferences="true" IncludeXmlDocComments="true">
+                        <Document FilePath="ReferencedDocument">
+            {3}
+                        </Document>
+                    </MetadataReferenceFromSource>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(sourceCode),
            referencedLanguage, SecurityElement.Escape(referencedCode));
 
         await VerifyWithReferenceWorkerAsync(xmlString, expectedResults);
@@ -224,21 +250,22 @@ using System.Linq;
         string referencedLanguage,
         params Action<QuickInfoItem>[] expectedResults)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <ProjectReference>ReferencedProject</ProjectReference>
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-    </Project>
-    <Project Language=""{2}"" CommonReferences=""true"" AssemblyName=""ReferencedProject"">
-        <Document FilePath=""ReferencedDocument"">
-{3}
-        </Document>
-    </Project>
-    
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode),
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true">
+                    <ProjectReference>ReferencedProject</ProjectReference>
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                </Project>
+                <Project Language="{2}" CommonReferences="true" AssemblyName="ReferencedProject">
+                    <Document FilePath="ReferencedDocument">
+            {3}
+                    </Document>
+                </Project>
+                
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(sourceCode),
            referencedLanguage, SecurityElement.Escape(referencedCode));
 
         await VerifyWithReferenceWorkerAsync(xmlString, expectedResults);
@@ -250,17 +277,18 @@ using System.Linq;
         string sourceLanguage,
         params Action<QuickInfoItem>[] expectedResults)
     {
-        var xmlString = string.Format(@"
-<Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document FilePath=""SourceDocument"">
-{1}
-        </Document>
-        <Document FilePath=""ReferencedDocument"">
-{2}
-        </Document>
-    </Project>
-</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode));
+        var xmlString = string.Format("""
+            <Workspace>
+                <Project Language="{0}" CommonReferences="true">
+                    <Document FilePath="SourceDocument">
+            {1}
+                    </Document>
+                    <Document FilePath="ReferencedDocument">
+            {2}
+                    </Document>
+                </Project>
+            </Workspace>
+            """, sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode));
 
         await VerifyWithReferenceWorkerAsync(xmlString, expectedResults);
     }
@@ -293,7 +321,7 @@ using System.Linq;
         }
     }
 
-    protected async Task TestInvalidTypeInClassAsync(string code)
+    private async Task TestInvalidTypeInClassAsync(string code)
     {
         var codeInClass = "class C { " + code + " }";
         await TestAsync(codeInClass);
@@ -303,7 +331,7 @@ using System.Linq;
     public async Task TestNamespaceInUsingDirective()
     {
         await TestAsync(
-@"using $$System;",
+            @"using $$System;",
             MainDescription("namespace System"));
     }
 
@@ -311,7 +339,7 @@ using System.Linq;
     public async Task TestNamespaceInUsingDirective2()
     {
         await TestAsync(
-@"using System.Coll$$ections.Generic;",
+            @"using System.Coll$$ections.Generic;",
             MainDescription("namespace System.Collections"));
     }
 
@@ -319,7 +347,7 @@ using System.Linq;
     public async Task TestNamespaceInUsingDirective3()
     {
         await TestAsync(
-@"using System.L$$inq;",
+            @"using System.L$$inq;",
             MainDescription("namespace System.Linq"));
     }
 
@@ -327,7 +355,7 @@ using System.Linq;
     public async Task TestNamespaceInUsingDirectiveWithAlias()
     {
         await TestAsync(
-@"using Goo = Sys$$tem.Console;",
+            @"using Goo = Sys$$tem.Console;",
             MainDescription("namespace System"));
     }
 
@@ -335,7 +363,7 @@ using System.Linq;
     public async Task TestTypeInUsingDirectiveWithAlias()
     {
         await TestAsync(
-@"using Goo = System.Con$$sole;",
+            @"using Goo = System.Con$$sole;",
             MainDescription("class System.Console"));
     }
 
@@ -343,9 +371,11 @@ using System.Linq;
     public async Task TestDocumentationInUsingDirectiveWithAlias()
     {
         var markup =
-@"using I$$ = IGoo;
-///<summary>summary for interface IGoo</summary>
-interface IGoo {  }";
+            """
+            using I$$ = IGoo;
+            ///<summary>summary for interface IGoo</summary>
+            interface IGoo {  }
+            """;
 
         await TestAsync(markup,
             MainDescription("interface IGoo"),
@@ -356,10 +386,12 @@ interface IGoo {  }";
     public async Task TestDocumentationInUsingDirectiveWithAlias2()
     {
         var markup =
-@"using I = IGoo;
-///<summary>summary for interface IGoo</summary>
-interface IGoo {  }
-class C : I$$ { }";
+            """
+            using I = IGoo;
+            ///<summary>summary for interface IGoo</summary>
+            interface IGoo {  }
+            class C : I$$ { }
+            """;
 
         await TestAsync(markup,
             MainDescription("interface IGoo"),
@@ -370,13 +402,15 @@ class C : I$$ { }";
     public async Task TestDocumentationInUsingDirectiveWithAlias3()
     {
         var markup =
-@"using I = IGoo;
-///<summary>summary for interface IGoo</summary>
-interface IGoo 
-{  
-    void Goo();
-}
-class C : I$$ { }";
+            """
+            using I = IGoo;
+            ///<summary>summary for interface IGoo</summary>
+            interface IGoo 
+            {  
+                void Goo();
+            }
+            class C : I$$ { }
+            """;
 
         await TestAsync(markup,
             MainDescription("interface IGoo"),
@@ -387,9 +421,11 @@ class C : I$$ { }";
     public async Task TestThis()
     {
         var markup =
-@"
-///<summary>summary for Class C</summary>
-class C { string M() {  return thi$$s.ToString(); } }";
+            """
+
+            ///<summary>summary for Class C</summary>
+            class C { string M() {  return thi$$s.ToString(); } }
+            """;
 
         await TestWithUsingsAsync(markup,
             MainDescription("class C"),
@@ -400,9 +436,11 @@ class C { string M() {  return thi$$s.ToString(); } }";
     public async Task TestClassWithDocComment()
     {
         var markup =
-@"
-///<summary>Hello!</summary>
-class C { void M() { $$C obj; } }";
+            """
+
+            ///<summary>Hello!</summary>
+            class C { void M() { $$C obj; } }
+            """;
 
         await TestAsync(markup,
             MainDescription("class C"),
@@ -416,60 +454,70 @@ class C { void M() { $$C obj; } }";
 
         // SingleLine doc comment with leading whitespace
         await TestAsync(
-@"///<summary>Hello!</summary>
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            ///<summary>Hello!</summary>
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // SingleLine doc comment with space before opening tag
         await TestAsync(
-@"/// <summary>Hello!</summary>
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            /// <summary>Hello!</summary>
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // SingleLine doc comment with space before opening tag and leading whitespace
         await TestAsync(
-@"/// <summary>Hello!</summary>
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            /// <summary>Hello!</summary>
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // SingleLine doc comment with leading whitespace and blank line
         await TestAsync(
-@"///<summary>Hello!
-///</summary>
+            """
+            ///<summary>Hello!
+            ///</summary>
 
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // SingleLine doc comment with '\r' line separators
-        await TestAsync("///<summary>Hello!\r///</summary>\rclass C { void M() { $$C obj; } }",
+        await TestAsync("""
+            ///<summary>Hello!            ///</summary>            class C { void M() { $$C obj; } }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
     }
@@ -481,97 +529,111 @@ class C
 
         // Multiline doc comment with leading whitespace
         await TestAsync(
-@"/**<summary>Hello!</summary>*/
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            /**<summary>Hello!</summary>*/
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // Multiline doc comment with space before opening tag
         await TestAsync(
-@"/** <summary>Hello!</summary>
- **/
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            /** <summary>Hello!</summary>
+             **/
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // Multiline doc comment with space before opening tag and leading whitespace
         await TestAsync(
-@"/**
- ** <summary>Hello!</summary>
- **/
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            /**
+             ** <summary>Hello!</summary>
+             **/
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // Multiline doc comment with no per-line prefix
         await TestAsync(
-@"/**
-  <summary>
-  Hello!
-  </summary>
-*/
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            /**
+              <summary>
+              Hello!
+              </summary>
+            */
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // Multiline doc comment with inconsistent per-line prefix
         await TestAsync(
-@"/**
- ** <summary>
-    Hello!</summary>
- **
- **/
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            /**
+             ** <summary>
+                Hello!</summary>
+             **
+             **/
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // Multiline doc comment with closing comment on final line
         await TestAsync(
-@"/**
-<summary>Hello!
-</summary>*/
-class C
-{
-    void M()
-    {
-        $$C obj;
-    }
-}",
+            """
+            /**
+            <summary>Hello!
+            </summary>*/
+            class C
+            {
+                void M()
+                {
+                    $$C obj;
+                }
+            }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
 
         // Multiline doc comment with '\r' line separators
-        await TestAsync("/**\r* <summary>\r* Hello!\r* </summary>\r*/\rclass C { void M() { $$C obj; } }",
+        await TestAsync("""
+            /**            * <summary>            * Hello!            * </summary>            */            class C { void M() { $$C obj; } }
+            """,
             MainDescription("class C"),
             Documentation("Hello!"));
     }
@@ -580,9 +642,11 @@ class C
     public async Task TestMethodWithDocComment()
     {
         var markup =
-@"
-///<summary>Hello!</summary>
-void M() { M$$() }";
+            """
+
+            ///<summary>Hello!</summary>
+            void M() { M$$() }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("void C.M()"),
@@ -593,7 +657,7 @@ void M() { M$$() }";
     public async Task TestInt32()
     {
         await TestInClassAsync(
-@"$$Int32 i;",
+            @"$$Int32 i;",
             MainDescription("struct System.Int32"));
     }
 
@@ -601,7 +665,7 @@ void M() { M$$() }";
     public async Task TestBuiltInInt()
     {
         await TestInClassAsync(
-@"$$int i;",
+            @"$$int i;",
             MainDescription("struct System.Int32"));
     }
 
@@ -609,7 +673,7 @@ void M() { M$$() }";
     public async Task TestString()
     {
         await TestInClassAsync(
-@"$$String s;",
+            @"$$String s;",
             MainDescription("class System.String"));
     }
 
@@ -617,7 +681,7 @@ void M() { M$$() }";
     public async Task TestBuiltInString()
     {
         await TestInClassAsync(
-@"$$string s;",
+            @"$$string s;",
             MainDescription("class System.String"));
     }
 
@@ -625,7 +689,7 @@ void M() { M$$() }";
     public async Task TestBuiltInStringAtEndOfToken()
     {
         await TestInClassAsync(
-@"string$$ s;",
+            @"string$$ s;",
             MainDescription("class System.String"));
     }
 
@@ -633,7 +697,7 @@ void M() { M$$() }";
     public async Task TestBoolean()
     {
         await TestInClassAsync(
-@"$$Boolean b;",
+            @"$$Boolean b;",
             MainDescription("struct System.Boolean"));
     }
 
@@ -641,7 +705,7 @@ void M() { M$$() }";
     public async Task TestBuiltInBool()
     {
         await TestInClassAsync(
-@"$$bool b;",
+            @"$$bool b;",
             MainDescription("struct System.Boolean"));
     }
 
@@ -649,7 +713,7 @@ void M() { M$$() }";
     public async Task TestSingle()
     {
         await TestInClassAsync(
-@"$$Single s;",
+            @"$$Single s;",
             MainDescription("struct System.Single"));
     }
 
@@ -657,7 +721,7 @@ void M() { M$$() }";
     public async Task TestBuiltInFloat()
     {
         await TestInClassAsync(
-@"$$float f;",
+            @"$$float f;",
             MainDescription("struct System.Single"));
     }
 
@@ -665,63 +729,75 @@ void M() { M$$() }";
     public async Task TestVoidIsInvalid()
     {
         await TestInvalidTypeInClassAsync(
-@"$$void M()
-{
-}");
+            """
+            $$void M()
+            {
+            }
+            """);
     }
 
     [Fact]
     public async Task TestInvalidPointer1_931958()
     {
         await TestInvalidTypeInClassAsync(
-@"$$T* i;");
+            @"$$T* i;");
     }
 
     [Fact]
     public async Task TestInvalidPointer2_931958()
     {
         await TestInvalidTypeInClassAsync(
-@"T$$* i;");
+            @"T$$* i;");
     }
 
     [Fact]
     public async Task TestInvalidPointer3_931958()
     {
         await TestInvalidTypeInClassAsync(
-@"T*$$ i;");
+            @"T*$$ i;");
     }
 
     [Fact]
     public async Task TestListOfString()
     {
         await TestInClassAsync(
-@"$$List<string> l;",
+            @"$$List<string> l;",
             MainDescription("class System.Collections.Generic.List<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} string"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} string
+                """));
     }
 
     [Fact]
     public async Task TestListOfSomethingFromSource()
     {
         var markup =
-@"
-///<summary>Generic List</summary>
-public class GenericList<T> { Generic$$List<int> t; }";
+            """
+
+            ///<summary>Generic List</summary>
+            public class GenericList<T> { Generic$$List<int> t; }
+            """;
 
         await TestAsync(markup,
             MainDescription("class GenericList<T>"),
             Documentation("Generic List"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} int"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} int
+                """));
     }
 
     [Fact]
     public async Task TestListOfT()
     {
         await TestInMethodAsync(
-@"class C<T>
-{
-    $$List<T> l;
-}",
+            """
+            class C<T>
+            {
+                $$List<T> l;
+            }
+            """,
             MainDescription("class System.Collections.Generic.List<T>"));
     }
 
@@ -729,10 +805,13 @@ public class GenericList<T> { Generic$$List<int> t; }";
     public async Task TestDictionaryOfIntAndString()
     {
         await TestInClassAsync(
-@"$$Dictionary<int, string> d;",
+            @"$$Dictionary<int, string> d;",
             MainDescription("class System.Collections.Generic.Dictionary<TKey, TValue>"),
             TypeParameterMap(
-                Lines($"\r\nTKey {FeaturesResources.is_} int",
+                Lines($"""
+
+                    TKey {FeaturesResources.is_} int
+                    """,
                       $"TValue {FeaturesResources.is_} string")));
     }
 
@@ -740,13 +819,18 @@ public class GenericList<T> { Generic$$List<int> t; }";
     public async Task TestDictionaryOfTAndU()
     {
         await TestInMethodAsync(
-@"class C<T, U>
-{
-    $$Dictionary<T, U> d;
-}",
+            """
+            class C<T, U>
+            {
+                $$Dictionary<T, U> d;
+            }
+            """,
             MainDescription("class System.Collections.Generic.Dictionary<TKey, TValue>"),
             TypeParameterMap(
-                Lines($"\r\nTKey {FeaturesResources.is_} T",
+                Lines($"""
+
+                    TKey {FeaturesResources.is_} T
+                    """,
                       $"TValue {FeaturesResources.is_} U")));
     }
 
@@ -754,19 +838,24 @@ public class GenericList<T> { Generic$$List<int> t; }";
     public async Task TestIEnumerableOfInt()
     {
         await TestInClassAsync(
-@"$$IEnumerable<int> M()
-{
-    yield break;
-}",
+            """
+            $$IEnumerable<int> M()
+            {
+                yield break;
+            }
+            """,
             MainDescription("interface System.Collections.Generic.IEnumerable<out T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} int"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} int
+                """));
     }
 
     [Fact]
     public async Task TestEventHandler()
     {
         await TestInClassAsync(
-@"event $$EventHandler e;",
+            @"event $$EventHandler e;",
             MainDescription("delegate void System.EventHandler(object sender, System.EventArgs e)"));
     }
 
@@ -774,10 +863,12 @@ public class GenericList<T> { Generic$$List<int> t; }";
     public async Task TestTypeParameter()
     {
         await TestAsync(
-@"class C<T>
-{
-    $$T t;
-}",
+            """
+            class C<T>
+            {
+                $$T t;
+            }
+            """,
             MainDescription($"T {FeaturesResources.in_} C<T>"));
     }
 
@@ -785,10 +876,12 @@ public class GenericList<T> { Generic$$List<int> t; }";
     public async Task TestTypeParameterWithDocComment()
     {
         var markup =
-@"
-///<summary>Hello!</summary>
-///<typeparam name=""T"">T is Type Parameter</typeparam>
-class C<T> { $$T t; }";
+            """
+
+            ///<summary>Hello!</summary>
+            ///<typeparam name="T">T is Type Parameter</typeparam>
+            class C<T> { $$T t; }
+            """;
 
         await TestAsync(markup,
             MainDescription($"T {FeaturesResources.in_} C<T>"),
@@ -799,10 +892,12 @@ class C<T> { $$T t; }";
     public async Task TestTypeParameter1_Bug931949()
     {
         await TestAsync(
-@"class T1<T11>
-{
-    $$T11 t;
-}",
+            """
+            class T1<T11>
+            {
+                $$T11 t;
+            }
+            """,
             MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
     }
 
@@ -810,10 +905,12 @@ class C<T> { $$T t; }";
     public async Task TestTypeParameter2_Bug931949()
     {
         await TestAsync(
-@"class T1<T11>
-{
-    T$$11 t;
-}",
+            """
+            class T1<T11>
+            {
+                T$$11 t;
+            }
+            """,
             MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
     }
 
@@ -821,10 +918,12 @@ class C<T> { $$T t; }";
     public async Task TestTypeParameter3_Bug931949()
     {
         await TestAsync(
-@"class T1<T11>
-{
-    T1$$1 t;
-}",
+            """
+            class T1<T11>
+            {
+                T1$$1 t;
+            }
+            """,
             MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
     }
 
@@ -832,10 +931,12 @@ class C<T> { $$T t; }";
     public async Task TestTypeParameter4_Bug931949()
     {
         await TestAsync(
-@"class T1<T11>
-{
-    T11$$ t;
-}",
+            """
+            class T1<T11>
+            {
+                T11$$ t;
+            }
+            """,
             MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
     }
 
@@ -844,20 +945,25 @@ class C<T> { $$T t; }";
     {
         await TestInClassAsync(@"$$Nullable<int> i; }",
             MainDescription("struct System.Nullable<T> where T : struct"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} int"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} int
+                """));
     }
 
     [Fact]
     public async Task TestGenericTypeDeclaredOnMethod1_Bug1946()
     {
         await TestAsync(
-@"class C
-{
-    static void Meth1<T1>($$T1 i) where T1 : struct
-    {
-        T1 i;
-    }
-}",
+            """
+            class C
+            {
+                static void Meth1<T1>($$T1 i) where T1 : struct
+                {
+                    T1 i;
+                }
+            }
+            """,
             MainDescription($"T1 {FeaturesResources.in_} C.Meth1<T1> where T1 : struct"));
     }
 
@@ -865,13 +971,15 @@ class C<T> { $$T t; }";
     public async Task TestGenericTypeDeclaredOnMethod2_Bug1946()
     {
         await TestAsync(
-@"class C
-{
-    static void Meth1<T1>(T1 i) where $$T1 : struct
-    {
-        T1 i;
-    }
-}",
+            """
+            class C
+            {
+                static void Meth1<T1>(T1 i) where $$T1 : struct
+                {
+                    T1 i;
+                }
+            }
+            """,
             MainDescription($"T1 {FeaturesResources.in_} C.Meth1<T1> where T1 : struct"));
     }
 
@@ -879,13 +987,15 @@ class C<T> { $$T t; }";
     public async Task TestGenericTypeDeclaredOnMethod3_Bug1946()
     {
         await TestAsync(
-@"class C
-{
-    static void Meth1<T1>(T1 i) where T1 : struct
-    {
-        $$T1 i;
-    }
-}",
+            """
+            class C
+            {
+                static void Meth1<T1>(T1 i) where T1 : struct
+                {
+                    $$T1 i;
+                }
+            }
+            """,
             MainDescription($"T1 {FeaturesResources.in_} C.Meth1<T1> where T1 : struct"));
     }
 
@@ -893,9 +1003,11 @@ class C<T> { $$T t; }";
     public async Task TestGenericTypeParameterConstraint_Class()
     {
         await TestAsync(
-@"class C<T> where $$T : class
-{
-}",
+            """
+            class C<T> where $$T : class
+            {
+            }
+            """,
             MainDescription($"T {FeaturesResources.in_} C<T> where T : class"));
     }
 
@@ -903,9 +1015,11 @@ class C<T> { $$T t; }";
     public async Task TestGenericTypeParameterConstraint_Struct()
     {
         await TestAsync(
-@"struct S<T> where $$T : class
-{
-}",
+            """
+            struct S<T> where $$T : class
+            {
+            }
+            """,
             MainDescription($"T {FeaturesResources.in_} S<T> where T : class"));
     }
 
@@ -913,9 +1027,11 @@ class C<T> { $$T t; }";
     public async Task TestGenericTypeParameterConstraint_Interface()
     {
         await TestAsync(
-@"interface I<T> where $$T : class
-{
-}",
+            """
+            interface I<T> where $$T : class
+            {
+            }
+            """,
             MainDescription($"T {FeaturesResources.in_} I<T> where T : class"));
     }
 
@@ -923,7 +1039,7 @@ class C<T> { $$T t; }";
     public async Task TestGenericTypeParameterConstraint_Delegate()
     {
         await TestAsync(
-@"delegate void D<T>() where $$T : class;",
+            @"delegate void D<T>() where $$T : class;",
             MainDescription($"T {FeaturesResources.in_} D<T> where T : class"));
     }
 
@@ -945,13 +1061,15 @@ class C<T> { $$T t; }";
     public async Task TestMethodReferenceInSameMethod()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        M$$();
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    M$$();
+                }
+            }
+            """,
             MainDescription("void C.M()"));
     }
 
@@ -959,9 +1077,11 @@ class C<T> { $$T t; }";
     public async Task TestMethodReferenceInSameMethodWithDocComment()
     {
         var markup =
-@"
-///<summary>Hello World</summary>
-void M() { M$$(); }";
+            """
+
+            ///<summary>Hello World</summary>
+            void M() { M$$(); }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("void C.M()"),
@@ -972,12 +1092,14 @@ void M() { M$$(); }";
     public async Task TestFieldInMethodBuiltIn()
     {
         var markup =
-@"int field;
+            """
+            int field;
 
-void M()
-{
-    field$$
-}";
+            void M()
+            {
+                field$$
+            }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription($"({FeaturesResources.field}) int C.field"));
@@ -987,12 +1109,14 @@ void M()
     public async Task TestFieldInMethodBuiltIn2()
     {
         await TestInClassAsync(
-@"int field;
+            """
+            int field;
 
-void M()
-{
-    int f = field$$;
-}",
+            void M()
+            {
+                int f = field$$;
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) int C.field"));
     }
 
@@ -1000,21 +1124,25 @@ void M()
     public async Task TestFieldInMethodBuiltInWithFieldInitializer()
     {
         await TestInClassAsync(
-@"int field = 1;
+            """
+            int field = 1;
 
-void M()
-{
-    int f = field $$;
-}");
+            void M()
+            {
+                int f = field $$;
+            }
+            """);
     }
 
     [Fact]
     public async Task TestOperatorBuiltIn()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = x$$+1;",
+            x = x$$+1;
+            """,
             MainDescription("int int.operator +(int left, int right)"));
     }
 
@@ -1022,9 +1150,11 @@ x = x$$+1;",
     public async Task TestOperatorBuiltIn1()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = x$$ + 1;",
+            x = x$$ + 1;
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int x"));
     }
 
@@ -1032,9 +1162,11 @@ x = x$$ + 1;",
     public async Task TestOperatorBuiltIn2()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = x+$$x;",
+            x = x+$$x;
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int x"));
     }
 
@@ -1042,9 +1174,11 @@ x = x+$$x;",
     public async Task TestOperatorBuiltIn3()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = x +$$ x;",
+            x = x +$$ x;
+            """,
             MainDescription("int int.operator +(int left, int right)"));
     }
 
@@ -1052,9 +1186,11 @@ x = x +$$ x;",
     public async Task TestOperatorBuiltIn4()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = x + $$x;",
+            x = x + $$x;
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int x"));
     }
 
@@ -1062,9 +1198,11 @@ x = x + $$x;",
     public async Task TestOperatorBuiltIn5()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = unchecked (x$$+1);",
+            x = unchecked (x$$+1);
+            """,
             MainDescription("int int.operator +(int left, int right)"));
     }
 
@@ -1072,9 +1210,11 @@ x = unchecked (x$$+1);",
     public async Task TestOperatorBuiltIn6()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = checked (x$$+1);",
+            x = checked (x$$+1);
+            """,
             MainDescription("int int.operator checked +(int left, int right)"));
     }
 
@@ -1082,9 +1222,11 @@ x = checked (x$$+1);",
     public async Task TestOperatorBuiltIn7()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = unchecked (x +$$ x);",
+            x = unchecked (x +$$ x);
+            """,
             MainDescription("int int.operator +(int left, int right)"));
     }
 
@@ -1092,9 +1234,11 @@ x = unchecked (x +$$ x);",
     public async Task TestOperatorBuiltIn8()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = checked (x +$$ x);",
+            x = checked (x +$$ x);
+            """,
             MainDescription("int int.operator checked +(int left, int right)"));
     }
 
@@ -1102,9 +1246,11 @@ x = checked (x +$$ x);",
     public async Task TestOperatorBuiltIn9()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = $$-x;",
+            x = $$-x;
+            """,
             MainDescription("int int.operator -(int value)"));
     }
 
@@ -1112,9 +1258,11 @@ x = $$-x;",
     public async Task TestOperatorBuiltIn10()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = unchecked ($$-x);",
+            x = unchecked ($$-x);
+            """,
             MainDescription("int int.operator -(int value)"));
     }
 
@@ -1122,9 +1270,11 @@ x = unchecked ($$-x);",
     public async Task TestOperatorBuiltIn11()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = checked ($$-x);",
+            x = checked ($$-x);
+            """,
             MainDescription("int int.operator checked -(int value)"));
     }
 
@@ -1132,9 +1282,11 @@ x = checked ($$-x);",
     public async Task TestOperatorBuiltIn12()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x = x >>>$$ x;",
+            x = x >>>$$ x;
+            """,
             MainDescription("int int.operator >>>(int left, int right)"));
     }
 
@@ -1142,9 +1294,11 @@ x = x >>>$$ x;",
     public async Task TestOperatorBuiltIn13()
     {
         await TestInMethodAsync(
-@"int x;
+            """
+            int x;
 
-x >>>=$$ x;",
+            x >>>=$$ x;
+            """,
             MainDescription("int int.operator >>>(int left, int right)"));
     }
 
@@ -1152,10 +1306,12 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeBuiltIn_01()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c = c +$$ c; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c = c +$$ c; }
+            }
+            """;
 
         await TestAsync(markup);
     }
@@ -1164,10 +1320,12 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeBuiltIn_02()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c = c >>>$$ c; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c = c >>>$$ c; }
+            }
+            """;
 
         await TestAsync(markup);
     }
@@ -1176,11 +1334,13 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_01()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c = c +$$ c; }
-    static C operator+(C a, C b) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c = c +$$ c; }
+                static C operator+(C a, C b) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator +(C a, C b)"));
@@ -1190,11 +1350,13 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_02()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c = unchecked (c +$$ c); }
-    static C operator+(C a, C b) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c = unchecked (c +$$ c); }
+                static C operator+(C a, C b) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator +(C a, C b)"));
@@ -1204,12 +1366,14 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_03()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c = unchecked (c +$$ c); }
-    static C operator+(C a, C b) { return a; }
-    static C operator checked +(C a, C b) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c = unchecked (c +$$ c); }
+                static C operator+(C a, C b) { return a; }
+                static C operator checked +(C a, C b) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator +(C a, C b)"));
@@ -1219,12 +1383,14 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_04()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c = checked (c +$$ c); }
-    static C operator+(C a, C b) { return a; }
-    static C operator checked +(C a, C b) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c = checked (c +$$ c); }
+                static C operator+(C a, C b) { return a; }
+                static C operator checked +(C a, C b) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator checked +(C a, C b)"));
@@ -1234,11 +1400,13 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_05()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c =  $$-c; }
-    static C operator-(C a) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c =  $$-c; }
+                static C operator-(C a) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator -(C a)"));
@@ -1248,11 +1416,13 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_06()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c =  unchecked ($$-c); }
-    static C operator-(C a) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c =  unchecked ($$-c); }
+                static C operator-(C a) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator -(C a)"));
@@ -1262,12 +1432,14 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_07()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c =  unchecked ($$-c); }
-    static C operator-(C a) { return a; }
-    static C operator checked -(C a) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c =  unchecked ($$-c); }
+                static C operator-(C a) { return a; }
+                static C operator checked -(C a) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator -(C a)"));
@@ -1277,12 +1449,14 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_08()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c =  checked ($$-c); }
-    static C operator-(C a) { return a; }
-    static C operator checked -(C a) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c =  checked ($$-c); }
+                static C operator-(C a) { return a; }
+                static C operator checked -(C a) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator checked -(C a)"));
@@ -1292,11 +1466,13 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_09()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c = c >>>$$ c; }
-    static C operator>>>(C a, C b) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c = c >>>$$ c; }
+                static C operator>>>(C a, C b) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator >>>(C a, C b)"));
@@ -1306,11 +1482,13 @@ x >>>=$$ x;",
     public async Task TestOperatorCustomTypeOverload_10()
     {
         var markup =
-@"class C
-{
-    static void M() { C c; c >>>=$$ c; }
-    static C operator>>>(C a, C b) { return a; }
-}";
+            """
+            class C
+            {
+                static void M() { C c; c >>>=$$ c; }
+                static C operator>>>(C a, C b) { return a; }
+            }
+            """;
 
         await TestAsync(markup,
             MainDescription("C C.operator >>>(C a, C b)"));
@@ -1320,12 +1498,14 @@ x >>>=$$ x;",
     public async Task TestFieldInMethodMinimal()
     {
         var markup =
-@"DateTime field;
+            """
+            DateTime field;
 
-void M()
-{
-    field$$
-}";
+            void M()
+            {
+                field$$
+            }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription($"({FeaturesResources.field}) DateTime C.field"));
@@ -1335,12 +1515,14 @@ void M()
     public async Task TestFieldInMethodQualified()
     {
         var markup =
-@"System.IO.FileInfo file;
+            """
+            System.IO.FileInfo file;
 
-void M()
-{
-    file$$
-}";
+            void M()
+            {
+                file$$
+            }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription($"({FeaturesResources.field}) System.IO.FileInfo C.file"));
@@ -1350,9 +1532,11 @@ void M()
     public async Task TestMemberOfStructFromSource()
     {
         var markup =
-@"struct MyStruct {
-public static int SomeField; }
-static class Test { int a = MyStruct.Some$$Field; }";
+            """
+            struct MyStruct {
+            public static int SomeField; }
+            static class Test { int a = MyStruct.Some$$Field; }
+            """;
 
         await TestAsync(markup,
             MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
@@ -1362,10 +1546,12 @@ static class Test { int a = MyStruct.Some$$Field; }";
     public async Task TestMemberOfStructFromSourceWithDocComment()
     {
         var markup =
-@"struct MyStruct {
-///<summary>My Field</summary>
-public static int SomeField; }
-static class Test { int a = MyStruct.Some$$Field; }";
+            """
+            struct MyStruct {
+            ///<summary>My Field</summary>
+            public static int SomeField; }
+            static class Test { int a = MyStruct.Some$$Field; }
+            """;
 
         await TestAsync(markup,
             MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"),
@@ -1376,9 +1562,11 @@ static class Test { int a = MyStruct.Some$$Field; }";
     public async Task TestMemberOfStructInsideMethodFromSource()
     {
         var markup =
-@"struct MyStruct {
-public static int SomeField; }
-static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
+            """
+            struct MyStruct {
+            public static int SomeField; }
+            static class Test { static void Method() { int a = MyStruct.Some$$Field; } }
+            """;
 
         await TestAsync(markup,
             MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"));
@@ -1388,10 +1576,12 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
     public async Task TestMemberOfStructInsideMethodFromSourceWithDocComment()
     {
         var markup =
-@"struct MyStruct {
-///<summary>My Field</summary>
-public static int SomeField; }
-static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
+            """
+            struct MyStruct {
+            ///<summary>My Field</summary>
+            public static int SomeField; }
+            static class Test { static void Method() { int a = MyStruct.Some$$Field; } }
+            """;
 
         await TestAsync(markup,
             MainDescription($"({FeaturesResources.field}) static int MyStruct.SomeField"),
@@ -1402,17 +1592,19 @@ static class Test { static void Method() { int a = MyStruct.Some$$Field; } }";
     public async Task TestPartialMethodDocComment_01()
     {
         var markup =
-@"partial class MyClass
-{
-    ///<summary>My Method Definition</summary>
-    public partial void MyMethod();
+            """
+            partial class MyClass
+            {
+                ///<summary>My Method Definition</summary>
+                public partial void MyMethod();
 
-    ///<summary>My Method Implementation</summary>
-    public partial void MyMethod()
-    {
-    }
-}
-static class Test { static void Method() { MyClass.My$$Method(); } }";
+                ///<summary>My Method Implementation</summary>
+                public partial void MyMethod()
+                {
+                }
+            }
+            static class Test { static void Method() { MyClass.My$$Method(); } }
+            """;
 
         await TestAsync(markup,
             MainDescription($"void MyClass.MyMethod()"),
@@ -1423,16 +1615,18 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
     public async Task TestPartialMethodDocComment_02()
     {
         var markup =
-@"partial class MyClass
-{
-    ///<summary>My Method Definition</summary>
-    public partial void MyMethod();
+            """
+            partial class MyClass
+            {
+                ///<summary>My Method Definition</summary>
+                public partial void MyMethod();
 
-    public partial void MyMethod()
-    {
-    }
-}
-static class Test { static void Method() { MyClass.My$$Method(); } }";
+                public partial void MyMethod()
+                {
+                }
+            }
+            static class Test { static void Method() { MyClass.My$$Method(); } }
+            """;
 
         await TestAsync(markup,
             MainDescription($"void MyClass.MyMethod()"),
@@ -1443,16 +1637,18 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
     public async Task TestPartialMethodDocComment_03()
     {
         var markup =
-@"partial class MyClass
-{
-    public partial void MyMethod();
+            """
+            partial class MyClass
+            {
+                public partial void MyMethod();
 
-    ///<summary>My Method Implementation</summary>
-    public partial void MyMethod()
-    {
-    }
-}
-static class Test { static void Method() { MyClass.My$$Method(); } }";
+                ///<summary>My Method Implementation</summary>
+                public partial void MyMethod()
+                {
+                }
+            }
+            static class Test { static void Method() { MyClass.My$$Method(); } }
+            """;
 
         await TestAsync(markup,
             MainDescription($"void MyClass.MyMethod()"),
@@ -1463,12 +1659,14 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
     public async Task TestPartialMethodDocComment_04()
     {
         var markup =
-@"partial class MyClass
-{
-    ///<summary>My Method Definition</summary>
-    public partial void MyMethod();
-}
-static class Test { static void Method() { MyClass.My$$Method(); } }";
+            """
+            partial class MyClass
+            {
+                ///<summary>My Method Definition</summary>
+                public partial void MyMethod();
+            }
+            static class Test { static void Method() { MyClass.My$$Method(); } }
+            """;
 
         await TestAsync(markup,
             MainDescription($"void MyClass.MyMethod()"),
@@ -1479,12 +1677,14 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
     public async Task TestPartialMethodDocComment_05()
     {
         var markup =
-@"partial class MyClass
-{
-    ///<summary>My Method Implementation</summary>
-    public partial void MyMethod() { }
-}
-static class Test { static void Method() { MyClass.My$$Method(); } }";
+            """
+            partial class MyClass
+            {
+                ///<summary>My Method Implementation</summary>
+                public partial void MyMethod() { }
+            }
+            static class Test { static void Method() { MyClass.My$$Method(); } }
+            """;
 
         await TestAsync(markup,
             MainDescription($"void MyClass.MyMethod()"),
@@ -1495,14 +1695,16 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
     public async Task TestPartialMethodDocComment_06()
     {
         var markup =
-@"partial class MyClass
-{
-    ///<summary>My Method Definition</summary>
-    partial void MyMethod();
+            """
+            partial class MyClass
+            {
+                ///<summary>My Method Definition</summary>
+                partial void MyMethod();
 
-    partial void MyMethod() { }
-}
-static class Test { static void Method() { MyClass.My$$Method(); } }";
+                partial void MyMethod() { }
+            }
+            static class Test { static void Method() { MyClass.My$$Method(); } }
+            """;
 
         await TestAsync(markup,
             MainDescription($"void MyClass.MyMethod()"),
@@ -1521,12 +1723,14 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
     {
         // NOTE: we qualify the field type, but not the type that contains the field in Dev10
         var markup =
-@"class C {
-    void M()
-    {
-        DateTime dt = System.DateTime.MaxValue$$
-    }
-}";
+            """
+            class C {
+                void M()
+                {
+                    DateTime dt = System.DateTime.MaxValue$$
+                }
+            }
+            """;
         await TestAsync(markup,
             MainDescription($"({FeaturesResources.field}) static readonly System.DateTime System.DateTime.MaxValue"));
     }
@@ -1535,13 +1739,15 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
     public async Task TestMetadataFieldQualified2()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        DateTime dt = System.DateTime.MaxValue$$
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    DateTime dt = System.DateTime.MaxValue$$
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) static readonly System.DateTime System.DateTime.MaxValue"));
     }
 
@@ -1549,15 +1755,17 @@ static class Test { static void Method() { MyClass.My$$Method(); } }";
     public async Task TestMetadataFieldQualified3()
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-class C
-{
-    void M()
-    {
-        DateTime dt = System.DateTime.MaxValue$$
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    DateTime dt = System.DateTime.MaxValue$$
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) static readonly DateTime DateTime.MaxValue"));
     }
 
@@ -1565,18 +1773,20 @@ class C
     public async Task ConstructedGenericField()
     {
         await TestAsync(
-@"class C<T>
-{
-    public T Field;
-}
+            """
+            class C<T>
+            {
+                public T Field;
+            }
 
-class D
-{
-    void M()
-    {
-        new C<int>().Fi$$eld.ToString();
-    }
-}",
+            class D
+            {
+                void M()
+                {
+                    new C<int>().Fi$$eld.ToString();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) int C<int>.Field"));
     }
 
@@ -1584,15 +1794,17 @@ class D
     public async Task UnconstructedGenericField()
     {
         await TestAsync(
-@"class C<T>
-{
-    public T Field;
+            """
+            class C<T>
+            {
+                public T Field;
 
-    void M()
-    {
-        Fi$$eld.ToString();
-    }
-}",
+                void M()
+                {
+                    Fi$$eld.ToString();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) T C<T>.Field"));
     }
 
@@ -1638,185 +1850,209 @@ class D
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
     public async Task TestAwaitKeywordOnGenericTaskReturningAsync()
     {
-        var markup = @"using System.Threading.Tasks;
-class C
-{
-    public async Task<int> Calc()
-    {
-        aw$$ait Calc();
-        return 5;
-    }
-}";
+        var markup = """
+            using System.Threading.Tasks;
+            class C
+            {
+                public async Task<int> Calc()
+                {
+                    aw$$ait Calc();
+                    return 5;
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
     public async Task TestAwaitKeywordInDeclarationStatement()
     {
-        var markup = @"using System.Threading.Tasks;
-class C
-{
-    public async Task<int> Calc()
-    {
-        var x = $$await Calc();
-        return 5;
-    }
-}";
+        var markup = """
+            using System.Threading.Tasks;
+            class C
+            {
+                public async Task<int> Calc()
+                {
+                    var x = $$await Calc();
+                    return 5;
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
     public async Task TestAwaitKeywordOnTaskReturningAsync()
     {
-        var markup = @"using System.Threading.Tasks;
-class C
-{
-    public async void Calc()
-    {
-        aw$$ait Task.Delay(100);
-    }
-}";
+        var markup = """
+            using System.Threading.Tasks;
+            class C
+            {
+                public async void Calc()
+                {
+                    aw$$ait Task.Delay(100);
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription(FeaturesResources.Awaited_task_returns_no_value));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
     public async Task TestNestedAwaitKeywords1()
     {
-        var markup = @"using System;
-using System.Threading.Tasks;
-class AsyncExample2
-{
-    async Task<Task<int>> AsyncMethod()
-    {
-        return NewMethod();
-    }
+        var markup = """
+            using System;
+            using System.Threading.Tasks;
+            class AsyncExample2
+            {
+                async Task<Task<int>> AsyncMethod()
+                {
+                    return NewMethod();
+                }
 
-    private static Task<int> NewMethod()
-    {
-        int hours = 24;
-        return hours;
-    }
+                private static Task<int> NewMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
 
-    async Task UseAsync()
-    {
-        Func<Task<int>> lambda = async () =>
-        {
-            return await await AsyncMethod();
-        };
+                async Task UseAsync()
+                {
+                    Func<Task<int>> lambda = async () =>
+                    {
+                        return await await AsyncMethod();
+                    };
 
-        int result = await await AsyncMethod();
-        Task<Task<int>> resultTask = AsyncMethod();
-        result = await awa$$it resultTask;
-        result = await lambda();
-    }
-}";
+                    int result = await await AsyncMethod();
+                    Task<Task<int>> resultTask = AsyncMethod();
+                    result = await awa$$it resultTask;
+                    result = await lambda();
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, $"({CSharpFeaturesResources.awaitable}) class System.Threading.Tasks.Task<TResult>")),
-                     TypeParameterMap($"\r\nTResult {FeaturesResources.is_} int"));
+                     TypeParameterMap($"""
+
+                         TResult {FeaturesResources.is_} int
+                         """));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226")]
     public async Task TestNestedAwaitKeywords2()
     {
-        var markup = @"using System;
-using System.Threading.Tasks;
-class AsyncExample2
-{
-    async Task<Task<int>> AsyncMethod()
-    {
-        return NewMethod();
-    }
+        var markup = """
+            using System;
+            using System.Threading.Tasks;
+            class AsyncExample2
+            {
+                async Task<Task<int>> AsyncMethod()
+                {
+                    return NewMethod();
+                }
 
-    private static Task<int> NewMethod()
-    {
-        int hours = 24;
-        return hours;
-    }
+                private static Task<int> NewMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
 
-    async Task UseAsync()
-    {
-        Func<Task<int>> lambda = async () =>
-        {
-            return await await AsyncMethod();
-        };
+                async Task UseAsync()
+                {
+                    Func<Task<int>> lambda = async () =>
+                    {
+                        return await await AsyncMethod();
+                    };
 
-        int result = await await AsyncMethod();
-        Task<Task<int>> resultTask = AsyncMethod();
-        result = awa$$it await resultTask;
-        result = await lambda();
-    }
-}";
+                    int result = await await AsyncMethod();
+                    Task<Task<int>> resultTask = AsyncMethod();
+                    result = awa$$it await resultTask;
+                    result = await lambda();
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "struct System.Int32")));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
     public async Task TestAwaitablePrefixOnCustomAwaiter()
     {
-        var markup = @"using System;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using Z = $$C;
+        var markup = """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Threading.Tasks;
+            using Z = $$C;
 
-class C
-{
-    public MyAwaiter GetAwaiter() { throw new NotImplementedException(); }
-}
+            class C
+            {
+                public MyAwaiter GetAwaiter() { throw new NotImplementedException(); }
+            }
 
-class MyAwaiter : INotifyCompletion
-{
-    public void OnCompleted(Action continuation)
-    {
-        throw new NotImplementedException();
-    }
+            class MyAwaiter : INotifyCompletion
+            {
+                public void OnCompleted(Action continuation)
+                {
+                    throw new NotImplementedException();
+                }
 
-    public bool IsCompleted { get { throw new NotImplementedException(); } }
-    public void GetResult() { }
-}";
+                public bool IsCompleted { get { throw new NotImplementedException(); } }
+                public void GetResult() { }
+            }
+            """;
         await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.awaitable}) class C"));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
     public async Task TestTaskType()
     {
-        var markup = @"using System.Threading.Tasks;
-class C
-{
-    public void Calc()
-    {
-        Task$$ v1;
-    }
-}";
+        var markup = """
+            using System.Threading.Tasks;
+            class C
+            {
+                public void Calc()
+                {
+                    Task$$ v1;
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.awaitable}) class System.Threading.Tasks.Task"));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756226"), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/756337")]
     public async Task TestTaskOfTType()
     {
-        var markup = @"using System;
-using System.Threading.Tasks;
-class C
-{
-    public void Calc()
-    {
-        Task$$<int> v1;
-    }
-}";
+        var markup = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                public void Calc()
+                {
+                    Task$$<int> v1;
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription($"({CSharpFeaturesResources.awaitable}) class System.Threading.Tasks.Task<TResult>"),
-                     TypeParameterMap($"\r\nTResult {FeaturesResources.is_} int"));
+                     TypeParameterMap($"""
+
+                         TResult {FeaturesResources.is_} int
+                         """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/7100")]
     public async Task TestDynamicIsntAwaitable()
     {
-        var markup = @"
-class C
-{
-    dynamic D() { return null; }
-    void M()
-    {
-        D$$();
-    }
-}
-";
+        var markup = """
+
+            class C
+            {
+                dynamic D() { return null; }
+                void M()
+                {
+                    D$$();
+                }
+            }
+
+            """;
         await TestAsync(markup, MainDescription("dynamic C.D()"));
     }
 
@@ -1833,7 +2069,10 @@ class C
         await TestInMethodAsync(@"var f = ""Goo""u8$$",
             TestSources.Span,
             MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} byte
+                """));
     }
 
     [Fact]
@@ -1842,7 +2081,10 @@ class C
         await TestInMethodAsync(@"var f = ""Goo""U8$$",
             TestSources.Span,
             MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} byte
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1280")]
@@ -1858,7 +2100,10 @@ class C
         await TestInMethodAsync(@"string f = @""cat""u8$$",
             TestSources.Span,
             MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} byte
+                """));
     }
 
     [Fact]
@@ -1867,7 +2112,10 @@ class C
         await TestInMethodAsync(@"string f = @""cat""U8$$",
             TestSources.Span,
             MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} byte
+                """));
     }
 
     [Fact]
@@ -1883,7 +2131,10 @@ class C
         await TestInMethodAsync(@"string f = """"""Goo""""""u8$$",
             TestSources.Span,
             MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} byte
+                """));
     }
 
     [Fact]
@@ -1892,56 +2143,83 @@ class C
         await TestInMethodAsync(@"string f = """"""Goo""""""U8$$",
             TestSources.Span,
             MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} byte
+                """));
     }
 
     [Fact]
     public async Task TestRawStringLiteralMultiline()
     {
-        await TestInMethodAsync(@"string f = """"""
-                Goo
-    """"""$$",
+        await TestInMethodAsync(""""
+            string f = """
+                            Goo
+                """$$
+            """",
             MainDescription("class System.String"));
     }
 
     [Fact]
     public async Task TestRawStringLiteralMultilineUtf8_01()
     {
-        await TestInMethodAsync(@"string f = """"""
-                Goo
-    """"""u8$$",
+        await TestInMethodAsync(""""
+            string f = """
+                            Goo
+                """u8$$
+            """",
             TestSources.Span,
             MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} byte
+                """));
     }
 
     [Fact]
     public async Task TestRawStringLiteralMultilineUtf8_02()
     {
-        await TestInMethodAsync(@"string f = """"""
-                Goo
-    """"""U8$$",
+        await TestInMethodAsync(""""
+            string f = """
+                            Goo
+                """U8$$
+            """",
             TestSources.Span,
             MainDescription("readonly ref struct System.ReadOnlySpan<T>"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} byte"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} byte
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1280")]
     public async Task TestInterpolatedStringLiteral()
     {
         await TestInMethodAsync(@"string f = $""cat""$$", MainDescription("class System.String"));
-        await TestInMethodAsync(@"string f = $""c$$at""", MainDescription("class System.String"));
-        await TestInMethodAsync(@"string f = $""$$cat""", MainDescription("class System.String"));
-        await TestInMethodAsync(@"string f = $""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        await TestInMethodAsync("""
+            string f = $"c$$at"
+            """, MainDescription("class System.String"));
+        await TestInMethodAsync("""
+            string f = $"$$cat"
+            """, MainDescription("class System.String"));
+        await TestInMethodAsync("""
+            string f = $"cat {1$$ + 2} dog"
+            """, MainDescription("struct System.Int32"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1280")]
     public async Task TestVerbatimInterpolatedStringLiteral()
     {
         await TestInMethodAsync(@"string f = $@""cat""$$", MainDescription("class System.String"));
-        await TestInMethodAsync(@"string f = $@""c$$at""", MainDescription("class System.String"));
-        await TestInMethodAsync(@"string f = $@""$$cat""", MainDescription("class System.String"));
-        await TestInMethodAsync(@"string f = $@""cat {1$$ + 2} dog""", MainDescription("struct System.Int32"));
+        await TestInMethodAsync("""
+            string f = $@"c$$at"
+            """, MainDescription("class System.String"));
+        await TestInMethodAsync("""
+            string f = $@"$$cat"
+            """, MainDescription("class System.String"));
+        await TestInMethodAsync("""
+            string f = $@"cat {1$$ + 2} dog"
+            """, MainDescription("struct System.Int32"));
     }
 
     [Fact]
@@ -1955,7 +2233,7 @@ class C
     public async Task DynamicKeyword()
     {
         await TestInMethodAsync(
-@"dyn$$amic dyn;",
+            @"dyn$$amic dyn;",
             MainDescription("dynamic"),
             Documentation(FeaturesResources.Represents_an_object_whose_operations_will_be_resolved_at_runtime));
     }
@@ -1964,12 +2242,14 @@ class C
     public async Task DynamicField()
     {
         await TestInClassAsync(
-@"dynamic dyn;
+            """
+            dynamic dyn;
 
-void M()
-{
-    d$$yn.Goo();
-}",
+            void M()
+            {
+                d$$yn.Goo();
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) dynamic C.dyn"));
     }
 
@@ -1977,12 +2257,14 @@ void M()
     public async Task LocalProperty_Minimal()
     {
         await TestInClassAsync(
-@"DateTime Prop { get; set; }
+            """
+            DateTime Prop { get; set; }
 
-void M()
-{
-    P$$rop.ToString();
-}",
+            void M()
+            {
+                P$$rop.ToString();
+            }
+            """,
             MainDescription("DateTime C.Prop { get; set; }"));
     }
 
@@ -1990,12 +2272,14 @@ void M()
     public async Task LocalProperty_Minimal_PrivateSet()
     {
         await TestInClassAsync(
-@"public DateTime Prop { get; private set; }
+            """
+            public DateTime Prop { get; private set; }
 
-void M()
-{
-    P$$rop.ToString();
-}",
+            void M()
+            {
+                P$$rop.ToString();
+            }
+            """,
             MainDescription("DateTime C.Prop { get; private set; }"));
     }
 
@@ -2003,12 +2287,14 @@ void M()
     public async Task LocalProperty_Minimal_PrivateSet1()
     {
         await TestInClassAsync(
-@"protected internal int Prop { get; private set; }
+            """
+            protected internal int Prop { get; private set; }
 
-void M()
-{
-    P$$rop.ToString();
-}",
+            void M()
+            {
+                P$$rop.ToString();
+            }
+            """,
             MainDescription("int C.Prop { get; private set; }"));
     }
 
@@ -2016,12 +2302,14 @@ void M()
     public async Task LocalProperty_Qualified()
     {
         await TestInClassAsync(
-@"System.IO.FileInfo Prop { get; set; }
+            """
+            System.IO.FileInfo Prop { get; set; }
 
-void M()
-{
-    P$$rop.ToString();
-}",
+            void M()
+            {
+                P$$rop.ToString();
+            }
+            """,
             MainDescription("System.IO.FileInfo C.Prop { get; set; }"));
     }
 
@@ -2036,9 +2324,11 @@ void M()
     public async Task NonLocalProperty_Qualified()
     {
         await TestInMethodAsync(
-@"System.IO.FileInfo f;
+            """
+            System.IO.FileInfo f;
 
-f.Att$$ributes.ToString();",
+            f.Att$$ributes.ToString();
+            """,
             MainDescription("System.IO.FileAttributes System.IO.FileSystemInfo.Attributes { get; set; }"));
     }
 
@@ -2046,18 +2336,20 @@ f.Att$$ributes.ToString();",
     public async Task ConstructedGenericProperty()
     {
         await TestAsync(
-@"class C<T>
-{
-    public T Property { get; set }
-}
+            """
+            class C<T>
+            {
+                public T Property { get; set }
+            }
 
-class D
-{
-    void M()
-    {
-        new C<int>().Pro$$perty.ToString();
-    }
-}",
+            class D
+            {
+                void M()
+                {
+                    new C<int>().Pro$$perty.ToString();
+                }
+            }
+            """,
             MainDescription("int C<int>.Property { get; set; }"));
     }
 
@@ -2065,15 +2357,17 @@ class D
     public async Task UnconstructedGenericProperty()
     {
         await TestAsync(
-@"class C<T>
-{
-    public T Property { get; set}
+            """
+            class C<T>
+            {
+                public T Property { get; set}
 
-    void M()
-    {
-        Pro$$perty.ToString();
-    }
-}",
+                void M()
+                {
+                    Pro$$perty.ToString();
+                }
+            }
+            """,
             MainDescription("T C<T>.Property { get; set; }"));
     }
 
@@ -2081,13 +2375,15 @@ class D
     public async Task ValueInProperty()
     {
         await TestInClassAsync(
-@"public DateTime Property
-{
-    set
-    {
-        goo = val$$ue;
-    }
-}",
+            """
+            public DateTime Property
+            {
+                set
+                {
+                    goo = val$$ue;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) DateTime value"));
     }
 
@@ -2108,100 +2404,116 @@ class D
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")]
     public async Task EnumNonDefaultUnderlyingType_AsField()
     {
-        await TestInClassAsync(@"
-enum E : byte { A, B }
+        await TestInClassAsync("""
 
-private E$$ _E;
-",
+            enum E : byte { A, B }
+
+            private E$$ _E;
+
+            """,
             MainDescription("enum C.E : byte"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")]
     public async Task EnumNonDefaultUnderlyingType_AsProperty()
     {
-        await TestInClassAsync(@"
-enum E : byte { A, B }
+        await TestInClassAsync("""
 
-private E$$ E{ get; set; };
-",
+            enum E : byte { A, B }
+
+            private E$$ E{ get; set; };
+
+            """,
             MainDescription("enum C.E : byte"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")]
     public async Task EnumNonDefaultUnderlyingType_AsParameter()
     {
-        await TestInClassAsync(@"
-enum E : byte { A, B }
+        await TestInClassAsync("""
 
-private void M(E$$ e) { }
-",
+            enum E : byte { A, B }
+
+            private void M(E$$ e) { }
+
+            """,
             MainDescription("enum C.E : byte"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")]
     public async Task EnumNonDefaultUnderlyingType_AsReturnType()
     {
-        await TestInClassAsync(@"
-enum E : byte { A, B }
+        await TestInClassAsync("""
 
-private E$$ M() { }
-",
+            enum E : byte { A, B }
+
+            private E$$ M() { }
+
+            """,
             MainDescription("enum C.E : byte"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")]
     public async Task EnumNonDefaultUnderlyingType_AsLocal()
     {
-        await TestInClassAsync(@"
-enum E : byte { A, B }
+        await TestInClassAsync("""
 
-private void M()
-{
-    E$$ e = default;
-}
-",
+            enum E : byte { A, B }
+
+            private void M()
+            {
+                E$$ e = default;
+            }
+
+            """,
             MainDescription("enum C.E : byte"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")]
     public async Task EnumNonDefaultUnderlyingType_OnMemberAccessOnType()
     {
-        await TestInClassAsync(@"
-enum EN : byte { A, B }
+        await TestInClassAsync("""
 
-private void M()
-{
-    var ea = E$$N.A;
-}
-",
+            enum EN : byte { A, B }
+
+            private void M()
+            {
+                var ea = E$$N.A;
+            }
+
+            """,
             MainDescription("enum C.EN : byte"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")]
     public async Task EnumNonDefaultUnderlyingType_OnMemberAccessOnType_OnDot()
     {
-        await TestInClassAsync(@"
-enum E : byte { A, B }
+        await TestInClassAsync("""
 
-private void M()
-{
-    var ea = E$$.A;
-}
-",
+            enum E : byte { A, B }
+
+            private void M()
+            {
+                var ea = E$$.A;
+            }
+
+            """,
             MainDescription("E.A = 0"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52490")]
     public async Task EnumNonDefaultUnderlyingType_NotOnMemberAccessOnMember()
     {
-        await TestInClassAsync(@"
-enum E : byte { A, B }
+        await TestInClassAsync("""
 
-private void M()
-{
-    var ea = E.A$$;
-}
-",
+            enum E : byte { A, B }
+
+            private void M()
+            {
+                var ea = E.A$$;
+            }
+
+            """,
             MainDescription("E.A = 0"));
     }
 
@@ -2223,11 +2535,13 @@ private void M()
     [InlineData("ulong", "System.UInt64")]
     public async Task EnumNonDefaultUnderlyingType_ShowForNonDefaultTypes(string displayTypeName, string underlyingTypeName)
     {
-        await TestInClassAsync(@$"
-enum E$$ : {underlyingTypeName}
-{{
-    A, B
-}}",
+        await TestInClassAsync($$"""
+
+            enum E$$ : {{underlyingTypeName}}
+            {
+                A, B
+            }
+            """,
             MainDescription($"enum C.E : {displayTypeName}"));
     }
 
@@ -2237,11 +2551,13 @@ enum E$$ : {underlyingTypeName}
     [InlineData(": System.Int32")]
     public async Task EnumNonDefaultUnderlyingType_DoNotShowForDefaultType(string defaultType)
     {
-        await TestInClassAsync(@$"
-enum E$$ {defaultType}
-{{
-    A, B
-}}",
+        await TestInClassAsync($$"""
+
+            enum E$$ {{defaultType}}
+            {
+                A, B
+            }
+            """,
             MainDescription("enum C.E"));
     }
 
@@ -2270,20 +2586,22 @@ enum E$$ {defaultType}
     public async Task EnumMemberNameFromSource1()
     {
         await TestAsync(
-@"enum E
-{
-    A = 1 << 0,
-    B = 1 << 1,
-    C = 1 << 2
-}
+            """
+            enum E
+            {
+                A = 1 << 0,
+                B = 1 << 1,
+                C = 1 << 2
+            }
 
-class C
-{
-    void M()
-    {
-        var e = E.B$$;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var e = E.B$$;
+                }
+            }
+            """,
 MainDescription("E.B = 1 << 1"));
     }
 
@@ -2291,20 +2609,22 @@ MainDescription("E.B = 1 << 1"));
     public async Task EnumMemberNameFromSource2()
     {
         await TestAsync(
-@"enum E
-{
-    A,
-    B,
-    C
-}
+            """
+            enum E
+            {
+                A,
+                B,
+                C
+            }
 
-class C
-{
-    void M()
-    {
-        var e = E.B$$;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var e = E.B$$;
+                }
+            }
+            """,
 MainDescription("E.B = 1"));
     }
 
@@ -2312,9 +2632,11 @@ MainDescription("E.B = 1"));
     public async Task Parameter_InMethod_Minimal()
     {
         await TestInClassAsync(
-@"void M(DateTime dt)
-{
-    d$$t.ToString();",
+            """
+            void M(DateTime dt)
+            {
+                d$$t.ToString();
+            """,
             MainDescription($"({FeaturesResources.parameter}) DateTime dt"));
     }
 
@@ -2322,9 +2644,11 @@ MainDescription("E.B = 1"));
     public async Task Parameter_InMethod_Qualified()
     {
         await TestInClassAsync(
-@"void M(System.IO.FileInfo fileInfo)
-{
-    file$$Info.ToString();",
+            """
+            void M(System.IO.FileInfo fileInfo)
+            {
+                file$$Info.ToString();
+            """,
             MainDescription($"({FeaturesResources.parameter}) System.IO.FileInfo fileInfo"));
     }
 
@@ -2341,10 +2665,12 @@ MainDescription("E.B = 1"));
         // NOTE: Dev10 doesn't show the default value, but it would be nice if we did.
         // NOTE: The "DefaultValue" property isn't implemented yet.
         await TestInClassAsync(
-@"void M(int param = 42)
-{
-    para$$m.ToString();
-}",
+            """
+            void M(int param = 42)
+            {
+                para$$m.ToString();
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) int param = 42"));
     }
 
@@ -2352,9 +2678,11 @@ MainDescription("E.B = 1"));
     public async Task Lambda_Parameter_DefaultValue_01()
     {
         await TestInMethodAsync(
-@"(int param = 42) => {
-    return para$$m + 1;
-}",
+            """
+            (int param = 42) => {
+                return para$$m + 1;
+            }
+            """,
 MainDescription($"({FeaturesResources.parameter}) int param = 42"));
     }
 
@@ -2362,9 +2690,11 @@ MainDescription($"({FeaturesResources.parameter}) int param = 42"));
     public async Task Lambda_Parameter_DefaultValue_02()
     {
         await TestInMethodAsync(
-@"(int param = $$int.MaxValue) => {
-    return param + 1;
-}",
+            """
+            (int param = $$int.MaxValue) => {
+                return param + 1;
+            }
+            """,
 MainDescription($"{FeaturesResources.struct_} System.Int32"));
     }
 
@@ -2372,9 +2702,11 @@ MainDescription($"{FeaturesResources.struct_} System.Int32"));
     public async Task Lambda_Parameter_DefaultValue_03()
     {
         await TestInMethodAsync(
-@"(int param = int.$$MaxValue) => {
-    return param + 1;
-}",
+            """
+            (int param = int.$$MaxValue) => {
+                return param + 1;
+            }
+            """,
 MainDescription($"({FeaturesResources.constant}) const int int.MaxValue = 2147483647"));
     }
 
@@ -2382,9 +2714,11 @@ MainDescription($"({FeaturesResources.constant}) const int int.MaxValue = 214748
     public async Task Lambda_Parameter_ParamsArray()
     {
         await TestInMethodAsync(
-@"(params int[] xs) => {
-    return x$$s.Length;
-}",
+            """
+            (params int[] xs) => {
+                return x$$s.Length;
+            }
+            """,
 MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
     }
 
@@ -2392,10 +2726,12 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
     public async Task Parameter_Params()
     {
         await TestInClassAsync(
-@"void M(params DateTime[] arg)
-{
-    ar$$g.ToString();
-}",
+            """
+            void M(params DateTime[] arg)
+            {
+                ar$$g.ToString();
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) params DateTime[] arg"));
     }
 
@@ -2403,10 +2739,12 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
     public async Task Parameter_Ref()
     {
         await TestInClassAsync(
-@"void M(ref DateTime arg)
-{
-    ar$$g.ToString();
-}",
+            """
+            void M(ref DateTime arg)
+            {
+                ar$$g.ToString();
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) ref DateTime arg"));
     }
 
@@ -2414,10 +2752,12 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
     public async Task Parameter_Out()
     {
         await TestInClassAsync(
-@"void M(out DateTime arg)
-{
-    ar$$g.ToString();
-}",
+            """
+            void M(out DateTime arg)
+            {
+                ar$$g.ToString();
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) out DateTime arg"));
     }
 
@@ -2425,9 +2765,11 @@ MainDescription($"({FeaturesResources.parameter}) params int[] xs"));
     public async Task Local_Minimal()
     {
         await TestInMethodAsync(
-@"DateTime dt;
+            """
+            DateTime dt;
 
-d$$t.ToString();",
+            d$$t.ToString();
+            """,
             MainDescription($"({FeaturesResources.local_variable}) DateTime dt"));
     }
 
@@ -2435,9 +2777,11 @@ d$$t.ToString();",
     public async Task Local_Qualified()
     {
         await TestInMethodAsync(
-@"System.IO.FileInfo fileInfo;
+            """
+            System.IO.FileInfo fileInfo;
 
-file$$Info.ToString();",
+            file$$Info.ToString();
+            """,
             MainDescription($"({FeaturesResources.local_variable}) System.IO.FileInfo fileInfo"));
     }
 
@@ -2452,14 +2796,16 @@ file$$Info.ToString();",
     public async Task Method_SimpleWithOverload()
     {
         await TestInClassAsync(
-@"void Method()
-{
-    Met$$hod();
-}
+            """
+            void Method()
+            {
+                Met$$hod();
+            }
 
-void Method(int i)
-{
-}",
+            void Method(int i)
+            {
+            }
+            """,
             MainDescription($"void C.Method() (+ 1 {FeaturesResources.overload})"));
     }
 
@@ -2467,22 +2813,24 @@ void Method(int i)
     public async Task Method_MoreOverloads()
     {
         await TestInClassAsync(
-@"void Method()
-{
-    Met$$hod(null);
-}
+            """
+            void Method()
+            {
+                Met$$hod(null);
+            }
 
-void Method(int i)
-{
-}
+            void Method(int i)
+            {
+            }
 
-void Method(DateTime dt)
-{
-}
+            void Method(DateTime dt)
+            {
+            }
 
-void Method(System.IO.FileInfo fileInfo)
-{
-}",
+            void Method(System.IO.FileInfo fileInfo)
+            {
+            }
+            """,
             MainDescription($"void C.Method(System.IO.FileInfo fileInfo) (+ 3 {FeaturesResources.overloads_})"));
     }
 
@@ -2490,10 +2838,12 @@ void Method(System.IO.FileInfo fileInfo)
     public async Task Method_SimpleInSameClass()
     {
         await TestInClassAsync(
-@"DateTime GetDate(System.IO.FileInfo ft)
-{
-    Get$$Date(null);
-}",
+            """
+            DateTime GetDate(System.IO.FileInfo ft)
+            {
+                Get$$Date(null);
+            }
+            """,
             MainDescription("DateTime C.GetDate(System.IO.FileInfo ft)"));
     }
 
@@ -2501,14 +2851,16 @@ void Method(System.IO.FileInfo fileInfo)
     public async Task Method_OptionalParameter()
     {
         await TestInClassAsync(
-@"void M()
-{
-    Met$$hod();
-}
+            """
+            void M()
+            {
+                Met$$hod();
+            }
 
-void Method(int i = 0)
-{
-}",
+            void Method(int i = 0)
+            {
+            }
+            """,
             MainDescription("void C.Method([int i = 0])"));
     }
 
@@ -2516,9 +2868,11 @@ void Method(int i = 0)
     public async Task Method_OptionalDecimalParameter()
     {
         await TestInClassAsync(
-@"void Goo(decimal x$$yz = 10)
-{
-}",
+            """
+            void Goo(decimal x$$yz = 10)
+            {
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) decimal xyz = 10"));
     }
 
@@ -2528,10 +2882,12 @@ void Method(int i = 0)
         // Generic method don't get the instantiation info yet.  NOTE: We don't display
         // constraint info in Dev10. Should we?
         await TestInClassAsync(
-@"TOut Goo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>
-{
-    Go$$o<int, DateTime>(37);
-}",
+            """
+            TOut Goo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>
+            {
+                Go$$o<int, DateTime>(37);
+            }
+            """,
 
         MainDescription("DateTime C.Goo<int, DateTime>(int arg)"));
     }
@@ -2540,10 +2896,12 @@ void Method(int i = 0)
     public async Task Method_UnconstructedGeneric()
     {
         await TestInClassAsync(
-@"TOut Goo<TIn, TOut>(TIn arg)
-{
-    Go$$o<TIn, TOut>(default(TIn);
-}",
+            """
+            TOut Goo<TIn, TOut>(TIn arg)
+            {
+                Go$$o<TIn, TOut>(default(TIn);
+            }
+            """,
 
             MainDescription("TOut C.Goo<TIn, TOut>(TIn arg)"));
     }
@@ -2552,10 +2910,12 @@ void Method(int i = 0)
     public async Task Method_Inferred()
     {
         await TestInClassAsync(
-@"void Goo<TIn>(TIn arg)
-{
-    Go$$o(42);
-}",
+            """
+            void Goo<TIn>(TIn arg)
+            {
+                Go$$o(42);
+            }
+            """,
             MainDescription("void C.Goo<int>(int arg)"));
     }
 
@@ -2563,10 +2923,12 @@ void Method(int i = 0)
     public async Task Method_MultipleParams()
     {
         await TestInClassAsync(
-@"void Goo(DateTime dt, System.IO.FileInfo fi, int number)
-{
-    Go$$o(DateTime.Now, null, 32);
-}",
+            """
+            void Goo(DateTime dt, System.IO.FileInfo fi, int number)
+            {
+                Go$$o(DateTime.Now, null, 32);
+            }
+            """,
             MainDescription("void C.Goo(DateTime dt, System.IO.FileInfo fi, int number)"));
     }
 
@@ -2575,10 +2937,12 @@ void Method(int i = 0)
     {
         // NOTE - Default values aren't actually returned by symbols yet.
         await TestInClassAsync(
-@"void Goo(int num = 42)
-{
-    Go$$o();
-}",
+            """
+            void Goo(int num = 42)
+            {
+                Go$$o();
+            }
+            """,
             MainDescription("void C.Goo([int num = 42])"));
     }
 
@@ -2587,10 +2951,12 @@ void Method(int i = 0)
     {
         // NOTE - Default values aren't actually returned by symbols yet.
         await TestInClassAsync(
-@"void Goo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)
-{
-    Go$$o(DateTime.Now, null, 32);
-}",
+            """
+            void Goo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)
+            {
+                Go$$o(DateTime.Now, null, 32);
+            }
+            """,
             MainDescription("void C.Goo(ref DateTime dt, out System.IO.FileInfo fi, params int[] numbers)"));
     }
 
@@ -2611,14 +2977,16 @@ void Method(int i = 0)
     public async Task Constructor()
     {
         await TestInClassAsync(
-@"public C()
-{
-}
+            """
+            public C()
+            {
+            }
 
-void M()
-{
-    new C$$().ToString();
-}",
+            void M()
+            {
+                new C$$().ToString();
+            }
+            """,
             MainDescription("C.C()"));
     }
 
@@ -2626,22 +2994,24 @@ void M()
     public async Task Constructor_Overloads()
     {
         await TestInClassAsync(
-@"public C()
-{
-}
+            """
+            public C()
+            {
+            }
 
-public C(DateTime dt)
-{
-}
+            public C(DateTime dt)
+            {
+            }
 
-public C(int i)
-{
-}
+            public C(int i)
+            {
+            }
 
-void M()
-{
-    new C$$(DateTime.MaxValue).ToString();
-}",
+            void M()
+            {
+                new C$$(DateTime.MaxValue).ToString();
+            }
+            """,
             MainDescription($"C.C(DateTime dt) (+ 2 {FeaturesResources.overloads_})"));
     }
 
@@ -2652,7 +3022,7 @@ void M()
     public async Task Constructor_OverloadFromStringLiteral()
     {
         await TestInMethodAsync(
-@"new InvalidOperatio$$nException("""");",
+            @"new InvalidOperatio$$nException("""");",
             MainDescription($"InvalidOperationException.InvalidOperationException(string message) (+ 2 {FeaturesResources.overloads_})"));
     }
 
@@ -2663,10 +3033,12 @@ void M()
     public async Task Constructor_UnknownType()
     {
         await TestInvalidTypeInClassAsync(
-@"void M()
-{
-    new G$$oo();
-}");
+            """
+            void M()
+            {
+                new G$$oo();
+            }
+            """);
     }
 
     /// <summary>
@@ -2676,7 +3048,7 @@ void M()
     public async Task Constructor_OverloadFromProperty()
     {
         await TestInMethodAsync(
-@"new InvalidOperatio$$nException(this.GetType().Name);",
+            @"new InvalidOperatio$$nException(this.GetType().Name);",
             MainDescription($"InvalidOperationException.InvalidOperationException(string message) (+ 2 {FeaturesResources.overloads_})"));
     }
 
@@ -2684,7 +3056,7 @@ void M()
     public async Task Constructor_Metadata()
     {
         await TestInMethodAsync(
-@"new Argument$$NullException();",
+            @"new Argument$$NullException();",
             MainDescription($"ArgumentNullException.ArgumentNullException() (+ 3 {FeaturesResources.overloads_})"));
     }
 
@@ -2699,10 +3071,12 @@ void M()
     public async Task InterfaceProperty()
     {
         await TestInMethodAsync(
-@"interface I
-{
-    string Name$$ { get; set; }
-}",
+            """
+            interface I
+            {
+                string Name$$ { get; set; }
+            }
+            """,
             MainDescription("string I.Name { get; set; }"));
     }
 
@@ -2710,25 +3084,27 @@ void M()
     public async Task ExplicitInterfacePropertyImplementation()
     {
         await TestInMethodAsync(
-@"interface I
-{
-    string Name { get; set; }
-}
+            """
+            interface I
+            {
+                string Name { get; set; }
+            }
 
-class C : I
-{
-    string IEmployee.Name$$
-    {
-        get
-        {
-            return """";
-        }
+            class C : I
+            {
+                string IEmployee.Name$$
+                {
+                    get
+                    {
+                        return "";
+                    }
 
-        set
-        {
-        }
-    }
-}",
+                    set
+                    {
+                    }
+                }
+            }
+            """,
             MainDescription("string C.Name { get; set; }"));
     }
 
@@ -2736,15 +3112,17 @@ class C : I
     public async Task Operator()
     {
         await TestInClassAsync(
-@"public static C operator +(C left, C right)
-{
-    return null;
-}
+            """
+            public static C operator +(C left, C right)
+            {
+                return null;
+            }
 
-void M(C left, C right)
-{
-    return left +$$ right;
-}",
+            void M(C left, C right)
+            {
+                return left +$$ right;
+            }
+            """,
             MainDescription("C C.operator +(C left, C right)"));
     }
 
@@ -2755,9 +3133,11 @@ void M(C left, C right)
     public async Task GenericMethodWithConstraintsAtDeclaration()
     {
         await TestInClassAsync(
-@"TOut G$$oo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>
-{
-}",
+            """
+            TOut G$$oo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>
+            {
+            }
+            """,
 
         MainDescription("TOut C.Goo<TIn, TOut>(TIn arg) where TIn : IEquatable<TIn>"));
     }
@@ -2769,10 +3149,12 @@ void M(C left, C right)
     public async Task GenericMethodWithMultipleConstraintsAtDeclaration()
     {
         await TestInClassAsync(
-@"TOut Goo<TIn, TOut>(TIn arg) where TIn : Employee, new()
-{
-    Go$$o<TIn, TOut>(default(TIn);
-}",
+            """
+            TOut Goo<TIn, TOut>(TIn arg) where TIn : Employee, new()
+            {
+                Go$$o<TIn, TOut>(default(TIn);
+            }
+            """,
 
         MainDescription("TOut C.Goo<TIn, TOut>(TIn arg) where TIn : Employee, new()"));
     }
@@ -2784,10 +3166,12 @@ void M(C left, C right)
     public async Task UnConstructedGenericMethodWithConstraintsAtInvocation()
     {
         await TestInClassAsync(
-@"TOut Goo<TIn, TOut>(TIn arg) where TIn : Employee
-{
-    Go$$o<TIn, TOut>(default(TIn);
-}",
+            """
+            TOut Goo<TIn, TOut>(TIn arg) where TIn : Employee
+            {
+                Go$$o<TIn, TOut>(default(TIn);
+            }
+            """,
 
         MainDescription("TOut C.Goo<TIn, TOut>(TIn arg) where TIn : Employee"));
     }
@@ -2796,17 +3180,19 @@ void M(C left, C right)
     public async Task GenericTypeWithConstraintsAtDeclaration()
     {
         await TestAsync(
-@"public class Employee : IComparable<Employee>
-{
-    public int CompareTo(Employee other)
-    {
-        throw new NotImplementedException();
-    }
-}
+            """
+            public class Employee : IComparable<Employee>
+            {
+                public int CompareTo(Employee other)
+                {
+                    throw new NotImplementedException();
+                }
+            }
 
-class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<T>, new()
-{
-}",
+            class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<T>, new()
+            {
+            }
+            """,
 
         MainDescription("class EmployeeList<T> where T : Employee, System.IComparable<T>, new()"));
     }
@@ -2815,10 +3201,12 @@ class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<
     public async Task GenericType()
     {
         await TestAsync(
-@"class T1<T11>
-{
-    $$T11 i;
-}",
+            """
+            class T1<T11>
+            {
+                $$T11 i;
+            }
+            """,
             MainDescription($"T11 {FeaturesResources.in_} T1<T11>"));
     }
 
@@ -2826,10 +3214,12 @@ class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<
     public async Task GenericMethod()
     {
         await TestInClassAsync(
-@"static void Meth1<T1>(T1 i) where T1 : struct
-{
-    $$T1 i;
-}",
+            """
+            static void Meth1<T1>(T1 i) where T1 : struct
+            {
+                $$T1 i;
+            }
+            """,
             MainDescription($"T1 {FeaturesResources.in_} C.Meth1<T1> where T1 : struct"));
     }
 
@@ -2837,8 +3227,10 @@ class Emplo$$yeeList<T> : IEnumerable<T> where T : Employee, System.IComparable<
     public async Task Var()
     {
         await TestInMethodAsync(
-@"var x = new Exception();
-var y = $$x;",
+            """
+            var x = new Exception();
+            var y = $$x;
+            """,
             MainDescription($"({FeaturesResources.local_variable}) Exception x"));
     }
 
@@ -2847,18 +3239,20 @@ var y = $$x;",
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
-@"class A<T>
-{
-}
-class B
-{
-    static void M()
-    {
-        A<B?>? x = null!;
-        var y = x;
-        $$y.ToString();
-    }
-}",
+            """
+            class A<T>
+            {
+            }
+            class B
+            {
+                static void M()
+                {
+                    A<B?>? x = null!;
+                    var y = x;
+                    $$y.ToString();
+                }
+            }
+            """,
             // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
             MainDescription($"({FeaturesResources.local_variable}) A<B?> y"));
     }
@@ -2866,21 +3260,23 @@ class B
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26648")]
     public async Task NullableReference_InMethod()
     {
-        var code = @"
-class G
-{
-    void M()
-    {
-        C c;
-        c.Go$$o();
-    }
-}
-public class C
-{
-    public string? Goo(IEnumerable<object?> arg)
-    {
-    }
-}";
+        var code = """
+
+            class G
+            {
+                void M()
+                {
+                    C c;
+                    c.Go$$o();
+                }
+            }
+            public class C
+            {
+                public string? Goo(IEnumerable<object?> arg)
+                {
+                }
+            }
+            """;
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp8),
             code, MainDescription("string? C.Goo(IEnumerable<object?> arg)"));
@@ -2890,29 +3286,37 @@ public class C
     public async Task NestedInGeneric()
     {
         await TestInMethodAsync(
-@"List<int>.Enu$$merator e;",
+            @"List<int>.Enu$$merator e;",
             MainDescription("struct System.Collections.Generic.List<T>.Enumerator"),
-            TypeParameterMap($"\r\nT {FeaturesResources.is_} int"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} int
+                """));
     }
 
     [Fact]
     public async Task NestedGenericInGeneric()
     {
         await TestAsync(
-@"class Outer<T>
-{
-    class Inner<U>
-    {
-    }
+            """
+            class Outer<T>
+            {
+                class Inner<U>
+                {
+                }
 
-    static void M()
-    {
-        Outer<int>.I$$nner<string> e;
-    }
-}",
+                static void M()
+                {
+                    Outer<int>.I$$nner<string> e;
+                }
+            }
+            """,
             MainDescription("class Outer<T>.Inner<U>"),
             TypeParameterMap(
-                Lines($"\r\nT {FeaturesResources.is_} int",
+                Lines($"""
+
+                    T {FeaturesResources.is_} int
+                    """,
                       $"U {FeaturesResources.is_} string")));
     }
 
@@ -2920,15 +3324,17 @@ public class C
     public async Task ObjectInitializer1()
     {
         await TestInClassAsync(
-@"void M()
-{
-    var x = new test() { $$z = 5 };
-}
+            """
+            void M()
+            {
+                var x = new test() { $$z = 5 };
+            }
 
-class test
-{
-    public int z;
-}",
+            class test
+            {
+                public int z;
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) int test.z"));
     }
 
@@ -2936,18 +3342,20 @@ class test
     public async Task ObjectInitializer2()
     {
         await TestInMethodAsync(
-@"class C
-{
-    void M()
-    {
-        var x = new test() { z = $$5 };
-    }
+            """
+            class C
+            {
+                void M()
+                {
+                    var x = new test() { z = $$5 };
+                }
 
-    class test
-    {
-        public int z;
-    }
-}",
+                class test
+                {
+                    public int z;
+                }
+            }
+            """,
             MainDescription("struct System.Int32"));
     }
 
@@ -2955,14 +3363,16 @@ class test
     public async Task TypeArgument()
     {
         await TestAsync(
-@"class C<T, Y>
-{
-    void M()
-    {
-        C<int, DateTime> variable;
-        $$variable = new C<int, DateTime>();
-    }
-}",
+            """
+            class C<T, Y>
+            {
+                void M()
+                {
+                    C<int, DateTime> variable;
+                    $$variable = new C<int, DateTime>();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) C<int, DateTime> variable"));
     }
 
@@ -2970,13 +3380,15 @@ class test
     public async Task ForEachLoop_1()
     {
         await TestInMethodAsync(
-@"int bb = 555;
+            """
+            int bb = 555;
 
-bb = bb + 1;
-foreach (int cc in new int[]{ 1,2,3}){
-c$$c = 1;
-bb = bb + 21;
-}",
+            bb = bb + 1;
+            foreach (int cc in new int[]{ 1,2,3}){
+            c$$c = 1;
+            bb = bb + 21;
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int cc"));
     }
 
@@ -2984,18 +3396,20 @@ bb = bb + 21;
     public async Task TryCatchFinally_1()
     {
         await TestInMethodAsync(
-@"try
-            {
-                int aa = 555;
+            """
+            try
+                        {
+                            int aa = 555;
 
-a$$a = aa + 1;
-            }
-            catch (Exception ex)
-            {
-            }
-            finally
-            {
-            }",
+            a$$a = aa + 1;
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                        finally
+                        {
+                        }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int aa"));
     }
 
@@ -3003,17 +3417,19 @@ a$$a = aa + 1;
     public async Task TryCatchFinally_2()
     {
         await TestInMethodAsync(
-@"try
-            {
-            }
-            catch (Exception ex)
-            {
-                var y = e$$x;
-var z = y;
-            }
-            finally
-            {
-            }",
+            """
+            try
+                        {
+                        }
+                        catch (Exception ex)
+                        {
+                            var y = e$$x;
+            var z = y;
+                        }
+                        finally
+                        {
+                        }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) Exception ex"));
     }
 
@@ -3021,18 +3437,20 @@ var z = y;
     public async Task TryCatchFinally_3()
     {
         await TestInMethodAsync(
-@"try
-            {
-            }
-            catch (Exception ex)
-            {
-                var aa = 555;
+            """
+            try
+                        {
+                        }
+                        catch (Exception ex)
+                        {
+                            var aa = 555;
 
-aa = a$$a + 1;
-            }
-            finally
-            {
-            }",
+            aa = a$$a + 1;
+                        }
+                        finally
+                        {
+                        }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int aa"));
     }
 
@@ -3040,18 +3458,20 @@ aa = a$$a + 1;
     public async Task TryCatchFinally_4()
     {
         await TestInMethodAsync(
-@"try
-            {
-            }
-            catch (Exception ex)
-            {
-            }
-            finally
-            {
-                int aa = 555;
+            """
+            try
+                        {
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+                        finally
+                        {
+                            int aa = 555;
 
-aa = a$$a + 1;
-            }",
+            aa = a$$a + 1;
+                        }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int aa"));
     }
 
@@ -3059,14 +3479,16 @@ aa = a$$a + 1;
     public async Task GenericVariable()
     {
         await TestAsync(
-@"class C<T, Y>
-{
-    void M()
-    {
-        C<int, DateTime> variable;
-        var$$iable = new C<int, DateTime>();
-    }
-}",
+            """
+            class C<T, Y>
+            {
+                void M()
+                {
+                    C<int, DateTime> variable;
+                    var$$iable = new C<int, DateTime>();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) C<int, DateTime> variable"));
     }
 
@@ -3074,15 +3496,17 @@ aa = a$$a + 1;
     public async Task TestInstantiation()
     {
         await TestAsync(
-@"using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Program<T>
-{
-    static void Main(string[] args)
-    {
-        var p = new Dictio$$nary<int, string>();
-    }
-}",
+            class Program<T>
+            {
+                static void Main(string[] args)
+                {
+                    var p = new Dictio$$nary<int, string>();
+                }
+            }
+            """,
             MainDescription($"Dictionary<int, string>.Dictionary() (+ 5 {FeaturesResources.overloads_})"));
     }
 
@@ -3090,18 +3514,20 @@ class Program<T>
     public async Task TestUsingAlias_Bug4141()
     {
         await TestAsync(
-@"using X = A.C;
+            """
+            using X = A.C;
 
-class A
-{
-    public class C
-    {
-    }
-}
+            class A
+            {
+                public class C
+                {
+                }
+            }
 
-class D : X$$
-{
-}",
+            class D : X$$
+            {
+            }
+            """,
             MainDescription(@"class A.C"));
     }
 
@@ -3109,7 +3535,7 @@ class D : X$$
     public async Task TestFieldOnDeclaration()
     {
         await TestInClassAsync(
-@"DateTime fie$$ld;",
+            @"DateTime fie$$ld;",
             MainDescription($"({FeaturesResources.field}) DateTime C.field"));
     }
 
@@ -3117,7 +3543,7 @@ class D : X$$
     public async Task TestGenericErrorFieldOnDeclaration()
     {
         await TestInClassAsync(
-@"NonExistentType<int> fi$$eld;",
+            @"NonExistentType<int> fi$$eld;",
             MainDescription($"({FeaturesResources.field}) NonExistentType<int> C.field"));
     }
 
@@ -3125,10 +3551,13 @@ class D : X$$
     public async Task TestDelegateType()
     {
         await TestInClassAsync(
-@"Fun$$c<int, string> field;",
+            @"Fun$$c<int, string> field;",
             MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
             TypeParameterMap(
-                Lines($"\r\nT {FeaturesResources.is_} int",
+                Lines($"""
+
+                    T {FeaturesResources.is_} int
+                    """,
                       $"TResult {FeaturesResources.is_} string")));
     }
 
@@ -3136,16 +3565,18 @@ class D : X$$
     public async Task TestOnDelegateInvocation()
     {
         await TestAsync(
-@"class Program
-{
-    delegate void D1();
+            """
+            class Program
+            {
+                delegate void D1();
 
-    static void Main()
-    {
-        D1 d = Main;
-        $$d();
-    }
-}",
+                static void Main()
+                {
+                    D1 d = Main;
+                    $$d();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) D1 d"));
     }
 
@@ -3153,26 +3584,30 @@ class D : X$$
     public async Task TestOnArrayCreation1()
     {
         await TestAsync(
-@"class Program
-{
-    static void Main()
-    {
-        int[] a = n$$ew int[0];
-    }
-}", MainDescription("int[]"));
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    int[] a = n$$ew int[0];
+                }
+            }
+            """, MainDescription("int[]"));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539240")]
     public async Task TestOnArrayCreation2()
     {
         await TestAsync(
-@"class Program
-{
-    static void Main()
-    {
-        int[] a = new i$$nt[0];
-    }
-}",
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    int[] a = new i$$nt[0];
+                }
+            }
+            """,
             MainDescription("struct System.Int32"));
     }
 
@@ -3180,14 +3615,16 @@ class D : X$$
     public async Task Constructor_ImplicitObjectCreation()
     {
         await TestAsync(
-@"class C
-{
-    static void Main()
-    {
-        C c = ne$$w();
-    }
-}
-",
+            """
+            class C
+            {
+                static void Main()
+                {
+                    C c = ne$$w();
+                }
+            }
+
+            """,
             MainDescription("C.C()"));
     }
 
@@ -3195,16 +3632,18 @@ class D : X$$
     public async Task Constructor_ImplicitObjectCreation_WithParameters()
     {
         await TestAsync(
-@"class C
-{
-    C(int i) { }
-    C(string s) { }
-    static void Main()
-    {
-        C c = ne$$w(1);
-    }
-}
-",
+            """
+            class C
+            {
+                C(int i) { }
+                C(string s) { }
+                static void Main()
+                {
+                    C c = ne$$w(1);
+                }
+            }
+
+            """,
             MainDescription($"C.C(int i) (+ 1 {FeaturesResources.overload})"));
     }
 
@@ -3212,16 +3651,18 @@ class D : X$$
     public async Task TestIsNamedTypeAccessibleForErrorTypes()
     {
         await TestAsync(
-@"sealed class B<T1, T2> : A<B<T1, T2>>
-{
-    protected sealed override B<A<T>, A$$<T>> N()
-    {
-    }
-}
+            """
+            sealed class B<T1, T2> : A<B<T1, T2>>
+            {
+                protected sealed override B<A<T>, A$$<T>> N()
+                {
+                }
+            }
 
-internal class A<T>
-{
-}",
+            internal class A<T>
+            {
+            }
+            """,
             MainDescription("class A<T>"));
     }
 
@@ -3229,15 +3670,17 @@ internal class A<T>
     public async Task TestErrorType()
     {
         await TestAsync(
-@"using Goo = Goo;
+            """
+            using Goo = Goo;
 
-class C
-{
-    void Main()
-    {
-        $$Goo
-    }
-}",
+            class C
+            {
+                void Main()
+                {
+                    $$Goo
+                }
+            }
+            """,
             MainDescription("Goo"));
     }
 
@@ -3245,13 +3688,15 @@ class C
     public async Task TestShortDiscardInAssignment()
     {
         await TestAsync(
-@"class C
-{
-    int M()
-    {
-        $$_ = M();
-    }
-}",
+            """
+            class C
+            {
+                int M()
+                {
+                    $$_ = M();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.discard}) int _"));
     }
 
@@ -3259,13 +3704,15 @@ class C
     public async Task TestUnderscoreLocalInAssignment()
     {
         await TestAsync(
-@"class C
-{
-    int M()
-    {
-        var $$_ = M();
-    }
-}",
+            """
+            class C
+            {
+                int M()
+                {
+                    var $$_ = M();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int _"));
     }
 
@@ -3273,14 +3720,16 @@ class C
     public async Task TestShortDiscardInOutVar()
     {
         await TestAsync(
-@"class C
-{
-    void M(out int i)
-    {
-        M(out $$_);
-        i = 0;
-    }
-}",
+            """
+            class C
+            {
+                void M(out int i)
+                {
+                    M(out $$_);
+                    i = 0;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.discard}) int _"));
     }
 
@@ -3288,57 +3737,65 @@ class C
     public async Task TestDiscardInOutVar()
     {
         await TestAsync(
-@"class C
-{
-    void M(out int i)
-    {
-        M(out var $$_);
-        i = 0;
-    }
-}"); // No quick info (see issue #16667)
+            """
+            class C
+            {
+                void M(out int i)
+                {
+                    M(out var $$_);
+                    i = 0;
+                }
+            }
+            """); // No quick info (see issue #16667)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16667")]
     public async Task TestDiscardInIsPattern()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        if (3 is int $$_) { }
-    }
-}"); // No quick info (see issue #16667)
+            """
+            class C
+            {
+                void M()
+                {
+                    if (3 is int $$_) { }
+                }
+            }
+            """); // No quick info (see issue #16667)
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16667")]
     public async Task TestDiscardInSwitchPattern()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        switch (3)
-        {
-            case int $$_:
-                return;
-        }
-    }
-}"); // No quick info (see issue #16667)
+            """
+            class C
+            {
+                void M()
+                {
+                    switch (3)
+                    {
+                        case int $$_:
+                            return;
+                    }
+                }
+            }
+            """); // No quick info (see issue #16667)
     }
 
     [Fact]
     public async Task TestLambdaDiscardParameter_FirstDiscard()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        System.Func<string, int, int> f = ($$_, _) => 1;
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    System.Func<string, int, int> f = ($$_, _) => 1;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.discard}) string _"));
     }
 
@@ -3346,13 +3803,15 @@ class C
     public async Task TestLambdaDiscardParameter_SecondDiscard()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        System.Func<string, int, int> f = (_, $$_) => 1;
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    System.Func<string, int, int> f = (_, $$_) => 1;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.discard}) int _"));
     }
 
@@ -3360,24 +3819,26 @@ class C
     public async Task TestLiterals()
     {
         await TestAsync(
-@"class MyClass
-{
-    MyClass() : this($$10)
-    {
-        intI = 2;
-    }
+            """
+            class MyClass
+            {
+                MyClass() : this($$10)
+                {
+                    intI = 2;
+                }
 
-    public MyClass(int i)
-    {
-    }
+                public MyClass(int i)
+                {
+                }
 
-    static int intI = 1;
+                static int intI = 1;
 
-    public static int Main()
-    {
-        return 1;
-    }
-}",
+                public static int Main()
+                {
+                    return 1;
+                }
+            }
+            """,
             MainDescription("struct System.Int32"));
     }
 
@@ -3385,16 +3846,18 @@ class C
     public async Task TestErrorInForeach()
     {
         await TestAsync(
-@"class C
-{
-    void Main()
-    {
-        foreach (int cc in null)
-        {
-            $$cc = 1;
-        }
-    }
-}",
+            """
+            class C
+            {
+                void Main()
+                {
+                    foreach (int cc in null)
+                    {
+                        $$cc = 1;
+                    }
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int cc"));
     }
 
@@ -3402,30 +3865,32 @@ class C
     public async Task TestQuickInfoOnEvent()
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-public class SampleEventArgs
-{
-    public SampleEventArgs(string s)
-    {
-        Text = s;
-    }
+            public class SampleEventArgs
+            {
+                public SampleEventArgs(string s)
+                {
+                    Text = s;
+                }
 
-    public String Text { get; private set; }
-}
+                public String Text { get; private set; }
+            }
 
-public class Publisher
-{
-    public delegate void SampleEventHandler(object sender, SampleEventArgs e);
+            public class Publisher
+            {
+                public delegate void SampleEventHandler(object sender, SampleEventArgs e);
 
-    public event SampleEventHandler SampleEvent;
+                public event SampleEventHandler SampleEvent;
 
-    protected virtual void RaiseSampleEvent()
-    {
-        if (Sam$$pleEvent != null)
-            SampleEvent(this, new SampleEventArgs(""Hello""));
-    }
-}",
+                protected virtual void RaiseSampleEvent()
+                {
+                    if (Sam$$pleEvent != null)
+                        SampleEvent(this, new SampleEventArgs("Hello"));
+                }
+            }
+            """,
             MainDescription("SampleEventHandler Publisher.SampleEvent"));
     }
 
@@ -3454,28 +3919,30 @@ public class Publisher
     public async Task TestQuickInfoOnExtensionMethod()
     {
         await TestWithOptionsAsync(Options.Regular,
-@"using System;
-using System.Collections.Generic;
-using System.Linq;
+            """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        int[] values = {
-            1
-        };
-        bool isArray = 7.I$$n(values);
-    }
-}
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int[] values = {
+                        1
+                    };
+                    bool isArray = 7.I$$n(values);
+                }
+            }
 
-public static class MyExtensions
-{
-    public static bool In<T>(this T o, IEnumerable<T> items)
-    {
-        return true;
-    }
-}",
+            public static class MyExtensions
+            {
+                public static bool In<T>(this T o, IEnumerable<T> items)
+                {
+                    return true;
+                }
+            }
+            """,
             MainDescription($"({CSharpFeaturesResources.extension}) bool int.In<int>(IEnumerable<int> items)"));
     }
 
@@ -3483,31 +3950,33 @@ public static class MyExtensions
     public async Task TestQuickInfoOnExtensionMethodOverloads()
     {
         await TestWithOptionsAsync(Options.Regular,
-@"using System;
-using System.Linq;
+            """
+            using System;
+            using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        ""1"".Test$$Ext();
-    }
-}
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    "1".Test$$Ext();
+                }
+            }
 
-public static class Ex
-{
-    public static void TestExt<T>(this T ex)
-    {
-    }
+            public static class Ex
+            {
+                public static void TestExt<T>(this T ex)
+                {
+                }
 
-    public static void TestExt<T>(this T ex, T arg)
-    {
-    }
+                public static void TestExt<T>(this T ex, T arg)
+                {
+                }
 
-    public static void TestExt(this string ex, int arg)
-    {
-    }
-}",
+                public static void TestExt(this string ex, int arg)
+                {
+                }
+            }
+            """,
             MainDescription($"({CSharpFeaturesResources.extension}) void string.TestExt<string>() (+ 2 {FeaturesResources.overloads_})"));
     }
 
@@ -3515,31 +3984,33 @@ public static class Ex
     public async Task TestQuickInfoOnExtensionMethodOverloads2()
     {
         await TestWithOptionsAsync(Options.Regular,
-@"using System;
-using System.Linq;
+            """
+            using System;
+            using System.Linq;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        ""1"".Test$$Ext();
-    }
-}
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    "1".Test$$Ext();
+                }
+            }
 
-public static class Ex
-{
-    public static void TestExt<T>(this T ex)
-    {
-    }
+            public static class Ex
+            {
+                public static void TestExt<T>(this T ex)
+                {
+                }
 
-    public static void TestExt<T>(this T ex, T arg)
-    {
-    }
+                public static void TestExt<T>(this T ex, T arg)
+                {
+                }
 
-    public static void TestExt(this int ex, int arg)
-    {
-    }
-}",
+                public static void TestExt(this int ex, int arg)
+                {
+                }
+            }
+            """,
             MainDescription($"({CSharpFeaturesResources.extension}) void string.TestExt<string>() (+ 1 {FeaturesResources.overload})"));
     }
 
@@ -3547,17 +4018,19 @@ public static class Ex
     public async Task Query1()
     {
         await TestAsync(
-@"using System.Linq;
+            """
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from n in new int[] { 1, 2, 3, 4, 5 }
+            class C
+            {
+                void M()
+                {
+                    var q = from n in new int[] { 1, 2, 3, 4, 5 }
 
-                select $$n;
-    }
-}",
+                            select $$n;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) int n"));
     }
 
@@ -3565,17 +4038,19 @@ class C
     public async Task Query2()
     {
         await TestAsync(
-@"using System.Linq;
+            """
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from n$$ in new int[] { 1, 2, 3, 4, 5 }
+            class C
+            {
+                void M()
+                {
+                    var q = from n$$ in new int[] { 1, 2, 3, 4, 5 }
 
-                select n;
-    }
-}",
+                            select n;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) int n"));
     }
 
@@ -3583,15 +4058,17 @@ class C
     public async Task Query3()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        var q = from n in new int[] { 1, 2, 3, 4, 5 }
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = from n in new int[] { 1, 2, 3, 4, 5 }
 
-                select $$n;
-    }
-}",
+                            select $$n;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) ? n"));
     }
 
@@ -3599,15 +4076,17 @@ class C
     public async Task Query4()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        var q = from n$$ in new int[] { 1, 2, 3, 4, 5 }
+            """
+            class C
+            {
+                void M()
+                {
+                    var q = from n$$ in new int[] { 1, 2, 3, 4, 5 }
 
-                select n;
-    }
-}",
+                            select n;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) ? n"));
     }
 
@@ -3615,17 +4094,19 @@ class C
     public async Task Query5()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from n in new List<object>()
-                select $$n;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var q = from n in new List<object>()
+                            select $$n;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) object n"));
     }
 
@@ -3633,17 +4114,19 @@ class C
     public async Task Query6()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from n$$ in new List<object>()
-                select n;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var q = from n$$ in new List<object>()
+                            select n;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) object n"));
     }
 
@@ -3651,17 +4134,19 @@ class C
     public async Task Query7()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from int n in new List<object>()
-                select $$n;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var q = from int n in new List<object>()
+                            select $$n;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) int n"));
     }
 
@@ -3669,17 +4154,19 @@ class C
     public async Task Query8()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from int n$$ in new List<object>()
-                select n;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var q = from int n$$ in new List<object>()
+                            select n;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) int n"));
     }
 
@@ -3687,18 +4174,20 @@ class C
     public async Task Query9()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from x$$ in new List<List<int>>()
-                from y in x
-                select y;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var q = from x$$ in new List<List<int>>()
+                            from y in x
+                            select y;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) List<int> x"));
     }
 
@@ -3706,18 +4195,20 @@ class C
     public async Task Query10()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from x in new List<List<int>>()
-                from y in $$x
-                select y;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var q = from x in new List<List<int>>()
+                            from y in $$x
+                            select y;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) List<int> x"));
     }
 
@@ -3725,18 +4216,20 @@ class C
     public async Task Query11()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from x in new List<List<int>>()
-                from y$$ in x
-                select y;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var q = from x in new List<List<int>>()
+                            from y$$ in x
+                            select y;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) int y"));
     }
 
@@ -3744,18 +4237,20 @@ class C
     public async Task Query12()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-class C
-{
-    void M()
-    {
-        var q = from x in new List<List<int>>()
-                from y in x
-                select $$y;
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    var q = from x in new List<List<int>>()
+                            from y in x
+                            select $$y;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.range_variable}) int y"));
     }
 
@@ -3763,10 +4258,12 @@ class C
     public async Task QueryMethodinfoSelectMappedEnumerable()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                $$select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            $$select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Select<int, int>(Func<int, int> selector)"));
     }
 
@@ -3774,10 +4271,12 @@ class C
     public async Task QueryMethodinfoSelectMappedQueryable()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0].AsQueryable()
-                $$select i;
-",
+            """
+
+                    var q = from i in new int[0].AsQueryable()
+                            $$select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IQueryable<int> IQueryable<int>.Select<int, int>(System.Linq.Expressions.Expression<Func<int, int>> selector)"));
     }
 
@@ -3785,26 +4284,28 @@ class C
     public async Task QueryMethodinfoSelectMappedCustom()
     {
         await TestAsync(
-@"
-using System;
-using System.Linq;
+            """
 
-namespace N {
-    public static class LazyExt
-    {
-        public static Lazy<U> Select<T, U>(this Lazy<T> source, Func<T, U> selector) => new Lazy<U>(() => selector(source.Value));
-    }
-    public class C
-    {
-        public void M()
-        {
-            var lazy = new Lazy<object>();
-            var q = from i in lazy
-                    $$select i;
-        }
-    }
-}
-",
+            using System;
+            using System.Linq;
+
+            namespace N {
+                public static class LazyExt
+                {
+                    public static Lazy<U> Select<T, U>(this Lazy<T> source, Func<T, U> selector) => new Lazy<U>(() => selector(source.Value));
+                }
+                public class C
+                {
+                    public void M()
+                    {
+                        var lazy = new Lazy<object>();
+                        var q = from i in lazy
+                                $$select i;
+                    }
+                }
+            }
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) Lazy<object> Lazy<object>.Select<object, object>(Func<object, object> selector)"));
     }
 
@@ -3812,37 +4313,45 @@ namespace N {
     public async Task QueryMethodinfoSelectNotMapped()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                where true
-                $$select i;
-");
+            """
+
+                    var q = from i in new int[0]
+                            where true
+                            $$select i;
+
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public async Task QueryMethodinfoLet()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                $$let j = true
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            $$let j = true
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<'a> IEnumerable<int>.Select<int, 'a>(Func<int, 'a> selector)"),
-        AnonymousTypes($@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} new {{ int i, bool j }}"));
+        AnonymousTypes($$"""
+
+            {{FeaturesResources.Types_colon}}
+                'a {{FeaturesResources.is_}} new { int i, bool j }
+            """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public async Task QueryMethodinfoWhere()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                $$where true
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            $$where true
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Where<int>(Func<int, bool> predicate)"));
     }
 
@@ -3850,11 +4359,13 @@ namespace N {
     public async Task QueryMethodinfoOrderByOneProperty()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                $$orderby i
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            $$orderby i
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -3862,11 +4373,13 @@ namespace N {
     public async Task QueryMethodinfoOrderByOnePropertyWithOrdering1()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                orderby i $$ascending
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            orderby i $$ascending
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -3874,22 +4387,26 @@ namespace N {
     public async Task QueryMethodinfoOrderByOnePropertyWithOrdering2()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                $$orderby i ascending
-                select i;
-");
+            """
+
+                    var q = from i in new int[0]
+                            $$orderby i ascending
+                            select i;
+
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public async Task QueryMethodinfoOrderByTwoPropertiesWithComma1()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                orderby i$$, i
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            orderby i$$, i
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -3897,11 +4414,13 @@ namespace N {
     public async Task QueryMethodinfoOrderByTwoPropertiesWithComma2()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                $$orderby i, i
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            $$orderby i, i
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -3909,11 +4428,13 @@ namespace N {
     public async Task QueryMethodinfoOrderByTwoPropertiesWithOrdering1()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                $$orderby i, i ascending
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            $$orderby i, i ascending
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -3921,22 +4442,26 @@ namespace N {
     public async Task QueryMethodinfoOrderByTwoPropertiesWithOrdering2()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                orderby i,$$ i ascending
-                select i;
-");
+            """
+
+                    var q = from i in new int[0]
+                            orderby i,$$ i ascending
+                            select i;
+
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public async Task QueryMethodinfoOrderByTwoPropertiesWithOrdering3()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                orderby i, i $$ascending
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            orderby i, i $$ascending
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -3944,22 +4469,26 @@ namespace N {
     public async Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach1()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                $$orderby i ascending, i ascending
-                select i;
-");
+            """
+
+                    var q = from i in new int[0]
+                            $$orderby i ascending, i ascending
+                            select i;
+
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public async Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach2()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                orderby i $$ascending, i ascending
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            orderby i $$ascending, i ascending
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -3967,22 +4496,26 @@ namespace N {
     public async Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach3()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                orderby i ascending ,$$ i ascending
-                select i;
-");
+            """
+
+                    var q = from i in new int[0]
+                            orderby i ascending ,$$ i ascending
+                            select i;
+
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public async Task QueryMethodinfoOrderByTwoPropertiesWithOrderingOnEach4()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                orderby i ascending, i $$ascending
-                select i;
-",
+            """
+
+                    var q = from i in new int[0]
+                            orderby i ascending, i $$ascending
+                            select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IOrderedEnumerable<int>.ThenBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -3990,11 +4523,13 @@ namespace N {
     public async Task QueryMethodinfoOrderByIncomplete()
     {
         await TestInMethodAsync(
-@"
-        var q = from i in new int[0]
-                where i > 0
-                orderby$$ 
-",
+            """
+
+                    var q = from i in new int[0]
+                            where i > 0
+                            orderby$$ 
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IOrderedEnumerable<int> IEnumerable<int>.OrderBy<int, ?>(Func<int, ?> keySelector)"));
     }
 
@@ -4002,11 +4537,13 @@ namespace N {
     public async Task QueryMethodinfoSelectMany1()
     {
         await TestInMethodAsync(
-@"
-        var q = from i1 in new int[0]
-                $$from i2 in new int[0]
-                select i1;
-",
+            """
+
+                    var q = from i1 in new int[0]
+                            $$from i2 in new int[0]
+                            select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, int, int>(Func<int, IEnumerable<int>> collectionSelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4014,11 +4551,13 @@ namespace N {
     public async Task QueryMethodinfoSelectMany2()
     {
         await TestInMethodAsync(
-@"
-        var q = from i1 in new int[0]
-                from i2 $$in new int[0]
-                select i1;
-",
+            """
+
+                    var q = from i1 in new int[0]
+                            from i2 $$in new int[0]
+                            select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, int, int>(Func<int, IEnumerable<int>> collectionSelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4026,10 +4565,12 @@ namespace N {
     public async Task QueryMethodinfoGroupBy1()
     {
         await TestInMethodAsync(
-@"
-            var q = from i in new int[0]
-                    $$group i by i;
-",
+            """
+
+                        var q = from i in new int[0]
+                                $$group i by i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -4037,10 +4578,12 @@ namespace N {
     public async Task QueryMethodinfoGroupBy2()
     {
         await TestInMethodAsync(
-@"
-            var q = from i in new int[0]
-                    group i $$by i;
-",
+            """
+
+                        var q = from i in new int[0]
+                                group i $$by i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -4048,11 +4591,13 @@ namespace N {
     public async Task QueryMethodinfoGroupByInto()
     {
         await TestInMethodAsync(
-@"
-            var q = from i in new int[0]
-                    $$group i by i into g
-                    select g;
-",
+            """
+
+                        var q = from i in new int[0]
+                                $$group i by i into g
+                                select g;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IGrouping<int, int>> IEnumerable<int>.GroupBy<int, int>(Func<int, int> keySelector)"));
     }
 
@@ -4060,11 +4605,13 @@ namespace N {
     public async Task QueryMethodinfoJoin1()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    $$join i2 in new int[0] on i1 equals i2
-                    select i1;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                $$join i2 in new int[0] on i1 equals i2
+                                select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4072,11 +4619,13 @@ namespace N {
     public async Task QueryMethodinfoJoin2()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    join i2 $$in new int[0] on i1 equals i2
-                    select i1;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                join i2 $$in new int[0] on i1 equals i2
+                                select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4084,11 +4633,13 @@ namespace N {
     public async Task QueryMethodinfoJoin3()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    join i2 in new int[0] $$on i1 equals i2
-                    select i1;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                join i2 in new int[0] $$on i1 equals i2
+                                select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4096,11 +4647,13 @@ namespace N {
     public async Task QueryMethodinfoJoin4()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    join i2 in new int[0] on i1 $$equals i2
-                    select i1;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                join i2 in new int[0] on i1 $$equals i2
+                                select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4108,11 +4661,13 @@ namespace N {
     public async Task QueryMethodinfoJoinInto1()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    $$join i2 in new int[0] on i1 equals i2 into g
-                    select g;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                $$join i2 in new int[0] on i1 equals i2 into g
+                                select g;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<IEnumerable<int>> IEnumerable<int>.GroupJoin<int, int, int, IEnumerable<int>>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, IEnumerable<int>, IEnumerable<int>> resultSelector)"));
     }
 
@@ -4120,31 +4675,37 @@ namespace N {
     public async Task QueryMethodinfoJoinInto2()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    join i2 in new int[0] on i1 equals i2 $$into g
-                    select g;
-");
+            """
+
+                        var q = from i1 in new int[0]
+                                join i2 in new int[0] on i1 equals i2 $$into g
+                                select g;
+
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public async Task QueryMethodinfoFromMissing()
     {
         await TestInMethodAsync(
-@"
-            var q = $$from i in new int[0]
-                    select i;
-");
+            """
+
+                        var q = $$from i in new int[0]
+                                select i;
+
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23394")]
     public async Task QueryMethodinfoRangeVariableSimple1()
     {
         await TestInMethodAsync(
-@"
-            var q = $$from double i in new int[0]
-                    select i;
-",
+            """
+
+                        var q = $$from double i in new int[0]
+                                select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
     }
 
@@ -4152,10 +4713,12 @@ namespace N {
     public async Task QueryMethodinfoRangeVariableSimple2()
     {
         await TestInMethodAsync(
-@"
-            var q = from double i $$in new int[0]
-                    select i;
-",
+            """
+
+                        var q = from double i $$in new int[0]
+                                select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
     }
 
@@ -4163,11 +4726,13 @@ namespace N {
     public async Task QueryMethodinfoRangeVariableSelectMany1()
     {
         await TestInMethodAsync(
-@"
-            var q = from i in new int[0]
-                    $$from double d in new int[0]
-                    select i;
-",
+            """
+
+                        var q = from i in new int[0]
+                                $$from double d in new int[0]
+                                select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.SelectMany<int, double, int>(Func<int, IEnumerable<double>> collectionSelector, Func<int, double, int> resultSelector)"));
     }
 
@@ -4175,11 +4740,13 @@ namespace N {
     public async Task QueryMethodinfoRangeVariableSelectMany2()
     {
         await TestInMethodAsync(
-@"
-            var q = from i in new int[0]
-                    from double d $$in new int[0]
-                    select i;
-",
+            """
+
+                        var q = from i in new int[0]
+                                from double d $$in new int[0]
+                                select i;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<double> System.Collections.IEnumerable.Cast<double>()"));
     }
 
@@ -4187,11 +4754,13 @@ namespace N {
     public async Task QueryMethodinfoRangeVariableJoin1()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    $$join int i2 in new double[0] on i1 equals i2
-                    select i1;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                $$join int i2 in new double[0] on i1 equals i2
+                                select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4199,11 +4768,13 @@ namespace N {
     public async Task QueryMethodinfoRangeVariableJoin2()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    join int i2 $$in new double[0] on i1 equals i2
-                    select i1;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                join int i2 $$in new double[0] on i1 equals i2
+                                select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> System.Collections.IEnumerable.Cast<int>()"));
     }
 
@@ -4211,11 +4782,13 @@ namespace N {
     public async Task QueryMethodinfoRangeVariableJoin3()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    join int i2 in new double[0] $$on i1 equals i2
-                    select i1;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                join int i2 in new double[0] $$on i1 equals i2
+                                select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4223,11 +4796,13 @@ namespace N {
     public async Task QueryMethodinfoRangeVariableJoin4()
     {
         await TestInMethodAsync(
-@"
-            var q = from i1 in new int[0]
-                    join int i2 in new double[0] on i1 $$equals i2
-                    select i1;
-",
+            """
+
+                        var q = from i1 in new int[0]
+                                join int i2 in new double[0] on i1 $$equals i2
+                                select i1;
+
+            """,
         MainDescription($"({CSharpFeaturesResources.extension}) IEnumerable<int> IEnumerable<int>.Join<int, int, int, int>(IEnumerable<int> inner, Func<int, int> outerKeySelector, Func<int, int> innerKeySelector, Func<int, int, int> resultSelector)"));
     }
 
@@ -4235,16 +4810,18 @@ namespace N {
     public async Task TestErrorGlobal()
     {
         await TestAsync(
-@"extern alias global;
+            """
+            extern alias global;
 
-class myClass
-{
-    static int Main()
-    {
-        $$global::otherClass oc = new global::otherClass();
-        return 0;
-    }
-}",
+            class myClass
+            {
+                static int Main()
+                {
+                    $$global::otherClass oc = new global::otherClass();
+                    return 0;
+                }
+            }
+            """,
             MainDescription("<global namespace>"));
     }
 
@@ -4252,12 +4829,14 @@ class myClass
     public async Task DoNotRemoveAttributeSuffixAndProduceInvalidIdentifier1()
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-class classAttribute : Attribute
-{
-    private classAttribute x$$;
-}",
+            class classAttribute : Attribute
+            {
+                private classAttribute x$$;
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) classAttribute classAttribute.x"));
     }
 
@@ -4265,12 +4844,14 @@ class classAttribute : Attribute
     public async Task DoNotRemoveAttributeSuffix2()
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-class class1Attribute : Attribute
-{
-    private class1Attribute x$$;
-}",
+            class class1Attribute : Attribute
+            {
+                private class1Attribute x$$;
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) class1Attribute class1Attribute.x"));
     }
 
@@ -4278,21 +4859,23 @@ class class1Attribute : Attribute
     public async Task AttributeQuickInfoBindsToClassTest()
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-/// <summary>
-/// class comment
-/// </summary>
-[Some$$]
-class SomeAttribute : Attribute
-{
-    /// <summary>
-    /// ctor comment
-    /// </summary>
-    public SomeAttribute()
-    {
-    }
-}",
+            /// <summary>
+            /// class comment
+            /// </summary>
+            [Some$$]
+            class SomeAttribute : Attribute
+            {
+                /// <summary>
+                /// ctor comment
+                /// </summary>
+                public SomeAttribute()
+                {
+                }
+            }
+            """,
             Documentation("class comment"));
     }
 
@@ -4300,21 +4883,23 @@ class SomeAttribute : Attribute
     public async Task AttributeConstructorQuickInfo()
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-/// <summary>
-/// class comment
-/// </summary>
-class SomeAttribute : Attribute
-{
-    /// <summary>
-    /// ctor comment
-    /// </summary>
-    public SomeAttribute()
-    {
-        var s = new Some$$Attribute();
-    }
-}",
+            /// <summary>
+            /// class comment
+            /// </summary>
+            class SomeAttribute : Attribute
+            {
+                /// <summary>
+                /// ctor comment
+                /// </summary>
+                public SomeAttribute()
+                {
+                    var s = new Some$$Attribute();
+                }
+            }
+            """,
             Documentation("ctor comment"));
     }
 
@@ -4322,12 +4907,14 @@ class SomeAttribute : Attribute
     public async Task TestLabel()
     {
         await TestInClassAsync(
-@"void M()
-{
-Goo:
-    int Goo;
-    goto Goo$$;
-}",
+            """
+            void M()
+            {
+            Goo:
+                int Goo;
+                goto Goo$$;
+            }
+            """,
             MainDescription($"({FeaturesResources.label}) Goo"));
     }
 
@@ -4335,16 +4922,18 @@ Goo:
     public async Task TestUnboundGeneric()
     {
         await TestAsync(
-@"using System;
-using System.Collections.Generic;
+            """
+            using System;
+            using System.Collections.Generic;
 
-class C
-{
-    void M()
-    {
-        Type t = typeof(L$$ist<>);
-    }
-}",
+            class C
+            {
+                void M()
+                {
+                    Type t = typeof(L$$ist<>);
+                }
+            }
+            """,
             MainDescription("class System.Collections.Generic.List<T>"),
             NoTypeParameterMap);
     }
@@ -4353,19 +4942,23 @@ class C
     public async Task TestAnonymousTypeNew1()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        var v = $$new { };
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = $$new { };
+                }
+            }
+            """,
             MainDescription(@"AnonymousType 'a"),
             NoTypeParameterMap,
             AnonymousTypes(
-$@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} new {{  }}"));
+                $$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a {{FeaturesResources.is_}} new {  }
+                """));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543873")]
@@ -4374,68 +4967,82 @@ $@"
         // verify nested anonymous types are listed in the same order for different properties
         // verify first property
         await TestInMethodAsync(
-@"var x = new[] { new { Name = ""BillG"", Address = new { Street = ""1 Microsoft Way"", Zip = ""98052"" } } };
+            """
+            var x = new[] { new { Name = "BillG", Address = new { Street = "1 Microsoft Way", Zip = "98052" } } };
 
-x[0].$$Address",
+            x[0].$$Address
+            """,
             MainDescription(@"'b 'a.Address { get; }"),
             NoTypeParameterMap,
             AnonymousTypes(
-$@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
-    'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
+                $$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a {{FeaturesResources.is_}} new { string Name, 'b Address }
+                    'b {{FeaturesResources.is_}} new { string Street, string Zip }
+                """));
 
         // verify second property
         await TestInMethodAsync(
-@"var x = new[] { new { Name = ""BillG"", Address = new { Street = ""1 Microsoft Way"", Zip = ""98052"" } } };
+            """
+            var x = new[] { new { Name = "BillG", Address = new { Street = "1 Microsoft Way", Zip = "98052" } } };
 
-x[0].$$Name",
+            x[0].$$Name
+            """,
             MainDescription(@"string 'a.Name { get; }"),
             NoTypeParameterMap,
             AnonymousTypes(
-$@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} new {{ string Name, 'b Address }}
-    'b {FeaturesResources.is_} new {{ string Street, string Zip }}"));
+                $$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a {{FeaturesResources.is_}} new { string Name, 'b Address }
+                    'b {{FeaturesResources.is_}} new { string Street, string Zip }
+                """));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543183")]
     public async Task TestAssignmentOperatorInAnonymousType()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        var a = new { A $$= 0 };
-    }
-}");
+            """
+            class C
+            {
+                void M()
+                {
+                    var a = new { A $$= 0 };
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem(10731, "DevDiv_Projects/Roslyn")]
     public async Task TestErrorAnonymousTypeDoesntShow()
     {
         await TestInMethodAsync(
-@"var a = new { new { N = 0 }.N, new { } }.$$N;",
+            @"var a = new { new { N = 0 }.N, new { } }.$$N;",
             MainDescription(@"int 'a.N { get; }"),
             NoTypeParameterMap,
             AnonymousTypes(
-$@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} new {{ int N }}"));
+                $$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a {{FeaturesResources.is_}} new { int N }
+                """));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543553")]
     public async Task TestArrayAssignedToVar()
     {
         await TestAsync(
-@"class C
-{
-    static void M(string[] args)
-    {
-        v$$ar a = args;
-    }
-}",
+            """
+            class C
+            {
+                static void M(string[] args)
+                {
+                    v$$ar a = args;
+                }
+            }
+            """,
             MainDescription("string[]"));
     }
 
@@ -4443,23 +5050,25 @@ $@"
     public async Task ColorColorRangeVariable()
     {
         await TestAsync(
-@"using System.Collections.Generic;
-using System.Linq;
+            """
+            using System.Collections.Generic;
+            using System.Linq;
 
-namespace N1
-{
-    class yield
-    {
-        public static IEnumerable<yield> Bar()
-        {
-            foreach (yield yield in from yield in new yield[0]
-                                    select y$$ield)
+            namespace N1
             {
-                yield return yield;
+                class yield
+                {
+                    public static IEnumerable<yield> Bar()
+                    {
+                        foreach (yield yield in from yield in new yield[0]
+                                                select y$$ield)
+                        {
+                            yield return yield;
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
+            """,
             MainDescription($"({FeaturesResources.range_variable}) N1.yield yield"));
     }
 
@@ -4467,26 +5076,28 @@ namespace N1
     public async Task QuickInfoOnOperator()
     {
         await TestAsync(
-@"using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        var v = new Program() $$+ string.Empty;
-    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    var v = new Program() $$+ string.Empty;
+                }
 
-    public static implicit operator Program(string s)
-    {
-        return null;
-    }
+                public static implicit operator Program(string s)
+                {
+                    return null;
+                }
 
-    public static IEnumerable<Program> operator +(Program p1, Program p2)
-    {
-        yield return p1;
-        yield return p2;
-    }
-}",
+                public static IEnumerable<Program> operator +(Program p1, Program p2)
+                {
+                    yield return p1;
+                    yield return p2;
+                }
+            }
+            """,
             MainDescription("IEnumerable<Program> Program.operator +(Program p1, Program p2)"));
     }
 
@@ -4494,9 +5105,11 @@ class Program
     public async Task TestConstantField()
     {
         await TestAsync(
-@"class C
-{
-    const int $$F = 1;",
+            """
+            class C
+            {
+                const int $$F = 1;
+            """,
             MainDescription($"({FeaturesResources.constant}) int C.F = 1"));
     }
 
@@ -4504,9 +5117,11 @@ class Program
     public async Task TestMultipleConstantFields()
     {
         await TestAsync(
-@"class C
-{
-    public const double X = 1.0, Y = 2.0, $$Z = 3.5;",
+            """
+            class C
+            {
+                public const double X = 1.0, Y = 2.0, $$Z = 3.5;
+            """,
             MainDescription($"({FeaturesResources.constant}) double C.Z = 3.5"));
     }
 
@@ -4514,16 +5129,18 @@ class Program
     public async Task TestConstantDependencies()
     {
         await TestAsync(
-@"class A
-{
-    public const int $$X = B.Z + 1;
-    public const int Y = 10;
-}
+            """
+            class A
+            {
+                public const int $$X = B.Z + 1;
+                public const int Y = 10;
+            }
 
-class B
-{
-    public const int Z = A.Y + 1;
-}",
+            class B
+            {
+                public const int Z = A.Y + 1;
+            }
+            """,
             MainDescription($"({FeaturesResources.constant}) int A.X = B.Z + 1"));
     }
 
@@ -4531,15 +5148,17 @@ class B
     public async Task TestConstantCircularDependencies()
     {
         await TestAsync(
-@"class A
-{
-    public const int X = B.Z + 1;
-}
+            """
+            class A
+            {
+                public const int X = B.Z + 1;
+            }
 
-class B
-{
-    public const int Z$$ = A.X + 1;
-}",
+            class B
+            {
+                public const int Z$$ = A.X + 1;
+            }
+            """,
             MainDescription($"({FeaturesResources.constant}) int B.Z = A.X + 1"));
     }
 
@@ -4547,10 +5166,12 @@ class B
     public async Task TestConstantOverflow()
     {
         await TestAsync(
-@"class B
-{
-    public const int Z$$ = int.MaxValue + 1;
-}",
+            """
+            class B
+            {
+                public const int Z$$ = int.MaxValue + 1;
+            }
+            """,
             MainDescription($"({FeaturesResources.constant}) int B.Z = int.MaxValue + 1"));
     }
 
@@ -4558,10 +5179,12 @@ class B
     public async Task TestConstantOverflowInUncheckedContext()
     {
         await TestAsync(
-@"class B
-{
-    public const int Z$$ = unchecked(int.MaxValue + 1);
-}",
+            """
+            class B
+            {
+                public const int Z$$ = unchecked(int.MaxValue + 1);
+            }
+            """,
             MainDescription($"({FeaturesResources.constant}) int B.Z = unchecked(int.MaxValue + 1)"));
     }
 
@@ -4569,24 +5192,26 @@ class B
     public async Task TestEnumInConstantField()
     {
         await TestAsync(
-@"public class EnumTest
-{
-    enum Days
-    {
-        Sun,
-        Mon,
-        Tue,
-        Wed,
-        Thu,
-        Fri,
-        Sat
-    };
+            """
+            public class EnumTest
+            {
+                enum Days
+                {
+                    Sun,
+                    Mon,
+                    Tue,
+                    Wed,
+                    Thu,
+                    Fri,
+                    Sat
+                };
 
-    static void Main()
-    {
-        const int $$x = (int)Days.Sun;
-    }
-}",
+                static void Main()
+                {
+                    const int $$x = (int)Days.Sun;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_constant}) int x = (int)Days.Sun"));
     }
 
@@ -4594,24 +5219,26 @@ class B
     public async Task TestConstantInDefaultExpression()
     {
         await TestAsync(
-@"public class EnumTest
-{
-    enum Days
-    {
-        Sun,
-        Mon,
-        Tue,
-        Wed,
-        Thu,
-        Fri,
-        Sat
-    };
+            """
+            public class EnumTest
+            {
+                enum Days
+                {
+                    Sun,
+                    Mon,
+                    Tue,
+                    Wed,
+                    Thu,
+                    Fri,
+                    Sat
+                };
 
-    static void Main()
-    {
-        const Days $$x = default(Days);
-    }
-}",
+                static void Main()
+                {
+                    const Days $$x = default(Days);
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_constant}) Days x = default(Days)"));
     }
 
@@ -4619,10 +5246,12 @@ class B
     public async Task TestConstantParameter()
     {
         await TestAsync(
-@"class C
-{
-    void Bar(int $$b = 1);
-}",
+            """
+            class C
+            {
+                void Bar(int $$b = 1);
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) int b = 1"));
     }
 
@@ -4630,12 +5259,14 @@ class B
     public async Task TestConstantLocal()
     {
         await TestAsync(
-@"class C
-{
-    void Bar()
-    {
-        const int $$loc = 1;
-    }",
+            """
+            class C
+            {
+                void Bar()
+                {
+                    const int $$loc = 1;
+                }
+            """,
             MainDescription($"({FeaturesResources.local_constant}) int loc = 1"));
     }
 
@@ -4643,7 +5274,7 @@ class B
     public async Task TestErrorType1()
     {
         await TestInMethodAsync(
-@"var $$v1 = new Goo();",
+            @"var $$v1 = new Goo();",
             MainDescription($"({FeaturesResources.local_variable}) Goo v1"));
     }
 
@@ -4651,7 +5282,7 @@ class B
     public async Task TestErrorType2()
     {
         await TestInMethodAsync(
-@"var $$v1 = v1;",
+            @"var $$v1 = v1;",
             MainDescription($"({FeaturesResources.local_variable}) var v1"));
     }
 
@@ -4659,7 +5290,7 @@ class B
     public async Task TestErrorType3()
     {
         await TestInMethodAsync(
-@"var $$v1 = new Goo<Bar>();",
+            @"var $$v1 = new Goo<Bar>();",
             MainDescription($"({FeaturesResources.local_variable}) Goo<Bar> v1"));
     }
 
@@ -4667,7 +5298,7 @@ class B
     public async Task TestErrorType4()
     {
         await TestInMethodAsync(
-@"var $$v1 = &(x => x);",
+            @"var $$v1 = &(x => x);",
             MainDescription($"({FeaturesResources.local_variable}) ?* v1"));
     }
 
@@ -4689,17 +5320,19 @@ class B
     public async Task TestErrorType7()
     {
         await TestInClassAsync(
-@"class C
-{
-    void Method()
-    {
-    }
+            """
+            class C
+            {
+                void Method()
+                {
+                }
 
-    void Goo()
-    {
-        var $$v1 = MethodGroup;
-    }
-}",
+                void Goo()
+                {
+                    var $$v1 = MethodGroup;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) ? v1"));
     }
 
@@ -4714,7 +5347,7 @@ class B
     public async Task TestDelegateSpecialTypes()
     {
         await TestAsync(
-@"delegate void $$F(int x);",
+            @"delegate void $$F(int x);",
             MainDescription("delegate void F(int x)"));
     }
 
@@ -4722,12 +5355,14 @@ class B
     public async Task TestNullPointerParameter()
     {
         await TestAsync(
-@"class C
-{
-    unsafe void $$Goo(int* x = null)
-    {
-    }
-}",
+            """
+            class C
+            {
+                unsafe void $$Goo(int* x = null)
+                {
+                }
+            }
+            """,
             MainDescription("void C.Goo([int* x = null])"));
     }
 
@@ -4742,12 +5377,14 @@ class B
     public async Task TestNullableDefaultValue()
     {
         await TestAsync(
-@"class Test
-{
-    void $$Method(int? t1 = null)
-    {
-    }
-}",
+            """
+            class Test
+            {
+                void $$Method(int? t1 = null)
+                {
+                }
+            }
+            """,
             MainDescription("void Test.Method([int? t1 = null])"));
     }
 
@@ -4755,30 +5392,36 @@ class B
     public async Task TestInvalidParameterInitializer()
     {
         await TestAsync(
-@"class Program
-{
-    void M1(float $$j1 = ""Hello""
-+
-""World"")
-    {
-    }
-}",
-            MainDescription($@"({FeaturesResources.parameter}) float j1 = ""Hello"" + ""World"""));
+            """
+            class Program
+            {
+                void M1(float $$j1 = "Hello"
+            +
+            "World")
+                {
+                }
+            }
+            """,
+            MainDescription($"""
+                ({FeaturesResources.parameter}) float j1 = "Hello" + "World"
+                """));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545230")]
     public async Task TestComplexConstLocal()
     {
         await TestAsync(
-@"class Program
-{
-    void Main()
-    {
-        const int MEGABYTE = 1024 *
-            1024 + true;
-        Blah($$MEGABYTE);
-    }
-}",
+            """
+            class Program
+            {
+                void Main()
+                {
+                    const int MEGABYTE = 1024 *
+                        1024 + true;
+                    Blah($$MEGABYTE);
+                }
+            }
+            """,
             MainDescription($@"({FeaturesResources.local_constant}) int MEGABYTE = 1024 * 1024 + true"));
     }
 
@@ -4786,17 +5429,19 @@ class B
     public async Task TestComplexConstField()
     {
         await TestAsync(
-@"class Program
-{
-    const int a = true
-        -
-        false;
+            """
+            class Program
+            {
+                const int a = true
+                    -
+                    false;
 
-    void Main()
-    {
-        Goo($$a);
-    }
-}",
+                void Main()
+                {
+                    Goo($$a);
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.constant}) int Program.a = true - false"));
     }
 
@@ -4804,26 +5449,30 @@ class B
     public async Task TestTypeParameterCrefDoesNotHaveQuickInfo()
     {
         await TestAsync(
-@"class C<T>
-{
-    ///  <see cref=""C{X$$}""/>
-    static void Main(string[] args)
-    {
-    }
-}");
+            """
+            class C<T>
+            {
+                ///  <see cref="C{X$$}"/>
+                static void Main(string[] args)
+                {
+                }
+            }
+            """);
     }
 
     [Fact]
     public async Task TestCref1()
     {
         await TestAsync(
-@"class Program
-{
-    ///  <see cref=""Mai$$n""/>
-    static void Main(string[] args)
-    {
-    }
-}",
+            """
+            class Program
+            {
+                ///  <see cref="Mai$$n"/>
+                static void Main(string[] args)
+                {
+                }
+            }
+            """,
             MainDescription(@"void Program.Main(string[] args)"));
     }
 
@@ -4831,13 +5480,15 @@ class B
     public async Task TestCref2()
     {
         await TestAsync(
-@"class Program
-{
-    ///  <see cref=""$$Main""/>
-    static void Main(string[] args)
-    {
-    }
-}",
+            """
+            class Program
+            {
+                ///  <see cref="$$Main"/>
+                static void Main(string[] args)
+                {
+                }
+            }
+            """,
             MainDescription(@"void Program.Main(string[] args)"));
     }
 
@@ -4845,79 +5496,89 @@ class B
     public async Task TestCref3()
     {
         await TestAsync(
-@"class Program
-{
-    ///  <see cref=""Main""$$/>
-    static void Main(string[] args)
-    {
-    }
-}");
+            """
+            class Program
+            {
+                ///  <see cref="Main"$$/>
+                static void Main(string[] args)
+                {
+                }
+            }
+            """);
     }
 
     [Fact]
     public async Task TestCref4()
     {
         await TestAsync(
-@"class Program
-{
-    ///  <see cref=""Main$$""/>
-    static void Main(string[] args)
-    {
-    }
-}");
+            """
+            class Program
+            {
+                ///  <see cref="Main$$"/>
+                static void Main(string[] args)
+                {
+                }
+            }
+            """);
     }
 
     [Fact]
     public async Task TestCref5()
     {
         await TestAsync(
-@"class Program
-{
-    ///  <see cref=""Main""$$/>
-    static void Main(string[] args)
-    {
-    }
-}");
+            """
+            class Program
+            {
+                ///  <see cref="Main"$$/>
+                static void Main(string[] args)
+                {
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546849")]
     public async Task TestIndexedProperty()
     {
-        var markup = @"class Program
-{
-    void M()
-    {
-            CCC c = new CCC();
-            c.Index$$Prop[0] = ""s"";
-    }
-}";
+        var markup = """
+            class Program
+            {
+                void M()
+                {
+                        CCC c = new CCC();
+                        c.Index$$Prop[0] = "s";
+                }
+            }
+            """;
 
         // Note that <COMImport> is required by compiler.  Bug 17013 tracks enabling indexed property for non-COM types.
-        var referencedCode = @"Imports System.Runtime.InteropServices
-<ComImport()>
-<GuidAttribute(CCC.ClassId)>
-Public Class CCC
+        var referencedCode = """
+            Imports System.Runtime.InteropServices
+            <ComImport()>
+            <GuidAttribute(CCC.ClassId)>
+            Public Class CCC
 
-#Region ""COM GUIDs""
-    Public Const ClassId As String = ""9d965fd2-1514-44f6-accd-257ce77c46b0""
-    Public Const InterfaceId As String = ""a9415060-fdf0-47e3-bc80-9c18f7f39cf6""
-    Public Const EventsId As String = ""c6a866a5-5f97-4b53-a5df-3739dc8ff1bb""
-# End Region
+            #Region "COM GUIDs"
+                Public Const ClassId As String = "9d965fd2-1514-44f6-accd-257ce77c46b0"
+                Public Const InterfaceId As String = "a9415060-fdf0-47e3-bc80-9c18f7f39cf6"
+                Public Const EventsId As String = "c6a866a5-5f97-4b53-a5df-3739dc8ff1bb"
+            # End Region
 
-    ''' <summary>
-    ''' An index property from VB
-    ''' </summary>
-    ''' <param name=""p1"">p1 is an integer index</param>
-    ''' <returns>A string</returns>
-    Public Property IndexProp(ByVal p1 As Integer, Optional ByVal p2 As Integer = 0) As String
-        Get
-            Return Nothing
-        End Get
-        Set(ByVal value As String)
+                ''' <summary>
+                ''' An index property from VB
+                ''' </summary>
+                ''' <param name="p1">p1 is an integer index</param>
+                ''' <returns>A string</returns>
+                Public Property IndexProp(ByVal p1 As Integer, Optional ByVal p2 As Integer = 0) As String
+                    Get
+                        Return Nothing
+                    End Get
+                    Set(ByVal value As String)
 
-        End Set
-    End Property
-End Class";
+                    End Set
+                End Property
+            End Class
+            """;
 
         await TestWithReferenceAsync(sourceCode: markup,
             referencedCode: referencedCode,
@@ -4930,20 +5591,22 @@ End Class";
     public async Task TestUnconstructedGeneric()
     {
         await TestAsync(
-@"class A<T>
-{
-    enum SortOrder
-    {
-        Ascending,
-        Descending,
-        None
-    }
+            """
+            class A<T>
+            {
+                enum SortOrder
+                {
+                    Ascending,
+                    Descending,
+                    None
+                }
 
-    void Goo()
-    {
-        var b = $$SortOrder.Ascending;
-    }
-}",
+                void Goo()
+                {
+                    var b = $$SortOrder.Ascending;
+                }
+            }
+            """,
             MainDescription(@"enum A<T>.SortOrder"));
     }
 
@@ -4951,24 +5614,28 @@ End Class";
     public async Task TestUnconstructedGenericInCRef()
     {
         await TestAsync(
-@"/// <see cref=""$$C{T}"" />
-class C<T>
-{
-}",
+            """
+            /// <see cref="$$C{T}" />
+            class C<T>
+            {
+            }
+            """,
             MainDescription(@"class C<T>"));
     }
 
     [Fact]
     public async Task TestAwaitableMethod()
     {
-        var markup = @"using System.Threading.Tasks;	
-class C	
-{	
-    async Task Goo()	
-    {	
-        Go$$o();	
-    }	
-}";
+        var markup = """
+            using System.Threading.Tasks;	
+            class C	
+            {	
+                async Task Goo()	
+                {	
+                    Go$$o();	
+                }	
+            }
+            """;
         var description = $"({CSharpFeaturesResources.awaitable}) Task C.Goo()";
 
         await VerifyWithMscorlib45Async(markup, MainDescription(description));
@@ -4977,37 +5644,41 @@ class C
     [Fact]
     public async Task ObsoleteItem()
     {
-        var markup = @"
-using System;
+        var markup = """
 
-class Program
-{
-    [Obsolete]
-    public void goo()
-    {
-        go$$o();
-    }
-}";
+            using System;
+
+            class Program
+            {
+                [Obsolete]
+                public void goo()
+                {
+                    go$$o();
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription($"[{CSharpFeaturesResources.deprecated}] void Program.goo()"));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/751070")]
     public async Task DynamicOperator()
     {
-        var markup = @"
+        var markup = """
 
-public class Test
-{
-    public delegate void NoParam();
 
-    static int Main()
-    {
-        dynamic x = new object();
-        if (((System.Func<dynamic>)(() => (x =$$= null)))())
-            return 0;
-        return 1;
-    }
-}";
+            public class Test
+            {
+                public delegate void NoParam();
+
+                static int Main()
+                {
+                    dynamic x = new object();
+                    if (((System.Func<dynamic>)(() => (x =$$= null)))())
+                        return 0;
+                    return 1;
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription("dynamic dynamic.operator ==(dynamic left, dynamic right)"));
     }
 
@@ -5015,154 +5686,180 @@ public class Test
     public async Task TextOnlyDocComment()
     {
         await TestAsync(
-@"/// <summary>
-///goo
-/// </summary>
-class C$$
-{
-}", Documentation("goo"));
+            """
+            /// <summary>
+            ///goo
+            /// </summary>
+            class C$$
+            {
+            }
+            """, Documentation("goo"));
     }
 
     [Fact]
     public async Task TestTrimConcatMultiLine()
     {
         await TestAsync(
-@"/// <summary>
-/// goo
-/// bar
-/// </summary>
-class C$$
-{
-}", Documentation("goo bar"));
+            """
+            /// <summary>
+            /// goo
+            /// bar
+            /// </summary>
+            class C$$
+            {
+            }
+            """, Documentation("goo bar"));
     }
 
     [Fact]
     public async Task TestCref()
     {
         await TestAsync(
-@"/// <summary>
-/// <see cref=""C""/>
-/// <seealso cref=""C""/>
-/// </summary>
-class C$$
-{
-}", Documentation("C C"));
+            """
+            /// <summary>
+            /// <see cref="C"/>
+            /// <seealso cref="C"/>
+            /// </summary>
+            class C$$
+            {
+            }
+            """, Documentation("C C"));
     }
 
     [Fact]
     public async Task ExcludeTextOutsideSummaryBlock()
     {
         await TestAsync(
-@"/// red
-/// <summary>
-/// green
-/// </summary>
-/// yellow
-class C$$
-{
-}", Documentation("green"));
+            """
+            /// red
+            /// <summary>
+            /// green
+            /// </summary>
+            /// yellow
+            class C$$
+            {
+            }
+            """, Documentation("green"));
     }
 
     [Fact]
     public async Task NewlineAfterPara()
     {
         await TestAsync(
-@"/// <summary>
-/// <para>goo</para>
-/// </summary>
-class C$$
-{
-}", Documentation("goo"));
+            """
+            /// <summary>
+            /// <para>goo</para>
+            /// </summary>
+            class C$$
+            {
+            }
+            """, Documentation("goo"));
     }
 
     [Fact]
     public async Task TextOnlyDocComment_Metadata()
     {
-        var referenced = @"
-/// <summary>
-///goo
-/// </summary>
-public class C
-{
-}";
+        var referenced = """
 
-        var code = @"
-class G
-{
-    void goo()
-    {
-        C$$ c;
-    }
-}";
+            /// <summary>
+            ///goo
+            /// </summary>
+            public class C
+            {
+            }
+            """;
+
+        var code = """
+
+            class G
+            {
+                void goo()
+                {
+                    C$$ c;
+                }
+            }
+            """;
         await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("goo"));
     }
 
     [Fact]
     public async Task TestTrimConcatMultiLine_Metadata()
     {
-        var referenced = @"
-/// <summary>
-/// goo
-/// bar
-/// </summary>
-public class C
-{
-}";
+        var referenced = """
 
-        var code = @"
-class G
-{
-    void goo()
-    {
-        C$$ c;
-    }
-}";
+            /// <summary>
+            /// goo
+            /// bar
+            /// </summary>
+            public class C
+            {
+            }
+            """;
+
+        var code = """
+
+            class G
+            {
+                void goo()
+                {
+                    C$$ c;
+                }
+            }
+            """;
         await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("goo bar"));
     }
 
     [Fact]
     public async Task TestCref_Metadata()
     {
-        var code = @"
-class G
-{
-    void goo()
-    {
-        C$$ c;
-    }
-}";
+        var code = """
 
-        var referenced = @"/// <summary>
-/// <see cref=""C""/>
-/// <seealso cref=""C""/>
-/// </summary>
-public class C
-{
-}";
+            class G
+            {
+                void goo()
+                {
+                    C$$ c;
+                }
+            }
+            """;
+
+        var referenced = """
+            /// <summary>
+            /// <see cref="C"/>
+            /// <seealso cref="C"/>
+            /// </summary>
+            public class C
+            {
+            }
+            """;
         await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("C C"));
     }
 
     [Fact]
     public async Task ExcludeTextOutsideSummaryBlock_Metadata()
     {
-        var code = @"
-class G
-{
-    void goo()
-    {
-        C$$ c;
-    }
-}";
+        var code = """
 
-        var referenced = @"
-/// red
-/// <summary>
-/// green
-/// </summary>
-/// yellow
-public class C
-{
-}";
+            class G
+            {
+                void goo()
+                {
+                    C$$ c;
+                }
+            }
+            """;
+
+        var referenced = """
+
+            /// red
+            /// <summary>
+            /// green
+            /// </summary>
+            /// yellow
+            public class C
+            {
+            }
+            """;
         await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("green"));
     }
 
@@ -5170,41 +5867,47 @@ public class C
     public async Task Param()
     {
         await TestAsync(
-@"/// <summary></summary>
-public class C
-{
-    /// <typeparam name=""T"">A type parameter of <see cref=""goo{ T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
-    public void Goo<T>(string[] arg$$s, T otherParam)
-    {
-    }
-}", Documentation("First parameter of C.Goo<T>(string[], T)"));
+            """
+            /// <summary></summary>
+            public class C
+            {
+                /// <typeparam name="T">A type parameter of <see cref="goo{ T} (string[], T)"/></typeparam>
+                /// <param name="args">First parameter of <see cref="Goo{T} (string[], T)"/></param>
+                /// <param name="otherParam">Another parameter of <see cref="Goo{T}(string[], T)"/></param>
+                public void Goo<T>(string[] arg$$s, T otherParam)
+                {
+                }
+            }
+            """, Documentation("First parameter of C.Goo<T>(string[], T)"));
     }
 
     [Fact]
     public async Task Param_Metadata()
     {
-        var code = @"
-class G
-{
-    void goo()
-    {
-        C c;
-        c.Goo<int>(arg$$s: new string[] { }, 1);
-    }
-}";
-        var referenced = @"
-/// <summary></summary>
-public class C
-{
-    /// <typeparam name=""T"">A type parameter of <see cref=""goo{ T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
-    public void Goo<T>(string[] args, T otherParam)
-    {
-    }
-}";
+        var code = """
+
+            class G
+            {
+                void goo()
+                {
+                    C c;
+                    c.Goo<int>(arg$$s: new string[] { }, 1);
+                }
+            }
+            """;
+        var referenced = """
+
+            /// <summary></summary>
+            public class C
+            {
+                /// <typeparam name="T">A type parameter of <see cref="goo{ T} (string[], T)"/></typeparam>
+                /// <param name="args">First parameter of <see cref="Goo{T} (string[], T)"/></param>
+                /// <param name="otherParam">Another parameter of <see cref="Goo{T}(string[], T)"/></param>
+                public void Goo<T>(string[] args, T otherParam)
+                {
+                }
+            }
+            """;
         await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("First parameter of C.Goo<T>(string[], T)"));
     }
 
@@ -5212,41 +5915,47 @@ public class C
     public async Task Param2()
     {
         await TestAsync(
-@"/// <summary></summary>
-public class C
-{
-    /// <typeparam name=""T"">A type parameter of <see cref=""goo{ T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
-    public void Goo<T>(string[] args, T oth$$erParam)
-    {
-    }
-}", Documentation("Another parameter of C.Goo<T>(string[], T)"));
+            """
+            /// <summary></summary>
+            public class C
+            {
+                /// <typeparam name="T">A type parameter of <see cref="goo{ T} (string[], T)"/></typeparam>
+                /// <param name="args">First parameter of <see cref="Goo{T} (string[], T)"/></param>
+                /// <param name="otherParam">Another parameter of <see cref="Goo{T}(string[], T)"/></param>
+                public void Goo<T>(string[] args, T oth$$erParam)
+                {
+                }
+            }
+            """, Documentation("Another parameter of C.Goo<T>(string[], T)"));
     }
 
     [Fact]
     public async Task Param2_Metadata()
     {
-        var code = @"
-class G
-{
-    void goo()
-    {
-        C c;
-        c.Goo<int>(args: new string[] { }, other$$Param: 1);
-    }
-}";
-        var referenced = @"
-/// <summary></summary>
-public class C
-{
-    /// <typeparam name=""T"">A type parameter of <see cref=""goo{ T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
-    public void Goo<T>(string[] args, T otherParam)
-    {
-    }
-}";
+        var code = """
+
+            class G
+            {
+                void goo()
+                {
+                    C c;
+                    c.Goo<int>(args: new string[] { }, other$$Param: 1);
+                }
+            }
+            """;
+        var referenced = """
+
+            /// <summary></summary>
+            public class C
+            {
+                /// <typeparam name="T">A type parameter of <see cref="goo{ T} (string[], T)"/></typeparam>
+                /// <param name="args">First parameter of <see cref="Goo{T} (string[], T)"/></param>
+                /// <param name="otherParam">Another parameter of <see cref="Goo{T}(string[], T)"/></param>
+                public void Goo<T>(string[] args, T otherParam)
+                {
+                }
+            }
+            """;
         await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#", Documentation("Another parameter of C.Goo<T>(string[], T)"));
     }
 
@@ -5254,173 +5963,199 @@ public class C
     public async Task TypeParam()
     {
         await TestAsync(
-@"/// <summary></summary>
-public class C
-{
-    /// <typeparam name=""T"">A type parameter of <see cref=""Goo{T} (string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
-    public void Goo<T$$>(string[] args, T otherParam)
-    {
-    }
-}", Documentation("A type parameter of C.Goo<T>(string[], T)"));
+            """
+            /// <summary></summary>
+            public class C
+            {
+                /// <typeparam name="T">A type parameter of <see cref="Goo{T} (string[], T)"/></typeparam>
+                /// <param name="args">First parameter of <see cref="Goo{T} (string[], T)"/></param>
+                /// <param name="otherParam">Another parameter of <see cref="Goo{T}(string[], T)"/></param>
+                public void Goo<T$$>(string[] args, T otherParam)
+                {
+                }
+            }
+            """, Documentation("A type parameter of C.Goo<T>(string[], T)"));
     }
 
     [Fact]
     public async Task UnboundCref()
     {
         await TestAsync(
-@"/// <summary></summary>
-public class C
-{
-    /// <typeparam name=""T"">A type parameter of <see cref=""goo{T}(string[], T)""/></typeparam>
-    /// <param name=""args"">First parameter of <see cref=""Goo{T} (string[], T)""/></param>
-    /// <param name=""otherParam"">Another parameter of <see cref=""Goo{T}(string[], T)""/></param>
-    public void Goo<T$$>(string[] args, T otherParam)
-    {
-    }
-}", Documentation("A type parameter of goo<T>(string[], T)"));
+            """
+            /// <summary></summary>
+            public class C
+            {
+                /// <typeparam name="T">A type parameter of <see cref="goo{T}(string[], T)"/></typeparam>
+                /// <param name="args">First parameter of <see cref="Goo{T} (string[], T)"/></param>
+                /// <param name="otherParam">Another parameter of <see cref="Goo{T}(string[], T)"/></param>
+                public void Goo<T$$>(string[] args, T otherParam)
+                {
+                }
+            }
+            """, Documentation("A type parameter of goo<T>(string[], T)"));
     }
 
     [Fact]
     public async Task CrefInConstructor()
     {
         await TestAsync(
-@"public class TestClass
-{
-    /// <summary> 
-    /// This sample shows how to specify the <see cref=""TestClass""/> constructor as a cref attribute.
-    /// </summary> 
-    public TestClass$$()
-    {
-    }
-}", Documentation("This sample shows how to specify the TestClass constructor as a cref attribute."));
+            """
+            public class TestClass
+            {
+                /// <summary> 
+                /// This sample shows how to specify the <see cref="TestClass"/> constructor as a cref attribute.
+                /// </summary> 
+                public TestClass$$()
+                {
+                }
+            }
+            """, Documentation("This sample shows how to specify the TestClass constructor as a cref attribute."));
     }
 
     [Fact]
     public async Task CrefInConstructorOverloaded()
     {
         await TestAsync(
-@"public class TestClass
-{
-    /// <summary> 
-    /// This sample shows how to specify the <see cref=""TestClass""/> constructor as a cref attribute.
-    /// </summary> 
-    public TestClass()
-    {
-    }
+            """
+            public class TestClass
+            {
+                /// <summary> 
+                /// This sample shows how to specify the <see cref="TestClass"/> constructor as a cref attribute.
+                /// </summary> 
+                public TestClass()
+                {
+                }
 
-    /// <summary> 
-    /// This sample shows how to specify the <see cref=""TestClass(int)""/> constructor as a cref attribute.
-    /// </summary> 
-    public TestC$$lass(int value)
-    {
-    }
-}", Documentation("This sample shows how to specify the TestClass(int) constructor as a cref attribute."));
+                /// <summary> 
+                /// This sample shows how to specify the <see cref="TestClass(int)"/> constructor as a cref attribute.
+                /// </summary> 
+                public TestC$$lass(int value)
+                {
+                }
+            }
+            """, Documentation("This sample shows how to specify the TestClass(int) constructor as a cref attribute."));
     }
 
     [Fact]
     public async Task CrefInGenericMethod1()
     {
         await TestAsync(
-@"public class TestClass
-{
-    /// <summary> 
-    /// The GetGenericValue method. 
-    /// <para>This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.</para>
-    /// </summary> 
-    public static T GetGenericVa$$lue<T>(T para)
-    {
-        return para;
-    }
-}", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
+            """
+            public class TestClass
+            {
+                /// <summary> 
+                /// The GetGenericValue method. 
+                /// <para>This sample shows how to specify the <see cref="GetGenericValue"/> method as a cref attribute.</para>
+                /// </summary> 
+                public static T GetGenericVa$$lue<T>(T para)
+                {
+                    return para;
+                }
+            }
+            """, Documentation("""
+                The GetGenericValue method.
+
+                This sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute.
+                """));
     }
 
     [Fact]
     public async Task CrefInGenericMethod2()
     {
         await TestAsync(
-@"public class TestClass
-{
-    /// <summary> 
-    /// The GetGenericValue method. 
-    /// <para>This sample shows how to specify the <see cref=""GetGenericValue{T}(T)""/> method as a cref attribute.</para>
-    /// </summary> 
-    public static T GetGenericVa$$lue<T>(T para)
-    {
-        return para;
-    }
-}", Documentation("The GetGenericValue method.\r\n\r\nThis sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute."));
+            """
+            public class TestClass
+            {
+                /// <summary> 
+                /// The GetGenericValue method. 
+                /// <para>This sample shows how to specify the <see cref="GetGenericValue{T}(T)"/> method as a cref attribute.</para>
+                /// </summary> 
+                public static T GetGenericVa$$lue<T>(T para)
+                {
+                    return para;
+                }
+            }
+            """, Documentation("""
+                The GetGenericValue method.
+
+                This sample shows how to specify the TestClass.GetGenericValue<T>(T) method as a cref attribute.
+                """));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
     public async Task CrefInMethodOverloading1()
     {
         await TestAsync(
-@"public class TestClass
-{
-    public static int GetZero()
-    {
-        GetGenericValu$$e();
-        GetGenericValue(5);
-    }
+            """
+            public class TestClass
+            {
+                public static int GetZero()
+                {
+                    GetGenericValu$$e();
+                    GetGenericValue(5);
+                }
 
-    /// <summary> 
-    /// This sample shows how to call the <see cref=""GetGenericValue{T}(T)""/> method
-    /// </summary> 
-    public static T GetGenericValue<T>(T para)
-    {
-        return para;
-    }
+                /// <summary> 
+                /// This sample shows how to call the <see cref="GetGenericValue{T}(T)"/> method
+                /// </summary> 
+                public static T GetGenericValue<T>(T para)
+                {
+                    return para;
+                }
 
-    /// <summary> 
-    /// This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.
-    /// </summary> 
-    public static void GetGenericValue()
-    {
-    }
-}", Documentation("This sample shows how to specify the TestClass.GetGenericValue() method as a cref attribute."));
+                /// <summary> 
+                /// This sample shows how to specify the <see cref="GetGenericValue"/> method as a cref attribute.
+                /// </summary> 
+                public static void GetGenericValue()
+                {
+                }
+            }
+            """, Documentation("This sample shows how to specify the TestClass.GetGenericValue() method as a cref attribute."));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]
     public async Task CrefInMethodOverloading2()
     {
         await TestAsync(
-@"public class TestClass
-{
-    public static int GetZero()
-    {
-        GetGenericValue();
-        GetGenericVal$$ue(5);
-    }
+            """
+            public class TestClass
+            {
+                public static int GetZero()
+                {
+                    GetGenericValue();
+                    GetGenericVal$$ue(5);
+                }
 
-    /// <summary> 
-    /// This sample shows how to call the <see cref=""GetGenericValue{T}(T)""/> method
-    /// </summary> 
-    public static T GetGenericValue<T>(T para)
-    {
-        return para;
-    }
+                /// <summary> 
+                /// This sample shows how to call the <see cref="GetGenericValue{T}(T)"/> method
+                /// </summary> 
+                public static T GetGenericValue<T>(T para)
+                {
+                    return para;
+                }
 
-    /// <summary> 
-    /// This sample shows how to specify the <see cref=""GetGenericValue""/> method as a cref attribute.
-    /// </summary> 
-    public static void GetGenericValue()
-    {
-    }
-}", Documentation("This sample shows how to call the TestClass.GetGenericValue<T>(T) method"));
+                /// <summary> 
+                /// This sample shows how to specify the <see cref="GetGenericValue"/> method as a cref attribute.
+                /// </summary> 
+                public static void GetGenericValue()
+                {
+                }
+            }
+            """, Documentation("This sample shows how to call the TestClass.GetGenericValue<T>(T) method"));
     }
 
     [Fact]
     public async Task CrefInGenericType()
     {
         await TestAsync(
-@"/// <summary> 
-/// <remarks>This example shows how to specify the <see cref=""GenericClass{T}""/> cref.</remarks>
-/// </summary> 
-class Generic$$Class<T>
-{
-}",
+            """
+            /// <summary> 
+            /// <remarks>This example shows how to specify the <see cref="GenericClass{T}"/> cref.</remarks>
+            /// </summary> 
+            class Generic$$Class<T>
+            {
+            }
+            """,
 Documentation("This example shows how to specify the GenericClass<T> cref.",
     ExpectedClassifications(
         Text("This example shows how to specify the"),
@@ -5436,26 +6171,30 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812720")]
     public async Task ClassificationOfCrefsFromMetadata()
     {
-        var code = @"
-class G
-{
-    void goo()
-    {
-        C c;
-        c.Go$$o();
-    }
-}";
-        var referenced = @"
-/// <summary></summary>
-public class C
-{
-    /// <summary> 
-    /// See <see cref=""Goo""/> method
-    /// </summary> 
-    public void Goo()
-    {
-    }
-}";
+        var code = """
+
+            class G
+            {
+                void goo()
+                {
+                    C c;
+                    c.Go$$o();
+                }
+            }
+            """;
+        var referenced = """
+
+            /// <summary></summary>
+            public class C
+            {
+                /// <summary> 
+                /// See <see cref="Goo"/> method
+                /// </summary> 
+                public void Goo()
+                {
+                }
+            }
+            """;
         await TestWithMetadataReferenceHelperAsync(code, referenced, "C#", "C#",
             Documentation("See C.Goo() method",
                 ExpectedClassifications(
@@ -5473,24 +6212,26 @@ public class C
     [Fact]
     public async Task FieldAvailableInBothLinkedFiles()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-    int x;
-    void goo()
-    {
-        x$$
-    }
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+                int x;
+                void goo()
+                {
+                    x$$
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
 
         await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.field}) int C.x"), Usage("") });
     }
@@ -5498,27 +6239,35 @@ class C
     [Fact]
     public async Task FieldUnavailableInOneLinkedFile()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-#if GOO
-    int x;
-#endif
-    void goo()
-    {
-        x$$
-    }
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
-        var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true);
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+            #if GOO
+                int x;
+            #endif
+                void goo()
+                {
+                    x$$
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
+        var expectedDescription = Usage($"""
+
+            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, expectsWarningGlyph: true);
 
         await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
     }
@@ -5526,27 +6275,35 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37097")]
     public async Task BindSymbolInOtherFile()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-#if GOO
-    int x;
-#endif
-    void goo()
-    {
-        x$$
-    }
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""GOO"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
-        var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true);
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+            #if GOO
+                int x;
+            #endif
+                void goo()
+                {
+                    x$$
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2" PreprocessorSymbols="GOO">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
+        var expectedDescription = Usage($"""
+
+            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Not_Available)}
+            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, expectsWarningGlyph: true);
 
         await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
     }
@@ -5554,31 +6311,40 @@ class C
     [Fact]
     public async Task FieldUnavailableInTwoLinkedFiles()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-#if GOO
-    int x;
-#endif
-    void goo()
-    {
-        x$$
-    }
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj3"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+            #if GOO
+                int x;
+            #endif
+                void goo()
+                {
+                    x$$
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj3">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
         var expectedDescription = Usage(
-            $"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}",
+            $"""
+
+            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """,
             expectsWarningGlyph: true);
 
         await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
@@ -5587,83 +6353,95 @@ class C
     [Fact]
     public async Task ExcludeFilesWithInactiveRegions()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO,BAR"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-#if GOO
-    int x;
-#endif
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="GOO,BAR">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+            #if GOO
+                int x;
+            #endif
 
-#if BAR
-    void goo()
-    {
-        x$$
-    }
-#endif
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument"" />
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj3"" PreprocessorSymbols=""BAR"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
-        var expectedDescription = Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true);
+            #if BAR
+                void goo()
+                {
+                    x$$
+                }
+            #endif
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument" />
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj3" PreprocessorSymbols="BAR">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
+        var expectedDescription = Usage($"""
+
+            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+            {string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, expectsWarningGlyph: true);
         await VerifyWithReferenceWorkerAsync(markup, new[] { expectedDescription });
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/962353")]
     public async Task NoValidSymbolsInLinkedDocuments()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-    void goo()
-    {
-        B$$ar();
-    }
-#if B
-    void Bar() { }
-#endif
-   
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+                void goo()
+                {
+                    B$$ar();
+                }
+            #if B
+                void Bar() { }
+            #endif
+               
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
         await VerifyWithReferenceWorkerAsync(markup);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
     public async Task LocalsValidInLinkedDocuments()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-    void M()
-    {
-        int x$$;
-    }
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+                void M()
+                {
+                    int x$$;
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
 
         await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage("") });
     }
@@ -5671,51 +6449,61 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
     public async Task LocalWarningInLinkedDocuments()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""PROJ1"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-    void M()
-    {
-#if PROJ1
-        int x;
-#endif
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="PROJ1">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+                void M()
+                {
+            #if PROJ1
+                    int x;
+            #endif
 
-        int y = x$$;
-    }
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+                    int y = x$$;
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
 
-        await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", expectsWarningGlyph: true) });
+        await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.local_variable}) int x"), Usage($"""
+
+            {string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}
+            {string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}
+
+            {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}
+            """, expectsWarningGlyph: true) });
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
     public async Task LabelsValidInLinkedDocuments()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{   
-    void M()
-    {
-        $$LABEL: goto LABEL;
-    }
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {   
+                void M()
+                {
+                    $$LABEL: goto LABEL;
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
 
         await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.label}) LABEL"), Usage("") });
     }
@@ -5723,24 +6511,26 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1020944")]
     public async Task RangeVariablesValidInLinkedDocuments()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-using System.Linq;
-class C
-{
-    void M()
-    {
-        var x = from y in new[] {1, 2, 3} select $$y;
-    }
-}
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            using System.Linq;
+            class C
+            {
+                void M()
+                {
+                    var x = from y in new[] {1, 2, 3} select $$y;
+                }
+            }
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
 
         await VerifyWithReferenceWorkerAsync(markup, new[] { MainDescription($"({FeaturesResources.range_variable}) int y"), Usage("") });
     }
@@ -5748,76 +6538,84 @@ class C
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019766")]
     public async Task PointerAccessibility()
     {
-        var markup = @"class C
-{
-    unsafe static void Main()
-    {
-        void* p = null;
-        void* q = null;
-        dynamic d = true;
-        var x = p =$$= q == d;
-    }
-}";
+        var markup = """
+            class C
+            {
+                unsafe static void Main()
+                {
+                    void* p = null;
+                    void* q = null;
+                    dynamic d = true;
+                    var x = p =$$= q == d;
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription("bool void*.operator ==(void* left, void* right)"));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
     public async Task AwaitingTaskOfArrayType()
     {
-        var markup = @"
-using System.Threading.Tasks;
+        var markup = """
 
-class Program
-{
-    async Task<int[]> M()
-    {
-        awa$$it M();
-    }
-}";
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                async Task<int[]> M()
+                {
+                    awa$$it M();
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "int[]")));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114300")]
     public async Task AwaitingTaskOfDynamic()
     {
-        var markup = @"
-using System.Threading.Tasks;
+        var markup = """
 
-class Program
-{
-    async Task<dynamic> M()
-    {
-        awa$$it M();
-    }
-}";
+            using System.Threading.Tasks;
+
+            class Program
+            {
+                async Task<dynamic> M()
+                {
+                    awa$$it M();
+                }
+            }
+            """;
         await TestAsync(markup, MainDescription(string.Format(FeaturesResources.Awaited_task_returns_0, "dynamic")));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
     public async Task MethodOverloadDifferencesIgnored()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-#if ONE
-    void Do(int x){}
-#endif
-#if TWO
-    void Do(string x){}
-#endif
-    void Shared()
-    {
-        this.Do$$
-    }
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+            #if ONE
+                void Do(int x){}
+            #endif
+            #if TWO
+                void Do(string x){}
+            #endif
+                void Shared()
+                {
+                    this.Do$$
+                }
 
-}]]></Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+            }]]></Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2" PreprocessorSymbols="TWO">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
 
         var expectedDescription = $"void C.Do(int x)";
         await VerifyWithReferenceWorkerAsync(markup, MainDescription(expectedDescription));
@@ -5826,51 +6624,53 @@ class C
     [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
     public async Task MethodOverloadDifferencesIgnored_ContainingType()
     {
-        var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""ONE"">
-        <Document FilePath=""SourceDocument""><![CDATA[
-class C
-{
-    void Shared()
-    {
-        var x = GetThing().Do$$();
-    }
+        var markup = """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj1" PreprocessorSymbols="ONE">
+                    <Document FilePath="SourceDocument"><![CDATA[
+            class C
+            {
+                void Shared()
+                {
+                    var x = GetThing().Do$$();
+                }
 
-#if ONE
-    private Methods1 GetThing()
-    {
-        return new Methods1();
-    }
-#endif
+            #if ONE
+                private Methods1 GetThing()
+                {
+                    return new Methods1();
+                }
+            #endif
 
-#if TWO
-    private Methods2 GetThing()
-    {
-        return new Methods2();
-    }
-#endif
-}
+            #if TWO
+                private Methods2 GetThing()
+                {
+                    return new Methods2();
+                }
+            #endif
+            }
 
-#if ONE
-public class Methods1
-{
-    public void Do(string x) { }
-}
-#endif
+            #if ONE
+            public class Methods1
+            {
+                public void Do(string x) { }
+            }
+            #endif
 
-#if TWO
-public class Methods2
-{
-    public void Do(string x) { }
-}
-#endif
-]]>
-        </Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj2"" PreprocessorSymbols=""TWO"">
-        <Document IsLinkFile=""true"" LinkAssemblyName=""Proj1"" LinkFilePath=""SourceDocument""/>
-    </Project>
-</Workspace>";
+            #if TWO
+            public class Methods2
+            {
+                public void Do(string x) { }
+            }
+            #endif
+            ]]>
+                    </Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="Proj2" PreprocessorSymbols="TWO">
+                    <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
+                </Project>
+            </Workspace>
+            """;
 
         var expectedDescription = $"void Methods1.Do(string x)";
         await VerifyWithReferenceWorkerAsync(markup, MainDescription(expectedDescription));
@@ -5880,408 +6680,507 @@ public class Methods2
     public async Task QuickInfoExceptions()
     {
         await TestAsync(
-@"using System;
+            """
+            using System;
 
-namespace MyNs
-{
-    class MyException1 : Exception
-    {
-    }
+            namespace MyNs
+            {
+                class MyException1 : Exception
+                {
+                }
 
-    class MyException2 : Exception
-    {
-    }
+                class MyException2 : Exception
+                {
+                }
 
-    class TestClass
-    {
-        /// <exception cref=""MyException1""></exception>
-        /// <exception cref=""T:MyNs.MyException2""></exception>
-        /// <exception cref=""System.Int32""></exception>
-        /// <exception cref=""double""></exception>
-        /// <exception cref=""Not_A_Class_But_Still_Displayed""></exception>
-        void M()
-        {
-            M$$();
-        }
-    }
-}",
-            Exceptions($"\r\n{WorkspacesResources.Exceptions_colon}\r\n  MyException1\r\n  MyException2\r\n  int\r\n  double\r\n  Not_A_Class_But_Still_Displayed"));
+                class TestClass
+                {
+                    /// <exception cref="MyException1"></exception>
+                    /// <exception cref="T:MyNs.MyException2"></exception>
+                    /// <exception cref="System.Int32"></exception>
+                    /// <exception cref="double"></exception>
+                    /// <exception cref="Not_A_Class_But_Still_Displayed"></exception>
+                    void M()
+                    {
+                        M$$();
+                    }
+                }
+            }
+            """,
+            Exceptions($"""
+
+                {WorkspacesResources.Exceptions_colon}
+                  MyException1
+                  MyException2
+                  int
+                  double
+                  Not_A_Class_But_Still_Displayed
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnLocalFunction()
     {
-        await TestAsync(@"
-class C
-{
-    void M()
-    {
-        int i;
-        local$$();
+        await TestAsync("""
 
-        void local() { i++; this.M(); }
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, i"));
+            class C
+            {
+                void M()
+                {
+                    int i;
+                    local$$();
+
+                    void local() { i++; this.M(); }
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this, i
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnLocalFunction2()
     {
-        await TestAsync(@"
-class C
-{
-    void M()
-    {
-        int i;
-        local$$(i);
+        await TestAsync("""
 
-        void local(int j) { j++; M(); }
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this"));
+            class C
+            {
+                void M()
+                {
+                    int i;
+                    local$$(i);
+
+                    void local(int j) { j++; M(); }
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnLocalFunction3()
     {
-        await TestAsync(@"
-class C
-{
-    public void M(int @this)
-    {
-        int i = 0;
-        local$$();
+        await TestAsync("""
 
-        void local()
-        {
-            M(1);
-            i++;
-            @this++;
-        }
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, @this, i"));
+            class C
+            {
+                public void M(int @this)
+                {
+                    int i = 0;
+                    local$$();
+
+                    void local()
+                    {
+                        M(1);
+                        i++;
+                        @this++;
+                    }
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this, @this, i
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26101")]
     public async Task QuickInfoCapturesOnLocalFunction4()
     {
-        await TestAsync(@"
-class C
-{
-    int field;
-    void M()
-    {
-        void OuterLocalFunction$$()
-        {
-            int local = 0;
-            int InnerLocalFunction() 
+        await TestAsync("""
+
+            class C
             {
-                field++;
-                return local;
+                int field;
+                void M()
+                {
+                    void OuterLocalFunction$$()
+                    {
+                        int local = 0;
+                        int InnerLocalFunction() 
+                        {
+                            field++;
+                            return local;
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this"));
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26101")]
     public async Task QuickInfoCapturesOnLocalFunction5()
     {
-        await TestAsync(@"
-class C
-{
-    int field;
-    void M()
-    {
-        void OuterLocalFunction()
-        {
-            int local = 0;
-            int InnerLocalFunction$$() 
+        await TestAsync("""
+
+            class C
             {
-                field++;
-                return local;
+                int field;
+                void M()
+                {
+                    void OuterLocalFunction()
+                    {
+                        int local = 0;
+                        int InnerLocalFunction$$() 
+                        {
+                            field++;
+                            return local;
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, local"));
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this, local
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26101")]
     public async Task QuickInfoCapturesOnLocalFunction6()
     {
-        await TestAsync(@"
-class C
-{
-    int field;
-    void M()
-    {
-        int local1 = 0;
-        int local2 = 0;
+        await TestAsync("""
 
-        void OuterLocalFunction$$()
-        {
-            _ = local1;
-            void InnerLocalFunction() 
+            class C
             {
-                _ = local2;
+                int field;
+                void M()
+                {
+                    int local1 = 0;
+                    int local2 = 0;
+
+                    void OuterLocalFunction$$()
+                    {
+                        _ = local1;
+                        void InnerLocalFunction() 
+                        {
+                            _ = local2;
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local1, local2"));
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} local1, local2
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26101")]
     public async Task QuickInfoCapturesOnLocalFunction7()
     {
-        await TestAsync(@"
-class C
-{
-    int field;
-    void M()
-    {
-        int local1 = 0;
-        int local2 = 0;
+        await TestAsync("""
 
-        void OuterLocalFunction()
-        {
-            _ = local1;
-            void InnerLocalFunction$$() 
+            class C
             {
-                _ = local2;
+                int field;
+                void M()
+                {
+                    int local1 = 0;
+                    int local2 = 0;
+
+                    void OuterLocalFunction()
+                    {
+                        _ = local1;
+                        void InnerLocalFunction$$() 
+                        {
+                            _ = local2;
+                        }
+                    }
+                }
             }
-        }
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local2"));
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} local2
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnLambda()
     {
-        await TestAsync(@"
-class C
-{
-    void M()
-    {
-        int i;
-        System.Action a = () =$$> { i++; M(); };
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, i"));
+        await TestAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    int i;
+                    System.Action a = () =$$> { i++; M(); };
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this, i
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnLambda2()
     {
-        await TestAsync(@"
-class C
-{
-    void M()
-    {
-        int i;
-        System.Action<int> a = j =$$> { i++; j++; M(); };
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, i"));
+        await TestAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    int i;
+                    System.Action<int> a = j =$$> { i++; j++; M(); };
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this, i
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnLambda2_DifferentOrder()
     {
-        await TestAsync(@"
-class C
-{
-    void M(int j)
-    {
-        int i;
-        System.Action a = () =$$> { M(); i++; j++; };
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, j, i"));
+        await TestAsync("""
+
+            class C
+            {
+                void M(int j)
+                {
+                    int i;
+                    System.Action a = () =$$> { M(); i++; j++; };
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this, j, i
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnLambda3()
     {
-        await TestAsync(@"
-class C
-{
-    void M()
-    {
-        int i;
-        int @this;
-        N(() =$$> { M(); @this++; }, () => { i++; });
-    }
-    void N(System.Action x, System.Action y) { }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, @this"));
+        await TestAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    int i;
+                    int @this;
+                    N(() =$$> { M(); @this++; }, () => { i++; });
+                }
+                void N(System.Action x, System.Action y) { }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this, @this
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnLambda4()
     {
-        await TestAsync(@"
-class C
-{
-    void M()
-    {
-        int i;
-        N(() => { M(); }, () =$$> { i++; });
-    }
-    void N(System.Action x, System.Action y) { }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} i"));
+        await TestAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    int i;
+                    N(() => { M(); }, () =$$> { i++; });
+                }
+                void N(System.Action x, System.Action y) { }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} i
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26101")]
     public async Task QuickInfoCapturesOnLambda5()
     {
-        await TestAsync(@"
-class C
-{
-    int field;
-    void M()
-    {
-        System.Action a = () =$$>
-        {
-            int local = 0;
-            System.Func<int> b = () =>
+        await TestAsync("""
+
+            class C
             {
-                field++;
-                return local;
-            };
-        };
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this"));
+                int field;
+                void M()
+                {
+                    System.Action a = () =$$>
+                    {
+                        int local = 0;
+                        System.Func<int> b = () =>
+                        {
+                            field++;
+                            return local;
+                        };
+                    };
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26101")]
     public async Task QuickInfoCapturesOnLambda6()
     {
-        await TestAsync(@"
-class C
-{
-    int field;
-    void M()
-    {
-        System.Action a = () =>
-        {
-            int local = 0;
-            System.Func<int> b = () =$$>
+        await TestAsync("""
+
+            class C
             {
-                field++;
-                return local;
-            };
-        };
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} this, local"));
+                int field;
+                void M()
+                {
+                    System.Action a = () =>
+                    {
+                        int local = 0;
+                        System.Func<int> b = () =$$>
+                        {
+                            field++;
+                            return local;
+                        };
+                    };
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} this, local
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26101")]
     public async Task QuickInfoCapturesOnLambda7()
     {
-        await TestAsync(@"
-class C
-{
-    int field;
-    void M()
-    {
-        int local1 = 0;
-        int local2 = 0;
+        await TestAsync("""
 
-        System.Action a = () =$$>
-        {
-            _ = local1;
-            System.Action b = () =>
+            class C
             {
-                _ = local2;
-            };
-        };
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local1, local2"));
+                int field;
+                void M()
+                {
+                    int local1 = 0;
+                    int local2 = 0;
+
+                    System.Action a = () =$$>
+                    {
+                        _ = local1;
+                        System.Action b = () =>
+                        {
+                            _ = local2;
+                        };
+                    };
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} local1, local2
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/26101")]
     public async Task QuickInfoCapturesOnLambda8()
     {
-        await TestAsync(@"
-class C
-{
-    int field;
-    void M()
-    {
-        int local1 = 0;
-        int local2 = 0;
+        await TestAsync("""
 
-        System.Action a = () =>
-        {
-            _ = local1;
-            System.Action b = () =$$>
+            class C
             {
-                _ = local2;
-            };
-        };
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} local2"));
+                int field;
+                void M()
+                {
+                    int local1 = 0;
+                    int local2 = 0;
+
+                    System.Action a = () =>
+                    {
+                        _ = local1;
+                        System.Action b = () =$$>
+                        {
+                            _ = local2;
+                        };
+                    };
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} local2
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public async Task QuickInfoCapturesOnDelegate()
     {
-        await TestAsync(@"
-class C
-{
-    void M()
-    {
-        int i;
-        System.Func<bool, int> f = dele$$gate(bool b) { i++; return 1; };
-    }
-}",
-            Captures($"\r\n{WorkspacesResources.Variables_captured_colon} i"));
+        await TestAsync("""
+
+            class C
+            {
+                void M()
+                {
+                    int i;
+                    System.Func<bool, int> f = dele$$gate(bool b) { i++; return 1; };
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} i
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1516")]
     public async Task QuickInfoWithNonStandardSeeAttributesAppear()
     {
         await TestAsync(
-@"class C
-{
-    /// <summary>
-    /// <see cref=""System.String"" />
-    /// <see href=""http://microsoft.com"" />
-    /// <see langword=""null"" />
-    /// <see unsupported-attribute=""cat"" />
-    /// </summary>
-    void M()
-    {
-        M$$();
-    }
-}",
+            """
+            class C
+            {
+                /// <summary>
+                /// <see cref="System.String" />
+                /// <see href="http://microsoft.com" />
+                /// <see langword="null" />
+                /// <see unsupported-attribute="cat" />
+                /// </summary>
+                void M()
+                {
+                    M$$();
+                }
+            }
+            """,
             Documentation(@"string http://microsoft.com null cat"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/6657")]
     public async Task OptionalParameterFromPreviousSubmission()
     {
-        const string workspaceDefinition = @"
-<Workspace>
-    <Submission Language=""C#"" CommonReferences=""true"">
-        void M(int x = 1) { }
-    </Submission>
-    <Submission Language=""C#"" CommonReferences=""true"">
-        M(x$$: 2)
-    </Submission>
-</Workspace>
-";
+        const string workspaceDefinition = """
+
+            <Workspace>
+                <Submission Language="C#" CommonReferences="true">
+                    void M(int x = 1) { }
+                </Submission>
+                <Submission Language="C#" CommonReferences="true">
+                    M(x$$: 2)
+                </Submission>
+            </Workspace>
+
+            """;
         using var workspace = EditorTestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive);
         await TestWithOptionsAsync(workspace, MainDescription($"({FeaturesResources.parameter}) int x = 1"));
     }
@@ -6290,25 +7189,27 @@ class C
     public async Task TupleProperty()
     {
         await TestInMethodAsync(
-@"interface I
-{
-    (int, int) Name { get; set; }
-}
+            """
+            interface I
+            {
+                (int, int) Name { get; set; }
+            }
 
-class C : I
-{
-    (int, int) I.Name$$
-    {
-        get
-        {
-            throw new System.Exception();
-        }
+            class C : I
+            {
+                (int, int) I.Name$$
+                {
+                    get
+                    {
+                        throw new System.Exception();
+                    }
 
-        set
-        {
-        }
-    }
-}",
+                    set
+                    {
+                    }
+                }
+            }
+            """,
             MainDescription("(int, int) C.Name { get; set; }"));
     }
 
@@ -6316,16 +7217,18 @@ class C : I
     public async Task ValueTupleWithArity0VariableName()
     {
         await TestAsync(
-@"
-using System;
-public class C
-{
-    void M()
-    {
-        var y$$ = ValueTuple.Create();
-    }
-}
-",
+            """
+
+            using System;
+            public class C
+            {
+                void M()
+                {
+                    var y$$ = ValueTuple.Create();
+                }
+            }
+
+            """,
             MainDescription($"({FeaturesResources.local_variable}) ValueTuple y"));
     }
 
@@ -6333,16 +7236,18 @@ public class C
     public async Task ValueTupleWithArity0ImplicitVar()
     {
         await TestAsync(
-@"
-using System;
-public class C
-{
-    void M()
-    {
-        var$$ y = ValueTuple.Create();
-    }
-}
-",
+            """
+
+            using System;
+            public class C
+            {
+                void M()
+                {
+                    var$$ y = ValueTuple.Create();
+                }
+            }
+
+            """,
             MainDescription("struct System.ValueTuple"));
     }
 
@@ -6350,16 +7255,18 @@ public class C
     public async Task ValueTupleWithArity1VariableName()
     {
         await TestAsync(
-@"
-using System;
-public class C
-{
-    void M()
-    {
-        var y$$ = ValueTuple.Create(1);
-    }
-}
-",
+            """
+
+            using System;
+            public class C
+            {
+                void M()
+                {
+                    var y$$ = ValueTuple.Create(1);
+                }
+            }
+
+            """,
             MainDescription($"({FeaturesResources.local_variable}) ValueTuple<int> y"));
     }
 
@@ -6367,16 +7274,18 @@ public class C
     public async Task ValueTupleWithArity1ImplicitVar()
     {
         await TestAsync(
-@"
-using System;
-public class C
-{
-    void M()
-    {
-        var$$ y = ValueTuple.Create(1);
-    }
-}
-",
+            """
+
+            using System;
+            public class C
+            {
+                void M()
+                {
+                    var$$ y = ValueTuple.Create(1);
+                }
+            }
+
+            """,
             MainDescription("struct System.ValueTuple<System.Int32>"));
     }
 
@@ -6384,16 +7293,18 @@ public class C
     public async Task ValueTupleWithArity2VariableName()
     {
         await TestAsync(
-@"
-using System;
-public class C
-{
-    void M()
-    {
-        var y$$ = ValueTuple.Create(1, 1);
-    }
-}
-",
+            """
+
+            using System;
+            public class C
+            {
+                void M()
+                {
+                    var y$$ = ValueTuple.Create(1, 1);
+                }
+            }
+
+            """,
             MainDescription($"({FeaturesResources.local_variable}) (int, int) y"));
     }
 
@@ -6401,16 +7312,18 @@ public class C
     public async Task ValueTupleWithArity2ImplicitVar()
     {
         await TestAsync(
-@"
-using System;
-public class C
-{
-    void M()
-    {
-        var$$ y = ValueTuple.Create(1, 1);
-    }
-}
-",
+            """
+
+            using System;
+            public class C
+            {
+                void M()
+                {
+                    var$$ y = ValueTuple.Create(1, 1);
+                }
+            }
+
+            """,
             MainDescription("(int, int)"));
     }
 
@@ -6418,20 +7331,22 @@ public class C
     public async Task TestRefMethod()
     {
         await TestInMethodAsync(
-@"using System;
+            """
+            using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        ref int i = ref $$goo();
-    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    ref int i = ref $$goo();
+                }
 
-    private static ref int goo()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                private static ref int goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
             MainDescription("ref int Program.goo()"));
     }
 
@@ -6439,20 +7354,22 @@ class Program
     public async Task TestRefLocal()
     {
         await TestInMethodAsync(
-@"using System;
+            """
+            using System;
 
-class Program
-{
-    static void Main(string[] args)
-    {
-        ref int $$i = ref goo();
-    }
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    ref int $$i = ref goo();
+                }
 
-    private static ref int goo()
-    {
-        throw new NotImplementedException();
-    }
-}",
+                private static ref int goo()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) ref int i"));
     }
 
@@ -6460,21 +7377,23 @@ class Program
     public async Task TestGenericMethodInDocComment()
     {
         await TestAsync(
-@"
-class Test
-{
-    T F<T>()
-    {
-        F<T>();
-    }
+            """
 
-    /// <summary>
-    /// <see cref=""F$${T}()""/>
-    /// </summary>
-    void S()
-    { }
-}
-",
+            class Test
+            {
+                T F<T>()
+                {
+                    F<T>();
+                }
+
+                /// <summary>
+                /// <see cref="F$${T}()"/>
+                /// </summary>
+                void S()
+                { }
+            }
+
+            """,
         MainDescription("T Test.F<T>()"));
     }
 
@@ -6482,15 +7401,17 @@ class Test
     public async Task TestExceptionWithCrefToConstructorDoesNotCrash()
     {
         await TestAsync(
-@"
-class Test
-{
-    /// <summary>
-    /// </summary>
-    /// <exception cref=""Test.Test""/>
-    public Test$$() {}
-}
-",
+            """
+
+            class Test
+            {
+                /// <summary>
+                /// </summary>
+                /// <exception cref="Test.Test"/>
+                public Test$$() {}
+            }
+
+            """,
         MainDescription("Test.Test()"));
     }
 
@@ -6504,11 +7425,13 @@ class Test
     [Fact]
     public async Task TestRefStruct_Nested()
     {
-        var markup = @"
-namespace Nested
-{
-    ref struct X$$ {}
-}";
+        var markup = """
+
+            namespace Nested
+            {
+                ref struct X$$ {}
+            }
+            """;
         await TestAsync(markup, MainDescription("ref struct Nested.X"));
     }
 
@@ -6522,11 +7445,13 @@ namespace Nested
     [Fact]
     public async Task TestReadOnlyStruct_Nested()
     {
-        var markup = @"
-namespace Nested
-{
-    readonly struct X$$ {}
-}";
+        var markup = """
+
+            namespace Nested
+            {
+                readonly struct X$$ {}
+            }
+            """;
         await TestAsync(markup, MainDescription("readonly struct Nested.X"));
     }
 
@@ -6540,35 +7465,39 @@ namespace Nested
     [Fact]
     public async Task TestReadOnlyRefStruct_Nested()
     {
-        var markup = @"
-namespace Nested
-{
-    readonly ref struct X$$ {}
-}";
+        var markup = """
+
+            namespace Nested
+            {
+                readonly ref struct X$$ {}
+            }
+            """;
         await TestAsync(markup, MainDescription("readonly ref struct Nested.X"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/22450")]
     public async Task TestRefLikeTypesNoDeprecated()
     {
-        var xmlString = @"
-<Workspace>
-    <Project Language=""C#"" LanguageVersion=""7.2"" CommonReferences=""true"">
-        <MetadataReferenceFromSource Language=""C#"" LanguageVersion=""7.2"" CommonReferences=""true"">
-            <Document FilePath=""ReferencedDocument"">
-public ref struct TestRef
-{
-}
-            </Document>
-        </MetadataReferenceFromSource>
-        <Document FilePath=""SourceDocument"">
-ref struct Test
-{
-    private $$TestRef _field;
-}
-        </Document>
-    </Project>
-</Workspace>";
+        var xmlString = """
+
+            <Workspace>
+                <Project Language="C#" LanguageVersion="7.2" CommonReferences="true">
+                    <MetadataReferenceFromSource Language="C#" LanguageVersion="7.2" CommonReferences="true">
+                        <Document FilePath="ReferencedDocument">
+            public ref struct TestRef
+            {
+            }
+                        </Document>
+                    </MetadataReferenceFromSource>
+                    <Document FilePath="SourceDocument">
+            ref struct Test
+            {
+                private $$TestRef _field;
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
 
         // There should be no [deprecated] attribute displayed.
         await VerifyWithReferenceWorkerAsync(xmlString, MainDescription($"ref struct TestRef"));
@@ -6578,24 +7507,26 @@ ref struct Test
     public async Task PropertyWithSameNameAsOtherType()
     {
         await TestAsync(
-@"namespace ConsoleApplication1
-{
-    class Program
-    {
-        static A B { get; set; }
-        static B A { get; set; }
+            """
+            namespace ConsoleApplication1
+            {
+                class Program
+                {
+                    static A B { get; set; }
+                    static B A { get; set; }
 
-        static void Main(string[] args)
-        {
-            B = ConsoleApplication1.B$$.F();
-        }
-    }
-    class A { }
-    class B
-    {
-        public static A F() => null;
-    }
-}",
+                    static void Main(string[] args)
+                    {
+                        B = ConsoleApplication1.B$$.F();
+                    }
+                }
+                class A { }
+                class B
+                {
+                    public static A F() => null;
+                }
+            }
+            """,
         MainDescription($"ConsoleApplication1.A ConsoleApplication1.B.F()"));
     }
 
@@ -6603,26 +7534,28 @@ ref struct Test
     public async Task PropertyWithSameNameAsOtherType2()
     {
         await TestAsync(
-@"using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-namespace ConsoleApplication1
-{
-    class Program
-    {
-        public static List<Bar> Bar { get; set; }
+            namespace ConsoleApplication1
+            {
+                class Program
+                {
+                    public static List<Bar> Bar { get; set; }
 
-        static void Main(string[] args)
-        {
-            Tes$$t<Bar>();
-        }
+                    static void Main(string[] args)
+                    {
+                        Tes$$t<Bar>();
+                    }
 
-        static void Test<T>() { }
-    }
+                    static void Test<T>() { }
+                }
 
-    class Bar
-    {
-    }
-}",
+                class Bar
+                {
+                }
+            }
+            """,
         MainDescription($"void Program.Test<Bar>()"));
     }
 
@@ -6630,36 +7563,40 @@ namespace ConsoleApplication1
     public async Task InMalformedEmbeddedStatement_01()
     {
         await TestAsync(
-@"
-class Program
-{
-    void method1()
-    {
-        if (method2())
-            .Any(b => b.Content$$Type, out var chars)
-        {
-        }
-    }
-}
-");
+            """
+
+            class Program
+            {
+                void method1()
+                {
+                    if (method2())
+                        .Any(b => b.Content$$Type, out var chars)
+                    {
+                    }
+                }
+            }
+
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23883")]
     public async Task InMalformedEmbeddedStatement_02()
     {
         await TestAsync(
-@"
-class Program
-{
-    void method1()
-    {
-        if (method2())
-            .Any(b => b$$.ContentType, out var chars)
-        {
-        }
-    }
-}
-",
+            """
+
+            class Program
+            {
+                void method1()
+                {
+                    if (method2())
+                        .Any(b => b$$.ContentType, out var chars)
+                    {
+                    }
+                }
+            }
+
+            """,
         MainDescription($"({FeaturesResources.parameter}) ? b"));
     }
 
@@ -6667,11 +7604,13 @@ class Program
     public async Task EnumConstraint()
     {
         await TestInMethodAsync(
-@"
-class X<T> where T : System.Enum
-{
-    private $$T x;
-}",
+            """
+
+            class X<T> where T : System.Enum
+            {
+                private $$T x;
+            }
+            """,
             MainDescription($"T {FeaturesResources.in_} X<T> where T : Enum"));
     }
 
@@ -6679,11 +7618,13 @@ class X<T> where T : System.Enum
     public async Task DelegateConstraint()
     {
         await TestInMethodAsync(
-@"
-class X<T> where T : System.Delegate
-{
-    private $$T x;
-}",
+            """
+
+            class X<T> where T : System.Delegate
+            {
+                private $$T x;
+            }
+            """,
             MainDescription($"T {FeaturesResources.in_} X<T> where T : Delegate"));
     }
 
@@ -6691,11 +7632,13 @@ class X<T> where T : System.Delegate
     public async Task MulticastDelegateConstraint()
     {
         await TestInMethodAsync(
-@"
-class X<T> where T : System.MulticastDelegate
-{
-    private $$T x;
-}",
+            """
+
+            class X<T> where T : System.MulticastDelegate
+            {
+                private $$T x;
+            }
+            """,
             MainDescription($"T {FeaturesResources.in_} X<T> where T : MulticastDelegate"));
     }
 
@@ -6703,10 +7646,12 @@ class X<T> where T : System.MulticastDelegate
     public async Task UnmanagedConstraint_Type()
     {
         await TestAsync(
-@"
-class $$X<T> where T : unmanaged
-{
-}",
+            """
+
+            class $$X<T> where T : unmanaged
+            {
+            }
+            """,
             MainDescription("class X<T> where T : unmanaged"));
     }
 
@@ -6714,11 +7659,13 @@ class $$X<T> where T : unmanaged
     public async Task UnmanagedConstraint_Method()
     {
         await TestAsync(
-@"
-class X
-{
-    void $$M<T>() where T : unmanaged { }
-}",
+            """
+
+            class X
+            {
+                void $$M<T>() where T : unmanaged { }
+            }
+            """,
             MainDescription("void X.M<T>() where T : unmanaged"));
     }
 
@@ -6734,14 +7681,16 @@ class X
     public async Task UnmanagedConstraint_LocalFunction()
     {
         await TestAsync(
-@"
-class X
-{
-    void N()
-    {
-        void $$M<T>() where T : unmanaged { }
-    }
-}",
+            """
+
+            class X
+            {
+                void N()
+                {
+                    void $$M<T>() where T : unmanaged { }
+                }
+            }
+            """,
             MainDescription("void M<T>() where T : unmanaged"));
     }
 
@@ -6749,12 +7698,14 @@ class X
     public async Task TestGetAccessorDocumentation()
     {
         await TestAsync(
-@"
-class X
-{
-    /// <summary>Summary for property Goo</summary>
-    int Goo { g$$et; set; }
-}",
+            """
+
+            class X
+            {
+                /// <summary>Summary for property Goo</summary>
+                int Goo { g$$et; set; }
+            }
+            """,
             Documentation("Summary for property Goo"));
     }
 
@@ -6762,12 +7713,14 @@ class X
     public async Task TestSetAccessorDocumentation()
     {
         await TestAsync(
-@"
-class X
-{
-    /// <summary>Summary for property Goo</summary>
-    int Goo { get; s$$et; }
-}",
+            """
+
+            class X
+            {
+                /// <summary>Summary for property Goo</summary>
+                int Goo { get; s$$et; }
+            }
+            """,
             Documentation("Summary for property Goo"));
     }
 
@@ -6775,18 +7728,20 @@ class X
     public async Task TestEventAddDocumentation1()
     {
         await TestAsync(
-@"
-using System;
+            """
 
-class X
-{
-    /// <summary>Summary for event Goo</summary>
-    event EventHandler<EventArgs> Goo
-    {
-        a$$dd => throw null;
-        remove => throw null;
-    }
-}",
+            using System;
+
+            class X
+            {
+                /// <summary>Summary for event Goo</summary>
+                event EventHandler<EventArgs> Goo
+                {
+                    a$$dd => throw null;
+                    remove => throw null;
+                }
+            }
+            """,
             Documentation("Summary for event Goo"));
     }
 
@@ -6794,16 +7749,18 @@ class X
     public async Task TestEventAddDocumentation2()
     {
         await TestAsync(
-@"
-using System;
+            """
 
-class X
-{
-    /// <summary>Summary for event Goo</summary>
-    event EventHandler<EventArgs> Goo;
+            using System;
 
-    void M() => Goo +$$= null;
-}",
+            class X
+            {
+                /// <summary>Summary for event Goo</summary>
+                event EventHandler<EventArgs> Goo;
+
+                void M() => Goo +$$= null;
+            }
+            """,
             Documentation("Summary for event Goo"));
     }
 
@@ -6811,18 +7768,20 @@ class X
     public async Task TestEventRemoveDocumentation1()
     {
         await TestAsync(
-@"
-using System;
+            """
 
-class X
-{
-    /// <summary>Summary for event Goo</summary>
-    event EventHandler<EventArgs> Goo
-    {
-        add => throw null;
-        r$$emove => throw null;
-    }
-}",
+            using System;
+
+            class X
+            {
+                /// <summary>Summary for event Goo</summary>
+                event EventHandler<EventArgs> Goo
+                {
+                    add => throw null;
+                    r$$emove => throw null;
+                }
+            }
+            """,
             Documentation("Summary for event Goo"));
     }
 
@@ -6830,16 +7789,18 @@ class X
     public async Task TestEventRemoveDocumentation2()
     {
         await TestAsync(
-@"
-using System;
+            """
 
-class X
-{
-    /// <summary>Summary for event Goo</summary>
-    event EventHandler<EventArgs> Goo;
+            using System;
 
-    void M() => Goo -$$= null;
-}",
+            class X
+            {
+                /// <summary>Summary for event Goo</summary>
+                event EventHandler<EventArgs> Goo;
+
+                void M() => Goo -$$= null;
+            }
+            """,
             Documentation("Summary for event Goo"));
     }
 
@@ -6847,14 +7808,16 @@ class X
     public async Task BuiltInOperatorWithUserDefinedEquivalent()
     {
         await TestAsync(
-@"
-class X
-{
-    void N(string a, string b)
-    {
-        var v = a $$== b;
-    }
-}",
+            """
+
+            class X
+            {
+                void N(string a, string b)
+                {
+                    var v = a $$== b;
+                }
+            }
+            """,
             MainDescription("bool string.operator ==(string a, string b)"),
             SymbolGlyph(Glyph.Operator));
     }
@@ -6863,10 +7826,12 @@ class X
     public async Task NotNullConstraint_Type()
     {
         await TestAsync(
-@"
-class $$X<T> where T : notnull
-{
-}",
+            """
+
+            class $$X<T> where T : notnull
+            {
+            }
+            """,
             MainDescription("class X<T> where T : notnull"));
     }
 
@@ -6874,12 +7839,49 @@ class $$X<T> where T : notnull
     public async Task NotNullConstraint_Method()
     {
         await TestAsync(
-@"
-class X
-{
-    void $$M<T>() where T : notnull { }
-}",
+            """
+
+            class X
+            {
+                void $$M<T>() where T : notnull { }
+            }
+            """,
             MainDescription("void X.M<T>() where T : notnull"));
+    }
+
+    [Fact]
+    public async Task MultipleConstraints_Type()
+    {
+        await TestAsync(
+            """
+
+            class $$X<T, U> where T : notnull where U : notnull
+            {
+            }
+            """,
+            MainDescription("""
+                class X<T, U>
+                    where T : notnull
+                    where U : notnull
+                """));
+    }
+
+    [Fact]
+    public async Task MultipleConstraints_Method()
+    {
+        await TestAsync(
+            """
+
+            class X
+            {
+                void $$M<T, U>() where T : notnull where U : notnull { }
+            }
+            """,
+            MainDescription("""
+                void X.M<T, U>()
+                    where T : notnull
+                    where U : notnull
+                """));
     }
 
     [Fact]
@@ -6894,14 +7896,16 @@ class X
     public async Task NotNullConstraint_LocalFunction()
     {
         await TestAsync(
-@"
-class X
-{
-    void N()
-    {
-        void $$M<T>() where T : notnull { }
-    }
-}",
+            """
+
+            class X
+            {
+                void N()
+                {
+                    void $$M<T>() where T : notnull { }
+                }
+            }
+            """,
             MainDescription("void M<T>() where T : notnull"));
     }
 
@@ -6909,15 +7913,17 @@ class X
     public async Task NullableParameterThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-class X
-{
-    void N(string? s)
-    {
-        string s2 = $$s;
-    }
-}",
+            class X
+            {
+                void N(string? s)
+                {
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
     }
@@ -6926,16 +7932,18 @@ class X
     public async Task NullableParameterThatIsNotNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-class X
-{
-    void N(string? s)
-    {
-        s = """";
-        string s2 = $$s;
-    }
-}",
+            class X
+            {
+                void N(string? s)
+                {
+                    s = "";
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.parameter}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
     }
@@ -6944,17 +7952,19 @@ class X
     public async Task NullableFieldThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-class X
-{
-    string? s = null;
+            class X
+            {
+                string? s = null;
 
-    void N()
-    {
-        string s2 = $$s;
-    }
-}",
+                void N()
+                {
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) string? X.s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
     }
@@ -6963,18 +7973,20 @@ class X
     public async Task NullableFieldThatIsNotNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-class X
-{
-    string? s = null;
+            class X
+            {
+                string? s = null;
 
-    void N()
-    {
-        s = """";
-        string s2 = $$s;
-    }
-}",
+                void N()
+                {
+                    s = "";
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.field}) string? X.s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
     }
@@ -6983,17 +7995,19 @@ class X
     public async Task NullablePropertyThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-class X
-{
-    string? S { get; set; }
+            class X
+            {
+                string? S { get; set; }
 
-    void N()
-    {
-        string s2 = $$S;
-    }
-}",
+                void N()
+                {
+                    string s2 = $$S;
+                }
+            }
+            """,
             MainDescription("string? X.S { get; set; }"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "S")));
     }
@@ -7002,18 +8016,20 @@ class X
     public async Task NullablePropertyThatIsNotNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-class X
-{
-    string? S { get; set; }
+            class X
+            {
+                string? S { get; set; }
 
-    void N()
-    {
-        S = """";
-        string s2 = $$S;
-    }
-}",
+                void N()
+                {
+                    S = "";
+                    string s2 = $$S;
+                }
+            }
+            """,
             MainDescription("string? X.S { get; set; }"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "S")));
     }
@@ -7022,22 +8038,24 @@ class X
     public async Task NullableRangeVariableThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        IEnumerable<string?> enumerable;
+            class X
+            {
+                void N()
+                {
+                    IEnumerable<string?> enumerable;
 
-        foreach (var s in enumerable)
-        {
-            string s2 = $$s;
-        }
-    }
-}",
+                    foreach (var s in enumerable)
+                    {
+                        string s2 = $$s;
+                    }
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
     }
@@ -7046,22 +8064,24 @@ class X
     public async Task NullableRangeVariableThatIsNotNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        IEnumerable<string> enumerable;
+            class X
+            {
+                void N()
+                {
+                    IEnumerable<string> enumerable;
 
-        foreach (var s in enumerable)
-        {
-            string s2 = $$s;
-        }
-    }
-}",
+                    foreach (var s in enumerable)
+                    {
+                        string s2 = $$s;
+                    }
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
     }
@@ -7070,18 +8090,20 @@ class X
     public async Task NullableLocalThatIsMaybeNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        string? s = null;
-        string s2 = $$s;
-    }
-}",
+            class X
+            {
+                void N()
+                {
+                    string? s = null;
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_may_be_null_here, "s")));
     }
@@ -7090,18 +8112,20 @@ class X
     public async Task NullableLocalThatIsNotNull()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        string? s = """";
-        string s2 = $$s;
-    }
-}",
+            class X
+            {
+                void N()
+                {
+                    string? s = "";
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) string? s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
     }
@@ -7110,18 +8134,20 @@ class X
     public async Task NullableNotShownPriorToLanguageVersion8()
     {
         await TestWithOptionsAsync(TestOptions.Regular7_3,
-@"#nullable enable
+            """
+            #nullable enable
 
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        string s = """";
-        string s2 = $$s;
-    }
-}",
+            class X
+            {
+                void N()
+                {
+                    string s = "";
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) string s"),
             NullabilityAnalysis(""));
     }
@@ -7130,18 +8156,20 @@ class X
     public async Task NullableNotShownInNullableDisable()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable disable
+            """
+            #nullable disable
 
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        string s = """";
-        string s2 = $$s;
-    }
-}",
+            class X
+            {
+                void N()
+                {
+                    string s = "";
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) string s"),
             NullabilityAnalysis(""));
     }
@@ -7150,16 +8178,18 @@ class X
     public async Task NullableShownWhenEnabledGlobally()
     {
         await TestWithOptionsAsync(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Enable),
-@"using System.Collections.Generic;
+            """
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        string s = """";
-        string s2 = $$s;
-    }
-}",
+            class X
+            {
+                void N()
+                {
+                    string s = "";
+                    string s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) string s"),
             NullabilityAnalysis(string.Format(FeaturesResources._0_is_not_null_here, "s")));
     }
@@ -7168,18 +8198,20 @@ class X
     public async Task NullableNotShownForValueType()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        int a = 0;
-        int b = $$a;
-    }
-}",
+            class X
+            {
+                void N()
+                {
+                    int a = 0;
+                    int b = $$a;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) int a"),
             NullabilityAnalysis(""));
     }
@@ -7188,18 +8220,20 @@ class X
     public async Task NullableNotShownForConst()
     {
         await TestWithOptionsAsync(TestOptions.Regular8,
-@"#nullable enable
+            """
+            #nullable enable
 
-using System.Collections.Generic;
+            using System.Collections.Generic;
 
-class X
-{
-    void N()
-    {
-        const string? s = null;
-        string? s2 = $$s;
-    }
-}",
+            class X
+            {
+                void N()
+                {
+                    const string? s = null;
+                    string? s2 = $$s;
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_constant}) string? s = null"),
             NullabilityAnalysis(""));
     }
@@ -7208,13 +8242,15 @@ class X
     public async Task TestInheritdocInlineSummary()
     {
         var markup =
-@"
-/// <summary>Summary documentation</summary>
-/// <remarks>Remarks documentation</remarks>
-void M(int x) { }
+            """
 
-/// <summary><inheritdoc cref=""M(int)""/></summary>
-void $$M(int x, int y) { }";
+            /// <summary>Summary documentation</summary>
+            /// <remarks>Remarks documentation</remarks>
+            void M(int x) { }
+
+            /// <summary><inheritdoc cref="M(int)"/></summary>
+            void $$M(int x, int y) { }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("void C.M(int x, int y)"),
@@ -7225,16 +8261,18 @@ void $$M(int x, int y) { }";
     public async Task TestInheritdocTwoLevels1()
     {
         var markup =
-@"
-/// <summary>Summary documentation</summary>
-/// <remarks>Remarks documentation</remarks>
-void M() { }
+            """
 
-/// <inheritdoc cref=""M()""/>
-void M(int x) { }
+            /// <summary>Summary documentation</summary>
+            /// <remarks>Remarks documentation</remarks>
+            void M() { }
 
-/// <inheritdoc cref=""M(int)""/>
-void $$M(int x, int y) { }";
+            /// <inheritdoc cref="M()"/>
+            void M(int x) { }
+
+            /// <inheritdoc cref="M(int)"/>
+            void $$M(int x, int y) { }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("void C.M(int x, int y)"),
@@ -7245,16 +8283,18 @@ void $$M(int x, int y) { }";
     public async Task TestInheritdocTwoLevels2()
     {
         var markup =
-@"
-/// <summary>Summary documentation</summary>
-/// <remarks>Remarks documentation</remarks>
-void M() { }
+            """
 
-/// <summary><inheritdoc cref=""M()""/></summary>
-void M(int x) { }
+            /// <summary>Summary documentation</summary>
+            /// <remarks>Remarks documentation</remarks>
+            void M() { }
 
-/// <summary><inheritdoc cref=""M(int)""/></summary>
-void $$M(int x, int y) { }";
+            /// <summary><inheritdoc cref="M()"/></summary>
+            void M(int x) { }
+
+            /// <summary><inheritdoc cref="M(int)"/></summary>
+            void $$M(int x, int y) { }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("void C.M(int x, int y)"),
@@ -7265,26 +8305,28 @@ void $$M(int x, int y) { }";
     public async Task TestInheritdocWithTypeParamRef()
     {
         var markup =
-@"
-public class Program
-{
-    public static void Main() => _ = new Test<int>().$$Clone();
-}
+            """
 
-public class Test<T> : ICloneable<Test<T>>
-{
-	/// <inheritdoc/>
-	public Test<T> Clone() => new();
-}
+            public class Program
+            {
+                public static void Main() => _ = new Test<int>().$$Clone();
+            }
 
-/// <summary>A type that has clonable instances.</summary>
-/// <typeparam name=""T"">The type of instances that can be cloned.</typeparam>
-public interface ICloneable<T>
-{
-    /// <summary>Clones a <typeparamref name=""T""/>.</summary>
-    /// <returns>A clone of the <typeparamref name=""T""/>.</returns>
-    public T Clone();
-}";
+            public class Test<T> : ICloneable<Test<T>>
+            {
+            	/// <inheritdoc/>
+            	public Test<T> Clone() => new();
+            }
+
+            /// <summary>A type that has clonable instances.</summary>
+            /// <typeparam name="T">The type of instances that can be cloned.</typeparam>
+            public interface ICloneable<T>
+            {
+                /// <summary>Clones a <typeparamref name="T"/>.</summary>
+                /// <returns>A clone of the <typeparamref name="T"/>.</returns>
+                public T Clone();
+            }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("Test<int> Test<int>.Clone()"),
@@ -7295,21 +8337,23 @@ public interface ICloneable<T>
     public async Task TestInheritdocWithTypeParamRef1()
     {
         var markup =
-@"
-public interface ITest
-{
-    /// <summary>
-    /// A generic method <typeparamref name=""T""/>.
-    /// </summary>
-    /// <typeparam name=""T"">A generic type.</typeparam>
-    void Foo<T>();
-}
+            """
 
-public class Test : ITest
-{
-    /// <inheritdoc/>
-    public void $$Foo<T>() { }
-}";
+            public interface ITest
+            {
+                /// <summary>
+                /// A generic method <typeparamref name="T"/>.
+                /// </summary>
+                /// <typeparam name="T">A generic type.</typeparam>
+                void Foo<T>();
+            }
+
+            public class Test : ITest
+            {
+                /// <inheritdoc/>
+                public void $$Foo<T>() { }
+            }
+            """;
 
         await TestWithOptionsAsync(TestOptions.Regular8,
             markup,
@@ -7324,12 +8368,14 @@ public class Test : ITest
     public async Task TestInheritdocCycle1()
     {
         var markup =
-@"
-/// <inheritdoc cref=""M(int, int)""/>
-void M(int x) { }
+            """
 
-/// <inheritdoc cref=""M(int)""/>
-void $$M(int x, int y) { }";
+            /// <inheritdoc cref="M(int, int)"/>
+            void M(int x) { }
+
+            /// <inheritdoc cref="M(int)"/>
+            void $$M(int x, int y) { }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("void C.M(int x, int y)"),
@@ -7340,9 +8386,11 @@ void $$M(int x, int y) { }";
     public async Task TestInheritdocCycle2()
     {
         var markup =
-@"
-/// <inheritdoc cref=""M(int)""/>
-void $$M(int x) { }";
+            """
+
+            /// <inheritdoc cref="M(int)"/>
+            void $$M(int x) { }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("void C.M(int x)"),
@@ -7353,9 +8401,11 @@ void $$M(int x) { }";
     public async Task TestInheritdocCycle3()
     {
         var markup =
-@"
-/// <inheritdoc cref=""M""/>
-void $$M(int x) { }";
+            """
+
+            /// <inheritdoc cref="M"/>
+            void $$M(int x) { }
+            """;
 
         await TestInClassAsync(markup,
             MainDescription("void C.M(int x)"),
@@ -7366,13 +8416,15 @@ void $$M(int x) { }";
     public async Task TestLinqGroupVariableDeclaration()
     {
         var code =
-@"
-void M(string[] a)
-{
-    var v = from x in a
-            group x by x.Length into $$g
-            select g;
-}";
+            """
+
+            void M(string[] a)
+            {
+                var v = from x in a
+                        group x by x.Length into $$g
+                        select g;
+            }
+            """;
 
         await TestInClassAsync(code,
             MainDescription($"({FeaturesResources.range_variable}) IGrouping<int, string> g"));
@@ -7381,247 +8433,297 @@ void M(string[] a)
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38283")]
     public async Task QuickInfoOnIndexerCloseBracket()
     {
-        await TestAsync(@"
-class C
-{
-    public int this[int x] { get { return 1; } }
+        await TestAsync("""
 
-    void M()
-    {
-        var x = new C()[5$$];
-    }
-}",
+            class C
+            {
+                public int this[int x] { get { return 1; } }
+
+                void M()
+                {
+                    var x = new C()[5$$];
+                }
+            }
+            """,
         MainDescription("int C.this[int x] { get; }"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38283")]
     public async Task QuickInfoOnIndexerOpenBracket()
     {
-        await TestAsync(@"
-class C
-{
-    public int this[int x] { get { return 1; } }
+        await TestAsync("""
 
-    void M()
-    {
-        var x = new C()$$[5];
-    }
-}",
+            class C
+            {
+                public int this[int x] { get { return 1; } }
+
+                void M()
+                {
+                    var x = new C()$$[5];
+                }
+            }
+            """,
         MainDescription("int C.this[int x] { get; }"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38283")]
     public async Task QuickInfoOnIndexer_NotOnArrayAccess()
     {
-        await TestAsync(@"
-class Program
-{
-    void M()
-    {
-        int[] x = new int[4];
-        int y = x[3$$];
-    }
-}",
+        await TestAsync("""
+
+            class Program
+            {
+                void M()
+                {
+                    int[] x = new int[4];
+                    int y = x[3$$];
+                }
+            }
+            """,
             MainDescription("struct System.Int32"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")]
     public async Task QuickInfoWithRemarksOnMethod()
     {
-        await TestAsync(@"
-class Program
-{
-    /// <summary>
-    /// Summary text
-    /// </summary>
-    /// <remarks>
-    /// Remarks text
-    /// </remarks>
-    int M()
-    {
-        return $$M();
-    }
-}",
+        await TestAsync("""
+
+            class Program
+            {
+                /// <summary>
+                /// Summary text
+                /// </summary>
+                /// <remarks>
+                /// Remarks text
+                /// </remarks>
+                int M()
+                {
+                    return $$M();
+                }
+            }
+            """,
             MainDescription("int Program.M()"),
             Documentation("Summary text"),
-            Remarks("\r\nRemarks text"));
+            Remarks("""
+
+                Remarks text
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")]
     public async Task QuickInfoWithRemarksOnPropertyAccessor()
     {
-        await TestAsync(@"
-class Program
-{
-    /// <summary>
-    /// Summary text
-    /// </summary>
-    /// <remarks>
-    /// Remarks text
-    /// </remarks>
-    int M { $$get; }
-}",
+        await TestAsync("""
+
+            class Program
+            {
+                /// <summary>
+                /// Summary text
+                /// </summary>
+                /// <remarks>
+                /// Remarks text
+                /// </remarks>
+                int M { $$get; }
+            }
+            """,
             MainDescription("int Program.M.get"),
             Documentation("Summary text"),
-            Remarks("\r\nRemarks text"));
+            Remarks("""
+
+                Remarks text
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")]
     public async Task QuickInfoWithReturnsOnMethod()
     {
-        await TestAsync(@"
-class Program
-{
-    /// <summary>
-    /// Summary text
-    /// </summary>
-    /// <returns>
-    /// Returns text
-    /// </returns>
-    int M()
-    {
-        return $$M();
-    }
-}",
+        await TestAsync("""
+
+            class Program
+            {
+                /// <summary>
+                /// Summary text
+                /// </summary>
+                /// <returns>
+                /// Returns text
+                /// </returns>
+                int M()
+                {
+                    return $$M();
+                }
+            }
+            """,
             MainDescription("int Program.M()"),
             Documentation("Summary text"),
-            Returns($"\r\n{FeaturesResources.Returns_colon}\r\n  Returns text"));
+            Returns($"""
+
+                {FeaturesResources.Returns_colon}
+                  Returns text
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")]
     public async Task QuickInfoWithReturnsOnPropertyAccessor()
     {
-        await TestAsync(@"
-class Program
-{
-    /// <summary>
-    /// Summary text
-    /// </summary>
-    /// <returns>
-    /// Returns text
-    /// </returns>
-    int M { $$get; }
-}",
+        await TestAsync("""
+
+            class Program
+            {
+                /// <summary>
+                /// Summary text
+                /// </summary>
+                /// <returns>
+                /// Returns text
+                /// </returns>
+                int M { $$get; }
+            }
+            """,
             MainDescription("int Program.M.get"),
             Documentation("Summary text"),
-            Returns($"\r\n{FeaturesResources.Returns_colon}\r\n  Returns text"));
+            Returns($"""
+
+                {FeaturesResources.Returns_colon}
+                  Returns text
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")]
     public async Task QuickInfoWithValueOnMethod()
     {
-        await TestAsync(@"
-class Program
-{
-    /// <summary>
-    /// Summary text
-    /// </summary>
-    /// <value>
-    /// Value text
-    /// </value>
-    int M()
-    {
-        return $$M();
-    }
-}",
+        await TestAsync("""
+
+            class Program
+            {
+                /// <summary>
+                /// Summary text
+                /// </summary>
+                /// <value>
+                /// Value text
+                /// </value>
+                int M()
+                {
+                    return $$M();
+                }
+            }
+            """,
             MainDescription("int Program.M()"),
             Documentation("Summary text"),
-            Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
+            Value($"""
+
+                {FeaturesResources.Value_colon}
+                  Value text
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31618")]
     public async Task QuickInfoWithValueOnPropertyAccessor()
     {
-        await TestAsync(@"
-class Program
-{
-    /// <summary>
-    /// Summary text
-    /// </summary>
-    /// <value>
-    /// Value text
-    /// </value>
-    int M { $$get; }
-}",
+        await TestAsync("""
+
+            class Program
+            {
+                /// <summary>
+                /// Summary text
+                /// </summary>
+                /// <value>
+                /// Value text
+                /// </value>
+                int M { $$get; }
+            }
+            """,
             MainDescription("int Program.M.get"),
             Documentation("Summary text"),
-            Value($"\r\n{FeaturesResources.Value_colon}\r\n  Value text"));
+            Value($"""
+
+                {FeaturesResources.Value_colon}
+                  Value text
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public async Task QuickInfoNotPattern1()
     {
-        await TestAsync(@"
-class Person
-{
-    void Goo(object o)
-    {
-        if (o is not $$Person p)
-        {
-        }
-    }
-}",
+        await TestAsync("""
+
+            class Person
+            {
+                void Goo(object o)
+                {
+                    if (o is not $$Person p)
+                    {
+                    }
+                }
+            }
+            """,
             MainDescription("class Person"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public async Task QuickInfoNotPattern2()
     {
-        await TestAsync(@"
-class Person
-{
-    void Goo(object o)
-    {
-        if (o is $$not Person p)
-        {
-        }
-    }
-}");
+        await TestAsync("""
+
+            class Person
+            {
+                void Goo(object o)
+                {
+                    if (o is $$not Person p)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public async Task QuickInfoOrPattern1()
     {
-        await TestAsync(@"
-class Person
-{
-    void Goo(object o)
-    {
-        if (o is $$Person or int)
-        {
-        }
-    }
-}", MainDescription("class Person"));
+        await TestAsync("""
+
+            class Person
+            {
+                void Goo(object o)
+                {
+                    if (o is $$Person or int)
+                    {
+                    }
+                }
+            }
+            """, MainDescription("class Person"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public async Task QuickInfoOrPattern2()
     {
-        await TestAsync(@"
-class Person
-{
-    void Goo(object o)
-    {
-        if (o is Person or $$int)
-        {
-        }
-    }
-}", MainDescription("struct System.Int32"));
+        await TestAsync("""
+
+            class Person
+            {
+                void Goo(object o)
+                {
+                    if (o is Person or $$int)
+                    {
+                    }
+                }
+            }
+            """, MainDescription("struct System.Int32"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/42368")]
     public async Task QuickInfoOrPattern3()
     {
-        await TestAsync(@"
-class Person
-{
-    void Goo(object o)
-    {
-        if (o is Person $$or int)
-        {
-        }
-    }
-}");
+        await TestAsync("""
+
+            class Person
+            {
+                void Goo(object o)
+                {
+                    if (o is Person $$or int)
+                    {
+                    }
+                }
+            }
+            """);
     }
 
     [Fact]
@@ -7629,12 +8731,14 @@ class Person
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"record Person(string First, string Last)
-{
-    void M($$Person p)
-    {
-    }
-}", MainDescription("record Person"));
+            """
+            record Person(string First, string Last)
+            {
+                void M($$Person p)
+                {
+                }
+            }
+            """, MainDescription("record Person"));
     }
 
     [Fact]
@@ -7642,105 +8746,119 @@ class Person
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"record Person(string First, string Last)
-{
-}
-record Student(string Id)
-{
-    void M($$Student p)
-    {
-    }
-}
-", MainDescription("record Student"));
+            """
+            record Person(string First, string Last)
+            {
+            }
+            record Student(string Id)
+            {
+                void M($$Student p)
+                {
+                }
+            }
+
+            """, MainDescription("record Student"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44904")]
     public async Task QuickInfoRecord_BaseTypeList()
     {
-        await TestAsync(@"
-record Person(string First, string Last);
-record Student(int Id) : $$Person(null, null);
-", MainDescription("Person.Person(string First, string Last)"));
+        await TestAsync("""
+
+            record Person(string First, string Last);
+            record Student(int Id) : $$Person(null, null);
+
+            """, MainDescription("Person.Person(string First, string Last)"));
     }
 
     [Fact]
     public async Task QuickInfoClass_BaseTypeList()
     {
-        await TestAsync(@"
-class Person(string First, string Last);
-class Student(int Id) : $$Person(null, null);
-", MainDescription("Person.Person(string First, string Last)"));
+        await TestAsync("""
+
+            class Person(string First, string Last);
+            class Student(int Id) : $$Person(null, null);
+
+            """, MainDescription("Person.Person(string First, string Last)"));
     }
 
     [Fact]
     public async Task QuickInfo_BaseConstructorInitializer()
     {
-        await TestAsync(@"
-public class Person { public Person(int id) { } }
-public class Student : Person { public Student() : $$base(0) { } }
-", MainDescription("Person.Person(int id)"));
+        await TestAsync("""
+
+            public class Person { public Person(int id) { } }
+            public class Student : Person { public Student() : $$base(0) { } }
+
+            """, MainDescription("Person.Person(int id)"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57031")]
     public async Task QuickInfo_DotInInvocation()
     {
-        await TestAsync(@"
-public class C
-{
-    public void M(int a) { }
-    public void M(int a, params int[] b) { }
-}
+        await TestAsync("""
 
-class Program
-{
-    static void Main()
-    {
-        var c = new C();
-        c$$.M(1, 2);
-    }
-}",
+            public class C
+            {
+                public void M(int a) { }
+                public void M(int a, params int[] b) { }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    var c = new C();
+                    c$$.M(1, 2);
+                }
+            }
+            """,
             MainDescription($"void C.M(int a, params int[] b) (+ 1 {FeaturesResources.overload})"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57031")]
     public async Task QuickInfo_BeforeMemberNameInInvocation()
     {
-        await TestAsync(@"
-public class C
-{
-    public void M(int a) { }
-    public void M(int a, params int[] b) { }
-}
+        await TestAsync("""
 
-class Program
-{
-    static void Main()
-    {
-        var c = new C();
-        c.$$M(1, 2);
-    }
-}",
+            public class C
+            {
+                public void M(int a) { }
+                public void M(int a, params int[] b) { }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    var c = new C();
+                    c.$$M(1, 2);
+                }
+            }
+            """,
             MainDescription($"void C.M(int a, params int[] b) (+ 1 {FeaturesResources.overload})"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57031")]
     public async Task QuickInfo_AfterMemberNameInInvocation()
     {
-        await TestAsync(@"
-public class C
-{
-    public void M(int a) { }
-    public void M(int a, params int[] b) { }
-}
+        await TestAsync("""
 
-class Program
-{
-    static void Main()
-    {
-        var c = new C();
-        c.M$$(1, 2);
-    }
-}",
+            public class C
+            {
+                public void M(int a) { }
+                public void M(int a, params int[] b) { }
+            }
+
+            class Program
+            {
+                static void Main()
+                {
+                    var c = new C();
+                    c.M$$(1, 2);
+                }
+            }
+            """,
             MainDescription($"void C.M(int a, params int[] b) (+ 1 {FeaturesResources.overload})"));
     }
 
@@ -7749,12 +8867,14 @@ class Program
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"record class Person(string First, string Last)
-{
-    void M($$Person p)
-    {
-    }
-}", MainDescription("record Person"));
+            """
+            record class Person(string First, string Last)
+            {
+                void M($$Person p)
+                {
+                }
+            }
+            """, MainDescription("record Person"));
     }
 
     [Fact]
@@ -7762,12 +8882,14 @@ class Program
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"record struct Person(string First, string Last)
-{
-    void M($$Person p)
-    {
-    }
-}", MainDescription("record struct Person"));
+            """
+            record struct Person(string First, string Last)
+            {
+                void M($$Person p)
+                {
+                }
+            }
+            """, MainDescription("record struct Person"));
     }
 
     [Fact]
@@ -7775,12 +8897,14 @@ class Program
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"readonly record struct Person(string First, string Last)
-{
-    void M($$Person p)
-    {
-    }
-}", MainDescription("readonly record struct Person"));
+            """
+            readonly record struct Person(string First, string Last)
+            {
+                void M($$Person p)
+                {
+                }
+            }
+            """, MainDescription("readonly record struct Person"));
     }
 
     [Fact]
@@ -7788,14 +8912,16 @@ class Program
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"/// <param name=""First"">The person's first name.</param>
-record Person(string First, string Last)
-{
-    void M(Person p)
-    {
-        _ = p.$$First;
-    }
-}",
+            """
+            /// <param name="First">The person's first name.</param>
+            record Person(string First, string Last)
+            {
+                void M(Person p)
+                {
+                    _ = p.$$First;
+                }
+            }
+            """,
 MainDescription("string Person.First { get; init; }"),
 Documentation("The person's first name."));
     }
@@ -7804,17 +8930,19 @@ Documentation("The person's first name."));
     public async Task TestVarPatternOnVarKeyword()
     {
         await TestAsync(
-@"class C
-{
-    string M() { }
+            """
+            class C
+            {
+                string M() { }
 
-    void M2()
-    {
-      if (M() is va$$r x && x.Length > 0)
-      {
-      }
-    }
-}",
+                void M2()
+                {
+                  if (M() is va$$r x && x.Length > 0)
+                  {
+                  }
+                }
+            }
+            """,
             MainDescription("class System.String"));
     }
 
@@ -7822,17 +8950,19 @@ Documentation("The person's first name."));
     public async Task TestVarPatternOnVariableItself()
     {
         await TestAsync(
-@"class C
-{
-    string M() { }
+            """
+            class C
+            {
+                string M() { }
 
-    void M2()
-    {
-      if (M() is var x$$ && x.Length > 0)
-      {
-      }
-    }
-}",
+                void M2()
+                {
+                  if (M() is var x$$ && x.Length > 0)
+                  {
+                  }
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) string? x"));
     }
 
@@ -7840,15 +8970,17 @@ Documentation("The person's first name."));
     public async Task TestVarPatternOnVarKeyword_InListPattern()
     {
         await TestAsync(
-@"class C
-{
-    void M(char[] array)
-    {
-      if (array is [ va$$r one ])
-      {
-      }
-    }
-}",
+            """
+            class C
+            {
+                void M(char[] array)
+                {
+                  if (array is [ va$$r one ])
+                  {
+                  }
+                }
+            }
+            """,
             MainDescription("struct System.Char"));
     }
 
@@ -7856,15 +8988,17 @@ Documentation("The person's first name."));
     public async Task TestVarPatternOnVariableItself_InListPattern()
     {
         await TestAsync(
-@"class C
-{
-    void M(char[] array)
-    {
-      if (array is [ var o$$ne ])
-      {
-      }
-    }
-}",
+            """
+            class C
+            {
+                void M(char[] array)
+                {
+                  if (array is [ var o$$ne ])
+                  {
+                  }
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) char one"));
     }
 
@@ -7872,15 +9006,17 @@ Documentation("The person's first name."));
     public async Task TestVarPatternOnVarKeyword_InSlicePattern()
     {
         await TestAsync(
-@"class C
-{
-    void M(char[] array)
-    {
-      if (array is [..va$$r one ])
-      {
-      }
-    }
-}" + TestSources.Index + TestSources.Range,
+            """
+            class C
+            {
+                void M(char[] array)
+                {
+                  if (array is [..va$$r one ])
+                  {
+                  }
+                }
+            }
+            """ + TestSources.Index + TestSources.Range,
             MainDescription("char[]"));
     }
 
@@ -7888,15 +9024,17 @@ Documentation("The person's first name."));
     public async Task TestVarPatternOnVariableItself_InSlicePattern()
     {
         await TestAsync(
-@"class C
-{
-    void M(char[] array)
-    {
-      if (array is [ ..var o$$ne ])
-      {
-      }
-    }
-}" + TestSources.Index + TestSources.Range,
+            """
+            class C
+            {
+                void M(char[] array)
+                {
+                  if (array is [ ..var o$$ne ])
+                  {
+                  }
+                }
+            }
+            """ + TestSources.Index + TestSources.Range,
             MainDescription($"({FeaturesResources.local_variable}) char[]? one"));
     }
 
@@ -7904,73 +9042,87 @@ Documentation("The person's first name."));
     public async Task TestDocumentationCData()
     {
         var markup =
-@"using I$$ = IGoo;
-/// <summary>
-/// summary for interface IGoo
-/// <code><![CDATA[
-/// List<string> y = null;
-/// ]]></code>
-/// </summary>
-interface IGoo {  }";
+            """
+            using I$$ = IGoo;
+            /// <summary>
+            /// summary for interface IGoo
+            /// <code><![CDATA[
+            /// List<string> y = null;
+            /// ]]></code>
+            /// </summary>
+            interface IGoo {  }
+            """;
 
         await TestAsync(markup,
             MainDescription("interface IGoo"),
-            Documentation(@"summary for interface IGoo
+            Documentation("""
+                summary for interface IGoo
 
-List<string> y = null;"));
+                List<string> y = null;
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37503")]
     public async Task DoNotNormalizeWhitespaceForCode()
     {
         var markup =
-@"using I$$ = IGoo;
-/// <summary>
-/// Normalize    this, and <c>Also        this</c>
-/// <code>
-/// line 1
-/// line     2
-/// </code>
-/// </summary>
-interface IGoo {  }";
+            """
+            using I$$ = IGoo;
+            /// <summary>
+            /// Normalize    this, and <c>Also        this</c>
+            /// <code>
+            /// line 1
+            /// line     2
+            /// </code>
+            /// </summary>
+            interface IGoo {  }
+            """;
 
         await TestAsync(markup,
             MainDescription("interface IGoo"),
-            Documentation(@"Normalize this, and Also this
+            Documentation("""
+                Normalize this, and Also this
 
-line 1
-line     2"));
+                line 1
+                line     2
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57262")]
     public async Task DoNotNormalizeLeadingWhitespaceForCode()
     {
         var markup =
-            @"using I$$ = IGoo;
-/// <summary>
-///       Normalize    this, and <c>Also        this</c>
-/// <code>
-/// line 1
-///     line     2
-/// </code>
-/// </summary>
-interface IGoo {  }";
+            """
+            using I$$ = IGoo;
+            /// <summary>
+            ///       Normalize    this, and <c>Also        this</c>
+            /// <code>
+            /// line 1
+            ///     line     2
+            /// </code>
+            /// </summary>
+            interface IGoo {  }
+            """;
 
         await TestAsync(markup,
             MainDescription("interface IGoo"),
-            Documentation(@"Normalize this, and Also this
+            Documentation("""
+                Normalize this, and Also this
 
-line 1
-    line     2"));
+                line 1
+                    line     2
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57262")]
     public async Task ParsesEmptySummary()
     {
         var markup =
-            @"using I$$ = IGoo;
-/// <summary></summary>
-interface IGoo {  }";
+            """
+            using I$$ = IGoo;
+            /// <summary></summary>
+            interface IGoo {  }
+            """;
 
         await TestAsync(markup,
             MainDescription("interface IGoo"),
@@ -7980,18 +9132,20 @@ interface IGoo {  }";
     [Fact]
     public async Task TestStaticAbstract_ImplicitImplementation()
     {
-        var code = @"
-interface I1
-{
-    /// <summary>Summary text</summary>
-    static abstract void M1();
-}
+        var code = """
 
-class C1_1 : I1
-{
-    public static void $$M1() { }
-}
-";
+            interface I1
+            {
+                /// <summary>Summary text</summary>
+                static abstract void M1();
+            }
+
+            class C1_1 : I1
+            {
+                public static void $$M1() { }
+            }
+
+            """;
 
         await TestAsync(
             code,
@@ -8002,23 +9156,25 @@ class C1_1 : I1
     [Fact]
     public async Task TestStaticAbstract_ImplicitImplementation_FromReference()
     {
-        var code = @"
-interface I1
-{
-    /// <summary>Summary text</summary>
-    static abstract void M1();
-}
+        var code = """
 
-class C1_1 : I1
-{
-    public static void M1() { }
-}
+            interface I1
+            {
+                /// <summary>Summary text</summary>
+                static abstract void M1();
+            }
 
-class R
-{
-    public static void M() { C1_1.$$M1(); }
-}
-";
+            class C1_1 : I1
+            {
+                public static void M1() { }
+            }
+
+            class R
+            {
+                public static void M() { C1_1.$$M1(); }
+            }
+
+            """;
 
         await TestAsync(
             code,
@@ -8029,18 +9185,20 @@ class R
     [Fact]
     public async Task TestStaticAbstract_FromTypeParameterReference()
     {
-        var code = @"
-interface I1
-{
-    /// <summary>Summary text</summary>
-    static abstract void M1();
-}
+        var code = """
 
-class R
-{
-    public static void M<T>() where T : I1 { T.$$M1(); }
-}
-";
+            interface I1
+            {
+                /// <summary>Summary text</summary>
+                static abstract void M1();
+            }
+
+            class R
+            {
+                public static void M<T>() where T : I1 { T.$$M1(); }
+            }
+
+            """;
 
         await TestAsync(
             code,
@@ -8051,19 +9209,21 @@ class R
     [Fact]
     public async Task TestStaticAbstract_ExplicitInheritdoc_ImplicitImplementation()
     {
-        var code = @"
-interface I1
-{
-    /// <summary>Summary text</summary>
-    static abstract void M1();
-}
+        var code = """
 
-class C1_1 : I1
-{
-    /// <inheritdoc/>
-    public static void $$M1() { }
-}
-";
+            interface I1
+            {
+                /// <summary>Summary text</summary>
+                static abstract void M1();
+            }
+
+            class C1_1 : I1
+            {
+                /// <inheritdoc/>
+                public static void $$M1() { }
+            }
+
+            """;
 
         await TestAsync(
             code,
@@ -8074,18 +9234,20 @@ class C1_1 : I1
     [Fact]
     public async Task TestStaticAbstract_ExplicitImplementation()
     {
-        var code = @"
-interface I1
-{
-    /// <summary>Summary text</summary>
-    static abstract void M1();
-}
+        var code = """
 
-class C1_1 : I1
-{
-    static void I1.$$M1() { }
-}
-";
+            interface I1
+            {
+                /// <summary>Summary text</summary>
+                static abstract void M1();
+            }
+
+            class C1_1 : I1
+            {
+                static void I1.$$M1() { }
+            }
+
+            """;
 
         await TestAsync(
             code,
@@ -8096,19 +9258,21 @@ class C1_1 : I1
     [Fact]
     public async Task TestStaticAbstract_ExplicitInheritdoc_ExplicitImplementation()
     {
-        var code = @"
-interface I1
-{
-    /// <summary>Summary text</summary>
-    static abstract void M1();
-}
+        var code = """
 
-class C1_1 : I1
-{
-    /// <inheritdoc/>
-    static void I1.$$M1() { }
-}
-";
+            interface I1
+            {
+                /// <summary>Summary text</summary>
+                static abstract void M1();
+            }
+
+            class C1_1 : I1
+            {
+                /// <inheritdoc/>
+                static void I1.$$M1() { }
+            }
+
+            """;
 
         await TestAsync(
             code,
@@ -8121,10 +9285,12 @@ class C1_1 : I1
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"class Program
-{
-    System.Delegate D = bo$$ol () => true;
-}",
+            """
+            class Program
+            {
+                System.Delegate D = bo$$ol () => true;
+            }
+            """,
             MainDescription("struct System.Boolean"));
     }
 
@@ -8133,11 +9299,13 @@ class C1_1 : I1
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"class A
-{
-    struct B { }
-    System.Delegate D = A.B$$ () => null;
-}",
+            """
+            class A
+            {
+                struct B { }
+                System.Delegate D = A.B$$ () => null;
+            }
+            """,
             MainDescription("struct A.B"));
     }
 
@@ -8146,13 +9314,15 @@ class C1_1 : I1
     {
         await TestWithOptionsAsync(
             Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
-@"class A<T>
-{
-}
-struct B
-{
-    System.Delegate D = A<B$$> () => null;
-}",
+            """
+            class A<T>
+            {
+            }
+            struct B
+            {
+                System.Delegate D = A<B$$> () => null;
+            }
+            """,
             MainDescription("struct B"));
     }
 
@@ -8160,30 +9330,36 @@ struct B
     public async Task TestNormalFuncSynthesizedLambdaType()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        $$var v = (int i) => i.ToString();
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    $$var v = (int i) => i.ToString();
+                }
+            }
+            """,
             MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
-            TypeParameterMap($@"
-T {FeaturesResources.is_} int
-TResult {FeaturesResources.is_} string"));
+            TypeParameterMap($"""
+
+                T {FeaturesResources.is_} int
+                TResult {FeaturesResources.is_} string
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58871")]
     public async Task TestInferredNonAnonymousDelegateType1()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        $$var v = (int i) => i.ToString();
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    $$var v = (int i) => i.ToString();
+                }
+            }
+            """,
             MainDescription("delegate TResult System.Func<in T, out TResult>(T arg)"),
             AnonymousTypes(""));
     }
@@ -8192,13 +9368,15 @@ TResult {FeaturesResources.is_} string"));
     public async Task TestAnonymousSynthesizedLambdaType()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        $$var v = (ref int i) => i.ToString();
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    $$var v = (ref int i) => i.ToString();
+                }
+            }
+            """,
             MainDescription("delegate string <anonymous delegate>(ref int arg)"),
             AnonymousTypes(""));
     }
@@ -8207,120 +9385,140 @@ TResult {FeaturesResources.is_} string"));
     public async Task TestAnonymousSynthesizedLambdaType2()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        var $$v = (ref int i) => i.ToString();
-    }
-}",
+            """
+            class C
+            {
+                void M()
+                {
+                    var $$v = (ref int i) => i.ToString();
+                }
+            }
+            """,
             MainDescription($"({FeaturesResources.local_variable}) 'a v"),
             AnonymousTypes(
-$@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string (ref int arg)"));
+                $"""
+
+                {FeaturesResources.Types_colon}
+                    'a {FeaturesResources.is_} delegate string (ref int arg)
+                """));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58871")]
     public async Task TestAnonymousSynthesizedLambdaType3()
     {
         await TestAsync(
-@"class C
-{
-    void M()
-    {
-        var v = (ref int i) => i.ToString();
-        $$Goo(v);
-    }
+            """
+            class C
+            {
+                void M()
+                {
+                    var v = (ref int i) => i.ToString();
+                    $$Goo(v);
+                }
 
-    T Goo<T>(T t) => default;
-}",
+                T Goo<T>(T t) => default;
+            }
+            """,
             MainDescription("'a C.Goo<'a>('a t)"),
             AnonymousTypes(
-$@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate string (ref int arg)"));
+                $"""
+
+                {FeaturesResources.Types_colon}
+                    'a {FeaturesResources.is_} delegate string (ref int arg)
+                """));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public async Task TestAnonymousSynthesizedLambdaType4()
     {
         await TestAsync(
-@"
-class C
-{
-    void M()
-    {
-        var lam = (int param = 42) => param + 1;
-        $$lam();
-    }
-}
-",
+            """
+
+            class C
+            {
+                void M()
+                {
+                    var lam = (int param = 42) => param + 1;
+                    $$lam();
+                }
+            }
+
+            """,
 MainDescription($"({FeaturesResources.local_variable}) 'a lam"),
 AnonymousTypes(
-$@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} delegate int (int arg = 42)"));
+    $"""
+
+    {FeaturesResources.Types_colon}
+        'a {FeaturesResources.is_} delegate int (int arg = 42)
+    """));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public async Task TestAnonymousSynthesizedLambdaType5()
     {
         await TestAsync(
-@"
-class C
-{
-    void M()
-    {
-        $$var lam = (int param = 42) => param;
-    }
-}
-", MainDescription("delegate int <anonymous delegate>(int arg = 42)"));
+            """
+
+            class C
+            {
+                void M()
+                {
+                    $$var lam = (int param = 42) => param;
+                }
+            }
+
+            """, MainDescription("delegate int <anonymous delegate>(int arg = 42)"));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public async Task TestAnonymousSynthesizedLambdaType6()
     {
         await TestAsync(
-@"
-class C
-{
-    void M()
-    {
-        var lam = (i$$nt param = 42) => param;
-    }
-}
-", MainDescription("struct System.Int32"));
+            """
+
+            class C
+            {
+                void M()
+                {
+                    var lam = (i$$nt param = 42) => param;
+                }
+            }
+
+            """, MainDescription("struct System.Int32"));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public async Task TestAnonymousSynthesizedLambdaType7()
     {
         await TestAsync(
-@"
-class C
-{
-    void M()
-    {
-        var lam = (int pa$$ram = 42) => param;
-    }
-}
-", MainDescription($"({FeaturesResources.parameter}) int param = 42"));
+            """
+
+            class C
+            {
+                void M()
+                {
+                    var lam = (int pa$$ram = 42) => param;
+                }
+            }
+
+            """, MainDescription($"({FeaturesResources.parameter}) int param = 42"));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
     public async Task TestAnonymousSynthesizedLambdaType8()
     {
         await TestAsync(
-@"
-class C
-{
-    void M()
-    {
-        var lam = (int param = 4$$2) => param;
-    }
-}
-", MainDescription("struct System.Int32"));
+            """
+
+            class C
+            {
+                void M()
+                {
+                    var lam = (int param = 4$$2) => param;
+                }
+            }
+
+            """, MainDescription("struct System.Int32"));
     }
 
     [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
@@ -8393,11 +9591,13 @@ class C
     public async Task TestSingleTupleType()
     {
         await TestInClassAsync(
-@"void M((int x, string y) t) { }
-  void N()
-  {
-    $$M(default);
-  }",
+            """
+            void M((int x, string y) t) { }
+              void N()
+              {
+                $$M(default);
+              }
+            """,
             MainDescription(@"void C.M((int x, string y) t)"),
             NoTypeParameterMap,
             AnonymousTypes(string.Empty));
@@ -8407,27 +9607,33 @@ class C
     public async Task TestMultipleTupleTypesSameType()
     {
         await TestInClassAsync(
-@"void M((int x, string y) s, (int x, string y) t) { }
-  void N()
-  {
-    $$M(default);
-  }",
+            """
+            void M((int x, string y) s, (int x, string y) t) { }
+              void N()
+              {
+                $$M(default);
+              }
+            """,
             MainDescription(@"void C.M('a s, 'a t)"),
             NoTypeParameterMap,
-            AnonymousTypes($@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} (int x, string y)"));
+            AnonymousTypes($"""
+
+                {FeaturesResources.Types_colon}
+                    'a {FeaturesResources.is_} (int x, string y)
+                """));
     }
 
     [Fact]
     public async Task TestMultipleTupleTypesDifferentTypes1()
     {
         await TestInClassAsync(
-@"void M((int x, string y) s, (int a, string b) u) { }
-  void N()
-  {
-    $$M(default);
-  }",
+            """
+            void M((int x, string y) s, (int a, string b) u) { }
+              void N()
+              {
+                $$M(default);
+              }
+            """,
             MainDescription(@"void C.M((int x, string y) s, (int a, string b) u)"),
             NoTypeParameterMap);
     }
@@ -8436,94 +9642,116 @@ class C
     public async Task TestMultipleTupleTypesDifferentTypes2()
     {
         await TestInClassAsync(
-@"void M((int x, string y) s, (int x, string y) t, (int a, string b) u, (int a, string b) v) { }
-  void N()
-  {
-    $$M(default);
-  }",
+            """
+            void M((int x, string y) s, (int x, string y) t, (int a, string b) u, (int a, string b) v) { }
+              void N()
+              {
+                $$M(default);
+              }
+            """,
             MainDescription(@"void C.M('a s, 'a t, 'b u, 'b v)"),
             NoTypeParameterMap,
-            AnonymousTypes($@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} (int x, string y)
-    'b {FeaturesResources.is_} (int a, string b)"));
+            AnonymousTypes($"""
+
+                {FeaturesResources.Types_colon}
+                    'a {FeaturesResources.is_} (int x, string y)
+                    'b {FeaturesResources.is_} (int a, string b)
+                """));
     }
 
     [Fact]
     public async Task TestMultipleTupleTypesDifferentTypes3()
     {
         await TestInClassAsync(
-@"void M((int x, string y) s, (int x, string y) t, (int a, string b) u) { }
-  void N()
-  {
-    $$M(default);
-  }",
+            """
+            void M((int x, string y) s, (int x, string y) t, (int a, string b) u) { }
+              void N()
+              {
+                $$M(default);
+              }
+            """,
             MainDescription(@"void C.M('a s, 'a t, 'b u)"),
             NoTypeParameterMap,
-            AnonymousTypes($@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} (int x, string y)
-    'b {FeaturesResources.is_} (int a, string b)"));
+            AnonymousTypes($"""
+
+                {FeaturesResources.Types_colon}
+                    'a {FeaturesResources.is_} (int x, string y)
+                    'b {FeaturesResources.is_} (int a, string b)
+                """));
     }
 
     [Fact]
     public async Task TestMultipleTupleTypesInference()
     {
         await TestInClassAsync(
-@"T M<T>(T t) { }
-  void N()
-  {
-    (int a, string b) x = default;
-    $$M(x);
-  }",
+            """
+            T M<T>(T t) { }
+              void N()
+              {
+                (int a, string b) x = default;
+                $$M(x);
+              }
+            """,
             MainDescription(@"'a C.M<'a>('a t)"),
             NoTypeParameterMap,
-            AnonymousTypes($@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} (int a, string b)"));
+            AnonymousTypes($"""
+
+                {FeaturesResources.Types_colon}
+                    'a {FeaturesResources.is_} (int a, string b)
+                """));
     }
 
     [Fact]
     public async Task TestAnonymousTypeWithTupleTypesInference1()
     {
         await TestInClassAsync(
-@"T M<T>(T t) { }
-  void N()
-  {
-    var v = new { x = default((int a, string b)) };
-    $$M(v);
-  }",
+            """
+            T M<T>(T t) { }
+              void N()
+              {
+                var v = new { x = default((int a, string b)) };
+                $$M(v);
+              }
+            """,
             MainDescription(@"'a C.M<'a>('a t)"),
             NoTypeParameterMap,
-            AnonymousTypes($@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} new {{ (int a, string b) x }}"));
+            AnonymousTypes($$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a {{FeaturesResources.is_}} new { (int a, string b) x }
+                """));
     }
 
     [Fact]
     public async Task TestAnonymousTypeWithTupleTypesInference2()
     {
         await TestInClassAsync(
-@"T M<T>(T t) { }
-  void N()
-  {
-    var v = new { x = default((int a, string b)), y = default((int a, string b)) };
-    $$M(v);
-  }",
+            """
+            T M<T>(T t) { }
+              void N()
+              {
+                var v = new { x = default((int a, string b)), y = default((int a, string b)) };
+                $$M(v);
+              }
+            """,
             MainDescription(@"'a C.M<'a>('a t)"),
             NoTypeParameterMap,
-            AnonymousTypes($@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
-    'b {FeaturesResources.is_} (int a, string b)"));
+            AnonymousTypes($$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a {{FeaturesResources.is_}} new { 'b x, 'b y }
+                    'b {{FeaturesResources.is_}} (int a, string b)
+                """));
     }
 
     [Fact]
     public async Task TestInRawStringInterpolation_SingleLine()
     {
         await TestInMethodAsync(
-@"var x = 1;
-var s = $""""""Hello world {$$x}""""""",
+            """"
+            var x = 1;
+            var s = $"""Hello world {$$x}"""
+            """",
             MainDescription($"({FeaturesResources.local_variable}) int x"));
     }
 
@@ -8531,8 +9759,10 @@ var s = $""""""Hello world {$$x}""""""",
     public async Task TestInRawStringInterpolation_SingleLine_MultiBrace()
     {
         await TestInMethodAsync(
-@"var x = 1;
-var s = ${|#0:|}$""""""Hello world {{$$x}}""""""",
+            """"
+            var x = 1;
+            var s = ${|#0:|}$"""Hello world {{$$x}}"""
+            """",
             MainDescription($"({FeaturesResources.local_variable}) int x"));
     }
 
@@ -8540,18 +9770,24 @@ var s = ${|#0:|}$""""""Hello world {{$$x}}""""""",
     public async Task TestInRawStringLiteral_SingleLine_Const()
     {
         await TestInClassAsync(
-@"const string $$s = """"""Hello world""""""",
-            MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""Hello world"""""""));
+            """"
+            const string $$s = """Hello world"""
+            """",
+            MainDescription($""""
+                ({FeaturesResources.constant}) string C.s = """Hello world"""
+                """"));
     }
 
     [Fact]
     public async Task TestInRawStringInterpolation_MultiLine()
     {
         await TestInMethodAsync(
-@"var x = 1;
-var s = $""""""
-Hello world {$$x}
-""""""",
+            """"
+            var x = 1;
+            var s = $"""
+            Hello world {$$x}
+            """
+            """",
             MainDescription($"({FeaturesResources.local_variable}) int x"));
     }
 
@@ -8559,10 +9795,12 @@ Hello world {$$x}
     public async Task TestInRawStringInterpolation_MultiLine_MultiBrace()
     {
         await TestInMethodAsync(
-@"var x = 1;
-var s = ${|#0:|}$""""""
-Hello world {{$$x}}
-""""""",
+            """"
+            var x = 1;
+            var s = ${|#0:|}$"""
+            Hello world {{$$x}}
+            """
+            """",
             MainDescription($"({FeaturesResources.local_variable}) int x"));
     }
 
@@ -8570,23 +9808,29 @@ Hello world {{$$x}}
     public async Task TestInRawStringLiteral_MultiLine_Const()
     {
         await TestInClassAsync(
-@"const string $$s = """"""
-        Hello world
-    """"""",
-            MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""
-        Hello world
-    """""""));
+            """"
+            const string $$s = """
+                    Hello world
+                """
+            """",
+            MainDescription($""""
+                ({FeaturesResources.constant}) string C.s = """
+                        Hello world
+                    """
+                """"));
     }
 
     [Fact]
     public async Task TestArgsInTopLevel()
     {
         var markup =
-@"
-forach (var arg in $$args)
-{
-}
-";
+            """
+
+            forach (var arg in $$args)
+            {
+            }
+
+            """;
 
         await TestWithOptionsAsync(
             Options.Regular, markup,
@@ -8597,17 +9841,19 @@ forach (var arg in $$args)
     public async Task TestArgsInNormalProgram()
     {
         var markup =
-@"
-class Program
-{
-    static void Main(string[] args)
-    {
-        foreach (var arg in $$args)
-        {
-        }
-    }
-}
-";
+            """
+
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    foreach (var arg in $$args)
+                    {
+                    }
+                }
+            }
+
+            """;
 
         await TestAsync(markup,
             MainDescription($"({FeaturesResources.parameter}) string[] args"));
@@ -8616,13 +9862,15 @@ class Program
     [Fact]
     public async Task TestParameterInMethodAttributeNameof()
     {
-        var source = @"
-class Program
-{
-    [My(nameof($$s))]
-    void M(string s) { }
-}
-";
+        var source = """
+
+            class Program
+            {
+                [My(nameof($$s))]
+                void M(string s) { }
+            }
+
+            """;
         await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
             MainDescription($"({FeaturesResources.parameter}) string s"));
     }
@@ -8630,12 +9878,14 @@ class Program
     [Fact]
     public async Task TestParameterInMethodParameterAttributeNameof()
     {
-        var source = @"
-class Program
-{
-    void M([My(nameof($$s))] string s) { }
-}
-";
+        var source = """
+
+            class Program
+            {
+                void M([My(nameof($$s))] string s) { }
+            }
+
+            """;
         await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
             MainDescription($"({FeaturesResources.parameter}) string s"));
     }
@@ -8643,16 +9893,18 @@ class Program
     [Fact]
     public async Task TestParameterInLocalFunctionAttributeNameof()
     {
-        var source = @"
-class Program
-{
-    void M()
-    {
-        [My(nameof($$s))]
-        void local(string s) { }
-    }
-}
-";
+        var source = """
+
+            class Program
+            {
+                void M()
+                {
+                    [My(nameof($$s))]
+                    void local(string s) { }
+                }
+            }
+
+            """;
         await TestWithOptionsAsync(Options.Regular.WithLanguageVersion(LanguageVersion.CSharp11), source,
             MainDescription($"({FeaturesResources.parameter}) string s"));
     }
@@ -8661,20 +9913,22 @@ class Program
     public async Task TestScopedParameter()
     {
         var source =
-@"ref struct R { }
-class Program
-{
-    static void F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, scoped out R r8)
-    {
-        r7 = default;
-        r8 = default;
-    }
-    static void Main()
-    {
-        R r = default;
-        $$F(r, r, ref r, ref r, r, r, out r, out r);
-    }
-}";
+            """
+            ref struct R { }
+            class Program
+            {
+                static void F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, scoped out R r8)
+                {
+                    r7 = default;
+                    r8 = default;
+                }
+                static void Main()
+                {
+                    R r = default;
+                    $$F(r, r, ref r, ref r, r, r, out r, out r);
+                }
+            }
+            """;
         await TestAsync(source,
             MainDescription($"void Program.F(R r1, scoped R r2, ref R r3, scoped ref R r4, in R r5, scoped in R r6, out R r7, out R r8)"));
     }
@@ -8683,15 +9937,17 @@ class Program
     public async Task TestScopedLocal()
     {
         var source =
-@"class Program
-{
-    static void Main()
-    {
-        int i = 0;
-        scoped ref int r = ref i;
-        i = $$r;
-    }
-}";
+            """
+            class Program
+            {
+                static void Main()
+                {
+                    int i = 0;
+                    scoped ref int r = ref i;
+                    i = $$r;
+                }
+            }
+            """;
         await TestAsync(source,
             MainDescription($"({FeaturesResources.local_variable}) scoped ref int r"));
     }
@@ -8743,7 +9999,7 @@ class Program
     public async Task TestUsingAliasToType1()
     {
         var source =
-@"using X = $$int;";
+            @"using X = $$int;";
         await TestAsync(source,
             MainDescription($"struct System.Int32"));
     }
@@ -8752,7 +10008,7 @@ class Program
     public async Task TestUsingAliasToType1_A()
     {
         var source =
-@"using $$X = int;";
+            @"using $$X = int;";
         await TestAsync(source,
             MainDescription($"struct System.Int32"));
     }
@@ -8761,7 +10017,7 @@ class Program
     public async Task TestUsingAliasToType2()
     {
         var source =
-@"using X = ($$int a, int b);";
+            @"using X = ($$int a, int b);";
         await TestAsync(source,
             MainDescription($"struct System.Int32"));
     }
@@ -8770,7 +10026,7 @@ class Program
     public async Task TestUsingAliasToType2_A()
     {
         var source =
-@"using $$X = (int a, int b);";
+            @"using $$X = (int a, int b);";
         await TestAsync(source,
             MainDescription($"(int a, int b)"));
     }
@@ -8779,7 +10035,7 @@ class Program
     public async Task TestUsingAliasToType3()
     {
         var source =
-@"using X = $$(int a, int b);";
+            @"using X = $$(int a, int b);";
         await TestAsync(source);
     }
 
@@ -8787,7 +10043,7 @@ class Program
     public async Task TestUsingAliasToType4()
     {
         var source =
-@"using unsafe X = $$delegate*<int,int>;";
+            @"using unsafe X = $$delegate*<int,int>;";
         await TestAsync(source);
     }
 
@@ -8795,7 +10051,7 @@ class Program
     public async Task TestUsingAliasToType4_A()
     {
         var source =
-@"using unsafe $$X = delegate*<int,int>;";
+            @"using unsafe $$X = delegate*<int,int>;";
         await TestAsync(source,
             MainDescription($"delegate*<int, int>"));
     }
@@ -8804,7 +10060,7 @@ class Program
     public async Task TestUsingAliasToType5()
     {
         var source =
-@"using unsafe X = $$int*;";
+            @"using unsafe X = $$int*;";
         await TestAsync(source,
             MainDescription($"struct System.Int32"));
     }
@@ -8813,7 +10069,7 @@ class Program
     public async Task TestUsingAliasToType5_A()
     {
         var source =
-@"using unsafe $$X = int*;";
+            @"using unsafe $$X = int*;";
         await TestAsync(source,
             MainDescription($"int*"));
     }
@@ -8822,7 +10078,7 @@ class Program
     public async Task TestCollectionExpression_Start()
     {
         var source =
-"int[] x = $$[1, 2]";
+            "int[] x = $$[1, 2]";
         await TestAsync(source,
             MainDescription($"int[]"));
     }
@@ -8831,7 +10087,7 @@ class Program
     public async Task TestCollectionExpression_Middle()
     {
         var source =
-"int[] x = [1 $$, 2]";
+            "int[] x = [1 $$, 2]";
         await TestAsync(source);
     }
 
@@ -8839,7 +10095,7 @@ class Program
     public async Task TestCollectionExpression_End()
     {
         var source =
-"int[] x = [1, 2]$$";
+            "int[] x = [1, 2]$$";
         await TestAsync(source,
             MainDescription($"int[]"));
     }
@@ -8848,7 +10104,7 @@ class Program
     public async Task TestCollectionExpression_Start_Typeless()
     {
         var source =
-"var x = $$[1, 2]";
+            "var x = $$[1, 2]";
         await TestAsync(source);
     }
 
@@ -8867,9 +10123,11 @@ class Program
         {
             MainDescription(description),
             AnonymousTypes(
-$@"
-{FeaturesResources.Types_colon}
-    'a {FeaturesResources.is_} new {{ string @string }}")
+                $$"""
+
+                {{FeaturesResources.Types_colon}}
+                    'a {{FeaturesResources.is_}} new { string @string }
+                """)
         });
     }
 
