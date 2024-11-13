@@ -341,8 +341,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return false;
 
             return
-                Implements(type, compilation.IListOfTType()) ||
-                Implements(type, compilation.IReadOnlyListOfTType());
+                EqualsOrImplements(type, compilation.IListOfTType()) ||
+                EqualsOrImplements(type, compilation.IReadOnlyListOfTType());
         }
 
         bool IsIterable(ExpressionSyntax expression)
@@ -354,15 +354,18 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             if (s_bannedTypes.Contains(type.Name))
                 return false;
 
-            return Implements(type, compilation.IEnumerableOfTType()) ||
+            return EqualsOrImplements(type, compilation.IEnumerableOfTType()) ||
                 type.Equals(compilation.SpanOfTType()) ||
                 type.Equals(compilation.ReadOnlySpanOfTType());
         }
 
-        static bool Implements(ITypeSymbol type, INamedTypeSymbol? interfaceType)
+        static bool EqualsOrImplements(ITypeSymbol type, INamedTypeSymbol? interfaceType)
         {
             if (interfaceType != null)
             {
+                if (type.OriginalDefinition.Equals(interfaceType))
+                    return true;
+
                 foreach (var baseInterface in type.AllInterfaces)
                 {
                     if (interfaceType.Equals(baseInterface.OriginalDefinition))
