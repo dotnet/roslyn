@@ -840,7 +840,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             If Not _packedFlags.OverloadResolutionPriorityPopulated Then
 
                 Dim priority As Integer
-                If _containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, priority) Then
+                If _containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, priority) AndAlso
+                   priority <> 0 Then
                     Interlocked.CompareExchange(AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0)
 #If DEBUG Then
                 Else
