@@ -1028,15 +1028,16 @@ internal static class UseCollectionExpressionHelpers
             if (originalCreateMethod.Name is CreateRangeName)
             {
                 // If we have `CreateRange<T>(IEnumerable<T> values)` this is legal if we have an array, or no-arg object creation.
-                if (arguments.Count == 1 &&
-                    originalCreateMethod.Parameters is [
+                if (originalCreateMethod.Parameters is [
+                    {
+                        Type: INamedTypeSymbol
                         {
-                            Type: INamedTypeSymbol
-                            {
-                                Name: nameof(IEnumerable<int>),
-                                TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
-                            } enumerableType
-                        }] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
+                            Name: nameof(IEnumerable<int>),
+                            TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
+                        } enumerableType
+                    }] &&
+                    enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()) &&
+                    arguments.Count == 1)
                 {
                     return IsArgumentCompatibleWithIEnumerableOfT(semanticModel, arguments[0], out unwrapArgument, out useSpread, cancellationToken);
                 }
