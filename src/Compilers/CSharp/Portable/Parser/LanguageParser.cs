@@ -11780,10 +11780,10 @@ done:
                     //
                     // ?..  is a ternary with a range expression as it's 'whenTrue' clause.
                     if (nextTokenKind == SyntaxKind.DotToken && !IsAtDotDotToken(nextToken, this.PeekToken(2)))
-                        return (EatToken(), _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)));
+                        return (questionToken: EatToken(), _syntaxFactory.MemberBindingExpression(this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)));
 
                     if (isStartOfElementBindingExpression(nextTokenKind))
-                        return (EatToken(), _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()));
+                        return (questionToken: EatToken(), _syntaxFactory.ElementBindingExpression(this.ParseBracketedArgumentList()));
                 }
 
                 // Anything else is either not a `?` at all, or is just a `?` that starts a conditional expression (not
