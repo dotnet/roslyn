@@ -1377,23 +1377,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Inside a nameof an open-generic type is acceptable.  Fall through and bind the remainder accordingly.
                     CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureUnboundGenericTypesInNameof, diagnostics);
-                    typeArguments = UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
-                        type.TypeParameters,
-                        type.TypeParameters.Length,
-                        errorInfo: null);
                 }
                 else
                 {
                     // Note: lookup won't have reported this, since the arity was correct.
                     // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
-                    Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
 
                     // If the syntax looks like an unbound generic type, then they probably wanted the definition.
                     // Give an error indicating that the syntax is incorrect and then use the definition.
                     // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
                     // outside a typeof.
-                    return type;
+                    Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
                 }
+
+                return type;
             }
 
             // we pass an empty basesBeingResolved here because this invocation is not on any possible path of
