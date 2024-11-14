@@ -1192,7 +1192,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="NET_Code_Actions">
         <source>.NET Code Actions</source>
-        <target state="new">.NET Code Actions</target>
+        <target state="translated">.NET 코드 작업</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -2632,7 +2632,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Symbol_search">
         <source>Symbol search</source>
-        <target state="new">Symbol search</target>
+        <target state="translated">기호 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbols">
@@ -2922,7 +2922,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <target state="translated">활성 문 주변의 {0} 유형을 '{1}'에서 '{2}'(으)로 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">

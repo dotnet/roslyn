@@ -44,12 +44,12 @@
       </trans-unit>
       <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
         <source>Changing project between ordinary and interactive submission is not supported</source>
-        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
+        <target state="translated">Das Ändern des Projekts zwischen normaler und interaktiver Übermittlung wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_language_is_not_supported">
         <source>Changing project language is not supported</source>
-        <target state="new">Changing project language is not supported</target>
+        <target state="translated">Das Ändern der Projektsprache wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="Removing_compilation_options_is_not_supported">
         <source>Removing compilation options is not supported</source>
-        <target state="new">Removing compilation options is not supported</target>
+        <target state="translated">Das Entfernen von Kompilierungsoptionen wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_parse_options_is_not_supported">
         <source>Removing parse options is not supported</source>
-        <target state="new">Removing parse options is not supported</target>
+        <target state="translated">Das Entfernen von Analyseoptionen wird nicht unterstützt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_1_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</source>
-        <target state="new">Service of type '{0}' is required to accomplish the task but is not available from '{1}' workspace.</target>
+        <target state="translated">Der Dienst vom Typ „{0}“ ist erforderlich, um die Aufgabe auszuführen, ist aber nicht im Arbeitsbereich „{1}“ verfügbar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">

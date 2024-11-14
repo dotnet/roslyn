@@ -89,7 +89,7 @@ internal readonly struct EmitSolutionUpdateResults
     /// Solution snapshot to resolve diagnostics in.
     /// Note that this might be a different snapshot from the one passed to <see cref="IEditAndContinueService.EmitSolutionUpdateAsync(DebuggingSessionId, Solution, ActiveStatementSpanProvider, CancellationToken)"/>,
     /// with source generator files refreshed.
-    /// 
+    ///
     /// Null only for empty results.
     /// </summary>
     public required Solution? Solution { get; init; }
@@ -181,7 +181,7 @@ internal readonly struct EmitSolutionUpdateResults
         // We iterate over this set updating the reset set until no new project is added to the reset set.
         // Once a project is determined to affect a running process, all running processes that
         // reference this project are added to the reset set. The project is then removed from updated
-        // project set as it can't contribute any more running projects to the reset set. 
+        // project set as it can't contribute any more running projects to the reset set.
         // If an updated project does not affect reset set in a given iteration, it stays in the set
         // because it may affect reset set later on, after another running project is added to it.
 

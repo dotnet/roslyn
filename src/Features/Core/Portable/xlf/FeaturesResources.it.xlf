@@ -1192,7 +1192,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="NET_Code_Actions">
         <source>.NET Code Actions</source>
-        <target state="new">.NET Code Actions</target>
+        <target state="translated">Azioni codice .NET</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -2632,7 +2632,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Symbol_search">
         <source>Symbol search</source>
-        <target state="new">Symbol search</target>
+        <target state="translated">Ricerca simboli</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbols">
@@ -2922,7 +2922,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <target state="translated">L'aggiornamento del tipo di {0} (da '{1}' a '{2}') per un'istruzione attiva richiede il riavvio dell'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">

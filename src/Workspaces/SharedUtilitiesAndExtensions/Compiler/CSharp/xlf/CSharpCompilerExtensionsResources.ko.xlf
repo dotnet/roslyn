@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="EditorConfig_option_0_contains_unrecognized_value_1">
         <source>EditorConfig option '{0}' contains unrecognized value '{1}'</source>
-        <target state="new">EditorConfig option '{0}' contains unrecognized value '{1}'</target>
+        <target state="translated">EditorConfig 옵션 '{0}'에 인식할 수 없는 값 '{1}'이(가) 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">

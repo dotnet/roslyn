@@ -75,6 +75,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyLinqExpression\AbstractSimplifyLinqExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyTypeNames\SimplifyTypeNamesDiagnosticAnalyzerBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AbstractUseAutoPropertyAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AccessedFields.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\AnalysisResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertiesHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForIfNullCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForTernaryConditionalCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\AbstractUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer.cs" />
