@@ -1086,7 +1086,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             Dim asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression) = Nothing
-            Dim someCandidatesHaveOverloadResolutionPriority As Boolean = candidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
+
+            Dim someCandidatesHaveOverloadResolutionPriority As Boolean =
+                candidates.Count > 1 AndAlso ' PROTOTYPE(Priority): AttributeTests_ObsoleteAttribute.TestObsoleteAttributeCycles fails with a stack overflow otherwise. Might need a more robust way to break a cycle.
+                candidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
 
             CollectOverloadedCandidates(binder, results, candidates, ImmutableArray(Of TypeSymbol).Empty,
                                         arguments, argumentNames,
