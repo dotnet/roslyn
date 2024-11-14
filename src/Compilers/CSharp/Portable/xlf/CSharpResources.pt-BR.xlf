@@ -1457,11 +1457,6 @@
         <target state="translated">Um acesso à matriz não pode ter um especificador de argumento nomeado</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NestedUnboundTypeNotAllowedInNameofExpression">
-        <source>Nested unbound generic type not allowed in 'nameof' operator</source>
-        <target state="new">Nested unbound generic type not allowed in 'nameof' operator</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">A restrição 'new()' não pode ser usada com a restrição 'unmanaged'</target>

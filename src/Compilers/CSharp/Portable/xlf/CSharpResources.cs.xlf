@@ -1457,11 +1457,6 @@
         <target state="translated">Přístup k vloženému poli nemůže mít specifikátor pojmenovaného argumentu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NestedUnboundTypeNotAllowedInNameofExpression">
-        <source>Nested unbound generic type not allowed in 'nameof' operator</source>
-        <target state="new">Nested unbound generic type not allowed in 'nameof' operator</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Omezení new() nejde používat s omezením unmanaged.</target>

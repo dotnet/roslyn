@@ -1457,11 +1457,6 @@
         <target state="translated">Dostęp do tablicy śródwierszowej nie może mieć specyfikatora argumentu nazwanego</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NestedUnboundTypeNotAllowedInNameofExpression">
-        <source>Nested unbound generic type not allowed in 'nameof' operator</source>
-        <target state="new">Nested unbound generic type not allowed in 'nameof' operator</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Ograniczenie „new()” nie może być używane z ograniczeniem „unmanaged”</target>

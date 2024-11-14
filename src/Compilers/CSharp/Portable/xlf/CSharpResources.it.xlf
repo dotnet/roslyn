@@ -1457,11 +1457,6 @@
         <target state="translated">Un accesso a matrice inline non può includere un identificatore di argomento denominato</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NestedUnboundTypeNotAllowedInNameofExpression">
-        <source>Nested unbound generic type not allowed in 'nameof' operator</source>
-        <target state="new">Nested unbound generic type not allowed in 'nameof' operator</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Non è possibile usare il vincolo 'new()' con il vincolo 'unmanaged'</target>

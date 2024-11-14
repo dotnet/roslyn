@@ -2566,9 +2566,9 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 var v = nameof(List<List<>>);
                 Console.WriteLine(v);
                 """).VerifyDiagnostics(
-                    // (4,21): error CS9270: Nested unbound generic type not allowed in 'nameof' operator
+                    // (4,21): error CS7003: Unexpected use of an unbound generic name
                     // var v = nameof(List<List<>>);
-                    Diagnostic(ErrorCode.ERR_NestedUnboundTypeNotAllowedInNameofExpression, "List<>").WithLocation(4, 21));
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(4, 21));
         }
 
         [Fact]

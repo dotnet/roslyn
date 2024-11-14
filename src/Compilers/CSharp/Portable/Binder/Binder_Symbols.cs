@@ -1212,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUnboundTypeExpr)
             {
-                if (!IsInsideNameof && !IsUnboundTypeAllowed(node))
+                if (!IsUnboundTypeAllowed(node))
                 {
                     // If we already have an error type then skip reporting that the unbound type is illegal.
                     if (!unconstructedType.IsErrorType())
