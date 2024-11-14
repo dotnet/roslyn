@@ -27,21 +27,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         public override async Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
         {
-            if (rethrowExceptions)
+            try
             {
                 await requestTask.ConfigureAwait(false);
             }
-            else
+            catch (Exception) when (!rethrowExceptions)
             {
                 // The caller has asked us to not rethrow, so swallow the exception.
-                try
-                {
-                    await requestTask.ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                    // Swallow the exception so it does not bubble up into the queue.
-                }
             }
         }
 

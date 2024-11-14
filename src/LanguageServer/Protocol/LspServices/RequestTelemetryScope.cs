@@ -52,7 +52,10 @@ internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger 
     {
         if (exception is StreamJsonRpc.LocalRpcException localRpcException && localRpcException.ErrorCode == LspErrorCodes.ContentModified)
         {
-            // Content modified exceptions are expected and should not be reported as NFWs.
+            // We throw content modified exceptions when asked to resolve code lens / inlay hints associated with a solution version we no longer have.
+            // This generally happens when the project changes underneath us.  The client is eventually told to refresh,
+            // but they can send us resolve requests for prior versions before they see the refresh.
+            // There is no need to report these exceptions as NFW since they are expected to occur in normal workflows.
             return;
         }
 
