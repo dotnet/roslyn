@@ -2368,6 +2368,18 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
+        public void OpenTypeInNameof_Preview()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void OpenTypeInNameof_CSharp13()
         {
             CreateCompilation("""
@@ -2392,18 +2404,6 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 var v = nameof(List<>);
                 Console.WriteLine(v);
                 """, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void OpenTypeInNameof_Preview()
-        {
-            CreateCompilation("""
-                using System;
-                using System.Collections.Generic;
-
-                var v = nameof(List<>);
-                Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2467,7 +2467,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                     var v = nameof(List<>);
                     Console.WriteLine(v);
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "List");
         }
 
@@ -2482,7 +2482,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     Console.WriteLine(v);
 
                     class A<X> { public class B<Y>; }
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "B");
         }
 
@@ -2497,7 +2497,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     Console.WriteLine(v);
 
                     class A<X> { public class B<Y>; }
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "B");
         }
 
@@ -2512,7 +2512,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     Console.WriteLine(v);
 
                     class A<X> { public class B<Y>; }
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "B");
         }
 
@@ -2526,7 +2526,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                     var v = nameof(Dictionary<,>);
                     Console.WriteLine(v);
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "Dictionary");
         }
 
@@ -2539,7 +2539,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(Dictionary<>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                """).VerifyDiagnostics(
                     // (2,1): hidden CS8019: Unnecessary using directive.
                     // using System.Collections.Generic;
                     Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
@@ -2557,7 +2557,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(List<,>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                """).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using System.Collections.Generic;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
@@ -2575,7 +2575,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(List<List<>>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                """).VerifyDiagnostics(
                     // (4,21): error CS9270: Nested unbound generic type not allowed in 'nameof' operator
                     // var v = nameof(List<List<>>);
                     Diagnostic(ErrorCode.ERR_NestedUnboundTypeNotAllowedInNameofExpression, "List<>").WithLocation(4, 21));
@@ -2590,7 +2590,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(Dictionary<,int>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                """).VerifyDiagnostics(
                     // (4,27): error CS1031: Type expected
                     // var v = nameof(Dictionary<,int>);
                     Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(4, 27));
@@ -2605,7 +2605,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(Dictionary<int,>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                """).VerifyDiagnostics(
                 // (4,31): error CS1031: Type expected
                 // var v = nameof(Dictionary<int,>);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(4, 31));
@@ -2621,7 +2621,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                     var v = nameof(List<>.Count);
                     Console.WriteLine(v);
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "Count");
         }
 
@@ -2639,7 +2639,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     {
                         T Count { get; }
                     }
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "Count");
         }
 
@@ -2657,7 +2657,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     {
                         T Count { get; }
                     }
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "ToString");
         }
 
@@ -2675,7 +2675,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     {
                         T X { get; }
                     }
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "CompareTo");
         }
 
@@ -2693,7 +2693,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     {
                         T X { get; }
                     }
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "CompareTo");
         }
 
@@ -2716,7 +2716,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     {
                         T X { get; }
                     }
-                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                    """).VerifyDiagnostics(),
                 expectedOutput: "Z");
         }
     }
