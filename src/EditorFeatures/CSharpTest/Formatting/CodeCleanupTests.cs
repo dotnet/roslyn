@@ -627,8 +627,8 @@ public partial class CodeCleanupTests
     }
 
     [Theory]
-    [InlineData(LanguageNames.CSharp, 50)]
-    [InlineData(LanguageNames.VisualBasic, 87)]
+    [InlineData(LanguageNames.CSharp, 51)]
+    [InlineData(LanguageNames.VisualBasic, 88)]
     public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int numberOfUnsupportedDiagnosticIds)
     {
         var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);

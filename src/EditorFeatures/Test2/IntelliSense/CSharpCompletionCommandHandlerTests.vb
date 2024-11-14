@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletio
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
@@ -34,7 +33,7 @@ Imports Roslyn.Test.Utilities.TestGenerators
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Completion)>
-    Public Class CSharpCompletionCommandHandlerTests
+    Public NotInheritable Class CSharpCompletionCommandHandlerTests
         <WpfTheory, CombinatorialData>
         Public Async Function CompletionOnFileType_SameFile_NonQualified(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -12639,6 +12638,7 @@ $$
             End Using
         End Function
 
+        <WpfTheory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
         Public Async Function CompletionInsideImplicitObjectCreationInsideCollectionExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -12680,6 +12680,77 @@ internal class Program
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
                 Await state.AssertCompletionItemsContain("Id", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch1(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("CR")
+                Await state.AssertSelectedCompletionItem("CreateRange")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch2(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+]]>
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("cr")
+                Await state.AssertSelectedCompletionItem("Create")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/17275")>
+        Public Async Function PreferCamelCasedExactMatchOverPrefixCaseInsensitiveMatch3(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C
+                {
+                    void Create() { }
+                    void CreateRange() { }
+
+                    void M()
+                    {
+                        this.$$
+                    }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendTypeChars("Cr")
+                Await state.AssertSelectedCompletionItem("Create")
             End Using
         End Function
     End Class

@@ -31,15 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         public CSharpSyntaxNode ParseDirective(
             bool isActive,
             bool endIsActive,
-            bool isAfterFirstTokenInFile,
-            bool isAfterNonWhitespaceOnLine)
+            bool isFollowingToken)
         {
             var hashPosition = lexer.TextWindow.Position;
             var hash = this.EatToken(SyntaxKind.HashToken, false);
-            if (isAfterNonWhitespaceOnLine)
-            {
-                hash = this.AddError(hash, ErrorCode.ERR_BadDirectivePlacement);
-            }
 
             // The behavior of these directives when isActive is false is somewhat complicated.
             // The key functions in the native compiler are ScanPreprocessorIfSection and
@@ -81,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 case SyntaxKind.DefineKeyword:
                 case SyntaxKind.UndefKeyword:
-                    result = this.ParseDefineOrUndefDirective(hash, this.EatContextualToken(contextualKind), isActive, isAfterFirstTokenInFile && !isAfterNonWhitespaceOnLine);
+                    result = this.ParseDefineOrUndefDirective(hash, this.EatContextualToken(contextualKind), isActive, isFollowingToken);
                     break;
 
                 case SyntaxKind.ErrorKeyword:
@@ -101,11 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case SyntaxKind.ReferenceKeyword:
-                    result = this.ParseReferenceDirective(hash, this.EatContextualToken(contextualKind), isActive, isAfterFirstTokenInFile && !isAfterNonWhitespaceOnLine);
+                    result = this.ParseReferenceDirective(hash, this.EatContextualToken(contextualKind), isActive, isFollowingToken);
                     break;
 
                 case SyntaxKind.LoadKeyword:
-                    result = this.ParseLoadDirective(hash, this.EatContextualToken(contextualKind), isActive, isAfterFirstTokenInFile && !isAfterNonWhitespaceOnLine);
+                    result = this.ParseLoadDirective(hash, this.EatContextualToken(contextualKind), isActive, isFollowingToken);
                     break;
 
                 case SyntaxKind.NullableKeyword:
@@ -121,16 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         var id = this.EatToken(SyntaxKind.IdentifierToken, false);
                         var end = this.ParseEndOfDirective(ignoreErrors: true);
-                        if (!isAfterNonWhitespaceOnLine)
+                        if (!id.IsMissing)
                         {
-                            if (!id.IsMissing)
-                            {
-                                id = this.AddError(id, ErrorCode.ERR_PPDirectiveExpected);
-                            }
-                            else
-                            {
-                                hash = this.AddError(hash, ErrorCode.ERR_PPDirectiveExpected);
-                            }
+                            id = this.AddError(id, ErrorCode.ERR_PPDirectiveExpected);
+                        }
+                        else
+                        {
+                            hash = this.AddError(hash, ErrorCode.ERR_PPDirectiveExpected);
                         }
 
                         result = SyntaxFactory.BadDirectiveTrivia(hash, id, end, isActive);

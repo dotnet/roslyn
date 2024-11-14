@@ -422,31 +422,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        /// <summary>
+        /// Clear fields allocated to temporaries when the underlying variable goes out of scope, so
+        /// that they do not cause unnecessary object retention.
+        /// </summary>
         private void AddVariableCleanup(ArrayBuilder<BoundExpression> cleanup, FieldSymbol field)
         {
-            if (MightContainReferences(field.Type))
+            if (field.Type.IsManagedTypeNoUseSiteDiagnostics)
             {
                 cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
             }
-        }
-
-        /// <summary>
-        /// Might the given type be, or contain, managed references?  This is used to determine which
-        /// fields allocated to temporaries should be cleared when the underlying variable goes out of scope, so
-        /// that they do not cause unnecessary object retention.
-        /// </summary>
-        private bool MightContainReferences(TypeSymbol type)
-        {
-            if (type.IsReferenceType || type.TypeKind == TypeKind.TypeParameter) return true; // type parameter or reference type
-            if (type.TypeKind != TypeKind.Struct) return false; // enums, etc
-            if (type.SpecialType == SpecialType.System_TypedReference) return true;
-            if (type.SpecialType.CanOptimizeBehavior()) return false; // int, etc
-            if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
-            foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
-            {
-                if (MightContainReferences(f.Type)) return true;
-            }
-            return false;
         }
 
         private StateMachineFieldSymbol GetOrAllocateReusableHoistedField(TypeSymbol type, out bool reused, LocalSymbol local = null)

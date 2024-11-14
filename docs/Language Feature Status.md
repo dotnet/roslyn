@@ -6,7 +6,7 @@ and will be updated as work progresses, features are added / removed, and as wor
 This is not an exhaustive list of our features but rather the ones which have active development
 efforts behind them.
 
-# Working Set
+# Working Set C#
 
 | Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- | --------- |
@@ -15,6 +15,13 @@ efforts behind them.
 | [Null-conditional assignment](https://github.com/dotnet/csharplang/issues/6045) | [null-conditional-assignment](https://github.com/dotnet/roslyn/tree/features/null-conditional-assignment) | [In Progress](https://github.com/dotnet/roslyn/issues/75554) | [RikkiGibson](https://github.com/RikkiGibson) | [cston](https://github.com/cston), [jjonescz](https://github.com/jjonescz) | TBD | [RikkiGibson](https://github.com/RikkiGibson) |
 | [`field` keyword in properties](https://github.com/dotnet/csharplang/issues/140) | [field-keyword](https://github.com/dotnet/roslyn/tree/features/field-keyword) | [Merged into 17.12p3](https://github.com/dotnet/roslyn/issues/57012) | [Youssef1313](https://github.com/Youssef1313), [cston](https://github.com/cston) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [First-class Span Types](https://github.com/dotnet/csharplang/issues/7905) | [FirstClassSpan](https://github.com/dotnet/roslyn/tree/features/FirstClassSpan) | [Merged into 17.13p1](https://github.com/dotnet/roslyn/issues/73445) | [jjonescz](https://github.com/jjonescz) | [cston](https://github.com/cston), [333fred](https://github.com/333fred) | | [333fred](https://github.com/333fred), [stephentoub](https://github.com/stephentoub) |
+
+# Working Set VB
+
+| Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
+| ------- | ------ | ----- | --------- | -------- | --------- | --------- |
+| Recognizing 'unmanaged' constraint | main | [Merged into 17.13 P2](https://github.com/dotnet/roslyn/pull/75665) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [333fred](https://github.com/333fred) | (no IDE impact) | [jaredpar](https://github.com/jaredpar) |
+
 
 # C# 13.0
 

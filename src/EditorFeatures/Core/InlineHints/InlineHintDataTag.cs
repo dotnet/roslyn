@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.InlineHints;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
@@ -48,12 +49,12 @@ internal sealed class InlineHintDataTag(InlineHintsDataTaggerProvider provider, 
             return false;
 
         // Ensure both hints are talking about the same snapshot.
-        if (!_provider.SpanEquals(_snapshot, this.Hint.Span, other._snapshot, other.Hint.Span))
+        if (!_provider.SpanEquals(this.Hint.Span.ToSnapshotSpan(_snapshot), other.Hint.Span.ToSnapshotSpan(other._snapshot)))
             return false;
 
         if (this.Hint.ReplacementTextChange != null &&
             other.Hint.ReplacementTextChange != null &&
-            !_provider.SpanEquals(_snapshot, this.Hint.ReplacementTextChange.Value.Span, other._snapshot, other.Hint.ReplacementTextChange.Value.Span))
+            !_provider.SpanEquals(this.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(_snapshot), other.Hint.ReplacementTextChange.Value.Span.ToSnapshotSpan(other._snapshot)))
         {
             return false;
         }

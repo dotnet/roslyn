@@ -173,33 +173,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
             else if (name == BuildPropertyNames.TargetRefPath)
             {
-                // If we don't have a path, always set it to null
-                if (string.IsNullOrEmpty(value))
-                {
-                    _projectSystemProject.OutputRefFilePath = null;
-                }
-                else
-                {
-                    // If we only have a non-rooted path, make it full. This is apparently working around cases
-                    // where CPS pushes us a temporary path when they're loading. It's possible this hack
-                    // can be removed now, but we still have tests asserting it.
-                    if (!PathUtilities.IsAbsolute(value))
-                    {
-                        var rootDirectory = _projectSystemProject.FilePath != null
-                                            ? Path.GetDirectoryName(_projectSystemProject.FilePath)
-                                            : Path.GetTempPath();
-
-                        _projectSystemProject.OutputRefFilePath = Path.Combine(rootDirectory, value);
-                    }
-                    else
-                    {
-                        _projectSystemProject.OutputRefFilePath = value;
-                    }
-                }
+                _projectSystemProject.OutputRefFilePath = GetAbsolutePath(value);
             }
             else if (name == BuildPropertyNames.CompilerGeneratedFilesOutputPath)
             {
-                _projectSystemProject.GeneratedFilesOutputDirectory = string.IsNullOrWhiteSpace(value) ? null : value;
+                _projectSystemProject.GeneratedFilesOutputDirectory = GetAbsolutePath(value);
+            }
+
+            string? GetAbsolutePath(string? value)
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return null;
+                }
+
+                if (PathUtilities.IsAbsolute(value))
+                {
+                    return value;
+                }
+
+                var rootDirectory = _projectSystemProject.FilePath != null
+                    ? Path.GetDirectoryName(_projectSystemProject.FilePath)
+                    : Path.GetTempPath();
+
+                return Path.Combine(rootDirectory, value);
             }
         }
 

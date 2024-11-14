@@ -187,23 +187,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
             {
-                public HostAnalyzerStateSetKey(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
+                public HostAnalyzerStateSetKey(string language, bool hasSdkCodeStyleAnalyzers, IReadOnlyList<AnalyzerReference> analyzerReferences)
                 {
                     Language = language;
+                    HasSdkCodeStyleAnalyzers = hasSdkCodeStyleAnalyzers;
                     AnalyzerReferences = analyzerReferences;
                 }
 
                 public string Language { get; }
+                public bool HasSdkCodeStyleAnalyzers { get; }
                 public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
                 public bool Equals(HostAnalyzerStateSetKey other)
-                    => Language == other.Language && AnalyzerReferences == other.AnalyzerReferences;
+                    => Language == other.Language &&
+                       HasSdkCodeStyleAnalyzers == other.HasSdkCodeStyleAnalyzers &&
+                       AnalyzerReferences == other.AnalyzerReferences;
 
                 public override bool Equals(object? obj)
                     => obj is HostAnalyzerStateSetKey key && Equals(key);
 
                 public override int GetHashCode()
-                    => Hash.Combine(Language.GetHashCode(), AnalyzerReferences.GetHashCode());
+                    => Hash.Combine(Language.GetHashCode(),
+                       Hash.Combine(HasSdkCodeStyleAnalyzers.GetHashCode(), AnalyzerReferences.GetHashCode()));
             }
         }
     }
