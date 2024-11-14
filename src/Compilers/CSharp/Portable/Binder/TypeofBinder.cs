@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// should be considered open so that the flag can be set 
     /// appropriately in BoundTypeOfOperator.
     /// </summary>
-    internal sealed partial class TypeofBinder : Binder
+    internal sealed class TypeofBinder : Binder
     {
         private readonly Dictionary<GenericNameSyntax, bool> _allowedMap;
 
