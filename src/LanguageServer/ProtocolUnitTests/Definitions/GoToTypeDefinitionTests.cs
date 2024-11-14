@@ -4,7 +4,7 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -220,6 +220,33 @@ class B
         }
 
         [Theory, CombinatorialData]
+        public async Task TestGotoTypeDefinitionAsync_MetadataAsSource(bool mutatingLspWorkspace)
+        {
+            var source =
+                """
+                using System;
+                class A
+                {
+                    void Rethrow(NotImplementedException exception)
+                    {
+                        throw {|caret:exception|};
+                    }
+                }
+                """;
+
+            // Create a server with LSP misc file workspace and metadata service.
+            await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+
+            // Get the metadata definition.
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+            // Open the metadata file and verify it gets added to the metadata workspace.
+            await testLspServer.OpenDocumentAsync(results.Single().Uri, text: string.Empty).ConfigureAwait(false);
+
+            Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, results.Single().Uri)).Kind);
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestGotoTypeDefinitionAsync_CrossLanguage(bool mutatingLspWorkspace)
         {
             var markup =
@@ -250,6 +277,12 @@ class B
         {
             return await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentTypeDefinitionName,
                            CreateTextDocumentPositionParams(caret), CancellationToken.None);
+        }
+
+        private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, Uri fileUri)
+        {
+            var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }, CancellationToken.None);
+            return lspWorkspace!;
         }
     }
 }
