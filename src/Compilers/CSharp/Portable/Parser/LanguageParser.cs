@@ -9231,21 +9231,9 @@ done:
             }
 
             SyntaxToken eatCommaOrSemicolon()
-            {
-                if (this.CurrentToken.Kind is SyntaxKind.CommaToken)
-                {
-                    // Still parse out a semicolon so we give an appropriate error that the comma is unexpected, and so
-                    // we have the correct token kind.
-                    var semicolon = this.EatToken(SyntaxKind.SemicolonToken);
-
-                    // Now skip past the comma
-                    return AddTrailingSkippedSyntax(semicolon, this.EatToken());
-                }
-                else
-                {
-                    return this.EatToken(SyntaxKind.SemicolonToken);
-                }
-            }
+                => this.CurrentToken.Kind is SyntaxKind.CommaToken
+                    ? this.EatTokenAsKind(SyntaxKind.SemicolonToken)
+                    : this.EatToken(SyntaxKind.SemicolonToken);
 
             SyntaxToken eatUnexpectedTokensAndCloseParenToken()
             {
