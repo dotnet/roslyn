@@ -2460,74 +2460,64 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Fact]
         public void OpenTypeInNameof_BaseCase()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
-                    using System.Collections.Generic;
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
 
-                    var v = nameof(List<>);
-                    Console.WriteLine(v);
-                    """).VerifyDiagnostics(),
-                expectedOutput: "List");
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_Nested1()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
+            CompileAndVerify("""
+                using System;
                     
-                    var v = nameof(A<>.B<int>);
-                    Console.WriteLine(v);
+                var v = nameof(A<>.B<int>);
+                Console.WriteLine(v);
 
-                    class A<X> { public class B<Y>; }
-                    """).VerifyDiagnostics(),
-                expectedOutput: "B");
+                class A<X> { public class B<Y>; }
+                """, expectedOutput: "B").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_Nested2()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
+            CompileAndVerify("""
+                using System;
                     
-                    var v = nameof(A<int>.B<>);
-                    Console.WriteLine(v);
+                var v = nameof(A<int>.B<>);
+                Console.WriteLine(v);
 
-                    class A<X> { public class B<Y>; }
-                    """).VerifyDiagnostics(),
-                expectedOutput: "B");
+                class A<X> { public class B<Y>; }
+                """, expectedOutput: "B").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_Nested3()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
+            CompileAndVerify("""
+                using System;
                     
-                    var v = nameof(A<>.B<>);
-                    Console.WriteLine(v);
+                var v = nameof(A<>.B<>);
+                Console.WriteLine(v);
 
-                    class A<X> { public class B<Y>; }
-                    """).VerifyDiagnostics(),
-                expectedOutput: "B");
+                class A<X> { public class B<Y>; }
+                """, expectedOutput: "B").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_MultipleTypeArguments()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
-                    using System.Collections.Generic;
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
 
-                    var v = nameof(Dictionary<,>);
-                    Console.WriteLine(v);
-                    """).VerifyDiagnostics(),
-                expectedOutput: "Dictionary");
+                var v = nameof(Dictionary<,>);
+                Console.WriteLine(v);
+                """, expectedOutput: "Dictionary").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2614,110 +2604,98 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Fact]
         public void OpenTypeInNameof_MemberAccessThatDoesNotUseTypeArgument()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
-                    using System.Collections.Generic;
+            CompileAndVerify("""
+                using System;
+                using System.Collections.Generic;
 
-                    var v = nameof(List<>.Count);
-                    Console.WriteLine(v);
-                    """).VerifyDiagnostics(),
-                expectedOutput: "Count");
+                var v = nameof(List<>.Count);
+                Console.WriteLine(v);
+                """, expectedOutput: "Count").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
+            CompileAndVerify("""
+                using System;
                     
-                    var v = nameof(IGoo<>.Count);
-                    Console.WriteLine(v);
+                var v = nameof(IGoo<>.Count);
+                Console.WriteLine(v);
 
-                    interface IGoo<T>
-                    {
-                        T Count { get; }
-                    }
-                    """).VerifyDiagnostics(),
-                expectedOutput: "Count");
+                interface IGoo<T>
+                {
+                    T Count { get; }
+                }
+                """, expectedOutput: "Count").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceObjectMember()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
+            CompileAndVerify("""
+                using System;
                     
-                    var v = nameof(IGoo<>.Count.ToString);
-                    Console.WriteLine(v);
+                var v = nameof(IGoo<>.Count.ToString);
+                Console.WriteLine(v);
 
-                    interface IGoo<T>
-                    {
-                        T Count { get; }
-                    }
-                    """).VerifyDiagnostics(),
-                expectedOutput: "ToString");
+                interface IGoo<T>
+                {
+                    T Count { get; }
+                }
+                """, expectedOutput: "ToString").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_Interface()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
+            CompileAndVerify("""
+                using System;
                     
-                    var v = nameof(IGoo<>.X.CompareTo);
-                    Console.WriteLine(v);
+                var v = nameof(IGoo<>.X.CompareTo);
+                Console.WriteLine(v);
 
-                    interface IGoo<T> where T : IComparable<T>
-                    {
-                        T X { get; }
-                    }
-                    """).VerifyDiagnostics(),
-                expectedOutput: "CompareTo");
+                interface IGoo<T> where T : IComparable<T>
+                {
+                    T X { get; }
+                }
+                """, expectedOutput: "CompareTo").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_ThroughTypeParameter()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
+            CompileAndVerify("""
+                using System;
                     
-                    var v = nameof(IGoo<,>.X.CompareTo);
-                    Console.WriteLine(v);
+                var v = nameof(IGoo<,>.X.CompareTo);
+                Console.WriteLine(v);
 
-                    interface IGoo<T,U> where T : U where U : IComparable<T>
-                    {
-                        T X { get; }
-                    }
-                    """).VerifyDiagnostics(),
-                expectedOutput: "CompareTo");
+                interface IGoo<T,U> where T : U where U : IComparable<T>
+                {
+                    T X { get; }
+                }
+                """, expectedOutput: "CompareTo").VerifyDiagnostics();
         }
 
         [Fact]
         public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_Class()
         {
-            CompileAndVerify(
-                CreateCompilation("""
-                    using System;
+            CompileAndVerify("""
+                using System;
                     
-                    var v = nameof(IGoo<>.X.Z);
-                    Console.WriteLine(v);
+                var v = nameof(IGoo<>.X.Z);
+                Console.WriteLine(v);
 
-                    class Base
-                    {
-                        public int Z { get; }
-                    }
+                class Base
+                {
+                    public int Z { get; }
+                }
 
-                    interface IGoo<T> where T : Base
-                    {
-                        T X { get; }
-                    }
-                    """).VerifyDiagnostics(),
-                expectedOutput: "Z");
+                interface IGoo<T> where T : Base
+                {
+                    T X { get; }
+                }
+                """, expectedOutput: "Z").VerifyDiagnostics();
         }
     }
 }
