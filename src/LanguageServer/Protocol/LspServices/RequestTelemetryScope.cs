@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
@@ -29,6 +30,9 @@ internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger 
 
     public override void RecordException(Exception exception)
     {
+        // Report a NFW report for the request failure, as well as recording statistics on the failure.
+        ReportNonFatalError(exception);
+
         _result = RequestTelemetryLogger.Result.Failed;
     }
 
@@ -42,5 +46,16 @@ internal sealed class RequestTelemetryScope(string name, RequestTelemetryLogger 
         var requestDuration = _stopwatch.Elapsed;
 
         _telemetryLogger.UpdateTelemetryData(Name, Language, _queuedDuration, requestDuration, _result);
+    }
+
+    private static void ReportNonFatalError(Exception exception)
+    {
+        if (exception is StreamJsonRpc.LocalRpcException localRpcException && localRpcException.ErrorCode == LspErrorCodes.ContentModified)
+        {
+            // Content modified exceptions are expected and should not be reported as NFWs.
+            return;
+        }
+
+        FatalError.ReportAndPropagateUnlessCanceled(exception, ErrorSeverity.Critical);
     }
 }
