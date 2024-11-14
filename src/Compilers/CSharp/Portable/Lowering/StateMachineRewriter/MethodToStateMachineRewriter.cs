@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void addVariableCleanupOnce(ArrayBuilder<BoundExpression> variableCleanup, FieldSymbol field, PooledHashSet<string> alreadyCleaned)
             {
-                // Hoisted fields may be re-used, so we can skip those that were cleaed already
+                // Hoisted fields may be re-used, so we can skip those that were cleared already
                 if (alreadyCleaned.Add(field.Name))
                 {
                     AddVariableCleanup(variableCleanup, field);
