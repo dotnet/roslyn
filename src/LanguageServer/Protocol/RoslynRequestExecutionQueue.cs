@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             catch (Exception) when (!rethrowExceptions)
             {
-                // The caller has asked us to not rethrow, so swallow the exception.
+                // The caller has asked us to not rethrow, so swallow the exception to avoid bringing down the queue.
+                // The queue item task itself already handles reporting the exception (if any).
             }
         }
 
