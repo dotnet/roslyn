@@ -12,14 +12,12 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints;
@@ -33,10 +31,10 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints;
 [VSUtilities.Name(nameof(InlineHintsDataTaggerProvider))]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 [method: ImportingConstructor]
-internal partial class InlineHintsDataTaggerProvider(
+internal sealed partial class InlineHintsDataTaggerProvider(
     TaggerHost taggerHost,
     [Import(AllowDefault = true)] IInlineHintKeyProcessor inlineHintKeyProcessor)
-    : AsynchronousViewTaggerProvider<InlineHintDataTag>(taggerHost, FeatureAttribute.InlineHints)
+    : AsynchronousViewportTaggerProvider<InlineHintDataTag>(taggerHost, FeatureAttribute.InlineHints)
 {
     private readonly IInlineHintKeyProcessor _inlineHintKeyProcessor = inlineHintKeyProcessor;
 
@@ -74,28 +72,12 @@ internal partial class InlineHintsDataTaggerProvider(
                 option.Equals(InlineHintsOptionsStorage.ForCollectionExpressions)));
     }
 
-    protected override void AddSpansToTag(ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
-    {
-        this.ThreadingContext.ThrowIfNotOnUIThread();
-        Contract.ThrowIfNull(textView);
-
-        // Find the visible span some 100 lines +/- what's actually in view.  This way
-        // if the user scrolls up/down, we'll already have the results.
-        var visibleSpanOpt = textView.GetVisibleLinesSpan(subjectBuffer, extraLines: 100);
-        if (visibleSpanOpt == null)
-        {
-            // Couldn't find anything visible, just fall back to tagging all hint locations
-            base.AddSpansToTag(textView, subjectBuffer, ref result);
-            return;
-        }
-
-        result.Add(visibleSpanOpt.Value);
-    }
-
     protected override async Task ProduceTagsAsync(
-        TaggerContext<InlineHintDataTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition, CancellationToken cancellationToken)
+        TaggerContext<InlineHintDataTag> context,
+        DocumentSnapshotSpan spanToTag,
+        CancellationToken cancellationToken)
     {
-        var document = documentSnapshotSpan.Document;
+        var document = spanToTag.Document;
         if (document == null)
             return;
 
@@ -111,7 +93,7 @@ internal partial class InlineHintsDataTaggerProvider(
 
         var options = GlobalOptions.GetInlineHintsOptions(document.Project.Language);
 
-        var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+        var snapshotSpan = spanToTag.SnapshotSpan;
         var hints = await service.GetInlineHintsAsync(
             document, snapshotSpan.Span.ToTextSpan(), options,
             displayAllOverride: _inlineHintKeyProcessor?.State is true,
