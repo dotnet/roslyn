@@ -103,55 +103,11 @@ internal static class ListExtensions
         return false;
     }
 
-    public static int IndexOf<T>(this ImmutableArray<T> list, Func<T, bool> predicate)
-    {
-        for (var i = 0; i < list.Length; i++)
-        {
-            if (predicate(list[i]))
-                return i;
-        }
-
-        return -1;
-    }
-
-    public static int IndexOf<T>(this IReadOnlyList<T> list, Func<T, bool> predicate)
-    {
-        for (var i = 0; i < list.Count; i++)
-        {
-            if (predicate(list[i]))
-                return i;
-        }
-
-        return -1;
-    }
-
     public static int IndexOf<T>(this IList<T> list, Func<T, bool> predicate)
     {
         for (var i = 0; i < list.Count; i++)
         {
             if (predicate(list[i]))
-                return i;
-        }
-
-        return -1;
-    }
-
-    public static int IndexOf<T, TArg>(this ImmutableArray<T> list, Func<T, TArg, bool> predicate, TArg arg)
-    {
-        for (var i = 0; i < list.Length; i++)
-        {
-            if (predicate(list[i], arg))
-                return i;
-        }
-
-        return -1;
-    }
-
-    public static int IndexOf<T, TArg>(this IReadOnlyList<T> list, Func<T, TArg, bool> predicate, TArg arg)
-    {
-        for (var i = 0; i < list.Count; i++)
-        {
-            if (predicate(list[i], arg))
                 return i;
         }
 

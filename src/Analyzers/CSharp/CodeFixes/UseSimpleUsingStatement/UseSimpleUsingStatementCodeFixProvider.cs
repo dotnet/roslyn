@@ -72,7 +72,7 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
 
         if (originalBlockStatements.Count == currentBlockStatements.Count)
         {
-            var statementToUpdateIndex = originalBlockStatements.IndexOf(s => topmostUsingStatements.Contains(s));
+            var statementToUpdateIndex = IndexOf(originalBlockStatements, s => topmostUsingStatements.Contains(s));
             var statementToUpdate = currentBlockStatements[statementToUpdateIndex];
 
             if (statementToUpdate is UsingStatementSyntax usingStatement &&
@@ -85,6 +85,17 @@ internal sealed class UseSimpleUsingStatementCodeFixProvider() : SyntaxEditorBas
         }
 
         return currentBlockLike;
+    }
+
+    public static int IndexOf<T>(IReadOnlyList<T> list, Func<T, bool> predicate)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (predicate(list[i]))
+                return i;
+        }
+
+        return -1;
     }
 
     private static SyntaxNode WithStatements(
