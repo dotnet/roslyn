@@ -1031,7 +1031,6 @@ public class {|target2:Bar|} : IBar
             itemForFooInBar2);
     }
 
-
     [Theory]
     [InlineData("abstract", TestHost.InProcess)]
     [InlineData("abstract", TestHost.OutOfProcess)]
