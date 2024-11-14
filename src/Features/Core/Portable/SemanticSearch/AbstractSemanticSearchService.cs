@@ -388,7 +388,7 @@ internal abstract partial class AbstractSemanticSearchService : ISemanticSearchS
     {
         try
         {
-            var candidates = new ArrayBuilder<MethodInfo>();
+            using var _ = ArrayBuilder<MethodInfo>.GetInstance(out var candidates);
 
             foreach (var candidate in type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance))
             {

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -22,14 +21,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.ArrowExpressionClausePlacement;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ArrowExpressionClausePlacement), Shared]
-internal sealed class ArrowExpressionClausePlacementCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class ArrowExpressionClausePlacementCodeFixProvider() : CodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ArrowExpressionClausePlacementCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ArrowExpressionClausePlacementDiagnosticId];
 

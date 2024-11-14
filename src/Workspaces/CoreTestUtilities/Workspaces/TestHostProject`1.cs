@@ -23,22 +23,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private readonly ProjectId _id;
         private readonly string _name;
-        private readonly IEnumerable<MetadataReference> _metadataReferences;
         private readonly IEnumerable<AnalyzerReference> _analyzerReferences;
-        private readonly CompilationOptions _compilationOptions;
-        private readonly ParseOptions _parseOptions;
-        private readonly bool _isSubmission;
         private readonly string _assemblyName;
-        private readonly Type _hostObjectType;
-        private readonly VersionStamp _version;
-        private readonly string _outputFilePath;
         private readonly string _defaultNamespace;
 
         public IEnumerable<TDocument> Documents;
         public IEnumerable<TDocument> AdditionalDocuments;
         public IEnumerable<TDocument> AnalyzerConfigDocuments;
         public IEnumerable<ProjectReference> ProjectReferences;
-        private string _filePath;
 
         public override string Name
         {
@@ -48,13 +40,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public IEnumerable<MetadataReference> MetadataReferences
-        {
-            get
-            {
-                return _metadataReferences;
-            }
-        }
+        public IEnumerable<MetadataReference> MetadataReferences { get; }
 
         public IEnumerable<AnalyzerReference> AnalyzerReferences
         {
@@ -64,21 +50,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public CompilationOptions CompilationOptions
-        {
-            get
-            {
-                return _compilationOptions;
-            }
-        }
+        public CompilationOptions CompilationOptions { get; }
 
-        public ParseOptions ParseOptions
-        {
-            get
-            {
-                return _parseOptions;
-            }
-        }
+        public ParseOptions ParseOptions { get; }
 
         public override ProjectId Id
         {
@@ -88,13 +62,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public bool IsSubmission
-        {
-            get
-            {
-                return _isSubmission;
-            }
-        }
+        public bool IsSubmission { get; }
 
         public override string AssemblyName
         {
@@ -104,37 +72,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public Type HostObjectType
-        {
-            get
-            {
-                return _hostObjectType;
-            }
-        }
+        public Type HostObjectType { get; }
 
-        public VersionStamp Version
-        {
-            get
-            {
-                return _version;
-            }
-        }
+        public VersionStamp Version { get; }
 
-        public string FilePath
-        {
-            get
-            {
-                return _filePath;
-            }
-        }
+        public string FilePath { get; private set; }
 
         internal void OnProjectFilePathChanged(string filePath)
-            => _filePath = filePath;
+            => FilePath = filePath;
 
-        public string OutputFilePath
-        {
-            get { return _outputFilePath; }
-        }
+        public string OutputFilePath { get; }
 
         public string DefaultNamespace
         {
@@ -161,19 +108,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _name = projectName;
             _id = ProjectId.CreateNewId(debugName: this.AssemblyName);
             _languageServices = languageServices;
-            _compilationOptions = compilationOptions;
-            _parseOptions = parseOptions;
-            _metadataReferences = references;
+            CompilationOptions = compilationOptions;
+            ParseOptions = parseOptions;
+            MetadataReferences = references;
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             this.Documents = documents;
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             ProjectReferences = SpecializedCollections.EmptyEnumerable<ProjectReference>();
-            _isSubmission = isSubmission;
-            _hostObjectType = hostObjectType;
-            _version = VersionStamp.Create();
-            _filePath = filePath;
-            _outputFilePath = GetTestOutputFilePath(filePath);
+            IsSubmission = isSubmission;
+            HostObjectType = hostObjectType;
+            Version = VersionStamp.Create();
+            FilePath = filePath;
+            OutputFilePath = GetTestOutputFilePath(filePath);
             _defaultNamespace = defaultNamespace;
         }
 
@@ -199,17 +146,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             language = language ?? LanguageNames.CSharp;
             _languageServices = hostServices.GetLanguageServices(language);
 
-            _compilationOptions = compilationOptions ?? this.LanguageServiceProvider.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
-            _parseOptions = parseOptions ?? this.LanguageServiceProvider.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();
+            CompilationOptions = compilationOptions ?? this.LanguageServiceProvider.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
+            ParseOptions = parseOptions ?? this.LanguageServiceProvider.GetService<ISyntaxTreeFactoryService>().GetDefaultParseOptions();
             this.Documents = documents ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             ProjectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
-            _metadataReferences = metadataReferences ?? new MetadataReference[] { TestMetadata.Net451.mscorlib };
+            MetadataReferences = metadataReferences ?? new MetadataReference[] { NetFramework.mscorlib };
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             _assemblyName = assemblyName ?? "TestProject";
-            _version = VersionStamp.Create();
-            _outputFilePath = GetTestOutputFilePath(_filePath);
+            Version = VersionStamp.Create();
+            OutputFilePath = GetTestOutputFilePath(FilePath);
             _defaultNamespace = defaultNamespace;
 
             if (documents != null)
@@ -311,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     name: Name,
                     assemblyName: AssemblyName,
                     language: Language,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm: Text.SourceHashAlgorithms.Default,
                     defaultNamespace: DefaultNamespace,
                     filePath: FilePath,

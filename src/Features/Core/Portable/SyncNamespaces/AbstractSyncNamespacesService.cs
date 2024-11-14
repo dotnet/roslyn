@@ -25,12 +25,12 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
     where TNamespaceSyntax : SyntaxNode
 {
     public abstract AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSyntaxKind, TNamespaceSyntax> DiagnosticAnalyzer { get; }
+    public abstract bool IsHostAnalyzer { get; }
     public abstract AbstractChangeNamespaceToMatchFolderCodeFixProvider CodeFixProvider { get; }
 
     /// <inheritdoc/>
     public async Task<Solution> SyncNamespacesAsync(
         ImmutableArray<Project> projects,
-        CodeActionOptionsProvider options,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
     {
@@ -39,7 +39,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
 
         var solution = projects[0].Solution;
         var diagnosticAnalyzers = ImmutableArray.Create<DiagnosticAnalyzer>(DiagnosticAnalyzer);
-        var diagnosticsByProject = await GetDiagnosticsByProjectAsync(projects, diagnosticAnalyzers, cancellationToken).ConfigureAwait(false);
+        var diagnosticsByProject = await GetDiagnosticsByProjectAsync(projects, diagnosticAnalyzers, IsHostAnalyzer, cancellationToken).ConfigureAwait(false);
 
         // If no diagnostics are reported, then there is nothing to fix.
         if (diagnosticsByProject.Values.All(diagnostics => diagnostics.IsEmpty))
@@ -48,7 +48,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
         }
 
         var fixAllContext = await GetFixAllContextAsync(
-            solution, CodeFixProvider, diagnosticsByProject, options, progressTracker, cancellationToken).ConfigureAwait(false);
+            solution, CodeFixProvider, diagnosticsByProject, progressTracker, cancellationToken).ConfigureAwait(false);
         var fixAllProvider = CodeFixProvider.GetFixAllProvider();
         RoslynDebug.AssertNotNull(fixAllProvider);
 
@@ -58,13 +58,14 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
     private static async Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetDiagnosticsByProjectAsync(
         ImmutableArray<Project> projects,
         ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
+        bool isHostAnalyzer,
         CancellationToken cancellationToken)
     {
         var builder = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
 
         foreach (var project in projects)
         {
-            var diagnostics = await GetDiagnosticsAsync(project, diagnosticAnalyzers, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await GetDiagnosticsAsync(project, diagnosticAnalyzers, isHostAnalyzer, cancellationToken).ConfigureAwait(false);
             builder.Add(project, diagnostics);
         }
 
@@ -74,13 +75,14 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
     private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(
         Project project,
         ImmutableArray<DiagnosticAnalyzer> diagnosticAnalyzers,
+        bool isHostAnalyzer,
         CancellationToken cancellationToken)
     {
         var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
         RoslynDebug.AssertNotNull(compilation);
 
         var analyzerOptions = new CompilationWithAnalyzersOptions(
-            project.AnalyzerOptions,
+            isHostAnalyzer ? project.HostAnalyzerOptions : project.AnalyzerOptions,
             onAnalyzerException: null,
             concurrentAnalysis: true,
             logAnalyzerExecutionTime: false,
@@ -94,7 +96,6 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
         Solution solution,
         CodeFixProvider codeFixProvider,
         ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
-        CodeActionOptionsProvider options,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
     {
@@ -114,7 +115,6 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
             firstDiagnostic.Location.SourceSpan,
             [firstDiagnostic],
             (a, _) => action ??= a,
-            options,
             cancellationToken);
         await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
 
@@ -128,8 +128,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
                 FixAllScope.Solution,
                 codeActionEquivalenceKey: action?.EquivalenceKey!, // FixAllState supports null equivalence key. This should still be supported.
                 diagnosticIds: codeFixProvider.FixableDiagnosticIds,
-                fixAllDiagnosticProvider: diagnosticProvider,
-                options),
+                fixAllDiagnosticProvider: diagnosticProvider),
             progressTracker,
             cancellationToken);
     }

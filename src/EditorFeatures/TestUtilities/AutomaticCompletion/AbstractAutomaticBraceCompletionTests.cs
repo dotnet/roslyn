@@ -144,6 +144,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
 
         internal static Holder CreateSession(EditorTestWorkspace workspace, char opening, char closing, OptionsCollection globalOptions = null)
         {
+            workspace.SetAnalyzerFallbackAndGlobalOptions(globalOptions);
+
             var document = workspace.Documents.First();
 
             var provider = Assert.IsType<BraceCompletionSessionProvider>(workspace.GetService<IBraceCompletionSessionProvider>());
@@ -151,7 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             var openingPoint = new SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value);
             var textView = document.GetTextView();
 
-            globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
             workspace.GlobalOptions.SetEditorOptions(textView.Options.GlobalOptions, document.Project.Language);
 
             if (provider.TryCreateSession(textView, openingPoint, opening, closing, out var session))

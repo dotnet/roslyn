@@ -12,7 +12,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
     Public Class VisualBasicSpecialReferencesTests
-        <WpfFact()>
+        <WpfFact>
         Public Sub ProjectIncludesReferencesToMscorlibSystemAndMicrosoftVisualBasic()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <WpfFact>
         Public Sub ProjectWithoutStandardLibsDoesNotReferenceSystem()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <WpfFact>
         Public Sub ProjectWithoutVisualBasicRuntimeDoesNotReferenceMicrosoftVisualBasic()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")

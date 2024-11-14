@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
             var events = new List<OptionChangedEventArgs>();
 
-            var handler = new EventHandler<OptionChangedEventArgs>((_, e) => events.Add(e));
+            var handler = new WeakEventHandler<OptionChangedEventArgs>((_, _, e) => events.Add(e));
             globalOptions.AddOptionChangedHandler(this, handler);
 
             var values = globalOptions.GetOptions([new OptionKey2(option1), new OptionKey2(option2)]);
@@ -186,11 +186,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 KeyValuePairUtil.Create(new OptionKey2(option3), (object?)3),
             ]);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "test_option1=5",
                 "test_option2=6",
-            }, events.Single().ChangedOptions.Select(e => $"{e.key.Option.Definition.ConfigName}={e.newValue}"));
+            ], events.Single().ChangedOptions.Select(e => $"{e.key.Option.Definition.ConfigName}={e.newValue}"));
 
             values = globalOptions.GetOptions([new OptionKey2(option1), new OptionKey2(option2), new OptionKey2(option3)]);
             Assert.Equal(5, values[0]);

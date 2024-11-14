@@ -47,8 +47,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddNamespaceAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamespaceSymbol)testContext.GetDestination(),
             @namespace,
             CancellationToken.None);
@@ -82,8 +81,7 @@ public partial class CodeGenerationTests
             testContext.Result = await testContext.Service.AddFieldAsync(
                 new CodeGenerationSolutionContext(
                     testContext.Solution,
-                    context ?? CodeGenerationContext.Default,
-                    testContext.Workspace.GlobalOptions.CreateProvider()),
+                    context ?? CodeGenerationContext.Default),
                 (INamedTypeSymbol)testContext.GetDestination(),
                 field,
                 CancellationToken.None);
@@ -91,7 +89,7 @@ public partial class CodeGenerationTests
         else
         {
             var root = await testContext.Document.GetSyntaxRootAsync();
-            var options = await testContext.Document.GetCodeGenerationOptionsAsync(testContext.Workspace.GlobalOptions, CancellationToken.None);
+            var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
             var info = testContext.Service.GetInfo(context ?? CodeGenerationContext.Default, options, root.SyntaxTree.Options);
             var newRoot = testContext.Service.AddField(root, field, info, CancellationToken.None);
             testContext.Result = testContext.Document.WithSyntaxRoot(newRoot);
@@ -125,8 +123,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddMethodAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamedTypeSymbol)testContext.GetDestination(),
             ctor,
             CancellationToken.None);
@@ -171,8 +168,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddMethodAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamedTypeSymbol)testContext.GetDestination(),
             method,
             CancellationToken.None);
@@ -213,8 +209,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddMembersAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamedTypeSymbol)testContext.GetDestination(),
             methods.ToArray(),
             CancellationToken.None);
@@ -249,8 +244,7 @@ public partial class CodeGenerationTests
             await testContext.Service.AddMethodAsync(
                 new CodeGenerationSolutionContext(
                     testContext.Solution,
-                    context ?? CodeGenerationContext.Default,
-                    testContext.Workspace.GlobalOptions.CreateProvider()),
+                    context ?? CodeGenerationContext.Default),
                 (INamedTypeSymbol)testContext.GetDestination(),
                 method,
                 CancellationToken.None);
@@ -296,8 +290,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddMethodAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamedTypeSymbol)testContext.GetDestination(),
             method,
             CancellationToken.None);
@@ -317,7 +310,7 @@ public partial class CodeGenerationTests
         using var testContext = await TestContext.CreateAsync(initial, expected);
         var parsedStatements = testContext.ParseStatements(statements);
         var oldSyntax = testContext.GetSelectedSyntax<SyntaxNode>(true);
-        var options = await testContext.Document.GetCodeGenerationOptionsAsync(testContext.Workspace.GlobalOptions, CancellationToken.None);
+        var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
         var info = testContext.Service.GetInfo(context ?? CodeGenerationContext.Default, options, oldSyntax.SyntaxTree.Options);
         var newSyntax = testContext.Service.AddStatements(oldSyntax, parsedStatements, info, CancellationToken.None);
         testContext.Result = testContext.Document.WithSyntaxRoot((await testContext.Document.GetSyntaxRootAsync()).ReplaceNode(oldSyntax, newSyntax));
@@ -332,7 +325,7 @@ public partial class CodeGenerationTests
         using var testContext = await TestContext.CreateAsync(initial, expected);
         var parameterSymbols = GetParameterSymbols(parameters, testContext);
         var oldMemberSyntax = testContext.GetSelectedSyntax<SyntaxNode>(true);
-        var options = await testContext.Document.GetCodeGenerationOptionsAsync(testContext.Workspace.GlobalOptions, CancellationToken.None);
+        var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
         var info = testContext.Service.GetInfo(context ?? CodeGenerationContext.Default, options, oldMemberSyntax.SyntaxTree.Options);
 
         var newMemberSyntax = testContext.Service.AddParameters(oldMemberSyntax, parameterSymbols, info, CancellationToken.None);
@@ -365,8 +358,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddNamedTypeAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamedTypeSymbol)testContext.GetDestination(),
             type,
             CancellationToken.None);
@@ -406,8 +398,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddEventAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamedTypeSymbol)testContext.GetDestination(),
             @event,
             CancellationToken.None);
@@ -442,7 +433,7 @@ public partial class CodeGenerationTests
 
         using var testContext = await TestContext.CreateAsync(initial, expected);
         var workspace = testContext.Workspace;
-        options?.SetGlobalOptions(workspace.GlobalOptions);
+        workspace.SetAnalyzerFallbackOptions(options);
 
         var typeSymbol = GetTypeSymbol(type)(testContext.SemanticModel);
         var getParameterSymbols = GetParameterSymbols(parameters, testContext);
@@ -500,8 +491,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddPropertyAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamedTypeSymbol)testContext.GetDestination(),
             property,
             CancellationToken.None);
@@ -530,8 +520,7 @@ public partial class CodeGenerationTests
         testContext.Result = await testContext.Service.AddNamedTypeAsync(
             new CodeGenerationSolutionContext(
                 testContext.Solution,
-                context ?? CodeGenerationContext.Default,
-                testContext.Workspace.GlobalOptions.CreateProvider()),
+                context ?? CodeGenerationContext.Default),
             (INamespaceSymbol)testContext.GetDestination(),
             type,
             CancellationToken.None);
@@ -547,9 +536,9 @@ public partial class CodeGenerationTests
         var attr = CodeGenerationSymbolFactory.CreateAttributeData(GetTypeSymbol(attributeClass)(testContext.SemanticModel));
         var oldNode = testContext.GetDestinationNode();
         var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
-        var options = await testContext.Document.GetCodeGenerationOptionsAsync(testContext.Workspace.GlobalOptions, CancellationToken.None);
+        var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
         var info = codeGenerator.GetInfo(CodeGenerationContext.Default, options, oldNode.SyntaxTree.Options);
-        var newNode = codeGenerator.AddAttributes(oldNode, new[] { attr }, target, info, CancellationToken.None)
+        var newNode = codeGenerator.AddAttributes(oldNode, [attr], target, info, CancellationToken.None)
                                    .WithAdditionalAnnotations(Formatter.Annotation);
         testContext.Result = testContext.Document.WithSyntaxRoot(testContext.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(oldNode, newNode));
     }
@@ -566,7 +555,7 @@ public partial class CodeGenerationTests
         var attribute = attributeTarget.GetAttributes().Single(attr => Equals(attr.AttributeClass, attributeType));
         var declarationNode = taggedNode.FirstAncestorOrSelf<T>();
         var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
-        var options = await testContext.Document.GetCodeGenerationOptionsAsync(testContext.Workspace.GlobalOptions, CancellationToken.None);
+        var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
         var info = codeGenerator.GetInfo(CodeGenerationContext.Default, options, testContext.SemanticModel.SyntaxTree.Options);
         var newNode = codeGenerator.RemoveAttribute(declarationNode, attribute, info, CancellationToken.None)
                                    .WithAdditionalAnnotations(Formatter.Annotation);
@@ -588,7 +577,7 @@ public partial class CodeGenerationTests
         var updatedDeclarationNode = declarationNode;
 
         var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
-        var options = await testContext.Document.GetCodeGenerationOptionsAsync(testContext.Workspace.GlobalOptions, CancellationToken.None);
+        var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
         var info = codeGenerator.GetInfo(new CodeGenerationContext(reuseSyntax: true), options, declarationNode.SyntaxTree.Options);
         if (accessibility.HasValue)
         {
@@ -648,8 +637,7 @@ public partial class CodeGenerationTests
 
         var solutionContext = new CodeGenerationSolutionContext(
             testContext.Solution,
-            context ?? CodeGenerationContext.Default,
-            testContext.Workspace.GlobalOptions.CreateProvider());
+            context ?? CodeGenerationContext.Default);
 
         var symbol = TestContext.GetSelectedSymbol<INamespaceOrTypeSymbol>(destSpan, semanticModel);
         var destination = testContext.GetDestination();

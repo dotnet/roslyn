@@ -25,18 +25,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         private readonly bool _includeSuppressedDiagnostics;
         private readonly bool _includeNonLocalDocumentDiagnostics;
 
-        internal readonly IGlobalOptionService GlobalOptions;
-        internal readonly CodeActionOptionsProvider FallbackOptions;
-
         public TestDiagnosticAnalyzerDriver(Workspace workspace, bool includeSuppressedDiagnostics = false, bool includeNonLocalDocumentDiagnostics = false)
         {
             var mefServices = workspace.Services.SolutionServices.ExportProvider;
 
             _diagnosticAnalyzerService = Assert.IsType<DiagnosticAnalyzerService>(mefServices.GetExportedValue<IDiagnosticAnalyzerService>());
-
-            GlobalOptions = mefServices.GetExportedValue<IGlobalOptionService>();
-            FallbackOptions = GlobalOptions.CreateProvider();
-
             _diagnosticAnalyzerService.CreateIncrementalAnalyzer(workspace);
             _includeSuppressedDiagnostics = includeSuppressedDiagnostics;
             _includeNonLocalDocumentDiagnostics = includeNonLocalDocumentDiagnostics;

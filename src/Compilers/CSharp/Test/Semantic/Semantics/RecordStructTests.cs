@@ -3997,14 +3997,14 @@ record struct Pos2(int X)
                 // (2,15): error CS0171: Field 'Pos.x' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 // record struct Pos(int X)
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Pos").WithArguments("Pos.x", "11.0").WithLocation(2, 15),
-                // (5,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithLocation(5, 16)
                 );
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
-                // (5,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithLocation(5, 16)
                 );
@@ -7929,12 +7929,12 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (12,48): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (12,30): error CS8352: Cannot use variable 'Field2 = inner' in this context because it may expose referenced variables outside of their declaration scope
                 //         return new S2() with { Field1 = outer, Field2 = inner };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "Field2 = inner").WithArguments("inner").WithLocation(12, 48),
-                // (23,34): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Field1 = outer, Field2 = inner }").WithArguments("Field2 = inner").WithLocation(12, 30),
+                // (23,32): error CS8352: Cannot use variable 'Field1 = inner' in this context because it may expose referenced variables outside of their declaration scope
                 //         result = new S2() with { Field1 = inner, Field2 = outer };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "Field1 = inner").WithArguments("inner").WithLocation(23, 34)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Field1 = inner, Field2 = outer }").WithArguments("Field1 = inner").WithLocation(23, 32)
                 );
         }
 

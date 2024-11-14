@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 If member.MatchesKind(SymbolKind.Field, SymbolKind.Property) AndAlso
                     member.IsStatic AndAlso
                     member.IsAccessibleWithin(within) AndAlso
-                    member.IsEditorBrowsable(options.HideAdvancedMembers, syntaxContext.SemanticModel.Compilation) Then
+                    member.IsEditorBrowsable(options.MemberDisplayOptions.HideAdvancedMembers, syntaxContext.SemanticModel.Compilation) Then
                     builder.Add(New SymbolAndSelectionInfo(member, Preselect:=True))
                 End If
             Next

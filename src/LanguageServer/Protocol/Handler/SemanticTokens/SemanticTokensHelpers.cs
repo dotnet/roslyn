@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 {
     internal static class SemanticTokensHelpers
     {
+        private static readonly ObjectPool<List<int>> s_tokenListPool = new ObjectPool<List<int>>(() => new List<int>(capacity: 1000));
+
         internal static async Task<int[]> HandleRequestHelperAsync(
             IGlobalOptionService globalOptions,
             SemanticTokensRefreshQueue semanticTokensRefreshQueue,
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             using var _1 = Classifier.GetPooledList(out var classifiedSpans);
             using var _2 = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
-            // We either calculate the tokens for the full document span, or the user 
+            // We either calculate the tokens for the full document span, or the user
             // can pass in a range from the full document if they wish.
             ImmutableArray<TextSpan> textSpans;
             if (spans.Length == 0)
@@ -243,7 +245,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
             var tokenTypeMap = SemanticTokensSchema.GetSchema(supportsVisualStudioExtensions).TokenTypeMap;
 
-            using var _ = ArrayBuilder<int>.GetInstance(5 * classifiedSpans.Count, out var data);
+            using var pooledData = s_tokenListPool.GetPooledObject();
+            var data = pooledData.Object;
+
+            // Items in the pool may not have been cleared
+            data.Clear();
+
             for (var currentClassifiedSpanIndex = 0; currentClassifiedSpanIndex < classifiedSpans.Count; currentClassifiedSpanIndex++)
             {
                 currentClassifiedSpanIndex = ComputeNextToken(
@@ -330,6 +337,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 {
                     // 6. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
                     modifierBits |= TokenModifiers.Deprecated;
+                }
+                else if (classificationType == ClassificationTypeNames.TestCode)
+                {
+                    // Skip additive types that are not being converted to token modifiers.
                 }
                 else
                 {

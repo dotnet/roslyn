@@ -159,27 +159,9 @@ internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudio
         isNoLocationDiagnosticEntry = !entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out string filePath) ||
             string.IsNullOrEmpty(filePath);
 
-        var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
-        if (roslynSnapshot == null)
-        {
-            isRoslynEntry = false;
-            isCompilerDiagnosticEntry = false;
-            return IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry);
-        }
-
-        var diagnosticData = roslynSnapshot?.GetItem(index)?.Data;
-        if (!IsEntryWithConfigurableSuppressionState(diagnosticData))
-        {
-            isRoslynEntry = false;
-            isSuppressedEntry = false;
-            isCompilerDiagnosticEntry = false;
-            return false;
-        }
-
-        isRoslynEntry = true;
-        isSuppressedEntry = diagnosticData.IsSuppressed;
-        isCompilerDiagnosticEntry = SuppressionHelpers.IsCompilerDiagnostic(diagnosticData);
-        return true;
+        isRoslynEntry = false;
+        isCompilerDiagnosticEntry = false;
+        return IsNonRoslynEntrySupportingSuppressionState(entryHandle, out isSuppressedEntry);
     }
 
     private static bool IsNonRoslynEntrySupportingSuppressionState(ITableEntryHandle entryHandle, out bool isSuppressedEntry)
@@ -200,16 +182,6 @@ internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudio
     private static bool IsEntryWithConfigurableSuppressionState([NotNullWhen(true)] DiagnosticData? entry)
         => entry != null && !SuppressionHelpers.IsNotConfigurableDiagnostic(entry);
 
-    private static AbstractTableEntriesSnapshot<DiagnosticTableItem>? GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
-    {
-        if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
-        {
-            return null;
-        }
-
-        return snapshot as AbstractTableEntriesSnapshot<DiagnosticTableItem>;
-    }
-
     /// <summary>
     /// Gets <see cref="DiagnosticData"/> objects for selected error list entries.
     /// For remove suppression, the method also returns selected external source diagnostics.
@@ -228,12 +200,8 @@ internal class VisualStudioDiagnosticListSuppressionStateService : IVisualStudio
             cancellationToken.ThrowIfCancellationRequested();
 
             DiagnosticData? diagnosticData = null;
-            var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
-            if (roslynSnapshot != null)
-            {
-                diagnosticData = roslynSnapshot.GetItem(index)?.Data;
-            }
-            else if (!isAddSuppression)
+
+            if (!isAddSuppression)
             {
                 // For suppression removal, we also need to handle FxCop entries.
                 if (!IsNonRoslynEntrySupportingSuppressionState(entryHandle, out var isSuppressedEntry) ||

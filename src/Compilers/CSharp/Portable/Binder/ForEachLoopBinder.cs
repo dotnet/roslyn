@@ -220,11 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckFeatureAvailability(_syntax.AwaitKeyword, MessageID.IDS_FeatureAsyncStreams, diagnostics);
             }
 
-            if (_syntax is ForEachStatementSyntax forEachStatement)
-            {
-                ReportFieldOrValueContextualKeywordConflictIfAny(forEachStatement, forEachStatement.Identifier, diagnostics);
-            }
-
             // Use the right binder to avoid seeing iteration variable
             BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindRValueWithoutTargetType(_syntax.Expression, diagnostics);
 
@@ -532,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (builder.InlineArraySpanType == WellKnownType.Unknown && getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))
             {
-                diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), getEnumeratorType);
+                CheckFeatureAvailability(foreachKeyword, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
 
             diagnostics.Add(_syntax.ForEachKeyword, useSiteInfo);

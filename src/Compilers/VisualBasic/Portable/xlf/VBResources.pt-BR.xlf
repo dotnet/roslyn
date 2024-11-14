@@ -47,6 +47,11 @@
         <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="translated">A cadeia de caracteres da versão especificada contém curingas, que não são compatíveis com o determinismo. Remova os curingas da cadeia de caracteres da versão ou desabilite o determinismo da compilação</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">Um valor do tipo "System.Threading.Lock" não tem suporte no SyncLock. Em vez disso, pense em chamar manualmente os métodos "Enter" e "Exit" em um bloco Try/Finally.</target>
@@ -7692,8 +7697,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">A cadeia de caracteres de versão especificada não está de acordo com o formato recomendado - major.minor.build.revision</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="translated">A cadeia de versão especificada não está em conformidade com o formato recomendado - major.minor.build.revision (sem caracteres curinga)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

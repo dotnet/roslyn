@@ -48,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                 var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                     testState.InvocationDocument,
                     testState.TestInvocationDocument.SelectedSpans.Single(),
-                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None);
 
                 var operationTasks = actions

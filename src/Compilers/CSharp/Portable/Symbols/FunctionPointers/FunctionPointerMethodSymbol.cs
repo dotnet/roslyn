@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableHashSet<string> ReturnNotNullIfParameterNotNull => ImmutableHashSet<string>.Empty;
         public override FlowAnalysisAnnotations FlowAnalysisAnnotations => FlowAnalysisAnnotations.None;
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
         internal sealed override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
         internal override bool GenerateDebugInfo => throw ExceptionUtilities.Unreachable();
@@ -864,6 +864,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             builderArgument = null;
             return false;
+        }
+
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
         }
     }
 }

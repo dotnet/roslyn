@@ -3556,21 +3556,19 @@ System.Console.WriteLine(true)";
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, statement.Errors()[0].Code);
         }
 
-        [WorkItem(266237, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=266237")]
-        [Fact]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=266237")]
         public void NullExceptionInLabeledStatement()
         {
             UsingStatement(@"{ label: public",
-                // (1,1): error CS1073: Unexpected token 'public'
-                // { label: public
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "{ label: ").WithArguments("public").WithLocation(1, 1),
                 // (1,10): error CS1002: ; expected
                 // { label: public
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(1, 10),
                 // (1,10): error CS1513: } expected
                 // { label: public
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
-                );
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10),
+                // (1,16): error CS1513: } expected
+                // { label: public
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 16));
 
             N(SyntaxKind.Block);
             {
@@ -5484,6 +5482,513 @@ System.Console.WriteLine(true)";
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void TestSwitchStatementWithNullableTypeInPattern1()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case Type?:
+                        break;
+                }
+                """);
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void TestSwitchStatementWithNullableTypeInPattern2()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case Type? varName:
+                        break;
+                }
+                """,
+                // (3,24): error CS1525: Invalid expression term 'break'
+                //     case Type? varName:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(3, 24),
+                // (3,24): error CS1003: Syntax error, ':' expected
+                //     case Type? varName:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 24));
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CaseSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ConditionalExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "varName");
+                            }
+                            N(SyntaxKind.ColonToken);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void TestSwitchStatementWithNullableTypeInPattern3()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case Type? when x > 0:
+                        break;
+                }
+                """);
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.TypePattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                        }
+                        N(SyntaxKind.WhenClause);
+                        {
+                            N(SyntaxKind.WhenKeyword);
+                            N(SyntaxKind.GreaterThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void TestSwitchStatementWithNullableTypeInPattern4()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case Type? varName when x > 0:
+                        break;
+                }
+                """);
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.DeclarationPattern);
+                        {
+                            N(SyntaxKind.NullableType);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Type");
+                                }
+                                N(SyntaxKind.QuestionToken);
+                            }
+                            N(SyntaxKind.SingleVariableDesignation);
+                            {
+                                N(SyntaxKind.IdentifierToken, "varName");
+                            }
+                        }
+                        N(SyntaxKind.WhenClause);
+                        {
+                            N(SyntaxKind.WhenKeyword);
+                            N(SyntaxKind.GreaterThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72720")]
+        public void TestSwitchStatementWithNullableTypeInPattern5()
+        {
+            UsingStatement("""
+                switch (obj)
+                {
+                    case (Type? when) when x > 0:
+                        break;
+                }
+                """);
+
+            N(SyntaxKind.SwitchStatement);
+            {
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "obj");
+                }
+                N(SyntaxKind.CloseParenToken);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchSection);
+                {
+                    N(SyntaxKind.CasePatternSwitchLabel);
+                    {
+                        N(SyntaxKind.CaseKeyword);
+                        N(SyntaxKind.ParenthesizedPattern);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.DeclarationPattern);
+                            {
+                                N(SyntaxKind.NullableType);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                }
+                                N(SyntaxKind.SingleVariableDesignation);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "when");
+                                }
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.WhenClause);
+                        {
+                            N(SyntaxKind.WhenKeyword);
+                            N(SyntaxKind.GreaterThanExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.ColonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestYieldReturnTokensAfterPattern()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    var res = x is X? yield
+                    return res;
+                }
+                """, options: null,
+                // (3,28): error CS1003: Syntax error, ':' expected
+                //     var res = x is X? yield
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 28),
+                // (3,28): error CS1525: Invalid expression term 'return'
+                //     var res = x is X? yield
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("return").WithLocation(3, 28),
+                // (3,28): error CS1002: ; expected
+                //     var res = x is X? yield
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 28));
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "res");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ConditionalExpression);
+                                    {
+                                        N(SyntaxKind.IsExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                            N(SyntaxKind.IsKeyword);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "X");
+                                            }
+                                        }
+                                        N(SyntaxKind.QuestionToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "yield");
+                                        }
+                                        M(SyntaxKind.ColonToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ReturnStatement);
+                    {
+                        N(SyntaxKind.ReturnKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "res");
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void TestYieldBreakTokensAfterPattern()
+        {
+            UsingDeclaration("""
+                void M()
+                {
+                    var res = x is X? yield
+                    break;
+                }
+                """, options: null,
+                // (3,28): error CS1003: Syntax error, ':' expected
+                //     var res = x is X? yield
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(3, 28),
+                // (3,28): error CS1525: Invalid expression term 'break'
+                //     var res = x is X? yield
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(3, 28),
+                // (3,28): error CS1002: ; expected
+                //     var res = x is X? yield
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 28));
+
+            N(SyntaxKind.MethodDeclaration);
+            {
+                N(SyntaxKind.PredefinedType);
+                {
+                    N(SyntaxKind.VoidKeyword);
+                }
+                N(SyntaxKind.IdentifierToken, "M");
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "var");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "res");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.ConditionalExpression);
+                                    {
+                                        N(SyntaxKind.IsExpression);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "x");
+                                            }
+                                            N(SyntaxKind.IsKeyword);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "X");
+                                            }
+                                        }
+                                        N(SyntaxKind.QuestionToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "yield");
+                                        }
+                                        M(SyntaxKind.ColonToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.BreakStatement);
+                    {
+                        N(SyntaxKind.BreakKeyword);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
             }
             EOF();
         }

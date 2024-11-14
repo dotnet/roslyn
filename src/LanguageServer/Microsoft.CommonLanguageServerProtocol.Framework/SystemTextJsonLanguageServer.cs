@@ -25,21 +25,40 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
     /// </summary>
     private readonly JsonSerializerOptions _jsonSerializerOptions = options;
 
-    protected override DelegatingEntryPoint CreateDelegatingEntryPoint(string method, IGrouping<string, RequestHandlerMetadata> handlersForMethod)
+    public override TRequest DeserializeRequest<TRequest>(object? serializedRequest, RequestHandlerMetadata metadata)
     {
-        return new SystemTextJsonDelegatingEntryPoint(method, handlersForMethod, this);
+        if (serializedRequest is null)
+        {
+            if (metadata.RequestTypeRef is not null)
+            {
+                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
+            }
+            else
+            {
+                // We checked that TRequest is typeof(NoValue).
+                return (TRequest)(object)NoValue.Instance;
+            }
+        }
+
+        if (metadata.RequestTypeRef is null)
+        {
+            throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
+        }
+
+        var request = (JsonElement)serializedRequest;
+
+        return JsonSerializer.Deserialize<TRequest>(request, _jsonSerializerOptions)
+            ?? throw new InvalidOperationException($"Unable to deserialize {request} into {typeof(TRequest)} for {metadata.HandlerDescription}");
     }
 
-    protected virtual string GetLanguageForRequest(string methodName, JsonElement? parameters)
+    protected override DelegatingEntryPoint CreateDelegatingEntryPoint(string method)
     {
-        Logger.LogInformation($"Using default language handler for {methodName}");
-        return LanguageServerConstants.DefaultLanguageName;
+        return new SystemTextJsonDelegatingEntryPoint(method, this);
     }
 
     private sealed class SystemTextJsonDelegatingEntryPoint(
         string method,
-        IGrouping<string, RequestHandlerMetadata> handlersForMethod,
-        SystemTextJsonLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method, target.TypeRefResolver, handlersForMethod)
+        SystemTextJsonLanguageServer<TRequestContext> target) : DelegatingEntryPoint(method)
     {
         private static readonly MethodInfo s_parameterlessEntryPoint = typeof(SystemTextJsonDelegatingEntryPoint).GetMethod(nameof(SystemTextJsonDelegatingEntryPoint.ExecuteRequest0Async), BindingFlags.NonPublic | BindingFlags.Instance)!;
         private static readonly MethodInfo s_entryPoint = typeof(SystemTextJsonDelegatingEntryPoint).GetMethod(nameof(SystemTextJsonDelegatingEntryPoint.ExecuteRequestAsync), BindingFlags.NonPublic | BindingFlags.Instance)!;
@@ -66,16 +85,7 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
             var queue = target.GetRequestExecutionQueue();
             var lspServices = target.GetLspServices();
 
-            // Retrieve the language of the request so we know how to deserialize it.
-            var language = target.GetLanguageForRequest(_method, request);
-
-            // Find the correct request and response types for the given request and language.
-            var requestInfo = GetMethodInfo(language);
-
-            // Deserialize the request parameters (if any).
-            var requestObject = DeserializeRequest(request, requestInfo.Metadata, target._jsonSerializerOptions);
-
-            var result = await InvokeAsync(requestInfo.MethodInfo, queue, requestObject, language, lspServices, cancellationToken).ConfigureAwait(false);
+            var result = await InvokeAsync(queue, request, lspServices, cancellationToken).ConfigureAwait(false);
             if (result is null)
             {
                 return null;
@@ -83,33 +93,6 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
 
             var serializedResult = JsonSerializer.SerializeToElement(result, target._jsonSerializerOptions);
             return serializedResult;
-        }
-
-        private object DeserializeRequest(JsonElement? request, RequestHandlerMetadata metadata, JsonSerializerOptions options)
-        {
-            var requestTypeRef = metadata.RequestTypeRef;
-
-            if (request is null)
-            {
-                if (requestTypeRef is not null)
-                {
-                    throw new InvalidOperationException($"Handler {metadata.HandlerDescription} requires request parameters but received none");
-                }
-
-                return NoValue.Instance;
-            }
-
-            // request is not null
-            if (requestTypeRef is null)
-            {
-                throw new InvalidOperationException($"Handler {metadata.HandlerDescription} does not accept parameters, but received some.");
-            }
-
-            var requestType = _typeRefResolver.Resolve(requestTypeRef)
-                ?? throw new InvalidOperationException($"Could not resolve type: '{requestTypeRef}'");
-
-            return JsonSerializer.Deserialize(request.Value, requestType, options)
-                ?? throw new InvalidOperationException($"Unable to deserialize {request} into {requestTypeRef} for {metadata.HandlerDescription}");
         }
     }
 }

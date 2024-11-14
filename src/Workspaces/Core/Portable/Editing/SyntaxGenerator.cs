@@ -34,16 +34,22 @@ public abstract class SyntaxGenerator : ILanguageService
 {
     public static readonly SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
-    internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
-    internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
-    internal abstract SyntaxTrivia ElasticMarker { get; }
-
-    internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
-    internal ISyntaxFacts SyntaxFacts => SyntaxGeneratorInternal.SyntaxFacts;
     internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
+    internal SyntaxTrivia CarriageReturnLineFeed => this.SyntaxGeneratorInternal.CarriageReturnLineFeed;
+    internal SyntaxTrivia ElasticCarriageReturnLineFeed => this.SyntaxGeneratorInternal.ElasticCarriageReturnLineFeed;
+    internal abstract SyntaxTrivia ElasticMarker { get; }
+
+    internal bool RequiresExplicitImplementationForInterfaceMembers
+        => this.SyntaxGeneratorInternal.RequiresExplicitImplementationForInterfaceMembers;
+
+    internal ISyntaxFacts SyntaxFacts
+        => SyntaxGeneratorInternal.SyntaxFacts;
+
     internal abstract SyntaxTrivia Whitespace(string text);
-    internal abstract SyntaxTrivia SingleLineComment(string text);
+
+    internal SyntaxTrivia SingleLineComment(string text)
+        => this.SyntaxGeneratorInternal.SingleLineComment(text);
 
     internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
     internal abstract SyntaxToken CreateInterpolatedStringEndToken();
@@ -1591,7 +1597,8 @@ public abstract class SyntaxGenerator : ILanguageService
     /// <summary>
     /// True if <see cref="ThrowExpression"/> can be used
     /// </summary>
-    internal abstract bool SupportsThrowExpression();
+    internal bool SupportsThrowExpression()
+        => this.SyntaxGeneratorInternal.SupportsThrowExpression();
 
     /// <summary>
     /// <see langword="true"/> if the language requires a <see cref="TypeExpression(ITypeSymbol)"/>

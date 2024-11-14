@@ -7,14 +7,16 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing settings for inlayHint/resolve support.
-    ///
+    /// Client capabilities specific to the `inlayHint/resolve` request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
     internal class InlayHintResolveSupportSetting
     {
         /// <summary>
-        /// Gets or sets a value indicating the properties that a client can resolve lazily.
+        /// The names of the <see cref="InlayHint"/> properties that the client can resolve lazily.
         /// </summary>
         [JsonPropertyName("properties")]
         public string[] Properties

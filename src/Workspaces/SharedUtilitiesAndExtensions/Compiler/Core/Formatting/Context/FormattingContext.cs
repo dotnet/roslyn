@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Formatting;
 internal partial class FormattingContext
 {
     private readonly AbstractFormatEngine _engine;
-    private readonly TokenStream _tokenStream;
 
     // interval tree for inseparable regions (Span to indentation data)
     // due to dependencies, each region defined in the data can't be formatted independently.
@@ -60,7 +59,7 @@ internal partial class FormattingContext
         Contract.ThrowIfNull(tokenStream);
 
         _engine = engine;
-        _tokenStream = tokenStream;
+        TokenStream = tokenStream;
 
         _relativeIndentationTree = new ContextMutableIntervalTree<RelativeIndentationData, FormattingContextIntervalIntrospector>(new FormattingContextIntervalIntrospector());
 
@@ -78,7 +77,7 @@ internal partial class FormattingContext
         CancellationToken cancellationToken)
     {
         var rootNode = this.TreeData.Root;
-        if (_tokenStream.IsFormattingWholeDocument)
+        if (TokenStream.IsFormattingWholeDocument)
         {
             // if we are trying to format whole document, there is no reason to get initial context. just set
             // initial indentation.
@@ -88,7 +87,7 @@ internal partial class FormattingContext
             return;
         }
 
-        var initialContextFinder = new InitialContextFinder(_tokenStream, formattingRules, rootNode);
+        var initialContextFinder = new InitialContextFinder(TokenStream, formattingRules, rootNode);
         var (indentOperations, suppressOperations) = initialContextFinder.Do(startToken, endToken);
 
         if (indentOperations != null)
@@ -100,12 +99,12 @@ internal partial class FormattingContext
                                             formattingRules,
                                             Options.TabSize,
                                             Options.IndentationSize,
-                                            _tokenStream,
+                                            TokenStream,
                                             _engine.HeaderFacts);
             var initialIndentation = baseIndentationFinder.GetIndentationOfCurrentPosition(
                 rootNode,
                 initialOperation,
-                _tokenStream.GetCurrentColumn, cancellationToken);
+                TokenStream.GetCurrentColumn, cancellationToken);
 
             var data = new SimpleIndentationData(initialOperation.TextSpan, initialIndentation);
             _indentationTree.AddIntervalInPlace(data);
@@ -192,7 +191,7 @@ internal partial class FormattingContext
         if (operation.IsRelativeIndentation)
         {
             Func<FormattingContext, IndentBlockOperation, SyntaxToken> effectiveBaseTokenGetter = operation.Option.IsOn(IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine)
-                ? static (self, operation) => self._tokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken)
+                ? static (self, operation) => self.TokenStream.FirstTokenOfBaseTokenLine(operation.BaseToken)
                 : static (self, operation) => operation.BaseToken;
 
             Func<FormattingContext, IndentBlockOperation, SyntaxToken, int> relativeIndentationDeltaGetter = static (self, operation, effectiveBaseToken) =>
@@ -203,7 +202,7 @@ internal partial class FormattingContext
 
             // baseIndentation is calculated for the adjusted token if option is RelativeToFirstTokenOnBaseTokenLine
             Func<FormattingContext, SyntaxToken, int> relativeIndentationBaseIndentationGetter =
-                static (self, effectiveBaseToken) => self._tokenStream.GetCurrentColumn(effectiveBaseToken);
+                static (self, effectiveBaseToken) => self.TokenStream.GetCurrentColumn(effectiveBaseToken);
 
             // set new indentation
             var inseparableRegionStartingPosition = effectiveBaseTokenGetter(this, operation).FullSpan.Start;
@@ -268,7 +267,7 @@ internal partial class FormattingContext
         if (operation.TextSpan.IsEmpty)
             return;
 
-        var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
+        var onSameLine = TokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
         AddSuppressOperation(operation, onSameLine);
     }
 
@@ -283,10 +282,10 @@ internal partial class FormattingContext
 
             // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia 
             // ignore the operation 
-            if (operation.ContainsElasticTrivia(_tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
+            if (operation.ContainsElasticTrivia(TokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElasticWrapping))
                 continue;
 
-            var onSameLine = _tokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
+            var onSameLine = TokenStream.TwoTokensOriginallyOnSameLine(operation.StartToken, operation.EndToken);
             AddSuppressOperation(operation, onSameLine);
         }
     }
@@ -367,7 +366,7 @@ internal partial class FormattingContext
         }
 
         var ignoreElastic = option.IsMaskOn(SuppressOption.IgnoreElasticWrapping) ||
-                            !operation.ContainsElasticTrivia(_tokenStream);
+                            !operation.ContainsElasticTrivia(TokenStream);
 
         var data = new SuppressWrappingData(operation.TextSpan, ignoreElastic: ignoreElastic);
 
@@ -397,8 +396,8 @@ internal partial class FormattingContext
         //
         // The calculation of true anchor token (which is always the first token on a line) is delayed to account
         // for cases where the original anchor token is moved to a new line during a formatting operation.
-        var anchorToken = _tokenStream.FirstTokenOfBaseTokenLine(operation.AnchorToken);
-        var originalSpace = _tokenStream.GetOriginalColumn(anchorToken);
+        var anchorToken = TokenStream.FirstTokenOfBaseTokenLine(operation.AnchorToken);
+        var originalSpace = TokenStream.GetOriginalColumn(anchorToken);
         var data = new AnchorData(operation, anchorToken, originalSpace);
 
         _anchorTree.AddIntervalInPlace(data);
@@ -489,7 +488,7 @@ internal partial class FormattingContext
             return 0;
         }
 
-        var currentColumn = _tokenStream.GetCurrentColumn(anchorData.AnchorToken);
+        var currentColumn = TokenStream.GetCurrentColumn(anchorData.AnchorToken);
         return currentColumn - anchorData.OriginalColumn;
     }
 
@@ -512,7 +511,7 @@ internal partial class FormattingContext
             return 0;
         }
 
-        var currentColumn = _tokenStream.GetCurrentColumn(token);
+        var currentColumn = TokenStream.GetCurrentColumn(token);
         return currentColumn - value;
     }
 
@@ -579,8 +578,8 @@ internal partial class FormattingContext
 
             // tokenPairIndex is always 0 <= ... < TokenCount - 1
             var tokenPairIndex = tokenData.IndexInStream;
-            if (_tokenStream.TokenCount - 1 <= tokenPairIndex ||
-                _tokenStream.GetTriviaData(tokenPairIndex).SecondTokenIsFirstTokenOnLine)
+            if (TokenStream.TokenCount - 1 <= tokenPairIndex ||
+                TokenStream.GetTriviaData(tokenPairIndex).SecondTokenIsFirstTokenOnLine)
             {
                 return lastBaseAnchorData;
             }
@@ -639,8 +638,8 @@ internal partial class FormattingContext
 
     public bool IsSpacingSuppressed(int pairIndex)
     {
-        var token1 = _tokenStream.GetToken(pairIndex);
-        var token2 = _tokenStream.GetToken(pairIndex + 1);
+        var token1 = TokenStream.GetToken(pairIndex);
+        var token2 = TokenStream.GetToken(pairIndex + 1);
 
         var spanBetweenTwoTokens = TextSpan.FromBounds(token1.SpanStart, token2.Span.End);
 
@@ -654,8 +653,8 @@ internal partial class FormattingContext
 
     public bool IsFormattingDisabled(int pairIndex)
     {
-        var token1 = _tokenStream.GetToken(pairIndex);
-        var token2 = _tokenStream.GetToken(pairIndex + 1);
+        var token1 = TokenStream.GetToken(pairIndex);
+        var token2 = TokenStream.GetToken(pairIndex + 1);
 
         var spanBetweenTwoTokens = TextSpan.FromBounds(token1.SpanStart, token2.Span.End);
         return IsFormattingDisabled(spanBetweenTwoTokens);
@@ -665,5 +664,5 @@ internal partial class FormattingContext
 
     public TreeData TreeData => _engine.TreeData;
 
-    public TokenStream TokenStream => _tokenStream;
+    public TokenStream TokenStream { get; }
 }

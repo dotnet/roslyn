@@ -24,9 +24,22 @@ internal sealed class VSTypeScriptEditorInlineRenameService(
 {
     private readonly Lazy<VSTypeScriptEditorInlineRenameServiceImplementation>? _service = service;
 
-    public Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+    public bool IsEnabled
     {
-        return Task.FromResult(ImmutableDictionary<string, ImmutableArray<string>>.Empty);
+        get
+        {
+            if (_service != null)
+            {
+                return _service.Value.IsEnabled();
+            }
+
+            return false;
+        }
+    }
+
+    public Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty);
     }
 
     public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)

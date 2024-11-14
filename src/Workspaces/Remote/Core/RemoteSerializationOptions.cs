@@ -37,11 +37,21 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteSerializationOptions(ImmutableArray<JsonConverter> jsonConverters)
             => _options = jsonConverters;
 
+        public RemoteSerializationOptions(ImmutableArray<System.Text.Json.Serialization.JsonConverter> jsonConverters)
+            => _options = jsonConverters;
+
         public MessagePackSerializerOptions MessagePackOptions => (MessagePackSerializerOptions)_options;
         public ImmutableArray<JsonConverter> JsonConverters => (ImmutableArray<JsonConverter>)_options;
+        public ImmutableArray<System.Text.Json.Serialization.JsonConverter> SystemTextJsonConverters => (ImmutableArray<System.Text.Json.Serialization.JsonConverter>)_options;
 
         public ServiceJsonRpcDescriptor.Formatters Formatter
-            => _options is MessagePackSerializerOptions ? ServiceJsonRpcDescriptor.Formatters.MessagePack : ServiceJsonRpcDescriptor.Formatters.UTF8;
+            => _options switch
+            {
+                MessagePackSerializerOptions => ServiceJsonRpcDescriptor.Formatters.MessagePack,
+                ImmutableArray<JsonConverter> => ServiceJsonRpcDescriptor.Formatters.UTF8,
+                ImmutableArray<System.Text.Json.Serialization.JsonConverter> => ServiceJsonRpcDescriptor.Formatters.UTF8SystemTextJson,
+                _ => throw new InvalidOperationException()
+            };
 
         public ServiceJsonRpcDescriptor.MessageDelimiters MessageDelimiters
            => _options is MessagePackSerializerOptions
@@ -57,6 +67,15 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 // See https://github.com/neuecc/messagepack-csharp.
                 messagePackFormatter.SetMessagePackSerializerOptions(MessagePackOptions);
+            }
+            else if (formatter is SystemTextJsonFormatter stjFormatter)
+            {
+                var converters = stjFormatter.JsonSerializerOptions.Converters;
+
+                foreach (var converter in SystemTextJsonConverters)
+                {
+                    converters.Add(converter);
+                }
             }
             else
             {

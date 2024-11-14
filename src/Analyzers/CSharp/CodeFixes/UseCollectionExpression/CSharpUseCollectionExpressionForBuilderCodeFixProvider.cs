@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -38,7 +39,6 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         InvocationExpressionSyntax invocationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -66,7 +66,6 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         // Get the new collection expression.
         var collectionExpression = await CreateCollectionExpressionAsync(
             newDocument,
-            fallbackOptions,
             dummyObjectCreation,
             analysisResult.Matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
             static o => o.Initializer,
@@ -75,12 +74,17 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
 
         var subEditor = new SyntaxEditor(root, document.Project.Solution.Services);
 
-        // Remove the actual declaration of the builder.
-        subEditor.RemoveNode(analysisResult.LocalDeclarationStatement);
-
         // Remove all the nodes mutating the builder.
         foreach (var (statement, _) in analysisResult.Matches)
             subEditor.RemoveNode(statement);
+
+        // Remove the actual declaration of the builder.  Keep any comments on the builder declaration in case they're
+        // still valid for the final statement.
+        var removalOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
+        if (analysisResult.LocalDeclarationStatement.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment()))
+            removalOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
+
+        subEditor.RemoveNode(analysisResult.LocalDeclarationStatement, removalOptions);
 
         // Finally, replace the invocation where we convert the builder to a collection with the new collection expression.
         subEditor.ReplaceNode(dummyObjectCreation, collectionExpression);

@@ -37,10 +37,10 @@ internal static class RoslynLSPSnippetConverter
         Contract.ThrowIfNull(textChangeText);
 
         using var _1 = PooledStringBuilder.GetInstance(out var lspSnippetString);
-        using var _2 = PooledDictionary<int, (string identifier, int priority)>.GetInstance(out var dictionary);
+        using var _2 = PooledDictionary<int, (string text, int priority)>.GetInstance(out var dictionary);
         PopulateMapOfSpanStartsToLSPStringItem(dictionary, placeholders, textChangeStart);
 
-        // Need to go through the length + 1 since caret postions occur before and after the
+        // Need to go through the length + 1 since caret positions occur before and after the
         // character position.
         // If there is a caret at the end of the line, then it's position
         // will be equivalent to the length of the TextChange.
@@ -55,11 +55,11 @@ internal static class RoslynLSPSnippetConverter
             // generates a string that is LSP formatted.
             if (dictionary.TryGetValue(i, out var placeholderInfo))
             {
-                var str = $"${{{placeholderInfo.priority}:{placeholderInfo.identifier}}}";
+                var str = $"${{{placeholderInfo.priority}:{placeholderInfo.text}}}";
                 lspSnippetString.Append(str);
 
                 // Skip past the entire identifier in the TextChange text
-                i += placeholderInfo.identifier.Length;
+                i += placeholderInfo.text.Length;
             }
             else
             {
@@ -87,13 +87,13 @@ internal static class RoslynLSPSnippetConverter
         for (var i = 0; i < placeholders.Length; i++)
         {
             var placeholder = placeholders[i];
-            foreach (var position in placeholder.PlaceHolderPositions)
+            foreach (var position in placeholder.StartingPositions)
             {
                 // i + 1 since the placeholder priority is set according to the index in the
                 // placeholders array, starting at 1.
                 // We should never be adding two placeholders in the same position since identifiers
                 // must have a length greater than 0.
-                dictionary.Add(position - textChangeStart, (placeholder.Identifier, i + 1));
+                dictionary.Add(position - textChangeStart, (placeholder.Text, i + 1));
             }
         }
     }
@@ -131,8 +131,8 @@ internal static class RoslynLSPSnippetConverter
 
         if (placeholders.Length > 0)
         {
-            startPosition = Math.Min(startPosition, placeholders.Min(placeholder => placeholder.PlaceHolderPositions.Min()));
-            endPosition = Math.Max(endPosition, placeholders.Max(placeholder => placeholder.PlaceHolderPositions.Max()));
+            startPosition = Math.Min(startPosition, placeholders.Min(placeholder => placeholder.StartingPositions.Min()));
+            endPosition = Math.Max(endPosition, placeholders.Max(placeholder => placeholder.StartingPositions.Max()));
         }
 
         startPosition = Math.Min(startPosition, caretPosition);

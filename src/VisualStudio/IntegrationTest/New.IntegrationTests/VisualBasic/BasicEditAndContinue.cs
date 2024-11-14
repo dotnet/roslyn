@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
@@ -45,7 +46,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
         await TestServices.SolutionExplorer.AddProjectAsync(ProjectName, _projectTemplate, LanguageNames.VisualBasic, HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task UpdateActiveStatementLeafNode()
     {
         await TestServices.Editor.SetTextAsync(@"
@@ -77,7 +78,7 @@ End Module
         await TestServices.Debugger.CheckExpressionAsync("names(1)", "String", "\"bar\"", HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task AddTryCatchAroundActiveStatement()
     {
         await TestServices.Editor.SetTextAsync(@"
@@ -106,7 +107,7 @@ End Try", HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        End Try", cancellationToken: HangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task EditLambdaExpression()
     {
         await TestServices.Editor.SetTextAsync(@"
@@ -163,7 +164,7 @@ End Module", HangMitigatingCancellationToken);
         Assert.Empty(await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task EnCWhileDebuggingFromImmediateWindow()
     {
         await TestServices.Editor.SetTextAsync(@"
@@ -247,10 +248,10 @@ End Module
             ],
             HangMitigatingCancellationToken);
 
-        Assert.Empty(await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken));
+        AssertEx.Empty(await TestServices.ErrorList.GetErrorsAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
     {
         await TestServices.Editor.SetTextAsync(@"
@@ -274,7 +275,7 @@ End Module
         Assert.Equal(("Single", "10"), await TestServices.LocalsWindow.GetEntryAsync(["goo"], HangMitigatingCancellationToken));
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task LocalsWindowUpdatesCorrectlyDuringEnC()
     {
         await TestServices.Editor.SetTextAsync(@"
@@ -308,7 +309,7 @@ End Module
         Assert.Equal(("Long", "444"), await TestServices.LocalsWindow.GetEntryAsync(["lLng"], HangMitigatingCancellationToken));
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/75456")]
     public async Task WatchWindowUpdatesCorrectlyDuringEnC()
     {
         await TestServices.Editor.SetTextAsync(@"

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -37,14 +38,14 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
     protected abstract Task<SyntaxNode> ReplaceNodeAsync(TSimpleNameSyntax simpleName, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken);
 
     public async Task<FullyQualifyFixData?> GetFixDataAsync(
-        Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
+        Document document, TextSpan span, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
             var result = await client.TryInvokeAsync<IRemoteFullyQualifyService, FullyQualifyFixData?>(
                 document.Project,
-                (service, solutionChecksum, cancellationToken) => service.GetFixDataAsync(solutionChecksum, document.Id, span, hideAdvancedMembers, cancellationToken),
+                (service, solutionChecksum, cancellationToken) => service.GetFixDataAsync(solutionChecksum, document.Id, span, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.HasValue)
@@ -53,11 +54,11 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
             return result.Value;
         }
 
-        return await GetFixDataInCurrentProcessAsync(document, span, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+        return await GetFixDataInCurrentProcessAsync(document, span, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<FullyQualifyFixData?> GetFixDataInCurrentProcessAsync(
-        Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
+        Document document, TextSpan span, CancellationToken cancellationToken)
     {
         var project = document.Project;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -73,7 +74,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
             syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out var name, out _);
-            var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
+            var inAttributeContext = syntaxFacts.IsNameOfAttribute(simpleName);
 
             var matchingTypes = await FindAsync(name, ignoreCase, SymbolFilter.Type).ConfigureAwait(false);
             var matchingAttributeTypes = inAttributeContext ? await FindAsync(name + nameof(Attribute), ignoreCase, SymbolFilter.Type).ConfigureAwait(false) : [];
@@ -84,8 +85,9 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
             // We found some matches for the name alone.  Do some more checks to see if those matches are applicable in this location.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetMemberDisplayOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, hideAdvancedMembers, matchingTypes.Concat(matchingAttributeTypes));
+            var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, options.HideAdvancedMembers, matchingTypes.Concat(matchingAttributeTypes));
             var matchingNamespaceSearchResults = GetNamespaceSearchResults(semanticModel, simpleName, matchingNamespaces);
             if (matchingTypeSearchResults.IsEmpty && matchingNamespaceSearchResults.IsEmpty)
                 return null;
@@ -125,7 +127,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
             var looksGeneric = syntaxFacts.LooksGeneric(simpleName);
 
-            var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
+            var inAttributeContext = syntaxFacts.IsNameOfAttribute(simpleName);
             syntaxFacts.GetNameAndArityOfSimpleName(simpleName, out var name, out var arity);
 
             var validSymbols = matchingTypes
@@ -167,7 +169,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
                 Contract.ThrowIfNull(rightSide);
 
                 syntaxFacts.GetNameAndArityOfSimpleName(rightSide, out rightName, out _);
-                isAttributeName = syntaxFacts.IsAttributeName(rightSide);
+                isAttributeName = syntaxFacts.IsNameOfAttribute(rightSide);
             }
 
             return symbols
@@ -220,7 +222,7 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
         var newRoot = await ReplaceNodeAsync(simpleName, containerName, originalSymbol.IsType, cancellationToken).ConfigureAwait(false);
         var newDocument = document.WithSyntaxRoot(newRoot);
         var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-            newDocument, CodeCleanupOptions.GetDefault(document.Project.Services), cancellationToken).ConfigureAwait(false);
+            newDocument, await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
 
         return await cleanedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
     }

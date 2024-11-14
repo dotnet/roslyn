@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,7 +23,7 @@ using VerifyCS = CSharpCodeFixVerifier<
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
 public partial class UseCollectionInitializerTests_CollectionExpression
 {
-    private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+    private static async Task TestInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
     {
         await new VerifyCS.Test
         {
@@ -34,7 +35,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
     }
 
-    private static Task TestMissingInRegularAndScriptAsync(string testCode)
+    private static Task TestMissingInRegularAndScriptAsync([StringSyntax("C#-test")] string testCode)
         => TestInRegularAndScriptAsync(testCode, testCode);
 
     [Fact]
@@ -5712,6 +5713,60 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                     {
                         ObservableCollection<string> strings = [];
                     }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73362")]
+    public async Task TestWithOverloadResolution1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test(Class1 param1, Class1 param2)
+                    {
+                        MethodTakingEnumerable([|new|] List<Class1> { param1, param2 });
+                    }
+
+                    public void MethodTakingEnumerable(IEnumerable<Class1> param)
+                    {
+                    }
+
+                    public void MethodTakingEnumerable(IEnumerable<Class2> param)
+                    {
+                    }
+
+                    public class Class1 { }
+                    public class Class2 { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test(Class1 param1, Class1 param2)
+                    {
+                        MethodTakingEnumerable([param1, param2]);
+                    }
+                
+                    public void MethodTakingEnumerable(IEnumerable<Class1> param)
+                    {
+                    }
+                
+                    public void MethodTakingEnumerable(IEnumerable<Class2> param)
+                    {
+                    }
+                
+                    public class Class1 { }
+                    public class Class2 { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,

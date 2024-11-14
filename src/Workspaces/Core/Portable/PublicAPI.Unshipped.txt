@@ -1,1 +1,4 @@
-
+Microsoft.CodeAnalysis.Project.HostAnalyzerOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
+Microsoft.CodeAnalysis.ProjectInfo.WithId(Microsoft.CodeAnalysis.ProjectId id) -> Microsoft.CodeAnalysis.ProjectInfo
+virtual Microsoft.CodeAnalysis.Host.HostLanguageServices.Dispose() -> void
+virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Dispose() -> void

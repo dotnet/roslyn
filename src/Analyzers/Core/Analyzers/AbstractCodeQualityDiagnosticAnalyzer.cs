@@ -36,9 +36,6 @@ internal abstract class AbstractCodeQualityDiagnosticAnalyzer : DiagnosticAnalyz
 
     public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
 
-    public bool OpenFileOnly(SimplifierOptions? options)
-        => false;
-
     protected static DiagnosticDescriptor CreateDescriptor(
         string id,
         EnforceOnBuild enforceOnBuild,

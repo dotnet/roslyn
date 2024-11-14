@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -68,16 +67,14 @@ internal static class ConvertNamespaceAnalysis
         if (!canOffer)
             return false;
 
-        // even if we could offer this here, we have to make sure it would be legal.  A file scoped namespace is
-        // only legal if it's the only namespace in the file and there are no top level statements.
-        var tooManyNamespaces = root.DescendantNodesAndSelf(n => n is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax)
-                                    .OfType<BaseNamespaceDeclarationSyntax>()
-                                    .Take(2)
-                                    .Count() != 1;
-        if (tooManyNamespaces)
+        // even if we could offer this here, we have to make sure it would be legal.
+
+        // A file scoped namespace is only legal if it's the only top level member in the file.
+        if (root.Members is not [var singleMember] || singleMember != namespaceDeclaration)
             return false;
 
-        if (root.Members.Any(m => m is GlobalStatementSyntax))
+        // A file scoped namespace is only legal if it's the only namespace in the file.
+        if (namespaceDeclaration.Members.Any(static m => m is BaseNamespaceDeclarationSyntax))
             return false;
 
         return true;

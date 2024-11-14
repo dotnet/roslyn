@@ -88,7 +88,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         // wait indicator for Extract Method
         if (_renameService.ActiveSession != null)
         {
-            _threadingContext.JoinableTaskFactory.Run(() => _renameService.ActiveSession.CommitAsync(previewChanges: false, CancellationToken.None));
+            _threadingContext.JoinableTaskFactory.Run(() => _renameService.ActiveSession.CommitAsync(previewChanges: false, context.OperationContext));
         }
 
         if (!args.SubjectBuffer.SupportsRefactorings())
@@ -139,13 +139,13 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (document is null)
             return;
 
-        var options = await document.GetExtractMethodGenerationOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetExtractMethodGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var result = await ExtractMethodService.ExtractMethodAsync(
             document, span, localFunction: false, options, cancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(result);
 
         result = await NotifyUserIfNecessaryAsync(
-            document, span, options, result, cancellationToken).ConfigureAwait(false);
+            document, result, cancellationToken).ConfigureAwait(false);
         if (result is null)
             return;
 
@@ -186,7 +186,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
     }
 
     private async Task<ExtractMethodResult?> NotifyUserIfNecessaryAsync(
-        Document document, TextSpan span, ExtractMethodGenerationOptions options, ExtractMethodResult result, CancellationToken cancellationToken)
+        Document document, ExtractMethodResult result, CancellationToken cancellationToken)
     {
         // If we succeeded without any problems, just proceed without notifying the user.
         if (result is { Succeeded: true, Reasons.Length: 0 })
@@ -198,30 +198,8 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (notificationService is null)
             return null;
 
-        // The initial extract method failed, or it succeeded with warning reasons.  Attempt again with
-        // different options to see if we get better results.
-        var alternativeResult = await TryWithoutMakingValueTypesRefAsync(
-            document, span, result, options, cancellationToken).ConfigureAwait(false);
-
         // We're about to show an notification to the user.  Switch to the ui thread to do so.
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        if (alternativeResult is { Succeeded: true, Reasons.Length: 0 })
-        {
-            if (!notificationService.ConfirmMessageBox(
-                    EditorFeaturesResources.Extract_method_encountered_the_following_issues + Environment.NewLine + Environment.NewLine +
-                    string.Join(Environment.NewLine, result.Reasons) + Environment.NewLine + Environment.NewLine +
-                    EditorFeaturesResources.We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed,
-                    title: EditorFeaturesResources.Extract_Method,
-                    severity: NotificationSeverity.Error))
-            {
-                // We handled the command, displayed a notification and did not produce code.
-                return null;
-            }
-
-            // Otherwise, prefer the new approach that has less problems.
-            return alternativeResult;
-        }
 
         // The alternative approach wasn't better.  If we failed, just let the user know and bail out.  Otherwise,
         // if we succeeded with messages, tell the user and let them decide if they want to proceed or not.
@@ -252,30 +230,5 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         }
 
         return result;
-    }
-
-    private static async Task<ExtractMethodResult?> TryWithoutMakingValueTypesRefAsync(
-        Document document, TextSpan span, ExtractMethodResult result, ExtractMethodGenerationOptions options, CancellationToken cancellationToken)
-    {
-        if (options.ExtractOptions.DoNotPutOutOrRefOnStruct || !result.Reasons.IsSingle())
-            return null;
-
-        var reason = result.Reasons.FirstOrDefault();
-        var length = FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket.IndexOf(':');
-        if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket[..length], 0, length, StringComparison.Ordinal) >= 0)
-        {
-            var newResult = await ExtractMethodService.ExtractMethodAsync(
-                document,
-                span,
-                localFunction: false,
-                options with { ExtractOptions = options.ExtractOptions with { DoNotPutOutOrRefOnStruct = true } },
-                cancellationToken).ConfigureAwait(false);
-
-            // retry succeeded, return new result
-            if (newResult.Succeeded)
-                return newResult;
-        }
-
-        return null;
     }
 }

@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Roslyn.Utilities
 {
@@ -93,6 +94,18 @@ namespace Roslyn.Utilities
             => HasOneItem ? OneOrMany.Create(_one, item) :
                IsEmpty ? OneOrMany.Create(item) :
                OneOrMany.Create(_many.Add(item));
+
+        public void AddRangeTo(ArrayBuilder<T> builder)
+        {
+            if (HasOneItem)
+            {
+                builder.Add(_one);
+            }
+            else
+            {
+                builder.AddRange(_many);
+            }
+        }
 
         public bool Contains(T item)
             => HasOneItem ? EqualityComparer<T>.Default.Equals(item, _one) : _many.Contains(item);

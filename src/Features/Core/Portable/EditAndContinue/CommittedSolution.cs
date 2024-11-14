@@ -276,7 +276,7 @@ internal sealed class CommittedSolution
                         filePath: document.FilePath,
                         isGenerated: document.State.Attributes.IsGenerated)
                         .WithDesignTimeOnly(document.State.Attributes.DesignTimeOnly)
-                        .WithDocumentServiceProvider(document.State.Services));
+                        .WithDocumentServiceProvider(document.State.DocumentServiceProvider));
                 }
 
                 var matchingSourceText = maybeMatchingSourceText.Value;

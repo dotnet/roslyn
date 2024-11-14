@@ -47,6 +47,11 @@
         <target state="translated">Argument diagnosticId atrybutu „Experimental” musi być prawidłowym identyfikatorem</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="translated">Określony ciąg wersji zawiera znaki wieloznaczne, które nie są zgodne z determinizmem. Usuń znaki wieloznaczne z ciągu wersji lub wyłącz determinizm dla tej kompilacji</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">Wartość typu „System.Threading.Lock” nie jest obsługiwana w funkcji SyncLock. Zamiast tego, rozważ ręczne wywołanie metod „Wprowadź” i „Wyjdź” w bloku Spróbuj/Zakończ.</target>
@@ -7692,8 +7697,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Określony ciąg wersji nie jest zgodny z zalecanym formatem — wersja_główna.wersja_pomocnicza.kompilacja.poprawka</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="translated">Określony ciąg wersji nie jest zgodny z zalecanym formatem — major.minor.build.revision (bez symboli wieloznacznych)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

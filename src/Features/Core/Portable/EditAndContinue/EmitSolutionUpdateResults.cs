@@ -32,49 +32,106 @@ internal readonly struct EmitSolutionUpdateResults
         public required ImmutableArray<DiagnosticData> Diagnostics { get; init; }
 
         [DataMember]
-        public required ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits { get; init; }
+        public required ImmutableArray<DiagnosticData> RudeEdits { get; init; }
 
         [DataMember]
         public required DiagnosticData? SyntaxError { get; init; }
+
+        internal ImmutableArray<ManagedHotReloadDiagnostic> GetAllDiagnostics()
+        {
+            using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
+
+            // Add semantic and lowering diagnostics reported during delta emit:
+
+            foreach (var diagnostic in Diagnostics)
+            {
+                builder.Add(diagnostic.ToHotReloadDiagnostic(ModuleUpdates.Status, isRudeEdit: false));
+            }
+
+            // Add syntax error:
+
+            if (SyntaxError != null)
+            {
+                Debug.Assert(SyntaxError.DataLocation != null);
+                Debug.Assert(SyntaxError.Message != null);
+
+                var fileSpan = SyntaxError.DataLocation.MappedFileSpan;
+
+                builder.Add(new ManagedHotReloadDiagnostic(
+                    SyntaxError.Id,
+                    SyntaxError.Message,
+                    ManagedHotReloadDiagnosticSeverity.Error,
+                    fileSpan.Path,
+                    fileSpan.Span.ToSourceSpan()));
+            }
+
+            // Report all rude edits.
+
+            foreach (var data in RudeEdits)
+            {
+                builder.Add(data.ToHotReloadDiagnostic(ModuleUpdates.Status, isRudeEdit: true));
+            }
+
+            return builder.ToImmutableAndClear();
+        }
     }
 
     public static readonly EmitSolutionUpdateResults Empty = new()
     {
+        Solution = null,
         ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.None, []),
         Diagnostics = [],
         RudeEdits = [],
         SyntaxError = null
     };
 
+    /// <summary>
+    /// Solution snapshot to resolve diagnostics in.
+    /// Note that this might be a different snapshot from the one passed to <see cref="IEditAndContinueService.EmitSolutionUpdateAsync(DebuggingSessionId, Solution, ActiveStatementSpanProvider, CancellationToken)"/>,
+    /// with source generator files refreshed.
+    ///
+    /// Null only for empty results.
+    /// </summary>
+    public required Solution? Solution { get; init; }
+
     public required ModuleUpdates ModuleUpdates { get; init; }
     public required ImmutableArray<ProjectDiagnostics> Diagnostics { get; init; }
-    public required ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits { get; init; }
+    public required ImmutableArray<ProjectDiagnostics> RudeEdits { get; init; }
     public required Diagnostic? SyntaxError { get; init; }
 
-    public Data Dehydrate(Solution solution)
-        => new()
+    public Data Dehydrate()
+        => Solution == null
+        ? new()
         {
             ModuleUpdates = ModuleUpdates,
-            Diagnostics = Diagnostics.ToDiagnosticData(solution),
-            RudeEdits = RudeEdits,
-            SyntaxError = GetSyntaxErrorData(solution)
+            Diagnostics = [],
+            RudeEdits = [],
+            SyntaxError = null
+        }
+        : new()
+        {
+            ModuleUpdates = ModuleUpdates,
+            Diagnostics = Diagnostics.ToDiagnosticData(Solution),
+            RudeEdits = RudeEdits.ToDiagnosticData(Solution),
+            SyntaxError = GetSyntaxErrorData()
         };
 
-    public DiagnosticData? GetSyntaxErrorData(Solution solution)
+    private DiagnosticData? GetSyntaxErrorData()
     {
         if (SyntaxError == null)
         {
             return null;
         }
 
+        Debug.Assert(Solution != null);
         Debug.Assert(SyntaxError.Location.SourceTree != null);
-        return DiagnosticData.Create(SyntaxError, solution.GetRequiredDocument(SyntaxError.Location.SourceTree));
+        return DiagnosticData.Create(SyntaxError, Solution.GetRequiredDocument(SyntaxError.Location.SourceTree));
     }
 
     private IEnumerable<Project> GetProjectsContainingBlockingRudeEdits(Solution solution)
         => RudeEdits
-            .Where(static e => e.Diagnostics.Any(static d => d.Kind.IsBlocking()))
-            .Select(static e => e.DocumentId.ProjectId)
+            .Where(static e => e.Diagnostics.HasBlockingRudeEdits())
+            .Select(static e => e.ProjectId)
             .Distinct()
             .OrderBy(static id => id)
             .Select(solution.GetRequiredProject);
@@ -124,7 +181,7 @@ internal readonly struct EmitSolutionUpdateResults
         // We iterate over this set updating the reset set until no new project is added to the reset set.
         // Once a project is determined to affect a running process, all running processes that
         // reference this project are added to the reset set. The project is then removed from updated
-        // project set as it can't contribute any more running projects to the reset set. 
+        // project set as it can't contribute any more running projects to the reset set.
         // If an updated project does not affect reset set in a given iteration, it stays in the set
         // because it may affect reset set later on, after another running project is added to it.
 
@@ -192,7 +249,7 @@ internal readonly struct EmitSolutionUpdateResults
         }
     }
 
-    public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
+    public ImmutableArray<Diagnostic> GetAllDiagnostics()
     {
         using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
 
@@ -209,84 +266,11 @@ internal readonly struct EmitSolutionUpdateResults
         }
 
         // add rude edits:
-        foreach (var (documentId, documentRudeEdits) in RudeEdits)
+        foreach (var (_, projectEmitDiagnostics) in RudeEdits)
         {
-            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(document);
-
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var documentRudeEdit in documentRudeEdits)
-            {
-                diagnostics.Add(documentRudeEdit.ToDiagnostic(tree));
-            }
+            diagnostics.AddRange(projectEmitDiagnostics);
         }
 
         return diagnostics.ToImmutableAndClear();
-    }
-
-    internal static async ValueTask<ImmutableArray<ManagedHotReloadDiagnostic>> GetAllDiagnosticsAsync(
-        Solution solution,
-        ImmutableArray<DiagnosticData> diagnosticData,
-        ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
-        DiagnosticData? syntaxError,
-        ModuleUpdateStatus updateStatus,
-        CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
-
-        // Add semantic and lowering diagnostics reported during delta emit:
-
-        foreach (var data in diagnosticData)
-        {
-            builder.Add(data.ToHotReloadDiagnostic(updateStatus));
-        }
-
-        // Add syntax error:
-
-        if (syntaxError != null)
-        {
-            Debug.Assert(syntaxError.DataLocation != null);
-            Debug.Assert(syntaxError.Message != null);
-
-            var fileSpan = syntaxError.DataLocation.MappedFileSpan;
-
-            builder.Add(new ManagedHotReloadDiagnostic(
-                syntaxError.Id,
-                syntaxError.Message,
-                ManagedHotReloadDiagnosticSeverity.Error,
-                fileSpan.Path,
-                fileSpan.Span.ToSourceSpan()));
-        }
-
-        // Report all rude edits.
-
-        foreach (var (documentId, diagnostics) in rudeEdits)
-        {
-            var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var diagnostic in diagnostics)
-            {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(diagnostic.Kind);
-
-                var severity = descriptor.DefaultSeverity switch
-                {
-                    DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
-                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
-                    _ => throw ExceptionUtilities.UnexpectedValue(descriptor.DefaultSeverity)
-                };
-
-                var fileSpan = tree.GetMappedLineSpan(diagnostic.Span, cancellationToken);
-
-                builder.Add(new ManagedHotReloadDiagnostic(
-                    descriptor.Id,
-                    string.Format(descriptor.MessageFormat.ToString(CultureInfo.CurrentUICulture), diagnostic.Arguments),
-                    severity,
-                    fileSpan.Path ?? "",
-                    fileSpan.Span.ToSourceSpan()));
-            }
-        }
-
-        return builder.ToImmutableAndClear();
     }
 }

@@ -881,11 +881,11 @@ public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
             var service = workspace.GetService<IMetadataAsSourceFileService>();
             try
             {
-                var options = MetadataAsSourceOptions.GetDefault(project.Services) with
+                var options = MetadataAsSourceOptions.Default with
                 {
                     NavigateToSourceLinkAndEmbeddedSources = false
                 };
-                var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options, CancellationToken.None).ConfigureAwait(false);
+                var file = await service.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: false, options: options, cancellationToken: CancellationToken.None).ConfigureAwait(false);
 
                 Assert.Same(NullResultMetadataAsSourceFileProvider.NullResult, file);
             }
@@ -949,6 +949,115 @@ public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
             AssertEx.NotNull(symbol, $"Couldn't find symbol to go-to-def for.");
 
             await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, source2.ToString(), expectedSpan, expectNullResult: false);
+        });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7532")]
+    public async Task OpenFileWithDifferentCase()
+    {
+        var source = """
+            public class C
+            {
+                public int P { get; set; }
+            }
+            """;
+
+        await RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
+
+            var requestPath = file.FilePath.ToUpperInvariant();
+
+            var result = service.TryAddDocumentToWorkspace(requestPath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
+            Assert.True(result);
+        });
+    }
+
+    [Fact]
+    public async Task OpenThenClose()
+    {
+        var source = """
+            public class C
+            {
+                public int P { get; set; }
+            }
+            """;
+
+        await RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
+
+            var openResult = service.TryAddDocumentToWorkspace(file.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
+            Assert.True(openResult);
+
+            var closeResult = service.TryRemoveDocumentFromWorkspace(file.FilePath);
+            Assert.True(closeResult);
+        });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7514")]
+    public async Task CloseWithoutOpenDoesNotThrow()
+    {
+        var source = """
+            public class C
+            {
+                public int P { get; set; }
+            }
+            """;
+
+        await RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
+
+            var result = service.TryRemoveDocumentFromWorkspace(file.FilePath);
+            Assert.False(result);
+        });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7514")]
+    public async Task OpenSameDocument()
+    {
+        var source = """
+            public class C
+            {
+                public int P1 { get; set; }
+
+                public int P2 { get; set; }
+            }
+            """;
+
+        await RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P1"));
+
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var fileOne = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
+
+            var openResult = service.TryAddDocumentToWorkspace(fileOne.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
+            Assert.True(openResult);
+
+            var compilation = await project.GetCompilationAsync(CancellationToken.None);
+            var symbolTwo = compilation.GetMember("C.P2");
+            var fileTwo = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbolTwo, signaturesOnly: false, MetadataAsSourceOptions.Default, CancellationToken.None);
+            Assert.Equal(fileOne.FilePath, fileTwo.FilePath);
+            Assert.NotEqual(fileOne.IdentifierLocation, fileTwo.IdentifierLocation);
+
+            // Opening should still throw (should never be called as we should be able to find the previously
+            // opened document in the MAS workspace).
+            Assert.Throws<System.InvalidOperationException>(() => service.TryAddDocumentToWorkspace(fileTwo.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentIdTwo));
         });
     }
 }

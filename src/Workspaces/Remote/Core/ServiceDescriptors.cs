@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.LegacySolutionEvents;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.NavigationBar;
+using Microsoft.CodeAnalysis.RelatedDocuments;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.SemanticSearch;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -57,17 +58,16 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteAssetSynchronizationService), null),
             (typeof(IRemoteAsynchronousOperationListenerService), null),
             (typeof(IRemoteCodeLensReferencesService), null),
-            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), typeof(IRemoteConvertTupleToStructCodeRefactoringService.ICallback)),
+            (typeof(IRemoteConvertTupleToStructCodeRefactoringService), null),
             (typeof(IRemoteDependentTypeFinderService), null),
             (typeof(IRemoteDesignerAttributeDiscoveryService), typeof(IRemoteDesignerAttributeDiscoveryService.ICallback)),
             (typeof(IRemoteDiagnosticAnalyzerService), null),
             (typeof(IRemoteDocumentHighlightsService), null),
             (typeof(IRemoteEditAndContinueService), typeof(IRemoteEditAndContinueService.ICallback)),
-            (typeof(IRemoteEncapsulateFieldService), typeof(IRemoteEncapsulateFieldService.ICallback)),
+            (typeof(IRemoteEncapsulateFieldService), null),
             (typeof(IRemoteExtensionMethodImportCompletionService), null),
             (typeof(IRemoteFindUsagesService), typeof(IRemoteFindUsagesService.ICallback)),
             (typeof(IRemoteFullyQualifyService), null),
-            (typeof(IRemoteGlobalNotificationDeliveryService), null),
             (typeof(IRemoteInheritanceMarginService), null),
             (typeof(IRemoteKeepAliveService), null),
             (typeof(IRemoteLegacySolutionEventsAggregationService), null),
@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Remote
             (typeof(IRemoteNavigateToSearchService), typeof(IRemoteNavigateToSearchService.ICallback)),
             (typeof(IRemoteNavigationBarItemService), null),
             (typeof(IRemoteProcessTelemetryService), null),
-            (typeof(IRemoteRenamerService), typeof(IRemoteRenamerService.ICallback)),
+            (typeof(IRemoteRelatedDocumentsService), typeof(IRemoteRelatedDocumentsService.ICallback)),
+            (typeof(IRemoteRenamerService), null),
             (typeof(IRemoteSemanticClassificationService), null),
             (typeof(IRemoteSemanticSearchService), typeof(IRemoteSemanticSearchService.ICallback)),
             (typeof(IRemoteSourceGenerationService), null),

@@ -47,6 +47,11 @@
         <target state="translated">'Experimental' 属性への diagnosticId 引数は有効な識別子である必要があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="translated">指定されたバージョン文字列には、決定性と互換性のないワイルドカードが含まれています。バージョン文字列からワイルドカードを削除するか、このコンパイルの決定性を無効にしてください。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">型 'System.Threading.Lock' の値は SyncLock ではサポートされていません。代わりに Try/Finally ブロック内で 'Enter' メソッドと 'Exit' メソッドを手動で呼び出すことを検討してください。</target>
@@ -7694,8 +7699,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">指定したバージョン文字列は、推奨される形式 (major.minor.build.revision) に従っていません</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="translated">指定したバージョン文字列は、推奨される形式 (major.minor.build.revision、ワイルドカードなし) に従っていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

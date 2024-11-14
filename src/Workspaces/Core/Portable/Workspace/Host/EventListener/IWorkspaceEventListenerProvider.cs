@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Host
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceEventListenerService), layer: ServiceLayer.Default), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class DefaultWorkspaceEventListenerServiceFactory(
+    internal sealed class DefaultWorkspaceEventListenerServiceFactory(
         [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners) : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Host
             return new Service(workspace, EventListenerTracker<object>.GetListeners(workspace.Kind, eventListeners));
         }
 
-        private class Service(Workspace workspace, IEnumerable<IEventListener<object>> eventListeners) : IWorkspaceEventListenerService
+        internal class Service(Workspace workspace, IEnumerable<IEventListener<object>> eventListeners) : IWorkspaceEventListenerService
         {
             private readonly object _gate = new();
             private bool _initialized = false;

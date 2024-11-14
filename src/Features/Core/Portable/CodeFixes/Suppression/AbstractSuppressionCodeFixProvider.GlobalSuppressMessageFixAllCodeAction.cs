@@ -26,32 +26,29 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
     {
         private readonly INamedTypeSymbol _suppressMessageAttribute;
         private readonly IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> _diagnosticsBySymbol;
-        private readonly CodeActionOptionsProvider _fallbackOptions;
 
         private GlobalSuppressMessageFixAllCodeAction(
             AbstractSuppressionCodeFixProvider fixer,
             INamedTypeSymbol suppressMessageAttribute,
             IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> diagnosticsBySymbol,
-            Project project,
-            CodeActionOptionsProvider fallbackOptions)
+            Project project)
             : base(fixer, project)
         {
             _suppressMessageAttribute = suppressMessageAttribute;
             _diagnosticsBySymbol = diagnosticsBySymbol;
-            _fallbackOptions = fallbackOptions;
         }
 
-        internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument, CodeActionOptionsProvider fallbackOptions)
+        internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Document triggerDocument, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument)
         {
             return new GlobalSuppressionSolutionChangeAction(title,
-                (_, ct) => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, fallbackOptions, ct),
+                (_, ct) => CreateChangedSolutionAsync(fixer, triggerDocument, diagnosticsByDocument, ct),
                 equivalenceKey: title);
         }
 
-        internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject, CodeActionOptionsProvider fallbackOptions)
+        internal static CodeAction Create(string title, AbstractSuppressionCodeFixProvider fixer, Project triggerProject, ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject)
         {
             return new GlobalSuppressionSolutionChangeAction(title,
-                (_, ct) => CreateChangedSolutionAsync(fixer, triggerProject, diagnosticsByProject, fallbackOptions, ct),
+                (_, ct) => CreateChangedSolutionAsync(fixer, triggerProject, diagnosticsByProject, ct),
                 equivalenceKey: title);
         }
 
@@ -71,7 +68,6 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             AbstractSuppressionCodeFixProvider fixer,
             Document triggerDocument,
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsByDocument,
-            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var currentSolution = triggerDocument.Project.Solution;
@@ -87,7 +83,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     var diagnosticsBySymbol = await CreateDiagnosticsBySymbolAsync(fixer, grouping, cancellationToken).ConfigureAwait(false);
                     if (diagnosticsBySymbol.Any())
                     {
-                        var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(fixer, supressMessageAttribute, diagnosticsBySymbol, currentProject, fallbackOptions);
+                        var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(fixer, supressMessageAttribute, diagnosticsBySymbol, currentProject);
                         var newDocument = await projectCodeAction.GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
                         currentSolution = newDocument.Project.Solution;
                     }
@@ -101,7 +97,6 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             AbstractSuppressionCodeFixProvider fixer,
             Project triggerProject,
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> diagnosticsByProject,
-            CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var currentSolution = triggerProject.Solution;
@@ -117,7 +112,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     if (diagnosticsBySymbol.Any())
                     {
                         var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(
-                            fixer, suppressMessageAttribute, diagnosticsBySymbol, currentProject, fallbackOptions);
+                            fixer, suppressMessageAttribute, diagnosticsBySymbol, currentProject);
                         var newDocument = await projectCodeAction.GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
                         currentSolution = newDocument.Project.Solution;
                     }
@@ -136,7 +131,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             var services = suppressionsDoc.Project.Solution.Services;
             var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
-            var cleanupOptions = await suppressionsDoc.GetCodeCleanupOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await suppressionsDoc.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var (targetSymbol, diagnostics) in _diagnosticsBySymbol)
             {

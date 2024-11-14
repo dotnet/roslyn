@@ -8,16 +8,20 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents a completion list.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionList">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class CompletionList
     {
         /// <summary>
-        /// Gets or sets a value indicating whether Items is the complete list of items or not.  If incomplete is true, then
-        /// filtering should ask the server again for completion item.
+        /// This list is not complete. Further typing should result in recomputing this list.
+        /// <para>
+        /// Recomputed lists have all their items replaced (not appended) in the incomplete completion sessions.
+        /// </para>
         /// </summary>
         [JsonPropertyName("isIncomplete")]
+        [JsonRequired]
         public bool IsIncomplete
         {
             get;
@@ -25,21 +29,33 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the list of completion items.
+        /// Default values of <see cref="CompletionItem"/> properties for items
+        /// that do not provide a value for those properties.
+        /// <para>
+        /// If a completion list specifies a default value and a completion item
+        /// also specifies a corresponding value the one from the item is used.
+        /// </para>
+        /// <para>
+        /// Servers are only allowed to return default values if the client
+        /// signals support for this via the <see cref="CompletionListSetting.ItemDefaults"/>
+        /// capability.
+        /// </para>
         /// </summary>
-        [JsonPropertyName("items")]
-        public CompletionItem[] Items
+        /// <remarks>Since LSP 3.17</remarks>
+        [JsonPropertyName("itemDefaults")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public CompletionListItemDefaults? ItemDefaults
         {
             get;
             set;
         }
 
         /// <summary>
-        /// Gets or sets the completion list item defaults.
+        /// The completion items.
         /// </summary>
-        [JsonPropertyName("itemDefaults")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public CompletionListItemDefaults? ItemDefaults
+        [JsonPropertyName("items")]
+        [JsonRequired]
+        public CompletionItem[] Items
         {
             get;
             set;

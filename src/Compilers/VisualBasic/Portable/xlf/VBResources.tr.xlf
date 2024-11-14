@@ -47,6 +47,11 @@
         <target state="translated">'Experimental' özniteliğinin diagnosticId bağımsız değişkeni geçerli bir tanımlayıcı olmalıdır</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="translated">Belirtilen sürüm dizesi gerekircilikle uyumlu olmayan joker karakterler içeriyor. Joker karakterleri sürüm dizesinden kaldırın veya bu derleme için gerekirciliği devre dışı bırakın</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
         <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
         <target state="translated">SyncLock'ta 'System.Threading.Lock' türünde bir değer desteklenmiyor. Bunun yerine Try/Finally bloğunda 'Enter' ve 'Exit' yöntemlerini el ile çağırmayı düşünün.</target>
@@ -7693,8 +7698,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Belirtilen sürüm dizesi önerilen biçime uymuyor - major.minor.build.revision</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="translated">Belirtilen sürüm dizesi önerilen biçime uymuyor - major.minor.build.revision (joker karakterler olmadan)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

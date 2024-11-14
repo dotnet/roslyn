@@ -160,6 +160,88 @@ public class SolutionServiceTests
     }
 
     [Fact]
+    public async Task FallbackAnalyzerOptions()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("");
+
+        static Solution SetSolutionProperties(Solution solution, int version)
+        {
+            return solution.WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty
+                .Add(LanguageNames.CSharp, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                    .Add("cs_optionA", $"csA{version}")
+                    .Add("cs_optionB", $"csB{version}"))))
+                .Add(LanguageNames.VisualBasic, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                    .Add("vb_optionA", $"vbA{version}")
+                    .Add("vb_optionB", $"vbB{version}"))))
+                .Add(LanguageNames.FSharp, StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty
+                    .Add("fs_optionA", $"fsA{version}")
+                    .Add("fs_optionB", $"fsB{version}")))));
+        }
+
+        static void ValidateProperties(Solution solution, int version, bool isRecovered)
+        {
+            // F# options are serialized because F# projects are not available OOP.
+
+            AssertEx.SetEqual(isRecovered
+                ? [
+                    $"C#: [cs_optionA = csA{version}, cs_optionB = csB{version}]",
+                    $"Visual Basic: [vb_optionA = vbA{version}, vb_optionB = vbB{version}]",
+                ]
+                :
+                [
+                    $"F#: [fs_optionA = fsA{version}, fs_optionB = fsB{version}]",
+                    $"C#: [cs_optionA = csA{version}, cs_optionB = csB{version}]",
+                    $"Visual Basic: [vb_optionA = vbA{version}, vb_optionB = vbB{version}]",
+                ],
+                solution.FallbackAnalyzerOptions.Select(languageOptions =>
+                    $"{languageOptions.Key}: [" +
+                    $"{string.Join(", ", languageOptions.Value.Keys.Order().Select(k => $"{k} = {(languageOptions.Value.TryGetValue(k, out var v) ? v : null)}"))}]"));
+        }
+
+        Assert.True(workspace.SetCurrentSolution(s => SetSolutionProperties(s, version: 0), WorkspaceChangeKind.SolutionChanged));
+
+        await VerifySolutionUpdate(workspace,
+            newSolutionGetter: s => SetSolutionProperties(s, version: 1),
+            oldSolutionValidator: s => ValidateProperties(s, version: 0, isRecovered: false),
+            oldRecoveredSolutionValidator: s => ValidateProperties(s, version: 0, isRecovered: true),
+            newRecoveredSolutionValidator: s => ValidateProperties(s, version: 1, isRecovered: true)).ConfigureAwait(false);
+    }
+
+    [Fact]
+    public async Task ProjectCountsByLanguage()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("");
+
+        static Solution SetSolutionProperties(Solution solution, int version)
+        {
+            foreach (var projectId in solution.ProjectIds)
+                solution = solution.RemoveProject(projectId);
+
+            for (var i = 0; i < version + 2; i++)
+                solution = solution.AddProject("CS" + i, "CS" + i, LanguageNames.CSharp).Solution;
+
+            return solution
+                .AddProject("VB1", "VB1", LanguageNames.VisualBasic).Solution;
+        }
+
+        static void ValidateProperties(Solution solution, int version)
+        {
+            AssertEx.SetEqual(
+            [
+                (LanguageNames.CSharp, version + 2),
+                (LanguageNames.VisualBasic, 1),
+            ], solution.SolutionState.ProjectCountByLanguage.Select(e => (e.Key, e.Value)));
+        }
+
+        Assert.True(workspace.SetCurrentSolution(s => SetSolutionProperties(s, version: 0), WorkspaceChangeKind.SolutionChanged));
+
+        await VerifySolutionUpdate(workspace,
+            newSolutionGetter: s => SetSolutionProperties(s, version: 1),
+            oldSolutionValidator: s => ValidateProperties(s, version: 0),
+            newSolutionValidator: s => ValidateProperties(s, version: 1)).ConfigureAwait(false);
+    }
+
+    [Fact]
     public async Task ProjectProperties()
     {
         using var workspace = TestWorkspace.CreateCSharp("");
@@ -208,7 +290,7 @@ public class SolutionServiceTests
     {
         var code = @"class Test { void Method() { } }";
 
-        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
+        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
     }
 
     [Fact]
@@ -397,26 +479,11 @@ public class SolutionServiceTests
     public async Task TestAddingProjectsWithExplicitOptions(bool useDefaultOptionValue)
     {
         using var workspace = TestWorkspace.CreateCSharp(@"public class C { }");
-        using var remoteWorkspace = CreateRemoteWorkspace();
 
-        // Initial empty solution
         var solution = workspace.CurrentSolution;
-        solution = solution.RemoveProject(solution.ProjectIds.Single());
-        var assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
-        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-        var synched = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, CancellationToken.None);
-        Assert.Equal(solutionChecksum, await synched.CompilationState.GetChecksumAsync(CancellationToken.None));
+        var solutionChecksum1 = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
-        // Add a C# project and a VB project, set some options, and check again
-        var csharpDocument = new TestHostDocument("public class C { }");
-        var csharpProject = new TestHostProject(workspace, csharpDocument, language: LanguageNames.CSharp, name: "project2");
-        var csharpProjectInfo = csharpProject.ToProjectInfo();
-
-        var vbDocument = new TestHostDocument("Public Class D \r\n  Inherits C\r\nEnd Class");
-        var vbProject = new TestHostProject(workspace, vbDocument, language: LanguageNames.VisualBasic, name: "project3");
-        var vbProjectInfo = vbProject.ToProjectInfo();
-
-        solution = solution.AddProject(csharpProjectInfo).AddProject(vbProjectInfo);
+        // legacy options are not serialized and have no effect on checksum:
         var newOptionValue = useDefaultOptionValue
             ? FormattingOptions2.NewLine.DefaultValue
             : FormattingOptions2.NewLine.DefaultValue + FormattingOptions2.NewLine.DefaultValue;
@@ -424,12 +491,9 @@ public class SolutionServiceTests
             .WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, newOptionValue)
             .WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, newOptionValue));
 
-        assetProvider = await GetAssetProviderAsync(workspace, remoteWorkspace, solution);
-        solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-        synched = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, CancellationToken.None);
-        Assert.Equal(solutionChecksum, await synched.CompilationState.GetChecksumAsync(CancellationToken.None));
+        var solutionChecksum2 = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+        Assert.Equal(solutionChecksum1, solutionChecksum2);
     }
-
     [Fact]
     public async Task TestFrozenSourceGeneratedDocument()
     {
@@ -484,7 +548,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Do the initial full sync
         await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -525,7 +589,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Syncing project 1 should just since it over.
         await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
@@ -567,7 +631,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
         var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
@@ -600,7 +664,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // syncing P3 should since project P2 as well because of the p2p ref
         await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -642,7 +706,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // syncing project3 should since project2 and project1 as well because of the p2p ref
         await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -682,7 +746,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // syncing project3 should since project2 and project1 as well because of the p2p ref
         await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -720,7 +784,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Syncing over project1 should give us 1 set of options on the OOP side.
         await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
@@ -753,7 +817,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Do the initial full sync
         await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -808,7 +872,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Do the initial full sync
         await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -877,7 +941,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Do the initial full sync
         await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -1150,11 +1214,20 @@ public class SolutionServiceTests
         await VerifySolutionUpdate(workspace, newSolutionGetter);
     }
 
+#nullable enable
+    private static Task VerifySolutionUpdate(
+        TestWorkspace workspace,
+        Func<Solution, Solution> newSolutionGetter,
+        Action<Solution>? oldSolutionValidator = null,
+        Action<Solution>? newSolutionValidator = null)
+        => VerifySolutionUpdate(workspace, newSolutionGetter, oldSolutionValidator, oldSolutionValidator, newSolutionValidator);
+
     private static async Task VerifySolutionUpdate(
         TestWorkspace workspace,
         Func<Solution, Solution> newSolutionGetter,
-        Action<Solution> oldSolutionValidator = null,
-        Action<Solution> newSolutionValidator = null)
+        Action<Solution>? oldSolutionValidator,
+        Action<Solution>? oldRecoveredSolutionValidator,
+        Action<Solution>? newRecoveredSolutionValidator)
     {
         var solution = workspace.CurrentSolution;
         oldSolutionValidator?.Invoke(solution);
@@ -1168,7 +1241,7 @@ public class SolutionServiceTests
         // update primary workspace
         await remoteWorkspace.UpdatePrimaryBranchSolutionAsync(assetProvider, solutionChecksum, CancellationToken.None);
         var recoveredSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: false, CancellationToken.None);
-        oldSolutionValidator?.Invoke(recoveredSolution);
+        oldRecoveredSolutionValidator?.Invoke(recoveredSolution);
 
         Assert.Equal(WorkspaceKind.RemoteWorkspace, recoveredSolution.WorkspaceKind);
         Assert.Equal(solutionChecksum, await recoveredSolution.CompilationState.GetChecksumAsync(CancellationToken.None));
@@ -1189,10 +1262,10 @@ public class SolutionServiceTests
 
         Assert.Equal(newSolutionChecksum, await third.CompilationState.GetChecksumAsync(CancellationToken.None));
 
-        newSolutionValidator?.Invoke(recoveredNewSolution);
+        newRecoveredSolutionValidator?.Invoke(recoveredNewSolution);
     }
 
-    private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, RemoteWorkspace remoteWorkspace, Solution solution, Dictionary<Checksum, object> map = null)
+    private static async Task<AssetProvider> GetAssetProviderAsync(Workspace workspace, RemoteWorkspace remoteWorkspace, Solution solution, Dictionary<Checksum, object>? map = null)
     {
         // make sure checksum is calculated
         await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
@@ -1202,8 +1275,8 @@ public class SolutionServiceTests
 
         var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
         var storage = new SolutionAssetCache();
-        var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
+        var assetSource = new SimpleAssetSource(workspace.Services.GetRequiredService<ISerializerService>(), map);
 
-        return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+        return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices);
     }
 }

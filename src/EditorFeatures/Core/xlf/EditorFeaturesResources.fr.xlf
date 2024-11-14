@@ -42,6 +42,11 @@
         <target state="translated">Décrire avec Copilot</target>
         <note />
       </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="translated">« Décrire avec Copilot » n’est pas disponible, car le document référencé est exclu par votre organisation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
         <target state="translated">Ne pas préférer 'this.' ou 'Me.'</target>
@@ -630,6 +635,11 @@
       <trans-unit id="_0_conflict_s_will_be_resolved">
         <source>{0} conflict(s) will be resolved</source>
         <target state="translated">{0} conflit(s) seront résolus</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="translated">'{0}' déclarations et intercepteurs</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implemented_members">

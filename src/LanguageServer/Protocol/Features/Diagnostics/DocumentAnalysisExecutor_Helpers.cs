@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -127,11 +128,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 language: language);
         }
 
-        public static async Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(
+        public static async Task<CompilationWithAnalyzersPair?> CreateCompilationWithAnalyzersAsync(
             Project project,
-            IdeAnalyzerOptions ideOptions,
-            IEnumerable<DiagnosticAnalyzer> analyzers,
+            ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
+            ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
             bool includeSuppressedDiagnostics,
+            bool crashOnAnalyzerException,
             CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -142,11 +144,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             // Create driver that holds onto compilation and associated analyzers
-            var filteredAnalyzers = analyzers.Where(a => !a.IsWorkspaceDiagnosticAnalyzer()).ToImmutableArrayOrEmpty();
+            var filteredProjectAnalyzers = projectAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
+            var filteredHostAnalyzers = hostAnalyzers.WhereAsArray(static a => !a.IsWorkspaceDiagnosticAnalyzer());
 
             // PERF: there is no analyzers for this compilation.
             //       compilationWithAnalyzer will throw if it is created with no analyzers which is perf optimization.
-            if (filteredAnalyzers.IsEmpty)
+            if (filteredProjectAnalyzers.IsEmpty && filteredHostAnalyzers.IsEmpty)
             {
                 return null;
             }
@@ -156,8 +159,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // in IDE, we always set concurrentAnalysis == false otherwise, we can get into thread starvation due to
             // async being used with synchronous blocking concurrency.
-            var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideOptions),
+            var projectAnalyzerOptions = new CompilationWithAnalyzersOptions(
+                options: project.AnalyzerOptions,
+                onAnalyzerException: null,
+                analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
+                concurrentAnalysis: false,
+                logAnalyzerExecutionTime: true,
+                reportSuppressedDiagnostics: includeSuppressedDiagnostics);
+            var hostAnalyzerOptions = new CompilationWithAnalyzersOptions(
+                options: project.HostAnalyzerOptions,
                 onAnalyzerException: null,
                 analyzerExceptionFilter: GetAnalyzerExceptionFilter(),
                 concurrentAnalysis: false,
@@ -165,13 +175,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 reportSuppressedDiagnostics: includeSuppressedDiagnostics);
 
             // Create driver that holds onto compilation and associated analyzers
-            return compilation.WithAnalyzers(filteredAnalyzers, analyzerOptions);
+            return new CompilationWithAnalyzersPair(
+                filteredProjectAnalyzers.Any() ? compilation.WithAnalyzers(filteredProjectAnalyzers, projectAnalyzerOptions) : null,
+                filteredHostAnalyzers.Any() ? compilation.WithAnalyzers(filteredHostAnalyzers, hostAnalyzerOptions) : null);
 
             Func<Exception, bool> GetAnalyzerExceptionFilter()
             {
                 return ex =>
                 {
-                    if (ex is not OperationCanceledException && ideOptions.CrashOnAnalyzerException)
+                    if (ex is not OperationCanceledException && crashOnAnalyzerException)
                     {
                         // report telemetry
                         FatalError.ReportAndPropagate(ex);

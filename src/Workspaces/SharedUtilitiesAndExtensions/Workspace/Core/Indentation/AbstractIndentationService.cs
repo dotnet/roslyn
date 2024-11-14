@@ -59,6 +59,6 @@ internal abstract partial class AbstractIndentationService<TSyntaxRoot>
 
         var smartTokenFormatter = CreateSmartTokenFormatter(
             (TSyntaxRoot)document.Root, document.Text, lineToBeIndented, options, baseIndentationRule);
-        return new Indenter(this, document.SyntaxTree, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
+        return new Indenter(this, document.SyntaxTree, document.Text, formattingRules, options, lineToBeIndented, smartTokenFormatter, cancellationToken);
     }
 }

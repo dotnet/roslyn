@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // IsMetadataVirtualIgnoringInterfaceImplementationChanges.  This also has the advantage of making
             // this method safe to call before declaration diagnostics have been computed.
             if ((object)method == null || method.Name != WellKnownMemberNames.DestructorName ||
-                method.ParameterCount != 0 || method.Arity != 0 || !method.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true))
+                method.ParameterCount != 0 || method.Arity != 0 || !method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
             {
                 return false;
             }

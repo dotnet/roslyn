@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return true;
         }

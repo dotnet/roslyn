@@ -6,6 +6,7 @@
 
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -21,6 +22,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Null(pdbPath);
             return new DisposableFile(assemblyPath);
         }
+
+        private static string GetArchitecture()
+        {
+#if NET8_0_OR_GREATER
+            return RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+#else
+            return "x64";
+#endif
+        }
+
+        public static readonly string Architecture = GetArchitecture();
 
         private static string GetIlasmPath()
         {
@@ -46,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             else if (ExecutionConditionUtil.IsLinux)
             {
-                ridName = "linux-x64";
+                ridName = $"linux-{GetArchitecture()}";
             }
             else
             {

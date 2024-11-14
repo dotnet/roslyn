@@ -35,21 +35,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly AsyncBatchingWorkQueue<DocumentId> _documentsToFireEventsFor;
 
-        public readonly IGlobalOptionService GlobalOptions;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ProjectCodeModelFactory(
             VisualStudioWorkspace visualStudioWorkspace,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
             _serviceProvider = serviceProvider;
             _threadingContext = threadingContext;
-            GlobalOptions = globalOptions;
 
             Listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
 
@@ -110,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 // Keep firing events for this doc, as long as we haven't exceeded the max amount
                 // of waiting time, and there's no user input that should take precedence.
-                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
+                if (stopwatch.Elapsed.TotalMilliseconds > MaxTimeSlice || IsInputPending())
                 {
                     await this.Listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
                     stopwatch = SharedStopwatch.StartNew();

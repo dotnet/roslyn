@@ -1130,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return conditionBuilder.Update(_F.Default(node.Type));
             }
-            else
+            else if (!node.IsRef)
             {
                 var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
 
@@ -1141,6 +1141,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UpdateStatement(alternativeBuilder, _F.Assignment(_F.Local(tmp), alternative))));
 
                 return conditionBuilder.Update(_F.Local(tmp));
+            }
+            else
+            {
+                Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
+
+                // 1. Capture the boolean value (the condition) in a temp
+                var tmp = _F.SynthesizedLocal(condition.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
+
+                conditionBuilder.AddLocal(tmp);
+                conditionBuilder.AddStatement(_F.Assignment(_F.Local(tmp), condition));
+                condition = _F.Local(tmp);
+
+                // 2. Conditionally execute side-effects from the builders based on the temp 
+                conditionBuilder.AddLocals(consequenceBuilder.GetLocals());
+                conditionBuilder.AddLocals(alternativeBuilder.GetLocals());
+
+                conditionBuilder.AddStatement(
+                    _F.If(condition,
+                        _F.StatementList(consequenceBuilder.GetStatements()),
+                        _F.StatementList(alternativeBuilder.GetStatements())));
+
+                consequenceBuilder.Free();
+                alternativeBuilder.Free();
+
+                // 3. Use updated conditional operator as the result. Note, we are using the captured temp as its condition,
+                // plus rewritten consequence and alternative.
+                return conditionBuilder.Update(node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type));
             }
         }
 

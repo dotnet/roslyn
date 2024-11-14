@@ -39,8 +39,8 @@ public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     public static IEnumerable<object[]> SupportedKeywords => new[]
     {
         new[] { "class" },
-        new[] { "enum" },
-        new[] { "interface"}
+        ["enum"],
+        ["interface"]
     };
 
     [Fact]
@@ -1259,7 +1259,6 @@ expectedSymbolChanges: new Dictionary<string, string>()
         var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
             testState.InvocationDocument,
             testState.TestInvocationDocument.SelectedSpans.Single(),
-            CodeActionOptions.DefaultProvider,
             CancellationToken.None);
 
         Assert.Empty(actions);

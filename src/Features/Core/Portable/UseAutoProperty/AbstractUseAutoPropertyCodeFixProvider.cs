@@ -23,6 +23,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
+using static UseAutoPropertiesHelpers;
+
 internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
     where TTypeDeclarationSyntax : SyntaxNode
     where TPropertyDeclaration : SyntaxNode
@@ -39,12 +41,23 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
     protected abstract TPropertyDeclaration GetPropertyDeclaration(SyntaxNode node);
     protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
+    protected abstract TPropertyDeclaration RewriteFieldReferencesInProperty(
+        TPropertyDeclaration property, LightweightRenameLocations fieldLocations, CancellationToken cancellationToken);
 
-    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
+    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(
+        Document document, SyntaxNode finalPropertyDeclaration);
 
     protected abstract Task<SyntaxNode> UpdatePropertyAsync(
-        Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
-        TPropertyDeclaration propertyDeclaration, bool isWrittenOutsideConstructor, CancellationToken cancellationToken);
+        Document propertyDocument,
+        Compilation compilation,
+        IFieldSymbol fieldSymbol,
+        IPropertySymbol propertySymbol,
+        TVariableDeclarator fieldDeclarator,
+        TPropertyDeclaration propertyDeclaration,
+        bool isWrittenOutsideConstructor,
+        bool isTrivialGetAccessor,
+        bool isTrivialSetAccessor,
+        CancellationToken cancellationToken);
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -56,7 +69,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
             context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                     AnalyzersResources.Use_auto_property,
-                    c => ProcessResultAsync(context, diagnostic, c),
+                    cancellationToken => ProcessResultAsync(context, diagnostic, cancellationToken),
                     equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                     priority),
                 diagnostic);
@@ -68,6 +81,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
     private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var locations = diagnostic.AdditionalLocations;
+
         var propertyLocation = locations[0];
         var declaratorLocation = locations[1];
 
@@ -82,6 +96,9 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         var propertySemanticModel = await propertyDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var propertySymbol = (IPropertySymbol)propertySemanticModel.GetRequiredDeclaredSymbol(property, cancellationToken);
 
+        var isTrivialGetAccessor = diagnostic.Properties.ContainsKey(IsTrivialGetAccessor);
+        var isTrivialSetAccessor = diagnostic.Properties.ContainsKey(IsTrivialSetAccessor);
+
         Debug.Assert(fieldDocument.Project == propertyDocument.Project);
         var project = fieldDocument.Project;
         var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -92,10 +109,23 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             solution, fieldSymbol, renameOptions, cancellationToken).ConfigureAwait(false);
 
         // First, create the updated property we want to replace the old property with
-        var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
+        var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(
+            fieldSymbol, fieldLocations, property, cancellationToken);
+
+        if (!isTrivialGetAccessor ||
+            (propertySymbol.SetMethod != null && !isTrivialSetAccessor))
+        {
+            // We have at least a non-trivial getter/setter.  Those will not be rewritten to `get;/set;`.  As such, we
+            // need to update the property to reference `field` or itself instead of the actual field.
+            property = RewriteFieldReferencesInProperty(property, fieldLocations, cancellationToken);
+        }
+
         var updatedProperty = await UpdatePropertyAsync(
-            propertyDocument, compilation, fieldSymbol, propertySymbol, property,
-            isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
+            propertyDocument, compilation,
+            fieldSymbol, propertySymbol,
+            declarator, property,
+            isWrittenToOutsideOfConstructor, isTrivialGetAccessor, isTrivialSetAccessor,
+            cancellationToken).ConfigureAwait(false);
 
         // Note: rename will try to update all the references in linked files as well.  However, 
         // this can lead to some very bad behavior as we will change the references in linked files
@@ -138,7 +168,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         var resolution = await filteredLocations.ResolveConflictsAsync(
             fieldSymbol, propertySymbol.Name,
             nonConflictSymbolKeys: [propertySymbol.GetSymbolKey(cancellationToken)],
-            context.Options, cancellationToken).ConfigureAwait(false);
+            cancellationToken).ConfigureAwait(false);
 
         Contract.ThrowIfFalse(resolution.IsSuccessful);
 
@@ -211,7 +241,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
             var newRoot = editor.GetChangedRoot();
-            newRoot = await FormatAsync(newRoot, fieldDocument, context.Options, cancellationToken).ConfigureAwait(false);
+            newRoot = await FormatAsync(newRoot, fieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
 
             return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
         }
@@ -225,8 +255,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             Contract.ThrowIfNull(newFieldTreeRoot);
             var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-            newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, context.Options, cancellationToken).ConfigureAwait(false);
-            newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, context.Options, cancellationToken).ConfigureAwait(false);
+            newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
+            newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
 
             var updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -277,13 +307,17 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         return canEditDocument;
     }
 
-    private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private async Task<SyntaxNode> FormatAsync(
+        SyntaxNode newRoot,
+        Document document,
+        SyntaxNode finalPropertyDeclaration,
+        CancellationToken cancellationToken)
     {
-        var formattingRules = GetFormattingRules(document);
+        var formattingRules = GetFormattingRules(document, finalPropertyDeclaration);
         if (formattingRules.IsDefault)
             return newRoot;
 
-        var options = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Services, options, formattingRules, cancellationToken);
     }
 

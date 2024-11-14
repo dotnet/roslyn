@@ -64,7 +64,7 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider : AbstractC
             token != expression.ArgumentList.CloseParenToken;
     }
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var objectCreationExpression = await TryGetObjectCreationExpressionAsync(

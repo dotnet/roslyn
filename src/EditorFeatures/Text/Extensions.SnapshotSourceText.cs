@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.Text
             private readonly Encoding? _encoding;
             private readonly TextBufferContainer? _container;
 
-            private SnapshotSourceText(ITextBufferCloneService? textBufferCloneService, ITextSnapshot editorSnapshot, SourceHashAlgorithm checksumAlgorithm, TextBufferContainer container)
+            private SnapshotSourceText(ITextBufferCloneService? textBufferCloneService, ITextSnapshot editorSnapshot, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, TextBufferContainer container)
                 : base(checksumAlgorithm: checksumAlgorithm)
             {
                 Contract.ThrowIfNull(editorSnapshot);
 
                 _textBufferCloneService = textBufferCloneService;
                 this.TextImage = RecordReverseMapAndGetImage(editorSnapshot);
-                _encoding = editorSnapshot.TextBuffer.GetEncodingOrUTF8();
+                _encoding = encoding ?? editorSnapshot.TextBuffer.GetEncodingOrUTF8();
                 _container = container;
             }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                     // Avoid capturing `textBufferCloneServiceOpt` on the fast path
                     var tempTextBufferCloneService = textBufferCloneService;
-                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneService, s, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm, container));
+                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempTextBufferCloneService, s, encoding: null, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm, container));
                 }
 
                 return snapshot;
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 Contract.ThrowIfFalse(editorSnapshot.TextBuffer == container.GetTextBuffer());
-                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(textBufferCloneService, s, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm, container));
+                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(textBufferCloneService, s, encoding: null, SourceHashAlgorithms.OpenDocumentChecksumAlgorithm, container));
             }
 
             public override Encoding? Encoding
@@ -220,8 +220,8 @@ namespace Microsoft.CodeAnalysis.Text
                 return new ChangedSourceText(
                     textBufferCloneService: _textBufferCloneService,
                     baseText: this,
-                    baseSnapshot: ((ITextSnapshot2)baseSnapshot).TextImage,
-                    currentSnapshot: ((ITextSnapshot2)buffer.CurrentSnapshot).TextImage);
+                    baseSnapshot: baseSnapshot,
+                    currentSnapshot: buffer.CurrentSnapshot);
             }
 
             private static ITextImage RecordReverseMapAndGetImage(ITextSnapshot editorSnapshot)
@@ -276,13 +276,13 @@ namespace Microsoft.CodeAnalysis.Text
             private class ChangedSourceText : SnapshotSourceText
             {
                 private readonly SnapshotSourceText _baseText;
-                private readonly ITextImage _baseSnapshot;
+                private readonly ITextImage _baseTextImage;
 
-                public ChangedSourceText(ITextBufferCloneService? textBufferCloneService, SnapshotSourceText baseText, ITextImage baseSnapshot, ITextImage currentSnapshot)
-                    : base(textBufferCloneService, currentSnapshot, baseText.Encoding, baseText.ChecksumAlgorithm, container: null)
+                public ChangedSourceText(ITextBufferCloneService? textBufferCloneService, SnapshotSourceText baseText, ITextSnapshot baseSnapshot, ITextSnapshot currentSnapshot)
+                    : base(textBufferCloneService, currentSnapshot, baseText.Encoding, baseText.ChecksumAlgorithm, container: TextBufferContainer.From(currentSnapshot.TextBuffer))
                 {
                     _baseText = baseText;
-                    _baseSnapshot = baseSnapshot;
+                    _baseTextImage = ((ITextSnapshot2)baseSnapshot).TextImage;
                 }
 
                 public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Text
                         return [new TextChangeRange(new TextSpan(0, oldText.Length), this.Length)];
                     }
 
-                    return GetChangeRanges(_baseSnapshot, _baseSnapshot.Length, this.TextImage);
+                    return GetChangeRanges(_baseTextImage, _baseTextImage.Length, this.TextImage);
                 }
             }
 

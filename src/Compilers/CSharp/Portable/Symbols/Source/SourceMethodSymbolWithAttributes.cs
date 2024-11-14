@@ -369,6 +369,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // diagnostics that might later get thrown away as possible when binding method calls.
                     return (null, null);
                 }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+                {
+                    if (!CanHaveOverloadResolutionPriority)
+                    {
+                        // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                        return (null, null);
+                    }
+
+                    (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+
+                    if (attributeData.CommonConstructorArguments is [{ ValueInternal: int priority }])
+                    {
+                        arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
+
+                        if (!hasAnyDiagnostics)
+                        {
+                            return (attributeData, boundAttribute);
+                        }
+                    }
+
+                    return (null, null);
+                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -609,6 +631,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
             {
                 DecodeInterceptsLocationAttribute(arguments);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+            {
+                MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+
+                if (!CanHaveOverloadResolutionPriority)
+                {
+                    diagnostics.Add(IsOverride
+                            // Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+                            ? ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
+                            // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                            : ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember,
+                        arguments.AttributeSyntaxOpt);
+                }
             }
             else
             {
@@ -984,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var interceptorsNamespaces = ((CSharpParseOptions)attributeNameSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeNameSyntax.SyntaxTree.Options).InterceptorsNamespaces;
             var thisNamespaceNames = getNamespaceNames(this);
             var foundAnyMatch = interceptorsNamespaces.Any(static (ns, thisNamespaceNames) => isDeclaredInNamespace(thisNamespaceNames, ns), thisNamespaceNames);
             if (!foundAnyMatch)
@@ -1113,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    var recommendedProperty = $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
+                    var recommendedProperty = $"<InterceptorsNamespaces>$(InterceptorsNamespaces);{string.Join(".", namespaceNames)}</InterceptorsNamespaces>";
                     diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeLocation, recommendedProperty);
                 }
             }
@@ -1134,7 +1170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const int lineNumberParameterIndex = 1;
             const int characterNumberParameterIndex = 2;
 
-            var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsPreviewNamespaces;
+            var interceptorsNamespaces = ((CSharpParseOptions)attributeSyntax.SyntaxTree.Options).InterceptorsNamespaces;
             var thisNamespaceNames = getNamespaceNames();
             var foundAnyMatch = interceptorsNamespaces.Any(ns => isDeclaredInNamespace(thisNamespaceNames, ns));
             if (!foundAnyMatch)
@@ -1326,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    var recommendedProperty = $"<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);{string.Join(".", namespaceNames)}</InterceptorsPreviewNamespaces>";
+                    var recommendedProperty = $"<InterceptorsNamespaces>$(InterceptorsNamespaces);{string.Join(".", namespaceNames)}</InterceptorsNamespaces>";
                     diagnostics.Add(ErrorCode.ERR_InterceptorsFeatureNotEnabled, attributeSyntax, recommendedProperty);
                 }
             }
@@ -1707,5 +1743,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
         }
+
+        internal override int? TryGetOverloadResolutionPriority()
+            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
     }
 }

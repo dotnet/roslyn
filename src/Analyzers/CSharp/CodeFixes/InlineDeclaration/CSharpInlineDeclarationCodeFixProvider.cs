@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -28,14 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InlineDeclaration), Shared]
-internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpInlineDeclarationCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.InlineDeclarationDiagnosticId];
 
@@ -47,9 +43,9 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Gather all statements to be removed
         // We need this to find the statements we can safely attach trivia to
@@ -97,7 +93,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
 
     private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
         Document document,
-        CSharpCodeFixOptionsProvider options, SemanticModel semanticModel,
+        CSharpSimplifierOptions options, SemanticModel semanticModel,
         SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
         IdentifierNameSyntax identifier, SyntaxNode currentNode,
         HashSet<StatementSyntax> declarationsToRemove,
@@ -243,7 +239,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
     }
 
     public static TypeSyntax GenerateTypeSyntaxOrVar(
-       ITypeSymbol symbol, CSharpCodeFixOptionsProvider options)
+       ITypeSymbol symbol, CSharpSimplifierOptions options)
     {
         var useVar = IsVarDesired(symbol, options);
 
@@ -256,7 +252,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
             : symbol.GenerateTypeSyntax();
     }
 
-    private static bool IsVarDesired(ITypeSymbol type, CSharpCodeFixOptionsProvider options)
+    private static bool IsVarDesired(ITypeSymbol type, CSharpSimplifierOptions options)
     {
         // If they want it for intrinsics, and this is an intrinsic, then use var.
         if (type.IsSpecialType() == true)

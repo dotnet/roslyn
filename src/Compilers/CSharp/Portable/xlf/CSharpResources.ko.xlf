@@ -287,11 +287,6 @@
         <target state="translated">위치 매개 변수 '{0}'과(와) 일치하려면 레코드 멤버 '{1}'이(가) 유형 '{2}'의 읽을 수 있는 인스턴스 속성 또는 필드여야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">foreach 문은 '{0}'이(가) ref struct 또는 ref struct를 허용하는 형식 매개 변수이므로 비동기 또는 반복기 메서드에서 '{0}' 형식의 열거자에 대해 작동할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">'{0}' 형식의 매개 변수는 비동기 메서드나 비동기 람다 식에서 선언할 수 없습니다.</target>
@@ -330,6 +325,16 @@
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="translated">이 멤버에 'OverloadResolutionPriorityAttribute'를 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="translated">재정의 멤버에 'OverloadResolutionPriorityAttribute'를 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -495,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">형식을 생성할 수 없으므로 컬렉션 식을 사용하여 '{0}' 형식을 초기화할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="translated">컬렉션 이니셜라이저를 사용하면 컬렉션 '{0}'의 인스턴스화 체인이 무한해집니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -770,6 +780,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' 기능은 C# 12.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="translated">'{0}' 기능은 C# 13.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1133,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="translated">이 네임스페이스에서는 '인터셉터' 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1448,13 +1463,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다. 'await using' 대신 'using'을 사용하시겠습니까?</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="translated">'{0}': 비동기 using 문에 사용되는 형식은 'System.IAsyncDisposable'을 구현하거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다. 'await using'이 아닌 'using'을 의미했나요?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다. 'using' 대신 'await using'을 사용하시겠습니까?</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="translated">'{0}': using 문에 사용되는 형식은 'System.IDisposable'을 구현해야 합니다. 'using'이 아닌 'await using'을 의미했나요?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1720,6 +1735,11 @@
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
         <target state="translated">부분 속성에는 하나의 구현 선언만 사용할 수 있음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="translated">부분 속성은 정의와 구현 모두에 이니셜라이저를 포함할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -2382,9 +2402,9 @@
         <target state="translated">확장 속성 패턴</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureFieldAndValueKeywords">
-        <source>field and value keywords</source>
-        <target state="translated">필드 및 값 키워드</target>
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="translated">필드 키워드</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2596,6 +2616,11 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="translated">오버로드 해결 우선 순위</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">포인터 요소 액세스</target>
@@ -2619,11 +2644,6 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">포인터</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">'{0}'은(는) 언어 버전 {1} 속성 접근자의 컨텍스트 키워드 대신 '@{0}'을(를) 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
@@ -2914,6 +2934,16 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">이 컨텍스트에서 변수를 사용하면 선언 범위 외부에서 참조된 변수가 노출될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="translated">언어 버전 {0}에서 'field' 키워드는 속성에 대한 합성된 지원 필드에 바인딩됩니다. 합성된 지원 필드가 생성되지 않도록 하고 기존 멤버를 참조하려면 대신 'this.field' 또는 '@field'를 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="translated">'field' 키워드는 속성의 합성된 지원 필드에 바인딩됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -5260,6 +5290,16 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
         <target state="translated">비동기 반복기 멤버에 'CancellationToken' 형식의 매개 변수가 하나 이상 있지만, 이 중 'EnumeratorCancellation' 특성으로 데코레이트된 매개 변수가 없으므로 생성된 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator'에서 취소 토큰 매개 변수가 사용되지 않음</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="translated">null을 허용하지 않는 {0} '{1}'은(는) 생성자를 종료할 때 null이 아닌 값을 포함해야 합니다. 'required' 한정자를 추가하거나 {0}을(를) nullable로 선언하거나 '[field: MaybeNull, AllowNull]' 특성을 추가하는 것이 좋습니다.</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="translated">null을 허용하지 않는 속성은 생성자를 종료할 때 null이 아닌 값을 포함해야 합니다. 'required' 한정자를 추가하거나 속성을 nullable로 선언하거나 '[field: MaybeNull, AllowNull]' 특성을 추가하는 것이 좋습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -9566,8 +9606,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다.</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
+        <target state="translated">'{0}': using 문에 사용되는 형식은 'System.IDisposable'을 구현해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -12144,8 +12184,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">자동 구현 속성만 이니셜라이저를 사용할 수 있습니다.</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="translated">자동 구현 속성 또는 'field' 키워드를 사용하는 속성만 이니셜라이저를 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
@@ -13094,8 +13134,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다.</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="translated">'{0}': 비동기 using 문에 사용되는 형식은 'System.IAsyncDisposable'을 구현하거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

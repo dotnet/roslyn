@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -182,16 +183,6 @@ namespace Roslyn.Utilities
 
         public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (predicate == null)
-            {
-                throw new ArgumentNullException(nameof(predicate));
-            }
-
             foreach (var item in source)
             {
                 if (predicate(item, arg))
@@ -199,6 +190,17 @@ namespace Roslyn.Utilities
             }
 
             return default;
+        }
+
+        public static bool Any<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item, arg))
+                    return true;
+            }
+
+            return false;
         }
 
         public static T? FirstOrNull<T>(this IEnumerable<T> source)
@@ -384,11 +386,15 @@ namespace Roslyn.Utilities
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
+            var builder = new TResult[source.Count];
+            var index = 0;
             foreach (var item in source)
-                builder.Add(selector(item));
+            {
+                builder[index] = selector(item);
+                index++;
+            }
 
-            return builder.ToImmutableAndFree();
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)

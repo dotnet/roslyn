@@ -43,7 +43,7 @@ internal abstract class AbstractRemoveUnusedMembersCodeFixProvider<TFieldDeclara
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         var declarators = new HashSet<SyntaxNode>();
         var fieldDeclarators = new HashSet<TFieldDeclarationSyntax>();

@@ -20,7 +20,15 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
 {
     public abstract ISyntaxFacts SyntaxFacts { get; }
 
+    public abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+    public abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
+
     public abstract SyntaxTrivia EndOfLine(string text);
+    public abstract SyntaxTrivia SingleLineComment(string text);
+
+    public abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
+
+    public abstract bool SupportsThrowExpression();
 
     /// <summary>
     /// Creates a statement that declares a single local variable with an optional initializer.

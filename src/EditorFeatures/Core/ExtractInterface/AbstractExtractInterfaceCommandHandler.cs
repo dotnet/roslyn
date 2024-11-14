@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -20,12 +19,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface;
 internal abstract class AbstractExtractInterfaceCommandHandler : ICommandHandler<ExtractInterfaceCommandArgs>
 {
     private readonly IThreadingContext _threadingContext;
-    private readonly IGlobalOptionService _globalOptions;
 
-    protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+    protected AbstractExtractInterfaceCommandHandler(IThreadingContext threadingContext)
     {
         _threadingContext = threadingContext;
-        _globalOptions = globalOptions;
     }
 
     public string DisplayName => EditorFeaturesResources.Extract_Interface;
@@ -71,7 +68,6 @@ internal abstract class AbstractExtractInterfaceCommandHandler : ICommandHandler
                 var result = await extractInterfaceService.ExtractInterfaceAsync(
                     document,
                     caretPoint.Value.Position,
-                    _globalOptions.CreateProvider(),
                     (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
                     CancellationToken.None).ConfigureAwait(true);
 

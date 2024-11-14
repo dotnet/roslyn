@@ -204,11 +204,7 @@ internal static class RegexCharClass
 
         // Fast lookup in our lookup table for ASCII characters.  This is purely an optimization, and has the
         // behavior as if we fell through to the switch below (which was actually used to produce the lookup table).
-        ReadOnlySpan<byte> asciiLookup = new byte[]
-        {
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x03,
-            0xFE, 0xFF, 0xFF, 0x87, 0xFE, 0xFF, 0xFF, 0x07
-        };
+        ReadOnlySpan<byte> asciiLookup = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x03, 0xFE, 0xFF, 0xFF, 0x87, 0xFE, 0xFF, 0xFF, 0x07];
         var chDiv8 = ch >> 3;
         if ((uint)chDiv8 < (uint)asciiLookup.Length)
         {

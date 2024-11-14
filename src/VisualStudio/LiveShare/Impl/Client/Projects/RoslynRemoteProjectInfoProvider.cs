@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
                     name: projectName,
                     assemblyName: projectName,
                     language,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     checksumAlgorithm),
                 documents: docInfos);
         }

@@ -6,7 +6,7 @@
     <OutputType>Exe</OutputType>
     <StartupObject>Sub Main</StartupObject>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
-    <UseAppHost Condition="'$(DotNetBuildFromSource)' == 'true'">false</UseAppHost>
+    <UseAppHost Condition="'$(DotNetBuildSourceOnly)' == 'true'">false</UseAppHost>
     <RootNamespace></RootNamespace>
     <IsShipping>false</IsShipping>
   </PropertyGroup>

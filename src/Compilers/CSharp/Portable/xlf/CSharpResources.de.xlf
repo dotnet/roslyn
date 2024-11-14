@@ -287,11 +287,6 @@
         <target state="translated">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft oder ein Feld vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">Die Anweisung „foreach“ kann nicht für Enumeratoren vom Typ „{0}“ in asynchronen oder Enumeratormethoden verwendet werden, da „{0}“ eine Verweisstruktur oder ein Typparameter ist, der eine Verweisstruktur zulässt.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Parameter vom Typ „{0}“ können nicht in asynchronen Methoden oder asynchronen Lambdaausdrücken deklariert werden.</target>
@@ -330,6 +325,16 @@
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">Das AsyncMethodBuilder-Attribut ist für anonyme Methoden ohne expliziten Rückgabetyp unzulässig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="translated">„OverloadResolutionPriorityAttribute“ kann für dieses Element nicht verwendet werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="translated">„OverloadResolutionPriorityAttribute“ kann nicht für ein überschriebenes Element verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -495,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">Der Typ "{0}" kann nicht mit einem Sammlungsausdruck initialisiert werden, da der Typ nicht konstruiert werden kann.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="translated">Der Sammlungsinitialisierer führt zu einer unendlichen Kette von Instanziierungen von Sammlungs- "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -770,6 +780,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
         <target state="translated">Die Funktion "{0}" ist in C# 12.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="translated">Die Funktion „{0}“ ist in C# 13.0 nicht verfügbar. Verwenden Sie Sprachversion {1} oder höher.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1133,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">Das experimentelle Feature "Interceptors" ist nicht in diesem Namespace aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="translated">Das Feature "Interceptors" ist in diesem Namespace nicht aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1448,13 +1463,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren. Meinten Sie "using" anstelle von "await using"?</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="translated">„{0}“: Der in einer asynchronen using-Anweisung verwendete Typ muss "System.IAsyncDisposable" implementieren oder eine geeignete „DisposeAsync“-Methode implementieren. Meinten Sie "using" anstelle von "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertierbar sein. Meinten Sie "await using" anstelle von "using"?</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="translated">„{0}“: Der in einer using-Anweisung verwendete Typ muss „System.IDisposable“ implementieren. Meinten Sie „await using“ anstelle von „using“?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1720,6 +1735,11 @@
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
         <target state="translated">Eine partielle Eigenschaft darf nicht über mehrere implementierende Deklarationen verfügen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="translated">Eine partielle Eigenschaft kann nicht sowohl für die Definition als auch für die Implementierung einen Initialisierer aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -2382,9 +2402,9 @@
         <target state="translated">Muster für erweiterte Eigenschaften</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureFieldAndValueKeywords">
-        <source>field and value keywords</source>
-        <target state="translated">Schlüsselwörter für Feld und Wert</target>
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="translated">Feld Schlüsselwort</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2596,6 +2616,11 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
         <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="translated">Priorität der Überladungsauflösung</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">Zeigerelementzugriff</target>
@@ -2619,11 +2644,6 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="IDS_SK_POINTER">
         <source>pointer</source>
         <target state="translated">Zeiger</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">"{0}" ist ein kontextbezogenes Schlüsselwort in Eigenschaftenaccessoren ab Sprachversion {1}. Verwenden Sie stattdessen "@{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
@@ -2914,6 +2934,16 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">Die Verwendung der Variablen in diesem Kontext kann dazu führen, dass referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="translated">In der Sprachversion {0}wird das Schlüsselwort "field" an ein synthetisiertes Sicherungsfeld für die Eigenschaft gebunden. Verwenden Sie stattdessen "this.field" oder "@field", um ein synthetisiertes Sicherungsfeld zu vermeiden und auf das vorhandene Element zu verweisen.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="translated">Das Keyword "field" wird an ein synthetisiertes Sicherungsfeld für die Eigenschaft gebunden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -5260,6 +5290,16 @@ See LICENSE.md and THIRD_PARTY_NOTICES.txt for detailed legal notices.</target>
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
         <target state="translated">Der Async-Iterator-Member weist mindestens einen Parameter vom Typ "CancellationToken" auf, aber keiner der Parameter umfasst das Attribut "EnumeratorCancellation", deshalb wird der Parameter für das Abbruchtoken aus dem generierten "IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator" nicht verwendet.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="translated">Non-Nullable-{0} "{1}" muss beim Beenden des Konstruktors einen Wert ungleich NULL enthalten. Fügen Sie ggf. den Modifizierer "required" hinzu, oder deklarieren Sie die {0} als Nullwerte zulassend, oder fügen Sie "[field: MaybeNull, AllowNull] "-Attribute hinzu.</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="translated">Non-Nullable-Eigenschaft muss beim Beenden des Konstruktors einen Wert ungleich NULL enthalten. Fügen Sie ggf. den Modifizierer "required" hinzu, oder deklarieren Sie die Eigenschaft als Nullwerte zulassend, oder fügen Sie "[field: MaybeNull, AllowNull] "-Attribute hinzu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -9566,8 +9606,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="translated">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertierbar sein.</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
+        <target state="translated">„{0}“: Der in einer using-Anweisung verwendete Typ muss „System.IDisposable“ implementieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -12144,8 +12184,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">Nur automatisch implementierte Eigenschaften können Initialisierer aufweisen.</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="translated">Nur automatisch implementierte Eigenschaften oder Eigenschaften, die die Keyword "field" verwenden, können Initialisierer aufweisen.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
@@ -13094,8 +13134,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren.</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="translated">„{0}“: Der in einer asynchronen using-Anweisung verwendete Typ muss "System.IAsyncDisposable" implementieren oder eine geeignete „DisposeAsync“-Methode implementieren.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

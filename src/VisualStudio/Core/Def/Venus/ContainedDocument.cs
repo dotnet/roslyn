@@ -770,7 +770,7 @@ internal sealed partial class ContainedDocument : IContainedDocument
         Debug.Assert(ReferenceEquals(parsedDocument.Text, subjectBuffer.CurrentSnapshot.AsText()));
 
         var editorOptionsService = _componentModel.GetService<EditorOptionsService>();
-        var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
+        var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: false);
 
         using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 
@@ -807,7 +807,7 @@ internal sealed partial class ContainedDocument : IContainedDocument
         var services = document.Project.Solution.Services;
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
         var changes = formatter.GetFormattingResult(
-            root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
+            root, [CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan)],
             options,
             [.. venusFormattingRules, .. Formatter.GetDefaultFormattingRules(document)],
             CancellationToken.None).GetTextChanges(CancellationToken.None);

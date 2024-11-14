@@ -3968,7 +3968,7 @@ End Class")
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                                      Assert.Equal(
+                                                                                      AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Current: System.Int32",
@@ -3981,7 +3981,7 @@ End Class")
                                                                                   End Sub)
 
             Dim v1 = CompileAndVerify(compilation:=compilation1, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                                      Assert.Equal(
+                                                                                      AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Current: System.Int32",
@@ -7027,7 +7027,7 @@ End Class")
             Dim h3 = compilation3.GetMember(Of MethodSymbol)("C.H")
 
             Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                                      Assert.Equal(
+                                                                                      AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
@@ -7374,7 +7374,7 @@ End Class
             Dim compilation0 = CreateEmptyCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                             Assert.Equal(
+                                                                             AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
@@ -7383,7 +7383,7 @@ End Class
                                                                                         "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of System.Int32)"
                                                                                       }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_4_F"))
 
-                                                                             Assert.Equal(
+                                                                             AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
@@ -7528,7 +7528,7 @@ End Class")
 
             Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=
                 Sub([module] As ModuleSymbol)
-                    Assert.Equal(
+                    AssertEx.Equal(
                     {
                         "$State: System.Int32",
                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
@@ -8126,13 +8126,13 @@ Class C
     End Function
 End Class")
 
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
             Dim v0 = CompileAndVerify(compilation0, symbolValidator:=
                 Sub([module])
-                    Assert.Equal(
+                    AssertEx.Equal(
                     {
                          "$State: System.Int32",
                          "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",
@@ -8210,7 +8210,7 @@ Class C
     Shared Sub G(f As Func(Of Integer))
     End Sub
 End Class")
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim m0 = compilation0.GetMember(Of MethodSymbol)("C.M")
@@ -8328,7 +8328,7 @@ Class C
         Return Task.FromResult(1)
     End Function
 End Class")
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim m0 = compilation0.GetMember(Of MethodSymbol)("C.M")
@@ -8436,7 +8436,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
@@ -8568,7 +8568,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
@@ -8701,7 +8701,7 @@ End Class
             Dim source4 = source0
             Dim source5 = source1
 
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, {SystemCoreRef}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, {SystemCoreRef}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation0.WithSource(source2.Tree)
             Dim compilation3 = compilation0.WithSource(source3.Tree)
@@ -9072,7 +9072,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilation({source0.Tree}, {TestMetadata.Net451.mscorlib}, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilation({source0.Tree}, {NetFramework.mscorlib}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))

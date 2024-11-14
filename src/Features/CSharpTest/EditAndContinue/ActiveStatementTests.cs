@@ -3633,6 +3633,100 @@ class C
             Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "lock (G(a => a))", CSharpFeaturesResources.lock_statement));
     }
 
+    [Fact]
+    public void Lock_Update_Type()
+    {
+        var src1 = """
+            class C
+            {
+                static void F()
+                {
+                    var a = new object();
+                    var b = new C();
+                    var c = "";
+
+                    lock (a)
+                    {
+                        lock (b)
+                        {
+                            lock (c)
+                            {
+                                <AS:0>System.Console.Write();</AS:0>
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                static void F()
+                {
+                    var a = new object();
+                    var b = new object(); // type changed
+                    var c = "";
+
+                    lock (a)
+                    {
+                        lock (b)
+                        {
+                            lock (c)
+                            {
+                                <AS:0>System.Console.Write();</AS:0>
+                            }
+                        }
+                    }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(active,
+            Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "lock (b)", CSharpFeaturesResources.lock_statement, "C", "object"));
+    }
+
+    [Fact]
+    public void Lock_Update_Type_SemanticError()
+    {
+        var src1 = """
+            class C
+            {
+                static void F()
+                {
+                    var a = new object();
+
+                    lock (a)
+                    {
+                        <AS:0>System.Console.Write();</AS:0>
+                    }
+                }
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                static void F()
+                {
+                    lock (a)
+                    {
+                        <AS:0>System.Console.Write();</AS:0>
+                    }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(active,
+            Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "lock (a)", CSharpFeaturesResources.lock_statement, "object", "?"));
+    }
+
     #endregion
 
     #region Fixed Statement
@@ -3678,6 +3772,49 @@ class Test
         var active = GetActiveStatements(src1, src2);
 
         edits.VerifySemanticDiagnostics(active);
+    }
+
+    [Fact]
+    public void FixedBody_Update_TypeChange()
+    {
+        var src1 = """
+            class C
+            {
+                static unsafe void F()
+                {
+                    var x = new int[1];
+                    var y = new int[1];
+                    var z = new int[1,1];
+                    fixed (int* p = x, q = y, r = z)
+                    {
+                        <AS:0>System.Console.WriteLine();</AS:0>
+                    }
+                }
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                static unsafe void F()
+                {
+                    var x = new int[1];
+                    var y = new int[1,1];
+                    var z = new int[1];
+                    fixed (int* p = x, q = y, r = z)
+                    {
+                        <AS:0>System.Console.WriteLine();</AS:0>
+                    }
+                }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(active,
+            Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "fixed (int* p = x, q = y, r = z)", CSharpFeaturesResources.fixed_statement, "int[]", "int[*,*]"),
+            Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "fixed (int* p = x, q = y, r = z)", CSharpFeaturesResources.fixed_statement, "int[*,*]", "int[]"));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755742")]
@@ -5198,7 +5335,7 @@ struct Buffer4
     }
 
     [Fact]
-    public void ForEach_Update_Nullable()
+    public void ForEach_Update_Nullable_Struct()
     {
         var src1 = @"
 class C
@@ -5219,6 +5356,42 @@ class C
     static void F()
     {
         var arr = new int[] { 0 };
+        foreach (var s in arr)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(active,
+            Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "foreach (var s in arr)", CSharpFeaturesResources.foreach_statement, "int?[]", "int[]"));
+    }
+
+    [Fact]
+    public void ForEach_Update_Nullable_Class()
+    {
+        var src1 = @"
+class C
+{
+    static void F()
+    {
+        var arr = new object?[] { 0 };
+        foreach (var s in arr)
+        {
+            <AS:0>Console.WriteLine(1);</AS:0>
+        }
+    }
+}
+";
+        var src2 = @"
+class C
+{
+    static void F()
+    {
+        var arr = new object[] { 0 };
         foreach (var s in arr)
         {
             <AS:0>Console.WriteLine(1);</AS:0>
@@ -5776,6 +5949,54 @@ class Test
         // The user might expect that the object the field points to is disposed at the end of the using block, but it isn't.
         edits.VerifySemanticDiagnostics(active,
             Diagnostic(RudeEditKind.InsertAroundActiveStatement, "using (c)", CSharpFeaturesResources.using_statement));
+    }
+
+    [Fact]
+    public void UsingStatement_Expression_Update_Leaf_TypeChange()
+    {
+        var src1 = """
+            using System;
+
+            class C
+            {
+                static void F()
+                {
+                    var x = new D1();
+                    using (x)
+                    {
+                        <AS:0>System.Console.Write();</AS:0>
+                    }
+                }
+            }
+            
+            class D1 : IDisposable { public void Dispose() { } }
+            class D2 : IDisposable { public void Dispose() { } }
+            """;
+
+        var src2 = """
+            using System;
+
+            class C
+            {
+                static void F()
+                {
+                    var x = new D2();
+                    using (x)
+                    {
+                        <AS:0>System.Console.Write();</AS:0>
+                    }
+                }
+            }
+            
+            class D1 : IDisposable { public void Dispose() { } }
+            class D2 : IDisposable { public void Dispose() { } }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+        var active = GetActiveStatements(src1, src2);
+
+        edits.VerifySemanticDiagnostics(active,
+            Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "using (x)", CSharpFeaturesResources.using_statement, "D1", "D2"));
     }
 
     [Fact]

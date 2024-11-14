@@ -22,8 +22,8 @@ internal sealed class CSharpExtractMethodService() : AbstractExtractMethodServic
     StatementSyntax,
     ExpressionSyntax>
 {
-    protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, ExtractMethodOptions options, bool localFunction)
-        => new(document, textSpan, options, localFunction);
+    protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction)
+        => new(document, textSpan, localFunction);
 
     protected override CSharpMethodExtractor CreateMethodExtractor(CSharpSelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction)
         => new(selectionResult, options, localFunction);

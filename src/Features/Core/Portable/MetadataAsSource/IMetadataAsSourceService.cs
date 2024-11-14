@@ -4,7 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
@@ -19,8 +19,9 @@ internal interface IMetadataAsSourceService : ILanguageService
     /// <param name="document">The document to generate source into</param>
     /// <param name="symbolCompilation">The <see cref="Compilation"/> in which <paramref name="symbol"/> is resolved.</param>
     /// <param name="symbol">The symbol to generate source for</param>
-    /// <param name="options">Options to use to generate and format the code.</param>
-    /// <param name="cancellationToken">To cancel document operations</param>
+    /// <param name="formattingOptions">Options to use to format the generated document, or null to use the <paramref name="document"/>'s options.</param>
+    /// 
     /// <returns>The updated document</returns>
-    Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CleanCodeGenerationOptions options, CancellationToken cancellationToken);
+    /// <param name="cancellationToken">To cancel document operations</param>
+    Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
 }

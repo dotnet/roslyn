@@ -52,7 +52,7 @@ public static partial class Renamer
         if (string.IsNullOrEmpty(newName))
             throw new ArgumentException(WorkspacesResources._0_must_be_a_non_null_and_non_empty_string, nameof(newName));
 
-        var resolution = await RenameSymbolAsync(solution, symbol, newName, options, CodeActionOptions.DefaultProvider, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
+        var resolution = await RenameSymbolAsync(solution, symbol, newName, options, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
 
         if (resolution.IsSuccessful)
         {
@@ -96,25 +96,17 @@ public static partial class Renamer
     /// <param name="newDocumentName">The new name for the document. Pass null or the same name to keep unchanged.</param>
     /// <param name="options">Options used to configure rename of a type contained in the document that matches the document's name.</param>
     /// <param name="newDocumentFolders">The new set of folders for the <see cref="TextDocument.Folders"/> property</param>
-    public static Task<RenameDocumentActionSet> RenameDocumentAsync(
+    public static async Task<RenameDocumentActionSet> RenameDocumentAsync(
         Document document,
         DocumentRenameOptions options,
         string? newDocumentName,
         IReadOnlyList<string>? newDocumentFolders = null,
         CancellationToken cancellationToken = default)
     {
-        return RenameDocumentAsync(document ?? throw new ArgumentNullException(nameof(document)), options, CodeActionOptions.DefaultProvider, newDocumentName, newDocumentFolders, cancellationToken);
-    }
+        if (document == null)
+            throw new ArgumentNullException(nameof(document));
 
-    internal static async Task<RenameDocumentActionSet> RenameDocumentAsync(
-        Document document,
-        DocumentRenameOptions options,
-        CodeCleanupOptionsProvider fallbackOptions,
-        string? newDocumentName,
-        IReadOnlyList<string>? newDocumentFolders,
-        CancellationToken cancellationToken)
-    {
-        if (document.Services.GetService<ISpanMappingService>() != null)
+        if (document.DocumentServiceProvider.GetService<ISpanMappingService>() != null)
         {
             // Don't advertise that we can file rename generated documents that map to a different file.
             return new RenameDocumentActionSet([], document.Id, document.Name, [.. document.Folders], options);
@@ -130,7 +122,7 @@ public static partial class Renamer
 
         if (newDocumentFolders != null && !newDocumentFolders.SequenceEqual(document.Folders))
         {
-            var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders, fallbackOptions);
+            var action = SyncNamespaceDocumentAction.TryCreate(document, newDocumentFolders);
             actions.AddIfNotNull(action);
         }
 
@@ -154,7 +146,6 @@ public static partial class Renamer
         ISymbol symbol,
         string newName,
         SymbolRenameOptions options,
-        CodeCleanupOptionsProvider fallbackOptions,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
@@ -173,15 +164,13 @@ public static partial class Renamer
                 {
                     var result = await client.TryInvokeAsync<IRemoteRenamerService, SerializableConflictResolution?>(
                         solution,
-                        (service, solutionInfo, callbackId, cancellationToken) => service.RenameSymbolAsync(
+                        (service, solutionInfo, cancellationToken) => service.RenameSymbolAsync(
                             solutionInfo,
-                            callbackId,
                             serializedSymbol,
                             newName,
                             options,
                             nonConflictSymbolKeys,
                             cancellationToken),
-                        callbackTarget: new RemoteOptionsProvider<CodeCleanupOptions>(solution.Services, fallbackOptions),
                         cancellationToken).ConfigureAwait(false);
 
                     if (result.HasValue && result.Value != null)
@@ -193,7 +182,7 @@ public static partial class Renamer
         }
 
         return await RenameSymbolInCurrentProcessAsync(
-            solution, symbol, newName, options, fallbackOptions,
+            solution, symbol, newName, options,
             nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
     }
 
@@ -202,7 +191,6 @@ public static partial class Renamer
         ISymbol symbol,
         string newName,
         SymbolRenameOptions options,
-        CodeCleanupOptionsProvider cleanupOptions,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken)
     {
@@ -217,6 +205,6 @@ public static partial class Renamer
         // without having to go through any intermediary LightweightTypes.
         var renameLocations = await SymbolicRenameLocations.FindLocationsInCurrentProcessAsync(symbol, solution, options, cancellationToken).ConfigureAwait(false);
         return await ConflictResolver.ResolveSymbolicLocationConflictsInCurrentProcessAsync(
-            renameLocations, newName, nonConflictSymbolKeys, cleanupOptions, cancellationToken).ConfigureAwait(false);
+            renameLocations, newName, nonConflictSymbolKeys, cancellationToken).ConfigureAwait(false);
     }
 }

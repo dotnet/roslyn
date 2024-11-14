@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.VisualStudio.Text;
@@ -82,15 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             }
                         }
 
-                        var options = Controller.GlobalOptions.GetSignatureHelpOptions(document.Project.Language);
-
                         // first try to query the providers that can trigger on the specified character
                         var (provider, items) = await SignatureHelpService.GetSignatureHelpAsync(
                             providers,
                             document,
                             caretPosition,
                             triggerInfo,
-                            options,
                             cancellationToken).ConfigureAwait(false);
 
                         if (provider == null)
@@ -103,8 +101,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             currentModel.Provider == provider &&
                             currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == items.ApplicableSpan.Start &&
                             currentModel.Items.IndexOf(currentModel.SelectedItem) == items.SelectedItemIndex &&
-                            currentModel.ArgumentIndex == items.ArgumentIndex &&
-                            currentModel.ArgumentCount == items.ArgumentCount &&
+                            currentModel.SemanticParameterIndex == items.SemanticParameterIndex &&
+                            currentModel.SyntacticArgumentCount == items.SyntacticArgumentCount &&
                             currentModel.ArgumentName == items.ArgumentName)
                         {
                             // The new model is the same as the current model.  Return the currentModel
@@ -114,14 +112,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         var selectedItem = GetSelectedItem(currentModel, items, provider, out var userSelected);
 
-                        var model = new Model(disconnectedBufferGraph, items.ApplicableSpan, provider,
-                            items.Items, selectedItem, items.ArgumentIndex, items.ArgumentCount, items.ArgumentName,
-                            selectedParameter: 0, userSelected);
+                        var model = new Model(
+                            disconnectedBufferGraph,
+                            items.ApplicableSpan,
+                            provider,
+                            items.Items,
+                            selectedItem,
+                            items.SemanticParameterIndex,
+                            items.SyntacticArgumentCount,
+                            items.ArgumentName,
+                            selectedParameter: 0,
+                            userSelected);
 
                         var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                         var isCaseSensitive = syntaxFactsService == null || syntaxFactsService.IsCaseSensitive;
-                        var selection = DefaultSignatureHelpSelector.GetSelection(model.Items,
-                            model.SelectedItem, model.UserSelected, model.ArgumentIndex, model.ArgumentCount, model.ArgumentName, isCaseSensitive);
+                        var selection = DefaultSignatureHelpSelector.GetSelection(
+                            model.Items,
+                            model.SelectedItem,
+                            model.UserSelected,
+                            model.SemanticParameterIndex,
+                            model.SyntacticArgumentCount,
+                            model.ArgumentName,
+                            isCaseSensitive);
 
                         return model.WithSelectedItem(selection.SelectedItem, selection.UserSelected)
                                     .WithSelectedParameter(selection.SelectedParameter);

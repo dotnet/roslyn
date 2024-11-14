@@ -46,7 +46,6 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
     private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
     {
         var composition = EditorTestCompositions.EditorFeatures
-            .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
             .AddParts(
                 typeof(MockHostWorkspaceProvider),
                 typeof(MockManagedHotReloadService),
@@ -54,6 +53,10 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
             .AddParts(additionalParts);
 
         var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
+
+        var sourceTextProvider = (PdbMatchingSourceTextProvider)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is PdbMatchingSourceTextProvider).Value;
+        var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
+        listenerProvider.EventListeners = [sourceTextProvider];
 
         ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
         {
@@ -160,12 +163,14 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
             var documentDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
             var projectDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.None, ["proj", "error 2"]);
             var syntaxError = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "syntax error 3"]);
+            var rudeEditDiagnostic = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"]).ToDiagnostic(syntaxTree);
 
             return new()
             {
+                Solution = solution,
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
                 Diagnostics = [new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic])],
-                RudeEdits = [(documentId, [new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"])])],
+                RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic])],
                 SyntaxError = syntaxError
             };
         };

@@ -2887,4 +2887,47 @@ public class UseCollectionExpressionForFluentTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestObjectCreation_PreservesTrivia()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        int[] array = new List<int>() //Some comment
+                        {
+                            1, 2, 3
+                        }.Concat(x).[|ToArray|]();
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Linq;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        int[] array =
+                        //Some comment
+                        [
+                            1, 2, 3, .. x
+                        ];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

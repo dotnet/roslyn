@@ -1037,6 +1037,11 @@
         <target state="translated">'GetHashCode'에서 'System.HashCode' 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_Threading_Lock">
+        <source>Prefer 'System.Threading.Lock'</source>
+        <target state="translated">'System.Threading.Lock' 선호</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
         <target state="translated">UTF-8 문자열 리터럴 선호</target>
@@ -1230,11 +1235,6 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">변경 내용 검토</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Roslyn_save_command_handler">
-        <source>Roslyn save command handler</source>
-        <target state="translated">Roslyn 저장 명령 처리기</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
@@ -2411,13 +2411,13 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       </trans-unit>
       <trans-unit id="example">
         <source>example</source>
-        <target state="translated">예</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+        <target state="new">example</target>
+        <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="identifier">
         <source>identifier</source>
-        <target state="translated">식별자</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+        <target state="new">identifier</target>
+        <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="Install_0">
         <source>Install '{0}'</source>
