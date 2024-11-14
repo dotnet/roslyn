@@ -2771,17 +2771,19 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 """, expectedOutput: "Z").VerifyDiagnostics();
         }
 
-        [Fact]
-        public void OpenTypeInNameof_SemanticModelTests()
+        [Theory]
+        [InlineData("IGoo<>")]
+        [InlineData("IGoo<>.Count")]
+        public void OpenTypeInNameof_SemanticModelTest1(string nameofType)
         {
-            var compilation = CreateCompilation("""
+            var compilation = CreateCompilation($$"""
                 using System;
                     
-                var v1 = nameof(IGoo<>);
+                var v1 = nameof({{nameofType}});
                 var v2 = typeof(IGoo<>);
                 Console.WriteLine(v1 + v2);
 
-                interface IGoo<T> { }
+                interface IGoo<T> { public T Count { get; } }
                 """).VerifyDiagnostics();
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
