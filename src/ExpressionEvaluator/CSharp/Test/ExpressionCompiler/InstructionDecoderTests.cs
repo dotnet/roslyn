@@ -437,8 +437,8 @@ class C
             VerifyMethodName(compilation, containingType.GetMethod("get_P1"), "C.P1.get()", "P1");
             VerifyMethodName(compilation, containingType.GetMethod("set_P2"), "C.P2.set(value)", "P2");
             VerifyMethodName(compilation, containingType.GetMethod("set_P3"), "C.P3.init(value)", "P3");
-            VerifyMethodName(compilation, containingType.GetMethod("get_Item"), "C.this[int].get(i)", "this");
-            VerifyMethodName(compilation, containingType.GetMethod("set_Item"), "C.this[int].set(i, value)", "this");
+            VerifyMethodName(compilation, containingType.GetMethod("get_Item"), "C.this[int].get(i)", "this[]");
+            VerifyMethodName(compilation, containingType.GetMethod("set_Item"), "C.this[int].set(i, value)", "this[]");
             VerifyMethodName(compilation, containingType.GetMethod("add_E"), "C.E.add(value)", "E");
             VerifyMethodName(compilation, containingType.GetMethod("remove_E"), "C.E.remove(value)", "E");
             VerifyMethodName(compilation, compilation.GlobalNamespace.GetTypeMember("E").GetMethod("M"), "E.M(x)", "M");
