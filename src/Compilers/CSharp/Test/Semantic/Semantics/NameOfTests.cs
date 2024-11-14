@@ -2557,7 +2557,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
-        public void OpenTypeInNameof_NoNestedOpenTypes()
+        public void OpenTypeInNameof_NoNestedOpenTypes1()
         {
             CreateCompilation("""
                 using System;
@@ -2569,6 +2569,45 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     // (4,21): error CS7003: Unexpected use of an unbound generic name
                     // var v = nameof(List<List<>>);
                     Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoNestedOpenTypes2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<List<>[]>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                    // (4,21): error CS7003: Unexpected use of an unbound generic name
+                    // var v = nameof(List<List<>>);
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void Nameof_NestedClosedType1()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<List<int>>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Nameof_NestedClosedType2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<List<int>>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics();
         }
 
         [Fact]
