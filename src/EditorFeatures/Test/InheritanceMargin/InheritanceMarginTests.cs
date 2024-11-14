@@ -229,6 +229,9 @@ public class InheritanceMarginTests
             MemberName = memberName;
             Targets = targets;
         }
+
+        public override string ToString()
+            => MemberName;
     }
 
     private class TargetInfo
@@ -1026,6 +1029,107 @@ public class {|target2:Bar|} : IBar
             itemForFooInBar1,
             itemForBar2,
             itemForFooInBar2);
+    }
+
+
+    [Theory]
+    [InlineData("abstract", TestHost.InProcess)]
+    [InlineData("abstract", TestHost.OutOfProcess)]
+    [InlineData("virtual", TestHost.InProcess)]
+    [InlineData("virtual", TestHost.OutOfProcess)]
+    public Task TestCSharpAbstractClassMembers_LooseMatch(string modifier, TestHost testHost)
+    {
+        var markup = $@"using System;
+        public abstract class {{|target2:Bar|}}
+        {{
+            public {modifier} void {{|target4:Foo|}}();
+            public {modifier} int {{|target6:Poo|}} {{ get; set; }}
+            public {modifier} event EventHandler {{|target8:Eoo|}};
+        }}
+        public class {{|target1:Bar2|}} : Bar
+        {{
+            public override void {{|target3:Foo|}}(int i) {{ }}
+            public override string {{|target5:Poo|}} {{ get; set; }}
+            public override event Action {{|target7:Eoo|}};
+        }}
+                    ";
+
+        var itemForEooInClass = new TestInheritanceMemberItem(
+            lineNumber: 12,
+            memberName: "override event Action Bar2.Eoo",
+            targets: [new TargetInfo(
+                targetSymbolDisplayName: $"Bar.Eoo",
+                locationTag: "target8",
+                relationship: InheritanceRelationship.OverriddenMember)]);
+
+        var itemForEooInAbstractClass = new TestInheritanceMemberItem(
+            lineNumber: 6,
+            memberName: $"{modifier} event EventHandler Bar.Eoo",
+            targets: [new TargetInfo(
+                targetSymbolDisplayName: "Bar2.Eoo",
+                locationTag: "target7",
+                relationship: InheritanceRelationship.OverridingMember)]);
+
+        var itemForPooInClass = new TestInheritanceMemberItem(
+            lineNumber: 11,
+            memberName: "override string Bar2.Poo { get; set; }",
+            targets: [new TargetInfo(
+                targetSymbolDisplayName: $"Bar.Poo",
+                locationTag: "target6",
+                relationship: InheritanceRelationship.OverriddenMember)]);
+
+        var itemForPooInAbstractClass = new TestInheritanceMemberItem(
+            lineNumber: 5,
+            memberName: $"{modifier} int Bar.Poo {{ get; set; }}",
+            targets: [new TargetInfo(
+                targetSymbolDisplayName: "Bar2.Poo",
+                locationTag: "target5",
+                relationship: InheritanceRelationship.OverridingMember)]);
+
+        var itemForFooInAbstractClass = new TestInheritanceMemberItem(
+            lineNumber: 4,
+            memberName: $"{modifier} void Bar.Foo()",
+            targets: [new TargetInfo(
+                targetSymbolDisplayName: "Bar2.Foo",
+                locationTag: "target3",
+                relationship: InheritanceRelationship.OverridingMember)]);
+
+        var itemForFooInClass = new TestInheritanceMemberItem(
+            lineNumber: 10,
+            memberName: "override void Bar2.Foo(int)",
+            targets: [new TargetInfo(
+                targetSymbolDisplayName: $"Bar.Foo",
+                locationTag: "target4",
+                relationship: InheritanceRelationship.OverriddenMember)]);
+
+        var itemForBar = new TestInheritanceMemberItem(
+            lineNumber: 2,
+            memberName: "class Bar",
+            targets: [new TargetInfo(
+                targetSymbolDisplayName: "Bar2",
+                locationTag: "target1",
+                relationship: InheritanceRelationship.DerivedType)]);
+
+        var itemForBar2 = new TestInheritanceMemberItem(
+            lineNumber: 8,
+            memberName: "class Bar2",
+            targets: [new TargetInfo(
+                targetSymbolDisplayName: "Bar",
+                locationTag: "target2",
+                relationship: InheritanceRelationship.BaseType)]);
+
+        return VerifyInSingleDocumentAsync(
+            markup,
+            LanguageNames.CSharp,
+            testHost,
+            itemForBar,
+            itemForBar2,
+            itemForFooInAbstractClass,
+            itemForFooInClass,
+            itemForPooInClass,
+            itemForPooInAbstractClass,
+            itemForEooInClass,
+            itemForEooInAbstractClass);
     }
 
     [Theory, CombinatorialData]
