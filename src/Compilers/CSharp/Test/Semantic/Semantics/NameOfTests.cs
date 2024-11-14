@@ -2587,6 +2587,40 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
+        public void OpenTypeInNameof_NoNestedOpenTypes3()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<Outer<>.Inner>);
+                Console.WriteLine(v);
+                
+                public class Outer<T> { public class Inner { } }
+                """).VerifyDiagnostics(
+                    // (4,21): error CS7003: Unexpected use of an unbound generic name
+                    // var v = nameof(List<Outer<>.Inner>);
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Outer<>").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoNestedOpenTypes4()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<Outer.Inner<>>);
+                Console.WriteLine(v);
+                
+                public class Outer { public class Inner<T> { } }
+                """).VerifyDiagnostics(
+                    // (4,27): error CS7003: Unexpected use of an unbound generic name
+                    // var v = nameof(List<Outer.Inner<>>);
+                    Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "Inner<>").WithLocation(4, 27));
+        }
+
+        [Fact]
         public void Nameof_NestedClosedType1()
         {
             CreateCompilation("""
