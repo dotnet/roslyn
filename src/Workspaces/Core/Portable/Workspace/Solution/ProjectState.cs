@@ -846,7 +846,7 @@ internal sealed partial class ProjectState
         return With(projectInfo: ProjectInfo.With(metadataReferences: metadataReferences).WithVersion(Version.GetNewerVersion()));
     }
 
-    public ProjectState WithAnalyzerReferences(IEnumerable<AnalyzerReference> analyzerReferences)
+    public ProjectState WithAnalyzerReferences(IReadOnlyList<AnalyzerReference> analyzerReferences)
     {
         if (analyzerReferences == AnalyzerReferences)
         {

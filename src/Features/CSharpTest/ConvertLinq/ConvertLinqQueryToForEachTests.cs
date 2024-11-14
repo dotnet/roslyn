@@ -3353,7 +3353,7 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
                 {
                     for(int i = ([|from int n1 in nums 
                              from int n2 in nums
-                             select n1|]).Count(), i < 5; i++)
+                             select n1|]).Count(); i < 5; i++)
                     {
                         Console.WriteLine(i);
                     }
@@ -3369,20 +3369,17 @@ public class ConvertLinqQueryToForEachTests : AbstractCSharpCodeActionTest_NoEdi
             {
                 void M(IEnumerable<int> nums)
                 {
-                    IEnumerable<int> enumerable()
-                    {
-                        foreach (int n1 in nums)
-                        {
-                            foreach (int n2 in nums)
-                            {
-                                yield return n1;
-                            }
-                        }
-                    }
-
-                    for (int i = enumerable().Count(), i < 5; i++)
+                    for(int i = 0; i < 5; i++)
                     {
                         Console.WriteLine(i);
+                    }
+
+                    foreach (int n1 in nums)
+                    {
+                        foreach (int n2 in nums)
+                        {
+                            i++;
+                        }
                     }
                 }
             }

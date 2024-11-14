@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,8 +26,11 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
     TDocumentationCommentTriviaSyntax,
     TIdentifierNameSyntax,
     TTypeDeclarationSyntax,
-    TMemberDeclarationSyntax>
-    : AbstractCodeQualityDiagnosticAnalyzer
+    TMemberDeclarationSyntax>()
+    : AbstractCodeQualityDiagnosticAnalyzer(
+        [s_removeUnusedMembersRule, s_removeUnreadMembersRule],
+        // We want to analyze references in generated code, but not report unused members in generated code.
+        GeneratedCodeAnalysisFlags.Analyze)
     where TDocumentationCommentTriviaSyntax : SyntaxNode
     where TIdentifierNameSyntax : SyntaxNode
     where TTypeDeclarationSyntax : TMemberDeclarationSyntax
@@ -56,11 +60,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         hasAnyCodeStyleOption: false, isUnnecessary: true);
 
-    protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
-        : base([s_removeUnusedMembersRule, s_removeUnreadMembersRule],
-               GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
-    {
-    }
+    protected abstract ISemanticFacts SemanticFacts { get; }
 
     protected abstract IEnumerable<TTypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken);
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
@@ -86,7 +86,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
     private sealed class CompilationAnalyzer
     {
-        private readonly object _gate;
+        private readonly object _gate = new();
+
         /// <summary>
         /// State map for candidate member symbols, with the value indicating how each symbol is used in executable code.
         /// </summary>
@@ -114,7 +115,6 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             Compilation compilation,
             AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> analyzer)
         {
-            _gate = new object();
             _analyzer = analyzer;
 
             _taskType = compilation.TaskType();
@@ -204,6 +204,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
                 symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                 symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
+                symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
 
                 // We bail out reporting diagnostics for named types if it contains following kind of operations:
                 //  1. Invalid operations, i.e. erroneous code:
@@ -211,8 +212,9 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
                 //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
                 //  3. Operations with OperationKind.None.
-                symbolStartContext.RegisterOperationAction(_ => hasUnsupportedOperation = true, OperationKind.Invalid, OperationKind.None,
-                    OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
+                symbolStartContext.RegisterOperationAction(
+                    _ => hasUnsupportedOperation = true,
+                    OperationKind.Invalid, OperationKind.None, OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
 
                 symbolStartContext.RegisterSymbolEndAction(symbolEndContext => OnSymbolEnd(symbolEndContext, hasUnsupportedOperation));
 
@@ -369,6 +371,18 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             }
         }
 
+        private void AnalyzeLoopOperation(OperationAnalysisContext operationContext)
+        {
+            var operation = operationContext.Operation;
+            if (operation is not IForEachLoopOperation loopOperation)
+                return;
+
+            var symbols = _analyzer.SemanticFacts.GetForEachSymbols(operation.SemanticModel!, loopOperation.Syntax);
+            OnSymbolUsage(symbols.CurrentProperty, ValueUsageInfo.Read);
+            OnSymbolUsage(symbols.GetEnumeratorMethod, ValueUsageInfo.Read);
+            OnSymbolUsage(symbols.MoveNextMethod, ValueUsageInfo.Read);
+        }
+
         private void AnalyzeInvocationOperation(OperationAnalysisContext operationContext)
         {
             var targetMethod = ((IInvocationOperation)operationContext.Operation).TargetMethod.OriginalDefinition;
@@ -380,9 +394,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             // If the invoked method is a reduced extension method, also mark the original
             // method from which it was reduced as "used".
             if (targetMethod.ReducedFrom != null)
-            {
                 OnSymbolUsage(targetMethod.ReducedFrom, ValueUsageInfo.Read);
-            }
         }
 
         private void AnalyzeNameOfOperation(OperationAnalysisContext operationContext)

@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.SimplifyLinqExpression
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyLinqExpression)>
@@ -41,7 +42,7 @@ Module T
         Dim test5 = test.FirstOrDefault(Function(x) x.Equals(""!""))
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, VisualBasicSimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Fact>
@@ -78,7 +79,7 @@ Module T
         Dim test5 = Enumerable.FirstOrDefault(test, Function(x) x.Equals(""!""))
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, VisualBasicSimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
         End Function
 
         <Fact>
@@ -115,7 +116,7 @@ Module T
         Dim test5 = test.FirstOrDefault(Function(x) x.FirstOrDefault(Function(s) s.Equals(""!"")).Equals(""!""))
     End Sub
 End Module"
-            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, VisualBasicSimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
+            Await VisualBasicCodeFixVerifier(Of VisualBasicSimplifyLinqExpressionDiagnosticAnalyzer, SimplifyLinqExpressionCodeFixProvider).VerifyCodeFixAsync(testCode, fixedCode)
         End Function
     End Class
 End Namespace

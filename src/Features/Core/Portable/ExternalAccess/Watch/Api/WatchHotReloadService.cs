@@ -90,12 +90,24 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         /// <summary>
         /// Running projects that need to be restarted due to rude edits in order to apply changes.
         /// </summary>
+        [Obsolete("Use ProjectIdsToRestart")]
         public IReadOnlySet<Project> ProjectsToRestart { get; } = projectsToRestart;
 
         /// <summary>
         /// Projects with changes that need to be rebuilt in order to apply changes.
         /// </summary>
+        [Obsolete("Use ProjectIdsToRebuild")]
         public IReadOnlySet<Project> ProjectsToRebuild { get; } = projectsToRebuild;
+
+        /// <summary>
+        /// Running projects that need to be restarted due to rude edits in order to apply changes.
+        /// </summary>
+        public ImmutableArray<ProjectId> ProjectIdsToRestart { get; } = projectsToRestart.SelectAsArray(p => p.Id);
+
+        /// <summary>
+        /// Projects with changes that need to be rebuilt in order to apply changes.
+        /// </summary>
+        public ImmutableArray<ProjectId> ProjectIdsToRebuild { get; } = projectsToRebuild.SelectAsArray(p => p.Id);
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
@@ -151,27 +163,32 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         _encService.BreakStateOrCapabilitiesChanged(GetDebuggingSession(), inBreakState: null);
     }
 
+    [Obsolete]
     public async Task<(ImmutableArray<Update> updates, ImmutableArray<Diagnostic> diagnostics)> EmitSolutionUpdateAsync(Solution solution, CancellationToken cancellationToken)
     {
         var result = await GetUpdatesAsync(solution, isRunningProject: static _ => false, cancellationToken).ConfigureAwait(false);
         return (result.ProjectUpdates, result.Diagnostics);
     }
 
+    [Obsolete]
+    public Task<Updates> GetUpdatesAsync(Solution solution, Func<Project, bool> isRunningProject, CancellationToken cancellationToken)
+        => GetUpdatesAsync(solution, solution.Projects.Where(isRunningProject).Select(static p => p.Id).ToImmutableHashSet(), cancellationToken);
+
     /// <summary>
     /// Emits updates for all projects that differ between the given <paramref name="solution"/> snapshot and the one given to the previous successful call or
     /// the one passed to <see cref="StartSessionAsync(Solution, CancellationToken)"/> for the first invocation.
     /// </summary>
     /// <param name="solution">Solution snapshot.</param>
-    /// <param name="isRunningProject">Identifies projects that launched a process.</param>
+    /// <param name="runningProjects">Identifies projects that launched a process.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>
     /// Updates (one for each changed project) and Rude Edit diagnostics. Does not include syntax or semantic diagnostics.
     /// </returns>
-    public async Task<Updates> GetUpdatesAsync(Solution solution, Func<Project, bool> isRunningProject, CancellationToken cancellationToken)
+    public async Task<Updates> GetUpdatesAsync(Solution solution, IImmutableSet<ProjectId> runningProjects, CancellationToken cancellationToken)
     {
         var sessionId = GetDebuggingSession();
 
-        var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+        var results = await _encService.EmitSolutionUpdateAsync(sessionId, solution, runningProjects, s_solutionActiveStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
         {
@@ -180,14 +197,10 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
 
         var diagnostics = results.GetAllDiagnostics();
 
-        var projectsToRestart = new HashSet<Project>();
-        var projectsToRebuild = new HashSet<Project>();
-        results.GetProjectsToRebuildAndRestart(solution, isRunningProject, projectsToRestart, projectsToRebuild);
-
         var projectUpdates =
             from update in results.ModuleUpdates.Updates
             let project = solution.GetRequiredProject(update.ProjectId)
-            where !projectsToRestart.Contains(project)
+            where !results.ProjectsToRestart.Contains(project.Id)
             select new Update(
                 update.Module,
                 project.Id,
@@ -197,7 +210,18 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
                 update.UpdatedTypes,
                 update.RequiredCapabilities);
 
-        return new Updates(results.ModuleUpdates.Status, diagnostics, projectUpdates.ToImmutableArray(), projectsToRestart, projectsToRebuild);
+        return new Updates(
+            results.ModuleUpdates.Status,
+            diagnostics,
+            projectUpdates.ToImmutableArray(),
+            results.ProjectsToRestart.Select(solution.GetRequiredProject).ToImmutableHashSet(),
+            results.ProjectsToRebuild.Select(solution.GetRequiredProject).ToImmutableHashSet());
+    }
+
+    public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> projectIds)
+    {
+        var sessionId = GetDebuggingSession();
+        _encService.UpdateBaselines(sessionId, solution, projectIds);
     }
 
     public void EndSession()

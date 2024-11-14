@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests;
 
 [UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.Completion)]
-public class DeclarationNameCompletion_ContextTests
+public sealed class DeclarationNameCompletion_ContextTests
 {
-    protected CSharpTestWorkspaceFixture fixture = new CSharpTestWorkspaceFixture();
+    private readonly CSharpTestWorkspaceFixture _fixture = new();
 
     [Fact]
     public async Task AfterTypeInClass1()
@@ -257,10 +255,9 @@ public class DeclarationNameCompletion_ContextTests
                 }
             }
             """;
-        await VerifySymbolKinds(markup,
-            new SymbolKindOrTypeKind(SymbolKind.Local));
+        await VerifySymbolKinds(markup);
         await VerifyModifiers(markup, new DeclarationModifiers());
-        await VerifyTypeName(markup, "int");
+        await VerifyTypeName(markup, null);
         await VerifyAccessibility(markup, null);
     }
 
@@ -772,10 +769,10 @@ class C
             new SymbolKindOrTypeKind(MethodKind.LocalFunction));
     }
 
-    private async Task VerifyTypeName(string markup, string typeName)
+    private async Task VerifyTypeName(string markup, string? typeName)
     {
         var result = await GetResultsAsync(markup);
-        Assert.Equal(typeName, result.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
+        Assert.Equal(typeName, result.Type?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
     }
 
     private async Task VerifyNoModifiers(string markup)
@@ -812,6 +809,6 @@ class C
     private (Document, int) ApplyChangesToFixture(string markup)
     {
         MarkupTestFile.GetPosition(markup, out var text, out int position);
-        return (fixture.UpdateDocument(text, SourceCodeKind.Regular), position);
+        return (_fixture.UpdateDocument(text, SourceCodeKind.Regular), position);
     }
 }

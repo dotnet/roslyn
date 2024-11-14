@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages;
 
 internal readonly struct EmbeddedLanguageInfo
 {
+    public readonly IBlockFacts BlockFacts;
     public readonly ISyntaxFacts SyntaxFacts;
     public readonly ISemanticFactsService SemanticFacts;
     public readonly IVirtualCharService VirtualCharService;
@@ -18,10 +19,12 @@ internal readonly struct EmbeddedLanguageInfo
     public readonly ISyntaxKinds SyntaxKinds => SyntaxFacts.SyntaxKinds;
 
     public EmbeddedLanguageInfo(
+        IBlockFacts blockFacts,
         ISyntaxFacts syntaxFacts,
         ISemanticFactsService semanticFacts,
         IVirtualCharService virtualCharService)
     {
+        BlockFacts = blockFacts;
         SyntaxFacts = syntaxFacts;
         SemanticFacts = semanticFacts;
         VirtualCharService = virtualCharService;
