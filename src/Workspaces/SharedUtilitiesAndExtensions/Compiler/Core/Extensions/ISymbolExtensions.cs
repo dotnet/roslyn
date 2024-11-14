@@ -88,7 +88,8 @@ internal static partial class ISymbolExtensions
         if (exactMatch != null)
             return exactMatch;
 
-        if (allowLooseMatch)
+        if (allowLooseMatch &&
+            (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride))
         {
             foreach (var baseType in symbol.ContainingType.GetBaseTypes())
             {

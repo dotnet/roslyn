@@ -19,12 +19,15 @@ internal static partial class BaseTypeFinder
     {
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
 
-        AddOverrides(allowLooseMatch: false);
-        if (results.Count == 0)
-            AddOverrides(allowLooseMatch: true);
-
         // This is called for all: class, struct or interface member.
         results.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
+
+        AddOverrides(allowLooseMatch: false);
+
+        // If we've found nothing at all (either interface impls or exact override matches), then attempt a loose match
+        // to see if we can find something in an error condition.
+        if (results.Count == 0)
+            AddOverrides(allowLooseMatch: true);
 
         // Remove duplicates from interface implementations before adding their projects.
         results.RemoveDuplicates();
