@@ -2770,5 +2770,37 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 }
                 """, expectedOutput: "Z").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void OpenTypeInNameof_SemanticModelTests()
+        {
+            var compilation = CreateCompilation("""
+                using System;
+                    
+                var v1 = nameof(IGoo<>);
+                var v2 = typeof(IGoo<>);
+                Console.WriteLine(v1 + v2);
+
+                interface IGoo<T> { }
+                """).VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+
+            var firstGeneric = root.DescendantNodes().OfType<GenericNameSyntax>().First();
+            var lastGeneric = root.DescendantNodes().OfType<GenericNameSyntax>().Last();
+
+            Assert.NotSame(firstGeneric, lastGeneric);
+
+            // Ensure the type inside the nameof is the same as the type inside the typeof.
+            var type1 = semanticModel.GetTypeInfo(firstGeneric).Type;
+            var type2 = semanticModel.GetTypeInfo(firstGeneric).Type;
+
+            Assert.NotNull(type1);
+            Assert.NotNull(type2);
+
+            Assert.Equal(type1, type2);
+        }
     }
 }
