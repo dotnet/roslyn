@@ -2221,7 +2221,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
-
             var boundArgument = BindExpression(argument, diagnostics);
 
             bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
