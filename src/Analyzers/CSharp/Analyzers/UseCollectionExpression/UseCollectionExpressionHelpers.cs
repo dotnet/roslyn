@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
+using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -27,7 +28,21 @@ using static SyntaxFactory;
 
 internal static class UseCollectionExpressionHelpers
 {
+    public const string UnwrapArgument = nameof(UnwrapArgument);
+    public const string UseSpread = nameof(UseSpread);
+
     private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
+
+    /// <summary>
+    /// Set of type-names that are blocked from moving over to collection expressions because the semantics of them are
+    /// known to be specialized, and thus could change semantics in undesirable ways if the compiler emitted its own
+    /// code as an replacement.
+    /// </summary>
+    public static readonly ImmutableHashSet<string?> BannedTypes = [
+        nameof(ParallelEnumerable),
+        nameof(ParallelQuery),
+        // Special internal runtime interface that is optimized for fast path conversions of collections.
+        "IIListProvider"];
 
     private static readonly SymbolEquivalenceComparer s_tupleNamesCanDifferComparer = SymbolEquivalenceComparer.Create(
         // Not relevant.  We are not comparing method signatures.
@@ -941,12 +956,14 @@ internal static class UseCollectionExpressionHelpers
         InvocationExpressionSyntax invocationExpression,
         [NotNullWhen(true)] out MemberAccessExpressionSyntax? memberAccess,
         out bool unwrapArgument,
+        out bool useSpread,
         CancellationToken cancellationToken)
     {
         const string CreateName = nameof(ImmutableArray.Create);
         const string CreateRangeName = nameof(ImmutableArray.CreateRange);
 
         unwrapArgument = false;
+        useSpread = false;
         memberAccess = null;
 
         // Looking for `XXX.Create(...)`
@@ -988,16 +1005,18 @@ internal static class UseCollectionExpressionHelpers
         //  `Create(params T[])` (passing as individual elements, or an array with an initializer)
         //  `Create(ReadOnlySpan<T>)` (passing as a stack-alloc with an initializer)
         //  `Create(IEnumerable<T>)` (passing as something with an initializer.
-        if (!IsCompatibleSignatureAndArguments(createMethod.OriginalDefinition, out unwrapArgument))
+        if (!IsCompatibleSignatureAndArguments(createMethod.OriginalDefinition, out unwrapArgument, out useSpread))
             return false;
 
         return true;
 
         bool IsCompatibleSignatureAndArguments(
             IMethodSymbol originalCreateMethod,
-            out bool unwrapArgument)
+            out bool unwrapArgument,
+            out bool useSpread)
         {
             unwrapArgument = false;
+            useSpread = false;
 
             var arguments = invocationExpression.ArgumentList.Arguments;
 
@@ -1016,30 +1035,11 @@ internal static class UseCollectionExpressionHelpers
                             Name: nameof(IEnumerable<int>),
                             TypeArguments: [ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method }]
                         } enumerableType
-                    }] && enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()))
+                    }] &&
+                    enumerableType.OriginalDefinition.Equals(compilation.IEnumerableOfTType()) &&
+                    arguments.Count == 1)
                 {
-                    var argExpression = arguments[0].Expression;
-                    if (argExpression
-                            is ArrayCreationExpressionSyntax { Initializer: not null }
-                            or ImplicitArrayCreationExpressionSyntax)
-                    {
-                        unwrapArgument = true;
-                        return true;
-                    }
-
-                    if (argExpression is ObjectCreationExpressionSyntax objectCreation)
-                    {
-                        // Can't have any arguments, as we cannot preserve them once we grab out all the elements.
-                        if (objectCreation.ArgumentList != null && objectCreation.ArgumentList.Arguments.Count > 0)
-                            return false;
-
-                        // If it's got an initializer, it has to be a collection initializer (or an empty object initializer);
-                        if (objectCreation.Initializer.IsKind(SyntaxKind.ObjectCreationExpression) && objectCreation.Initializer.Expressions.Count > 0)
-                            return false;
-
-                        unwrapArgument = true;
-                        return true;
-                    }
+                    return IsArgumentCompatibleWithIEnumerableOfT(semanticModel, arguments[0], out unwrapArgument, out useSpread, cancellationToken);
                 }
             }
             else if (originalCreateMethod.Name is CreateName)
@@ -1100,6 +1100,78 @@ internal static class UseCollectionExpressionHelpers
 
             return false;
         }
+    }
+
+    public static bool IsArgumentCompatibleWithIEnumerableOfT(
+        SemanticModel semanticModel, ArgumentSyntax argument, out bool unwrapArgument, out bool useSpread, CancellationToken cancellationToken)
+    {
+        unwrapArgument = false;
+        useSpread = false;
+
+        var argExpression = argument.Expression;
+        if (argExpression
+                is ArrayCreationExpressionSyntax { Initializer: not null }
+                or ImplicitArrayCreationExpressionSyntax)
+        {
+            unwrapArgument = true;
+            return true;
+        }
+
+        if (argExpression is ObjectCreationExpressionSyntax objectCreation)
+        {
+            // Can't have any arguments, as we cannot preserve them once we grab out all the elements.
+            if (objectCreation.ArgumentList != null && objectCreation.ArgumentList.Arguments.Count > 0)
+                return false;
+
+            // If it's got an initializer, it has to be a collection initializer (or an empty object initializer);
+            if (objectCreation.Initializer.IsKind(SyntaxKind.ObjectCreationExpression) && objectCreation.Initializer.Expressions.Count > 0)
+                return false;
+
+            unwrapArgument = true;
+            return true;
+        }
+
+        if (IsIterable(semanticModel, argExpression, cancellationToken))
+        {
+            // Convert `ImmutableArray.Create(someEnumerable)` to `[.. someEnumerable]`
+            unwrapArgument = false;
+            useSpread = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool IsIterable(SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken)
+    {
+        var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+        if (type is null or IErrorTypeSymbol)
+            return false;
+
+        if (BannedTypes.Contains(type.Name))
+            return false;
+
+        var compilation = semanticModel.Compilation;
+        return EqualsOrImplements(type, compilation.IEnumerableOfTType()) ||
+            type.Equals(compilation.SpanOfTType()) ||
+            type.Equals(compilation.ReadOnlySpanOfTType());
+    }
+
+    public static bool EqualsOrImplements(ITypeSymbol type, INamedTypeSymbol? interfaceType)
+    {
+        if (interfaceType != null)
+        {
+            if (type.OriginalDefinition.Equals(interfaceType))
+                return true;
+
+            foreach (var baseInterface in type.AllInterfaces)
+            {
+                if (interfaceType.Equals(baseInterface.OriginalDefinition))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     public static bool IsCollectionEmptyAccess(
@@ -1208,9 +1280,9 @@ internal static class UseCollectionExpressionHelpers
         }
     }
 
-    public static SeparatedSyntaxList<ArgumentSyntax> GetArguments(InvocationExpressionSyntax invocationExpression, bool unwrapArgument)
+    public static SeparatedSyntaxList<ArgumentSyntax> GetArguments(ArgumentListSyntax argumentList, bool unwrapArgument)
     {
-        var arguments = invocationExpression.ArgumentList.Arguments;
+        var arguments = argumentList.Arguments;
 
         // If we're not unwrapping a singular argument expression, then just pass back all the explicit argument
         // expressions the user wrote out.
@@ -1239,4 +1311,20 @@ internal static class UseCollectionExpressionHelpers
 
     public static CollectionExpressionSyntax CreateReplacementCollectionExpressionForAnalysis(InitializerExpressionSyntax? initializer)
         => initializer is null ? s_emptyCollectionExpression : CollectionExpression([.. initializer.Expressions.Select(ExpressionElement)]);
+
+    public static ImmutableDictionary<string, string?> GetDiagnosticProperties(bool unwrapArgument, bool useSpread, bool changesSemantics)
+    {
+        var properties = ImmutableDictionary<string, string?>.Empty;
+
+        if (unwrapArgument)
+            properties = properties.Add(UnwrapArgument, "");
+
+        if (useSpread)
+            properties = properties.Add(UseSpread, "");
+
+        if (changesSemantics)
+            properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
+
+        return properties;
+    }
 }
