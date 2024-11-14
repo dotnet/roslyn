@@ -34,8 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             AddMemberOptions(SymbolDisplayMemberOptions.IncludeParameters).
             WithParameterOptions(SymbolDisplayParameterOptions.IncludeType);
 
-        internal static readonly SymbolDisplayFormat s_indexerCompactNameFormat = CompactNameFormat.
-            WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters);
+        private static readonly SymbolDisplayFormat s_indexerCompactNameFormat = CompactNameFormat.
+            WithMemberOptions(SymbolDisplayMemberOptions.IncludeParameters).
+            WithParameterOptions(SymbolDisplayParameterOptions.None);
 
         internal override string GetCompactName(MethodSymbol method)
         {
