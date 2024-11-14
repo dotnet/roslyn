@@ -2048,4 +2048,76 @@ public sealed class UseSimpleUsingStatementTests
             }
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
+    public async Task TestGlobalStatement5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                using (var d = (IDisposable)null)
+                {
+                }
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+                using var d = (IDisposable)null;
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
+    public async Task TestGlobalStatement6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                {
+                    [|using|] (var d = (IDisposable)null)
+                    {
+                    }
+                }
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+                using var d = (IDisposable)null;
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
 }
