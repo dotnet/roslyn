@@ -473,12 +473,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property OverloadResolutionPriority As Integer
                 Get
-                    Return 0 ' PROTOTYPE(Priority): implement for real
+                    Return _property.OriginalDefinition.OverloadResolutionPriority
                 End Get
             End Property
 
             Public Overrides Function GetOverloadResolutionPriorityInfo() As (Source As NamedTypeSymbol, Priority As Integer)
-                Return (_property.OriginalDefinition.ContainingType, 0) ' PROTOTYPE(Priority): implement for real
+                Dim leastOverriddenDefinition As PropertySymbol = _property.OriginalDefinition
+
+                While leastOverriddenDefinition.IsOverrides
+                    Dim overridden As PropertySymbol = leastOverriddenDefinition.OverriddenProperty
+
+                    If overridden Is Nothing Then
+                        Exit While
+                    End If
+
+                    leastOverriddenDefinition = overridden.OriginalDefinition
+                End While
+
+                Return (leastOverriddenDefinition.ContainingType, leastOverriddenDefinition.OverloadResolutionPriority)
             End Function
         End Class
 
@@ -1074,10 +1086,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
 
             Dim asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression) = Nothing
+            Dim someCandidatesHaveOverloadResolutionPriority As Boolean = candidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
 
             CollectOverloadedCandidates(binder, results, candidates, ImmutableArray(Of TypeSymbol).Empty,
                                         arguments, argumentNames,
-                                        someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                        someCandidatesHaveOverloadResolutionPriority,
                                         Nothing, Nothing, includeEliminatedCandidates,
                                         isQueryOperatorInvocation:=False, forceExpandedForm:=False, asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch,
                                         useSiteInfo:=useSiteInfo)
@@ -1085,7 +1098,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             candidates.Free()
 
             Dim result = ResolveOverloading(propertyGroup, results, arguments, argumentNames,
-                                            someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                            someCandidatesHaveOverloadResolutionPriority,
                                             delegateReturnType:=Nothing, lateBindingIsAllowed:=True, binder:=binder,
                                             asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch, callerInfoOpt:=callerInfoOpt, forceExpandedForm:=False,
                                             useSiteInfo:=useSiteInfo)

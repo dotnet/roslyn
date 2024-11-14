@@ -1584,7 +1584,7 @@ lReportErrorOnTwoTokens:
 
         Public NotOverridable Overrides Function GetOverloadResolutionPriority() As Integer
             Dim data As MethodEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
-            Return If(data IsNot Nothing, If(data.OverloadResolutionPriority, 0), 0)
+            Return If(data?.OverloadResolutionPriority, 0)
         End Function
 
         Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))

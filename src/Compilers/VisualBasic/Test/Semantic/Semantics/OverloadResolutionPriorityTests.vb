@@ -600,5 +600,388 @@ BC30521: Overload resolution failed because no accessible 'M1' is most specific 
 </expected>)
         End Sub
 
+        <Theory, CombinatorialData>
+        Public Sub IncreasedPriorityWins_01_CS_Property(i1First As Boolean)
+
+            Dim i1Source = "
+[OverloadResolutionPriority(1)]
+public int this[I1 x] { set { System.Console.WriteLine(1); } }
+"
+
+            Dim i2Source = "
+public int this[I2 x] { set { throw null; } }
+"
+
+            Dim reference = CreateCSharpCompilation("
+using System.Runtime.CompilerServices;
+
+public interface I1 {}
+public interface I2 {}
+public interface I3 : I1, I2 {}
+
+public class C
+{" +
+    If(i1First, i1Source, i2Source) +
+    If(i1First, i2Source, i1Source) + "
+}
+" + OverloadResolutionPriorityAttributeDefinitionCS, parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim c As New C()
+        Dim i3 As I3 = Nothing
+        c(i3) = 0
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, references:={reference}, options:=TestOptions.DebugExe)
+
+            Dim c = compilation.GetTypeByMetadataName("C")
+            Dim ms = c.GetMembers("Item").Cast(Of PropertySymbol)()
+            For Each m In ms
+                Assert.Equal(If(m.Parameters(0).Type.Name = "I1", 1, 0), m.OverloadResolutionPriority)
+            Next
+
+            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub IncreasedPriorityWins_01_Property(i1First As Boolean)
+
+            Dim i1Source = "
+<OverloadResolutionPriority(1)>
+public Shared WriteOnly Property M(x As I1) As Integer
+    Set
+        System.Console.WriteLine(1)
+    End Set
+End Property
+"
+
+            Dim i2Source = "
+public Shared WriteOnly Property M(x As I2) As Integer
+    Set
+        throw DirectCast(Nothing, System.Exception)
+    End Set
+End Property
+"
+
+            Dim reference = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C" +
+    If(i1First, i1Source, i2Source) +
+    If(i1First, i2Source, i1Source) + "
+End Class
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        C.M(i3) = 0
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            Dim validate = Sub([module] As ModuleSymbol)
+                               Dim c = [module].ContainingAssembly.GetTypeByMetadataName("C")
+                               Dim ms = c.GetMembers("M").Cast(Of PropertySymbol)()
+                               For Each m In ms
+                                   Assert.Equal(If(m.Parameters(0).Type.Name = "I1", 1, 0), m.OverloadResolutionPriority)
+                               Next
+                           End Sub
+
+            CompileAndVerify(comp1, expectedOutput:="1", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="1").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ParameterlessProperty_01()
+            Dim compilationDef = "
+Module Module1
+
+    Sub Main()
+        M1 = 0
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(-1)>
+    WriteOnly Property M1 As Integer
+        Set
+            System.Console.Write(1)
+        End Set
+    End Property
+
+    WriteOnly Property M1(Optional x As Integer = 0) As Integer
+        Set
+            System.Console.Write(2)
+        End Set
+    End Property
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="2")
+        End Sub
+
+        <Fact>
+        Public Sub ParameterlessProperty_02()
+            Dim compilationDef = "
+Module Module1
+
+    Sub Main()
+        M1 = 0
+    End Sub
+
+    WriteOnly Property M1 As Integer
+        Set
+            System.Console.Write(1)
+        End Set
+    End Property
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    WriteOnly Property M1(Optional x As Integer = 0) As Integer
+        Set
+            System.Console.Write(2)
+        End Set
+    End Property
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="2")
+        End Sub
+
+        <Fact>
+        Public Sub DefaultProperty_01()
+            Dim compilationDef = "
+Class Module1
+
+    Shared Sub Main()
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(-1)>
+    Default WriteOnly Property M1 As Integer
+        Set
+            System.Console.Write(1)
+        End Set
+    End Property
+
+    Default WriteOnly Property M1(x As Integer) As Integer
+        Set
+            System.Console.Write(2)
+        End Set
+    End Property
+End Class
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC31048: Properties with no required parameters cannot be declared 'Default'.
+    Default WriteOnly Property M1 As Integer
+                               ~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub DefaultProperty_02()
+            Dim compilationDef = "
+Class Module1
+
+    Shared Sub Main()
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(-1)>
+    WriteOnly Property M1 As Integer
+        Set
+            System.Console.Write(1)
+        End Set
+    End Property
+
+    Default WriteOnly Property M1(x As Integer) As Integer
+        Set
+            System.Console.Write(2)
+        End Set
+    End Property
+End Class
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30361: 'Public WriteOnly Default Property M1(x As Integer) As Integer' and 'Public WriteOnly Property M1 As Integer' cannot overload each other because only one is declared 'Default'.
+    WriteOnly Property M1 As Integer
+                       ~~
+</expected>)
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub DefaultProperty_03(i1First As Boolean)
+
+            Dim i1Source = "
+<OverloadResolutionPriority(1)>
+public Default WriteOnly Property M(x As I1) As Integer
+    Set
+        System.Console.Write(1)
+    End Set
+End Property
+"
+
+            Dim i2Source = "
+public Default WriteOnly Property M(x As I2) As Integer
+    Set
+        throw DirectCast(Nothing, System.Exception)
+    End Set
+End Property
+"
+
+            Dim reference = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C" +
+    If(i1First, i1Source, i2Source) +
+    If(i1First, i2Source, i1Source) + "
+End Class
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim c as New C()
+        Dim i3 As I3 = Nothing
+        c.M(i3) = 0
+        c(i3) = 0
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            Dim validate = Sub([module] As ModuleSymbol)
+                               Dim c = [module].ContainingAssembly.GetTypeByMetadataName("C")
+                               Dim ms = c.GetMembers("M").Cast(Of PropertySymbol)()
+                               For Each m In ms
+                                   Assert.Equal(If(m.Parameters(0).Type.Name = "I1", 1, 0), m.OverloadResolutionPriority)
+                               Next
+                           End Sub
+
+            CompileAndVerify(comp1, expectedOutput:="11", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="11").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="11").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub WriteOnlyVsReadOnlyProperty_01()
+
+            Dim compilationDef = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C
+    <OverloadResolutionPriority(1)>
+    public Shared WriteOnly Property M(x As I1) As Integer
+        Set
+            System.Console.WriteLine(1)
+        End Set
+    End Property
+    public Shared ReadOnly Property M(x As I2) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+    End Property
+End Class
+
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        Dim x = C.M(i3)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30524: Property 'M' is 'WriteOnly'.
+        Dim x = C.M(i3)
+                ~~~~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub WriteOnlyVsReadOnlyProperty_02()
+
+            Dim compilationDef = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C
+    public Shared WriteOnly Property M(x As I1) As Integer
+        Set
+            System.Console.WriteLine(1)
+        End Set
+    End Property
+    <OverloadResolutionPriority(1)>
+    public Shared ReadOnly Property M(x As I2) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+    End Property
+End Class
+
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        C.M(i3) = 0
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30526: Property 'M' is 'ReadOnly'.
+        C.M(i3) = 0
+        ~~~~~~~~~~~
+</expected>)
+        End Sub
+
     End Class
 End Namespace
