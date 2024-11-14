@@ -1921,7 +1921,7 @@ public class UseSimpleUsingStatementTests
             """);
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
     public async Task TestGlobalStatement1()
     {
         await new VerifyCS.Test
@@ -1954,7 +1954,7 @@ public class UseSimpleUsingStatementTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
     public async Task TestGlobalStatement2()
     {
         await new VerifyCS.Test
@@ -1989,7 +1989,7 @@ public class UseSimpleUsingStatementTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
     public async Task TestGlobalStatement3()
     {
         await new VerifyCS.Test
@@ -2015,7 +2015,7 @@ public class UseSimpleUsingStatementTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
     public async Task TestGlobalStatement4()
     {
         await new VerifyCS.Test
