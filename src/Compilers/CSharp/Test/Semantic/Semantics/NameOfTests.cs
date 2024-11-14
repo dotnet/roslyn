@@ -2383,6 +2383,30 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
+        public void OpenTypeInNameof_Next()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_Preview()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void OpenTypeInNameof_CSharp13_Nested1()
         {
             CreateCompilation("""
