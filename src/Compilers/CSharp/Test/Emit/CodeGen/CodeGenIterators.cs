@@ -3039,27 +3039,30 @@ class C
 using System.Reflection;
 
 var values = C.Produce();
-foreach (int value in values) { }
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+foreach (int value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+}
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce()
     {
-        string values2 = "ran";
+        string s = "ran ";
         yield return 42;
-        System.Console.Write($"{values2} ");
+        System.Console.Write(s);
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "ran True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_0002:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0007:  ret
 }
 """);
@@ -3072,63 +3075,69 @@ class C
 using System.Reflection;
 
 var values = C.Produce();
-foreach (int value in values) { }
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+foreach (int value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+}
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce()
     {
-        string values2 = "ran";
+        string s = "ran ";
         yield return 42;
-        System.Console.Write($"{values2} ");
+        System.Console.Write(s);
         yield break;
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "ran True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "ran ran True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_0002:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0007:  ret
 }
 """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-        public void AddVariableCleanup_IntArrayLocalAndForeachLocals()
+        public void AddVariableCleanup_IntArrayLocal()
         {
             string source = """
 using System.Linq;
 using System.Reflection;
 
 var values = C.Produce();
-foreach (int value in values) { }
-System.Console.Write(((int[])values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+foreach (int value in values)
+{
+    System.Console.Write(((int[])values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)).Length);
+}
+System.Console.Write(((int[])values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce()
     {
-        int[] values2 = Enumerable.Range(0, 100).ToArray();
+        int[] s = Enumerable.Range(0, 100).ToArray();
         yield return 42;
-        System.Console.Write($"{values2.Length} ");
+        System.Console.Write($" {s.Length} ");
     }
 }
 """;
             var comp = CreateCompilation(source);
-            var verifier = CompileAndVerify(comp, expectedOutput: "100 True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "100 100 True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        8 (0x8)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      "int[] C.<Produce>d__0.<values2>5__2"
+  IL_0002:  stfld      "int[] C.<Produce>d__0.<s>5__2"
   IL_0007:  ret
 }
 """);
@@ -3146,6 +3155,7 @@ try
 {
     assert(enumerator.MoveNext());
     System.Console.Write($"{enumerator.Current} ");
+    System.Console.Write(((string)enumerator.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)));
     assert(!enumerator.MoveNext());
     System.Console.Write(((string)enumerator.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerator)) is null);
 }
@@ -3173,7 +3183,7 @@ public class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "42 value True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "42 value value True").VerifyDiagnostics();
             verifier.VerifyIL("C.<M>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        8 (0x8)
@@ -3254,6 +3264,7 @@ try
 }
 finally
 {
+    System.Console.Write(((string)enumerable.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerable)));
     enumerator.Dispose();
 }
 System.Console.Write(((string)enumerable.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(enumerable)) is null);
@@ -3277,7 +3288,7 @@ public class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "42 True").VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: "42 value True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -3288,19 +3299,49 @@ using System.Reflection;
 
 var values = C.Produce(42);
 foreach (int value in values) { }
-System.Console.Write(((int)values.GetType().GetField("values2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
-System.Console.Write(((int)values.GetType().GetField("<>3__values2", BindingFlags.Public | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((int)values.GetType().GetField("s", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((int)values.GetType().GetField("<>3__s", BindingFlags.Public | BindingFlags.Instance).GetValue(values)));
 
 class C
 {
-    public static System.Collections.Generic.IEnumerable<int> Produce(int values2)
+    public static System.Collections.Generic.IEnumerable<int> Produce(int s)
     {
         yield return 0;
-        System.Console.Write($"{values2} ");
+        System.Console.Write($"{s} ");
     }
 }
 """;
             var verifier = CompileAndVerify(src, expectedOutput: "42 4242").VerifyDiagnostics();
+            verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
+        public void AddVariableCleanup_StringParameter()
+        {
+            string src = """
+using System.Reflection;
+
+var values = C.Produce("value ");
+foreach (int value in values) { }
+System.Console.Write(((string)values.GetType().GetField("s", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((string)values.GetType().GetField("<>3__s", BindingFlags.Public | BindingFlags.Instance).GetValue(values)));
+
+class C
+{
+    public static System.Collections.Generic.IEnumerable<int> Produce(string s)
+    {
+        yield return 0;
+        System.Console.Write(s);
+    }
+}
+""";
+            var verifier = CompileAndVerify(src, expectedOutput: "value value value").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        1 (0x1)
@@ -3319,20 +3360,20 @@ using System.Reflection;
 var values = C.Produce();
 foreach (int value in values) { }
 var closure = values.GetType().GetField("<>8__1", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values);
-System.Console.Write((int)(closure.GetType().GetField("values2", BindingFlags.Public | BindingFlags.Instance).GetValue(closure)));
+System.Console.Write((int)(closure.GetType().GetField("s", BindingFlags.Public | BindingFlags.Instance).GetValue(closure)));
 
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce()
     {
-        int values2 = 41;
+        int s = 41;
         local();
         yield return 0;
-        System.Console.Write($"{values2} ");
+        System.Console.Write($"{s} ");
 
         void local()
         {
-            values2++;
+            s++;
         }
     }
 }
@@ -3392,8 +3433,11 @@ class C
 using System.Reflection;
 
 var values = C.Produce();
-foreach (int value in values) { }
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+foreach (int value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+}
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
@@ -3401,9 +3445,9 @@ class C
     {
         try
         {
-            var values2 = "value ";
+            var s = "value ";
             yield return 0;
-            System.Console.Write(values2);
+            System.Console.Write(s);
         }
         finally
         {
@@ -3412,7 +3456,7 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "value ran True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "value value ran True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       34 (0x22)
@@ -3440,7 +3484,7 @@ class C
   }
   IL_001a:  ldarg.0
   IL_001b:  ldnull
-  IL_001c:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_001c:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0021:  ret
 }
 """);
@@ -3456,14 +3500,17 @@ var values = C.Produce();
 
 try
 {
-    foreach (int value in values) { }
+    foreach (int value in values) 
+    {
+        System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+    }
 }
 catch (System.Exception e)
 {
     System.Console.Write(e.Message);
 }
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
@@ -3471,9 +3518,9 @@ class C
     {
         try
         {
-            string values2 = "value ";
+            string s = "value ";
             yield return 0;
-            System.Console.Write(values2);
+            System.Console.Write(s);
         }
         finally
         {
@@ -3482,7 +3529,7 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "value exception True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "value value exception True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       34 (0x22)
@@ -3510,7 +3557,7 @@ class C
   }
   IL_001a:  ldarg.0
   IL_001b:  ldnull
-  IL_001c:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_001c:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0021:  ret
 }
 """);
@@ -3533,7 +3580,7 @@ catch (System.Exception e)
     System.Console.Write(e.Message);
 }
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 
 class C
 {
@@ -3541,9 +3588,9 @@ class C
     {
         try
         {
-            string values2 = "value";
+            string s = "value";
             yield return 0;
-            values2.ToString();
+            s.ToString();
             throw null;
         }
         finally
@@ -3574,16 +3621,16 @@ catch (System.Exception e)
     System.Console.Write(e.Message);
 }
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce(bool b)
     {
-        string values2 = "value ";
+        string s = "value ";
         if (b) throw new System.Exception("exception ");
         yield return 0;
-        System.Console.Write(values2);
+        System.Console.Write(s);
     }
 }
 """;
@@ -3754,22 +3801,26 @@ using System.Reflection;
 
 var values = C.Produce();
 
-foreach (int value in values) { break; } // we interrupt the iteration early
+foreach (int value in values) 
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+    break;
+}
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce()
     {
-        string values2 = "value";
+        string s = "value ";
         yield return 0;
-        values2.ToString();
+        s.ToString();
         throw null;
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: "True").VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: "value True").VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -3779,7 +3830,10 @@ class C
 using System.Reflection;
 
 var values = C.Produce();
-foreach (int value in values) { }
+foreach (int value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+}
 System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
@@ -3799,7 +3853,7 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "values2 values3 True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "values2 values2 values3 values3 True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size        8 (0x8)
@@ -3847,8 +3901,12 @@ class C
 using System.Reflection;
 
 var values = C.Produce();
-foreach (int value in values) { break; }
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+foreach (int value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+    break;
+}
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
@@ -3856,14 +3914,14 @@ class C
     {
         try
         {
-            string values2 = "value ";
+            string s = "value ";
             try
             {
                 yield return 42;
             }
             finally
             {
-                System.Console.Write(values2);
+                System.Console.Write(s);
             }
         }
         finally
@@ -3873,7 +3931,7 @@ class C
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: "value outer True").VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: "value value outer True").VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.IDisposable.Dispose()", """
 {
   // Code size       55 (0x37)
@@ -3920,7 +3978,7 @@ class C
   }
   IL_002f:  ldarg.0
   IL_0030:  ldnull
-  IL_0031:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_0031:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0036:  ret
 }
 """);
@@ -3993,9 +4051,9 @@ var values = C.Produce();
 assert(values.MoveNext());
 assert(values.Current == 42);
 assert(!values.MoveNext());
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 values.Dispose();
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 static void assert(bool b) { if (!b) throw new System.Exception(); }
 
@@ -4003,9 +4061,9 @@ class C
 {
     public static System.Collections.Generic.IEnumerator<int> Produce()
     {
-        string values2 = "ran ";
+        string s = "ran ";
         yield return 42;
-        System.Console.Write(values2);
+        System.Console.Write(s);
     }
 }
 """;
@@ -4016,7 +4074,7 @@ class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_0002:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0007:  ret
 }
 """);

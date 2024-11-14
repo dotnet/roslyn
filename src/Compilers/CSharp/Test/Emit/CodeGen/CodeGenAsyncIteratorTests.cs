@@ -9432,15 +9432,15 @@ using System.Reflection;
 
 var values = C.Produce();
 await foreach (int value in values) { }
-System.Console.Write(((int)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((int)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 
 class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
     {
-        int values2 = 42;
+        int s = 42;
         await System.Threading.Tasks.Task.CompletedTask;
-        yield return values2;
+        yield return s;
     }
 }
 """;
@@ -9454,21 +9454,24 @@ class C
 using System.Reflection;
 
 var values = C.Produce();
-await foreach (int value in values) { }
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+await foreach (int value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+}
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
     {
-        string values2 = "value ";
+        string s = "value ";
         await System.Threading.Tasks.Task.CompletedTask;
         yield return 1;
-        System.Console.Write(values2);
+        System.Console.Write(s);
     }
 }
 """;
-            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            var verifier = CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
             verifier.VerifyIL("C.<Produce>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
 {
   // Code size      320 (0x140)
@@ -9502,7 +9505,7 @@ class C
     IL_0035:  stfld      "int C.<Produce>d__0.<>1__state"
     IL_003a:  ldarg.0
     IL_003b:  ldstr      "value "
-    IL_0040:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_0040:  stfld      "string C.<Produce>d__0.<s>5__2"
     IL_0045:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
     IL_004a:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
     IL_004f:  stloc.1
@@ -9557,7 +9560,7 @@ class C
     IL_00c4:  brfalse.s  IL_00c8
     IL_00c6:  leave.s    IL_0105
     IL_00c8:  ldarg.0
-    IL_00c9:  ldfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_00c9:  ldfld      "string C.<Produce>d__0.<s>5__2"
     IL_00ce:  call       "void System.Console.Write(string)"
     IL_00d3:  leave.s    IL_0105
   }
@@ -9569,7 +9572,7 @@ class C
     IL_00d9:  stfld      "int C.<Produce>d__0.<>1__state"
     IL_00de:  ldarg.0
     IL_00df:  ldnull
-    IL_00e0:  stfld      "string C.<Produce>d__0.<values2>5__2"
+    IL_00e0:  stfld      "string C.<Produce>d__0.<s>5__2"
     IL_00e5:  ldarg.0
     IL_00e6:  ldc.i4.0
     IL_00e7:  stfld      "int C.<Produce>d__0.<>2__current"
@@ -9587,7 +9590,7 @@ class C
   IL_0108:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_010d:  ldarg.0
   IL_010e:  ldnull
-  IL_010f:  stfld      "string C.<Produce>d__0.<values2>5__2"
+  IL_010f:  stfld      "string C.<Produce>d__0.<s>5__2"
   IL_0114:  ldarg.0
   IL_0115:  ldc.i4.0
   IL_0116:  stfld      "int C.<Produce>d__0.<>2__current"
@@ -9615,22 +9618,26 @@ class C
 using System.Reflection;
 
 var values = C.Produce(true);
-await foreach (int value in values) { }
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+await foreach (int value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+}
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
     {
-        string values2 = "value ";
+        string s = "value ";
         await System.Threading.Tasks.Task.CompletedTask;
-        System.Console.Write(values2);
+        yield return 42;
+        System.Console.Write(s);
         if (b) yield break;
         throw null;
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9649,15 +9656,15 @@ catch (System.Exception e)
     System.Console.Write(e.Message);
 }
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
     {
-        string values2 = "value ";
+        string s = "value ";
         await System.Threading.Tasks.Task.CompletedTask;
-        System.Console.Write(values2);
+        System.Console.Write(s);
         if (b) throw new System.Exception("exception ");
         yield break;
     }
@@ -9673,21 +9680,25 @@ class C
 using System.Reflection;
 
 var values = C.Produce(true);
-await foreach (var value in values) { break; }
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+await foreach (var value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+    break;
+}
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> Produce(bool b)
     {
-        string values2 = "value ";
+        string s = "value ";
         await System.Threading.Tasks.Task.CompletedTask;
         yield return 42;
-        _ = values2.ToString();
+        _ = s.ToString();
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9701,11 +9712,13 @@ var values = C.Produce(true, tcs.Task);
 var enumerator = values.GetAsyncEnumerator();
 assert(await enumerator.MoveNextAsync());
 assert(enumerator.Current == 1);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+
 assert(await enumerator.MoveNextAsync());
 assert(enumerator.Current == 2);
 _ = enumerator.MoveNextAsync();
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 void assert(bool b)
 {
@@ -9718,9 +9731,9 @@ class C
     {
         while (b)
         {
-            string values2 = "value ";
+            string s = "value ";
             yield return 1;
-            System.Console.Write(values2);
+            System.Console.Write(s);
             b = false;
         }
         yield return 2;
@@ -9729,7 +9742,7 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9742,9 +9755,10 @@ var values = C.Produce(true);
 var enumerator = values.GetAsyncEnumerator();
 assert(await enumerator.MoveNextAsync());
 assert(enumerator.Current == 1);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 assert(!(await enumerator.MoveNextAsync()));
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 void assert(bool b)
 {
@@ -9757,9 +9771,9 @@ class C
     {
         while (b)
         {
-            string values2 = "value ";
+            string s = "value ";
             yield return 1;
-            System.Console.Write(values2);
+            System.Console.Write(s);
             await System.Threading.Tasks.Task.CompletedTask;
             if (b) yield break;
         }
@@ -9767,7 +9781,7 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9790,7 +9804,7 @@ catch (System.Exception e)
 }
 await enumerator.DisposeAsync();
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 void assert(bool b)
 {
@@ -9803,9 +9817,9 @@ class C
     {
         while (b)
         {
-            string values2 = "value ";
+            string s = "value ";
             yield return 1;
-            System.Console.Write(values2);
+            System.Console.Write(s);
             await System.Threading.Tasks.Task.CompletedTask;
             if (b) throw new System.Exception("exception ");
         }
@@ -9823,8 +9837,12 @@ class C
 using System.Reflection;
 
 var values = C.Produce(true);
-await foreach (var value in values) { break; }
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+await foreach (var value in values)
+{
+    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+    break;
+}
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
@@ -9832,9 +9850,9 @@ class C
     {
         while (b)
         {
-            string values2 = "value ";
+            string s = "value ";
             yield return 1;
-            System.Console.Write(values2);
+            System.Console.Write(s);
             await System.Threading.Tasks.Task.CompletedTask;
             throw null;
         }
@@ -9842,7 +9860,7 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -9868,7 +9886,7 @@ assert(await enumerator.MoveNextAsync());
 assert(enumerator.Current == 2);
 _ = enumerator.MoveNextAsync();
 
-System.Console.Write(((S)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((S)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 
 void assert(bool b)
 {
@@ -9881,9 +9899,9 @@ class C
     {
         while (b)
         {
-            S values2 = new S { field = 42 };
+            S s = new S { field = 42 };
             yield return 1;
-            System.Console.Write(values2);
+            System.Console.Write(s);
             b = false;
         }
         yield return 2;
@@ -9937,7 +9955,7 @@ class C
     IL_004f:  ldc.i4.s   42
     IL_0051:  stfld      "int S.field"
     IL_0056:  ldloc.1
-    IL_0057:  stfld      "S C.<Produce>d__0.<values2>5__2"
+    IL_0057:  stfld      "S C.<Produce>d__0.<s>5__2"
     IL_005c:  ldarg.0
     IL_005d:  ldc.i4.1
     IL_005e:  stfld      "int C.<Produce>d__0.<>2__current"
@@ -9957,7 +9975,7 @@ class C
     IL_0081:  brfalse.s  IL_0088
     IL_0083:  leave      IL_0181
     IL_0088:  ldarg.0
-    IL_0089:  ldfld      "S C.<Produce>d__0.<values2>5__2"
+    IL_0089:  ldfld      "S C.<Produce>d__0.<s>5__2"
     IL_008e:  box        "S"
     IL_0093:  call       "void System.Console.Write(object)"
     IL_0098:  ldarg.0
@@ -10096,7 +10114,7 @@ catch (System.Exception e)
     System.Console.Write(e.Message);
 }
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
@@ -10104,10 +10122,10 @@ class C
     {
         try
         {
-            string values2 = "value ";
+            string s = "value ";
             await System.Threading.Tasks.Task.CompletedTask;
             yield return 42;
-            values2.ToString();
+            s.ToString();
             throw null;
         }
         finally
@@ -10129,10 +10147,11 @@ using System.Reflection;
 var values = C.Produce();
 assert(await values.MoveNextAsync());
 assert(values.Current == 1);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 assert(!(await values.MoveNextAsync()));
 await values.DisposeAsync();
 
-System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 static void assert(bool b) { if (!b) throw new System.Exception(); }
 
@@ -10140,14 +10159,14 @@ class C
 {
     public static async System.Collections.Generic.IAsyncEnumerator<int> Produce()
     {
-        string values2 = "value ";
+        string s = "value ";
         await System.Threading.Tasks.Task.CompletedTask;
         yield return 1;
-        System.Console.Write(values2);
+        System.Console.Write(s);
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10157,8 +10176,12 @@ class C
 using System.Reflection;
 
 var values = C.Produce();
-await foreach (int i in values) { break; }
-System.Console.Write((values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+await foreach (int i in values)
+{
+    System.Console.Write((values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+    break;
+}
+System.Console.Write((values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
@@ -10166,7 +10189,7 @@ class C
     {
         try
         {
-            string values2 = "value ";
+            string s = "value ";
             try
             {
                 await System.Threading.Tasks.Task.CompletedTask;
@@ -10174,7 +10197,7 @@ class C
             }
             finally
             {
-                System.Console.Write(values2);
+                System.Console.Write(s);
             }
         }
         finally
@@ -10184,7 +10207,7 @@ class C
     }
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("value outer True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("value value outer True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
@@ -10195,7 +10218,11 @@ using System.Reflection;
 
 var c = new C();
 var values = Program.Produce(c);
-await foreach (int i in values) { System.Console.Write(i); }
+await foreach (int i in values)
+{
+    System.Console.Write((values.GetType().GetField("<>7__wrap3", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+    System.Console.Write($" {i} ");
+}
 System.Console.Write((values.GetType().GetField("<>7__wrap3", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 partial class Program
@@ -10213,16 +10240,16 @@ partial class Program
 
 class C
 {
-    public Buffer4<int> F = default;
+    public Buffer2<int> F = default;
 }
 
-[System.Runtime.CompilerServices.InlineArray(4)]
-public struct Buffer4<T>
+[System.Runtime.CompilerServices.InlineArray(2)]
+public struct Buffer2<T>
 {
     private T _element0;
 }
 """;
-            CompileAndVerify(src, expectedOutput: ExpectedOutput("0123True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
+            CompileAndVerify(src, expectedOutput: ExpectedOutput("False 0 False 1 True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
     }
 }
