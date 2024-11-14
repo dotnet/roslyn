@@ -2771,6 +2771,60 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 """, expectedOutput: "Z").VerifyDiagnostics();
         }
 
+        [Fact]
+        public void OpenTypeInNameof_GenericMethod1()
+        {
+            CompileAndVerify("""
+                using System;
+                    
+                var v = nameof(IGoo.M);
+                Console.WriteLine(v);
+
+                interface IGoo
+                {
+                    void M<T>();
+                }
+                """, expectedOutput: "M").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_GenericMethod2()
+        {
+            CreateCompilation("""
+                using System;
+                    
+                var v = nameof(IGoo.M<>);
+                Console.WriteLine(v);
+
+                interface IGoo
+                {
+                    void M<T>();
+                }
+                """).VerifyDiagnostics(
+                    // (3,16): error CS0305: Using the generic method group 'M' requires 1 type arguments
+                    // var v = nameof(IGoo.M<>);
+                    Diagnostic(ErrorCode.ERR_BadArity, "IGoo.M<>").WithArguments("M", "method group", "1").WithLocation(3, 16));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_GenericMethod3()
+        {
+            CreateCompilation("""
+                using System;
+                    
+                var v = nameof(IGoo.M<int>);
+                Console.WriteLine(v);
+
+                interface IGoo
+                {
+                    void M<T>();
+                }
+                """).VerifyDiagnostics(
+                // (3,16): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
+                // var v = nameof(IGoo.M<int>);
+                Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "IGoo.M<int>").WithLocation(3, 16));
+        }
+
         [Theory]
         [InlineData("IGoo<>")]
         [InlineData("IGoo<>.Count")]
