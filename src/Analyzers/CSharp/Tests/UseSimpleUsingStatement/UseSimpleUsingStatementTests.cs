@@ -1920,4 +1920,137 @@ public class UseSimpleUsingStatementTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestGlobalStatement1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                {
+                }
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                {
+                    Console.WriteLine();
+                }
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+                Console.WriteLine();
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                using (var c = (IDisposable)null)
+                {
+                }
+
+                Console.WriteLine();
+
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobalStatement4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                {
+                    Console.WriteLine();
+                }
+
+                int LocalFunction() => 0;
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+                Console.WriteLine();
+
+                int LocalFunction() => 0;
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
 }
