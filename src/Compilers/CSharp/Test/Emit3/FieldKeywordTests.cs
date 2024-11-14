@@ -10467,7 +10467,7 @@ class C<T>
         [WorkItem("https://github.com/dotnet/roslyn/issues/75893")]
         [Theory]
         [CombinatorialData]
-        public void SpeculativeSemanticModel(bool includeLocal)
+        public void SpeculativeSemanticModel_01(bool includeLocal)
         {
             string source = $$"""
                 class C
@@ -10496,6 +10496,40 @@ class C<T>
             Assert.Equal("return field;", expr.Parent.ToString());
             var symbolInfo = speculativeModel.GetSymbolInfo(expr);
             Assert.Null(symbolInfo.Symbol);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void SpeculativeSemanticModel_02(bool includeLocal)
+        {
+            string source = $$"""
+                class C
+                {
+                    object P
+                    {
+                        get
+                        {
+                            {{(includeLocal ? "object field = null;" : "")}}
+                            return null;
+                        }
+                        set;
+                    }
+                }
+                """;
+
+            var parseOptions = TestOptions.RegularPreview;
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var previousAccessor = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
+
+            var modifiedTree = SyntaxFactory.ParseSyntaxTree(source.Replace("return null;", "return field;"), parseOptions);
+            var modifiedAccessor = modifiedTree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(previousAccessor.Body.SpanStart, modifiedAccessor, out var speculativeModel));
+            var expr = modifiedAccessor.DescendantNodes().OfType<FieldExpressionSyntax>().Single();
+            Assert.Equal("return field;", expr.Parent.ToString());
+            var symbolInfo = speculativeModel.GetSymbolInfo(expr);
+            Assert.Equal("System.Object C.<P>k__BackingField", symbolInfo.Symbol.ToTestDisplayString());
         }
 
         [Theory]
