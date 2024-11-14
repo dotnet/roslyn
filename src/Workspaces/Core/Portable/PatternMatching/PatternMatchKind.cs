@@ -107,3 +107,9 @@ internal enum PatternMatchKind
     /// </summary>
     LowercaseSubstring,
 }
+
+internal static class PatternMatchKindExtensions
+{
+    public static bool IsCamelCaseKind(this PatternMatchKind kind)
+        => kind is PatternMatchKind.CamelCaseExact or PatternMatchKind.CamelCasePrefix or PatternMatchKind.CamelCaseNonContiguousPrefix or PatternMatchKind.CamelCaseSubstring;
+}

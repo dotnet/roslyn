@@ -71,8 +71,6 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
     protected abstract bool IsRegularCommentOrDocComment(SyntaxTrivia trivia);
     protected abstract IUnnecessaryImportsProvider<TSyntaxNode> UnnecessaryImportsProvider { get; }
 
-    protected override GeneratedCodeAnalysisFlags GeneratedCodeAnalysisFlags => GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics;
-
     protected abstract SyntaxToken? TryGetLastToken(SyntaxNode node);
 
     protected override void InitializeWorker(AnalysisContext context)

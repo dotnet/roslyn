@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test;
@@ -2599,5 +2600,184 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             """;
 
         CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1234");
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75871")]
+    [InlineData(new[] { 1, 2, 3 })]
+    [InlineData(new[] { 1, 3, 2 })]
+    [InlineData(new[] { 2, 1, 3 })]
+    [InlineData(new[] { 2, 3, 1 })]
+    [InlineData(new[] { 3, 1, 2 })]
+    [InlineData(new[] { 3, 2, 1 })]
+    public void ExtensionsOnlyFilteredByApplicability_01(int[] methodOrder)
+    {
+        var e2Methods = "";
+
+        foreach (var method in methodOrder)
+        {
+            e2Methods += method switch
+            {
+                1 => """
+                        [OverloadResolutionPriority(-1)]
+                        public static void R(this int x) => Console.WriteLine("E2.R(int)");
+                    """,
+                2 => """
+                        public static void R(this string x) => Console.WriteLine("E2.R(string)");
+                    """,
+                3 => """
+                        public static void R(this bool o) => Console.WriteLine("E2.R(bool)");
+                    """,
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
+        }
+
+        var source = $$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    int x = 5;
+                    x.R(); // E1.R(int)
+                }
+            }
+
+            public static class E1
+            {
+                public static void R(this int x) => Console.WriteLine("E1.R(int)");
+            }
+
+            public static class E2
+            {
+                {{e2Methods}}
+            }
+            """;
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyDiagnostics(
+            // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'E1.R(int)' and 'E2.R(int)'
+            //         x.R(); // E1.R(int)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "R").WithArguments("E1.R(int)", "E2.R(int)").WithLocation(9, 11)
+        );
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75871")]
+    [InlineData(new[] { 1, 2, 3 })]
+    [InlineData(new[] { 1, 3, 2 })]
+    [InlineData(new[] { 2, 1, 3 })]
+    [InlineData(new[] { 2, 3, 1 })]
+    [InlineData(new[] { 3, 1, 2 })]
+    [InlineData(new[] { 3, 2, 1 })]
+    public void ExtensionsOnlyFilteredByApplicability_02(int[] methodOrder)
+    {
+        var e2Methods = "";
+
+        foreach (var method in methodOrder)
+        {
+            e2Methods += method switch
+            {
+                1 => """
+                        [OverloadResolutionPriority(-1)]
+                        public static void R(this int x) => Console.WriteLine("E2.R(int)");
+                    """,
+                2 => """
+                        public static void R(this string x) => Console.WriteLine("E2.R(string)");
+                    """,
+                3 => """
+                        [OverloadResolutionPriority(-1)]
+                        public static void R(this long o) => Console.WriteLine("E2.R(bool)");
+                    """,
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
+        }
+
+        var source = $$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    int x = 5;
+                    x.R(); // E1.R(int)
+                }
+            }
+
+            public static class E1
+            {
+                public static void R(this int x) => Console.WriteLine("E1.R(int)");
+            }
+
+            public static class E2
+            {
+                {{e2Methods}}
+            }
+            """;
+
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]);
+        comp.VerifyDiagnostics(
+            // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'E1.R(int)' and 'E2.R(int)'
+            //         x.R(); // E1.R(int)
+            Diagnostic(ErrorCode.ERR_AmbigCall, "R").WithArguments("E1.R(int)", "E2.R(int)").WithLocation(9, 11)
+        );
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/75871")]
+    [InlineData(new[] { 1, 2, 3 })]
+    [InlineData(new[] { 1, 3, 2 })]
+    [InlineData(new[] { 2, 1, 3 })]
+    [InlineData(new[] { 2, 3, 1 })]
+    [InlineData(new[] { 3, 1, 2 })]
+    [InlineData(new[] { 3, 2, 1 })]
+    public void ExtensionsOnlyFilteredByApplicability_03(int[] methodOrder)
+    {
+        var e2Methods = "";
+
+        foreach (var method in methodOrder)
+        {
+            e2Methods += method switch
+            {
+                1 => """
+                        [OverloadResolutionPriority(-1)]
+                        public static void R(this int x) => Console.WriteLine("E2.R(int)");
+                    """,
+                2 => """
+                        public static void R(this string x) => Console.WriteLine("E2.R(string)");
+                    """,
+                3 => """
+                        public static void R(this object o) => Console.WriteLine("E2.R(object)");
+                    """,
+                _ => throw ExceptionUtilities.Unreachable(),
+            };
+        }
+
+        var source = $$"""
+            using System;
+            using System.Runtime.CompilerServices;
+
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    int x = 5;
+                    x.R(); // E1.R(int)
+                }
+            }
+
+            public static class E1
+            {
+                public static void R(this int x) => Console.WriteLine("E1.R(int)");
+            }
+
+            public static class E2
+            {
+                {{e2Methods}}
+            }
+            """;
+
+        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "E1.R(int)").VerifyDiagnostics();
     }
 }

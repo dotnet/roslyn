@@ -535,6 +535,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsPostfixUnaryExpression([NotNullWhen(true)] SyntaxNode? node)
         => node is PostfixUnaryExpressionSyntax;
 
+    public bool IsElementBindingExpression([NotNullWhen(true)] SyntaxNode? node)
+        => node is ElementBindingExpressionSyntax;
+
     public bool IsMemberBindingExpression([NotNullWhen(true)] SyntaxNode? node)
         => node is MemberBindingExpressionSyntax;
 

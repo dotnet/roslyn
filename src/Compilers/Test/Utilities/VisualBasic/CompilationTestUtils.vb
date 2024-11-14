@@ -651,7 +651,7 @@ Friend Module CompilationUtils
         MarkupTestFile.GetSpans(codeWithMarker, codeWithoutMarker, spans)
 
         Dim text = SourceText.From(codeWithoutMarker, Encoding.UTF8)
-        Return (VisualBasicSyntaxTree.ParseText(text, parseOptions, If(programElement.@name, "")), spans)
+        Return (VisualBasicSyntaxTree.ParseText(text, If(parseOptions, TestOptions.RegularLatest), If(programElement.@name, "")), spans)
     End Function
 
     ' Find a node inside a tree.

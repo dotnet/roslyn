@@ -823,6 +823,94 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(root1.IsIncrementallyIdenticalTo(root2));
         }
 
+        [Theory, CombinatorialData]
+        public async Task WithDocumentText_LinkedFiles_DifferentLanguage(
+            PreservationMode mode,
+            TextUpdateType updateType)
+        {
+            var parseOptions1 = CSharpParseOptions.Default;
+            var parseOptions2 = VisualBasicParseOptions.Default;
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+
+            var docContents = "";
+
+            // Validate strange case were we have linked files to the same file, but with different languages.
+            Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution
+                .AddProject(projectId1, "proj1", "proj1.dll", LanguageNames.CSharp).WithProjectParseOptions(projectId1, parseOptions1)
+                .AddDocument(DocumentId.CreateNewId(projectId1), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")
+                .AddProject(projectId2, "proj2", "proj2.dll", LanguageNames.VisualBasic).WithProjectParseOptions(projectId2, parseOptions2)
+                .AddDocument(DocumentId.CreateNewId(projectId2), "goo.cs", SourceText.From(docContents, Encoding.UTF8, SourceHashAlgorithms.Default), filePath: "goo.cs")));
+
+            var solution = workspace.CurrentSolution;
+
+            var documentId1 = solution.Projects.First().DocumentIds.Single();
+            var documentId2 = solution.Projects.Last().DocumentIds.Single();
+
+            var document1 = solution.GetRequiredDocument(documentId1);
+            var document2 = solution.GetRequiredDocument(documentId2);
+
+            var text1 = await document1.GetTextAsync();
+            var text2 = await document2.GetTextAsync();
+            var version1 = await document1.GetTextVersionAsync();
+            var version2 = await document2.GetTextVersionAsync();
+            var root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // These are different languages, so we should get entirely different tree structures.
+            Assert.NotEqual(root1.GetType(), root2.GetType());
+
+            var text = SourceText.From(" ", encoding: null, SourceHashAlgorithm.Sha1);
+            var textAndVersion = TextAndVersion.Create(text, VersionStamp.Create());
+            solution = UpdateSolution(mode, updateType, solution, documentId1, text, textAndVersion);
+
+            // because we only forked one doc, the text/versions should be different in this interim solution.
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.NotEqual(text1.ToString(), text2.ToString());
+
+            // The versions will not match as we won't share the underlying text-and-tree instances between languages.
+            Assert.NotEqual(version1, version2);
+
+            // These are different languages, so we should get entirely different tree structures.
+            Assert.NotEqual(root1.GetType(), root2.GetType());
+
+            // Now apply the change to the workspace.  This should bring the linked document in sync with the one we changed.
+            // But not cause them to share trees.
+            workspace.TryApplyChanges(solution);
+            solution = workspace.CurrentSolution;
+
+            document1 = solution.GetRequiredDocument(documentId1);
+            document2 = solution.GetRequiredDocument(documentId2);
+
+            text1 = await document1.GetTextAsync();
+            text2 = await document2.GetTextAsync();
+            version1 = await document1.GetTextVersionAsync();
+            version2 = await document2.GetTextVersionAsync();
+            root1 = await document1.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            root2 = await document2.GetRequiredSyntaxRootAsync(CancellationToken.None);
+
+            Assert.Equal(text1.ToString(), text2.ToString());
+            Assert.Equal(version1, version2);
+
+            // These are different languages, so we should get entirely different tree structures.
+            Assert.NotEqual(root1.GetType(), root2.GetType());
+        }
+
         [Fact]
         public void WithAdditionalDocumentText_SourceText()
         {

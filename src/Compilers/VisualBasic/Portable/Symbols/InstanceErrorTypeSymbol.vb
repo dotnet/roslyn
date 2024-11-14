@@ -205,6 +205,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Get
             End Property
 
+            Friend Overrides ReadOnly Property HasUnmanagedTypeConstraint As Boolean
+                Get
+                    Return False
+                End Get
+            End Property
+
             Friend Overrides Function GetConstraints() As ImmutableArray(Of TypeParameterConstraint)
                 Return ImmutableArray(Of TypeParameterConstraint).Empty
             End Function

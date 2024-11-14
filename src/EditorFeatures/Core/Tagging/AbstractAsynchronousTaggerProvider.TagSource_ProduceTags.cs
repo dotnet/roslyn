@@ -294,8 +294,18 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             // us avoid hammering the dispatcher queue with lots of work that causes contention.  Additionally, use
             // a no-throw awaitable so that in the common case where we cancel before, we don't throw an exception
             // that can exacerbate cross process debugging scenarios.
-            var (isVisible, caretPosition, snapshotSpansToTag) = await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(
+            var valueOpt = await _dataSource.MainThreadManager.PerformWorkOnMainThreadAsync(
                 GetTaggerUIData, cancellationToken).ConfigureAwait(true);
+
+            if (valueOpt is null)
+            {
+                // We failed to get the UI data we need.  This can happen in cases like trying to get that during a layout pass.
+                // In that case, we just bail out and try again later.
+                this.EnqueueWork(highPriority);
+                return null;
+            }
+
+            var (isVisible, caretPosition, snapshotSpansToTag) = valueOpt.Value;
 
             // Since we don't ever throw above, check and see if the await completed due to cancellation and do not
             // proceed.
@@ -379,7 +389,9 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 return newTagTrees;
             }
 
-            (bool isVisible, SnapshotPoint? caretPosition, OneOrMany<SnapshotSpan> spansToTag) GetTaggerUIData()
+            // Returns null if we we're currently in a state where we can't get the tags to span and we should bail out
+            // from producing tags on this turn of the crank.
+            (bool isVisible, SnapshotPoint? caretPosition, OneOrMany<SnapshotSpan> spansToTag)? GetTaggerUIData()
             {
                 _dataSource.ThreadingContext.ThrowIfNotOnUIThread();
 
@@ -393,7 +405,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                 var caretPosition = _dataSource.GetCaretPoint(_textView, _subjectBuffer);
 
                 using var spansToTag = TemporaryArray<SnapshotSpan>.Empty;
-                _dataSource.AddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef());
+                if (!_dataSource.TryAddSpansToTag(_textView, _subjectBuffer, ref spansToTag.AsRef()))
+                    return null;
 
 #if DEBUG
                 foreach (var snapshotSpan in spansToTag)
@@ -629,8 +642,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
             TagSpanIntervalTree<TTag> latestTree,
             TagSpanIntervalTree<TTag> previousTree)
         {
-            using var _1 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var latestSpans);
-            using var _2 = SegmentedListPool.GetPooledList<TagSpan<TTag>>(out var previousSpans);
+            using var _1 = SegmentedListPool.GetPooledList<(SnapshotSpan, TTag)>(out var latestSpans);
+            using var _2 = SegmentedListPool.GetPooledList<(SnapshotSpan, TTag)>(out var previousSpans);
 
             using var _3 = ArrayBuilder<SnapshotSpan>.GetInstance(out var added);
             using var _4 = ArrayBuilder<SnapshotSpan>.GetInstance(out var removed);
@@ -646,8 +659,8 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             while (latest != null && previous != null)
             {
-                var latestSpan = latest.Span;
-                var previousSpan = previous.Span;
+                var latestSpan = latest.Value.Span;
+                var previousSpan = previous.Value.Span;
 
                 if (latestSpan.Start < previousSpan.Start)
                 {
@@ -675,7 +688,7 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
                     }
                     else
                     {
-                        if (!_dataSource.TagEquals(latest.Tag, previous.Tag))
+                        if (!_dataSource.TagEquals(latest.Value.Tag, previous.Value.Tag))
                             added.Add(latestSpan);
 
                         latest = NextOrNull(ref latestEnumerator);
@@ -686,19 +699,19 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             while (latest != null)
             {
-                added.Add(latest.Span);
+                added.Add(latest.Value.Span);
                 latest = NextOrNull(ref latestEnumerator);
             }
 
             while (previous != null)
             {
-                removed.Add(previous.Span);
+                removed.Add(previous.Value.Span);
                 previous = NextOrNull(ref previousEnumerator);
             }
 
             return new DiffResult(new(added), new(removed));
 
-            static TagSpan<TTag>? NextOrNull(ref SegmentedList<TagSpan<TTag>>.Enumerator enumerator)
+            static (SnapshotSpan Span, TTag Tag)? NextOrNull(ref SegmentedList<(SnapshotSpan, TTag)>.Enumerator enumerator)
                 => enumerator.MoveNext() ? enumerator.Current : null;
         }
 
