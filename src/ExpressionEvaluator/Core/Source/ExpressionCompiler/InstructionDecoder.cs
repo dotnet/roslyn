@@ -7,7 +7,6 @@ using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Debugger.Clr;
-using Microsoft.VisualStudio.Debugger.Evaluation;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
