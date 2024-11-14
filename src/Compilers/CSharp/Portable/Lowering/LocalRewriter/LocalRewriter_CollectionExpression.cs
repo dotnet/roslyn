@@ -648,6 +648,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Attempt to optimize conversion of a single-spread collection expr to array, even if the spread length is not known.</summary>
+        /// <remarks>
+        /// The following optimizations are tried, in order:
+        /// 1. 'List.ToArray' if the spread value is a list
+        /// 2. 'Enumerable.ToArray' if we can convert the spread value to IEnumerable and additional conditions are met
+        /// 3. 'Span/ReadOnlySpan.ToArray' if we can convert the spread value to Span or ReadOnlySpan
+        /// </remarks>
         private BoundExpression? TryOptimizeSingleSpreadToArray(BoundCollectionExpression node, ArrayTypeSymbol arrayType)
         {
             // Collection-expr is of the form `[..spreadExpression]`.
@@ -666,11 +672,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // See if 'Enumerable.ToArray<T>(IEnumerable<T>)' will work, possibly due to a covariant conversion on the spread value.
-                if (IsConvertibleToObject(arrayType.ElementType)
-                    && _factory.WellKnownMethod(WellKnownMember.System_Linq_Enumerable__ToArray, isOptional: true) is { } linqToArrayMethodGeneric)
+                if (_factory.WellKnownMethod(WellKnownMember.System_Linq_Enumerable__ToArray, isOptional: true) is { } linqToArrayMethodGeneric)
                 {
+                    // Note that in general, we expect well-known collection types and methods to lack constraints on their type parameter(s).
+                    // Because an array element type may not be a valid type argument for unconstrained type parameter, we still check constraints here regardless.
                     var linqToArrayMethod = linqToArrayMethodGeneric.Construct([arrayType.ElementTypeWithAnnotations]);
-                    if (ShouldUseIEnumerableBulkAddMethod(spreadExpression.Type!, linqToArrayMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
+                    if (linqToArrayMethod.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, Location.None, BindingDiagnosticBag.Discarded))
+                        && ShouldUseIEnumerableBulkAddMethod(spreadExpression.Type!, linqToArrayMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
                     {
                         return _factory.Call(receiver: null, linqToArrayMethod, VisitExpression(spreadExpression));
                     }
@@ -829,17 +837,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arrayType);
         }
 
-        private bool IsConvertibleToObject(TypeSymbol type)
-        {
-            // conversion to 'object' will fail if, for example, 'type' is a pointer.
-            var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            return _compilation.Conversions.ClassifyConversionFromType(
-                source: type,
-                destination: _compilation.GetSpecialType(SpecialType.System_Object),
-                isChecked: false,
-                ref useSiteInfo).IsImplicit;
-        }
-
         /// <summary>
         /// For the purpose of optimization, conversions to ReadOnlySpan and/or Span are known on the following types:
         /// System.Array, System.Span, System.ReadOnlySpan, System.Collections.Immutable.ImmutableArray, and System.Collections.Generic.List.
@@ -861,9 +858,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type is ArrayTypeSymbol { IsSZArray: true } arrayType
                 && _factory.WellKnownMethod(writableOnly ? WellKnownMember.System_Span_T__ctor_Array : WellKnownMember.System_ReadOnlySpan_T__ctor_Array, isOptional: true) is { } spanCtorArray)
             {
-                if (IsConvertibleToObject(arrayType.ElementType))
+                var spanOfElementType = spanCtorArray.ContainingType.Construct(arrayType.ElementType);
+                if (spanOfElementType.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(_compilation, _compilation.Conversions, Location.None, BindingDiagnosticBag.Discarded)))
                 {
-                    asSpanMethod = spanCtorArray.AsMember(spanCtorArray.ContainingType.Construct(arrayType.ElementType));
+                    asSpanMethod = spanCtorArray.AsMember(spanOfElementType);
                     return true;
                 }
             }
