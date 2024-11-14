@@ -121,9 +121,9 @@ internal static partial class ITypeSymbolExtensions
         }
     }
 
-    public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol type)
+    public static IEnumerable<INamedTypeSymbol> GetBaseTypes(this ITypeSymbol? type)
     {
-        var current = type.BaseType;
+        var current = type?.BaseType;
         while (current != null)
         {
             yield return current;

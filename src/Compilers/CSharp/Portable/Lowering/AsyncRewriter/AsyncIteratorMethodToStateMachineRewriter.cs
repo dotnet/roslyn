@@ -317,6 +317,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.Goto(_currentDisposalLabel));
         }
 
+        protected override BoundStatement MakeAwaitPreamble()
+        {
+            if (_asyncIteratorInfo.CurrentField.Type.IsManagedTypeNoUseSiteDiagnostics)
+            {
+                // _current = default;
+                return GenerateClearCurrent();
+            }
+
+            return null;
+        }
+
         private BoundExpressionStatement SetDisposeMode(bool value)
         {
             return F.Assignment(F.InstanceField(_asyncIteratorInfo.DisposeModeField), F.Literal(value));

@@ -21,11 +21,13 @@ internal interface IRemoteAssetSynchronizationService
     /// Synchronize the text changes made by a user to a particular document as they are editing it.  By sending over
     /// the text changes as they happen, we can attempt to 'prime' the remote asset cache with a final <see
     /// cref="SourceText"/> that is built based off of retrieving the remote source text with a checksum corresponding
-    /// to <paramref name="baseTextChecksum"/> and then applying the <paramref name="textChanges"/> to it.  Then, when
-    /// the next remote call comes in for the new solution snapshot, it can hopefully just pluck that text out of the
-    /// cache without having to sync the <em>entire</em> contents of the file over.
+    /// to baseTextChecksum and then applying the textChanges to it.  Then, when the next remote call comes in for the
+    /// new solution snapshot, it can hopefully just pluck that text out of the cache without having to sync the
+    /// <em>entire</em> contents of the file over.
     /// </summary>
-    ValueTask SynchronizeTextAsync(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges, CancellationToken cancellationToken);
+    ValueTask SynchronizeTextChangesAsync(
+        ImmutableArray<(DocumentId documentId, Checksum baseTextChecksum, ImmutableArray<TextChange> textChanges)> changes,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Synchronize over what the user's current active document is that they're editing.  This can then be used by the

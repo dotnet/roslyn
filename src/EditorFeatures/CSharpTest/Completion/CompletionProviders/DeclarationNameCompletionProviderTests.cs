@@ -1892,7 +1892,7 @@ public {record} R(MyClass $$
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "streamReader");
+        await VerifyItemIsAbsentAsync(markup, "streamReader");
     }
 
     [Fact]

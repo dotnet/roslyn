@@ -1551,12 +1551,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var leftEscape = GetRefEscape(op1, _localScopeDepth);
                     var rightEscape = GetRefEscape(op2, _localScopeDepth);
-                    if (leftEscape < rightEscape)
+                    if (!rightEscape.IsConvertibleTo(leftEscape))
                     {
                         var errorCode = (rightEscape, _inUnsafeRegion) switch
                         {
-                            (ReturnOnlyScope, false) => ErrorCode.ERR_RefAssignReturnOnly,
-                            (ReturnOnlyScope, true) => ErrorCode.WRN_RefAssignReturnOnly,
+                            ({ IsReturnOnly: true }, false) => ErrorCode.ERR_RefAssignReturnOnly,
+                            ({ IsReturnOnly: true }, true) => ErrorCode.WRN_RefAssignReturnOnly,
                             (_, false) => ErrorCode.ERR_RefAssignNarrower,
                             (_, true) => ErrorCode.WRN_RefAssignNarrower
                         };
@@ -1572,12 +1572,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftEscape = GetValEscape(op1, _localScopeDepth);
                         rightEscape = GetValEscape(op2, _localScopeDepth);
 
-                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeOrAllowsRefLikeType());
+                        Debug.Assert(leftEscape.Equals(rightEscape) || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
-                        // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
-                        // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
-                        // e1 is handled in the if (op1.Type.IsRefLikeType) { ... } block later.
-                        if (leftEscape > rightEscape)
+                        // We only check if the left SafeContext is convertible to the right here
+                        // in order to give a more useful diagnostic.
+                        // Later on we check if right SafeContext is convertible to left,
+                        // which effectively means these SafeContexts must be equal.
+                        if (!leftEscape.IsConvertibleTo(rightEscape))
                         {
                             Debug.Assert(op1.Kind != BoundKind.Parameter); // If the assert fails, add a corresponding test.
 

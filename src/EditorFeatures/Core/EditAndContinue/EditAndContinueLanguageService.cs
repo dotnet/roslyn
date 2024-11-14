@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 using Roslyn.Utilities;
@@ -21,6 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 
 [Shared]
 [Export(typeof(IManagedHotReloadLanguageService))]
+[Export(typeof(IManagedHotReloadLanguageService2))]
 [Export(typeof(IEditAndContinueSolutionProvider))]
 [Export(typeof(EditAndContinueLanguageService))]
 [ExportMetadata("UIContext", EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString)]
@@ -33,7 +37,7 @@ internal sealed class EditAndContinueLanguageService(
     Lazy<IManagedHotReloadService> debuggerService,
     PdbMatchingSourceTextProvider sourceTextProvider,
     IDiagnosticsRefresher diagnosticRefresher,
-    IAsynchronousOperationListenerProvider listenerProvider) : IManagedHotReloadLanguageService, IEditAndContinueSolutionProvider
+    IAsynchronousOperationListenerProvider listenerProvider) : IManagedHotReloadLanguageService2, IEditAndContinueSolutionProvider
 {
     private sealed class NoSessionException : InvalidOperationException
     {
@@ -242,6 +246,64 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
+    public async ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
+    {
+        if (_disabled)
+        {
+            return;
+        }
+
+        var currentDesignTimeSolution = GetCurrentDesignTimeSolution();
+        var currentCompileTimeSolution = GetCurrentCompileTimeSolution(currentDesignTimeSolution);
+
+        try
+        {
+            SolutionCommitted?.Invoke(currentDesignTimeSolution);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatch(e))
+        {
+        }
+
+        _committedDesignTimeSolution = currentDesignTimeSolution;
+        var projectIds = await GetProjectIdsAsync(projectPaths, currentCompileTimeSolution, cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            await GetDebuggingSession().UpdateBaselinesAsync(currentCompileTimeSolution, projectIds, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+        {
+        }
+
+        foreach (var projectId in projectIds)
+        {
+            workspaceProvider.Value.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId, forceRegeneration: false);
+        }
+    }
+
+    private async ValueTask<ImmutableArray<ProjectId>> GetProjectIdsAsync(ImmutableArray<string> projectPaths, Solution solution, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(out var projectIds);
+        foreach (var path in projectPaths)
+        {
+            var projectId = solution.Projects.FirstOrDefault(project => project.FilePath == path)?.Id;
+            if (projectId != null)
+            {
+                projectIds.Add(projectId);
+            }
+            else
+            {
+                await _logger.LogAsync(new HotReloadLogMessage(
+                    HotReloadVerbosity.Diagnostic,
+                    $"Project with path '{path}' not found in the current solution.",
+                    errorLevel: HotReloadDiagnosticErrorLevel.Warning),
+                    cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return projectIds.ToImmutable();
+    }
+
     public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
     {
         sessionState.IsSessionActive = false;
@@ -309,7 +371,11 @@ internal sealed class EditAndContinueLanguageService(
         }
     }
 
-    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+    [Obsolete]
+    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
+        => GetUpdatesAsync(runningProjects: [], cancellationToken);
+
+    public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
@@ -319,7 +385,12 @@ internal sealed class EditAndContinueLanguageService(
         var designTimeSolution = GetCurrentDesignTimeSolution();
         var solution = GetCurrentCompileTimeSolution(designTimeSolution);
         var activeStatementSpanProvider = GetActiveStatementSpanProvider(solution);
-        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
+
+        using var _ = PooledHashSet<string>.GetInstance(out var runningProjectPaths);
+        runningProjectPaths.AddAll(runningProjects);
+
+        var runningProjectIds = solution.Projects.Where(p => p.FilePath != null && runningProjectPaths.Contains(p.FilePath)).Select(static p => p.Id).ToImmutableHashSet();
+        var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectIds, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
         // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
         if (result.ModuleUpdates.Status == ModuleUpdateStatus.Ready)

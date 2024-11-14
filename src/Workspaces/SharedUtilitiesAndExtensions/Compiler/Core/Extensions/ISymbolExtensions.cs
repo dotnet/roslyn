@@ -72,14 +72,68 @@ internal static partial class ISymbolExtensions
         return visibility;
     }
 
-    public static ISymbol? GetOverriddenMember(this ISymbol? symbol)
-        => symbol switch
+    public static ISymbol? GetOverriddenMember(this ISymbol? symbol, bool allowLooseMatch = false)
+    {
+        if (symbol is null)
+            return null;
+
+        ISymbol? exactMatch = symbol switch
         {
             IMethodSymbol method => method.OverriddenMethod,
             IPropertySymbol property => property.OverriddenProperty,
             IEventSymbol @event => @event.OverriddenEvent,
             _ => null,
         };
+
+        if (exactMatch != null)
+            return exactMatch;
+
+        if (allowLooseMatch)
+        {
+            foreach (var baseType in symbol.ContainingType.GetBaseTypes())
+            {
+                if (TryFindLooseMatch(symbol, baseType, out var looseMatch))
+                    return looseMatch;
+            }
+        }
+
+        return null;
+
+        bool TryFindLooseMatch(ISymbol symbol, INamedTypeSymbol baseType, [NotNullWhen(true)] out ISymbol? looseMatch)
+        {
+            IMethodSymbol? bestMethod = null;
+            var parameterCount = symbol.GetParameters().Length;
+
+            foreach (var member in baseType.GetMembers(symbol.Name))
+            {
+                if (member.Kind != symbol.Kind)
+                    continue;
+
+                if (member.IsSealed)
+                    continue;
+
+                if (!member.IsVirtual && !member.IsOverride && !member.IsAbstract)
+                    continue;
+
+                if (symbol.Kind is SymbolKind.Event or SymbolKind.Property)
+                {
+                    // We've found a matching event/property in the base type (perhaps differing by return type). This
+                    // is a good enough match to return as a loose match for the starting symbol.
+                    looseMatch = member;
+                    return true;
+                }
+                else if (member is IMethodSymbol method)
+                {
+                    // Prefer methods that are closed in parameter count to the original method we started with.
+                    if (bestMethod is null || Math.Abs(method.Parameters.Length - parameterCount) < Math.Abs(bestMethod.Parameters.Length - parameterCount))
+                        bestMethod = method;
+                }
+            }
+
+            looseMatch = bestMethod;
+            return looseMatch != null;
+        }
+    }
 
     public static ImmutableArray<ISymbol> ExplicitInterfaceImplementations(this ISymbol symbol)
         => symbol switch

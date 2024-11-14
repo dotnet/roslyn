@@ -8808,5 +8808,614 @@ class C
             Assert.Null(model.GetSymbolInfo(s).Symbol);
             Assert.Equal(new[] { "System.String s" }, model.GetSymbolInfo(s).CandidateSymbols.ToTestDisplayStrings());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting_ReferenceType()
+        {
+            var src = """
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.M(tcs.Task);
+var enumerator = enumerable.GetAsyncEnumerator();
+if (!await enumerator.MoveNextAsync())
+    throw null;
+
+System.Console.Write(enumerator.Current);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current is null);
+
+tcs.SetResult();
+
+if (!await promise)
+    throw null;
+
+System.Console.Write(enumerator.Current);
+
+public class C
+{
+    public static async IAsyncEnumerable<object> M(Task t)
+    {
+        object o = "first ";
+        yield return o;
+        await t;
+        yield return " second";
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first True second" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """"
+{
+  // Code size      349 (0x15d)
+  .maxstack  3
+  .locals init (int V_0,
+                object V_1, //o
+                System.Runtime.CompilerServices.TaskAwaiter V_2,
+                C.<M>d__0 V_3,
+                System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -5
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_00ec,
+        IL_005a,
+        IL_0028,
+        IL_0028,
+        IL_0028,
+        IL_00b2)
+    IL_0028:  ldarg.0
+    IL_0029:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_002e:  brfalse.s  IL_0035
+    IL_0030:  leave      IL_0129
+    IL_0035:  ldarg.0
+    IL_0036:  ldc.i4.m1
+    IL_0037:  dup
+    IL_0038:  stloc.0
+    IL_0039:  stfld      "int C.<M>d__0.<>1__state"
+    IL_003e:  ldstr      "first "
+    IL_0043:  stloc.1
+    IL_0044:  ldarg.0
+    IL_0045:  ldloc.1
+    IL_0046:  stfld      "object C.<M>d__0.<>2__current"
+    IL_004b:  ldarg.0
+    IL_004c:  ldc.i4.s   -4
+    IL_004e:  dup
+    IL_004f:  stloc.0
+    IL_0050:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0055:  leave      IL_0150
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.m1
+    IL_005c:  dup
+    IL_005d:  stloc.0
+    IL_005e:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0063:  ldarg.0
+    IL_0064:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_0069:  brfalse.s  IL_0070
+    IL_006b:  leave      IL_0129
+    IL_0070:  ldarg.0
+    IL_0071:  ldnull
+    IL_0072:  stfld      "object C.<M>d__0.<>2__current"
+    IL_0077:  ldarg.0
+    IL_0078:  ldfld      "System.Threading.Tasks.Task C.<M>d__0.t"
+    IL_007d:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_0082:  stloc.2
+    IL_0083:  ldloca.s   V_2
+    IL_0085:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_008a:  brtrue.s   IL_00ce
+    IL_008c:  ldarg.0
+    IL_008d:  ldc.i4.0
+    IL_008e:  dup
+    IL_008f:  stloc.0
+    IL_0090:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0095:  ldarg.0
+    IL_0096:  ldloc.2
+    IL_0097:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+    IL_009c:  ldarg.0
+    IL_009d:  stloc.3
+    IL_009e:  ldarg.0
+    IL_009f:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+    IL_00a4:  ldloca.s   V_2
+    IL_00a6:  ldloca.s   V_3
+    IL_00a8:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0)"
+    IL_00ad:  leave      IL_015c
+    IL_00b2:  ldarg.0
+    IL_00b3:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+    IL_00b8:  stloc.2
+    IL_00b9:  ldarg.0
+    IL_00ba:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0.<>u__1"
+    IL_00bf:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_00c5:  ldarg.0
+    IL_00c6:  ldc.i4.m1
+    IL_00c7:  dup
+    IL_00c8:  stloc.0
+    IL_00c9:  stfld      "int C.<M>d__0.<>1__state"
+    IL_00ce:  ldloca.s   V_2
+    IL_00d0:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_00d5:  ldarg.0
+    IL_00d6:  ldstr      " second"
+    IL_00db:  stfld      "object C.<M>d__0.<>2__current"
+    IL_00e0:  ldarg.0
+    IL_00e1:  ldc.i4.s   -5
+    IL_00e3:  dup
+    IL_00e4:  stloc.0
+    IL_00e5:  stfld      "int C.<M>d__0.<>1__state"
+    IL_00ea:  leave.s    IL_0150
+    IL_00ec:  ldarg.0
+    IL_00ed:  ldc.i4.m1
+    IL_00ee:  dup
+    IL_00ef:  stloc.0
+    IL_00f0:  stfld      "int C.<M>d__0.<>1__state"
+    IL_00f5:  ldarg.0
+    IL_00f6:  ldfld      "bool C.<M>d__0.<>w__disposeMode"
+    IL_00fb:  pop
+    IL_00fc:  leave.s    IL_0129
+  }
+  catch System.Exception
+  {
+    IL_00fe:  stloc.s    V_4
+    IL_0100:  ldarg.0
+    IL_0101:  ldc.i4.s   -2
+    IL_0103:  stfld      "int C.<M>d__0.<>1__state"
+    IL_0108:  ldarg.0
+    IL_0109:  ldnull
+    IL_010a:  stfld      "object C.<M>d__0.<>2__current"
+    IL_010f:  ldarg.0
+    IL_0110:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+    IL_0115:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_011a:  ldarg.0
+    IL_011b:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+    IL_0120:  ldloc.s    V_4
+    IL_0122:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_0127:  leave.s    IL_015c
+  }
+  IL_0129:  ldarg.0
+  IL_012a:  ldc.i4.s   -2
+  IL_012c:  stfld      "int C.<M>d__0.<>1__state"
+  IL_0131:  ldarg.0
+  IL_0132:  ldnull
+  IL_0133:  stfld      "object C.<M>d__0.<>2__current"
+  IL_0138:  ldarg.0
+  IL_0139:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0.<>t__builder"
+  IL_013e:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_0143:  ldarg.0
+  IL_0144:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+  IL_0149:  ldc.i4.0
+  IL_014a:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_014f:  ret
+  IL_0150:  ldarg.0
+  IL_0151:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0.<>v__promiseOfValueOrEnd"
+  IL_0156:  ldc.i4.1
+  IL_0157:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_015c:  ret
+}
+"""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting_ManagedType()
+        {
+            var src = """
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.M(tcs.Task);
+var enumerator = enumerable.GetAsyncEnumerator();
+if (!await enumerator.MoveNextAsync())
+    throw null;
+
+System.Console.Write(enumerator.Current.field);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current.field is null);
+
+tcs.SetResult();
+
+if (!await promise)
+    throw null;
+
+System.Console.Write(enumerator.Current.field);
+
+public struct S
+{
+    public object field;
+}
+
+public class C
+{
+    public static async IAsyncEnumerable<S> M(Task t)
+    {
+        object o = "first ";
+        yield return new S { field = o };
+        await t;
+        yield return new S { field = " second" };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first True second" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting_ValueType()
+        {
+            var src = """
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.M(tcs.Task);
+var enumerator = enumerable.GetAsyncEnumerator();
+if (!await enumerator.MoveNextAsync())
+    throw null;
+
+System.Console.Write(enumerator.Current);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current);
+
+tcs.SetResult();
+
+if (!await promise)
+    throw null;
+
+System.Console.Write(enumerator.Current);
+
+public class C
+{
+    public static async IAsyncEnumerable<int> M(Task t)
+    {
+        yield return 42;
+        await t;
+        yield return 43;
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "424243" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting_UnmanagedType()
+        {
+            var src = """
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.M(tcs.Task);
+var enumerator = enumerable.GetAsyncEnumerator();
+if (!await enumerator.MoveNextAsync())
+    throw null;
+
+System.Console.Write(enumerator.Current.field);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current.field);
+
+tcs.SetResult();
+
+if (!await promise)
+    throw null;
+
+System.Console.Write(enumerator.Current.field);
+
+public struct S
+{
+    public int field;
+}
+public class C
+{
+    public static async IAsyncEnumerable<S> M(Task t)
+    {
+        yield return new S { field = 42 };
+        await t;
+        yield return new S { field = 43 };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "424243" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting_GenericType()
+        {
+            var src = """
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.M<string>(tcs.Task, "first ", " second");
+var enumerator = enumerable.GetAsyncEnumerator();
+if (!await enumerator.MoveNextAsync())
+    throw null;
+
+System.Console.Write(enumerator.Current);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current is null);
+
+tcs.SetResult();
+
+if (!await promise)
+    throw null;
+
+System.Console.Write(enumerator.Current);
+
+public class C
+{
+    public static async IAsyncEnumerable<T> M<T>(Task t, T t1, T t2)
+    {
+        yield return t1;
+        await t;
+        yield return t2;
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first True second" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.<M>d__0<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """"
+{
+  // Code size      362 (0x16a)
+  .maxstack  3
+  .locals init (int V_0,
+                System.Runtime.CompilerServices.TaskAwaiter V_1,
+                C.<M>d__0<T> V_2,
+                System.Exception V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "int C.<M>d__0<T>.<>1__state"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  ldc.i4.s   -5
+    IL_000a:  sub
+    IL_000b:  switch    (
+        IL_00f1,
+        IL_0059,
+        IL_0028,
+        IL_0028,
+        IL_0028,
+        IL_00b6)
+    IL_0028:  ldarg.0
+    IL_0029:  ldfld      "bool C.<M>d__0<T>.<>w__disposeMode"
+    IL_002e:  brfalse.s  IL_0035
+    IL_0030:  leave      IL_0131
+    IL_0035:  ldarg.0
+    IL_0036:  ldc.i4.m1
+    IL_0037:  dup
+    IL_0038:  stloc.0
+    IL_0039:  stfld      "int C.<M>d__0<T>.<>1__state"
+    IL_003e:  ldarg.0
+    IL_003f:  ldarg.0
+    IL_0040:  ldfld      "T C.<M>d__0<T>.t1"
+    IL_0045:  stfld      "T C.<M>d__0<T>.<>2__current"
+    IL_004a:  ldarg.0
+    IL_004b:  ldc.i4.s   -4
+    IL_004d:  dup
+    IL_004e:  stloc.0
+    IL_004f:  stfld      "int C.<M>d__0<T>.<>1__state"
+    IL_0054:  leave      IL_015d
+    IL_0059:  ldarg.0
+    IL_005a:  ldc.i4.m1
+    IL_005b:  dup
+    IL_005c:  stloc.0
+    IL_005d:  stfld      "int C.<M>d__0<T>.<>1__state"
+    IL_0062:  ldarg.0
+    IL_0063:  ldfld      "bool C.<M>d__0<T>.<>w__disposeMode"
+    IL_0068:  brfalse.s  IL_006f
+    IL_006a:  leave      IL_0131
+    IL_006f:  ldarg.0
+    IL_0070:  ldflda     "T C.<M>d__0<T>.<>2__current"
+    IL_0075:  initobj    "T"
+    IL_007b:  ldarg.0
+    IL_007c:  ldfld      "System.Threading.Tasks.Task C.<M>d__0<T>.t"
+    IL_0081:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
+    IL_0086:  stloc.1
+    IL_0087:  ldloca.s   V_1
+    IL_0089:  call       "bool System.Runtime.CompilerServices.TaskAwaiter.IsCompleted.get"
+    IL_008e:  brtrue.s   IL_00d2
+    IL_0090:  ldarg.0
+    IL_0091:  ldc.i4.0
+    IL_0092:  dup
+    IL_0093:  stloc.0
+    IL_0094:  stfld      "int C.<M>d__0<T>.<>1__state"
+    IL_0099:  ldarg.0
+    IL_009a:  ldloc.1
+    IL_009b:  stfld      "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0<T>.<>u__1"
+    IL_00a0:  ldarg.0
+    IL_00a1:  stloc.2
+    IL_00a2:  ldarg.0
+    IL_00a3:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0<T>.<>t__builder"
+    IL_00a8:  ldloca.s   V_1
+    IL_00aa:  ldloca.s   V_2
+    IL_00ac:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter, C.<M>d__0<T>>(ref System.Runtime.CompilerServices.TaskAwaiter, ref C.<M>d__0<T>)"
+    IL_00b1:  leave      IL_0169
+    IL_00b6:  ldarg.0
+    IL_00b7:  ldfld      "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0<T>.<>u__1"
+    IL_00bc:  stloc.1
+    IL_00bd:  ldarg.0
+    IL_00be:  ldflda     "System.Runtime.CompilerServices.TaskAwaiter C.<M>d__0<T>.<>u__1"
+    IL_00c3:  initobj    "System.Runtime.CompilerServices.TaskAwaiter"
+    IL_00c9:  ldarg.0
+    IL_00ca:  ldc.i4.m1
+    IL_00cb:  dup
+    IL_00cc:  stloc.0
+    IL_00cd:  stfld      "int C.<M>d__0<T>.<>1__state"
+    IL_00d2:  ldloca.s   V_1
+    IL_00d4:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
+    IL_00d9:  ldarg.0
+    IL_00da:  ldarg.0
+    IL_00db:  ldfld      "T C.<M>d__0<T>.t2"
+    IL_00e0:  stfld      "T C.<M>d__0<T>.<>2__current"
+    IL_00e5:  ldarg.0
+    IL_00e6:  ldc.i4.s   -5
+    IL_00e8:  dup
+    IL_00e9:  stloc.0
+    IL_00ea:  stfld      "int C.<M>d__0<T>.<>1__state"
+    IL_00ef:  leave.s    IL_015d
+    IL_00f1:  ldarg.0
+    IL_00f2:  ldc.i4.m1
+    IL_00f3:  dup
+    IL_00f4:  stloc.0
+    IL_00f5:  stfld      "int C.<M>d__0<T>.<>1__state"
+    IL_00fa:  ldarg.0
+    IL_00fb:  ldfld      "bool C.<M>d__0<T>.<>w__disposeMode"
+    IL_0100:  pop
+    IL_0101:  leave.s    IL_0131
+  }
+  catch System.Exception
+  {
+    IL_0103:  stloc.3
+    IL_0104:  ldarg.0
+    IL_0105:  ldc.i4.s   -2
+    IL_0107:  stfld      "int C.<M>d__0<T>.<>1__state"
+    IL_010c:  ldarg.0
+    IL_010d:  ldflda     "T C.<M>d__0<T>.<>2__current"
+    IL_0112:  initobj    "T"
+    IL_0118:  ldarg.0
+    IL_0119:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0<T>.<>t__builder"
+    IL_011e:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+    IL_0123:  ldarg.0
+    IL_0124:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0<T>.<>v__promiseOfValueOrEnd"
+    IL_0129:  ldloc.3
+    IL_012a:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetException(System.Exception)"
+    IL_012f:  leave.s    IL_0169
+  }
+  IL_0131:  ldarg.0
+  IL_0132:  ldc.i4.s   -2
+  IL_0134:  stfld      "int C.<M>d__0<T>.<>1__state"
+  IL_0139:  ldarg.0
+  IL_013a:  ldflda     "T C.<M>d__0<T>.<>2__current"
+  IL_013f:  initobj    "T"
+  IL_0145:  ldarg.0
+  IL_0146:  ldflda     "System.Runtime.CompilerServices.AsyncIteratorMethodBuilder C.<M>d__0<T>.<>t__builder"
+  IL_014b:  call       "void System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Complete()"
+  IL_0150:  ldarg.0
+  IL_0151:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0<T>.<>v__promiseOfValueOrEnd"
+  IL_0156:  ldc.i4.0
+  IL_0157:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_015c:  ret
+  IL_015d:  ldarg.0
+  IL_015e:  ldflda     "System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool> C.<M>d__0<T>.<>v__promiseOfValueOrEnd"
+  IL_0163:  ldc.i4.1
+  IL_0164:  call       "void System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore<bool>.SetResult(bool)"
+  IL_0169:  ret
+}
+"""");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting_StructOfGenericType()
+        {
+            var src = """
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.M<string>(tcs.Task, "first ", " second");
+var enumerator = enumerable.GetAsyncEnumerator();
+if (!await enumerator.MoveNextAsync())
+    throw null;
+
+System.Console.Write(enumerator.Current.field);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current.field is null);
+
+tcs.SetResult();
+
+if (!await promise)
+    throw null;
+
+System.Console.Write(enumerator.Current.field);
+
+public struct S<T>
+{
+    public T field;
+}
+
+public class C
+{
+    public static async IAsyncEnumerable<S<T>> M<T>(Task t, T t1, T t2)
+    {
+        yield return new S<T> { field = t1 };
+        await t;
+        yield return new S<T> { field = t2 };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "first True second" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74013")]
+        public void ClearCurrentWhenAwaiting_StructOfUnmanagedGenericType()
+        {
+            var src = """
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+var tcs = new TaskCompletionSource();
+var enumerable = C.M<int>(tcs.Task, 42, 43);
+var enumerator = enumerable.GetAsyncEnumerator();
+if (!await enumerator.MoveNextAsync())
+    throw null;
+
+System.Console.Write(enumerator.Current.field);
+
+var promise = enumerator.MoveNextAsync();
+System.Console.Write(enumerator.Current.field is 0);
+
+tcs.SetResult();
+
+if (!await promise)
+    throw null;
+
+System.Console.Write(enumerator.Current.field);
+
+public struct S<T> where T : unmanaged // UnmanagedWithGenerics
+{
+    public T field;
+}
+
+public class C
+{
+    public static async IAsyncEnumerable<S<T>> M<T>(Task t, T t1, T t2) where T : unmanaged
+    {
+        yield return new S<T> { field = t1 };
+        await t;
+        yield return new S<T> { field = t2 };
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42False43" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
     }
 }

@@ -53,7 +53,7 @@ internal sealed class DebuggingSession : IDisposable
     /// even when it's replaced in <see cref="_projectBaselines"/> by a newer baseline.
     /// </remarks>
     private readonly Dictionary<ProjectId, ProjectBaseline> _projectBaselines = [];
-    private readonly List<IDisposable> _initialBaselineModuleReaders = [];
+    private readonly Dictionary<ProjectId, (IDisposable metadata, IDisposable pdb)> _initialBaselineModuleReaders = [];
     private readonly object _projectEmitBaselinesGuard = new();
 
     /// <summary>
@@ -143,9 +143,13 @@ internal sealed class DebuggingSession : IDisposable
         // Wait for all operations on baseline to finish before we dispose the readers.
         _baselineAccessLock.EnterWriteLock();
 
-        foreach (var reader in GetBaselineModuleReaders())
+        lock (_projectEmitBaselinesGuard)
         {
-            reader.Dispose();
+            foreach (var (_, readers) in _initialBaselineModuleReaders)
+            {
+                readers.metadata.Dispose();
+                readers.pdb.Dispose();
+            }
         }
 
         _baselineAccessLock.ExitWriteLock();
@@ -221,14 +225,6 @@ internal sealed class DebuggingSession : IDisposable
             EditSession.Telemetry,
             (inBreakState == null) ? EditSession.BaseActiveStatements : null,
             inBreakState ?? EditSession.InBreakState);
-    }
-
-    private ImmutableArray<IDisposable> GetBaselineModuleReaders()
-    {
-        lock (_projectEmitBaselinesGuard)
-        {
-            return _initialBaselineModuleReaders.ToImmutableArrayOrEmpty();
-        }
     }
 
     internal CompilationOutputs GetCompilationOutputs(Project project)
@@ -353,8 +349,7 @@ internal sealed class DebuggingSession : IDisposable
             baseline = new ProjectBaseline(baselineProject.Id, initialBaseline, generation: 0);
 
             _projectBaselines.Add(baselineProject.Id, baseline);
-            _initialBaselineModuleReaders.Add(metadataReaderProvider);
-            _initialBaselineModuleReaders.Add(debugInfoReaderProvider);
+            _initialBaselineModuleReaders.Add(baselineProject.Id, (metadataReaderProvider, debugInfoReaderProvider));
         }
 
         return true;
@@ -517,6 +512,7 @@ internal sealed class DebuggingSession : IDisposable
 
     public async ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         Solution solution,
+        IImmutableSet<ProjectId> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -552,6 +548,14 @@ internal sealed class DebuggingSession : IDisposable
             }
         }
 
+        EmitSolutionUpdateResults.GetProjectsToRebuildAndRestart(
+            solution,
+            solutionUpdate.ModuleUpdates,
+            rudeEditDiagnostics,
+            runningProjects,
+            out var projectsToRestart,
+            out var projectsToRebuild);
+
         // Note that we may return empty deltas if all updates have been deferred.
         // The debugger will still call commit or discard on the update batch.
         return new EmitSolutionUpdateResults()
@@ -561,6 +565,8 @@ internal sealed class DebuggingSession : IDisposable
             Diagnostics = solutionUpdate.Diagnostics,
             RudeEdits = rudeEditDiagnostics.ToImmutable(),
             SyntaxError = solutionUpdate.SyntaxError,
+            ProjectsToRestart = projectsToRestart,
+            ProjectsToRebuild = projectsToRebuild
         };
     }
 
@@ -606,6 +612,38 @@ internal sealed class DebuggingSession : IDisposable
     {
         ThrowIfDisposed();
         _ = RetrievePendingUpdate();
+    }
+
+    public void UpdateBaselines(Solution solution, ImmutableArray<ProjectId> rebuiltProjects)
+    {
+        ThrowIfDisposed();
+
+        // Make sure the solution snapshot has all source-generated documents up-to-date.
+        solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
+
+        LastCommittedSolution.CommitSolution(solution);
+
+        lock (_projectEmitBaselinesGuard)
+        {
+            foreach (var projectId in rebuiltProjects)
+            {
+                _projectBaselines.Remove(projectId);
+
+                var (metadata, pdb) = _initialBaselineModuleReaders[projectId];
+                metadata.Dispose();
+                pdb.Dispose();
+
+                _initialBaselineModuleReaders.Remove(projectId);
+            }
+        }
+
+        foreach (var projectId in rebuiltProjects)
+        {
+            _editSessionTelemetry.LogUpdatedBaseline(solution.GetRequiredProject(projectId).State.ProjectInfo.Attributes.TelemetryId);
+        }
+
+        // Restart edit session reusing previous non-remappable regions and break state:
+        RestartEditSession(nonRemappableRegions: null, inBreakState: null);
     }
 
     /// <summary>
@@ -851,31 +889,42 @@ internal sealed class DebuggingSession : IDisposable
 
     internal readonly struct TestAccessor(DebuggingSession instance)
     {
-        private readonly DebuggingSession _instance = instance;
-
         public ImmutableHashSet<Guid> GetModulesPreparedForUpdate()
         {
-            lock (_instance._modulesPreparedForUpdateGuard)
+            lock (instance._modulesPreparedForUpdateGuard)
             {
-                return [.. _instance._modulesPreparedForUpdate];
+                return [.. instance._modulesPreparedForUpdate];
             }
         }
 
         public EmitBaseline GetProjectEmitBaseline(ProjectId id)
         {
-            lock (_instance._projectEmitBaselinesGuard)
+            lock (instance._projectEmitBaselinesGuard)
             {
-                return _instance._projectBaselines[id].EmitBaseline;
+                return instance._projectBaselines[id].EmitBaseline;
+            }
+        }
+
+        public bool HasProjectEmitBaseline(ProjectId id)
+        {
+            lock (instance._projectEmitBaselinesGuard)
+            {
+                return instance._projectBaselines.ContainsKey(id);
             }
         }
 
         public ImmutableArray<IDisposable> GetBaselineModuleReaders()
-            => _instance.GetBaselineModuleReaders();
+        {
+            lock (instance._projectEmitBaselinesGuard)
+            {
+                return instance._initialBaselineModuleReaders.Values.SelectMany(entry => new IDisposable[] { entry.metadata, entry.pdb }).ToImmutableArray();
+            }
+        }
 
         public PendingUpdate? GetPendingSolutionUpdate()
-            => _instance._pendingUpdate;
+            => instance._pendingUpdate;
 
         public void SetTelemetryLogger(Action<FunctionId, LogMessage> logger, Func<int> getNextId)
-            => _instance._reportTelemetry = data => DebuggingSessionTelemetry.Log(data, logger, getNextId);
+            => instance._reportTelemetry = data => DebuggingSessionTelemetry.Log(data, logger, getNextId);
     }
 }
