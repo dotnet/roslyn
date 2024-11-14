@@ -1652,8 +1652,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case RefKind.In:
-                    if (!Binder.HasHome(argument,
-                                        Binder.AddressKind.ReadOnly,
+                    if (!CodeGenerator.HasHome(argument,
+                                        CodeGenerator.AddressKind.ReadOnly,
                                         containingMethod,
                                         Compilation.IsPeVerifyCompatEnabled,
                                         stackLocalsOpt: null))
