@@ -627,13 +627,14 @@ internal sealed class DebuggingSession : IDisposable
         {
             foreach (var projectId in rebuiltProjects)
             {
-                _projectBaselines.Remove(projectId);
+                if (_projectBaselines.Remove(projectId))
+                {
+                    var (metadata, pdb) = _initialBaselineModuleReaders[projectId];
+                    metadata.Dispose();
+                    pdb.Dispose();
 
-                var (metadata, pdb) = _initialBaselineModuleReaders[projectId];
-                metadata.Dispose();
-                pdb.Dispose();
-
-                _initialBaselineModuleReaders.Remove(projectId);
+                    _initialBaselineModuleReaders.Remove(projectId);
+                }
             }
         }
 
