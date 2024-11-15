@@ -105,7 +105,7 @@ public class RawStringLiteralCommandHandlerTests
     public void TestReturnInSixQuotesWithSemicolonAfter()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$"""""";");
+            """"var v = """$$""";"""");
 
         testState.SendReturn(handled: true);
         testState.AssertCodeIs(
@@ -188,7 +188,7 @@ public class RawStringLiteralCommandHandlerTests
     public void TestReturnInSixQuotesAsArgument2()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = WriteLine(""""""$$"""""")");
+            """"var v = WriteLine("""$$""")"""");
 
         testState.SendReturn(handled: true);
         testState.AssertCodeIs(
@@ -203,7 +203,7 @@ public class RawStringLiteralCommandHandlerTests
     public void TestReturnInSixQuotesAsArgument3()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = WriteLine(""""""$$"""""");");
+            """"var v = WriteLine("""$$""");"""");
 
         testState.SendReturn(handled: true);
         testState.AssertCodeIs(
@@ -275,7 +275,7 @@ public class RawStringLiteralCommandHandlerTests
     public void TestReturnInSixQuotesWithSemicolonAfter_Interpolated()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = $""""""$$"""""";");
+            """"var v = $"""$$""";"""");
 
         testState.SendReturn(handled: true);
         testState.AssertCodeIs(
@@ -305,7 +305,7 @@ public class RawStringLiteralCommandHandlerTests
     public void TestReturnEndOfFile()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$");
+            """"var v = """$$"""");
 
         testState.SendReturn(handled: false);
     }
@@ -314,7 +314,7 @@ public class RawStringLiteralCommandHandlerTests
     public void TestReturnInEmptyFile()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"$$");
+            @"$$");
 
         testState.SendReturn(handled: false);
     }
@@ -527,7 +527,7 @@ public class RawStringLiteralCommandHandlerTests
     public void TestGenerateAtEndOfFile()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"$$");
+            """var v = ""$$""");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
@@ -540,18 +540,18 @@ public class RawStringLiteralCommandHandlerTests
     public void TestGenerateWithSemicolonAfter()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"$$;");
+            """var v = ""$$;""");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-@"var v = """"""$$"""""";");
+            """"var v = """$$""";"""");
     }
 
     [WpfFact]
     public void TestGenerateWithInterpolatedString()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = $""""$$");
+            """var v = $""$$""");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
@@ -564,70 +564,70 @@ public class RawStringLiteralCommandHandlerTests
     public void TestGenerateWithInterpolatedString_TwoDollarSigns()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-"""var v = $$""[||]""", withSpansOnly: true);
+            """var v = $$""[||]""", withSpansOnly: true);
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-""""
-var v = $$"""[||]"""
-"""", withSpansOnly: true);
+            """"
+            var v = $$"""[||]"""
+            """", withSpansOnly: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
     public void TestGenerateWithInterpolatedString_TwoDollarSigns_FourthDoubleQuote()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-""""var v = $$"""[||]""";"""", withSpansOnly: true);
+            """"var v = $$"""[||]""";"""", withSpansOnly: true);
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-"""""var v = $$""""[||]"""";""""", withSpansOnly: true);
+            """""var v = $$""""[||]"""";""""", withSpansOnly: true);
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/66538")]
     public void TestGenerateWithInterpolatedString_ThreeDollarSigns()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-"""var v = $$$""[||]""", withSpansOnly: true);
+            """var v = $$$""[||]""", withSpansOnly: true);
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-""""
-var v = $$$"""[||]"""
-"""", withSpansOnly: true);
+            """"
+            var v = $$$"""[||]"""
+            """", withSpansOnly: true);
     }
 
     [WpfFact]
     public void TestNoGenerateWithVerbatimString()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = @""""$$");
+            """var v = @""$$""");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-@"var v = @""""""$$");
+            """"var v = @"""$$"""");
     }
 
     [WpfFact]
     public void TestNoGenerateWithVerbatimInterpolatedString1()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = @$""""$$");
+            """var v = @$""$$""");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-@"var v = @$""""""$$");
+            """"var v = @$"""$$"""");
     }
 
     [WpfFact]
     public void TestNoGenerateWithVerbatimInterpolatedString2()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = $@""""$$");
+            """var v = $@""$$""");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-@"var v = $@""""""$$");
+            """"var v = $@"""$$"""");
     }
 
     #endregion
@@ -772,11 +772,11 @@ var v = $$$"""[||]"""
     public void TestDoNotGrowDelimitersWhenEndNotThere()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-@"var v = """"""$$");
+            @"var v = """"""$$");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-@"var v = """"""""$$");
+            @"var v = """"""""$$");
     }
 
     [WpfFact]
@@ -803,8 +803,7 @@ var v = $$$"""[||]"""
     [WpfFact]
     public void TestTypeQuoteEmptyFile()
     {
-        using var testState = RawStringLiteralTestState.CreateTestState(
-@"$$");
+        using var testState = RawStringLiteralTestState.CreateTestState(@"$$");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
