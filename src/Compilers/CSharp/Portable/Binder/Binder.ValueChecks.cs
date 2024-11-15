@@ -1244,8 +1244,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 { RefKind: RefKind.None } => SafeContext.CurrentMethod,
                 { EffectiveScope: ScopedKind.ScopedRef } => SafeContext.CurrentMethod,
-                { HasUnscopedRefAttribute: true, RefKind: RefKind.Out } => SafeContext.ReturnOnly,
-                { HasUnscopedRefAttribute: true, IsThis: false } => SafeContext.CallingMethod,
+                { HasUnscopedRefAttribute: true, UseUpdatedEscapeRules: true, RefKind: RefKind.Out } => SafeContext.ReturnOnly,
+                { HasUnscopedRefAttribute: true, UseUpdatedEscapeRules: true, IsThis: false } => SafeContext.CallingMethod,
                 _ => SafeContext.ReturnOnly
             };
         }
@@ -3033,7 +3033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    if (HasUnscopedRefAttribute)
+                    if (HasUnscopedRefAttribute && UseUpdatedEscapeRules)
                     {
                         return ScopedKind.None;
                     }

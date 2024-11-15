@@ -22323,6 +22323,194 @@ using @scoped = System.Int32;
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_ThisParameter()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                struct S
+                {
+                    public int F;
+
+                    [UnscopedRef] public ref int Ref() => ref F;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (6,47): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     [UnscopedRef] public ref int Ref() => ref F;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 47));
+
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_RefParameter()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                class C
+                {
+                    void M([UnscopedRef] ref int x, out int y)
+                    {
+                        y = default;
+                        x = ref y;
+                    }
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,13): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     void M([UnscopedRef] ref int x, out int y)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,9): error CS8374: Cannot ref-assign 'y' to 'x' because 'y' has a narrower escape scope than 'x'.
+                //         x = ref y;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "x = ref y").WithArguments("x", "y").WithLocation(7, 9)
+            };
+
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_OutParameter()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                struct S
+                {
+                    public int F;
+
+                    public static ref int Ref([UnscopedRef] out S s)
+                    {
+                        s = default;
+                        return ref s.F;
+                    }
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (6,32): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public static ref int Ref([UnscopedRef] out S s)
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 32));
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_ScopedParameter()
+        {
+            var source = """
+                using System.Diagnostics.CodeAnalysis;
+                struct S
+                {
+                    public int F;
+
+                    public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
+                }
+                """;
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (6,32): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 32),
+                // (6,45): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 45),
+                // (6,68): error CS9076: Cannot return by reference a member of parameter 's' because it is scoped to the current method
+                //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter2, "s").WithArguments("s").WithLocation(6, 68));
+
+            CreateCompilation(source,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (6,32): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(6, 32),
+                // (6,45): error CS8936: Feature 'ref fields' is not available in C# 10.0. Please use language version 11.0 or greater.
+                //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "scoped").WithArguments("ref fields", "11.0").WithLocation(6, 45));
+
+            var expectedDiagnostics = new[]
+            {
+                // (6,32): error CS9066: UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.
+                //     public static ref int Ref([UnscopedRef] scoped ref S s) => ref s.F;
+                Diagnostic(ErrorCode.ERR_UnscopedScoped, "UnscopedRef").WithLocation(6, 32)
+            };
+
+            CreateCompilation([source, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source, UnscopedRefAttributeDefinition]).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_Reference()
+        {
+            var source1 = """
+                using System.Diagnostics.CodeAnalysis;
+                public struct S
+                {
+                    public int F;
+
+                    [UnscopedRef] public ref int Ref() => throw null;
+                }
+                """;
+            var ref1a = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics().EmitToImageReference();
+            var ref1b = CreateCompilation(source1,
+                parseOptions: TestOptions.Regular10,
+                targetFramework: TargetFramework.Net70).VerifyDiagnostics().EmitToImageReference();
+            var ref1c = CreateCompilation([source1, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular11).VerifyDiagnostics().EmitToImageReference();
+            var ref1d = CreateCompilation([source1, UnscopedRefAttributeDefinition]).VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                static class C
+                {
+                    static ref int M()
+                    {
+                        S s = default;
+                        return ref s.Ref();
+                    }
+                }
+                """;
+            CreateCompilation(source2, [ref1a], parseOptions: TestOptions.Regular10).VerifyDiagnostics();
+            CreateCompilation(source2, [ref1a], parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+            CreateCompilation(source2, [ref1a], parseOptions: TestOptions.Regular11).VerifyDiagnostics();
+            CreateCompilation(source2, [ref1a]).VerifyDiagnostics();
+
+            foreach (var ref1 in new[] { ref1b, ref1c, ref1d })
+            {
+                var expectedDiagnostics = new[]
+                {
+                    // (6,20): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                    //         return ref s.Ref();
+                    Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(6, 20)
+                };
+
+                CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10).VerifyDiagnostics(expectedDiagnostics);
+                CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular10, targetFramework: TargetFramework.Net70).VerifyDiagnostics(expectedDiagnostics);
+                CreateCompilation(source2, [ref1], parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+                CreateCompilation(source2, [ref1]).VerifyDiagnostics(expectedDiagnostics);
+            }
+        }
+
         [Theory]
         [InlineData("struct")]
         [InlineData("ref struct")]
@@ -24852,8 +25040,9 @@ class Program
                     Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(14, 21));
             }
 
-            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S.F").ThisParameter, "ref S this", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
-            VerifyParameterSymbol(comp.GetMember<PropertySymbol>("S.P").GetMethod.ThisParameter, "ref S this", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
+            var scopedRefInCSharp10 = languageVersion == LanguageVersion.CSharp11 ? ScopedKind.None : ScopedKind.ScopedRef;
+            VerifyParameterSymbol(comp.GetMember<MethodSymbol>("S.F").ThisParameter, "ref S this", RefKind.Ref, scopedRefInCSharp10, expectedHasUnscopedRefAttribute: true);
+            VerifyParameterSymbol(comp.GetMember<PropertySymbol>("S.P").GetMethod.ThisParameter, "ref S this", RefKind.Ref, scopedRefInCSharp10, expectedHasUnscopedRefAttribute: true);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F1").Parameters[0], "out System.Int32 i1", RefKind.Out, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F2").Parameters[0], "R r2", RefKind.None, ScopedKind.None, expectedHasUnscopedRefAttribute: true);
             VerifyParameterSymbol(comp.GetMember<MethodSymbol>("Program.F3").Parameters[0], "ref R r3", RefKind.Ref, ScopedKind.None, expectedHasUnscopedRefAttribute: true);

@@ -210,7 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var scope = CalculateEffectiveScopeIgnoringAttributes();
                 if (scope != ScopedKind.None &&
-                    HasUnscopedRefAttribute)
+                    HasUnscopedRefAttribute &&
+                    UseUpdatedEscapeRules)
                 {
                     return ScopedKind.None;
                 }
