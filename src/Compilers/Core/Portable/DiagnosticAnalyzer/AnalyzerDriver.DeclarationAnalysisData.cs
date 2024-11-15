@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             /// <summary>
             /// All descendant nodes for syntax node actions.
             /// </summary>
-            public readonly ArrayBuilder<SyntaxNode> DescendantNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance();
+            public readonly SpannableArrayBuilder<SyntaxNode> DescendantNodesToAnalyze = SpannableArrayBuilder<SyntaxNode>.GetInstance();
 
             /// <summary>
             /// Flag indicating if this is a partial analysis.

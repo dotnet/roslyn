@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -2609,7 +2610,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
 
-            void executeNodeActionsByKind(ArrayBuilder<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
+            void executeNodeActionsByKind(SpannableArrayBuilder<SyntaxNode> nodesToAnalyze, GroupedAnalyzerActions groupedActions, bool arePerSymbolActions)
             {
                 foreach (var (analyzer, groupedActionsForAnalyzer) in groupedActions.GroupedActionsByAnalyzer)
                 {
@@ -2626,7 +2627,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // in the code block to ensure the analyzer can correctly report code block end diagnostics.
                     if (declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions)
                     {
-                        var filteredNodesToAnalyze = ArrayBuilder<SyntaxNode>.GetInstance(nodesToAnalyze.Count);
+                        var filteredNodesToAnalyze = SpannableArrayBuilder<SyntaxNode>.GetInstance();
                         foreach (var node in nodesToAnalyze)
                         {
                             if (analysisScope.ShouldAnalyze(node))
@@ -2645,10 +2646,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 void executeSyntaxNodeActions(
                     DiagnosticAnalyzer analyzer,
                     GroupedAnalyzerActionsForAnalyzer groupedActionsForAnalyzer,
-                    ArrayBuilder<SyntaxNode> filteredNodesToAnalyze)
+                    SpannableArrayBuilder<SyntaxNode> filteredNodesToAnalyze)
                 {
                     AnalyzerExecutor.ExecuteSyntaxNodeActions(
-                        filteredNodesToAnalyze, groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind,
+                        filteredNodesToAnalyze.AsSpan(), groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind,
                         analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
                         symbol, analysisScope.FilterSpanOpt, isInGeneratedCode, hasCodeBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasCodeBlockStartActions || arePerSymbolActions,
                         cancellationToken);
@@ -2757,7 +2758,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         ? operationsToAnalyze.WhereAsArray(operation => analysisScope.ShouldAnalyze(operation.Syntax))
                         : operationsToAnalyze;
 
-                    AnalyzerExecutor.ExecuteOperationActions(filteredOperationsToAnalyze, operationActionsByKind,
+                    var filteredOperationsToAnalyzeSpan = ImmutableCollectionsMarshal.AsArray(filteredOperationsToAnalyze).AsSpan(0, filteredOperationsToAnalyze.Length);
+
+                    AnalyzerExecutor.ExecuteOperationActions(filteredOperationsToAnalyzeSpan, operationActionsByKind,
                         analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
                         symbol, analysisScope.FilterSpanOpt, isInGeneratedCode, hasOperationBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasOperationBlockStartActions || arePerSymbolActions,
                         cancellationToken);
@@ -2841,7 +2844,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ISymbol declaredSymbol,
             ImmutableArray<DeclarationInfo> declarationsInNode,
             SemanticModel semanticModel,
-            ArrayBuilder<SyntaxNode> nodesToAnalyze,
+            SpannableArrayBuilder<SyntaxNode> nodesToAnalyze,
             CancellationToken cancellationToken)
         {
             // Eliminate descendant member declarations within declarations.
