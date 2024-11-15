@@ -122,8 +122,8 @@
       VS Debugger
     -->
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.13.0-beta.24561.1" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.13.1100701-preview" />
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.13.1100701-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.13.1110101-preview" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.13.1110101-preview" />
 
     <!--
       VS .NET Runtime

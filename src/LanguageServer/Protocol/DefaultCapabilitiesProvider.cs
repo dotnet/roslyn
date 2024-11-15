@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 lz => CommonCompletionUtilities.GetTriggerCharacters(lz.Value)).Distinct().Select(c => c.ToString()).ToArray();
 
             capabilities.DefinitionProvider = true;
+            capabilities.TypeDefinitionProvider = true;
             capabilities.DocumentHighlightProvider = true;
             capabilities.RenameProvider = new RenameOptions
             {

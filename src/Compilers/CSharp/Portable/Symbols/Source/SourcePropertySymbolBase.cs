@@ -1701,10 +1701,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override int? TryGetOverloadResolutionPriority()
+        internal sealed override int TryGetOverloadResolutionPriority()
         {
             Debug.Assert(this.IsIndexer);
-            return GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
+            return GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority ?? 0;
         }
 
         #endregion
