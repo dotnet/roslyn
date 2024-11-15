@@ -3063,7 +3063,7 @@ class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      "string C.<Produce>d__0.values2s>5__2"
+  IL_0002:  stfld      "string C.<Produce>d__0.<values2>5__2"
   IL_0007:  ret
 }
 """);
