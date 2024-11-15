@@ -92,6 +92,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
             if (quotesAfter < 3)
                 return false;
 
+            // Looks promising based on text alone.  Now ensure we're actually on a raw string token/expression.
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
 
             var token = parsedDocument.Root.FindToken(position);
