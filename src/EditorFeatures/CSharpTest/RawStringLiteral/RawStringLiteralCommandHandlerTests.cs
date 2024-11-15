@@ -687,7 +687,7 @@ var v = $$$"""[||]"""
     #region grow delimiters
 
     [WpfFact]
-    public void TestGrowDelimetersWhenEndExists_SingleLine()
+    public void TestGrowDelimitersWhenEndExists_SingleLine()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
             """"
@@ -702,7 +702,7 @@ var v = $$$"""[||]"""
     }
 
     [WpfFact]
-    public void TestGrowDelimetersWhenEndExists_MultiLine()
+    public void TestGrowDelimitersWhenEndExists_MultiLine()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
             """"
@@ -721,8 +721,10 @@ var v = $$$"""[||]"""
     }
 
     [WpfFact]
-    public void TestGrowDelimetersWhenEndExists_Interpolated()
+    public void TestGrowDelimitersWhenEndExists_Interpolated()
     {
+        // Delimiter is right
+        // Delimiter is not.
         using var testState = RawStringLiteralTestState.CreateTestState(
             """"
             var v = $"""$$
@@ -740,7 +742,7 @@ var v = $$$"""[||]"""
     }
 
     [WpfFact]
-    public void TestDoNotGrowDelimetersWhenEndNotThere()
+    public void TestDoNotGrowDelimitersWhenEndNotThere()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
 @"var v = """"""$$");
@@ -751,7 +753,7 @@ var v = $$$"""[||]"""
     }
 
     [WpfFact]
-    public void TestDoNotGrowDelimetersWhenEndTooShort()
+    public void TestDoNotGrowDelimitersWhenEndTooShort()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
             """"

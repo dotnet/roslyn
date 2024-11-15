@@ -85,6 +85,11 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 quotesBefore++;
             }
 
+            // We support two cases here.  Something simple like `"""$$"""`.  In this case, we have to be hitting enter
+            // inside balanced quotes.  But we also support `"""goo$$"""`.  In this case it's ok if quotes are not
+            // balanced.  We're going to go through the non-empty path involving adding multiple newlines to the final
+            // text.
+
             var isEmpty = quotesBefore > 0;
             if (isEmpty && quotesAfter != quotesBefore)
                 return false;
@@ -99,12 +104,13 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
             if (token.Kind() is not (SyntaxKind.SingleLineRawStringLiteralToken or
                                      SyntaxKind.MultiLineRawStringLiteralToken or
                                      SyntaxKind.InterpolatedSingleLineRawStringStartToken or
-                                     SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+                                     SyntaxKind.InterpolatedMultiLineRawStringStartToken) ||
+                token.Parent is not ExpressionSyntax expression)
             {
                 return false;
             }
 
-            return MakeEdit(parsedDocument, token.Parent as ExpressionSyntax, isEmpty);
+            return MakeEdit(parsedDocument, expression, isEmpty: true);
         }
 
         bool ExecuteReturnCommandNotBeforeQuoteCharacter()
@@ -118,11 +124,11 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
 
             var token = parsedDocument.Root.FindToken(position);
-            ExpressionSyntax? expression;
+            ExpressionSyntax expression;
             switch (token.Kind())
             {
-                case SyntaxKind.SingleLineRawStringLiteralToken:
-                    expression = token.Parent as ExpressionSyntax;
+                case SyntaxKind.SingleLineRawStringLiteralToken when token.Parent is ExpressionSyntax parentExpression:
+                    expression = parentExpression;
                     break;
 
                 case SyntaxKind.InterpolatedStringTextToken:
@@ -153,12 +159,9 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
 
         bool MakeEdit(
             ParsedDocument parsedDocument,
-            ExpressionSyntax? expression,
+            ExpressionSyntax expression,
             bool isEmpty)
         {
-            if (expression is null)
-                return false;
-
             var project = document.Project;
             var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, project.GetFallbackAnalyzerOptions(), project.Services, explicitFormat: false);
             var indentation = expression.GetFirstToken().GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
@@ -208,7 +211,6 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
 
                 var finalSnapshot = edit.Apply();
 
-                // move caret:
                 var lineInNewSnapshot = finalSnapshot.GetLineFromPosition(openingEnd);
                 var nextLine = finalSnapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + insertedLinesBeforeCaret);
                 textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
