@@ -1,6 +1,6 @@
 # Runtime Async Design
 
-See also the ECMA-335 specification change for this feature: https://github.com/dotnet/runtime/pull/104063, https://github.com/dotnet/runtime/blob/main/docs/design/specs/runtime-async.md (when the PR completes). https://github.com/dotnet/runtime/issues/109632 tracks open issues for the feature in the runtime.
+See also the ECMA-335 specification change for this feature: https://github.com/dotnet/runtime/blob/main/docs/design/specs/runtime-async.md. https://github.com/dotnet/runtime/issues/109632 tracks open issues for the feature in the runtime.
 
 This document goes over the general design of how Roslyn works with the Runtime Async feature to produce IL. In general, we try to avoid exposing this feature at the user level; initial binding is almost entirely
 unaffected by runtime async. Exposed symbols do not give direct information about whether they were compiled with runtime async, and indeed the compiler has no idea whether a method from a referenced assembly is
