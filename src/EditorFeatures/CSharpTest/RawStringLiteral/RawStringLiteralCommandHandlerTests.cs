@@ -314,7 +314,7 @@ public class RawStringLiteralCommandHandlerTests
     public void TestReturnInEmptyFile()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-            @"$$");
+            "$$");
 
         testState.SendReturn(handled: false);
     }
@@ -772,11 +772,11 @@ public class RawStringLiteralCommandHandlerTests
     public void TestDoNotGrowDelimitersWhenEndNotThere()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(
-            @"var v = """"""$$");
+            """"var v = """$$"""");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
-            @"var v = """"""""$$");
+            """""var v = """"$$""""");
     }
 
     [WpfFact]
@@ -803,7 +803,7 @@ public class RawStringLiteralCommandHandlerTests
     [WpfFact]
     public void TestTypeQuoteEmptyFile()
     {
-        using var testState = RawStringLiteralTestState.CreateTestState(@"$$");
+        using var testState = RawStringLiteralTestState.CreateTestState("$$");
 
         testState.SendTypeChar('"');
         testState.AssertCodeIs(
