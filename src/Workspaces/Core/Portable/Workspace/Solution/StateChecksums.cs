@@ -232,7 +232,7 @@ internal sealed class SolutionStateChecksums(
     // Acceptably not threadsafe.  ProjectCone is a class, and the runtime guarantees anyone will see this field fully
     // initialized.  It's acceptable to have multiple instances of this in a race condition as the data will be same
     // (and our asserts don't check for reference equality, only value equality).
-    public ProjectCone? ProjectCone { get => field ??= ComputeProjectCone(); private set; }
+    public ProjectCone? ProjectCone { get => field ??= ComputeProjectCone(); }
 
     private ProjectCone? ComputeProjectCone()
         => ProjectConeId == null ? null : new ProjectCone(ProjectConeId, Projects.Ids.ToFrozenSet());

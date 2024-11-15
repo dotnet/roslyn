@@ -144,8 +144,6 @@ internal abstract class AbstractSpeculationAnalyzer<
 
             return field;
         }
-
-        private set;
     }
 
     /// <summary>
