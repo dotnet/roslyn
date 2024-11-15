@@ -403,7 +403,34 @@ public class RawStringLiteralCommandHandlerTests
     }
 
     [WpfFact]
-    public void TestReturnInsideInterpolationInRawString()
+    public void TestReturnAfterInterpolationOpenBraceInRawString()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = $"""before text{0}$$following text""";
+            """");
+
+        testState.SendReturn(handled: true);
+        testState.AssertCodeIs(
+            """"
+            var v = $"""
+                before text{0}
+                $$following text
+                """;
+            """");
+    }
+
+    [WpfFact]
+    public void TestReturnInsideInterpolationInRawString1()
+    {
+        using var testState = RawStringLiteralTestState.CreateTestState(""""
+            var v = $"""before text{$$0} following text""";
+            """");
+
+        testState.SendReturn(handled: false);
+    }
+
+    [WpfFact]
+    public void TestReturnInsideInterpolationInRawString2()
     {
         using var testState = RawStringLiteralTestState.CreateTestState(""""
             var v = $"""before text{0$$} following text""";
