@@ -32,14 +32,13 @@ internal class ModelComputation<TModel> where TModel : class
     #region Fields that can only be accessed from the foreground thread
 
     private readonly IController<TModel> _controller;
-    private readonly TaskScheduler __taskScheduler;
 
     private TaskScheduler _taskScheduler
     {
         get
         {
             ThreadingContext.ThrowIfNotOnUIThread();
-            return __taskScheduler;
+            return field;
         }
     }
 
@@ -62,7 +61,7 @@ internal class ModelComputation<TModel> where TModel : class
     {
         ThreadingContext = threadingContext;
         _controller = controller;
-        __taskScheduler = computationTaskScheduler;
+        _taskScheduler = computationTaskScheduler;
 
         _stopTokenSource = new CancellationTokenSource();
         _stopCancellationToken = _stopTokenSource.Token;
