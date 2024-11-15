@@ -9438,15 +9438,15 @@ using System.Reflection;
 
 var values = C.Produce();
 await foreach (int value in values) { }
-System.Console.Write(((int)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((int)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 
 class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
     {
-        int s = 42;
+        int values2 = 42;
         await System.Threading.Tasks.Task.CompletedTask;
-        yield return s;
+        yield return values2;
     }
 }
 """;
@@ -9462,18 +9462,18 @@ using System.Reflection;
 var values = C.Produce();
 await foreach (int value in values)
 {
-    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+    System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 }
-System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static async System.Collections.Generic.IAsyncEnumerable<int> Produce()
     {
-        string s = "value ";
+        string values2 = "value ";
         await System.Threading.Tasks.Task.CompletedTask;
         yield return 1;
-        System.Console.Write(s);
+        System.Console.Write(values2);
     }
 }
 """;
@@ -9511,7 +9511,7 @@ class C
     IL_0035:  stfld      "int C.<Produce>d__0.<>1__state"
     IL_003a:  ldarg.0
     IL_003b:  ldstr      "value "
-    IL_0040:  stfld      "string C.<Produce>d__0.<s>5__2"
+    IL_0040:  stfld      "string C.<Produce>d__0.<values2>5__2"
     IL_0045:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
     IL_004a:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
     IL_004f:  stloc.1
@@ -9566,7 +9566,7 @@ class C
     IL_00c4:  brfalse.s  IL_00c8
     IL_00c6:  leave.s    IL_0105
     IL_00c8:  ldarg.0
-    IL_00c9:  ldfld      "string C.<Produce>d__0.<s>5__2"
+    IL_00c9:  ldfld      "string C.<Produce>d__0.<values2>5__2"
     IL_00ce:  call       "void System.Console.Write(string)"
     IL_00d3:  leave.s    IL_0105
   }
@@ -9578,7 +9578,7 @@ class C
     IL_00d9:  stfld      "int C.<Produce>d__0.<>1__state"
     IL_00de:  ldarg.0
     IL_00df:  ldnull
-    IL_00e0:  stfld      "string C.<Produce>d__0.<s>5__2"
+    IL_00e0:  stfld      "string C.<Produce>d__0.<values2>5__2"
     IL_00e5:  ldarg.0
     IL_00e6:  ldc.i4.0
     IL_00e7:  stfld      "int C.<Produce>d__0.<>2__current"
@@ -9596,7 +9596,7 @@ class C
   IL_0108:  stfld      "int C.<Produce>d__0.<>1__state"
   IL_010d:  ldarg.0
   IL_010e:  ldnull
-  IL_010f:  stfld      "string C.<Produce>d__0.<s>5__2"
+  IL_010f:  stfld      "string C.<Produce>d__0.<values2>5__2"
   IL_0114:  ldarg.0
   IL_0115:  ldc.i4.0
   IL_0116:  stfld      "int C.<Produce>d__0.<>2__current"
@@ -9718,13 +9718,13 @@ var values = C.Produce(true, tcs.Task);
 var enumerator = values.GetAsyncEnumerator();
 assert(await enumerator.MoveNextAsync());
 assert(enumerator.Current == 1);
-System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 
 assert(await enumerator.MoveNextAsync());
 assert(enumerator.Current == 2);
 _ = enumerator.MoveNextAsync();
 
-System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 void assert(bool b)
 {
@@ -9737,9 +9737,9 @@ class C
     {
         while (b)
         {
-            string s = "value ";
+            string values2 = "value ";
             yield return 1;
-            System.Console.Write(s);
+            System.Console.Write(values2);
             b = false;
         }
         yield return 2;
@@ -9892,7 +9892,7 @@ assert(await enumerator.MoveNextAsync());
 assert(enumerator.Current == 2);
 _ = enumerator.MoveNextAsync();
 
-System.Console.Write(((S)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+System.Console.Write(((S)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 
 void assert(bool b)
 {
@@ -9905,9 +9905,9 @@ class C
     {
         while (b)
         {
-            S s = new S { field = 42 };
+            S values2 = new S { field = 42 };
             yield return 1;
-            System.Console.Write(s);
+            System.Console.Write(values2);
             b = false;
         }
         yield return 2;
@@ -9961,7 +9961,7 @@ class C
     IL_004f:  ldc.i4.s   42
     IL_0051:  stfld      "int S.field"
     IL_0056:  ldloc.1
-    IL_0057:  stfld      "S C.<Produce>d__0.<s>5__2"
+    IL_0057:  stfld      "S C.<Produce>d__0.<values2>5__2"
     IL_005c:  ldarg.0
     IL_005d:  ldc.i4.1
     IL_005e:  stfld      "int C.<Produce>d__0.<>2__current"
@@ -9981,7 +9981,7 @@ class C
     IL_0081:  brfalse.s  IL_0088
     IL_0083:  leave      IL_0181
     IL_0088:  ldarg.0
-    IL_0089:  ldfld      "S C.<Produce>d__0.<s>5__2"
+    IL_0089:  ldfld      "S C.<Produce>d__0.<values2>5__2"
     IL_008e:  box        "S"
     IL_0093:  call       "void System.Console.Write(object)"
     IL_0098:  ldarg.0

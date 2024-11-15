@@ -6077,7 +6077,7 @@ var callback = (System.Delegate)task.GetType().GetField("m_action", BindingFlags
 object stateMachineBox = callback.Target;
 object stateMachine = stateMachineBox.GetType().GetField("StateMachine", BindingFlags.Public | BindingFlags.Instance).GetValue(stateMachineBox);
 
-System.Console.Write((string)stateMachine.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine) is null);
+System.Console.Write((string)stateMachine.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine) is null);
 
 class C
 {
@@ -6085,12 +6085,12 @@ class C
     {
         while (b)
         {
-            string s = "value ";
+            string values2 = "value ";
             await System.Threading.Tasks.Task.CompletedTask;
-            System.Console.Write(s);
+            System.Console.Write(values2);
             b = false;
         }
-        await task; // block execution here to check what's in the field for "s"
+        await task; // block execution here to check what's in the field for "values2"
         return 42;
     }
 }
@@ -6120,7 +6120,7 @@ var callback = (System.Delegate)task.GetType().GetField("m_action", BindingFlags
 object stateMachineBox = callback.Target;
 object stateMachine = stateMachineBox.GetType().GetField("StateMachine", BindingFlags.Public | BindingFlags.Instance).GetValue(stateMachineBox);
 
-System.Console.Write((S)stateMachine.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine));
+System.Console.Write((S)stateMachine.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(stateMachine));
 
 class C
 {
@@ -6128,12 +6128,12 @@ class C
     {
         while (b)
         {
-            S s = new S { field = 42 };
+            S values2 = new S { field = 42 };
             await System.Threading.Tasks.Task.CompletedTask;
-            System.Console.Write(s);
+            System.Console.Write(values2);
             b = false;
         }
-        await task; // block execution here to check what's in the field for "s"
+        await task; // block execution here to check what's in the field for "values2"
         return 10;
     }
 }
@@ -6168,7 +6168,7 @@ class C
     IL_0021:  ldc.i4.s   42
     IL_0023:  stfld      "int S.field"
     IL_0028:  ldloc.2
-    IL_0029:  stfld      "S C.<ProduceAsync>d__0.<s>5__2"
+    IL_0029:  stfld      "S C.<ProduceAsync>d__0.<values2>5__2"
     IL_002e:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
     IL_0033:  callvirt   "System.Runtime.CompilerServices.TaskAwaiter System.Threading.Tasks.Task.GetAwaiter()"
     IL_0038:  stloc.3
@@ -6203,7 +6203,7 @@ class C
     IL_0081:  ldloca.s   V_3
     IL_0083:  call       "void System.Runtime.CompilerServices.TaskAwaiter.GetResult()"
     IL_0088:  ldarg.0
-    IL_0089:  ldfld      "S C.<ProduceAsync>d__0.<s>5__2"
+    IL_0089:  ldfld      "S C.<ProduceAsync>d__0.<values2>5__2"
     IL_008e:  box        "S"
     IL_0093:  call       "void System.Console.Write(object)"
     IL_0098:  ldarg.0
