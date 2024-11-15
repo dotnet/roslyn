@@ -1332,6 +1332,19 @@ ResolutionComplete:
             ElseIf operatorResolution Then
                 Debug.Assert(argumentCount = existingCandidate.Candidate.ParameterCount)
                 Debug.Assert(signatureMatch)
+                Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
+
+                ' Not lifted operators are preferred over lifted.
+                If existingCandidate.Candidate.IsLifted Then
+                    If Not newCandidate.Candidate.IsLifted Then
+                        newWins = True
+                        Return True
+                    End If
+                ElseIf newCandidate.Candidate.IsLifted Then
+                    Debug.Assert(Not existingCandidate.Candidate.IsLifted)
+                    existingWins = True
+                    Return True
+                End If
             Else
                 For j As Integer = 0 To existingCandidate.Candidate.ParameterCount - 1 Step 1
 
@@ -4232,6 +4245,10 @@ Bailout:
                     Debug.Assert(signatureMatch)
 
                     ' Not lifted operators are preferred over lifted.
+                    If (existingCandidate.Candidate.IsLifted Xor newCandidate.Candidate.IsLifted) Then
+                        GoTo ContinueCandidatesLoop
+                    End If
+
                     If existingCandidate.Candidate.IsLifted Then
                         If Not newCandidate.Candidate.IsLifted Then
                             newWins = True
