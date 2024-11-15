@@ -3786,7 +3786,7 @@ struct C : IAsyncEnumerable<int>
             // The thing to notice here is that the call to GetAsyncEnumerator is a constrained call (we're not boxing to `IAsyncEnumerable<int>`)
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      496 (0x1f0)
+  // Code size      524 (0x20c)
   .maxstack  3
   .locals init (int V_0,
                 C V_1,
@@ -3878,7 +3878,7 @@ struct C : IAsyncEnumerable<int>
       IL_00bd:  ldloca.s   V_5
       IL_00bf:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter<bool>, ref C.<Main>d__0)""
       IL_00c4:  nop
-      IL_00c5:  leave      IL_01ef
+      IL_00c5:  leave      IL_020b
       IL_00ca:  ldarg.0
       IL_00cb:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter<bool> C.<Main>d__0.<>u__1""
       IL_00d0:  stloc.3
@@ -3936,7 +3936,7 @@ struct C : IAsyncEnumerable<int>
     IL_014f:  ldloca.s   V_5
     IL_0151:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ValueTaskAwaiter, C.<Main>d__0>(ref System.Runtime.CompilerServices.ValueTaskAwaiter, ref C.<Main>d__0)""
     IL_0156:  nop
-    IL_0157:  leave      IL_01ef
+    IL_0157:  leave      IL_020b
     IL_015c:  ldarg.0
     IL_015d:  ldfld      ""System.Runtime.CompilerServices.ValueTaskAwaiter C.<Main>d__0.<>u__2""
     IL_0162:  stloc.s    V_7
@@ -3976,7 +3976,7 @@ struct C : IAsyncEnumerable<int>
     IL_01b8:  ldarg.0
     IL_01b9:  ldnull
     IL_01ba:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
-    IL_01bf:  leave.s    IL_01db
+    IL_01bf:  leave.s    IL_01e9
   }
   catch System.Exception
   {
@@ -3985,20 +3985,32 @@ struct C : IAsyncEnumerable<int>
     IL_01c4:  ldc.i4.s   -2
     IL_01c6:  stfld      ""int C.<Main>d__0.<>1__state""
     IL_01cb:  ldarg.0
-    IL_01cc:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-    IL_01d1:  ldloc.s    V_9
-    IL_01d3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_01d8:  nop
-    IL_01d9:  leave.s    IL_01ef
+    IL_01cc:  ldnull
+    IL_01cd:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
+    IL_01d2:  ldarg.0
+    IL_01d3:  ldnull
+    IL_01d4:  stfld      ""object C.<Main>d__0.<>s__2""
+    IL_01d9:  ldarg.0
+    IL_01da:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+    IL_01df:  ldloc.s    V_9
+    IL_01e1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_01e6:  nop
+    IL_01e7:  leave.s    IL_020b
   }
-  IL_01db:  ldarg.0
-  IL_01dc:  ldc.i4.s   -2
-  IL_01de:  stfld      ""int C.<Main>d__0.<>1__state""
-  IL_01e3:  ldarg.0
-  IL_01e4:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
-  IL_01e9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_01ee:  nop
-  IL_01ef:  ret
+  IL_01e9:  ldarg.0
+  IL_01ea:  ldc.i4.s   -2
+  IL_01ec:  stfld      ""int C.<Main>d__0.<>1__state""
+  IL_01f1:  ldarg.0
+  IL_01f2:  ldnull
+  IL_01f3:  stfld      ""System.Collections.Generic.IAsyncEnumerator<int> C.<Main>d__0.<>s__1""
+  IL_01f8:  ldarg.0
+  IL_01f9:  ldnull
+  IL_01fa:  stfld      ""object C.<Main>d__0.<>s__2""
+  IL_01ff:  ldarg.0
+  IL_0200:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder""
+  IL_0205:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_020a:  nop
+  IL_020b:  ret
 }");
         }
 

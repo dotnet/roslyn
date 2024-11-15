@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
+                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
 
-            bodyBuilder.Add(GenerateHoistedLocalsCleanup(rootScopeHoistedLocals));
+            bodyBuilder.Add(GenerateAllHoistedLocalsCleanup());
 
             bodyBuilder.Add(GenerateSetResultCall());
 
@@ -224,7 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ImmutableArray<BoundExpression>.Empty));
         }
 
-        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal, ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
+        // TODO2 move to local function
+        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
         {
             // catch (Exception ex)
             // {
@@ -253,32 +254,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 exceptionFilterOpt: null,
                 body: F.Block(
                     assignFinishedState, // _state = finishedState;
-                    GenerateHoistedLocalsCleanup(hoistedLocals),
+                    GenerateAllHoistedLocalsCleanup(),
                     callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
                     GenerateReturn(false)), // return;
                 isSynthesizedAsyncCatchAll: true);
-        }
-
-        protected virtual BoundStatement GenerateHoistedLocalsCleanup(ImmutableArray<StateMachineFieldSymbol> hoistedLocals)
-        {
-            var builder = ArrayBuilder<BoundStatement>.GetInstance();
-
-            // Cleanup all hoisted local variables
-            // so that they can be collected by GC if needed
-            foreach (var hoistedLocal in hoistedLocals)
-            {
-                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
-                var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteInfo);
-                F.Diagnostics.Add(hoistedLocal.GetFirstLocationOrNone(), useSiteInfo);
-                if (!isManagedType)
-                {
-                    continue;
-                }
-
-                builder.Add(F.Assignment(F.Field(F.This(), hoistedLocal), F.NullOrDefault(hoistedLocal.Type)));
-            }
-
-            return F.Block(builder.ToImmutableAndFree());
         }
 
         protected virtual BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)
