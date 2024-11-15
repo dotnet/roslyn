@@ -78,6 +78,8 @@ TODO: Go over `IAsyncEnumerable` and confirm that the initial rewrite to a `Task
 TODO: Clarify with the debugger team where NOPs need to be inserted for debugging/ENC scenarios.
     We will likely need to insert AwaitYieldPoint and AwaitResumePoints for the scenarios where we emit calls to `RuntimeHelpers` async helpers, but can we avoid them for calls in runtime async form?
 
+TODO: Do we need to implement clearing of locals marked with `Hoisted`, or will the runtime handle that?
+
 ### Example transformations
 
 Below are some examples of what IL is generated for specific examples.
