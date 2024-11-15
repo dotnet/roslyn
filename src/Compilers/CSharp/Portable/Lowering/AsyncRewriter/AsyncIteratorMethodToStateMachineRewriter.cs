@@ -89,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (asyncDispatch != null) ? F.Block(asyncDispatch, iteratorDispatch) : iteratorDispatch;
         }
 #nullable disable
-
         protected override BoundStatement GenerateSetResultCall()
         {
             // ... _exprReturnLabel: ...

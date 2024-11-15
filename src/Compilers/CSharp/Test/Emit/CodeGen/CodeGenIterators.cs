@@ -3042,17 +3042,17 @@ using System.Reflection;
 var values = C.Produce();
 foreach (int value in values)
 {
-    System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
+    System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)));
 }
-System.Console.Write(((string)values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((string)values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce()
     {
-        string s = "ran ";
+        string values2 = "ran ";
         yield return 42;
-        System.Console.Write(s);
+        System.Console.Write(values2);
     }
 }
 """;
@@ -3063,7 +3063,7 @@ class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      "string C.<Produce>d__0.<s>5__2"
+  IL_0002:  stfld      "string C.<Produce>d__0.values2s>5__2"
   IL_0007:  ret
 }
 """);
@@ -3116,17 +3116,17 @@ using System.Reflection;
 var values = C.Produce();
 foreach (int value in values)
 {
-    System.Console.Write(((int[])values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)).Length);
+    System.Console.Write(((int[])values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)).Length);
 }
-System.Console.Write(((int[])values.GetType().GetField("<s>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
+System.Console.Write(((int[])values.GetType().GetField("<values2>5__2", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(values)) is null);
 
 class C
 {
     public static System.Collections.Generic.IEnumerable<int> Produce()
     {
-        int[] s = Enumerable.Range(0, 100).ToArray();
+        int[] values2 = Enumerable.Range(0, 100).ToArray();
         yield return 42;
-        System.Console.Write($" {s.Length} ");
+        System.Console.Write($" {values2.Length} ");
     }
 }
 """;
@@ -3138,7 +3138,7 @@ class C
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldnull
-  IL_0002:  stfld      "int[] C.<Produce>d__0.<s>5__2"
+  IL_0002:  stfld      "int[] C.<Produce>d__0.<values2>5__2"
   IL_0007:  ret
 }
 """);
