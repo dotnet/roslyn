@@ -2856,7 +2856,12 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             Assert.NotNull(nameofType);
             Assert.NotNull(typeofType);
 
+            // typeof will produce IGoo<>, while nameof will produce IGoo<T>.  These are distinctly different types (the
+            // latter has members for example).
             Assert.NotEqual(nameofType, typeofType);
+
+            Assert.Empty(typeofType.GetMembers("Count"));
+            Assert.Single(nameofType.GetMembers("Count"));
 
             var igooType = compilation.GetTypeByMetadataName("IGoo`1").GetPublicSymbol();
             Assert.NotNull(igooType);
