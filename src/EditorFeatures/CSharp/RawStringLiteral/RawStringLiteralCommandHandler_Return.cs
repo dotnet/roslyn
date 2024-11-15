@@ -127,8 +127,13 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
 
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.OpenBraceToken:
-                    if (token.Parent?.Parent is not InterpolatedStringExpressionSyntax interpolated ||
-                        interpolated.StringStartToken.Kind() is not SyntaxKind.InterpolatedSingleLineRawStringStartToken)
+                    if (token is not
+                        {
+                            Parent.Parent: InterpolatedStringExpressionSyntax
+                            {
+                                StringStartToken.RawKind: (int)SyntaxKind.InterpolatedSingleLineRawStringStartToken,
+                            } interpolatedStringExpression,
+                        })
                     {
                         return false;
                     }
@@ -136,7 +141,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                     if (token.Kind() is SyntaxKind.OpenBraceToken && position != token.SpanStart)
                         return false;
 
-                    expression = interpolated;
+                    expression = interpolatedStringExpression;
                     break;
 
                 default:
