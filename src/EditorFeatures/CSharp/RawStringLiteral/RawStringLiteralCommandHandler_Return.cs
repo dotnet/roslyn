@@ -125,25 +125,25 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
 
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.OpenBraceToken:
-                    if (token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated &&
-                        interpolated.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken)
+                    if (token.Parent?.Parent is not InterpolatedStringExpressionSyntax interpolated ||
+                        interpolated.StringStartToken.Kind() is not SyntaxKind.InterpolatedSingleLineRawStringStartToken)
                     {
-                        if (token.Kind() is SyntaxKind.OpenBraceToken)
-                        {
-                            // If we are not at the start of the interpolation braces, we do not intend to handle converting the raw string
-                            // into a new one
-                            if (position != token.SpanStart)
-                                return false;
-
-                            // We prefer the indentation options of the string start delimiter because the indentation of the interpolation
-                            // is empty and thus we cannot properly indent the lines that we insert
-                            preferredIndentationToken = interpolated.StringStartToken;
-                        }
-
-                        break;
+                        return false;
                     }
 
-                    return false;
+                    if (token.Kind() is SyntaxKind.OpenBraceToken)
+                    {
+                        // If we are not at the start of the interpolation braces, we do not intend to handle converting the raw string
+                        // into a new one
+                        if (position != token.SpanStart)
+                            return false;
+
+                        // We prefer the indentation options of the string start delimiter because the indentation of the interpolation
+                        // is empty and thus we cannot properly indent the lines that we insert
+                        preferredIndentationToken = interpolated.StringStartToken;
+                    }
+
+                    break;
 
                 default:
                     return false;
