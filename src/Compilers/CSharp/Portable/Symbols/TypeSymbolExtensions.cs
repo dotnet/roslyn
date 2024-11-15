@@ -1856,6 +1856,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return namedType.IsCustomTaskType(builderArgument: out _);
         }
 
+        internal static bool IsNonGenericNonCustomTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if (namedType is null || namedType.Arity != 0)
+            {
+                return false;
+            }
+            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        internal static bool IsGenericNonCustomTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            if (!(type is NamedTypeSymbol { Arity: 1 } namedType))
+            {
+                return false;
+            }
+            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        internal static bool IsNonGenericNonCustomValueTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            var namedType = type as NamedTypeSymbol;
+            if (namedType is null || namedType.Arity != 0)
+            {
+                return false;
+            }
+            if ((object)namedType == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        internal static bool IsGenericNonCustomValueTaskType(this TypeSymbol type, CSharpCompilation compilation)
+        {
+            if (!(type is NamedTypeSymbol { Arity: 1 } namedType))
+            {
+                return false;
+            }
+            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask_T))
+            {
+                return true;
+            }
+            return false;
+        }
+
         internal static bool IsIAsyncEnumerableType(this TypeSymbol type, CSharpCompilation compilation)
         {
             if (!(type is NamedTypeSymbol { Arity: 1 } namedType))

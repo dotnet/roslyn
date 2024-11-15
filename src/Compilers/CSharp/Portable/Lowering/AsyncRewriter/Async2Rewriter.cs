@@ -56,6 +56,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                         call.ResultKind,
                         loweredAwait.Type);
                 }
+                else if (arg is BoundCall call1 &&
+                    (call1.Method.ReturnType.IsGenericNonCustomTaskType(_factory.Compilation) ||
+                     call1.Method.ReturnType.IsNonGenericNonCustomTaskType(_factory.Compilation) ||
+                     call1.Method.ReturnType.IsGenericNonCustomValueTaskType(_factory.Compilation) ||
+                     call1.Method.ReturnType.IsNonGenericNonCustomValueTaskType(_factory.Compilation)))
+                {
+                    var thunkMethod = new Async2ThunkForAsyncMethod(call1.Method);
+                    return call1.Update(
+                        call1.ReceiverOpt,
+                        call1.InitialBindingReceiverIsSubjectToCloning,
+                        thunkMethod,
+                        call1.Arguments,
+                        call1.ArgumentNamesOpt,
+                        call1.ArgumentRefKindsOpt,
+                        call1.IsDelegateCall,
+                        call1.Expanded,
+                        call1.InvokedAsExtensionMethod,
+                        call1.ArgsToParamsOpt,
+                        call1.DefaultArguments,
+                        call1.ResultKind,
+                        loweredAwait.Type);
+                }
                 else
                 {
                     // REWRITE: 

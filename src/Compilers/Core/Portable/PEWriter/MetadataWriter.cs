@@ -970,9 +970,12 @@ namespace Microsoft.Cci
                 methodDef = methodReference.GetResolvedMethod(Context);
             }
 
-            return methodDef != null
-                ? (EntityHandle)GetMethodDefinitionHandle(methodDef)
-                : GetMemberReferenceHandle(methodReference);
+            if (methodDef != null && TryGetMethodDefinitionHandle(methodDef, out var handle))
+            {
+                return handle;
+            }
+
+            return GetMemberReferenceHandle(methodReference);
         }
 
         public static MethodAttributes GetMethodAttributes(IMethodDefinition methodDef)
