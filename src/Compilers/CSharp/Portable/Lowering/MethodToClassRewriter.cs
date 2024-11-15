@@ -385,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+
         public sealed override BoundNode VisitParameter(BoundParameter node)
         {
             if (TryReplaceWithProxy(node.ParameterSymbol, node.Syntax, out BoundNode? replacement))

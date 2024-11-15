@@ -70,6 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>? _lazyAvailableReusableHoistedFields;
 
         /// <summary>
+        /// We collect all the hoisted fields for locals, so that we can clear them so the GC can collect references.
+        /// </summary>
+        private readonly ArrayBuilder<FieldSymbol> _hoistedFieldsForCleanup;
+
+        /// <summary>
         /// Fields allocated for temporary variables are given unique names distinguished by a number at the end.
         /// This counter ensures they are unique within a given translated method.
         /// </summary>
@@ -122,10 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _hoistedVariables = hoistedVariables;
             _synthesizedLocalOrdinals = synthesizedLocalOrdinals;
             _nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot;
+            _hoistedFieldsForCleanup = new ArrayBuilder<FieldSymbol>();
 
             foreach (var proxy in nonReusableLocalProxies)
             {
-                this.proxies.Add(proxy.Key, proxy.Value);
+                this.AddProxyAndRegisterForCleanup(proxy.Key, proxy.Value);
             }
 
             // create cache local for reference type "this" in Release
@@ -312,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!proxies.TryGetValue(local, out proxy))
                 {
                     proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type, out reused, local), isReusable: true);
-                    proxies.Add(local, proxy);
+                    AddProxyAndRegisterForCleanup(local, proxy);
                 }
 
                 // We need to produce hoisted local scope debug information for user locals as well as
@@ -430,28 +436,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        private void AddProxyAndRegisterForCleanup(Symbol symbol, CapturedSymbolReplacement replacement)
+        {
+            Debug.Assert(replacement is CapturedToStateMachineFieldReplacement or CapturedToExpressionSymbolReplacement);
+            proxies.Add(symbol, replacement);
+
+            Debug.Assert(symbol is LocalSymbol or ParameterSymbol);
+            if (symbol is LocalSymbol)
+            {
+                if (replacement is CapturedToStateMachineFieldReplacement fieldReplacement)
+                {
+                    _hoistedFieldsForCleanup.Add(fieldReplacement.HoistedField);
+                }
+                else if (replacement is CapturedToExpressionSymbolReplacement expressionReplacement)
+                {
+                    foreach (var field in expressionReplacement.HoistedFields)
+                    {
+                        _hoistedFieldsForCleanup.Add(field);
+                    }
+                }
+            }
+        }
+
         protected BoundBlock GenerateAllHoistedLocalsCleanup()
         {
             var variableCleanup = ArrayBuilder<BoundExpression>.GetInstance();
             var alreadyCleaned = PooledHashSet<string>.GetInstance();
-            foreach (var symbol in HoistedVariables)
-            {
-                if (symbol is LocalSymbol
-                    && proxies.TryGetValue(symbol, out CapturedSymbolReplacement? replacement))
-                {
-                    Debug.Assert(replacement is CapturedToStateMachineFieldReplacement or CapturedToExpressionSymbolReplacement);
 
-                    if (replacement is CapturedToStateMachineFieldReplacement fieldReplacement)
-                    {
-                        addVariableCleanupOnce(variableCleanup, fieldReplacement.HoistedField, alreadyCleaned);
-                    }
-                    else if (replacement is CapturedToExpressionSymbolReplacement expressionReplacement)
-                    {
-                        foreach (var field in expressionReplacement.HoistedFields)
-                        {
-                            addVariableCleanupOnce(variableCleanup, field, alreadyCleaned);
-                        }
-                    }
+            foreach (FieldSymbol fieldSymbol in _hoistedFieldsForCleanup)
+            {
+                // Hoisted fields may be re-used for multiple locals, so we can skip those that were cleared already
+                if (alreadyCleaned.Add(fieldSymbol.Name))
+                {
+                    AddVariableCleanup(variableCleanup, fieldSymbol);
                 }
             }
 
@@ -461,15 +478,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             alreadyCleaned.Free();
 
             return result;
-
-            void addVariableCleanupOnce(ArrayBuilder<BoundExpression> variableCleanup, FieldSymbol field, PooledHashSet<string> alreadyCleaned)
-            {
-                // Hoisted fields may be re-used, so we can skip those that were cleared already
-                if (alreadyCleaned.Add(field.Name))
-                {
-                    AddVariableCleanup(variableCleanup, field);
-                }
-            }
         }
 #nullable disable
 
@@ -557,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var replacement = HoistExpression(right, awaitSyntaxOpt, syntaxOffset, local.RefKind, sideEffects, hoistedFields, ref needsSacrificialEvaluation);
 
-            proxies.Add(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree(), isReusable: true));
+            AddProxyAndRegisterForCleanup(local, new CapturedToExpressionSymbolReplacement(replacement, hoistedFields.ToImmutableAndFree(), isReusable: true));
 
             if (needsSacrificialEvaluation)
             {

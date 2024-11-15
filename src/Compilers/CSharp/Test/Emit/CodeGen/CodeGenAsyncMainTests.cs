@@ -1764,10 +1764,10 @@ class Program
     IL_0182:  stfld      ""int Program.<Main>d__0.<>1__state""
     IL_0187:  ldarg.0
     IL_0188:  ldnull
-    IL_0189:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
+    IL_0189:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
     IL_018e:  ldarg.0
     IL_018f:  ldnull
-    IL_0190:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
+    IL_0190:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
     IL_0195:  ldarg.0
     IL_0196:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
     IL_019b:  ldloc.s    V_4
@@ -1779,10 +1779,10 @@ class Program
   IL_01a7:  stfld      ""int Program.<Main>d__0.<>1__state""
   IL_01ac:  ldarg.0
   IL_01ad:  ldnull
-  IL_01ae:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
+  IL_01ae:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
   IL_01b3:  ldarg.0
   IL_01b4:  ldnull
-  IL_01b5:  stfld      ""object Program.<Main>d__0.<>7__wrap1""
+  IL_01b5:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
   IL_01ba:  ldarg.0
   IL_01bb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
   IL_01c0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
@@ -1965,10 +1965,10 @@ class Program
     IL_0118:  stfld      ""int Program.<Main>d__0.<>1__state""
     IL_011d:  ldarg.0
     IL_011e:  ldnull
-    IL_011f:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
+    IL_011f:  stfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
     IL_0124:  ldarg.0
     IL_0125:  ldnull
-    IL_0126:  stfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
+    IL_0126:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
     IL_012b:  ldarg.0
     IL_012c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
     IL_0131:  ldloc.s    V_4
@@ -1980,10 +1980,10 @@ class Program
   IL_013d:  stfld      ""int Program.<Main>d__0.<>1__state""
   IL_0142:  ldarg.0
   IL_0143:  ldnull
-  IL_0144:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
+  IL_0144:  stfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
   IL_0149:  ldarg.0
   IL_014a:  ldnull
-  IL_014b:  stfld      ""System.IO.MemoryStream Program.<Main>d__0.<>7__wrap2""
+  IL_014b:  stfld      ""object Program.<Main>d__0.<>7__wrap3""
   IL_0150:  ldarg.0
   IL_0151:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Main>d__0.<>t__builder""
   IL_0156:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""

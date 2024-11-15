@@ -6277,7 +6277,7 @@ SetX
 After Assignment a._b._x is: 42
 After Assignment b._x is: 42")
                 .VerifyIL("Program.<Assign>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
-{
+ {
   // Code size      250 (0xfa)
   .maxstack  3
   .locals init (int V_0,
@@ -6362,10 +6362,10 @@ After Assignment b._x is: 42")
     IL_00b6:  stfld      ""int Program.<Assign>d__0.<>1__state""
     IL_00bb:  ldarg.0
     IL_00bc:  ldnull
-    IL_00bd:  stfld      ""B Program.<Assign>d__0.<>7__wrap2""
+    IL_00bd:  stfld      ""B Program.<Assign>d__0.<>7__wrap1""
     IL_00c2:  ldarg.0
     IL_00c3:  ldnull
-    IL_00c4:  stfld      ""B Program.<Assign>d__0.<>7__wrap1""
+    IL_00c4:  stfld      ""B Program.<Assign>d__0.<>7__wrap2""
     IL_00c9:  ldarg.0
     IL_00ca:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Assign>d__0.<>t__builder""
     IL_00cf:  ldloc.s    V_4
@@ -6377,10 +6377,10 @@ After Assignment b._x is: 42")
   IL_00db:  stfld      ""int Program.<Assign>d__0.<>1__state""
   IL_00e0:  ldarg.0
   IL_00e1:  ldnull
-  IL_00e2:  stfld      ""B Program.<Assign>d__0.<>7__wrap2""
+  IL_00e2:  stfld      ""B Program.<Assign>d__0.<>7__wrap1""
   IL_00e7:  ldarg.0
   IL_00e8:  ldnull
-  IL_00e9:  stfld      ""B Program.<Assign>d__0.<>7__wrap1""
+  IL_00e9:  stfld      ""B Program.<Assign>d__0.<>7__wrap2""
   IL_00ee:  ldarg.0
   IL_00ef:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Assign>d__0.<>t__builder""
   IL_00f4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
