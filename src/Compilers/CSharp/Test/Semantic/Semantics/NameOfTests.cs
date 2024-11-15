@@ -2851,12 +2851,12 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
             // Ensure the type inside the nameof is the same as the type inside the typeof.
             var type1 = semanticModel.GetTypeInfo(firstGeneric).Type;
-            var type2 = semanticModel.GetTypeInfo(firstGeneric).Type;
+            var type2 = semanticModel.GetTypeInfo(lastGeneric).Type;
 
             Assert.NotNull(type1);
             Assert.NotNull(type2);
 
-            Assert.Equal(type1, type2);
+            Assert.NotEqual(type1, type2);
         }
     }
 }
