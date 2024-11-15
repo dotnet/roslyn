@@ -51,113 +51,166 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         if (position >= currentSnapshot.Length)
             return false;
 
-        if (currentSnapshot[position] == '"')
-        {
-            return HandleCaretOnQuote(textView, subjectBuffer, span, position, context.OperationContext.UserCancellationToken);
-        }
+        var cancellationToken = context.OperationContext.UserCancellationToken;
 
-        return HandleCaretNotOnQuote(textView, subjectBuffer, position, context.OperationContext.UserCancellationToken);
-    }
-
-    private bool HandleCaretNotOnQuote(ITextView textView, ITextBuffer subjectBuffer, int position, CancellationToken cancellationToken)
-    {
-        // If the caret is not on a quote, we need to find whether we are within the contents of a single-line raw string literal
-        // but not inside an interpolation
-        // If we are inside a raw string literal and the caret is not on top of a quote, it is part of the literal's text
-        // Here we try to ensure that the literal's closing quotes are properly placed in their own line
-        // We could reach this point after pressing enter within a single-line raw string
-
-        var currentSnapshot = subjectBuffer.CurrentSnapshot;
         var document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
         if (document == null)
             return false;
 
-        var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+        return currentSnapshot[position] == '"'
+            ? ExecuteReturnCommandBeforeQuoteCharacter()
+            : ExecuteReturnCommandNotBeforeQuoteCharacter();
 
-        var token = parsedDocument.Root.FindToken(position);
-        var preferredIndentationToken = token;
-        switch (token.Kind())
+        bool ExecuteReturnCommandBeforeQuoteCharacter()
         {
-            case SyntaxKind.SingleLineRawStringLiteralToken:
-                break;
+            var quotesBefore = 0;
+            var quotesAfter = 0;
 
-            case SyntaxKind.InterpolatedStringTextToken:
-            case SyntaxKind.OpenBraceToken:
-                if (token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated &&
-                    interpolated.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken)
-                {
-                    if (token.Kind() is SyntaxKind.OpenBraceToken)
+            // Ensure we're in between a balanced set of quotes, with at least 3 quotes on each side.
+
+            var currentSnapshot = subjectBuffer.CurrentSnapshot;
+            for (int i = position, n = currentSnapshot.Length; i < n; i++)
+            {
+                if (currentSnapshot[i] != '"')
+                    break;
+
+                quotesAfter++;
+            }
+
+            for (var i = position - 1; i >= 0; i--)
+            {
+                if (currentSnapshot[i] != '"')
+                    break;
+
+                quotesBefore++;
+            }
+
+            var isEmpty = quotesBefore > 0;
+            if (isEmpty && quotesAfter != quotesBefore)
+                return false;
+
+            if (quotesAfter < 3)
+                return false;
+
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+
+            var token = parsedDocument.Root.FindToken(position);
+            if (token.Kind() is not (SyntaxKind.SingleLineRawStringLiteralToken or
+                                     SyntaxKind.MultiLineRawStringLiteralToken or
+                                     SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                                     SyntaxKind.InterpolatedMultiLineRawStringStartToken))
+            {
+                return false;
+            }
+
+            return MakeEdit(parsedDocument, token, preferredIndentationToken: token, isEmpty);
+        }
+
+        bool ExecuteReturnCommandNotBeforeQuoteCharacter()
+        {
+            // If the caret is not on a quote, we need to find whether we are within the contents of a single-line raw
+            // string literal but not inside an interpolation. If we are inside a raw string literal and the caret is not on
+            // top of a quote, it is part of the literal's text. Here we try to ensure that the literal's closing quotes are
+            // properly placed in their own line We could reach this point after pressing enter within a single-line raw
+            // string
+
+            var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
+
+            var token = parsedDocument.Root.FindToken(position);
+            var preferredIndentationToken = token;
+            switch (token.Kind())
+            {
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                    break;
+
+                case SyntaxKind.InterpolatedStringTextToken:
+                case SyntaxKind.OpenBraceToken:
+                    if (token.Parent?.Parent is InterpolatedStringExpressionSyntax interpolated &&
+                        interpolated.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken)
                     {
-                        // If we are not at the start of the interpolation braces, we do not intend to handle converting the raw string
-                        // into a new one
-                        if (position != token.SpanStart)
+                        if (token.Kind() is SyntaxKind.OpenBraceToken)
                         {
-                            return false;
+                            // If we are not at the start of the interpolation braces, we do not intend to handle converting the raw string
+                            // into a new one
+                            if (position != token.SpanStart)
+                                return false;
+
+                            // We prefer the indentation options of the string start delimiter because the indentation of the interpolation
+                            // is empty and thus we cannot properly indent the lines that we insert
+                            preferredIndentationToken = interpolated.StringStartToken;
                         }
 
-                        // We prefer the indentation options of the string start delimiter because the indentation of the interpolation
-                        // is empty and thus we cannot properly indent the lines that we insert
-                        preferredIndentationToken = interpolated.StringStartToken;
+                        break;
                     }
 
-                    break;
-                }
+                    return false;
 
-                return false;
-
-            default:
-                return false;
-        }
-
-        return MakeEdit(textView, subjectBuffer, position, document.Project, parsedDocument, token, preferredIndentationToken, isEmpty: false, cancellationToken);
-    }
-
-    private bool MakeEdit(
-        ITextView textView, ITextBuffer subjectBuffer, int position, Project project,
-        ParsedDocument parsedDocument, SyntaxToken token, SyntaxToken preferredIndentationToken,
-        bool isEmpty, CancellationToken cancellationToken)
-    {
-        var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, project.GetFallbackAnalyzerOptions(), project.Services, explicitFormat: false);
-        var indentation = preferredIndentationToken.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
-
-        var newLine = indentationOptions.FormattingOptions.NewLine;
-        using var transaction = CaretPreservingEditTransaction.TryCreate(
-            CSharpEditorResources.Split_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-        var edit = subjectBuffer.CreateEdit();
-
-        var openingEnd = GetEndPositionOfOpeningDelimiter(token, isEmpty);
-        var insertedLines = 1;
-        if (isEmpty)
-        {
-            // If the literal is empty, we just want to help the user transform it into a multiline raw string literal
-            // with the extra empty newline between the delimiters to place the caret at
-            edit.Insert(position, newLine + newLine + indentation);
-        }
-        else
-        {
-            var newLineAndIndentation = newLine + indentation;
-            // Add a newline at the position of the end literal
-            var closingStart = GetStartPositionOfClosingDelimiter(token);
-            edit.Insert(closingStart, newLineAndIndentation);
-            // Add a newline at the caret's position, to insert the newline that the user requested
-            edit.Insert(position, newLineAndIndentation);
-            // Also add a newline at the start of the text, only if there is text before the caret's position
-            if (openingEnd != position)
-            {
-                insertedLines++;
-                edit.Insert(openingEnd, newLineAndIndentation);
+                default:
+                    return false;
             }
+
+            return MakeEdit(parsedDocument, token, preferredIndentationToken, isEmpty: false);
         }
 
-        var snapshot = edit.Apply();
+        bool MakeEdit(
+            ParsedDocument parsedDocument,
+            SyntaxToken token,
+            SyntaxToken preferredIndentationToken,
+            bool isEmpty)
+        {
+            var project = document.Project;
+            var indentationOptions = subjectBuffer.GetIndentationOptions(_editorOptionsService, project.GetFallbackAnalyzerOptions(), project.Services, explicitFormat: false);
+            var indentation = preferredIndentationToken.GetPreferredIndentation(parsedDocument, indentationOptions, cancellationToken);
 
-        // move caret:
-        var lineInNewSnapshot = snapshot.GetLineFromPosition(openingEnd);
-        var nextLine = snapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + insertedLines);
-        textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
+            var newLine = indentationOptions.FormattingOptions.NewLine;
 
-        transaction?.Complete();
-        return true;
+            using var transaction = CaretPreservingEditTransaction.TryCreate(
+                CSharpEditorResources.Split_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
+            var edit = subjectBuffer.CreateEdit();
+
+            var openingEnd = GetEndPositionOfOpeningDelimiter(token, isEmpty);
+
+            // We're always at least inserting one new line on enter.
+            var insertedLinesBeforeCaret = 1;
+            if (isEmpty)
+            {
+                // If the literal is empty, we just want to help the user transform it into a multiline raw string literal
+                // with the extra empty newline between the delimiters to place the caret at
+                edit.Insert(position, newLine + newLine + indentation);
+            }
+            else
+            {
+                // Otherwise, we're starting with a raw string that has content in it.  That's something like:
+                // """GooBar""".  If we hit enter at the `G` we only want to insert a single new line before the caret.
+                // However, if we were to hit enter anywhere after that, we want two new lines inserted.  One after the
+                // `"""` and one at the caret itself.
+                var newLineAndIndentation = newLine + indentation;
+
+                // Add a newline at the position of the end literal
+                var closingStart = GetStartPositionOfClosingDelimiter(token);
+                edit.Insert(closingStart, newLineAndIndentation);
+
+                // Add a newline at the caret's position, to insert the newline that the user requested
+                edit.Insert(position, newLineAndIndentation);
+
+                // Also add a newline at the start of the text, only if there is text before the caret's position
+                if (openingEnd != position)
+                {
+                    insertedLinesBeforeCaret++;
+                    edit.Insert(openingEnd, newLineAndIndentation);
+                }
+            }
+
+            var snapshot = edit.Apply();
+
+            // move caret:
+            var lineInNewSnapshot = snapshot.GetLineFromPosition(openingEnd);
+            var nextLine = snapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + insertedLinesBeforeCaret);
+            textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
+
+            transaction?.Complete();
+            return true;
+        }
     }
 
     private static int GetEndPositionOfOpeningDelimiter(SyntaxToken currentStringLiteralToken, bool isEmpty)
@@ -185,6 +238,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                             var quotes = isEmpty ? index / 2 : index;
                             return tokenStart + quotes;
                         }
+
                         index++;
                     }
 
@@ -279,57 +333,5 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 Contract.Fail("This should only be triggered on a known raw string literal kind");
                 return -1;
         }
-    }
-
-    private bool HandleCaretOnQuote(ITextView textView, ITextBuffer subjectBuffer, SnapshotSpan span, int position, CancellationToken cancellationToken)
-    {
-        var quotesBefore = 0;
-        var quotesAfter = 0;
-
-        var currentSnapshot = subjectBuffer.CurrentSnapshot;
-        for (int i = position, n = currentSnapshot.Length; i < n; i++)
-        {
-            if (currentSnapshot[i] != '"')
-                break;
-
-            quotesAfter++;
-        }
-
-        for (var i = position - 1; i >= 0; i--)
-        {
-            if (currentSnapshot[i] != '"')
-                break;
-
-            quotesBefore++;
-        }
-
-        var isEmpty = quotesBefore > 0;
-        if (isEmpty && quotesAfter != quotesBefore)
-            return false;
-
-        if (quotesAfter < 3)
-            return false;
-
-        return SplitRawString(textView, subjectBuffer, span.Start.Position, isEmpty, cancellationToken);
-    }
-
-    private bool SplitRawString(ITextView textView, ITextBuffer subjectBuffer, int position, bool isEmpty, CancellationToken cancellationToken)
-    {
-        var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (document == null)
-            return false;
-
-        var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-
-        var token = parsedDocument.Root.FindToken(position);
-        if (token.Kind() is not (SyntaxKind.SingleLineRawStringLiteralToken or
-                                 SyntaxKind.MultiLineRawStringLiteralToken or
-                                 SyntaxKind.InterpolatedSingleLineRawStringStartToken or
-                                 SyntaxKind.InterpolatedMultiLineRawStringStartToken))
-        {
-            return false;
-        }
-
-        return MakeEdit(textView, subjectBuffer, position, document.Project, parsedDocument, token, preferredIndentationToken: token, isEmpty, cancellationToken);
     }
 }
