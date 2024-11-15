@@ -57,12 +57,12 @@ internal sealed class SerializableSourceText
     public readonly Checksum ContentChecksum;
 
     public SerializableSourceText(TemporaryStorageTextHandle storageHandle)
-        : this(storageHandle, text: null, Checksum.From(storageHandle.ContentHash))
+        : this(storageHandle, text: null, Checksum.Create(storageHandle.ContentHash))
     {
     }
 
     public SerializableSourceText(SourceText text, ImmutableArray<byte> contentHash)
-        : this(storageHandle: null, text, Checksum.From(contentHash))
+        : this(storageHandle: null, text, Checksum.Create(contentHash))
     {
     }
 
@@ -81,7 +81,7 @@ internal sealed class SerializableSourceText
 
 #if DEBUG
         var computedContentHash = TryGetText()?.GetContentHash() ?? _storageHandle!.ContentHash;
-        Debug.Assert(contentChecksum == Checksum.From(computedContentHash));
+        Debug.Assert(contentChecksum == Checksum.Create(computedContentHash));
 #endif
     }
 
