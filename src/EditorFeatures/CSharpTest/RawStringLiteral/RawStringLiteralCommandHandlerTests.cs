@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral;
@@ -30,7 +31,7 @@ public class RawStringLiteralCommandHandlerTests
                 Single(c => c is RawStringLiteralCommandHandler);
         }
 
-        public static RawStringLiteralTestState CreateTestState(string markup, bool withSpansOnly = false)
+        public static RawStringLiteralTestState CreateTestState([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, bool withSpansOnly = false)
             => new(GetWorkspaceXml(markup, withSpansOnly));
 
         public static XElement GetWorkspaceXml(string markup, bool withSpansOnly)
@@ -45,7 +46,7 @@ public class RawStringLiteralCommandHandlerTests
 """);
         }
 
-        internal void AssertCodeIs(string expectedCode, bool withSpansOnly = false)
+        internal void AssertCodeIs([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedCode, bool withSpansOnly = false)
         {
             if (withSpansOnly)
                 expectedCode = expectedCode.Replace("$", "\uD7FF");
