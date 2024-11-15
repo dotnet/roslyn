@@ -10,20 +10,18 @@ internal class CodeStyleValueViewModel
 {
     private readonly CodeStyleSetting _setting;
 
-    private string? _selectedValue;
-
     public string[] Values => _setting.GetValueDescriptions();
 
     public string SelectedValue
     {
         get
         {
-            _selectedValue ??= _setting.GetCurrentValueDescription();
+            field ??= _setting.GetCurrentValueDescription();
 
-            return _selectedValue;
+            return field;
         }
-        set => _selectedValue = value;
-    }
+        set;
+    } = null!;
 
     public string ToolTip => ServicesVSResources.Value;
 

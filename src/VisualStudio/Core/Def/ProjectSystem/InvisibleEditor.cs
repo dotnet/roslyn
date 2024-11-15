@@ -23,11 +23,6 @@ internal sealed partial class InvisibleEditor : IInvisibleEditor
     private readonly IServiceProvider _serviceProvider;
     private readonly string _filePath;
     private readonly bool _needsSave = false;
-
-    /// <summary>
-    /// The text buffer. null if the object has been disposed.
-    /// </summary>
-    private ITextBuffer? _buffer;
     private IVsInvisibleEditor _invisibleEditor;
     private OLE.Interop.IOleUndoManager? _manager;
     private readonly bool _needsUndoRestored;
@@ -59,7 +54,7 @@ internal sealed partial class InvisibleEditor : IInvisibleEditor
             VsTextLines = RetrieveDocData(_invisibleEditor, needsSave);
 
             var editorAdapterFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
-            _buffer = editorAdapterFactoryService.GetDocumentBuffer(VsTextLines);
+            TextBuffer = editorAdapterFactoryService.GetDocumentBuffer(VsTextLines)!;
             if (needsUndoDisabled)
             {
                 Marshal.ThrowExceptionForHR(VsTextLines.GetUndoManager(out _manager));
@@ -125,13 +120,15 @@ internal sealed partial class InvisibleEditor : IInvisibleEditor
     {
         get
         {
-            if (_buffer == null)
+            if (field == null)
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
 
-            return _buffer;
+            return field;
         }
+
+        private set;
     }
 
     /// <summary>
@@ -141,7 +138,7 @@ internal sealed partial class InvisibleEditor : IInvisibleEditor
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        _buffer = null;
+        TextBuffer = null!;
         VsTextLines = null!;
 
         try
