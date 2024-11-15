@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -145,7 +146,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
             _kind = kind;
 
             _paths = new OneOrMany<string>(directory);
-            _filters = filters;
+            _filters = filters.NullToEmpty();
             _sink = sink;
             _cookies = cookies;
 
@@ -305,7 +306,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                     var cookie = await service.AdviseDirChangeAsync(_paths[0], watchSubdirectories: true, _sink, cancellationToken).ConfigureAwait(false);
                     _cookies.Add(cookie);
 
-                    if (_filters != null)
+                    if (_filters.Length > 0)
                         await service.FilterDirectoryChangesAsync(cookie, _filters.ToArray(), cancellationToken).ConfigureAwait(false);
 
                     return;
