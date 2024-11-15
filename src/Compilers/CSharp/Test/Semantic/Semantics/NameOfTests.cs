@@ -2639,7 +2639,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 using System;
                 using System.Collections.Generic;
 
-                var v = nameof(List<List<int>>);
+                var v = nameof(List<List<int>[]>);
                 Console.WriteLine(v);
                 """).VerifyDiagnostics();
         }
