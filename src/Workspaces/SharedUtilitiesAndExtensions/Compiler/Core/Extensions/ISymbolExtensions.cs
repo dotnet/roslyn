@@ -88,7 +88,8 @@ internal static partial class ISymbolExtensions
         if (exactMatch != null)
             return exactMatch;
 
-        if (allowLooseMatch)
+        if (allowLooseMatch &&
+            (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride))
         {
             foreach (var baseType in symbol.ContainingType.GetBaseTypes())
             {
@@ -109,10 +110,7 @@ internal static partial class ISymbolExtensions
                 if (member.Kind != symbol.Kind)
                     continue;
 
-                if (member.IsSealed)
-                    continue;
-
-                if (!member.IsVirtual && !member.IsOverride && !member.IsAbstract)
+                if (!member.IsOverridable())
                     continue;
 
                 if (symbol.Kind is SymbolKind.Event or SymbolKind.Property)
@@ -163,11 +161,9 @@ internal static partial class ISymbolExtensions
 
     public static bool IsOverridable([NotNullWhen(true)] this ISymbol? symbol)
     {
-        // Members can only have overrides if they are virtual, abstract or override and is not
-        // sealed.
-        return symbol?.ContainingType?.TypeKind == TypeKind.Class &&
-               (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride) &&
-               !symbol.IsSealed;
+        // Members can only have overrides if they are virtual, abstract or override and is not sealed.
+        return symbol is { ContainingType.TypeKind: TypeKind.Class, IsSealed: false } &&
+               (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride);
     }
 
     public static bool IsImplementableMember([NotNullWhen(true)] this ISymbol? symbol)

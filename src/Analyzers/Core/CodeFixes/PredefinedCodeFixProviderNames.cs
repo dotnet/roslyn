@@ -137,6 +137,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseCollectionExpressionForCreate = nameof(UseCollectionExpressionForCreate);
     public const string UseCollectionExpressionForEmpty = nameof(UseCollectionExpressionForEmpty);
     public const string UseCollectionExpressionForFluent = nameof(UseCollectionExpressionForFluent);
+    public const string UseCollectionExpressionForNew = nameof(UseCollectionExpressionForNew);
     public const string UseCollectionExpressionForStackAlloc = nameof(UseCollectionExpressionForStackAlloc);
     public const string UseCollectionInitializer = nameof(UseCollectionInitializer);
     public const string UseCompoundAssignment = nameof(UseCompoundAssignment);
