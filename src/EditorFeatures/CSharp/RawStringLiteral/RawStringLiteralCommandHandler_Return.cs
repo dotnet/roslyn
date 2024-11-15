@@ -110,7 +110,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 return false;
             }
 
-            return MakeEdit(parsedDocument, expression, isEmpty: true);
+            return MakeEdit(parsedDocument, expression, isEmpty);
         }
 
         bool ExecuteReturnCommandNotBeforeQuoteCharacter()
