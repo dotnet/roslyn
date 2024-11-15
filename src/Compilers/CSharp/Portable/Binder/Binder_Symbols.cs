@@ -1377,6 +1377,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Inside a nameof an open-generic type is acceptable.  Fall through and bind the remainder accordingly.
                     CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureUnboundGenericTypesInNameof, diagnostics);
+
+                    // From the spec:
+                    //
+                    // Member lookup on an unbound type expression will be performed the same way as for a `this`
+                    // expression within that type declaration.
+                    //
+                    // So we want to just return the originating type symbol as is (e.g. List<T> in nameof(List<>)).
+                    // This is distinctly different than how typeof(List<>) works, where it returns an unbound generic
+                    // type.
                 }
                 else
                 {

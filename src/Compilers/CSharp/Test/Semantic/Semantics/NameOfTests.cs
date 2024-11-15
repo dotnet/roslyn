@@ -2828,12 +2828,12 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Theory]
         [InlineData("IGoo<>")]
         [InlineData("IGoo<>.Count")]
-        public void OpenTypeInNameof_SemanticModelTest1(string nameofType)
+        public void OpenTypeInNameof_SemanticModelTest1(string nameofTypeString)
         {
             var compilation = CreateCompilation($$"""
                 using System;
                     
-                var v1 = nameof({{nameofType}});
+                var v1 = nameof({{nameofTypeString}});
                 var v2 = typeof(IGoo<>);
                 Console.WriteLine(v1 + v2);
 
@@ -2850,13 +2850,18 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             Assert.NotSame(firstGeneric, lastGeneric);
 
             // Ensure the type inside the nameof is the same as the type inside the typeof.
-            var type1 = semanticModel.GetTypeInfo(firstGeneric).Type;
-            var type2 = semanticModel.GetTypeInfo(lastGeneric).Type;
+            var nameofType = semanticModel.GetTypeInfo(firstGeneric).Type;
+            var typeofType = semanticModel.GetTypeInfo(lastGeneric).Type;
 
-            Assert.NotNull(type1);
-            Assert.NotNull(type2);
+            Assert.NotNull(nameofType);
+            Assert.NotNull(typeofType);
 
-            Assert.NotEqual(type1, type2);
+            Assert.NotEqual(nameofType, typeofType);
+
+            var igooType = compilation.GetTypeByMetadataName("IGoo`1").GetPublicSymbol();
+            Assert.NotNull(igooType);
+
+            Assert.Equal(igooType, nameofType);
         }
     }
 }
