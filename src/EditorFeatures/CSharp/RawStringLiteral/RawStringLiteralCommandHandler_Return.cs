@@ -169,19 +169,17 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 CSharpEditorResources.Split_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
             var edit = subjectBuffer.CreateEdit();
 
-            var openingEnd = GetEndPositionOfOpeningDelimiter(token, isEmpty);
-
             if (isEmpty)
             {
                 // If the literal is empty, we just want to help the user transform it into a multiline raw string
                 // literal with the extra empty newline between the delimiters to place the caret at
                 edit.Insert(position, newLine + newLine + indentation);
 
-                var snapshot = edit.Apply();
+                var finalSnapshot = edit.Apply();
 
                 // move caret to the right location in virtual space for the blank line we added.
-                var lineInNewSnapshot = snapshot.GetLineFromPosition(position);
-                var nextLine = snapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + 1);
+                var lineInNewSnapshot = finalSnapshot.GetLineFromPosition(position);
+                var nextLine = finalSnapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + 1);
                 textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
             }
             else
@@ -193,7 +191,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 var newLineAndIndentation = newLine + indentation;
 
                 // Add a newline at the position of the end literal
-                var closingStart = GetStartPositionOfClosingDelimiter(token);
+                var closingStart = GetStartPositionOfClosingDelimiter(currentSnapshot, token);
                 edit.Insert(closingStart, newLineAndIndentation);
 
                 // Add a newline at the caret's position, to insert the newline that the user requested
@@ -201,17 +199,18 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
 
                 // Also add a newline at the start of the text, only if there is text before the caret's position
                 var insertedLinesBeforeCaret = 1;
+                var openingEnd = GetEndPositionOfOpeningDelimiter(currentSnapshot, token);
                 if (openingEnd != position)
                 {
-                    insertedLinesBeforeCaret++;
+                    insertedLinesBeforeCaret = 2;
                     edit.Insert(openingEnd, newLineAndIndentation);
                 }
 
-                var snapshot = edit.Apply();
+                var finalSnapshot = edit.Apply();
 
                 // move caret:
-                var lineInNewSnapshot = snapshot.GetLineFromPosition(openingEnd);
-                var nextLine = snapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + insertedLinesBeforeCaret);
+                var lineInNewSnapshot = finalSnapshot.GetLineFromPosition(openingEnd);
+                var nextLine = finalSnapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + insertedLinesBeforeCaret);
                 textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
             }
 
@@ -220,14 +219,12 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         }
     }
 
-    private static int GetEndPositionOfOpeningDelimiter(SyntaxToken currentStringLiteralToken, bool isEmpty)
+    private static int GetEndPositionOfOpeningDelimiter(ITextSnapshot snapshot, SyntaxToken currentStringLiteralToken)
     {
         switch (currentStringLiteralToken.Kind())
         {
             case SyntaxKind.SingleLineRawStringLiteralToken:
-            case SyntaxKind.MultiLineRawStringLiteralToken:
                 {
-                    var text = currentStringLiteralToken.Text;
                     var tokenSpan = currentStringLiteralToken.Span;
                     var tokenStart = tokenSpan.Start;
                     var length = tokenSpan.Length;
@@ -242,7 +239,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                             // where in the worst case a single quote is missing in the end
                             // So for example, """""" is an emtpy raw string literal where the user intends to delimit it
                             // with 3 double quotes, where the contents would be placed after the first 3 quotes only
-                            var quotes = isEmpty ? index / 2 : index;
+                            var quotes = index;
                             return tokenStart + quotes;
                         }
 
@@ -286,54 +283,39 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
         }
     }
 
-    private static int GetStartPositionOfClosingDelimiter(SyntaxToken currentStringLiteralToken)
+    private static int GetStartPositionOfClosingDelimiter(ITextSnapshot snapshot, SyntaxToken stringLiteralToken)
     {
-        switch (currentStringLiteralToken.Kind())
+        switch (stringLiteralToken.Kind())
         {
             case SyntaxKind.SingleLineRawStringLiteralToken:
-            case SyntaxKind.MultiLineRawStringLiteralToken:
                 {
-                    var text = currentStringLiteralToken.Text;
-                    var tokenSpan = currentStringLiteralToken.Span;
-                    var tokenStart = tokenSpan.Start;
-                    var index = tokenSpan.Length - 1;
-                    // Traverse through the literal's text from the end to discover the first position that is not a double quote
-                    while (index > 0)
-                    {
-                        var c = text[index];
-                        if (c != '"')
-                            return tokenStart + index + 1;
-                        index--;
-                    }
+                    var index = stringLiteralToken.Span.End;
 
-                    // We have evaluated an empty raw string literal here and so we split the continuous double quotes into the start and end delimiters
-                    return tokenStart + tokenSpan.Length / 2;
+                    // Traverse backwards through the through the literal's text from the end to discover the first position that is not a double quote
+                    while (snapshot[index - 1] == '"')
+                        index--;
+
+                    return index;
                 }
 
             case SyntaxKind.InterpolatedStringTextToken:
             case SyntaxKind.OpenBraceToken:
             case SyntaxKind.CloseBraceToken:
-                var tokenParent = currentStringLiteralToken.Parent?.Parent;
-                if (tokenParent is not InterpolatedStringExpressionSyntax interpolatedStringExpression)
-                {
-                    Contract.Fail("This token should only be contained in an interpolated string expression syntax");
-                    return -1;
-                }
-
+                var interpolatedStringExpression = (InterpolatedStringExpressionSyntax)stringLiteralToken.GetRequiredParent().GetRequiredParent();
                 return interpolatedStringExpression.StringEndToken.SpanStart;
 
             case SyntaxKind.InterpolatedRawStringEndToken:
-                return currentStringLiteralToken.SpanStart;
+                return stringLiteralToken.SpanStart;
 
             // This represents the case of a seemingly empty single-line interpolated raw string literal
             // looking like this: $"""""", where all the quotes are parsed as the start delimiter
             // We handle this as an empty interpolated string, so we return the index at where the text would begin
             case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
                 {
-                    var firstQuoteOffset = currentStringLiteralToken.Text.IndexOf('"');
-                    var length = currentStringLiteralToken.Span.Length;
+                    var firstQuoteOffset = stringLiteralToken.Text.IndexOf('"');
+                    var length = stringLiteralToken.Span.Length;
                     var quotes = length - firstQuoteOffset;
-                    return currentStringLiteralToken.SpanStart + firstQuoteOffset + quotes / 2;
+                    return stringLiteralToken.SpanStart + firstQuoteOffset + quotes / 2;
                 }
 
             default:
