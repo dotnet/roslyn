@@ -130,7 +130,8 @@ internal sealed partial class ProjectSystemProjectFactory
                 SourceHashAlgorithms.Default, // will be updated when command line is set
                 outputFilePath: creationInfo.CompilationOutputAssemblyFilePath,
                 filePath: creationInfo.FilePath,
-                telemetryId: creationInfo.TelemetryId),
+                telemetryId: creationInfo.TelemetryId,
+                hasSdkCodeStyleAnalyzers: project.HasSdkCodeStyleAnalyzers),
             compilationOptions: creationInfo.CompilationOptions,
             parseOptions: creationInfo.ParseOptions);
 
@@ -262,7 +263,7 @@ internal sealed partial class ProjectSystemProjectFactory
     /// <summary>
     /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
     /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.
-    /// 
+    ///
     /// The <paramref name="solutionTransformation"/> function must be safe to be attempted multiple times (and not update local state).
     /// </summary>
     public void ApplyChangeToWorkspace(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> solutionTransformation)
@@ -555,22 +556,23 @@ internal sealed partial class ProjectSystemProjectFactory
                 // PERF: call GetRequiredProjectState instead of GetRequiredProject, otherwise creating a new project
                 // might force all Project instances to get created.
                 var projectState = solutionChanges.Solution.GetRequiredProjectState(projectIdToRetarget);
-                foreach (var reference in projectState.MetadataReferences.OfType<PortableExecutableReference>())
+                foreach (var reference in projectState.MetadataReferences)
                 {
-                    if (string.Equals(reference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
+                    if (reference is PortableExecutableReference peReference
+                        && string.Equals(peReference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(reference);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(peReference);
 
-                        var projectReference = new ProjectReference(projectIdToReference, reference.Properties.Aliases, reference.Properties.EmbedInteropTypes);
+                        var projectReference = new ProjectReference(projectIdToReference, peReference.Properties.Aliases, peReference.Properties.EmbedInteropTypes);
                         var newSolution = solutionChanges.Solution
-                            .RemoveMetadataReference(projectIdToRetarget, reference)
+                            .RemoveMetadataReference(projectIdToRetarget, peReference)
                             .AddProjectReference(projectIdToRetarget, projectReference);
 
                         solutionChanges.UpdateSolutionForProjectAction(projectIdToRetarget, newSolution);
 
                         projectUpdateState = GetReferenceInformation(projectIdToRetarget, projectUpdateState, out var projectInfo);
                         projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectIdToRetarget,
-                            projectInfo.WithConvertedProjectReference(reference.FilePath!, projectReference));
+                            projectInfo.WithConvertedProjectReference(peReference.FilePath!, projectReference));
 
                         // We have converted one, but you could have more than one reference with different aliases that
                         // we need to convert, so we'll keep going

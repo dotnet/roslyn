@@ -221,6 +221,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
     public ValueTask<EmitSolutionUpdateResults> EmitSolutionUpdateAsync(
         DebuggingSessionId sessionId,
         Solution solution,
+        IImmutableSet<ProjectId> runningProjects,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
@@ -230,7 +231,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
             return ValueTaskFactory.FromResult(EmitSolutionUpdateResults.Empty);
         }
 
-        return debuggingSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, cancellationToken);
+        return debuggingSession.EmitSolutionUpdateAsync(solution, runningProjects, activeStatementSpanProvider, cancellationToken);
     }
 
     public void CommitSolutionUpdate(DebuggingSessionId sessionId)
@@ -247,6 +248,14 @@ internal sealed class EditAndContinueService : IEditAndContinueService
         Contract.ThrowIfNull(debuggingSession);
 
         debuggingSession.DiscardSolutionUpdate();
+    }
+
+    public void UpdateBaselines(DebuggingSessionId sessionId, Solution solution, ImmutableArray<ProjectId> rebuiltProjects)
+    {
+        var debuggingSession = TryGetDebuggingSession(sessionId);
+        Contract.ThrowIfNull(debuggingSession);
+
+        debuggingSession.UpdateBaselines(solution, rebuiltProjects);
     }
 
     public ValueTask<ImmutableArray<ImmutableArray<ActiveStatementSpan>>> GetBaseActiveStatementSpansAsync(DebuggingSessionId sessionId, Solution solution, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)

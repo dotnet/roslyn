@@ -55,6 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Flags>
         Private Enum StateFlags As Integer
             SymbolDeclaredEvent = &H1           ' Bit value for generating SymbolDeclaredEvent
+
+            TypeConstraintsChecked = &H2
         End Enum
 
         Private Sub New(container As SourceMemberContainerTypeSymbol,
@@ -335,7 +337,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function ComputeType(diagnostics As BindingDiagnosticBag) As TypeSymbol
-            Dim binder = CreateBinderForTypeDeclaration()
+            Dim binder = BinderBuilder.CreateBinderForType(DirectCast(ContainingModule, SourceModuleSymbol), _syntaxRef.SyntaxTree, _containingType)
+            binder = New LocationSpecificBinder(BindingLocation.PropertyType, Me, binder)
 
             If IsWithEvents Then
                 Dim syntax = DirectCast(_syntaxRef.GetSyntax(), ModifiedIdentifierSyntax)
@@ -1190,10 +1193,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.GenerateDeclarationErrors(cancellationToken)
 
             ' Ensure return type attributes are bound
-            Dim unusedType = Me.Type
+            Dim type = Me.Type
             Dim unusedParameters = Me.Parameters
             Me.GetReturnTypeAttributesBag()
             Dim unusedImplementations = Me.ExplicitInterfaceImplementations
+
+            If (_lazyState And StateFlags.TypeConstraintsChecked) = 0 Then
+                Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+                Dim diagnostics = BindingDiagnosticBag.GetInstance()
+                type.CheckAllConstraints(DeclaringCompilation.LanguageVersion,
+                                     Locations(0), diagnostics, template:=New CompoundUseSiteInfo(Of AssemblySymbol)(diagnostics, sourceModule.ContainingAssembly))
+                sourceModule.AtomicSetFlagAndStoreDiagnostics(_lazyState, StateFlags.TypeConstraintsChecked, 0, diagnostics)
+                diagnostics.Free()
+            End If
 
             If DeclaringCompilation.EventQueue IsNot Nothing Then
                 DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicSetFlagAndRaiseSymbolDeclaredEvent(_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)

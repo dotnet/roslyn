@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return reportAnError;
         }
 
-        internal sealed override int? TryGetOverloadResolutionPriority()
+        internal sealed override int TryGetOverloadResolutionPriority()
         {
-            return null;
+            return 0;
         }
     }
 }

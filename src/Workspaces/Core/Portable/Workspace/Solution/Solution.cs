@@ -132,7 +132,8 @@ public partial class Solution
     /// <summary>
     /// True if the solution contains a project with the specified project ID.
     /// </summary>
-    public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId) => this.SolutionState.ContainsProject(projectId);
+    public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId)
+        => this.SolutionState.ContainsProject(projectId);
 
     /// <summary>
     /// Gets the project in this solution with the specified project ID. 
@@ -533,6 +534,17 @@ public partial class Solution
     }
 
     /// <summary>
+    /// Create a new solution instance with the project specified updated to have
+    /// the specified hasSdkCodeStyleAnalyzers.
+    /// </summary>
+    internal Solution WithHasSdkCodeStyleAnalyzers(ProjectId projectId, bool hasSdkCodeStyleAnalyzers)
+    {
+        CheckContainsProject(projectId);
+
+        return WithCompilationState(CompilationState.WithHasSdkCodeStyleAnalyzers(projectId, hasSdkCodeStyleAnalyzers));
+    }
+
+    /// <summary>
     /// Creates a new solution instance with the project documents in the order by the specified document ids.
     /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
     /// </summary>
@@ -777,9 +789,7 @@ public partial class Solution
         CheckContainsProject(projectId);
 
         if (analyzerReferences is null)
-        {
             throw new ArgumentNullException(nameof(analyzerReferences));
-        }
 
         var collection = analyzerReferences.ToImmutableArray();
 
@@ -788,12 +798,16 @@ public partial class Solution
         foreach (var analyzerReference in collection)
         {
             if (this.SolutionState.ContainsAnalyzerReference(projectId, analyzerReference))
-            {
                 throw new InvalidOperationException(WorkspacesResources.The_project_already_contains_the_specified_reference);
-            }
         }
 
-        return WithCompilationState(CompilationState.AddAnalyzerReferences(this.SolutionState.AddAnalyzerReferences(projectId, collection), collection));
+        var boxedReferences = Roslyn.Utilities.EnumerableExtensions.ToBoxedImmutableArray([
+            // Note: we guaranteed that analyzerReferences has no duplicates, and has no overlap with the existing
+            // analyzer references above, so we can just concatenate them here safely.
+            .. this.GetRequiredProjectState(projectId).AnalyzerReferences,
+            .. collection,
+        ]);
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, boxedReferences));
     }
 
     /// <summary>
@@ -815,7 +829,14 @@ public partial class Solution
         if (!oldProject.AnalyzerReferences.Contains(analyzerReference))
             throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
 
-        return WithCompilationState(CompilationState.RemoveAnalyzerReference(projectId, analyzerReference));
+        var builder = new FixedSizeArrayBuilder<AnalyzerReference>(oldProject.AnalyzerReferences.Count - 1);
+        foreach (var reference in oldProject.AnalyzerReferences)
+        {
+            if (!reference.Equals(analyzerReference))
+                builder.Add(reference);
+        }
+
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, builder.MoveToImmutable()));
     }
 
     /// <summary>

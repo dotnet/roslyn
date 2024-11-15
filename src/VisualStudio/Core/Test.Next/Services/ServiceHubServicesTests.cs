@@ -91,7 +91,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // sync
             await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                (service, cancellationToken) => service.SynchronizeTextAsync(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), cancellationToken),
+                (service, cancellationToken) => service.SynchronizeTextChangesAsync([(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable())], cancellationToken),
                 CancellationToken.None);
 
             // apply change to solution

@@ -15,10 +15,6 @@ internal abstract partial class AbstractCSharpSignatureHelpProvider : AbstractSi
     private static readonly SymbolDisplayFormat s_allowDefaultLiteralFormat = SymbolDisplayFormat.MinimallyQualifiedFormat
         .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
-    protected AbstractCSharpSignatureHelpProvider()
-    {
-    }
-
     protected static SymbolDisplayPart Keyword(SyntaxKind kind)
         => new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, SyntaxFacts.GetText(kind));
 

@@ -150,22 +150,16 @@ internal static partial class ISymbolExtensions
                 }
 
                 // If this is a synthesized operator of dynamic, it's always accessible.
-                if (symbol.IsKind(SymbolKind.Method) &&
-                    ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
-                    symbol.ContainingSymbol.IsKind(SymbolKind.DynamicType))
+                if (symbol is IMethodSymbol { MethodKind: MethodKind.BuiltinOperator })
                 {
-                    return true;
-                }
+                    if (symbol.ContainingSymbol.IsKind(SymbolKind.DynamicType))
+                        return true;
 
-                // If it's a synthesized operator on a pointer, use the pointer's PointedAtType.
-                // Note: there are currently no synthesized operators on function pointer types. If that
-                // ever changes, updated the below assert and fix the code
-                Debug.Assert(!(symbol.IsKind(SymbolKind.Method) && ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator && symbol.ContainingSymbol.IsKind(SymbolKind.FunctionPointerType)));
-                if (symbol.IsKind(SymbolKind.Method) &&
-                    ((IMethodSymbol)symbol).MethodKind == MethodKind.BuiltinOperator &&
-                    symbol.ContainingSymbol.IsKind(SymbolKind.PointerType))
-                {
-                    return IsSymbolAccessibleCore(((IPointerTypeSymbol)symbol.ContainingSymbol).PointedAtType, within, null, out failedThroughTypeCheck);
+                    // If it's a synthesized operator on a pointer, use the pointer's PointedAtType.
+                    // Note: there are currently no synthesized operators on function pointer types. If that
+                    // ever changes, updated the below assert and fix the code
+                    if (symbol.ContainingSymbol is IPointerTypeSymbol pointerType)
+                        return IsSymbolAccessibleCore(pointerType.PointedAtType, within, null, out failedThroughTypeCheck);
                 }
 
                 return IsMemberAccessible(symbol.ContainingType, symbol.DeclaredAccessibility, within, throughType, out failedThroughTypeCheck);

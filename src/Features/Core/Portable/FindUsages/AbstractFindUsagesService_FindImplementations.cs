@@ -23,18 +23,17 @@ internal abstract partial class AbstractFindUsagesService
         IFindUsagesContext context, Document document, int position, OptionsProvider<ClassificationOptions> classificationOptions, CancellationToken cancellationToken)
     {
         // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
-        var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
+        var symbolAndProject = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
             document, position, cancellationToken).ConfigureAwait(false);
-        if (symbolAndProjectOpt == null)
+        if (symbolAndProject is not var (symbol, project))
         {
             await context.ReportNoResultsAsync(
                 FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
             return;
         }
 
-        var symbolAndProject = symbolAndProjectOpt.Value;
         await FindImplementationsAsync(
-            context, symbolAndProject.symbol, symbolAndProject.project, classificationOptions, cancellationToken).ConfigureAwait(false);
+            context, symbol, project, classificationOptions, cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task FindImplementationsAsync(
@@ -145,7 +144,9 @@ internal abstract partial class AbstractFindUsagesService
         var overrides = result.Where(s => s.IsOverride).ToImmutableArray();
         foreach (var ov in overrides)
         {
-            for (var overridden = ov.GetOverriddenMember(); overridden != null; overridden = overridden.GetOverriddenMember())
+            for (var overridden = ov.GetOverriddenMember(allowLooseMatch: true);
+                 overridden != null;
+                 overridden = overridden.GetOverriddenMember(allowLooseMatch: true))
             {
                 if (overridden.IsAbstract)
                     result.Remove(overridden.OriginalDefinition);

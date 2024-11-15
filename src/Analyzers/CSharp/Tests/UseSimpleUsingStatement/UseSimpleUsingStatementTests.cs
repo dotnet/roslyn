@@ -2,20 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseSimpleUsingStatement;
 
@@ -24,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     UseSimpleUsingStatementCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
-public class UseSimpleUsingStatementTests
+public sealed class UseSimpleUsingStatementTests
 {
     [Fact]
     public async Task TestAboveCSharp8()
@@ -1919,5 +1914,210 @@ public class UseSimpleUsingStatementTests
                 }
             }
             """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
+    public async Task TestGlobalStatement1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                {
+                }
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
+    public async Task TestGlobalStatement2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                {
+                    Console.WriteLine();
+                }
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+                Console.WriteLine();
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
+    public async Task TestGlobalStatement3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                using (var c = (IDisposable)null)
+                {
+                }
+
+                Console.WriteLine();
+
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
+    public async Task TestGlobalStatement4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                {
+                    Console.WriteLine();
+                }
+
+                int LocalFunction() => 0;
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+                Console.WriteLine();
+
+                int LocalFunction() => 0;
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
+    public async Task TestGlobalStatement5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                using (var d = (IDisposable)null)
+                {
+                }
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+                using var d = (IDisposable)null;
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75917")]
+    public async Task TestGlobalStatement6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                [|using|] (var c = (IDisposable)null)
+                {
+                    [|using|] (var d = (IDisposable)null)
+                    {
+                    }
+                }
+
+                class C
+                {
+                }
+                """,
+            FixedCode = """
+                using System;
+            
+                using var c = (IDisposable)null;
+                using var d = (IDisposable)null;
+            
+                class C
+                {
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            TestState =
+            {
+                OutputKind = OutputKind.ConsoleApplication,
+            }
+        }.RunAsync();
     }
 }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeWithAnnotations> _typeArgumentsWithAnnotations;
 
         internal ConstructedMethodSymbol(MethodSymbol constructedFrom, ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations)
-            : base(containingSymbol: constructedFrom.ContainingType,
+            : base(containingSymbol: constructedFrom.ContainingSymbol,
                    map: new TypeMap(constructedFrom.ContainingType, ((MethodSymbol)constructedFrom.OriginalDefinition).TypeParameters, typeArgumentsWithAnnotations),
                    originalDefinition: (MethodSymbol)constructedFrom.OriginalDefinition,
                    constructedFrom: constructedFrom)

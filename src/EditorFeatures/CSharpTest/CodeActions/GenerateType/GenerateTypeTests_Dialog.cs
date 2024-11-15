@@ -2271,6 +2271,104 @@ typeKind: TypeKind.Structure,
 isNewFile: false,
 assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Class | TypeKindOptions.Structure, false));
     }
+
+    [Fact, WorkItem(63280, "https://github.com/dotnet/roslyn/issues/63280")]
+    public async Task GenerateType_GenericBaseList()
+    {
+        await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : IEnumerable<[|$$NewType|]>
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "NewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : IEnumerable<NewType>
+{
+}
+
+public class NewType
+{
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Class,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.AllOptions, false));
+    }
+
+    [Fact]
+    public async Task GenerateType_QualifiedBaseList()
+    {
+        await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : A.B.[|$$INewType|]
+{
+}
+
+namespace A.B
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "INewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : A.B.INewType
+{
+}
+
+namespace A.B
+{
+    public interface INewType
+    {
+    }
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Interface,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
+    }
+
+    [Fact]
+    public async Task GenerateType_AliasQualifiedBaseList()
+    {
+        await TestWithMockedGenerateTypeDialog(
+initial: @"
+using System.Collections.Generic;
+
+struct C : global::A.B.[|$$INewType|]
+{
+}
+
+namespace A.B
+{
+}",
+languageName: LanguageNames.CSharp,
+typeName: "INewType",
+expected: @"
+using System.Collections.Generic;
+
+struct C : global::A.B.INewType
+{
+}
+
+namespace A.B
+{
+    public interface INewType
+    {
+    }
+}",
+accessibility: Accessibility.Public,
+typeKind: TypeKind.Interface,
+isNewFile: false,
+assertGenerateTypeDialogOptions: new GenerateTypeDialogOptions(false, TypeKindOptions.Interface, false));
+    }
     #endregion
     #region Delegates
     [Fact]
