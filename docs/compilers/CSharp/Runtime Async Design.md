@@ -50,7 +50,7 @@ namespace System.Runtime.CompilerServices;
 [AttributeUsage(AttributeTargets.Method)]
 public class RuntimeAsyncMethodAttribute() : Attribute();
 
-// Used to mark locals that should be hoisted to the generated async closure. Note that the runtime does not guarantee that all locals marked with this attribute will be hoisted; if it can prove that it
+// Used to mark locals that should be hoisted to the generated async closure. Note that the runtime does not guarantee that all locals marked with this modreq will be hoisted; if it can prove that it
 // doesn't need to hoist a variable, it may avoid doing so.
 public class HoistedLocal();
 ```
@@ -84,6 +84,34 @@ Below are some examples of what IL is generated for specific examples.
 
 TODO: Include debug versions
 
+#### General signature transformation
+
+In general, an async method declared in C# will be transformed as follows:
+
+```cs
+async Task M()
+{
+    // ...
+}
+```
+
+```cs
+[RuntimeAsyncMethod, Experimental]
+Task M()
+{
+  // ... see lowering strategy for each kind of await below ...
+}
+```
+
+The same holds for methods that return `Task<T>`, `ValueTask`, and `ValueTask<T>`. Any method returning a different `Task`-like type is not transformed to runtime async form and uses a C#-generated state machine.
+
+`await`s within the body will either be transformed to Runtime-Async call format (as detailed in the runtime specification), or we will use one of the `RuntimeHelpers` methods to do the `await`. Specifics
+for given scenarios are elaborated in more detail below.
+
+`Experimental` will be removed when the full feature is ready to ship, likely not before .NET 11.
+
+TODO: Async iterators (returning `IAsyncEnumerable<T>`)
+
 #### Await `Task`-returning method
 
 ```cs
@@ -102,13 +130,13 @@ call modreq(class [System.Runtime]System.Threading.Tasks.Task) void C::M()
 ---------------------------
 
 ```cs
+var c = new C();
+await c.M();
+
 class C
 {
     Task M();
 }
-
-var c = new();
-await c.M();
 ```
 
 ```il
@@ -119,45 +147,47 @@ callvirt instance modreq(class [System.Runtime]System.Threading.Tasks.Task) void
 #### Await a concrete `T` `Task<T>`-returning method
 
 ```cs
+int i = await C.M();
+
 class C
 {
     static Task<int> M();
 }
-
-await C.M();
 ```
 
 ```il
 call modreq(class [System.Runtime]System.Threading.Tasks.Task`1<int32>) int32 C::M()
+stloc.0
 ```
 
 ---------------------------
 
 ```cs
+var c = new C();
+int i = await c.M();
+
 class C
 {
     Task<int> M();
 }
-
-var c = new();
-await c.M();
 ```
 
 ```il
 newobj instance void C::.ctor()
 callvirt instance modreq(class [System.Runtime]System.Threading.Tasks.Task`1<int32>) int32 C::M()
+stloc.0
 ```
 
 #### Await local of type `Task`
 
 ```cs
+var local = M();
+await local;
+
 class C
 {
     static Task M();
 }
-
-var local = M();
-await local;
 ```
 
 Translated C#:
@@ -199,14 +229,17 @@ var local = C.M();
 
 #### Await local of concrete type `Task<T>`
 
+This strategy will also be used for `Task`-like types that are not `Task`, `ValueTask`, `Task<T>`, or `ValueTask<T>`, both in value form, and in direct method call form. We will use either `AwaitAwaiterFromRuntimeAsync` or
+`UnsafeAwaitAwaiterFromRuntimeAsync`, depending on the interface implemented by the custom awaitable.
+
 ```cs
+var local = M();
+var i = await local;
+
 class C
 {
     static Task<int> M();
 }
-
-var local = M();
-var i = await local;
 ```
 
 Translated C#:
@@ -251,12 +284,12 @@ var i =
 #### Await a `T`-returning method
 
 ```cs
+await C.M<Task>();
+
 class C
 {
     static T M<T>();
 }
-
-await C.M<Task>();
 ```
 
 ```il
@@ -266,12 +299,12 @@ TODO: https://github.com/dotnet/runtime/issues/109632
 #### Await a generic `T` `Task<T>`-returning method
 
 ```cs
+await C.M<int>();
+
 class C
 {
     static Task<T> M<T>();
 }
-
-await C.M<int>();
 ```
 
 ```il
@@ -281,15 +314,15 @@ TODO: https://github.com/dotnet/runtime/issues/109632
 #### Await a `Task`-returning delegate
 
 ```cs
+AsyncDelegate d = C.M;
+await d();
+
 delegate Task AsyncDelegate();
 
 class C
 {
     static Task M();
 }
-
-AsyncDelegate d = C.M;
-await d;
 ```
 
 ```il
@@ -299,14 +332,13 @@ TODO: https://github.com/dotnet/runtime/issues/109632
 #### Await a `T`-returning delegate
 
 ```cs
+Func<Task> d = C.M;
+await d();
 
 class C
 {
     static Task M();
 }
-
-Func<Task> d = C.M;
-await d;
 ```
 
 ```il
@@ -316,11 +348,6 @@ TODO: https://github.com/dotnet/runtime/issues/109632
 #### Awaiting in a `catch` block
 
 ```cs
-class C
-{
-    static Task M();
-}
-
 try
 {
     throw new Exception();
@@ -329,6 +356,11 @@ catch (Exception ex)
 {
     await C.M();
     throw;
+}
+
+class C
+{
+    static Task M();
 }
 ```
 
@@ -390,11 +422,6 @@ if (pendingCatch == 1)
 #### Awaiting in a `finally` block
 
 ```cs
-class C
-{
-    static Task M();
-}
-
 try
 {
     throw new Exception();
@@ -402,6 +429,11 @@ try
 finally
 {
     await C.M();
+}
+
+class C
+{
+    static Task M();
 }
 ```
 
@@ -452,5 +484,58 @@ if (pendingException != null)
     IL_0013: throw
 
     IL_0014: ret
+}
+```
+
+#### Preserving compound assignments
+
+```cs
+int[] a = new int[] { };
+a[C.M2()] += await C.M1();
+
+class C
+{
+    public static Task<int> M1();
+    public static int M2();
+}
+```
+
+Translated C#:
+
+```cs
+int[] a = new int[] { };
+int _tmp1 = C.M2();
+int _tmp2 = a[_tmp1];
+int _tmp3 = /* Runtime-Async Call */ C.M1();
+a[_tmp1] = _tmp2 + _tmp3;
+```
+
+```il
+{
+    .locals init (
+        [0] int32[] a,
+        [1] int32 _tmp1,
+        [2] int32 _tmp2,
+        [3] int32 _tmp3
+    )
+
+    IL_0000: ldc.i4.0
+    IL_0001: newarr [System.Runtime]System.Int32
+    IL_0006: stloc.0
+    IL_0007: call int32 C::M2()
+    IL_000c: stloc.1
+    IL_000d: ldloc.0
+    IL_000e: ldloc.1
+    IL_000f: ldelem.i4
+    IL_0010: stloc.2
+    IL_0011: call modreq(class [System.Runtime]System.Threading.Tasks.Task<int32>) int32 C::M1()
+    IL_0016: stloc.3
+    IL_0017: ldloc.0
+    IL_0018: ldloc.1
+    IL_0019: ldloc.2
+    IL_001a: ldloc.3
+    IL_001b: add
+    IL_001c: stelem.i4
+    IL_001d: ret
 }
 ```
