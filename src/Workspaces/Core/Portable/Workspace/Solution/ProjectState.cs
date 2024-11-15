@@ -59,12 +59,6 @@ internal sealed partial class ProjectState
     /// </summary>
     private readonly AnalyzerConfigOptionsCache _analyzerConfigOptionsCache;
 
-    private ImmutableArray<AdditionalText> _lazyAdditionalFiles;
-
-    private AnalyzerOptions? _lazyProjectAnalyzerOptions;
-
-    private AnalyzerOptions? _lazyHostAnalyzerOptions;
-
     private ProjectState(
         ProjectInfo projectInfo,
         LanguageServices languageServices,
@@ -301,15 +295,15 @@ internal sealed partial class ProjectState
         get
         {
             return InterlockedOperations.Initialize(
-                ref _lazyAdditionalFiles,
+                ref field,
                 static self => self.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
                 this);
         }
-    }
+set;    }
 
     public AnalyzerOptions ProjectAnalyzerOptions
         => InterlockedOperations.Initialize(
-            ref _lazyProjectAnalyzerOptions,
+            ref field,
             static self => new AnalyzerOptions(
                 additionalFiles: self.AdditionalFiles,
                 optionsProvider: new ProjectAnalyzerConfigOptionsProvider(self)),
@@ -317,7 +311,7 @@ internal sealed partial class ProjectState
 
     public AnalyzerOptions HostAnalyzerOptions
         => InterlockedOperations.Initialize(
-            ref _lazyHostAnalyzerOptions,
+            ref field,
             static self => new AnalyzerOptions(
                 additionalFiles: self.AdditionalFiles,
                 optionsProvider: new ProjectHostAnalyzerConfigOptionsProvider(self)),
