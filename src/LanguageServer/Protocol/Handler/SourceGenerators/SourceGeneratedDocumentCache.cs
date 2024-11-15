@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 
 internal record struct SourceGeneratedDocumentGetTextState(Document Document);
 
-internal class SourceGeneratedDocumentCache(string uniqueKey) : VersionedPullCache<(SourceGeneratorExecutionVersion, VersionStamp), object?, SourceGeneratedDocumentGetTextState, SourceText?>(uniqueKey), ILspService
+internal sealed class SourceGeneratedDocumentCache(string uniqueKey) : VersionedPullCache<(SourceGeneratorExecutionVersion, VersionStamp), object?, SourceGeneratedDocumentGetTextState, SourceText?>(uniqueKey), ILspService
 {
     public override async Task<(SourceGeneratorExecutionVersion, VersionStamp)> ComputeCheapVersionAsync(SourceGeneratedDocumentGetTextState state, CancellationToken cancellationToken)
     {
@@ -41,6 +41,7 @@ internal class SourceGeneratedDocumentCache(string uniqueKey) : VersionedPullCac
         // get through didOpen/didChanges, like any other file. That way operations in LSP file are in sync with the
         // contents the user has. However in this case, we don't want to look at that frozen text, but look at what the
         // generator would generate if we ran it again. Otherwise, we'll get "stuck" and never update the file with something new.
+        // This can return null when the source generated file has been removed (but the queue itself is using the frozen non-null document).
         var unfrozenDocument = await state.Document.Project.Solution.WithoutFrozenSourceGeneratedDocuments().GetDocumentAsync(state.Document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
         return unfrozenDocument == null
             ? null

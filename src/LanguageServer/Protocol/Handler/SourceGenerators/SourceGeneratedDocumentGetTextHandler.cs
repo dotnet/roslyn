@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -52,7 +53,7 @@ internal sealed class SourceGeneratedDocumentGetTextHandler() : ILspServiceDocum
         var cache = context.GetRequiredLspService<SourceGeneratedDocumentCache>();
         var projectOrDocument = new ProjectOrDocumentId(document.Id);
 
-        var previousPullResults = new Dictionary<ProjectOrDocumentId, PreviousPullResult>();
+        using var _ = PooledDictionary<ProjectOrDocumentId, PreviousPullResult>.GetInstance(out var previousPullResults);
         if (request.ResultId is not null)
         {
             previousPullResults.Add(projectOrDocument, new PreviousPullResult(request.ResultId, request.TextDocument));
@@ -64,10 +65,11 @@ internal sealed class SourceGeneratedDocumentGetTextHandler() : ILspServiceDocum
         {
             Contract.ThrowIfNull(request.ResultId, "Attempted to reuse cache entry but given no resultId");
             // The generated document is the same, we can return the same resultId.
-            return new SourceGeneratedDocumentText(request.ResultId, null);
+            return new SourceGeneratedDocumentText(request.ResultId, Text: null);
         }
         else
         {
+            // We may get no text back if the unfrozen source generated file no longer exists.
             var data = newResult.Value.Data?.ToString();
             return new SourceGeneratedDocumentText(newResult.Value.ResultId, data);
         }

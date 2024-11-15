@@ -14,10 +14,10 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 
-internal class SourceGeneratorRefreshQueue :
-        IOnInitialized,
-        ILspService,
-        IDisposable
+internal sealed class SourceGeneratorRefreshQueue :
+    IOnInitialized,
+    ILspService,
+    IDisposable
 {
     private const string RefreshSourceGeneratedDocumentName = "workspace/refreshSourceGeneratedDocument";
 
@@ -29,10 +29,10 @@ internal class SourceGeneratorRefreshQueue :
     private readonly AsyncBatchingWorkQueue _refreshQueue;
 
     public SourceGeneratorRefreshQueue(
-                IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-                LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-                LspWorkspaceManager lspWorkspaceManager,
-                IClientLanguageServerManager notificationManager)
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
+        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+        LspWorkspaceManager lspWorkspaceManager,
+        IClientLanguageServerManager notificationManager)
     {
         _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
         _lspWorkspaceManager = lspWorkspaceManager;
@@ -43,7 +43,7 @@ internal class SourceGeneratorRefreshQueue :
         // every 2 seconds - long enough to avoid spamming the client with notifications, but short enough to refresh
         // the source generated files relatively frequently.
         _refreshQueue = _refreshQueue = new AsyncBatchingWorkQueue(
-            delay: TimeSpan.FromMilliseconds(2000),
+            delay: DelayTimeSpan.Idle,
             processBatchAsync: RefreshSourceGeneratedDocumentsAsync,
             asyncListener: _asyncListener,
             _disposalTokenSource.Token);
@@ -63,6 +63,14 @@ internal class SourceGeneratorRefreshQueue :
     }
 
     private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
+    {
+        var asyncToken = _asyncListener.BeginAsyncOperation($"{nameof(SourceGeneratorRefreshQueue)}.{nameof(OnLspSolutionChanged)}");
+        _ = OnLspSolutionChangedAsync(e)
+            .CompletesAsyncOperation(asyncToken)
+            .ReportNonFatalErrorUnlessCancelledAsync(_disposalTokenSource.Token);
+    }
+
+    private async Task OnLspSolutionChangedAsync(WorkspaceChangeEventArgs e)
     {
         var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
         if (projectId is not null)
@@ -85,8 +93,7 @@ internal class SourceGeneratorRefreshQueue :
 
             if (oldProject != null && newProject != null)
             {
-                var asyncToken = _asyncListener.BeginAsyncOperation($"{nameof(SourceGeneratorRefreshQueue)}.{nameof(OnLspSolutionChanged)}");
-                CheckDependentVersionsAsync(oldProject, newProject, _disposalTokenSource.Token).CompletesAsyncOperation(asyncToken);
+                await CheckDependentVersionsAsync(oldProject, newProject).ConfigureAwait(false);
             }
         }
         else
@@ -98,10 +105,10 @@ internal class SourceGeneratorRefreshQueue :
             }
         }
 
-        async Task CheckDependentVersionsAsync(Project oldProject, Project newProject, CancellationToken cancellationToken)
+        async Task CheckDependentVersionsAsync(Project oldProject, Project newProject)
         {
-            if (await oldProject.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false) !=
-                await newProject.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false))
+            if (await oldProject.GetDependentVersionAsync(_disposalTokenSource.Token).ConfigureAwait(false) !=
+                await newProject.GetDependentVersionAsync(_disposalTokenSource.Token).ConfigureAwait(false))
             {
                 _refreshQueue.AddWork();
             }
