@@ -171,13 +171,18 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
 
             var openingEnd = GetEndPositionOfOpeningDelimiter(token, isEmpty);
 
-            // We're always at least inserting one new line on enter.
-            var insertedLinesBeforeCaret = 1;
             if (isEmpty)
             {
-                // If the literal is empty, we just want to help the user transform it into a multiline raw string literal
-                // with the extra empty newline between the delimiters to place the caret at
+                // If the literal is empty, we just want to help the user transform it into a multiline raw string
+                // literal with the extra empty newline between the delimiters to place the caret at
                 edit.Insert(position, newLine + newLine + indentation);
+
+                var snapshot = edit.Apply();
+
+                // move caret to the right location in virtual space for the blank line we added.
+                var lineInNewSnapshot = snapshot.GetLineFromPosition(position);
+                var nextLine = snapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + 1);
+                textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
             }
             else
             {
@@ -195,19 +200,20 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
                 edit.Insert(position, newLineAndIndentation);
 
                 // Also add a newline at the start of the text, only if there is text before the caret's position
+                var insertedLinesBeforeCaret = 1;
                 if (openingEnd != position)
                 {
                     insertedLinesBeforeCaret++;
                     edit.Insert(openingEnd, newLineAndIndentation);
                 }
+
+                var snapshot = edit.Apply();
+
+                // move caret:
+                var lineInNewSnapshot = snapshot.GetLineFromPosition(openingEnd);
+                var nextLine = snapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + insertedLinesBeforeCaret);
+                textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
             }
-
-            var snapshot = edit.Apply();
-
-            // move caret:
-            var lineInNewSnapshot = snapshot.GetLineFromPosition(openingEnd);
-            var nextLine = snapshot.GetLineFromLineNumber(lineInNewSnapshot.LineNumber + insertedLinesBeforeCaret);
-            textView.Caret.MoveTo(new VirtualSnapshotPoint(nextLine, indentation.Length));
 
             transaction?.Complete();
             return true;
