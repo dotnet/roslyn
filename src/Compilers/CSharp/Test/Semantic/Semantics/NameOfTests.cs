@@ -2860,6 +2860,12 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             // latter has members for example).
             Assert.NotEqual(nameofType, typeofType);
 
+            Assert.True(nameofType.IsDefinition);
+            Assert.False(nameofType.IsUnboundGenericType());
+
+            Assert.False(typeofType.IsDefinition);
+            Assert.True(typeofType.IsUnboundGenericType());
+
             Assert.Empty(typeofType.GetMembers("Count"));
             Assert.Single(nameofType.GetMembers("Count"));
 

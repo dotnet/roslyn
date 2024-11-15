@@ -764,9 +764,7 @@ internal static class Extensions
     }
 
     public static bool IsUnboundGenericType(this ITypeSymbol type)
-    {
-        return type is INamedTypeSymbol namedType && namedType.IsUnboundGenericType;
-    }
+        => type is INamedTypeSymbol { IsUnboundGenericType: true };
 
     public static bool GivesAccessTo(this AssemblySymbol first, AssemblySymbol second)
     {
