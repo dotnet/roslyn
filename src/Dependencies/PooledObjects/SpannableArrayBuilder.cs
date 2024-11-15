@@ -7,6 +7,9 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
+/// <summary>
+/// Pooled array building data structure that allows access to the underlying array as a span before being freed back to the pool.
+/// </summary>
 [DebuggerDisplay("Count = {Count,nq}")]
 internal sealed class SpannableArrayBuilder<T>
 {
@@ -15,7 +18,6 @@ internal sealed class SpannableArrayBuilder<T>
     private static readonly ObjectPool<SpannableArrayBuilder<T>> s_pool = new(() => new(capacity: 4), size: 16);
 
     private T[] _items;
-    private int _count;
 
     internal SpannableArrayBuilder()
         : this(capacity: 8)
@@ -25,7 +27,7 @@ internal sealed class SpannableArrayBuilder<T>
     internal SpannableArrayBuilder(int capacity)
     {
         _items = new T[capacity];
-        _count = 0;
+        Count = 0;
     }
 
     public static SpannableArrayBuilder<T> GetInstance()
@@ -48,10 +50,10 @@ internal sealed class SpannableArrayBuilder<T>
 
     public void Add(T item)
     {
-        var newCount = _count + 1;
+        var newCount = Count + 1;
         EnsureCapacity(newCount);
-        _items[_count] = item;
-        _count = newCount;
+        _items[Count] = item;
+        Count = newCount;
     }
 
     public void AddRange(ReadOnlySpan<T> items)
@@ -69,15 +71,8 @@ internal sealed class SpannableArrayBuilder<T>
         }
     }
 
-    public int Count
-    {
-        get => _count;
-    }
-
-    public int Capacity
-    {
-        get => _items.Length;
-    }
+    public int Count { get; private set; }
+    public int Capacity => _items.Length;
 
     public T this[int index]
     {
@@ -87,41 +82,24 @@ internal sealed class SpannableArrayBuilder<T>
 
     public void Clear()
     {
-        Array.Clear(_items, 0, _count);
-        _count = 0;
+        Array.Clear(_items, 0, Count);
+        Count = 0;
     }
 
     public ReadOnlySpan<T> AsSpan()
-        => new ReadOnlySpan<T>(_items, 0, _count);
+        => new(_items, 0, Count);
 
     public ReadOnlySpan<TOther> AsSpan<TOther>()
-        => new ReadOnlySpan<TOther>((TOther[])(object)_items, 0, _count);
+        => new((TOther[])(object)_items, 0, Count);
 
     public Enumerator GetEnumerator()
+        => new(this);
+
+    internal struct Enumerator(SpannableArrayBuilder<T> builder)
     {
-        return new Enumerator(this);
-    }
+        private int _index = -1;
 
-    internal struct Enumerator
-    {
-        private readonly SpannableArrayBuilder<T> _builder;
-        private int _index;
-
-        public Enumerator(SpannableArrayBuilder<T> builder)
-        {
-            _builder = builder;
-            _index = -1;
-        }
-
-        public readonly T Current
-        {
-            get => _builder[_index];
-        }
-
-        public bool MoveNext()
-        {
-            _index++;
-            return _index < _builder.Count;
-        }
+        public readonly T Current => builder[_index];
+        public bool MoveNext() => ++_index < builder.Count;
     }
 }
