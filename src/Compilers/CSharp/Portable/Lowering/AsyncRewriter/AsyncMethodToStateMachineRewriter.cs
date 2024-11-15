@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(GenerateExceptionHandling(exceptionLocal)))
+                    F.CatchBlocks(generateExceptionHandling(exceptionLocal)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
@@ -207,6 +207,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             newBody = F.Instrument(newBody, instrumentation);
 
             F.CloseMethod(newBody);
+            return;
+
+            BoundCatchBlock generateExceptionHandling(LocalSymbol exceptionLocal)
+            {
+                // catch (Exception ex)
+                // {
+                //     _state = finishedState;
+                //
+                //     for each hoisted local:
+                //     <>x__y = default
+                //
+                //     builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
+                //     return;
+                // }
+
+                // _state = finishedState;
+                BoundStatement assignFinishedState =
+                    F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)));
+
+                // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
+                BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
+
+                return new BoundCatchBlock(
+                    F.Syntax,
+                    ImmutableArray.Create(exceptionLocal),
+                    F.Local(exceptionLocal),
+                    exceptionLocal.Type,
+                    exceptionFilterPrologueOpt: null,
+                    exceptionFilterOpt: null,
+                    body: F.Block(
+                        assignFinishedState, // _state = finishedState;
+                        GenerateAllHoistedLocalsCleanup(),
+                        callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
+                        GenerateReturn(false)), // return;
+                    isSynthesizedAsyncCatchAll: true);
+            }
         }
 
         protected virtual BoundStatement GenerateTopLevelTry(BoundBlock tryBlock, ImmutableArray<BoundCatchBlock> catchBlocks)
@@ -222,42 +258,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _method.IsAsyncEffectivelyReturningGenericTask(F.Compilation)
                         ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
                         : ImmutableArray<BoundExpression>.Empty));
-        }
-
-        // TODO2 move to local function
-        protected BoundCatchBlock GenerateExceptionHandling(LocalSymbol exceptionLocal)
-        {
-            // catch (Exception ex)
-            // {
-            //     _state = finishedState;
-            //
-            //     for each hoisted local:
-            //     <>x__y = default
-            //
-            //     builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex); /* for async-iterator method */
-            //     return;
-            // }
-
-            // _state = finishedState;
-            BoundStatement assignFinishedState =
-                F.ExpressionStatement(F.AssignmentExpression(F.Field(F.This(), stateField), F.Literal(StateMachineState.FinishedState)));
-
-            // builder.SetException(ex);  OR  if (this.combinedTokens != null) this.combinedTokens.Dispose(); _promiseOfValueOrEnd.SetException(ex);
-            BoundStatement callSetException = GenerateSetExceptionCall(exceptionLocal);
-
-            return new BoundCatchBlock(
-                F.Syntax,
-                ImmutableArray.Create(exceptionLocal),
-                F.Local(exceptionLocal),
-                exceptionLocal.Type,
-                exceptionFilterPrologueOpt: null,
-                exceptionFilterOpt: null,
-                body: F.Block(
-                    assignFinishedState, // _state = finishedState;
-                    GenerateAllHoistedLocalsCleanup(),
-                    callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
-                    GenerateReturn(false)), // return;
-                isSynthesizedAsyncCatchAll: true);
         }
 
         protected virtual BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)
