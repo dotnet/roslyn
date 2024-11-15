@@ -58,7 +58,5 @@ public sealed class QuickInfoSection
 
             return field;
         }
-
-        private set;
-    }
+    } = null!;
 }

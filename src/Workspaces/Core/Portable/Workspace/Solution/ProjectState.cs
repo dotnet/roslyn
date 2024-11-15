@@ -77,6 +77,9 @@ internal sealed partial class ProjectState
         _lazyLatestDocumentTopLevelChangeVersion = lazyLatestDocumentTopLevelChangeVersion;
         _analyzerConfigOptionsCache = analyzerConfigOptionsCache;
 
+        HostAnalyzerOptions = null!;
+        ProjectAnalyzerOptions = null!;
+
         // ownership of information on document has moved to project state. clear out documentInfo the state is
         // holding on. otherwise, these information will be held onto unnecessarily by projectInfo even after
         // the info has changed by DocumentState.
@@ -93,10 +96,13 @@ internal sealed partial class ProjectState
 
         LanguageServices = languageServices;
 
+        HostAnalyzerOptions = null!;
+        ProjectAnalyzerOptions = null!;
+
         var projectInfoFixed = FixProjectInfo(projectInfo);
         var loadTextOptions = new LoadTextOptions(projectInfoFixed.Attributes.ChecksumAlgorithm);
 
-        // We need to compute our AnalyerConfigDocumentStates first, since we use those to produce our DocumentStates
+        // We need to compute our AnalyzerConfigDocumentStates first, since we use those to produce our DocumentStates
         AnalyzerConfigDocumentStates = new TextDocumentStates<AnalyzerConfigDocumentState>(projectInfoFixed.AnalyzerConfigDocuments, info => new AnalyzerConfigDocumentState(languageServices.SolutionServices, info, loadTextOptions));
 
         _analyzerConfigOptionsCache = new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, fallbackAnalyzerOptions);
@@ -299,7 +305,8 @@ internal sealed partial class ProjectState
                 static self => self.AdditionalDocumentStates.SelectAsArray(static documentState => documentState.AdditionalText),
                 this);
         }
-set;    }
+        set;
+    }
 
     public AnalyzerOptions ProjectAnalyzerOptions
         => InterlockedOperations.Initialize(

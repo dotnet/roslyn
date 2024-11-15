@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.Completion;
 /// </summary>
 public sealed class CompletionDescription
 {
-
     /// <summary>
     /// The <see cref="CompletionDescription"/> used when there is no description.
     /// </summary>
@@ -69,7 +68,5 @@ public sealed class CompletionDescription
 
             return field;
         }
-
-        private set;
-    }
+    } = null!;
 }
