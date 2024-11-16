@@ -2627,8 +2627,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     // in the code block to ensure the analyzer can correctly report code block end diagnostics.
                     if (declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions)
                     {
+                        var nodesToAnalyzeSpan = PooledObjectsMarshal.AsArray(nodesToAnalyze).AsSpan(0, nodesToAnalyze.Count);
                         var filteredNodesToAnalyze = SpannableArrayBuilder<SyntaxNode>.GetInstance();
-                        foreach (var node in nodesToAnalyze.AsSpan())
+                        foreach (var node in nodesToAnalyzeSpan)
                         {
                             if (analysisScope.ShouldAnalyze(node))
                                 filteredNodesToAnalyze.Add(node);
@@ -2648,8 +2649,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     GroupedAnalyzerActionsForAnalyzer groupedActionsForAnalyzer,
                     SpannableArrayBuilder<SyntaxNode> filteredNodesToAnalyze)
                 {
+                    var filteredNodesToAnalyzeSpan = PooledObjectsMarshal.AsArray(filteredNodesToAnalyze).AsSpan(0, filteredNodesToAnalyze.Count);
+
                     AnalyzerExecutor.ExecuteSyntaxNodeActions(
-                        filteredNodesToAnalyze.AsSpan(), groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind,
+                        filteredNodesToAnalyzeSpan, groupedActionsForAnalyzer.NodeActionsByAnalyzerAndKind,
                         analyzer, semanticModel, _getKind, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
                         symbol, analysisScope.FilterSpanOpt, isInGeneratedCode, hasCodeBlockStartOrSymbolStartActions: groupedActionsForAnalyzer.HasCodeBlockStartActions || arePerSymbolActions,
                         cancellationToken);

@@ -865,23 +865,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     Debug.Assert(getKind != null);
 
-                    SpannableArrayBuilder<TNode> syntaxNodesToAnalyzeBuilder = SpannableArrayBuilder<TNode>.GetInstance();
+                    var syntaxNodesToAnalyzeBuilder = SpannableArrayBuilder<TNode>.GetInstance();
                     addNodesToAnalyze(executableBlocks, syntaxNodesToAnalyzeBuilder);
-                    var syntaxNodesToAnalyze = syntaxNodesToAnalyzeBuilder.AsSpan<SyntaxNode>();
+                    var syntaxNodesToAnalyzeArray = PooledObjectsMarshal.AsArray(syntaxNodesToAnalyzeBuilder);
+                    var syntaxNodesToAnalyzeSpan = ((SyntaxNode[])(object)syntaxNodesToAnalyzeArray).AsSpan(0, syntaxNodesToAnalyzeBuilder.Count);
 
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
-                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyze, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyzeSpan, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
 
                     syntaxNodesToAnalyzeBuilder.Free();
                 }
                 else if (operationActions != null)
                 {
-                    SpannableArrayBuilder<TNode> operationsToAnalyzeBuilder = SpannableArrayBuilder<TNode>.GetInstance();
+                    var operationsToAnalyzeBuilder = SpannableArrayBuilder<TNode>.GetInstance();
                     addNodesToAnalyze(executableBlocks, operationsToAnalyzeBuilder);
-                    var operationsToAnalyze = operationsToAnalyzeBuilder.AsSpan<IOperation>();
+                    var operationsToAnalyzeArray = PooledObjectsMarshal.AsArray(operationsToAnalyzeBuilder);
+                    var operationsToAnalyzeSpan = ((IOperation[])(object)operationsToAnalyzeArray).AsSpan(0, operationsToAnalyzeBuilder.Count);
 
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
-                    ExecuteOperationActions(operationsToAnalyze, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                    ExecuteOperationActions(operationsToAnalyzeSpan, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
 
                     operationsToAnalyzeBuilder.Free();
                 }

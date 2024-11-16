@@ -8,10 +8,11 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
 /// <summary>
-/// Pooled array building data structure that allows access to the underlying array as a span before being freed back to the pool.
+/// Pooled array building data structure. Underlying array is unsafely exposed through <see cref="PooledObjectsMarshal.AsArray{T}(Microsoft.CodeAnalysis.PooledObjects.SpannableArrayBuilder{T})"/>
+/// allowing non-allocating access.
 /// </summary>
 [DebuggerDisplay("Count = {Count,nq}")]
-internal sealed class SpannableArrayBuilder<T>
+internal sealed partial class SpannableArrayBuilder<T>
 {
     public const int PooledArrayLengthLimitExclusive = 128;
 
@@ -76,10 +77,4 @@ internal sealed class SpannableArrayBuilder<T>
         Array.Clear(_items, 0, Count);
         Count = 0;
     }
-
-    public ReadOnlySpan<T> AsSpan()
-        => _items.AsSpan(0, Count);
-
-    public ReadOnlySpan<TOther> AsSpan<TOther>()
-        => ((TOther[])(object)_items).AsSpan(0, Count);
 }
