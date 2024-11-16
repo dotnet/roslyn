@@ -1608,5 +1608,155 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //         int i = c?.F = 1 ?? 2; // 1
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? 2").WithArguments("??", "int", "int").WithLocation(7, 24));
         }
+
+        [Fact]
+        public void DefiniteAssignment_01()
+        {
+            // nb: there are no interesting cases involving struct fields
+            // since those will all have non-nullable value type receivers
+            // Instead we can exercise AnalyzeDataFlow
+            var source = """
+                class C
+                {
+                    string F;
+
+                    static void M(C c)
+                    {
+                        c?.F = "a";
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ExpressionStatementSyntax>().Single();
+            var analysis = model.AnalyzeDataFlow(node);
+            Assert.Empty(analysis.AlwaysAssigned);
+            Assert.Equal("C c", analysis.ReadInside.Single().ToTestDisplayString());
+            Assert.Empty(analysis.WrittenInside);
+
+            var expr = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+            analysis = model.AnalyzeDataFlow(expr);
+            Assert.Empty(analysis.AlwaysAssigned);
+            Assert.Empty(analysis.ReadInside);
+            Assert.Empty(analysis.WrittenInside);
+        }
+
+        [Fact]
+        public void DefiniteAssignment_02()
+        {
+            // Show similarity with an equivalent case that doesn't use a conditional access
+            var source = """
+                class C
+                {
+                    string F;
+
+                    static void M(C c)
+                    {
+                        if (c != null)
+                            c.F = "a";
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IfStatementSyntax>().Single();
+            var analysis = model.AnalyzeDataFlow(node);
+            Assert.Empty(analysis.AlwaysAssigned);
+            Assert.Equal("C c", analysis.ReadInside.Single().ToTestDisplayString());
+            Assert.Empty(analysis.WrittenInside);
+
+            var expr = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+            analysis = model.AnalyzeDataFlow(node);
+            Assert.Empty(analysis.AlwaysAssigned);
+            Assert.Equal("C c", analysis.ReadInside.Single().ToTestDisplayString());
+            Assert.Empty(analysis.WrittenInside);
+        }
+
+        [Fact]
+        public void NullableAnalysis_01()
+        {
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    string? F;
+
+                    static void M1(C c)
+                    {
+                        c.F.ToString(); // 1
+                        c?.F = "a";
+                        c.F.ToString(); // 2
+                    }
+
+                    static void M2(C c)
+                    {
+                        c?.F = "a";
+                        c.F.ToString(); // 3, 4
+                    }
+
+                    static void M3(C c)
+                    {
+                        if ((c?.F = "a") != null)
+                        {
+                            c.F.ToString();
+                        }
+                        c.F.ToString(); // 5, 6
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.F.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F").WithLocation(9, 9),
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(11, 9),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.F.ToString(); // 3, 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(17, 9),
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.F.ToString(); // 3, 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F").WithLocation(17, 9),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.F.ToString(); // 5, 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(26, 9),
+                // (26,9): warning CS8602: Dereference of a possibly null reference.
+                //         c.F.ToString(); // 5, 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.F").WithLocation(26, 9));
+        }
+
+        [Fact]
+        public void NullableAnalysis_02()
+        {
+            // PROTOTYPE(nca): missing a warning on last F.ToString()
+            var source = """
+                #nullable enable
+
+                class C
+                {
+                    string? F;
+
+                    static void M1()
+                    {
+                        var c = new C { F = "a" };
+                        c.F.ToString();
+                        c?.F = null;
+                        c?.F.ToString(); // 1
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
