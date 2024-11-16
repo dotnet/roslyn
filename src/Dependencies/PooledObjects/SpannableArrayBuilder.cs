@@ -15,7 +15,7 @@ internal sealed class SpannableArrayBuilder<T>
 {
     public const int PooledArrayLengthLimitExclusive = 128;
 
-    private static readonly ObjectPool<SpannableArrayBuilder<T>> s_pool = new(() => new(capacity: 4), size: 16);
+    private static readonly ObjectPool<SpannableArrayBuilder<T>> s_pool = new ObjectPool<SpannableArrayBuilder<T>>(static () => new SpannableArrayBuilder<T>(), size: 16);
 
     private T[] _items;
 
@@ -78,8 +78,8 @@ internal sealed class SpannableArrayBuilder<T>
     }
 
     public ReadOnlySpan<T> AsSpan()
-        => new(_items, 0, Count);
+        => _items.AsSpan(0, Count);
 
     public ReadOnlySpan<TOther> AsSpan<TOther>()
-        => new((TOther[])(object)_items, 0, Count);
+        => ((TOther[])(object)_items).AsSpan(0, Count);
 }
