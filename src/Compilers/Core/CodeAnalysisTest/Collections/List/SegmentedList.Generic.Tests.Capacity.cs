@@ -134,7 +134,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             var requestedCapacity = 2 * elementCount + 10;
             list.EnsureCapacity(requestedCapacity);
-            Assert.Equal(requestedCapacity, list.Capacity);
+
+            var lastSegmentLength = requestedCapacity % SegmentedArray<T>.TestAccessor.SegmentSize;
+            var expectedCapacity = (requestedCapacity - lastSegmentLength) + SegmentedArray<T>.TestAccessor.SegmentSize;
+
+            Assert.Equal(expectedCapacity, list.Capacity);
+        }
+
+        [Fact]
+        public void EnsureCapacity_InitialCapacitySlightlyMoreThanHalfSegmentSizeGrowsToFullSegmentSize()
+        {
+            var elementCount = SegmentedArray<T>.TestAccessor.SegmentSize / 2 + 1;
+            var list = new SegmentedList<T>(elementCount);
+
+            Assert.Equal(elementCount, list.Capacity);
+
+            list.EnsureCapacity(elementCount + 1);
+
+            Assert.Equal(SegmentedArray<T>.TestAccessor.SegmentSize, list.Capacity);
         }
     }
 }

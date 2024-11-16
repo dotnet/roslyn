@@ -855,6 +855,95 @@ class C
             Await TestAsync(workspace)
         End Function
 
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57110")>
+        Public Async Function TestCSharpGoToOverriddenDefinition_FromOverride_LooseMatch() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public virtual void [|F|](bool x)
+    {
+    }
+}
+
+class D : C
+{
+    public $$override void F(int x)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57110")>
+        Public Async Function TestCSharpGoToOverriddenDefinition_FromOverride_LooseMatch2() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    public virtual void F()
+    {
+    }
+
+    public virtual void [|F|](bool x)
+    {
+    }
+}
+
+class D : C
+{
+    public $$override void F(int x)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57110")>
+        Public Async Function TestCSharpGoToOverriddenDefinition_FromOverride_LooseMatch3() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class B
+{
+    public virtual void F(bool x)
+    {
+    }
+}
+
+class C
+{
+    public virtual void [|F|]()
+    {
+    }
+}
+
+class D : C
+{
+    public $$override void F(int x)
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
         <WpfFact>
         Public Async Function TestCSharpGoToUnmanaged_Keyword() As Task
             Dim workspace =
