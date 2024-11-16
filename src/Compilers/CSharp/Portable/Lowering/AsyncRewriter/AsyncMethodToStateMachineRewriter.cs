@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // [body]
                         rewrittenBody
                     ),
-                    F.CatchBlocks(generateExceptionHandling(exceptionLocal)))
+                    F.CatchBlocks(generateExceptionHandling(exceptionLocal, rootScopeHoistedLocals)))
                 );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
 
-            bodyBuilder.Add(GenerateAllHoistedLocalsCleanup());
+            bodyBuilder.Add(GenerateHoistedLocalsCleanupForExit(rootScopeHoistedLocals));
 
             bodyBuilder.Add(GenerateSetResultCall());
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(newBody);
             return;
 
-            BoundCatchBlock generateExceptionHandling(LocalSymbol exceptionLocal)
+            BoundCatchBlock generateExceptionHandling(LocalSymbol exceptionLocal, ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
             {
                 // catch (Exception ex)
                 // {
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     exceptionFilterOpt: null,
                     body: F.Block(
                         assignFinishedState, // _state = finishedState;
-                        GenerateAllHoistedLocalsCleanup(),
+                        GenerateHoistedLocalsCleanupForExit(rootHoistedLocals),
                         callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
                         GenerateReturn(false)), // return;
                     isSynthesizedAsyncCatchAll: true);
@@ -258,6 +258,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _method.IsAsyncEffectivelyReturningGenericTask(F.Compilation)
                         ? ImmutableArray.Create<BoundExpression>(F.Local(_exprRetValue))
                         : ImmutableArray<BoundExpression>.Empty));
+        }
+
+        protected virtual BoundStatement GenerateHoistedLocalsCleanupForExit(ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
+        {
+            var builder = ArrayBuilder<BoundStatement>.GetInstance();
+
+            // Cleanup all hoisted local variables
+            // so that they can be collected by GC if needed
+            foreach (var hoistedLocal in rootHoistedLocals)
+            {
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+                var isManagedType = hoistedLocal.Type.IsManagedType(ref useSiteInfo);
+                F.Diagnostics.Add(hoistedLocal.GetFirstLocationOrNone(), useSiteInfo);
+                if (!isManagedType)
+                {
+                    continue;
+                }
+
+                builder.Add(F.Assignment(F.Field(F.This(), hoistedLocal), F.NullOrDefault(hoistedLocal.Type)));
+            }
+
+            return F.Block(builder.ToImmutableAndFree());
         }
 
         protected virtual BoundStatement GenerateSetExceptionCall(LocalSymbol exceptionLocal)
