@@ -1529,6 +1529,22 @@ lReportErrorOnTwoTokens:
                     Else
                         Return Nothing
                     End If
+                ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                    If Not CanHaveOverloadResolutionPriority Then
+                        'Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                        ' PROTOTYPE(priority): Do we want to report an error? It will be a breaking change. 
+                        Return Nothing
+                    End If
+
+                    Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
+                    If Not attrdata.HasErrors Then
+                        Dim priority As Integer = attrdata.GetConstructorArgument(Of Integer)(0, SpecialType.System_Int32)
+                        arguments.GetOrCreateData(Of MethodEarlyWellKnownAttributeData)().OverloadResolutionPriority = priority
+                        Return If(Not hasAnyDiagnostics, attrdata, Nothing)
+                    Else
+                        Return Nothing
+                    End If
                 Else
                     Dim BoundAttribute As VisualBasicAttributeData = Nothing
                     Dim obsoleteData As ObsoleteAttributeData = Nothing
@@ -1564,6 +1580,11 @@ lReportErrorOnTwoTokens:
         Friend Overrides Function GetAppliedConditionalSymbols() As ImmutableArray(Of String)
             Dim data As MethodEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
             Return If(data IsNot Nothing, data.ConditionalSymbols, ImmutableArray(Of String).Empty)
+        End Function
+
+        Public NotOverridable Overrides Function GetOverloadResolutionPriority() As Integer
+            Dim data As MethodEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
+            Return If(data?.OverloadResolutionPriority, 0)
         End Function
 
         Friend Overrides Sub DecodeWellKnownAttribute(ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
