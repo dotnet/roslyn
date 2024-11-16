@@ -66,20 +66,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         [Theory]
         [InlineData(new[] { 6, 5, 1, 2, 3, 2, 4, 5, 1, 7 })]
-        public void Enumerator(int[] toAdd)
-        {
-            var builder = new SpannableArrayBuilder<int>();
-            builder.AddRange(toAdd);
-
-            var enumeratedValues = new List<int>();
-            foreach (var item in builder)
-                enumeratedValues.Add(item);
-
-            Assert.True(enumeratedValues.SequenceEqual(toAdd));
-        }
-
-        [Theory]
-        [InlineData(new[] { 6, 5, 1, 2, 3, 2, 4, 5, 1, 7 })]
         public void AsSpan(int[] toAdd)
         {
             var builder = new SpannableArrayBuilder<int>();

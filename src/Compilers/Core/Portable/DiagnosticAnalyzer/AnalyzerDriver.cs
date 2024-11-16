@@ -2628,7 +2628,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     if (declarationAnalysisData.IsPartialAnalysis && !groupedActionsForAnalyzer.HasCodeBlockStartActions)
                     {
                         var filteredNodesToAnalyze = SpannableArrayBuilder<SyntaxNode>.GetInstance();
-                        foreach (var node in nodesToAnalyze)
+                        foreach (var node in nodesToAnalyze.AsSpan())
                         {
                             if (analysisScope.ShouldAnalyze(node))
                                 filteredNodesToAnalyze.Add(node);

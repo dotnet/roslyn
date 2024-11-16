@@ -91,15 +91,4 @@ internal sealed class SpannableArrayBuilder<T>
 
     public ReadOnlySpan<TOther> AsSpan<TOther>()
         => new((TOther[])(object)_items, 0, Count);
-
-    public Enumerator GetEnumerator()
-        => new(this);
-
-    internal struct Enumerator(SpannableArrayBuilder<T> builder)
-    {
-        private int _index = -1;
-
-        public readonly T Current => builder[_index];
-        public bool MoveNext() => ++_index < builder.Count;
-    }
 }
