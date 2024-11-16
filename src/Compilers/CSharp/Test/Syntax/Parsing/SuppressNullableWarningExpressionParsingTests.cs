@@ -651,6 +651,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
+        public void ConditionalAccess_09()
+        {
+            UsingNode("x?.y?.z!");
+
+            N(SyntaxKind.SuppressNullableWarningExpression);
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.ConditionalAccessExpression);
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "y");
+                            }
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "z");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.ExclamationToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(47712, "https://github.com/dotnet/roslyn/pull/47712")]
         public void ConditionalAccess_ElementAccess()
         {
             UsingNode("x?.y![1].z.ToString()");
