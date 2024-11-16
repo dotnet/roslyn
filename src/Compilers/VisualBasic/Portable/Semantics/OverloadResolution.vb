@@ -964,11 +964,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim applicableNarrowingCandidateCount As Integer = 0
             Dim applicableInstanceCandidateCount As Integer = 0
             Dim someCandidatesHaveOverloadResolutionPriority As Boolean = False
+            Dim respectOverloadResolutionPriority As Boolean = InternalSyntax.Parser.CheckFeatureAvailability(binder.Compilation.LanguageVersion, InternalSyntax.Feature.OverloadResolutionPriority)
 
             ' First collect instance methods.
             If instanceCandidates.Count > 0 Then
 
-                someCandidatesHaveOverloadResolutionPriority = instanceCandidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
+                ' Given the way VB name lookup works, the least derived forms are also among the candidates and are getting filtered out by CombineCandidates.
+                ' Therefore, this simple check gets to them as well without explicitly traversing the overrides hierarchy.
+                someCandidatesHaveOverloadResolutionPriority = respectOverloadResolutionPriority AndAlso instanceCandidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
 
                 CollectOverloadedCandidates(
                     binder, candidates, instanceCandidates, typeArguments,
@@ -1009,7 +1012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     addedExtensionMethods = True
 
                     someCandidatesHaveOverloadResolutionPriority = someCandidatesHaveOverloadResolutionPriority OrElse
-                                                                   curriedCandidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
+                                                                   (respectOverloadResolutionPriority AndAlso curriedCandidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0))
 
                     CollectOverloadedCandidates(
                         binder, candidates, curriedCandidates, typeArguments,
@@ -1087,8 +1090,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression) = Nothing
 
+            ' Given the way VB name lookup works, the least derived forms are also among the candidates and are getting filtered out by CombineCandidates.
+            ' Therefore, this simple check gets to them as well without explicitly traversing the overrides hierarchy.
             Dim someCandidatesHaveOverloadResolutionPriority As Boolean =
                 candidates.Count > 1 AndAlso ' PROTOTYPE(Priority): AttributeTests_ObsoleteAttribute.TestObsoleteAttributeCycles fails with a stack overflow otherwise. Might need a more robust way to break a cycle.
+                InternalSyntax.Parser.CheckFeatureAvailability(binder.Compilation.LanguageVersion, InternalSyntax.Feature.OverloadResolutionPriority) AndAlso
                 candidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
 
             CollectOverloadedCandidates(binder, results, candidates, ImmutableArray(Of TypeSymbol).Empty,
@@ -1275,17 +1281,15 @@ ResolutionComplete:
             Return New OverloadResolutionResult(candidates.ToImmutable(), resolutionIsLateBound, narrowingCandidatesRemainInTheSet, asyncLambdaSubToFunctionMismatch)
         End Function
 
-        Private Shared ReadOnly s_poolInstance As ObjectPool(Of PooledDictionary(Of NamedTypeSymbol, NamedTypeSymbol)) =
-            PooledDictionary(Of NamedTypeSymbol, NamedTypeSymbol).CreatePool(SymbolEqualityComparer.IgnoreAll)
+        Private Shared ReadOnly s_poolInstance As ObjectPool(Of PooledDictionary(Of NamedTypeSymbol, OneOrMany(Of (Index As Integer, Priority As Integer)))) =
+            PooledDictionary(Of NamedTypeSymbol, OneOrMany(Of (Index As Integer, Priority As Integer))).CreatePool(SymbolEqualityComparer.IgnoreAll)
 
         Private Shared Sub RemoveLowerPriorityMembers(
             candidates As ArrayBuilder(Of CandidateAnalysisResult),
             ByRef applicableCandidates As Integer,
             ByRef applicableNarrowingCandidates As Integer
         )
-            ' PROTOTYPE(Priority): Check feature support
-
-            Dim candidateInfoByDeclaringType = PooledDictionary(Of NamedTypeSymbol, OneOrMany(Of (Index As Integer, Priority As Integer))).GetInstance()
+            Dim candidateInfoByDeclaringType As PooledDictionary(Of NamedTypeSymbol, OneOrMany(Of (Index As Integer, Priority As Integer))) = s_poolInstance.Allocate()
 
             For i As Integer = 0 To candidates.Count - 1 Step 1
 
@@ -1324,6 +1328,10 @@ ResolutionComplete:
                         maxPriority = info.Priority
                     End If
                 Next
+
+                If maxPriority = Integer.MinValue Then
+                    Continue For
+                End If
 
                 For Each info In siblings
                     If maxPriority > info.Priority Then
@@ -1463,6 +1471,11 @@ ResolutionComplete:
                 Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
                 Debug.Assert(argumentCount = existingCandidate.Candidate.ParameterCount)
                 signatureMatch = True
+
+                ' Not lifted operators are preferred over lifted.
+                If ShadowBasedOnLiftedState(existingCandidate, newCandidate, existingWins, newWins) Then
+                    Return True
+                End If
             Else
                 signatureMatch = CombineCandidatesCompareDeclaredSignature(newCandidate, existingCandidate)
             End If
@@ -4344,18 +4357,13 @@ Bailout:
                     Debug.Assert(argumentNames.IsDefault) ' We matched the virtual signature above
                     signatureMatch = True
 
-                    ' PROTOTYPE(Priority): Should this shadowing be disabled?
-
                     ' Not lifted operators are preferred over lifted.
-                    If existingCandidate.Candidate.IsLifted Then
-                        If Not newCandidate.Candidate.IsLifted Then
-                            newWins = True
+                    If ShadowBasedOnLiftedState(existingCandidate, newCandidate, existingWins, newWins) Then
+                        If someCandidatesHaveOverloadResolutionPriority Then
+                            GoTo ContinueCandidatesLoop
+                        Else
                             GoTo DeterminedTheWinner
                         End If
-                    ElseIf newCandidate.Candidate.IsLifted Then
-                        Debug.Assert(Not existingCandidate.Candidate.IsLifted)
-                        existingWins = True
-                        GoTo DeterminedTheWinner
                     End If
                 Else
                     signatureMatch = CombineCandidatesCompareDeclaredSignature(newCandidate, existingCandidate)
@@ -4479,6 +4487,24 @@ ContinueCandidatesLoop:
             Next
 
             Return True
+        End Function
+
+        Private Shared Function ShadowBasedOnLiftedState(
+            existingCandidate As CandidateAnalysisResult, newCandidate As CandidateAnalysisResult,
+            ByRef existingWins As Boolean, ByRef newWins As Boolean
+        ) As Boolean
+            If existingCandidate.Candidate.IsLifted Then
+                If Not newCandidate.Candidate.IsLifted Then
+                    newWins = True
+                    Return True
+                End If
+            ElseIf newCandidate.Candidate.IsLifted Then
+                Debug.Assert(Not existingCandidate.Candidate.IsLifted)
+                existingWins = True
+                Return True
+            End If
+
+            Return False
         End Function
 
         Private Shared Function ShadowBasedOnOverriding(

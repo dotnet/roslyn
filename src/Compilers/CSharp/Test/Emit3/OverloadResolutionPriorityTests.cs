@@ -2706,4 +2706,94 @@ class Program
 
         CompileAndVerify(source1, references: [vbRef], expectedOutput: "1");
     }
+
+    [Fact]
+    public void NarrowingFromNumericConstant_02()
+    {
+        var source = """
+class Program
+{
+    static void Main()
+    {
+        M1(0L);
+        M2(0L);
+    }
+
+    static void M1(int x) => System.Console.Write(1);
+
+    [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+    static void M1(uint x) => System.Console.Write(2);
+
+    static void M2(int x) => System.Console.Write(3);
+
+    static void M2(uint x) => System.Console.Write(4);
+}
+""";
+
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).
+            VerifyDiagnostics(
+                // (5,12): error CS1503: Argument 1: cannot convert from 'long' to 'int'
+                //         M1(0L);
+                Diagnostic(ErrorCode.ERR_BadArgType, "0L").WithArguments("1", "long", "int").WithLocation(5, 12),
+                // (6,12): error CS1503: Argument 1: cannot convert from 'long' to 'int'
+                //         M2(0L);
+                Diagnostic(ErrorCode.ERR_BadArgType, "0L").WithArguments("1", "long", "int").WithLocation(6, 12)
+                );
+    }
+
+    [Fact]
+    public void NarrowingFromNumericConstant_03()
+    {
+        var source = """
+class Program
+{
+    static void Main()
+    {
+        M1(0L);
+    }
+
+    static void M1(int x) => System.Console.Write(1);
+
+    [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+    static void M1(uint x) => System.Console.Write(2);
+
+    static void M1(long x) => System.Console.Write(3);
+}
+""";
+
+        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "3").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void LiftedOperator_01()
+    {
+        var source = """
+struct S
+{
+    [System.Runtime.CompilerServices.OverloadResolutionPriority(1)]
+    public static S operator-(S x)
+    {
+        System.Console.Write(1);
+        return default;
+    }
+
+    public static S? operator-(S? x)
+    {
+        System.Console.Write(2);
+        return default;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        S? s = (S)default;
+        s = -s;
+    }
+}
+""";
+
+        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+    }
 }
