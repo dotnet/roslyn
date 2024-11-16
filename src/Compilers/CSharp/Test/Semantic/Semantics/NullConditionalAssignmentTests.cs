@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
             verifier.VerifyIL("C.TestNestedCondAssignment", """
                 {
-                  // Code size       54 (0x36)
+                  // Code size       53 (0x35)
                   .maxstack  4
                   .locals init (string V_0)
                   IL_0000:  ldc.i4.1
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  dup
                   IL_0008:  brtrue.s   IL_000d
                   IL_000a:  pop
-                  IL_000b:  br.s       IL_002e
+                  IL_000b:  br.s       IL_002d
                   IL_000d:  ldc.i4.2
                   IL_000e:  ldarg.1
                   IL_000f:  call       "C C.GetReceiver(int, C)"
@@ -985,22 +985,309 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0015:  brtrue.s   IL_001b
                   IL_0017:  pop
                   IL_0018:  ldnull
-                  IL_0019:  br.s       IL_0029
-                  IL_001b:  ldarg.2
-                  IL_001c:  call       "string C.GetAssignValue(string)"
-                  IL_0021:  dup
-                  IL_0022:  stloc.0
-                  IL_0023:  stfld      "string C.f"
-                  IL_0028:  ldloc.0
-                  IL_0029:  stfld      "string C.f"
-                  IL_002e:  ldarg.0
-                  IL_002f:  ldarg.1
-                  IL_0030:  call       "void C.Report(C, C)"
-                  IL_0035:  ret
+                  IL_0019:  br.s       IL_0028
+                  IL_001b:  call       "string C.GetAssignValue()"
+                  IL_0020:  dup
+                  IL_0021:  stloc.0
+                  IL_0022:  stfld      "string C.f"
+                  IL_0027:  ldloc.0
+                  IL_0028:  stfld      "string C.f"
+                  IL_002d:  ldarg.0
+                  IL_002e:  ldarg.1
+                  IL_002f:  call       "void C.Report(C, C)"
+                  IL_0034:  ret
                 }
                 """);
 
             verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FieldAccessAssignment_Nested_04()
+        {
+            // similar to _03 except the value of the assignment expression is used.
+            var source = """
+                using System;
+
+                class C
+                {
+                    string f;
+
+                    static void Main()
+                    {
+                        TestNestedCondAssignment(null, null);
+                        TestNestedCondAssignment(new C(), null);
+                        TestNestedCondAssignment(null, new C());
+                        TestNestedCondAssignment(new C(), new C());
+                    }
+
+                    static void TestNestedCondAssignment(C c1, C c2)
+                    {
+                        Report(GetReceiver(1, c1)?.f = GetReceiver(2, c2)?.f = GetAssignValue(), c1, c2);
+                    }
+
+                    static C GetReceiver(int id, C c)
+                    {
+                        Console.WriteLine($"GetReceiver {id}: {c?.f ?? "<null>"}");
+                        return c;
+                    }
+
+                    static string GetAssignValue()
+                    {
+                        Console.WriteLine($"GetAssignValue");
+                        return "a";
+                    }
+
+                    static void Report(string result, C c1, C c2)
+                    {
+                        Console.WriteLine($"Report: result: {result ?? "<null>"}; c1?.f: {c1?.f ?? "<null>"}; c2?.f: {c2?.f ?? "<null>"}");
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                GetReceiver 1: <null>
+                Report: result: <null>; c1?.f: <null>; c2?.f: <null>
+                GetReceiver 1: <null>
+                GetReceiver 2: <null>
+                Report: result: <null>; c1?.f: <null>; c2?.f: <null>
+                GetReceiver 1: <null>
+                Report: result: <null>; c1?.f: <null>; c2?.f: <null>
+                GetReceiver 1: <null>
+                GetReceiver 2: <null>
+                GetAssignValue
+                Report: result: a; c1?.f: a; c2?.f: a
+                """);
+            verifier.VerifyIL("C.TestNestedCondAssignment", """
+                {
+                  // Code size       57 (0x39)
+                  .maxstack  4
+                  .locals init (string V_0)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "C C.GetReceiver(int, C)"
+                  IL_0007:  dup
+                  IL_0008:  brtrue.s   IL_000e
+                  IL_000a:  pop
+                  IL_000b:  ldnull
+                  IL_000c:  br.s       IL_0031
+                  IL_000e:  ldc.i4.2
+                  IL_000f:  ldarg.1
+                  IL_0010:  call       "C C.GetReceiver(int, C)"
+                  IL_0015:  dup
+                  IL_0016:  brtrue.s   IL_001c
+                  IL_0018:  pop
+                  IL_0019:  ldnull
+                  IL_001a:  br.s       IL_0029
+                  IL_001c:  call       "string C.GetAssignValue()"
+                  IL_0021:  dup
+                  IL_0022:  stloc.0
+                  IL_0023:  stfld      "string C.f"
+                  IL_0028:  ldloc.0
+                  IL_0029:  dup
+                  IL_002a:  stloc.0
+                  IL_002b:  stfld      "string C.f"
+                  IL_0030:  ldloc.0
+                  IL_0031:  ldarg.0
+                  IL_0032:  ldarg.1
+                  IL_0033:  call       "void C.Report(string, C, C)"
+                  IL_0038:  ret
+                }
+                """);
+
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PropertyAccessAssignment_Nested_01()
+        {
+            var source = """
+                using System;
+
+                class C(string id)
+                {
+                    public string Id => id;
+
+                    C Prop
+                    {
+                        get
+                        {
+                            Console.WriteLine($"Prop.get {id}");
+                            return field;
+                        }
+                        set
+                        {
+                            Console.WriteLine($"Prop.set {id}");
+                            field = value;
+                        }
+                    }
+
+                    static void Main()
+                    {
+                        TestNestedCondAccess(null);
+                        TestNestedCondAccess(new C("1"));
+                        TestNestedCondAccess(new C("2") { Prop = new C("3") });
+                        TestNestedCondAccess(new C("4") { Prop = new C("5") { Prop = new C("6") } });
+                    }
+
+                    static void TestNestedCondAccess(C c)
+                    {
+                        Console.WriteLine($"TestNestedCondAccess {c?.Id ?? "<null>"}");
+                        c?.Prop?.Prop = GetAssignValue();
+                    }
+
+                    static C GetAssignValue()
+                    {
+                        Console.WriteLine("GetAssignValue");
+                        return new C("7");
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                TestNestedCondAccess <null>
+                TestNestedCondAccess 1
+                Prop.get 1
+                Prop.set 2
+                TestNestedCondAccess 2
+                Prop.get 2
+                GetAssignValue
+                Prop.set 3
+                Prop.set 5
+                Prop.set 4
+                TestNestedCondAccess 4
+                Prop.get 4
+                GetAssignValue
+                Prop.set 5
+                """);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.TestNestedCondAccess", """
+                {
+                  // Code size       61 (0x3d)
+                  .maxstack  3
+                  IL_0000:  ldstr      "TestNestedCondAccess "
+                  IL_0005:  ldarg.0
+                  IL_0006:  brtrue.s   IL_000b
+                  IL_0008:  ldnull
+                  IL_0009:  br.s       IL_0011
+                  IL_000b:  ldarg.0
+                  IL_000c:  call       "string C.Id.get"
+                  IL_0011:  dup
+                  IL_0012:  brtrue.s   IL_001a
+                  IL_0014:  pop
+                  IL_0015:  ldstr      "<null>"
+                  IL_001a:  call       "string string.Concat(string, string)"
+                  IL_001f:  call       "void System.Console.WriteLine(string)"
+                  IL_0024:  ldarg.0
+                  IL_0025:  brfalse.s  IL_003c
+                  IL_0027:  ldarg.0
+                  IL_0028:  call       "C C.Prop.get"
+                  IL_002d:  dup
+                  IL_002e:  brtrue.s   IL_0032
+                  IL_0030:  pop
+                  IL_0031:  ret
+                  IL_0032:  call       "C C.GetAssignValue()"
+                  IL_0037:  call       "void C.Prop.set"
+                  IL_003c:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void PropertyAccessAssignment_Nested_02()
+        {
+            // Similar to _01 except the assignment expression is used.
+            var source = """
+                using System;
+
+                class C
+                {
+                    public C(string id) => Id = id;
+                    public string Id { get; }
+
+                    C Prop
+                    {
+                        get
+                        {
+                            Console.WriteLine($"Prop.get {Id} => {field?.Id ?? "<null>"}");
+                            return field;
+                        }
+                        set
+                        {
+                            Console.WriteLine($"Prop.set {Id} = {value.Id}");
+                            field = value;
+                        }
+                    }
+
+                    static void Main()
+                    {
+                        TestNestedCondAccess(null);
+                        TestNestedCondAccess(new C("1"));
+                        TestNestedCondAccess(new C("2") { Prop = new C("3") });
+                        TestNestedCondAccess(new C("4") { Prop = new C("5") { Prop = new C("6") } });
+                    }
+
+                    static void TestNestedCondAccess(C c)
+                    {
+                        Report(c?.Prop?.Prop = GetAssignValue());
+                    }
+
+                    static C GetAssignValue()
+                    {
+                        Console.WriteLine("GetAssignValue");
+                        return new C("7");
+                    }
+
+                    static void Report(C c)
+                    {
+                        Console.WriteLine($"AssignmentResult {c?.Id ?? "<null>"}");
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                AssignmentResult <null>
+                Prop.get 1 => <null>
+                AssignmentResult <null>
+                Prop.set 2 = 3
+                Prop.get 2 => 3
+                GetAssignValue
+                Prop.set 3 = 7
+                AssignmentResult 7
+                Prop.set 5 = 6
+                Prop.set 4 = 5
+                Prop.get 4 => 5
+                GetAssignValue
+                Prop.set 5 = 7
+                AssignmentResult 7
+                """);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.TestNestedCondAccess", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  3
+                  .locals init (C V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldnull
+                  IL_0004:  br.s       IL_0020
+                  IL_0006:  ldarg.0
+                  IL_0007:  call       "C C.Prop.get"
+                  IL_000c:  dup
+                  IL_000d:  brtrue.s   IL_0013
+                  IL_000f:  pop
+                  IL_0010:  ldnull
+                  IL_0011:  br.s       IL_0020
+                  IL_0013:  call       "C C.GetAssignValue()"
+                  IL_0018:  dup
+                  IL_0019:  stloc.0
+                  IL_001a:  call       "void C.Prop.set"
+                  IL_001f:  ldloc.0
+                  IL_0020:  call       "void C.Report(C)"
+                  IL_0025:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1190,7 +1477,136 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "c?.F").WithLocation(8, 10));
         }
 
-        // TODO2: null-coalescing-assignment
-        // TODO2: other tricky cases from the proposal
+        [Fact]
+        public void NullCoalescingAssignment_01()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    string F;
+                    static void Main()
+                    {
+                        M1(null);
+                        M2(null);
+                        M1(new C());
+                        M2(new C());
+                        M1(new C() { F = "b" });
+                        M2(new C() { F = "b" });
+                    }
+
+                    static string GetAssignValue()
+                    {
+                        Console.WriteLine("GetAssignValue");
+                        return "a";
+                    }
+
+                    static void M1(C c)
+                    {
+                        c?.F ??= GetAssignValue();
+                        Report(c?.F);
+                    }
+
+                    static void M2(C c)
+                    {
+                        Report(c?.F ??= GetAssignValue());
+                    }
+
+                    static void Report(string value)
+                    {
+                        Console.WriteLine(value ?? "<null>");
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                <null>
+                <null>
+                GetAssignValue
+                a
+                GetAssignValue
+                a
+                b
+                b
+                """);
+            verifier.VerifyIL("C.M1", """
+                {
+                  // Code size       42 (0x2a)
+                  .maxstack  2
+                  .locals init (C V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  brfalse.s  IL_0018
+                  IL_0003:  ldarg.0
+                  IL_0004:  stloc.0
+                  IL_0005:  ldloc.0
+                  IL_0006:  ldfld      "string C.F"
+                  IL_000b:  brtrue.s   IL_0018
+                  IL_000d:  ldloc.0
+                  IL_000e:  call       "string C.GetAssignValue()"
+                  IL_0013:  stfld      "string C.F"
+                  IL_0018:  ldarg.0
+                  IL_0019:  brtrue.s   IL_001e
+                  IL_001b:  ldnull
+                  IL_001c:  br.s       IL_0024
+                  IL_001e:  ldarg.0
+                  IL_001f:  ldfld      "string C.F"
+                  IL_0024:  call       "void C.Report(string)"
+                  IL_0029:  ret
+                }
+                """);
+            verifier.VerifyIL("C.M2", """
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  3
+                  .locals init (C V_0,
+                                string V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  brtrue.s   IL_0006
+                  IL_0003:  ldnull
+                  IL_0004:  br.s       IL_0020
+                  IL_0006:  ldarg.0
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  ldfld      "string C.F"
+                  IL_000e:  dup
+                  IL_000f:  brtrue.s   IL_0020
+                  IL_0011:  pop
+                  IL_0012:  ldloc.0
+                  IL_0013:  call       "string C.GetAssignValue()"
+                  IL_0018:  dup
+                  IL_0019:  stloc.1
+                  IL_001a:  stfld      "string C.F"
+                  IL_001f:  ldloc.1
+                  IL_0020:  call       "void C.Report(string)"
+                  IL_0025:  ret
+                }
+                """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullCoalescingAssignValue_01()
+        {
+            // rhs of assignment is a '??' expr.
+            var source = """
+                class C
+                {
+                    int F;
+
+                    static void M(C c)
+                    {
+                        int i = c?.F = 1 ?? 2; // 1
+                        int j = (c?.F = 3) ?? 4; // ok
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,24): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'int'
+                //         int i = c?.F = 1 ?? 2; // 1
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? 2").WithArguments("??", "int", "int").WithLocation(7, 24));
+        }
     }
 }
