@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Assignment_LeftMemberAccess_Nested()
+        public void Assignment_LeftMemberAccess_Nested_01()
         {
             string source = "a?.b = c = d";
             UsingExpression(source, TestOptions.Regular13);
@@ -109,6 +109,141 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "d");
+                            }
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Assignment_LeftMemberAccess_Nested_02()
+        {
+            string source = "a?.b = c = d = e";
+            UsingExpression(source, TestOptions.Regular13);
+            verify();
+
+            UsingExpression(source, TestOptions.RegularPreview);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.SimpleAssignmentExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "d");
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "e");
+                                }
+                            }
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
+        public void Assignment_LeftMemberAccess_Nested_03()
+        {
+            string source = "a?.b = c?[d] = e?.f";
+            UsingExpression(source, TestOptions.Regular13);
+            verify();
+
+            UsingExpression(source, TestOptions.RegularPreview);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "a");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.SimpleAssignmentExpression);
+                    {
+                        N(SyntaxKind.MemberBindingExpression);
+                        {
+                            N(SyntaxKind.DotToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "b");
+                            }
+                        }
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ConditionalAccessExpression);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "c");
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.SimpleAssignmentExpression);
+                            {
+                                N(SyntaxKind.ElementBindingExpression);
+                                {
+                                    N(SyntaxKind.BracketedArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenBracketToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "d");
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBracketToken);
+                                    }
+                                }
+                                N(SyntaxKind.EqualsToken);
+                                N(SyntaxKind.ConditionalAccessExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "e");
+                                    }
+                                    N(SyntaxKind.QuestionToken);
+                                    N(SyntaxKind.MemberBindingExpression);
+                                    {
+                                        N(SyntaxKind.DotToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "f");
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

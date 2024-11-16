@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureFirstClassSpan = MessageBase + 12849,
 
-        IDS_FeatureNullConditionalAssignment = MessageBase + 12900, // TODO2 pack
+        IDS_FeatureNullConditionalAssignment = MessageBase + 12900, // PROTOTYPE(nca): pack
     }
 
     // Message IDs may refer to strings that need to be localized.

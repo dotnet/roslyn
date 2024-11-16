@@ -910,7 +910,98 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             verifier.VerifyDiagnostics();
         }
-        // TODO2: assignment in a nested cond access
+
+        [Fact]
+        public void FieldAccessAssignment_Nested_03()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    string f;
+
+                    static void Main()
+                    {
+                        TestNestedCondAssignment(null, null);
+                        TestNestedCondAssignment(new C(), null);
+                        TestNestedCondAssignment(null, new C());
+                        TestNestedCondAssignment(new C(), new C());
+                    }
+
+                    static void TestNestedCondAssignment(C c1, C c2)
+                    {
+                        GetReceiver(1, c1)?.f = GetReceiver(2, c2)?.f = GetAssignValue();
+                        Report(c1, c2);
+                    }
+
+                    static C GetReceiver(int id, C c)
+                    {
+                        Console.WriteLine($"GetReceiver {id}: {c?.f ?? "<null>"}");
+                        return c;
+                    }
+
+                    static string GetAssignValue()
+                    {
+                        Console.WriteLine($"GetAssignValue");
+                        return "a";
+                    }
+
+                    static void Report(C c1, C c2)
+                    {
+                        Console.WriteLine($"Report: c1?.f: {c1?.f ?? "<null>"}; c2?.f: {c2?.f ?? "<null>"}");
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                GetReceiver 1: <null>
+                Report: c1?.f: <null>; c2?.f: <null>
+                GetReceiver 1: <null>
+                GetReceiver 2: <null>
+                Report: c1?.f: <null>; c2?.f: <null>
+                GetReceiver 1: <null>
+                Report: c1?.f: <null>; c2?.f: <null>
+                GetReceiver 1: <null>
+                GetReceiver 2: <null>
+                GetAssignValue
+                Report: c1?.f: a; c2?.f: a
+                """);
+            verifier.VerifyIL("C.TestNestedCondAssignment", """
+                {
+                  // Code size       54 (0x36)
+                  .maxstack  4
+                  .locals init (string V_0)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "C C.GetReceiver(int, C)"
+                  IL_0007:  dup
+                  IL_0008:  brtrue.s   IL_000d
+                  IL_000a:  pop
+                  IL_000b:  br.s       IL_002e
+                  IL_000d:  ldc.i4.2
+                  IL_000e:  ldarg.1
+                  IL_000f:  call       "C C.GetReceiver(int, C)"
+                  IL_0014:  dup
+                  IL_0015:  brtrue.s   IL_001b
+                  IL_0017:  pop
+                  IL_0018:  ldnull
+                  IL_0019:  br.s       IL_0029
+                  IL_001b:  ldarg.2
+                  IL_001c:  call       "string C.GetAssignValue(string)"
+                  IL_0021:  dup
+                  IL_0022:  stloc.0
+                  IL_0023:  stfld      "string C.f"
+                  IL_0028:  ldloc.0
+                  IL_0029:  stfld      "string C.f"
+                  IL_002e:  ldarg.0
+                  IL_002f:  ldarg.1
+                  IL_0030:  call       "void C.Report(C, C)"
+                  IL_0035:  ret
+                }
+                """);
+
+            verifier.VerifyDiagnostics();
+        }
 
         [Fact]
         public void TypeParameter_01()
