@@ -715,8 +715,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (filter is object)
                     {
-                        foreach (var node in cb.DescendantNodesAndSelf(descendIntoChildren: filter).Where(filter))
-                            nodesToAnalyze.Add(node);
+                        foreach (var node in cb.DescendantNodesAndSelf(descendIntoChildren: filter))
+                        {
+                            if (filter(node))
+                                nodesToAnalyze.Add(node);
+                        }
                     }
                     else
                     {

@@ -19,12 +19,7 @@ internal sealed class SpannableArrayBuilder<T>
 
     private T[] _items;
 
-    internal SpannableArrayBuilder()
-        : this(capacity: 8)
-    {
-    }
-
-    internal SpannableArrayBuilder(int capacity)
+    internal SpannableArrayBuilder(int capacity = 8)
     {
         _items = new T[capacity];
         Count = 0;
@@ -74,11 +69,7 @@ internal sealed class SpannableArrayBuilder<T>
     public int Count { get; private set; }
     public int Capacity => _items.Length;
 
-    public T this[int index]
-    {
-        get => _items[index];
-        set => _items[index] = value;
-    }
+    public ref T this[int index] => ref _items[index];
 
     public void Clear()
     {
