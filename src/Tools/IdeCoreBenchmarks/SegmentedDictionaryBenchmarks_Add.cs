@@ -26,7 +26,7 @@ namespace IdeCoreBenchmarks
             _largeItems = new LargeStruct[Count];
             _enormousItems = new EnormousStruct[Count];
 
-            for (int i = 0; i < Count; i++)
+            for (var i = 0; i < Count; i++)
             {
                 _intItems[i] = i;
                 _objectItems[i] = new object();
@@ -34,7 +34,6 @@ namespace IdeCoreBenchmarks
                 _enormousItems[i] = new EnormousStruct() { s1 = _largeItems[i] };
             }
         }
-
 
         [Benchmark]
         public void AddIntToList()
