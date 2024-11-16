@@ -320,7 +320,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundStatement MakeAwaitPreamble()
         {
-            if (_asyncIteratorInfo.CurrentField.Type.IsManagedTypeNoUseSiteDiagnostics)
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+            var field = _asyncIteratorInfo.CurrentField;
+            bool isManaged = field.Type.IsManagedType(ref useSiteInfo);
+            F.Diagnostics.Add(field.GetFirstLocationOrNone(), useSiteInfo);
+
+            if (isManaged)
             {
                 // _current = default;
                 return GenerateClearCurrent();

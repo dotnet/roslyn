@@ -429,7 +429,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void AddVariableCleanup(ArrayBuilder<BoundExpression> cleanup, FieldSymbol field)
         {
-            if (field.Type.IsManagedTypeNoUseSiteDiagnostics)
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(F.Diagnostics, F.Compilation.Assembly);
+            bool isManaged = field.Type.IsManagedType(ref useSiteInfo);
+            F.Diagnostics.Add(field.GetFirstLocationOrNone(), useSiteInfo);
+            if (isManaged)
             {
                 cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
             }

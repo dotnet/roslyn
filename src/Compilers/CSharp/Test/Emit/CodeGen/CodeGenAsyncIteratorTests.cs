@@ -10257,5 +10257,49 @@ public struct Buffer2<T>
 """;
             CompileAndVerify(src, expectedOutput: ExpectedOutput("False 0 False 1 True"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void AddVariableCleanup_Unmanaged_UseSiteError()
+        {
+            var missingLibS1 = CreateCompilation(@"
+public struct S1
+{
+    public int i;
+}
+", assemblyName: "libS1", targetFramework: TargetFramework.Net80).ToMetadataReference();
+
+            var libS2 = CreateCompilation(@"
+public struct S2
+{
+    public S1 s1;
+}
+", references: [missingLibS1], assemblyName: "libS2", targetFramework: TargetFramework.Net80).ToMetadataReference();
+
+            var source = @"
+class C
+{
+    public static async System.Collections.Generic.IAsyncEnumerable<S2> M(S2 p)
+    {
+        S2 local = p;
+        await System.Threading.Tasks.Task.CompletedTask;
+        yield return local;
+        System.Console.Write(local);
+    }
+}
+";
+            var comp = CreateCompilation(source, references: [libS2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
+                // error CS0012: The type 'S1' is defined in an assembly that is not referenced. You must add a reference to assembly 'libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("S1", "libS1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+
+            comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, references: [libS2, missingLibS1], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
