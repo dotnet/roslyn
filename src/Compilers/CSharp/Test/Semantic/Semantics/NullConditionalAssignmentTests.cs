@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static void M(C<T> c)
                     {
                         c?.t = null;
-                        var x = c?.t = null; // 1
+                        var x = c?.t = null;
                         Console.Write(c.t is null);
                         Console.Write(x is null);
                     }
