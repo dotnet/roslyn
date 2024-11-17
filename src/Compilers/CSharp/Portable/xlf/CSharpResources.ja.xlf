@@ -10305,8 +10305,8 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">ファイル '{0}' を開いて書き込むことができません -- '{1}'</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">ファイル '{0}' を開いて書き込むことができません -- '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">

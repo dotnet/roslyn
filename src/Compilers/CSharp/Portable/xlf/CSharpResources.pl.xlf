@@ -10305,8 +10305,8 @@ Musisz umożliwić kompilatorowi rozróżnienie metod. Możesz na przykład nada
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">Nie można otworzyć „{0}” do zapisu — „{1}”</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">Nie można otworzyć „{0}” do zapisu — „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">

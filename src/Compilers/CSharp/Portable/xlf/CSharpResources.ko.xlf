@@ -10305,8 +10305,8 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">'{0}'을(를) 쓰기용으로 열 수 없습니다. '{1}'</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">'{0}'을(를) 쓰기용으로 열 수 없습니다. '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
