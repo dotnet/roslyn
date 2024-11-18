@@ -723,8 +723,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     else
                     {
-                        foreach (var node in cb.DescendantNodesAndSelf())
-                            nodesToAnalyze.Add(node);
+                        nodesToAnalyze.AddRange(cb.DescendantNodesAndSelf());
                     }
                 }
             }
@@ -749,14 +748,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, IOperation, int>(
                 operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
-                declaredNode, declaredSymbol, operationBlocks, (codeBlocks, nodesToAnalyze) => addNodesToAnalyze(operations, nodesToAnalyze), semanticModel,
+                declaredNode, declaredSymbol, operationBlocks, (codeBlocks, nodesToAnalyze) => nodesToAnalyze.AddRange(codeBlocks), semanticModel,
                 getKind: null, filterSpan, isGeneratedCode, cancellationToken);
-
-            static void addNodesToAnalyze(ImmutableArray<IOperation> codeBlocks, ArrayBuilder<IOperation> nodesToAnalyze)
-            {
-                foreach (var cb in codeBlocks)
-                    nodesToAnalyze.Add(cb);
-            }
         }
 
         private void ExecuteBlockActionsCore<TBlockStartAction, TBlockAction, TNodeAction, TNode, TLanguageKindEnum>(
