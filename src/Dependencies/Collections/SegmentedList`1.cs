@@ -520,6 +520,11 @@ namespace Microsoft.CodeAnalysis.Collections
                 // should be DefaultCapacity. Otherwise, the new capacity should be double the current array size.
                 newCapacity = _items.Length == 0 ? DefaultCapacity : _items.Length * 2;
             }
+            else if (_items.Length < SegmentedArrayHelper.GetSegmentSize<T>())
+            {
+                // There is only a single segment that is over half full. Increase it to a full segment.
+                newCapacity = SegmentedArrayHelper.GetSegmentSize<T>();
+            }
             else
             {
                 // If the last segment is fully sized, increase the number of segments by the desired growth rate

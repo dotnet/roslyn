@@ -10072,4 +10072,33 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72829")]
+    public async Task RemoveRedundantAssignment_PreservesUsingVar()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    {|FixAllInDocument:int items = 0;|}
+                    items = 42;
+                    System.Console.WriteLine(items);
+                    using var _ = System.IO.File.OpenRead("test.txt");
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int items = 42;
+                    System.Console.WriteLine(items);
+                    using var _ = System.IO.File.OpenRead("test.txt");
+                }
+            }
+            """);
+    }
 }

@@ -198,6 +198,7 @@ internal static class IDEDiagnosticIds
     public const string UseCollectionExpressionForCreateDiagnosticId = "IDE0303";
     public const string UseCollectionExpressionForBuilderDiagnosticId = "IDE0304";
     public const string UseCollectionExpressionForFluentDiagnosticId = "IDE0305";
+    public const string UseCollectionExpressionForNewDiagnosticId = "IDE0306";
 
     public const string MakeAnonymousFunctionStaticDiagnosticId = "IDE0320";
 

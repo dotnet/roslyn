@@ -15,7 +15,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers;
 
-using static Microsoft.CodeAnalysis.CSharp.UsePatternCombinators.AnalyzedPattern;
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnusedMembersDiagnosticAnalyzer,
     CSharpRemoveUnusedMembersCodeFixProvider>;
@@ -3242,5 +3241,34 @@ public class RemoveUnusedMembersTests
             """;
 
         await VerifyCS.VerifyCodeFixAsync(code, fixedCode);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57470")]
+    public async Task TestForeach()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections;
+
+                static class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        foreach (var i in 1..10)
+                            Console.WriteLine(i);
+                    }
+
+                    static IEnumerator GetEnumerator(this Range range)
+                    {
+                        for (int i = range.Start.Value; i < range.End.Value; i++)
+                            yield return i;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
     }
 }

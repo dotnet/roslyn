@@ -371,7 +371,7 @@ internal abstract partial class AbstractInheritanceMarginService
             var allOverridingSymbols = await SymbolFinder.FindOverridesArrayAsync(memberSymbol, solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // Go up the inheritance chain to find all overridden targets
-            var overriddenSymbols = GetOverriddenSymbols(memberSymbol);
+            var overriddenSymbols = GetOverriddenSymbols(memberSymbol, allowLooseMatch: true);
 
             // Go up the inheritance chain to find all the implemented targets.
             var implementedSymbols = GetImplementedSymbolsForTypeMember(memberSymbol, overriddenSymbols);
@@ -650,24 +650,20 @@ internal abstract partial class AbstractInheritanceMarginService
     /// <summary>
     /// Get overridden members the <param name="memberSymbol"/>.
     /// </summary>
-    private static ImmutableArray<ISymbol> GetOverriddenSymbols(ISymbol memberSymbol)
+    private static ImmutableArray<ISymbol> GetOverriddenSymbols(ISymbol memberSymbol, bool allowLooseMatch)
     {
         if (memberSymbol is INamedTypeSymbol)
-        {
             return [];
-        }
-        else
-        {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
-            for (var overriddenMember = memberSymbol.GetOverriddenMember();
-                overriddenMember != null;
-                overriddenMember = overriddenMember.GetOverriddenMember())
-            {
-                builder.Add(overriddenMember.OriginalDefinition);
-            }
 
-            return builder.ToImmutableArray();
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
+        for (var overriddenMember = memberSymbol.GetOverriddenMember(allowLooseMatch);
+             overriddenMember != null;
+             overriddenMember = overriddenMember.GetOverriddenMember(allowLooseMatch))
+        {
+            builder.Add(overriddenMember.OriginalDefinition);
         }
+
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>

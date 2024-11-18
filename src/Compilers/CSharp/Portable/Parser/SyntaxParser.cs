@@ -890,12 +890,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new SyntaxDiagnosticInfo(code, args);
         }
 
-        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
+#nullable enable
+
+        protected TNode AddLeadingSkippedSyntax<TNode>(TNode node, GreenNode? skippedSyntax) where TNode : CSharpSyntaxNode
         {
+            if (skippedSyntax is null)
+                return node;
+
             var oldToken = node as SyntaxToken ?? node.GetFirstToken();
             var newToken = AddSkippedSyntax(oldToken, skippedSyntax, trailing: false);
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
+
+#nullable disable
 
         protected void AddTrailingSkippedSyntax(SyntaxListBuilder list, GreenNode skippedSyntax)
         {
