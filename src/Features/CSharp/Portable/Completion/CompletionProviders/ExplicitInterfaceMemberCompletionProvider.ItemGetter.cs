@@ -243,22 +243,16 @@ internal sealed partial class ExplicitInterfaceMemberCompletionProvider
         {
             builder.AppendJoinedValues(", ", parameters, (parameter, builder) =>
             {
-                builder.Append(parameter.RefKind switch
+                builder.Append((parameter.RefKind, parameter.ScopedKind) switch
                 {
-                    RefKind.Out => "out ",
-                    RefKind.Ref => parameter.ScopedKind switch
-                    {
-                        ScopedKind.ScopedRef => "scoped ref ",
-                        ScopedKind.None => "ref ",
-                        _ => throw new InvalidEnumArgumentException("Unexpected scoped kind with ref kind 'ref'"),
-                    },
-                    RefKind.In => "in ",
-                    RefKind.RefReadOnlyParameter => "ref readonly ",
-                    _ => parameter.ScopedKind switch
-                    {
-                        ScopedKind.ScopedValue => "scoped ",
-                        _ => "",
-                    },
+                    (RefKind.Out, _) => "out ",
+                    (RefKind.Ref, ScopedKind.ScopedRef) => "scoped ref ",
+                    (RefKind.Ref, ScopedKind.None) => "ref ",
+                    (RefKind.Ref, _) => throw new InvalidEnumArgumentException("Unexpected scoped kind with ref kind 'ref'"),
+                    (RefKind.In, _) => "in ",
+                    (RefKind.RefReadOnlyParameter, _) => "ref readonly ",
+                    (RefKind.None, ScopedKind.ScopedValue) => "scoped ",
+                    _ => "",
                 });
 
                 if (parameter.IsParams)

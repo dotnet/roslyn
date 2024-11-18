@@ -137,7 +137,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
                 else
                 {
                     Contract.ThrowIfNull(implementedMember);
-                    var containingProperty = implementedMember!.ContainingSymbol as IPropertySymbol;
+                    var containingProperty = implementedMember.ContainingSymbol as IPropertySymbol;
                     Contract.ThrowIfNull(containingProperty);
                     commonContainer ??= containingProperty;
                     Contract.ThrowIfFalse(commonContainer == containingProperty, "We should have a common property implemented");
