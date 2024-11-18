@@ -654,9 +654,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim relaxationLevel As Integer = (conversionKind And SmallFieldMask.DelegateRelaxationLevelMask)
 
                 If relaxationLevel > (_smallFields And SmallFieldMask.DelegateRelaxationLevelMask) Then
-                    Debug.Assert(relaxationLevel <= conversionKind.DelegateRelaxationLevelNarrowing)
+                    Debug.Assert(relaxationLevel <= ConversionKind.DelegateRelaxationLevelNarrowing)
 
-                    If relaxationLevel = conversionKind.DelegateRelaxationLevelNarrowing Then
+                    If relaxationLevel = ConversionKind.DelegateRelaxationLevelNarrowing Then
                         IgnoreExtensionMethods = False
                     End If
 
@@ -5234,7 +5234,7 @@ ContinueCandidatesLoop:
                 Dim inferenceLevel As TypeArgumentInference.InferenceLevel = TypeArgumentInference.InferenceLevel.None
                 Dim allFailedInferenceIsDueToObject As Boolean = False
                 Dim someInferenceFailed As Boolean = False
-                Dim inferenceErrorReasons As InferenceErrorReasons = inferenceErrorReasons.Other
+                Dim inferenceErrorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
                 Dim inferredTypeByAssumption As BitVector = Nothing
                 Dim typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken) = Nothing
 
@@ -5263,7 +5263,7 @@ ContinueCandidatesLoop:
 
                             If inferredTypeByAssumption(i) Then
 
-                                binder.ReportDiagnostic(inferenceDiagnosticsBag,
+                                Binder.ReportDiagnostic(inferenceDiagnosticsBag,
                                                         typeArgumentsLocation(i),
                                                         ERRID.WRN_TypeInferenceAssumed3,
                                                         candidate.Candidate.TypeParameters(i),
