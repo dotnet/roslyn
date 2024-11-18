@@ -35,7 +35,7 @@ configuration:
       - not:
           isDraft
       - noActivitySince:
-          days: 14
+          days: 45
       actions:
       - closePullRequest
       - addReply:
