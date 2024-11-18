@@ -654,9 +654,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim relaxationLevel As Integer = (conversionKind And SmallFieldMask.DelegateRelaxationLevelMask)
 
                 If relaxationLevel > (_smallFields And SmallFieldMask.DelegateRelaxationLevelMask) Then
-                    Debug.Assert(relaxationLevel <= ConversionKind.DelegateRelaxationLevelNarrowing)
+                    Debug.Assert(relaxationLevel <= conversionKind.DelegateRelaxationLevelNarrowing)
 
-                    If relaxationLevel = ConversionKind.DelegateRelaxationLevelNarrowing Then
+                    If relaxationLevel = conversionKind.DelegateRelaxationLevelNarrowing Then
                         IgnoreExtensionMethods = False
                     End If
 
@@ -1088,7 +1088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression) = Nothing
 
             Dim someCandidatesHaveOverloadResolutionPriority As Boolean =
-                candidates.Count > 1 AndAlso ' PROTOTYPE(Priority): AttributeTests_ObsoleteAttribute.TestObsoleteAttributeCycles fails with a stack overflow otherwise. Might need a more robust way to break a cycle.
+                binder.BindingLocation <> BindingLocation.Attribute AndAlso
                 candidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
 
             CollectOverloadedCandidates(binder, results, candidates, ImmutableArray(Of TypeSymbol).Empty,
@@ -5234,7 +5234,7 @@ ContinueCandidatesLoop:
                 Dim inferenceLevel As TypeArgumentInference.InferenceLevel = TypeArgumentInference.InferenceLevel.None
                 Dim allFailedInferenceIsDueToObject As Boolean = False
                 Dim someInferenceFailed As Boolean = False
-                Dim inferenceErrorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
+                Dim inferenceErrorReasons As InferenceErrorReasons = inferenceErrorReasons.Other
                 Dim inferredTypeByAssumption As BitVector = Nothing
                 Dim typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken) = Nothing
 
@@ -5263,7 +5263,7 @@ ContinueCandidatesLoop:
 
                             If inferredTypeByAssumption(i) Then
 
-                                Binder.ReportDiagnostic(inferenceDiagnosticsBag,
+                                binder.ReportDiagnostic(inferenceDiagnosticsBag,
                                                         typeArgumentsLocation(i),
                                                         ERRID.WRN_TypeInferenceAssumed3,
                                                         candidate.Candidate.TypeParameters(i),
