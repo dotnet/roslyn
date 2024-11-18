@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             ExecuteBlockActionsCore<OperationBlockStartAnalyzerAction, OperationBlockAnalyzerAction, OperationAnalyzerAction, IOperation, int>(
                 operationBlockStartActions, operationBlockActions, operationBlockEndActions, analyzer,
-                declaredNode, declaredSymbol, operationBlocks, (codeBlocks, nodesToAnalyze) => nodesToAnalyze.AddRange(codeBlocks), semanticModel,
+                declaredNode, declaredSymbol, operationBlocks, (codeBlocks, nodesToAnalyze) => nodesToAnalyze.AddRange(operations), semanticModel,
                 getKind: null, filterSpan, isGeneratedCode, cancellationToken);
         }
 
