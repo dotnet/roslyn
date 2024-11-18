@@ -16,12 +16,14 @@ efforts behind them.
 | [`field` keyword in properties](https://github.com/dotnet/csharplang/issues/140) | [field-keyword](https://github.com/dotnet/roslyn/tree/features/field-keyword) | [Merged into 17.12p3](https://github.com/dotnet/roslyn/issues/57012) | [Youssef1313](https://github.com/Youssef1313), [cston](https://github.com/cston) | [333fred](https://github.com/333fred), [RikkiGibson](https://github.com/RikkiGibson) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
 | [First-class Span Types](https://github.com/dotnet/csharplang/issues/7905) | [FirstClassSpan](https://github.com/dotnet/roslyn/tree/features/FirstClassSpan) | [Merged into 17.13p1](https://github.com/dotnet/roslyn/issues/73445) | [jjonescz](https://github.com/jjonescz) | [cston](https://github.com/cston), [333fred](https://github.com/333fred) | | [333fred](https://github.com/333fred), [stephentoub](https://github.com/stephentoub) |
 | [Unbound generic types in `nameof`](https://github.com/dotnet/csharplang/issues/8480) | [PR](https://github.com/dotnet/roslyn/pull/75368) | [In Progress](https://github.com/dotnet/roslyn/pull/75368) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [jcouv](https://github.com/jcouv) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) | [CyrusNajmabadi](https://github.com/CyrusNajmabadi) |
+| Runtime Async | [features/runtime-async](https://github.com/dotnet/roslyn/tree/features/runtime-async) | [In Progress](https://github.com/dotnet/roslyn/issues/75960) | [333fred](https://github.com/333fred) | [jcouv](https://github.com/jcouv), [RikkiGibson](https://github.com/RikkiGibson) |  |  |
 
 # Working Set VB
 
 | Feature | Branch | State | Developer | Reviewer | IDE Buddy | LDM Champ |
 | ------- | ------ | ----- | --------- | -------- | --------- | --------- |
 | Recognizing 'unmanaged' constraint | main | [Merged into 17.13 P2](https://github.com/dotnet/roslyn/pull/75665) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [333fred](https://github.com/333fred) | (no IDE impact) | [jaredpar](https://github.com/jaredpar) |
+| Overload Resolution Priority | [features/VBOverloadResolutionPriority](https://github.com/dotnet/roslyn/tree/features/VBOverloadResolutionPriority) | In Progress | [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred), [cston](https://github.com/cston) | (no IDE impact) | [333fred](https://github.com/333fred) |
 
 
 # C# 13.0
