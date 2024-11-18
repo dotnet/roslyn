@@ -115,6 +115,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForTernaryConditionalCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForFluentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForCreateTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForNewTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForStackAllocTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForArrayTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\UseCollectionExpressionForEmptyTests.cs" />

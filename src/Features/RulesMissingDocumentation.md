@@ -11,6 +11,7 @@ IDE0302 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-r
 IDE0303 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0303> | Simplify collection initialization |
 IDE0304 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0304> | Simplify collection initialization |
 IDE0305 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0305> | Simplify collection initialization |
+IDE0306 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0306> | Simplify collection initialization |
 IDE0320 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0320> | Make anonymous function static |
 IDE0330 | <https://learn.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0330> | Use 'System.Threading.Lock' |
 IDE1007 |  |  |

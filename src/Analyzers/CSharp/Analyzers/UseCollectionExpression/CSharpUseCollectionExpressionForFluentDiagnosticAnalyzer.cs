@@ -63,17 +63,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         nameof(System.Collections.Immutable),
     ];
 
-    /// <summary>
-    /// Set of type-names that are blocked from moving over to collection expressions because the semantics of them are
-    /// known to be specialized, and thus could change semantics in undesirable ways if the compiler emitted its own
-    /// code as an replacement.
-    /// </summary>
-    private static readonly ImmutableHashSet<string?> s_bannedTypes = [
-        nameof(ParallelEnumerable),
-        nameof(ParallelQuery),
-        // Special internal runtime interface that is optimized for fast path conversions of collections.
-        "IIListProvider"];
-
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeMemberAccess(context, expressionType), SyntaxKind.SimpleMemberAccessExpression);
 
@@ -272,12 +261,12 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         // Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
         if (current is InvocationExpressionSyntax currentInvocationExpression &&
-            IsCollectionFactoryCreate(semanticModel, currentInvocationExpression, out var factoryMemberAccess, out var unwrapArgument, cancellationToken))
+            IsCollectionFactoryCreate(semanticModel, currentInvocationExpression, out var factoryMemberAccess, out var unwrapArgument, out var useSpread, cancellationToken))
         {
             if (!IsListLike(current))
                 return false;
 
-            AddArgumentsInReverse(postMatchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
+            AddArgumentsInReverse(postMatchesInReverse, GetArguments(currentInvocationExpression.ArgumentList, unwrapArgument), useSpread);
             return true;
         }
 
@@ -292,7 +281,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Down to some final collection.  Like `x` in `x.Concat(y).ToArray()`.  If `x` is itself is something that
         // can be iterated, we can convert this to `[.. x, .. y]`.  Note: we only want to do this if ending with one
         // of the ToXXX Methods.  If we just have `x.AddRange(y)` it's preference to keep that, versus `[.. x, ..y]`
-        if (!isAdditionMatch && IsIterable(current))
+        if (!isAdditionMatch && IsIterable(semanticModel, current, cancellationToken))
         {
             AddFinalMatch(current);
             return true;
@@ -341,36 +330,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return false;
 
             return
-                Implements(type, compilation.IListOfTType()) ||
-                Implements(type, compilation.IReadOnlyListOfTType());
-        }
-
-        bool IsIterable(ExpressionSyntax expression)
-        {
-            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (type is null or IErrorTypeSymbol)
-                return false;
-
-            if (s_bannedTypes.Contains(type.Name))
-                return false;
-
-            return Implements(type, compilation.IEnumerableOfTType()) ||
-                type.Equals(compilation.SpanOfTType()) ||
-                type.Equals(compilation.ReadOnlySpanOfTType());
-        }
-
-        static bool Implements(ITypeSymbol type, INamedTypeSymbol? interfaceType)
-        {
-            if (interfaceType != null)
-            {
-                foreach (var baseInterface in type.AllInterfaces)
-                {
-                    if (interfaceType.Equals(baseInterface.OriginalDefinition))
-                        return true;
-                }
-            }
-
-            return false;
+                EqualsOrImplements(type, compilation.IListOfTType()) ||
+                EqualsOrImplements(type, compilation.IReadOnlyListOfTType());
         }
 
         static bool IsLegalInitializer(InitializerExpressionSyntax? initializer)
@@ -426,12 +387,12 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Check to make sure we're not calling something banned because it would change semantics. First check if the
         // method itself comes from a banned type (like with an extension method).
         var member = state.SemanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol;
-        if (s_bannedTypes.Contains(member?.ContainingType.Name))
+        if (BannedTypes.Contains(member?.ContainingType.Name))
             return false;
 
         // Next, check if we're invoking this on a banned type.
         var type = state.SemanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type;
-        if (s_bannedTypes.Contains(type?.Name))
+        if (BannedTypes.Contains(type?.Name))
             return false;
 
         return true;
