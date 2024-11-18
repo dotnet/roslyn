@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     Debug.Assert(getKind != null);
 
-                    var syntaxNodesToAnalyzeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
+                    var syntaxNodesToAnalyzeBuilder = ArrayBuilder<SyntaxNode>.GetInstance(nodesToAnalyzeBuilder.Count);
                     foreach (var syntaxNode in nodesToAnalyzeBuilder)
                         syntaxNodesToAnalyzeBuilder.Add((syntaxNode as SyntaxNode)!);
 
@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else if (operationActions != null)
                 {
-                    var operationsToAnalyzeBuilder = ArrayBuilder<IOperation>.GetInstance();
+                    var operationsToAnalyzeBuilder = ArrayBuilder<IOperation>.GetInstance(nodesToAnalyzeBuilder.Count);
                     foreach (var syntaxNode in nodesToAnalyzeBuilder)
                         operationsToAnalyzeBuilder.Add((syntaxNode as IOperation)!);
 
