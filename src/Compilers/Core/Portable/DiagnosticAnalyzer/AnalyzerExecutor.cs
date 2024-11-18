@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return;
 
-            void addNodesToAnalyze(ImmutableArray<SyntaxNode> codeBlocks, SpannableArrayBuilder<SyntaxNode> nodesToAnalyze)
+            void addNodesToAnalyze(ImmutableArray<SyntaxNode> codeBlocks, ArrayBuilder<SyntaxNode> nodesToAnalyze)
             {
                 foreach (var cb in codeBlocks)
                 {
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 declaredNode, declaredSymbol, operationBlocks, (codeBlocks, nodesToAnalyze) => addNodesToAnalyze(operations, nodesToAnalyze), semanticModel,
                 getKind: null, filterSpan, isGeneratedCode, cancellationToken);
 
-            static void addNodesToAnalyze(ImmutableArray<IOperation> codeBlocks, SpannableArrayBuilder<IOperation> nodesToAnalyze)
+            static void addNodesToAnalyze(ImmutableArray<IOperation> codeBlocks, ArrayBuilder<IOperation> nodesToAnalyze)
             {
                 foreach (var cb in codeBlocks)
                     nodesToAnalyze.Add(cb);
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
            SyntaxNode declaredNode,
            ISymbol declaredSymbol,
            ImmutableArray<TNode> executableBlocks,
-           Action<ImmutableArray<TNode>, SpannableArrayBuilder<TNode>> addNodesToAnalyze,
+           Action<ImmutableArray<TNode>, ArrayBuilder<TNode>> addNodesToAnalyze,
            SemanticModel semanticModel,
            Func<SyntaxNode, TLanguageKindEnum>? getKind,
            TextSpan? filterSpan,
@@ -861,32 +861,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Execute stateful executable node analyzers, if any.
             if (executableNodeActions.Any())
             {
+                var nodesToAnalyzeBuilder = ArrayBuilder<TNode>.GetInstance();
+                addNodesToAnalyze(executableBlocks, nodesToAnalyzeBuilder);
+
                 if (syntaxNodeActions != null)
                 {
                     Debug.Assert(getKind != null);
 
-                    var syntaxNodesToAnalyzeBuilder = SpannableArrayBuilder<TNode>.GetInstance();
-                    addNodesToAnalyze(executableBlocks, syntaxNodesToAnalyzeBuilder);
-                    var syntaxNodesToAnalyzeArray = PooledObjectsMarshal.AsArray(syntaxNodesToAnalyzeBuilder);
-                    var syntaxNodesToAnalyzeSpan = ((SyntaxNode[])(object)syntaxNodesToAnalyzeArray).AsSpan(0, syntaxNodesToAnalyzeBuilder.Count);
+                    var syntaxNodesToAnalyzeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
+                    foreach (var syntaxNode in nodesToAnalyzeBuilder)
+                        syntaxNodesToAnalyzeBuilder.Add((syntaxNode as SyntaxNode)!);
 
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
-                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyzeSpan, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                    ExecuteSyntaxNodeActions(syntaxNodesToAnalyzeBuilder, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
 
                     syntaxNodesToAnalyzeBuilder.Free();
                 }
                 else if (operationActions != null)
                 {
-                    var operationsToAnalyzeBuilder = SpannableArrayBuilder<TNode>.GetInstance();
-                    addNodesToAnalyze(executableBlocks, operationsToAnalyzeBuilder);
-                    var operationsToAnalyzeArray = PooledObjectsMarshal.AsArray(operationsToAnalyzeBuilder);
-                    var operationsToAnalyzeSpan = ((IOperation[])(object)operationsToAnalyzeArray).AsSpan(0, operationsToAnalyzeBuilder.Count);
+                    var operationsToAnalyzeBuilder = ArrayBuilder<IOperation>.GetInstance();
+                    foreach (var syntaxNode in nodesToAnalyzeBuilder)
+                        operationsToAnalyzeBuilder.Add((syntaxNode as IOperation)!);
 
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
-                    ExecuteOperationActions(operationsToAnalyzeSpan, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
+                    ExecuteOperationActions(operationsToAnalyzeBuilder, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
 
                     operationsToAnalyzeBuilder.Free();
                 }
+
+                nodesToAnalyzeBuilder.Free();
             }
 
             executableNodeActions.Free();
@@ -980,7 +983,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Execute syntax node actions for the given analyzer for the given declaration.
         /// </summary>
         public void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
-           ReadOnlySpan<SyntaxNode> nodesToAnalyze,
+           ArrayBuilder<SyntaxNode> nodesToAnalyze,
            ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
            DiagnosticAnalyzer analyzer,
            SemanticModel model,
@@ -1007,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void ExecuteSyntaxNodeActions<TLanguageKindEnum>(
-            ReadOnlySpan<SyntaxNode> nodesToAnalyze,
+            ArrayBuilder<SyntaxNode> nodesToAnalyze,
             ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> nodeActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
@@ -1083,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// False, if there are some pending actions that are currently being executed on another thread.
         /// </returns>
         public void ExecuteOperationActions(
-            ReadOnlySpan<IOperation> operationsToAnalyze,
+            ArrayBuilder<IOperation> operationsToAnalyze,
             ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
             SemanticModel model,
@@ -1108,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private void ExecuteOperationActions(
-            ReadOnlySpan<IOperation> operationsToAnalyze,
+            ArrayBuilder<IOperation> operationsToAnalyze,
             ImmutableSegmentedDictionary<OperationKind, ImmutableArray<OperationAnalyzerAction>> operationActionsByKind,
             DiagnosticAnalyzer analyzer,
             ISymbol containingSymbol,
