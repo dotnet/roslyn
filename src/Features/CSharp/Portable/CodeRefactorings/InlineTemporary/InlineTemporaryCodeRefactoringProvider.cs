@@ -25,18 +25,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InlineTemporary), Shared]
-internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider()
     : AbstractInlineTemporaryCodeRefactoringProvider<IdentifierNameSyntax, VariableDeclaratorSyntax>
 {
     private static readonly SyntaxAnnotation DefinitionAnnotation = new();
     private static readonly SyntaxAnnotation ReferenceAnnotation = new();
     private static readonly SyntaxAnnotation ExpressionAnnotation = new();
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpInlineTemporaryCodeRefactoringProvider()
-    {
-    }
 
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
@@ -93,7 +89,7 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
         context.RegisterRefactoring(
             CodeAction.Create(
                 FeaturesResources.Inline_temporary_variable,
-                c => InlineTemporaryAsync(document, variableDeclarator, c),
+                cancellationToken => InlineTemporaryAsync(document, variableDeclarator, cancellationToken),
                 nameof(FeaturesResources.Inline_temporary_variable)),
             variableDeclarator.Span);
     }
@@ -191,12 +187,12 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
-        document = await document.ReplaceNodesAsync(topmostParentingExpressions, (o, n) =>
+        document = await document.ReplaceNodesAsync(topmostParentingExpressions, (original, current) =>
         {
             // warn when inlining into a conditional expression, as the inlined expression will not be executed.
-            if (semanticModel.GetSymbolInfo(o, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
+            if (semanticModel.GetSymbolInfo(original, cancellationToken).Symbol is IMethodSymbol { IsConditional: true })
             {
-                n = n.WithAdditionalAnnotations(
+                current = current.WithAdditionalAnnotations(
                     WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_into_conditional_method_call));
             }
 
@@ -204,12 +200,12 @@ internal sealed partial class CSharpInlineTemporaryCodeRefactoringProvider
             // on the first inlined location.
             if (mayContainSideEffects)
             {
-                n = n.WithAdditionalAnnotations(
+                current = current.WithAdditionalAnnotations(
                     WarningAnnotation.Create(CSharpFeaturesResources.Warning_Inlining_temporary_variable_may_change_code_meaning));
                 mayContainSideEffects = false;
             }
 
-            return n;
+            return current;
         }, cancellationToken).ConfigureAwait(false);
 
         return document;
