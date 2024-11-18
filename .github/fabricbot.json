@@ -439,17 +439,15 @@
           {
             "name": "addReply",
             "parameters": {
-              "comment": "Looks like this PR hasn't been active for 14 days and the codebase could have been changed in the meantime.\nTo make reviewing PRs more manageable, this PR will be marked as a draft."
+              "comment": "Looks like this PR hasn't been active for 14 days and the codebase could have been changed in the meantime.\nTo make reviewing PRs more manageable, this PR will be marked closed. Please reopen when its ready for review. Thank you for the contribution!"
             }
           },
           {
-            "name": "isDraftPr",
-            "parameters": {
-              "value": "true"
-            }
+            "name": "close",
+            "parameters": {}
           }
         ],
-        "taskName": "Mark stale PRs as draft PRs"
+        "taskName": "Close stale PRs"
       }
     },
     {
@@ -471,7 +469,7 @@
               "name": "commentContains",
               "parameters": {
                 "isRegex": true,
-                "commentPattern": "^(\\/azp run)$"
+                "commentPattern": "^(\\/azp run roslyn-CI)$"
               }
             },
             {
