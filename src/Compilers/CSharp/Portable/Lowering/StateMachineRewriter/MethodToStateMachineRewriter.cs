@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol? instanceIdField,
             IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
-            IOrderedReadOnlySet<FieldSymbol> nonReusableFieldsForCleanup,
+            ImmutableArray<FieldSymbol> nonReusableFieldsForCleanup,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             VariableSlotAllocator? slotAllocatorOpt,
@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(originalMethod != null);
             Debug.Assert(state != null);
             Debug.Assert(nonReusableLocalProxies != null);
+            Debug.Assert(!nonReusableFieldsForCleanup.IsDefault);
             Debug.Assert(diagnostics != null);
             Debug.Assert(hoistedVariables != null);
             Debug.Assert(nextFreeHoistedLocalSlot >= 0);
