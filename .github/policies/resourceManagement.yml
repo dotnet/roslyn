@@ -28,9 +28,7 @@ configuration:
     - description: Close stale PRs
       frequencies:
       - daily:
-          hour: 7
-      - daily:
-          hour: 19
+          time: 12:00
       filters:
       - isOpen
       - isPullRequest
