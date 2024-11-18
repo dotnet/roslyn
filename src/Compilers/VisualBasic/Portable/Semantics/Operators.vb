@@ -3189,7 +3189,10 @@ Next_i:
                     Continue For
                 End If
 
-                CombineCandidates(candidates, New CandidateAnalysisResult(New OperatorCandidate(method)), method.ParameterCount, Nothing, useSiteInfo)
+                CombineCandidates(candidates, New CandidateAnalysisResult(New OperatorCandidate(method)), method.ParameterCount,
+                                  argumentNames:=Nothing,
+                                  someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                  useSiteInfo)
 
                 If liftOperators Then
                     Dim param1 As ParameterSymbol = method.Parameters(0)
@@ -3230,7 +3233,10 @@ Next_i:
                                                                                                   ImmutableArray.Create(param1),
                                                                                                   ImmutableArray.Create(Of ParameterSymbol)(param1, param2)),
                                                                                               returnType)),
-                                          method.ParameterCount, Nothing, useSiteInfo)
+                                          method.ParameterCount,
+                                          argumentNames:=Nothing,
+                                          someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                          useSiteInfo)
                     End If
                 End If
             Next
@@ -3242,7 +3248,10 @@ Next_i:
                                                                         If(argument2 Is Nothing,
                                                                            ImmutableArray.Create(argument1),
                                                                            ImmutableArray.Create(Of BoundExpression)(argument1, argument2)),
-                                                                        Nothing, Nothing, lateBindingIsAllowed, binder:=binder,
+                                                                        argumentNames:=Nothing,
+                                                                        someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                                                        delegateReturnType:=Nothing,
+                                                                        lateBindingIsAllowed, binder:=binder,
                                                                         asyncLambdaSubToFunctionMismatch:=Nothing,
                                                                         callerInfoOpt:=Nothing, forceExpandedForm:=False,
                                                                         useSiteInfo:=useSiteInfo)

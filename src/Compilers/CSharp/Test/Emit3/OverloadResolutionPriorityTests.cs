@@ -2820,4 +2820,110 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
         CompileAndVerify([code, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "params").VerifyDiagnostics();
     }
+
+    private const string OverloadResolutionPriorityAttributeDefinitionVB = """
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Method Or AttributeTargets.Constructor Or AttributeTargets.Property, AllowMultiple:= false, Inherited:= false)>
+    public class OverloadResolutionPriorityAttribute
+        Inherits Attribute
+
+        Public Sub New(priority As Integer)
+            Me.Priority = priority
+        End Sub
+
+        public Readonly Property Priority As Integer
+    End Class
+End Namespace
+""";
+
+    [Fact]
+    public void ParameterlessProperty_01()
+    {
+        var vbSource = """
+Public Class Module1
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(-1)>
+    Shared WriteOnly Property M1 As Integer
+        Set
+            System.Console.Write(1)
+        End Set
+    End Property
+
+    Shared WriteOnly Property M1(Optional x As Integer = 0) As Integer
+        Set
+            System.Console.Write(2)
+        End Set
+    End Property
+End Class
+
+""" + OverloadResolutionPriorityAttributeDefinitionVB;
+
+        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
+        var vbRef = vb.EmitToImageReference();
+
+        var source1 = """
+class Program
+{
+    static void Main()
+    {
+        Module1.M1 = 0;
+    }
+}
+""";
+
+        CompileAndVerify(source1, references: [vbRef], expectedOutput: "1");
+
+        var source2 = """
+class Program
+{
+    static void Main()
+    {
+        Module1.M1[1] = 0;
+    }
+}
+""";
+        CreateCompilation(source2, references: [vbRef]).VerifyDiagnostics(
+            // (5,9): error CS0154: The property or indexer 'Module1.M1' cannot be used in this context because it lacks the get accessor
+            //         Module1.M1[1] = 0;
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "Module1.M1").WithArguments("Module1.M1").WithLocation(5, 9)
+            );
+    }
+
+    [Fact]
+    public void ParameterlessProperty_02()
+    {
+        var vbSource = """
+Public Class Module1
+
+    Shared WriteOnly Property M1 As Integer
+        Set
+            System.Console.Write(1)
+        End Set
+    End Property
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Shared WriteOnly Property M1(Optional x As Integer = 0) As Integer
+        Set
+            System.Console.Write(2)
+        End Set
+    End Property
+End Class
+
+""" + OverloadResolutionPriorityAttributeDefinitionVB;
+
+        var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource, referencedAssemblies: TargetFrameworkUtil.GetReferences(TargetFramework.Standard));
+        var vbRef = vb.EmitToImageReference();
+
+        var source1 = """
+class Program
+{
+    static void Main()
+    {
+        Module1.M1 = 0;
+    }
+}
+""";
+
+        CompileAndVerify(source1, references: [vbRef], expectedOutput: "1");
+    }
 }

@@ -548,6 +548,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Return boundAttribute
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute) Then
+
+                If Not CanHaveOverloadResolutionPriority Then
+                    'Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                    ' PROTOTYPE(priority): Do we want to report an error? It will be a breaking change. 
+                    Return Nothing
+                End If
+
+                Dim hasAnyDiagnostics As Boolean = False
+                Dim attrdata = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
+                If Not attrdata.HasErrors Then
+                    Dim priority As Integer = attrdata.GetConstructorArgument(Of Integer)(0, SpecialType.System_Int32)
+                    arguments.GetOrCreateData(Of CommonPropertyEarlyWellKnownAttributeData)().OverloadResolutionPriority = priority
+                    Return If(Not hasAnyDiagnostics, attrdata, Nothing)
+                Else
+                    Return Nothing
+                End If
             End If
 
             Return MyBase.EarlyDecodeWellKnownAttribute(arguments)
@@ -693,6 +710,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End Get
         End Property
+
+        Public Overrides Function GetOverloadResolutionPriority() As Integer
+            Dim data As CommonPropertyEarlyWellKnownAttributeData = Me.GetEarlyDecodedWellKnownAttributeData()
+            Return If(data?.OverloadResolutionPriority, 0)
+        End Function
+
+        Private Function GetEarlyDecodedWellKnownAttributeData() As CommonPropertyEarlyWellKnownAttributeData
+            Dim attributesBag As CustomAttributesBag(Of VisualBasicAttributeData) = Me._lazyCustomAttributesBag
+            If attributesBag Is Nothing OrElse Not attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
+                attributesBag = Me.GetAttributesBag()
+            End If
+
+            Return DirectCast(attributesBag.EarlyDecodedWellKnownAttributeData, CommonPropertyEarlyWellKnownAttributeData)
+        End Function
 
         Public Overrides ReadOnly Property IsWithEvents As Boolean
             Get

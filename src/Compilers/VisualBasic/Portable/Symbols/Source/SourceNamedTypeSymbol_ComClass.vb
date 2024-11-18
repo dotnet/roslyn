@@ -1166,6 +1166,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Get
                 End Property
 
+                Public Overrides Function GetOverloadResolutionPriority() As Integer
+                    Return 0 ' PROTOTYPE(Priority): Implement for real 
+                End Function
+
                 Public Overrides ReadOnly Property IsOverridable As Boolean
                     Get
                         Return False
@@ -1778,6 +1782,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return False
                     End Get
                 End Property
+
+                Public Overrides Function GetOverloadResolutionPriority() As Integer
+                    Return 0 ' PROTOTYPE(Priority): Follow up
+                End Function
 
                 Public Overrides ReadOnly Property IsOverridable As Boolean
                     Get

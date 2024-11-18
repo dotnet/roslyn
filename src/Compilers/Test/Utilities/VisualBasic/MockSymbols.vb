@@ -509,6 +509,10 @@ Friend Class MockMethodSymbol
         End Get
     End Property
 
+    Public Overrides Function GetOverloadResolutionPriority() As Integer
+        Return 0
+    End Function
+
     Public Overrides ReadOnly Property IsOverridable As Boolean
         Get
             Return False
