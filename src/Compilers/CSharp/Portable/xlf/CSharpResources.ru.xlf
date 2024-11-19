@@ -10306,8 +10306,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">Не удается открыть "{0}" для записи — "{1}".</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">Не удается открыть "{0}" для записи — "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">

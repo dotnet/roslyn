@@ -10305,8 +10305,8 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOpenFileWrite">
-        <source>Cannot open '{0}' for writing -- '{1}'</source>
-        <target state="translated">Não é possível abrir "{0}" para escrever -- "{1}"</target>
+        <source>Cannot open '{0}' for writing -- {1}</source>
+        <target state="needs-review-translation">Não é possível abrir "{0}" para escrever -- "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBaseNumber">
