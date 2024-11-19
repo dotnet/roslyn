@@ -178,5 +178,6 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseSystemThreadingLock = nameof(UseSystemThreadingLock);
     public const string UseThrowExpression = nameof(UseThrowExpression);
     public const string UseTupleSwap = nameof(UseTupleSwap);
+    public const string UseUnboundTypeInNameOf = nameof(UseUnboundTypeInNameOf);
     public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);
 }

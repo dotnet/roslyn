@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -11,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseUnboundTypeInNameOf;
@@ -48,7 +45,7 @@ internal sealed class CSharpUseUnboundTypeInNameOfDiagnosticAnalyzer()
         {
             // Tuples are only available in C# 14 and above.
             var compilation = context.Compilation;
-            if (compilation.LanguageVersion().IsCSharp14OrAbove())
+            if (!compilation.LanguageVersion().IsCSharp14OrAbove())
                 return;
 
             context.RegisterSyntaxNodeAction(

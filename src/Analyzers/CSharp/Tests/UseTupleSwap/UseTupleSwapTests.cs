@@ -18,7 +18,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseTupleSwapDiagnosticAnalyzer,
     CSharpUseTupleSwapCodeFixProvider>;
 
-[Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseTupleSwap)]
 public partial class UseTupleSwapTests
 {
     [Fact]
