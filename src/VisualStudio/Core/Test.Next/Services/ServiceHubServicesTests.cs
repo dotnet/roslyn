@@ -89,14 +89,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // update text
             var newText = oldText.WithChanges(new TextChange(TextSpan.FromBounds(0, 0), "/* test */"));
 
-            // sync
-            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
-                (service, cancellationToken) => service.SynchronizeTextChangesAsync([(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable())], cancellationToken),
-                CancellationToken.None);
-
             // apply change to solution
             var newDocument = oldDocument.WithText(newText);
             var newState = await newDocument.State.GetStateChecksumsAsync(CancellationToken.None);
+
+            // sync
+            await client.TryInvokeAsync<IRemoteAssetSynchronizationService>(
+                (service, cancellationToken) => service.SynchronizeTextChangesAsync([(oldDocument.Id, oldState.Text, newText.GetTextChanges(oldText).AsImmutable(), newState.Text)], cancellationToken),
+                CancellationToken.None);
 
             // check that text already exist in remote side
             Assert.True(client.TestData.WorkspaceManager.SolutionAssetCache.TryGetAsset<SerializableSourceText>(newState.Text, out var serializableRemoteText));

@@ -3546,7 +3546,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Error opening response file '{0}'</value>
   </data>
   <data name="ERR_CantOpenFileWrite" xml:space="preserve">
-    <value>Cannot open '{0}' for writing -- '{1}'</value>
+    <value>Cannot open '{0}' for writing -- {1}</value>
   </data>
   <data name="ERR_BadBaseNumber" xml:space="preserve">
     <value>Invalid image base number '{0}'</value>
