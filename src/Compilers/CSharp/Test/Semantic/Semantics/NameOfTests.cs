@@ -2932,6 +2932,62 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 39));
         }
 
+        [Fact]
+        public void Namof_NestedOpenType1()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+                    
+                var v = nameof(List<List<int>[]>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Namof_NestedOpenType2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+                    
+                var v = nameof(List<List<>[]>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                // (4,21): error CS7003: Unexpected use of an unbound generic name
+                // var v = nameof(List<List<>[]>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(4, 21));
+        }
+
+        [Fact]
+        public void Namof_NestedOpenType3()
+        {
+            CreateCompilation("""
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                    
+                var v = nameof(List<List<int>?>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Namof_NestedOpenType4()
+        {
+            CreateCompilation("""
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                    
+                var v = nameof(List<List<>?>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics(
+                // (5,21): error CS7003: Unexpected use of an unbound generic name
+                // var v = nameof(List<List<>?>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(5, 21));
+        }
+
         [Theory]
         [InlineData("IGoo<>")]
         [InlineData("IGoo<>.Count")]
