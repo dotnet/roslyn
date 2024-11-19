@@ -2578,8 +2578,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
-        <source>Unbound generic types in nameof operator</source>
-        <target state="new">Unbound generic types in nameof operator</target>
+        <source>unbound generic types in nameof operator</source>
+        <target state="new">unbound generic types in nameof operator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">

@@ -2825,6 +2825,113 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "IGoo.M<int>").WithLocation(3, 16));
         }
 
+        [Fact]
+        public void NameofFunctionPointer1()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(delegate*<int>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (5,32): error CS1514: { expected
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(5, 32),
+                // (5,32): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(5, 32),
+                // (5,33): error CS1525: Invalid expression term '<'
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(5, 33),
+                // (5,34): error CS1525: Invalid expression term 'int'
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(5, 34),
+                // (5,38): error CS1525: Invalid expression term ')'
+                //         var v = nameof(delegate*<int>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(5, 38));
+        }
+
+        [Fact]
+        public void NameofFunctionPointer2()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+                    
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(delegate*<List<>>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,32): error CS1514: { expected
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "*").WithLocation(7, 32),
+                // (7,32): warning CS8848: Operator '*' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "*").WithArguments("*").WithLocation(7, 32),
+                // (7,33): error CS1525: Invalid expression term '<'
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "<").WithArguments("<").WithLocation(7, 33),
+                // (7,34): error CS0119: 'List<T>' is a type, which is not valid in the given context
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "List<>").WithArguments("System.Collections.Generic.List<T>", "type").WithLocation(7, 34),
+                // (7,41): error CS1525: Invalid expression term ')'
+                //         var v = nameof(delegate*<List<>>);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 41));
+        }
+
+        [Fact]
+        public void NameofFunctionPointer3()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+                    
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(List<delegate*<int>>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,13): warning CS0219: The variable 'v' is assigned but its value is never used
+                //         var v = nameof(List<delegate*<int>>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v").WithArguments("v").WithLocation(7, 13),
+                // (7,29): error CS0306: The type 'delegate*<int>' may not be used as a type argument
+                //         var v = nameof(List<delegate*<int>>);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<int>").WithArguments("delegate*<int>").WithLocation(7, 29));
+        }
+
+        [Fact]
+        public void NameofFunctionPointer4()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+                    
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = nameof(List<delegate*<List<>>>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,13): warning CS0219: The variable 'v' is assigned but its value is never used
+                //         var v = nameof(List<delegate*<List<>>>);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v").WithArguments("v").WithLocation(7, 13),
+                // (7,29): error CS0306: The type 'delegate*<List<T>>' may not be used as a type argument
+                //         var v = nameof(List<delegate*<List<>>>);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "delegate*<List<>>").WithArguments("delegate*<System.Collections.Generic.List<T>>").WithLocation(7, 29),
+                // (7,39): error CS7003: Unexpected use of an unbound generic name
+                //         var v = nameof(List<delegate*<List<>>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 39));
+        }
+
         [Theory]
         [InlineData("IGoo<>")]
         [InlineData("IGoo<>.Count")]

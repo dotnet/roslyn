@@ -37,7 +37,69 @@ class C
             Assert.Equal("C..ctor(System.Int32 i)", symbolInfo.Symbol.ToTestDisplayString());
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("C", typeInfo.Type.ToTestDisplayString());
+        }
 
+        [Fact]
+        public void TypeofPointer()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = typeof(int*);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeofFunctionPointer1()
+        {
+            CreateCompilation("""
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = typeof(delegate*<int,int>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeofFunctionPointer2()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = typeof(delegate*<List<int>,int>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeofFunctionPointer3()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    unsafe void M()
+                    {
+                        var v = typeof(delegate*<List<>,int>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,34): error CS7003: Unexpected use of an unbound generic name
+                //         var v = typeof(delegate*<List<>,int>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 34));
         }
     }
 }
