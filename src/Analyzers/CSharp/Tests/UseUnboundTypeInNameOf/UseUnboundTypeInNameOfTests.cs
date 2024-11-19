@@ -97,4 +97,224 @@ public partial class UseUnboundTypeInNameOfTests
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestMultipleTypeArguments()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = [|nameof|](Dictionary<int, string>);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Dictionary<,>);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestGlobal()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = [|nameof|](global::System.Collections.Generic.Dictionary<int, string>);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(global::System.Collections.Generic.Dictionary<,>);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNestedArgs()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = [|nameof|](Dictionary<List<int>, string>);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Dictionary<,>);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNestedType1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = [|nameof|](Outer<int>.Inner<string>);
+                    }
+                }
+
+                class Outer<T> { public class Inner<T> { } }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Outer<>.Inner<>);
+                    }
+                }
+                
+                class Outer<T> { public class Inner<T> { } }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNestedType2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = [|nameof|](Outer<int>.Inner<>);
+                    }
+                }
+
+                class Outer<T> { public class Inner<T> { } }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Outer<>.Inner<>);
+                    }
+                }
+                
+                class Outer<T> { public class Inner<T> { } }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNestedType3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = [|nameof|](Outer<>.Inner<int>);
+                    }
+                }
+
+                class Outer<T> { public class Inner<T> { } }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Outer<>.Inner<>);
+                    }
+                }
+                
+                class Outer<T> { public class Inner<T> { } }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNestedType4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Outer<>.Inner<>);
+                    }
+                }
+
+                class Outer<T> { public class Inner<T> { } }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
 }
