@@ -38,6 +38,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private bool _isDisposed;
     private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private Task _getSuggestionsTask = Task.CompletedTask;
+    private bool IsInPreparation = false;
     private TimeSpan _semanticContextDelay;
     private bool _semanticContextError;
     private bool _semanticContextUsed;
@@ -52,7 +53,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     public bool HasSuggestions => _smartRenameSession.HasSuggestions;
 
-    public bool IsInProgress => _smartRenameSession.IsInProgress;
+    public bool IsInProgress => IsInPreparation || _smartRenameSession.IsInProgress;
 
     public string StatusMessage => _smartRenameSession.StatusMessage;
 
@@ -167,47 +168,55 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     private async Task GetSuggestionsTaskAsync(bool isAutomaticOnInitialization, CancellationToken cancellationToken)
     {
-        if (isAutomaticOnInitialization)
+        try
         {
-            await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        if (cancellationToken.IsCancellationRequested || _isDisposed)
-        {
-            return;
-        }
-
-        if (IsUsingSemanticContext)
-        {
-            var stopwatch = SharedStopwatch.StartNew();
-            _semanticContextUsed = true;
-            var document = this.BaseViewModel.Session.TriggerDocument;
-            var smartRenameContext = ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty;
-            try
+            this.IsInPreparation = true;
+            if (isAutomaticOnInitialization)
             {
-                var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-                var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
+                await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken)
                     .ConfigureAwait(false);
-                var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
-                    .ConfigureAwait(false);
-                smartRenameContext = ImmutableDictionary.CreateRange<string, ImmutableArray<(string filePath, string content)>>(
-                    context
-                    .Select(n => new KeyValuePair<string, ImmutableArray<(string filePath, string content)>>(n.Key, n.Value)));
-                _semanticContextDelay = stopwatch.Elapsed;
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
+
+            if (cancellationToken.IsCancellationRequested || _isDisposed)
             {
-                _semanticContextError = true;
-                // use empty smartRenameContext
+                return;
             }
-            _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
-                .ConfigureAwait(false);
+
+            if (IsUsingSemanticContext)
+            {
+                var stopwatch = SharedStopwatch.StartNew();
+                _semanticContextUsed = true;
+                var document = this.BaseViewModel.Session.TriggerDocument;
+                var smartRenameContext = ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty;
+                try
+                {
+                    var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+                    var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                    var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
+                        .ConfigureAwait(false);
+                    smartRenameContext = ImmutableDictionary.CreateRange<string, ImmutableArray<(string filePath, string content)>>(
+                        context
+                        .Select(n => new KeyValuePair<string, ImmutableArray<(string filePath, string content)>>(n.Key, n.Value)));
+                    _semanticContextDelay = stopwatch.Elapsed;
+                }
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
+                {
+                    _semanticContextError = true;
+                    // use empty smartRenameContext
+                }
+                _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
         }
-        else
+        finally
         {
-            _ = await _smartRenameSession.GetSuggestionsAsync(cancellationToken)
-                .ConfigureAwait(false);
+            this.IsInPreparation = false;
         }
     }
 
