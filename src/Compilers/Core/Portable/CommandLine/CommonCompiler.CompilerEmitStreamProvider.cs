@@ -118,8 +118,11 @@ namespace Microsoft.CodeAnalysis
                 var lockedBy = FileLockCheck.TryGetLockingProcessInfos(_filePath);
 
                 var message = lockedBy.IsEmpty
-                    ? e.Message
-                    : string.Format(CodeAnalysisResources.ExceptionMessage_FileMayBeLockedBy,
+                    ? (object)e.Message
+                    : new LocalizableResourceString(
+                        nameof(CodeAnalysisResources.ExceptionMessage_FileMayBeLockedBy),
+                        CodeAnalysisResources.ResourceManager,
+                        typeof(CodeAnalysisResources),
                         e.Message,
                         string.Join(", ", lockedBy.Select(info => $"'{info.applicationName}' ({info.processId})")));
 

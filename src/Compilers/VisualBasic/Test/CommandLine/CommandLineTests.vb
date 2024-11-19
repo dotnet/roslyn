@@ -5061,7 +5061,7 @@ End Class
 
                 Dim pattern = "vbc : error BC2012: can't open '(?<path>.*)' for writing: (?<message>.*); file may be locked by '(?<app>.*)' \((?<pid>.*)\)"
                 Dim match = Regex.Match(output, pattern)
-                Assert.True(match.Success, $"Expected:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}")
+                Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}")
                 Assert.Equal(filePath, match.Groups("path").Value)
                 Assert.Contains("testhost", match.Groups("app").Value)
                 Assert.Equal(currentProcess.Id, Integer.Parse(match.Groups("pid").Value))

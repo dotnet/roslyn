@@ -4799,7 +4799,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 
             var pattern = @"error CS2012: Cannot open '(?<path>.*)' for writing -- (?<message>.*); file may be locked by '(?<app>.*)' \((?<pid>.*)\)";
             var match = Regex.Match(output, pattern);
-            Assert.True(match.Success, $"Expected:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}");
+            Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}");
             Assert.Equal(filePath, match.Groups["path"].Value);
             Assert.Contains("testhost", match.Groups["app"].Value);
             Assert.Equal(currentProcess.Id, int.Parse(match.Groups["pid"].Value));
