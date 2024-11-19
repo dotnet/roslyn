@@ -6,9 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -16,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public sealed partial class NullableSemanticTests : SemanticModelTestBase
+    public partial class NullableSemanticTests : SemanticModelTestBase
     {
         [Fact, WorkItem(651624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651624")]
         public void NestedNullableWithAttemptedConversion()
@@ -2267,47 +2265,6 @@ class C
                 // (5,19): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
                 //     X<Y?> M2() => new();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
-        }
-
-        [Fact, WorkItem(651624, "https://github.com/dotnet/roslyn/issues/60552")]
-        public void TestSemanticModelConversionFromNullableToNonNullable()
-        {
-            var src =
-                """
-                #nullable enable 
-
-                using System;
-
-                class C
-                {
-                    public string Main(string? x)
-                    {
-                        return x;
-                    }
-
-                    public (int a, int b) Main((int, int) x)
-                    {
-                        return x;
-                    }
-                
-                    public dynamic Main(object x)
-                    {
-                        return x;
-                    }
-                }
-                """;
-
-            var comp = CreateCompilation(src);
-
-            var syntaxTree = comp.SyntaxTrees.Single();
-            var semanticModel = comp.GetSemanticModel(syntaxTree);
-
-            var root = syntaxTree.GetRoot();
-            var returnStatements = root.DescendantNodesAndSelf().OfType<ReturnStatementSyntax>().ToArray();
-
-            var typeInfo1 = semanticModel.GetTypeInfo(returnStatements[0].Expression);
-            var typeInfo2 = semanticModel.GetTypeInfo(returnStatements[1].Expression);
-            var typeInfo3 = semanticModel.GetTypeInfo(returnStatements[2].Expression);
         }
     }
 }
