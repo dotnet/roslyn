@@ -2577,6 +2577,11 @@
         <target state="translated">inicializadores de campo de struct</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>unbound generic types in nameof operator</source>
+        <target state="new">unbound generic types in nameof operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
         <source>unsigned right shift</source>
         <target state="translated">deslocamento direito não atribuído</target>

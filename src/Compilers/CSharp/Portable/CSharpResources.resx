@@ -4932,6 +4932,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNameof" xml:space="preserve">
     <value>nameof operator</value>
   </data>
+  <data name="IDS_FeatureUnboundGenericTypesInNameof" xml:space="preserve">
+    <value>unbound generic types in nameof operator</value>
+  </data>
   <data name="IDS_FeatureDictionaryInitializer" xml:space="preserve">
     <value>dictionary initializer</value>
   </data>
