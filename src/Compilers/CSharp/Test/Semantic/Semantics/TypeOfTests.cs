@@ -101,5 +101,27 @@ class C
                 //         var v = typeof(delegate*<List<>,int>);
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 34));
         }
+
+        [Fact]
+        public void TypeofFunctionPointer4()
+        {
+            CreateCompilation("""
+                using System.Collections.Generic;
+
+                class D<A, B, C>
+                {
+                    unsafe void M()
+                    {
+                        var v = typeof(D<, delegate*<int>, List<>>);
+                    }
+                }
+                """, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (7,26): error CS1031: Type expected
+                //         var v = typeof(D<, delegate*<int>, List<>>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(7, 26),
+                // (7,44): error CS7003: Unexpected use of an unbound generic name
+                //         var v = typeof(D<, delegate*<int>, List<>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(7, 44));
+        }
     }
 }
