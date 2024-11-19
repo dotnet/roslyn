@@ -1071,12 +1071,12 @@ internal static partial class ExpressionSyntaxExtensions
                 return null;
             }
 
+            // T[] x = [1, 2, 3];
+            if (initializerExpression.Parent is EqualsValueClauseSyntax equalsValue)
+                return GetTargetTypeForEqualsValueClause(equalsValue);
+
             // TODO: Handle these.
             if (initializerExpression.Parent is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
-                return null;
-
-            // T[] x = [1, 2, 3];
-            if (initializerExpression.Parent is EqualsValueClauseSyntax)
                 return null;
 
             return null;
