@@ -30,10 +30,10 @@ internal partial class CSharpSimplificationService()
     // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
     private static readonly ImmutableArray<AbstractReducer> s_reducers =
         [
+            new CSharpCastReducer(),
             new CSharpVarReducer(),
             new CSharpNameReducer(),
             new CSharpNullableAnnotationReducer(),
-            new CSharpCastReducer(),
             new CSharpExtensionMethodReducer(),
             new CSharpParenthesizedExpressionReducer(),
             new CSharpParenthesizedPatternReducer(),

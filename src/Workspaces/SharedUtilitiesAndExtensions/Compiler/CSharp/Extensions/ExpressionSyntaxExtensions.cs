@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -903,128 +904,182 @@ internal static partial class ExpressionSyntaxExtensions
     public static bool InsideCrefReference(this ExpressionSyntax expression)
         => expression.FirstAncestorOrSelf<XmlCrefAttributeSyntax>() != null;
 
-    public static bool IsInTargetTypedLocation(
+    public static ITypeSymbol? GetTargetType(
         this ExpressionSyntax expression,
         SemanticModel semanticModel,
-        CancellationToken cancellationToken)
-        => IsInTargetTypedLocation(expression, semanticModel, out _, cancellationToken);
-
-    private static bool IsInTargetTypedLocation(
-        this ExpressionSyntax expression,
-        SemanticModel semanticModel,
-        [NotNullWhen(true)] out ITypeSymbol? targetType,
         CancellationToken cancellationToken)
     {
         var topExpression = expression.WalkUpParentheses();
         var parent = topExpression.Parent;
         return parent switch
         {
-            EqualsValueClauseSyntax equalsValue => IsInTargetTypedEqualsValueClause(equalsValue, out targetType),
-            CastExpressionSyntax castExpression => IsInTargetTypedCastExpression(castExpression, out targetType),
+            EqualsValueClauseSyntax equalsValue => GetTargetTypeForEqualsValueClause(equalsValue),
+            CastExpressionSyntax castExpression => GetTargetTypedForCastExpression(castExpression),
             // a ? [1, 2, 3] : ...  is target typed if either the other side is *not* a collection,
             // or the entire ternary is target typed itself.
-            ConditionalExpressionSyntax conditionalExpression => IsInTargetTypedConditionalExpression(conditionalExpression, topExpression, out targetType),
+            ConditionalExpressionSyntax conditionalExpression => GetTargetTypeForConditionalExpression(conditionalExpression, topExpression),
             // Similar rules for switches.
-            SwitchExpressionArmSyntax switchExpressionArm => IsInTargetTypedSwitchExpressionArm(switchExpressionArm, out targetType),
-            InitializerExpressionSyntax initializerExpression => IsInTargetTypedInitializerExpression(initializerExpression, topExpression, out targetType),
-            CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement, out targetType),
-            AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression, out targetType),
-            BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression, out targetType),
-            LambdaExpressionSyntax lambda => IsInTargetTypedLambdaExpression(lambda, topExpression, out targetType),
-            ArgumentSyntax or AttributeArgumentSyntax => true,
-            ReturnStatementSyntax => true,
-            ArrowExpressionClauseSyntax => true,
-            _ => false,
+            SwitchExpressionArmSyntax switchExpressionArm => GetTargetTypeForSwitchExpressionArm(switchExpressionArm),
+            InitializerExpressionSyntax initializerExpression => GetTargetTypeForInitializerExpression(initializerExpression, topExpression),
+            CollectionElementSyntax collectionElement => GetTargetTypeForCollectionElement(collectionElement),
+            AssignmentExpressionSyntax assignmentExpression => GetTargetTypeForAssignmentExpression(assignmentExpression, topExpression),
+            BinaryExpressionSyntax binaryExpression => GetTargetTypeForBinaryExpression(binaryExpression, topExpression),
+            LambdaExpressionSyntax lambda => GetTargetTypeForLambdaExpression(lambda, topExpression),
+            ArgumentSyntax argument => GetTargetTypeForArgument(argument),
+            AttributeArgumentSyntax attributeArgument => GetTargetTypeForAttributeArgument(attributeArgument),
+            ReturnStatementSyntax returnStatement => GetTargetTypeForReturnStatement(returnStatement),
+            ArrowExpressionClauseSyntax arrowExpression => GetTargetTypeForArrowExpression(arrowExpression),
+            _ => null,
         };
 
-        bool HasType(ExpressionSyntax expression)
-            => semanticModel.GetTypeInfo(expression, cancellationToken).Type is not null and not IErrorTypeSymbol;
+        // return result is IErrorTypeSymbol ? null : result;
 
-        static bool IsInTargetTypedEqualsValueClause(EqualsValueClauseSyntax equalsValue)
-            // If we're after an `x = ...` and it's not `var x`, this is target typed.
-            => equalsValue.Parent is not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type.IsVar: true } };
-
-        static bool IsInTargetTypedCastExpression(
-            CastExpressionSyntax castExpression,
-            [NotNullWhen(true)] out ITypeSymbol? targetType)
-            // (X[])[1, 2, 3] is target typed.  `(X)[1, 2, 3]` is currently not (because it looks like indexing into an expr).
-            => castExpression.Type is not IdentifierNameSyntax;
-
-        bool IsInTargetTypedConditionalExpression(ConditionalExpressionSyntax conditionalExpression, ExpressionSyntax expression)
+        bool HasType(ExpressionSyntax expression, [NotNullWhen(true)] out ITypeSymbol? type)
         {
-            if (conditionalExpression.WhenTrue == expression)
-                return HasType(conditionalExpression.WhenFalse) || IsInTargetTypedLocation(semanticModel, conditionalExpression, cancellationToken);
-            else if (conditionalExpression.WhenFalse == expression)
-                return HasType(conditionalExpression.WhenTrue) || IsInTargetTypedLocation(semanticModel, conditionalExpression, cancellationToken);
-            else
-                return false;
+            type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            return type is not null; // and not IErrorTypeSymbol;
         }
 
-        bool IsInTargetTypedLambdaExpression(LambdaExpressionSyntax lambda, ExpressionSyntax expression)
-            => lambda.ExpressionBody == expression && IsInTargetTypedLocation(semanticModel, lambda, cancellationToken);
+        ITypeSymbol? GetTargetTypeForArgument(ArgumentSyntax argument)
+        {
+            var operation = semanticModel.GetOperation(argument, cancellationToken) as IArgumentOperation;
+            return operation?.Parameter?.Type;
+        }
 
-        bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
+        ITypeSymbol? GetTargetTypeForAttributeArgument(AttributeArgumentSyntax argument)
+        {
+            var operation = semanticModel.GetOperation(argument, cancellationToken) as IArgumentOperation;
+            return operation?.Parameter?.Type;
+        }
+
+        ITypeSymbol? GetTargetTypeForArrowExpression(ArrowExpressionClauseSyntax arrowExpression)
+        {
+            var parent = arrowExpression.GetRequiredParent();
+            var symbol = semanticModel.GetSymbolInfo(parent, cancellationToken).Symbol ?? semanticModel.GetDeclaredSymbol(parent, cancellationToken);
+            return symbol.GetMemberType();
+        }
+
+        ITypeSymbol? GetTargetTypeForReturnStatement(ReturnStatementSyntax returnStatement)
+        {
+            for (SyntaxNode? current = returnStatement; current != null; current = current.Parent)
+            {
+                if (current.IsReturnableConstruct())
+                {
+                    var symbol = semanticModel.GetSymbolInfo(current, cancellationToken).Symbol ?? semanticModel.GetDeclaredSymbol(current, cancellationToken);
+                    return symbol.GetMemberType();
+                }
+            }
+
+            return null;
+        }
+
+        ITypeSymbol? GetTargetTypeForEqualsValueClause(EqualsValueClauseSyntax equalsValue)
+        {
+            // If we're after an `x = ...` and it's not `var x`, this is target typed.
+            if (equalsValue.Parent is VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type.IsVar: true } })
+                return null;
+
+            var symbol = semanticModel.GetDeclaredSymbol(equalsValue.GetRequiredParent(), cancellationToken);
+            return symbol.GetMemberType();
+        }
+
+        ITypeSymbol? GetTargetTypedForCastExpression(CastExpressionSyntax castExpression)
+            => semanticModel.GetTypeInfo(castExpression.Type, cancellationToken).Type;
+
+        ITypeSymbol? GetTargetTypeForConditionalExpression(ConditionalExpressionSyntax conditionalExpression, ExpressionSyntax expression)
+        {
+            if (conditionalExpression.WhenTrue == expression)
+                return HasType(conditionalExpression.WhenFalse, out var falseType) ? falseType : conditionalExpression.GetTargetType(semanticModel, cancellationToken);
+            else if (conditionalExpression.WhenFalse == expression)
+                return HasType(conditionalExpression.WhenTrue, out var trueType) ? trueType : conditionalExpression.GetTargetType(semanticModel, cancellationToken);
+            else
+                return null;
+        }
+
+        ITypeSymbol? GetTargetTypeForLambdaExpression(LambdaExpressionSyntax lambda, ExpressionSyntax expression)
+            => lambda.ExpressionBody == expression &&
+               lambda.GetTargetType(semanticModel, cancellationToken) is INamedTypeSymbol { DelegateInvokeMethod.ReturnType: var returnType } ? returnType : null;
+
+        ITypeSymbol? GetTargetTypeForSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
         {
             var switchExpression = (SwitchExpressionSyntax)switchExpressionArm.GetRequiredParent();
 
             // check if any other arm has a type that this would be target typed against.
             foreach (var arm in switchExpression.Arms)
             {
-                if (arm != switchExpressionArm && HasType(arm.Expression))
-                    return true;
+                if (arm != switchExpressionArm && HasType(arm.Expression, out var armType))
+                    return armType;
             }
 
             // All arms do not have a type, this is target typed if the switch itself is target typed.
-            return IsInTargetTypedLocation(semanticModel, switchExpression, cancellationToken);
+            return switchExpression.GetTargetType(semanticModel, cancellationToken);
         }
 
-        bool IsInTargetTypedCollectionElement(CollectionElementSyntax collectionElement)
+        ITypeSymbol? GetTargetTypeForCollectionElement(CollectionElementSyntax collectionElement)
         {
             // We do not currently target type spread expressions in a collection expression.
             if (collectionElement is not ExpressionElementSyntax)
-                return false;
+                return null;
 
             // The element it target typed if the parent collection is itself target typed.
             var collectionExpression = (CollectionExpressionSyntax)collectionElement.GetRequiredParent();
-            return IsInTargetTypedLocation(semanticModel, collectionExpression, cancellationToken);
+            var collectionTargetType = collectionExpression.GetTargetType(semanticModel, cancellationToken);
+            if (collectionTargetType is null)
+                return null;
+
+            if (collectionTargetType.IsSpanOrReadOnlySpan())
+                return collectionTargetType.GetTypeArguments().Single();
+
+            var ienumerableType = semanticModel.Compilation.IEnumerableOfTType();
+            if (collectionTargetType.OriginalDefinition.Equals(ienumerableType))
+                return collectionTargetType.GetTypeArguments().Single();
+
+            foreach (var iface in collectionTargetType.AllInterfaces)
+            {
+                if (iface.OriginalDefinition.Equals(ienumerableType))
+                    return iface.TypeArguments.Single();
+            }
+
+            return null;
         }
 
-        bool IsInTargetTypedInitializerExpression(InitializerExpressionSyntax initializerExpression, ExpressionSyntax expression)
+        ITypeSymbol? GetTargetTypeForInitializerExpression(InitializerExpressionSyntax initializerExpression, ExpressionSyntax expression)
         {
             // new X[] { [1, 2, 3] }.  Elements are target typed by array type.
-            if (initializerExpression.Parent is ArrayCreationExpressionSyntax)
-                return true;
+            if (initializerExpression.Parent is ArrayCreationExpressionSyntax arrayCreation)
+                return HasType(arrayCreation.Type, out var elementType) ? elementType : null;
 
             // new [] { [1, 2, 3], ... }.  Elements are target typed if there's another element with real type.
             if (initializerExpression.Parent is ImplicitArrayCreationExpressionSyntax)
             {
                 foreach (var sibling in initializerExpression.Expressions)
                 {
-                    if (sibling != expression && HasType(sibling))
-                        return true;
+                    if (sibling != expression && HasType(sibling, out var siblingType))
+                        return siblingType;
                 }
+
+                return null;
             }
 
             // TODO: Handle these.
             if (initializerExpression.Parent is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
-                return false;
+                return null;
 
             // T[] x = [1, 2, 3];
             if (initializerExpression.Parent is EqualsValueClauseSyntax)
-                return true;
+                return null;
 
-            return false;
+            return null;
         }
 
-        bool IsInTargetTypedAssignmentExpression(AssignmentExpressionSyntax assignmentExpression, ExpressionSyntax expression)
+        ITypeSymbol? GetTargetTypeForAssignmentExpression(AssignmentExpressionSyntax assignmentExpression, ExpressionSyntax expression)
         {
-            return expression == assignmentExpression.Right && HasType(assignmentExpression.Left);
+            return expression == assignmentExpression.Right && HasType(assignmentExpression.Left, out var leftType) ? leftType : null;
         }
 
-        bool IsInTargetTypedBinaryExpression(BinaryExpressionSyntax binaryExpression, ExpressionSyntax expression)
+        ITypeSymbol? GetTargetTypeForBinaryExpression(BinaryExpressionSyntax binaryExpression, ExpressionSyntax expression)
         {
-            return binaryExpression.Kind() == SyntaxKind.CoalesceExpression && binaryExpression.Right == expression && HasType(binaryExpression.Left);
+            return binaryExpression.Kind() == SyntaxKind.CoalesceExpression && binaryExpression.Right == expression && HasType(binaryExpression.Left, out var leftType) ? leftType : null;
         }
     }
-
 }

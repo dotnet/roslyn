@@ -96,7 +96,8 @@ internal static class UseCollectionExpressionHelpers
 
         var parent = topMostExpression.GetRequiredParent();
 
-        if (!topMostExpression.IsInTargetTypedLocation(semanticModel, cancellationToken))
+        var targetType = topMostExpression.GetTargetType(semanticModel, cancellationToken);
+        if (targetType is null or IErrorTypeSymbol)
             return false;
 
         // (X[])[1, 2, 3] is target typed.  `(X)[1, 2, 3]` is currently not (because it looks like indexing into an expr).

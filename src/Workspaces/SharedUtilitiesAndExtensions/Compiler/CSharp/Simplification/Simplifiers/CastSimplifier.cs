@@ -512,8 +512,7 @@ internal static class CastSimplifier
             if (originalConvertedType.Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability))
                 return true;
 
-            // The types differ on nullability.  If it's just the outer nullability that differs, there are cases where
-            // we still might want to remove.
+            // The types differ on nullability.  But we may still want to remove this.
             //
             // For example:
             //
@@ -521,12 +520,12 @@ internal static class CastSimplifier
             //
             // Here we have a non-null type converted to its nullable form, which is target typed back to the non-null
             // type.  Removing this nullable cast is safe and desirable.
-            //if (originalConvertedType.NullableAnnotation == NullableAnnotation.Annotated &&
-            //    originalConvertedType.WithNullableAnnotation(NullableAnnotation.NotAnnotated).Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability) &&
-            //    rewrittenConvertedType.Equals(GetTargetType(castNode), SymbolEqualityComparer.IncludeNullability))
-            //{
-            //    return true;
-            //}
+            var targetType = castNode.GetTargetType(originalSemanticModel, cancellationToken);
+            if (targetType is not null and not IErrorTypeSymbol &&
+                rewrittenConvertedType.Equals(targetType, SymbolEqualityComparer.IncludeNullability))
+            {
+                return true;
+            }
         }
 
         // We can safely remove convertion to object in interpolated strings regardless of nullability
