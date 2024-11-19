@@ -290,6 +290,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void PreIncrement_ConditionalElementAccess()
+        {
+            // Increment/decrement of a conditional access is not supported.
+            string source = "--a?[b]";
+            UsingExpression(source, TestOptions.Regular13);
+            verify();
+
+            UsingExpression(source, TestOptions.RegularPreview);
+            verify();
+
+            void verify()
+            {
+                N(SyntaxKind.PreDecrementExpression);
+                {
+                    N(SyntaxKind.MinusMinusToken);
+                    N(SyntaxKind.ConditionalAccessExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "a");
+                        }
+                        N(SyntaxKind.QuestionToken);
+                        N(SyntaxKind.ElementBindingExpression);
+                        {
+                            N(SyntaxKind.BracketedArgumentList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Argument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                }
+                EOF();
+            }
+        }
+
+        [Fact]
         public void NullCoalescing_LeftMemberAccess()
         {
             string source = "a?.b = c ?? d";

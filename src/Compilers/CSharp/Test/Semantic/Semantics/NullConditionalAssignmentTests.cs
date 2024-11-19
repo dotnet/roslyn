@@ -425,6 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                         RS? nrs = rs; // 2
                         nrs?.RF = ref i; // 3
+                        nrs?.RF = i;
                     }
                 }
                 """;
@@ -686,38 +687,75 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                     static void M(C c)
                     {
-                        c?.E += () => { Console.Write(1); };
+                        var handlerB = () => Console.Write("b");
+                        var handlerC = () => Console.Write("c");
+
+                        try
+                        {
+                            c?.E();
+                        }
+                        catch (NullReferenceException)
+                        {
+                            Console.Write("a");
+                        }
+
+                        ConditionalAddHandler(c, handlerB);
                         c?.E();
+                        ConditionalAddHandler(c, handlerC);
+                        c?.E();
+                        ConditionalRemoveHandler(c, handlerB);
+                        c?.E();
+                        ConditionalRemoveHandler(c, handlerC);
+
+                        try
+                        {
+                            c?.E();
+                        }
+                        catch (NullReferenceException)
+                        {
+                            Console.Write("d");
+                        }
+                    }
+
+                    static void ConditionalAddHandler(C c, Action a)
+                    {
+                        c?.E += a;
+                    }
+
+                    static void ConditionalRemoveHandler(C c, Action a)
+                    {
+                        c?.E -= a;
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
-            verifier.VerifyIL("C.M", """
+            var verifier = CompileAndVerify(source, expectedOutput: "abbccd");
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.ConditionalAddHandler", """
                 {
-                  // Code size       55 (0x37)
-                  .maxstack  3
+                  // Code size       11 (0xb)
+                  .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  brfalse.s  IL_0028
+                  IL_0001:  brfalse.s  IL_000a
                   IL_0003:  ldarg.0
-                  IL_0004:  ldsfld     "System.Action C.<>c.<>9__4_0"
-                  IL_0009:  dup
-                  IL_000a:  brtrue.s   IL_0023
-                  IL_000c:  pop
-                  IL_000d:  ldsfld     "C.<>c C.<>c.<>9"
-                  IL_0012:  ldftn      "void C.<>c.<M>b__4_0()"
-                  IL_0018:  newobj     "System.Action..ctor(object, System.IntPtr)"
-                  IL_001d:  dup
-                  IL_001e:  stsfld     "System.Action C.<>c.<>9__4_0"
-                  IL_0023:  call       "void C.E.add"
-                  IL_0028:  ldarg.0
-                  IL_0029:  brfalse.s  IL_0036
-                  IL_002b:  ldarg.0
-                  IL_002c:  ldfld      "System.Action C.E"
-                  IL_0031:  callvirt   "void System.Action.Invoke()"
-                  IL_0036:  ret
+                  IL_0004:  ldarg.1
+                  IL_0005:  call       "void C.E.add"
+                  IL_000a:  ret
                 }
                 """);
-            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.ConditionalRemoveHandler", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  brfalse.s  IL_000a
+                  IL_0003:  ldarg.0
+                  IL_0004:  ldarg.1
+                  IL_0005:  call       "void C.E.remove"
+                  IL_000a:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -1452,6 +1490,115 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TypeParameter_04()
+        {
+            var source = """
+                using System;
+
+                C c = null;
+                F1(c);
+
+                c = new C();
+                F1(c);
+                Console.WriteLine($"Assigned value: {c.P}");
+
+                S s = default;
+                s = F1(s);
+                Console.WriteLine($"Assigned value: {s.P}");
+
+                partial class Program
+                {
+                    static T F1<T>(T t) where T : I
+                    {
+                        t?.P = GetValue(1);
+                        return t;
+                    }
+
+                    static int GetValue(int i)
+                    {
+                        Console.WriteLine($"GetValue {i}");
+                        return i;
+                    }
+                }
+
+                interface I
+                {
+                    int P { get; set; }
+                }
+
+                class C : I
+                {
+                    public int P { get; set; }
+                }
+
+                struct S : I
+                {
+                    public int P { get; set; }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                GetValue 1
+                Assigned value: 1
+                GetValue 1
+                Assigned value: 1
+                """);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.F1<T>", """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  2
+                  .locals init (T V_0)
+                  IL_0000:  ldarga.s   V_0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  initobj    "T"
+                  IL_000a:  ldloc.0
+                  IL_000b:  box        "T"
+                  IL_0010:  brtrue.s   IL_0025
+                  IL_0012:  ldobj      "T"
+                  IL_0017:  stloc.0
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  ldloc.0
+                  IL_001b:  box        "T"
+                  IL_0020:  brtrue.s   IL_0025
+                  IL_0022:  pop
+                  IL_0023:  br.s       IL_0036
+                  IL_0025:  ldc.i4.1
+                  IL_0026:  call       "int Program.GetValue(int)"
+                  IL_002b:  constrained. "T"
+                  IL_0031:  callvirt   "void I.P.set"
+                  IL_0036:  ldarg.0
+                  IL_0037:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void TypeParameter_05()
+        {
+            var source = """
+                class C
+                {
+                    static void F2<T>(T? t) where T : struct, I
+                    {
+                        t?.P = 1; // 1
+                    }
+                }
+
+                interface I
+                {
+                    int P { get; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         t?.P = 1; // 1
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, ".P").WithLocation(5, 11));
+        }
+
+        [Fact]
         public void Parentheses_Assignment_LHS_01()
         {
             var source = """
@@ -1757,6 +1904,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void IncrementDecrement_01()
+        {
+            var source = """
+                class C
+                {
+                    int F;
+                    static void M(C c)
+                    {
+                        c?.F++;
+                        --c?.F;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,9): warning CS0649: Field 'C.F' is never assigned to, and will always have its default value 0
+                //     int F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("C.F", "0").WithLocation(3, 9),
+                // (6,9): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         c?.F++;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "c?.F").WithLocation(6, 9),
+                // (7,11): error CS1059: The operand of an increment or decrement operator must be a variable, property or indexer
+                //         --c?.F;
+                Diagnostic(ErrorCode.ERR_IncrementLvalueExpected, "c?.F").WithLocation(7, 11));
         }
     }
 }
