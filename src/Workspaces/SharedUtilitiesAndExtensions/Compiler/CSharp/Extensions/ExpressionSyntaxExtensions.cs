@@ -902,4 +902,129 @@ internal static partial class ExpressionSyntaxExtensions
 
     public static bool InsideCrefReference(this ExpressionSyntax expression)
         => expression.FirstAncestorOrSelf<XmlCrefAttributeSyntax>() != null;
+
+    public static bool IsInTargetTypedLocation(
+        this ExpressionSyntax expression,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+        => IsInTargetTypedLocation(expression, semanticModel, out _, cancellationToken);
+
+    private static bool IsInTargetTypedLocation(
+        this ExpressionSyntax expression,
+        SemanticModel semanticModel,
+        [NotNullWhen(true)] out ITypeSymbol? targetType,
+        CancellationToken cancellationToken)
+    {
+        var topExpression = expression.WalkUpParentheses();
+        var parent = topExpression.Parent;
+        return parent switch
+        {
+            EqualsValueClauseSyntax equalsValue => IsInTargetTypedEqualsValueClause(equalsValue, out targetType),
+            CastExpressionSyntax castExpression => IsInTargetTypedCastExpression(castExpression, out targetType),
+            // a ? [1, 2, 3] : ...  is target typed if either the other side is *not* a collection,
+            // or the entire ternary is target typed itself.
+            ConditionalExpressionSyntax conditionalExpression => IsInTargetTypedConditionalExpression(conditionalExpression, topExpression, out targetType),
+            // Similar rules for switches.
+            SwitchExpressionArmSyntax switchExpressionArm => IsInTargetTypedSwitchExpressionArm(switchExpressionArm, out targetType),
+            InitializerExpressionSyntax initializerExpression => IsInTargetTypedInitializerExpression(initializerExpression, topExpression, out targetType),
+            CollectionElementSyntax collectionElement => IsInTargetTypedCollectionElement(collectionElement, out targetType),
+            AssignmentExpressionSyntax assignmentExpression => IsInTargetTypedAssignmentExpression(assignmentExpression, topExpression, out targetType),
+            BinaryExpressionSyntax binaryExpression => IsInTargetTypedBinaryExpression(binaryExpression, topExpression, out targetType),
+            LambdaExpressionSyntax lambda => IsInTargetTypedLambdaExpression(lambda, topExpression, out targetType),
+            ArgumentSyntax or AttributeArgumentSyntax => true,
+            ReturnStatementSyntax => true,
+            ArrowExpressionClauseSyntax => true,
+            _ => false,
+        };
+
+        bool HasType(ExpressionSyntax expression)
+            => semanticModel.GetTypeInfo(expression, cancellationToken).Type is not null and not IErrorTypeSymbol;
+
+        static bool IsInTargetTypedEqualsValueClause(EqualsValueClauseSyntax equalsValue)
+            // If we're after an `x = ...` and it's not `var x`, this is target typed.
+            => equalsValue.Parent is not VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax { Type.IsVar: true } };
+
+        static bool IsInTargetTypedCastExpression(
+            CastExpressionSyntax castExpression,
+            [NotNullWhen(true)] out ITypeSymbol? targetType)
+            // (X[])[1, 2, 3] is target typed.  `(X)[1, 2, 3]` is currently not (because it looks like indexing into an expr).
+            => castExpression.Type is not IdentifierNameSyntax;
+
+        bool IsInTargetTypedConditionalExpression(ConditionalExpressionSyntax conditionalExpression, ExpressionSyntax expression)
+        {
+            if (conditionalExpression.WhenTrue == expression)
+                return HasType(conditionalExpression.WhenFalse) || IsInTargetTypedLocation(semanticModel, conditionalExpression, cancellationToken);
+            else if (conditionalExpression.WhenFalse == expression)
+                return HasType(conditionalExpression.WhenTrue) || IsInTargetTypedLocation(semanticModel, conditionalExpression, cancellationToken);
+            else
+                return false;
+        }
+
+        bool IsInTargetTypedLambdaExpression(LambdaExpressionSyntax lambda, ExpressionSyntax expression)
+            => lambda.ExpressionBody == expression && IsInTargetTypedLocation(semanticModel, lambda, cancellationToken);
+
+        bool IsInTargetTypedSwitchExpressionArm(SwitchExpressionArmSyntax switchExpressionArm)
+        {
+            var switchExpression = (SwitchExpressionSyntax)switchExpressionArm.GetRequiredParent();
+
+            // check if any other arm has a type that this would be target typed against.
+            foreach (var arm in switchExpression.Arms)
+            {
+                if (arm != switchExpressionArm && HasType(arm.Expression))
+                    return true;
+            }
+
+            // All arms do not have a type, this is target typed if the switch itself is target typed.
+            return IsInTargetTypedLocation(semanticModel, switchExpression, cancellationToken);
+        }
+
+        bool IsInTargetTypedCollectionElement(CollectionElementSyntax collectionElement)
+        {
+            // We do not currently target type spread expressions in a collection expression.
+            if (collectionElement is not ExpressionElementSyntax)
+                return false;
+
+            // The element it target typed if the parent collection is itself target typed.
+            var collectionExpression = (CollectionExpressionSyntax)collectionElement.GetRequiredParent();
+            return IsInTargetTypedLocation(semanticModel, collectionExpression, cancellationToken);
+        }
+
+        bool IsInTargetTypedInitializerExpression(InitializerExpressionSyntax initializerExpression, ExpressionSyntax expression)
+        {
+            // new X[] { [1, 2, 3] }.  Elements are target typed by array type.
+            if (initializerExpression.Parent is ArrayCreationExpressionSyntax)
+                return true;
+
+            // new [] { [1, 2, 3], ... }.  Elements are target typed if there's another element with real type.
+            if (initializerExpression.Parent is ImplicitArrayCreationExpressionSyntax)
+            {
+                foreach (var sibling in initializerExpression.Expressions)
+                {
+                    if (sibling != expression && HasType(sibling))
+                        return true;
+                }
+            }
+
+            // TODO: Handle these.
+            if (initializerExpression.Parent is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax)
+                return false;
+
+            // T[] x = [1, 2, 3];
+            if (initializerExpression.Parent is EqualsValueClauseSyntax)
+                return true;
+
+            return false;
+        }
+
+        bool IsInTargetTypedAssignmentExpression(AssignmentExpressionSyntax assignmentExpression, ExpressionSyntax expression)
+        {
+            return expression == assignmentExpression.Right && HasType(assignmentExpression.Left);
+        }
+
+        bool IsInTargetTypedBinaryExpression(BinaryExpressionSyntax binaryExpression, ExpressionSyntax expression)
+        {
+            return binaryExpression.Kind() == SyntaxKind.CoalesceExpression && binaryExpression.Right == expression && HasType(binaryExpression.Left);
+        }
+    }
+
 }

@@ -521,12 +521,12 @@ internal static class CastSimplifier
             //
             // Here we have a non-null type converted to its nullable form, which is target typed back to the non-null
             // type.  Removing this nullable cast is safe and desirable.
-            if (originalConvertedType.NullableAnnotation == NullableAnnotation.Annotated &&
-                originalConvertedType.WithNullableAnnotation(NullableAnnotation.NotAnnotated).Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability) &&
-                rewrittenConvertedType.Equals(GetTargetType(castNode), SymbolEqualityComparer.IncludeNullability))
-            {
-                return true;
-            }
+            //if (originalConvertedType.NullableAnnotation == NullableAnnotation.Annotated &&
+            //    originalConvertedType.WithNullableAnnotation(NullableAnnotation.NotAnnotated).Equals(rewrittenConvertedType, SymbolEqualityComparer.IncludeNullability) &&
+            //    rewrittenConvertedType.Equals(GetTargetType(castNode), SymbolEqualityComparer.IncludeNullability))
+            //{
+            //    return true;
+            //}
         }
 
         // We can safely remove convertion to object in interpolated strings regardless of nullability
