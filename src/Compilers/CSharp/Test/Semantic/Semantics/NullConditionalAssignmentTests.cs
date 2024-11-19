@@ -81,6 +81,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s").WithArguments("s").WithLocation(7, 16));
         }
 
+        [Theory]
+        [InlineData(SyntaxKind.BarEqualsToken)]
+        [InlineData(SyntaxKind.AmpersandEqualsToken)]
+        [InlineData(SyntaxKind.CaretEqualsToken)]
+        [InlineData(SyntaxKind.LessThanLessThanEqualsToken)]
+        [InlineData(SyntaxKind.GreaterThanGreaterThanEqualsToken)]
+        [InlineData(SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken)]
+        [InlineData(SyntaxKind.PlusEqualsToken)]
+        [InlineData(SyntaxKind.MinusEqualsToken)]
+        [InlineData(SyntaxKind.AsteriskEqualsToken)]
+        [InlineData(SyntaxKind.SlashEqualsToken)]
+        [InlineData(SyntaxKind.PercentEqualsToken)]
+        [InlineData(SyntaxKind.EqualsToken)]
+        [InlineData(SyntaxKind.QuestionQuestionEqualsToken)]
+        public void LangVersion_03(SyntaxKind kind)
+        {
+            string op = SyntaxFacts.GetText(kind);
+            string source = $$"""
+                class C
+                {
+                    public object F;
+
+                    public static void M(C c)
+                    {
+                        c?.F {{op}} new object();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
+            comp.GetEmitDiagnostics()
+                .Where(diag => diag.Code == (int)ErrorCode.ERR_FeatureInPreview)
+                .Verify(
+                    // (7,11): error CS8652: The feature 'null conditional assignment' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         c?.F {op} new object();
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, $".F {op} new object()").WithArguments("null conditional assignment").WithLocation(7, 11));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.GetEmitDiagnostics()
+                .Where(diag => diag.Code == (int)ErrorCode.ERR_FeatureInPreview)
+                .Verify();
+        }
+
         [Fact]
         public void FieldAccessAssignment_01()
         {

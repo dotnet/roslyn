@@ -10944,19 +10944,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var conditionalAccessBinder = new BinderWithConditionalReceiver(this, receiver);
             var access = conditionalAccessBinder.BindValue(node.WhenNotNull, diagnostics, BindValueKind.RValue);
-            Debug.Assert(access.Kind is not BoundKind.DeconstructionAssignmentOperator); // this shouldn't be possible syntactically
-            if (access.Kind
-                is BoundKind.AssignmentOperator
-                or BoundKind.CompoundAssignmentOperator
-                or BoundKind.NullCoalescingAssignmentOperator
-                or BoundKind.EventAssignmentOperator)
+            if (access.Syntax is AssignmentExpressionSyntax)
             {
                 CheckFeatureAvailability(node.WhenNotNull, MessageID.IDS_FeatureNullConditionalAssignment, diagnostics);
-            }
-            else
-            {
-                // If this assertion fails, it means a new assignment BoundKind was added but was not handled in the preceding 'if'.
-                Debug.Assert(access.Syntax is not AssignmentExpressionSyntax);
             }
 
             if (receiver.HasAnyErrors || access.HasAnyErrors)
