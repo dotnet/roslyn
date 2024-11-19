@@ -622,7 +622,6 @@ public class AddAccessibilityModifiersTests
         var test = new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = Testing.ReferenceAssemblies.Net.Net60
         };
@@ -645,7 +644,6 @@ public class AddAccessibilityModifiersTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
@@ -658,7 +656,6 @@ public class AddAccessibilityModifiersTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }

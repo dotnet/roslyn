@@ -5741,7 +5741,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
         }.RunAsync();
     }
 
@@ -5766,7 +5765,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5792,7 +5790,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5818,7 +5815,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5910,7 +5906,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5936,7 +5931,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -5962,7 +5956,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -6064,7 +6057,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -6086,7 +6078,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -6108,7 +6099,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7_1,
         }.RunAsync();
     }
@@ -6164,7 +6154,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -6188,7 +6177,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -8238,7 +8226,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -8311,7 +8298,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -8360,7 +8346,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -8409,7 +8394,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -8509,7 +8493,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -8558,7 +8541,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -8607,7 +8589,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8
         }.RunAsync();
     }
@@ -9659,7 +9640,6 @@ public class RemoveUnnecessaryCastTests
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9711,7 +9691,6 @@ public class RemoveUnnecessaryCastTests
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9733,7 +9712,6 @@ public class RemoveUnnecessaryCastTests
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9819,7 +9797,6 @@ public class RemoveUnnecessaryCastTests
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9843,7 +9820,6 @@ public class RemoveUnnecessaryCastTests
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -9867,7 +9843,6 @@ public class RemoveUnnecessaryCastTests
         var test = new VerifyCS.Test()
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9
         };
 
@@ -10004,7 +9979,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -10033,7 +10007,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -10057,7 +10030,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -10080,7 +10052,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -10916,7 +10887,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp9,
         }.RunAsync();
     }
@@ -12120,7 +12090,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = version,
         }.RunAsync();
     }
@@ -12151,7 +12120,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12171,7 +12139,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
         }.RunAsync();
     }
 
@@ -12189,7 +12156,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12214,7 +12180,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12237,7 +12202,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12259,7 +12223,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12281,7 +12244,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12305,7 +12267,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12328,7 +12289,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12345,7 +12305,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12368,7 +12327,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12393,7 +12351,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12413,7 +12370,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12433,7 +12389,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12458,7 +12413,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12482,7 +12436,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12514,7 +12467,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12565,7 +12517,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12607,7 +12558,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12635,7 +12585,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12683,7 +12632,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12729,7 +12677,6 @@ public class RemoveUnnecessaryCastTests
                 OutputKind = OutputKind.ConsoleApplication,
             },
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12749,7 +12696,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12955,7 +12901,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -12982,7 +12927,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }
@@ -13128,7 +13072,6 @@ public class RemoveUnnecessaryCastTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
         }.RunAsync();
     }

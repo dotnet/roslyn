@@ -1024,7 +1024,6 @@ public class ConvertConcatenationToInterpolatedStringTests
         {
             LanguageVersion = LanguageVersion.CSharp9,
             TestCode = code,
-            FixedCode = code,
         }.RunAsync();
     }
 
@@ -1081,7 +1080,6 @@ public class ConvertConcatenationToInterpolatedStringTests
         {
             LanguageVersion = LanguageVersion.CSharp9,
             TestCode = code,
-            FixedCode = code,
         }.RunAsync();
 
         await new VerifyCS.Test

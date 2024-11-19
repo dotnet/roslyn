@@ -38,7 +38,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -98,7 +97,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp20,
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp8,
         }.RunAsync();
     }
@@ -399,7 +397,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = source,
-            FixedCode = source,
             LanguageVersion = LanguageVersion.CSharp7,
         }.RunAsync();
     }
@@ -700,7 +697,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = source,
-            FixedCode = source,
         }.RunAsync();
     }
     [Fact]
@@ -1311,7 +1307,6 @@ public class UseRangeOperatorTests
         {
             ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
             TestCode = source,
-            FixedCode = source,
         }.RunAsync();
     }
 
