@@ -2757,7 +2757,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         ? operationsToAnalyze.WhereAsArray(operation => analysisScope.ShouldAnalyze(operation.Syntax))
                         : operationsToAnalyze;
 
-                    var filteredOperationsToAnalyzeBuilder = ArrayBuilder<IOperation>.GetInstance();
+                    var filteredOperationsToAnalyzeBuilder = ArrayBuilder<IOperation>.GetInstance(filteredOperationsToAnalyze.Length);
                     filteredOperationsToAnalyzeBuilder.AddRange(filteredOperationsToAnalyze);
 
                     AnalyzerExecutor.ExecuteOperationActions(filteredOperationsToAnalyzeBuilder, operationActionsByKind,
