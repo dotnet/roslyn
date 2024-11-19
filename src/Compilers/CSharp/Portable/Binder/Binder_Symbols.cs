@@ -1401,10 +1401,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return type;
             }
-
-            // we pass an empty basesBeingResolved here because this invocation is not on any possible path of
-            // infinite recursion in binding base clauses.
-            return ConstructNamedType(type, typeSyntax, typeArgumentsSyntax, typeArguments, basesBeingResolved: null, diagnostics: diagnostics);
+            else
+            {
+                // we pass an empty basesBeingResolved here because this invocation is not on any possible path of
+                // infinite recursion in binding base clauses.
+                return ConstructNamedType(type, typeSyntax, typeArgumentsSyntax, typeArguments, basesBeingResolved: null, diagnostics: diagnostics);
+            }
         }
 
         /// <remarks>

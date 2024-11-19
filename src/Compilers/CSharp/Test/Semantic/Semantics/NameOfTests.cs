@@ -2933,7 +2933,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
-        public void Namof_NestedOpenType1()
+        public void Nameof_NestedOpenType1()
         {
             CreateCompilation("""
                 using System;
@@ -2945,7 +2945,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
-        public void Namof_NestedOpenType2()
+        public void Nameof_NestedOpenType2()
         {
             CreateCompilation("""
                 using System;
@@ -2960,7 +2960,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
-        public void Namof_NestedOpenType3()
+        public void Nameof_NestedOpenType3()
         {
             CreateCompilation("""
                 #nullable enable
@@ -2973,7 +2973,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
-        public void Namof_NestedOpenType4()
+        public void Nameof_NestedOpenType4()
         {
             CreateCompilation("""
                 #nullable enable
@@ -2986,6 +2986,17 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 // (5,21): error CS7003: Unexpected use of an unbound generic name
                 // var v = nameof(List<List<>?>);
                 Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "List<>").WithLocation(5, 21));
+        }
+
+        [Fact]
+        public void Nameof_AliasQualifiedName()
+        {
+            CreateCompilation("""
+                using System;
+                    
+                var v = nameof(global::System.Collections.Generic.List<>);
+                Console.WriteLine(v);
+                """).VerifyDiagnostics();
         }
 
         [Theory]
