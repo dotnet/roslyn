@@ -38,6 +38,7 @@ using Xunit;
 using Basic.Reference.Assemblies;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -4760,7 +4761,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
         }
 
         [Fact]
-        public void UnableWriteOutput()
+        public void UnableWriteOutput_OutputFileIsDirectory()
         {
             var tempFolder = Temp.CreateDirectory();
             var baseDirectory = tempFolder.ToString();
@@ -4772,7 +4773,36 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = CreateCSharpCompiler(null, baseDirectory, new[] { "/nologo", "/preferreduilang:en", "/t:library", "/out:" + subFolder.ToString(), src.ToString() }).Run(outWriter);
             Assert.Equal(1, exitCode);
-            Assert.True(outWriter.ToString().Trim().StartsWith("error CS2012: Cannot open '" + subFolder.ToString() + "' for writing -- '", StringComparison.Ordinal)); // Cannot create a file when that file already exists.
+            var output = outWriter.ToString().Trim();
+            Assert.StartsWith($"error CS2012: Cannot open '{subFolder}' for writing -- ", output); // Cannot create a file when that file already exists.
+
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void UnableWriteOutput_OutputFileLocked()
+        {
+            var tempFolder = Temp.CreateDirectory();
+            var baseDirectory = tempFolder.ToString();
+            var filePath = tempFolder.CreateFile("temp").Path;
+
+            using var _ = new FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None);
+            var currentProcess = Process.GetCurrentProcess();
+
+            var src = Temp.CreateFile("a.cs");
+            src.WriteAllText("public class C{}");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            int exitCode = CreateCSharpCompiler(responseFile: null, baseDirectory, ["/nologo", "/preferreduilang:en", "/t:library", "/out:" + filePath, src.ToString()]).Run(outWriter);
+            Assert.Equal(1, exitCode);
+            var output = outWriter.ToString().Trim();
+
+            var pattern = @"error CS2012: Cannot open '(?<path>.*)' for writing -- (?<message>.*); file may be locked by '(?<app>.*)' \((?<pid>.*)\)";
+            var match = Regex.Match(output, pattern);
+            Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}");
+            Assert.Equal(filePath, match.Groups["path"].Value);
+            Assert.Contains("testhost", match.Groups["app"].Value);
+            Assert.Equal(currentProcess.Id, int.Parse(match.Groups["pid"].Value));
 
             CleanupAllGeneratedFiles(src.Path);
         }
