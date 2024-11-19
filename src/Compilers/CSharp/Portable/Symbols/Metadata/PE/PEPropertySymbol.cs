@@ -128,28 +128,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ThreadSafeFlagOperations.Set(ref _bits, IsUseSiteDiagnosticPopulatedBit);
             }
 
-            public readonly bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
+            public readonly bool IsUseSiteDiagnosticPopulated => (Volatile.Read(in _bits) & IsUseSiteDiagnosticPopulatedBit) != 0;
 
             public void SetObsoleteAttributePopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsObsoleteAttributePopulatedBit);
             }
 
-            public readonly bool IsObsoleteAttributePopulated => (_bits & IsObsoleteAttributePopulatedBit) != 0;
+            public readonly bool IsObsoleteAttributePopulated => (Volatile.Read(in _bits) & IsObsoleteAttributePopulatedBit) != 0;
 
             public void SetCustomAttributesPopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsCustomAttributesPopulatedBit);
             }
 
-            public readonly bool IsCustomAttributesPopulated => (_bits & IsCustomAttributesPopulatedBit) != 0;
+            public readonly bool IsCustomAttributesPopulated => (Volatile.Read(in _bits) & IsCustomAttributesPopulatedBit) != 0;
 
             public void SetOverloadResolutionPriorityPopulated()
             {
                 ThreadSafeFlagOperations.Set(ref _bits, IsOverloadResolutionPriorityPopulatedBit);
             }
 
-            public readonly bool IsOverloadResolutionPriorityPopulated => (_bits & IsOverloadResolutionPriorityPopulatedBit) != 0;
+            public readonly bool IsOverloadResolutionPriorityPopulated => (Volatile.Read(in _bits) & IsOverloadResolutionPriorityPopulatedBit) != 0;
         }
 
         /// <summary>
