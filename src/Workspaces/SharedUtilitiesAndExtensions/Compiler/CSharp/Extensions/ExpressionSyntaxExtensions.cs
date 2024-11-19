@@ -941,16 +941,10 @@ internal static partial class ExpressionSyntaxExtensions
         }
 
         ITypeSymbol? GetTargetTypeForArgument(ArgumentSyntax argument)
-        {
-            var operation = semanticModel.GetOperation(argument, cancellationToken) as IArgumentOperation;
-            return operation?.Parameter?.Type;
-        }
+            => argument.DetermineParameter(semanticModel, allowUncertainCandidates: false, allowParams: true, cancellationToken)?.Type;
 
         ITypeSymbol? GetTargetTypeForAttributeArgument(AttributeArgumentSyntax argument)
-        {
-            var operation = semanticModel.GetOperation(argument, cancellationToken) as IArgumentOperation;
-            return operation?.Parameter?.Type;
-        }
+            => argument.DetermineParameter(semanticModel, allowUncertainCandidates: false, allowParams: true, cancellationToken)?.Type;
 
         ITypeSymbol? GetTargetTypeForArrowExpression(ArrowExpressionClauseSyntax arrowExpression)
         {
