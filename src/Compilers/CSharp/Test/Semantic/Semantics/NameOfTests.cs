@@ -2370,13 +2370,13 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Fact]
         public void OpenTypeInNameof_Preview()
         {
-            CreateCompilation("""
+            CompileAndVerify("""
                 using System;
                 using System.Collections.Generic;
 
                 var v = nameof(List<>);
                 Console.WriteLine(v);
-                """).VerifyDiagnostics();
+                """, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2397,13 +2397,13 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Fact]
         public void OpenTypeInNameof_Next()
         {
-            CreateCompilation("""
+            CompileAndVerify("""
                 using System;
                 using System.Collections.Generic;
 
                 var v = nameof(List<>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                """, parseOptions: TestOptions.RegularNext, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2623,25 +2623,25 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Fact]
         public void Nameof_NestedClosedType1()
         {
-            CreateCompilation("""
+            CompileAndVerify("""
                 using System;
                 using System.Collections.Generic;
 
                 var v = nameof(List<List<int>>);
                 Console.WriteLine(v);
-                """).VerifyDiagnostics();
+                """, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Fact]
         public void Nameof_NestedClosedType2()
         {
-            CreateCompilation("""
+            CompileAndVerify("""
                 using System;
                 using System.Collections.Generic;
 
                 var v = nameof(List<List<int>[]>);
                 Console.WriteLine(v);
-                """).VerifyDiagnostics();
+                """, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2935,13 +2935,13 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Fact]
         public void Nameof_NestedOpenType1()
         {
-            CreateCompilation("""
+            CompileAndVerify("""
                 using System;
                 using System.Collections.Generic;
                     
                 var v = nameof(List<List<int>[]>);
                 Console.WriteLine(v);
-                """).VerifyDiagnostics();
+                """, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2962,14 +2962,14 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Fact]
         public void Nameof_NestedOpenType3()
         {
-            CreateCompilation("""
+            CompileAndVerify("""
                 #nullable enable
                 using System;
                 using System.Collections.Generic;
                     
                 var v = nameof(List<List<int>?>);
                 Console.WriteLine(v);
-                """).VerifyDiagnostics();
+                """, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2991,12 +2991,12 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         [Fact]
         public void Nameof_AliasQualifiedName()
         {
-            CreateCompilation("""
+            CompileAndVerify("""
                 using System;
                     
                 var v = nameof(global::System.Collections.Generic.List<>);
                 Console.WriteLine(v);
-                """).VerifyDiagnostics();
+                """, expectedOutput: "List").VerifyDiagnostics();
         }
 
         [Theory]
