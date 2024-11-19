@@ -2758,7 +2758,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         : operationsToAnalyze;
 
                     var filteredOperationsToAnalyzeBuilder = ArrayBuilder<IOperation>.GetInstance();
-                    filteredOperationsToAnalyzeBuilder.AddRange(operationsToAnalyze);
+                    filteredOperationsToAnalyzeBuilder.AddRange(filteredOperationsToAnalyze);
 
                     AnalyzerExecutor.ExecuteOperationActions(filteredOperationsToAnalyzeBuilder, operationActionsByKind,
                         analyzer, semanticModel, declarationAnalysisData.TopmostNodeForAnalysis.FullSpan,
