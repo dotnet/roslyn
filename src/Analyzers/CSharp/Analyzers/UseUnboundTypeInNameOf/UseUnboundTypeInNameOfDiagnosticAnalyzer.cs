@@ -34,7 +34,7 @@ internal sealed class CSharpUseUnboundTypeInNameOfDiagnosticAnalyzer()
         EnforceOnBuildValues.UseUnboundTypeInNameOf,
         CSharpCodeStyleOptions.PreferUnboundTypeInNameOf,
         new LocalizableResourceString(
-            nameof(CSharpAnalyzersResources.Use_unbound_type), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+            nameof(CSharpAnalyzersResources.Use_unbound_generic_type), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;

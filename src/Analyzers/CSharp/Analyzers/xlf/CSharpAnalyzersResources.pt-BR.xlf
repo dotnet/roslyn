@@ -422,9 +422,9 @@
         <target state="translated">Usar a tupla para trocar valores</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_unbound_type">
-        <source>Use unbound type</source>
-        <target state="new">Use unbound type</target>
+      <trans-unit id="Use_unbound_generic_type">
+        <source>Use unbound generic type</source>
+        <target state="new">Use unbound generic type</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

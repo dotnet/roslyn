@@ -32,7 +32,7 @@ internal sealed partial class CSharpUseUnboundTypeInNameOfCodeFixProvider() : Sy
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        RegisterCodeFix(context, CSharpAnalyzersResources.Use_unbound_type, nameof(CSharpAnalyzersResources.Use_unbound_type));
+        RegisterCodeFix(context, CSharpAnalyzersResources.Use_unbound_generic_type, nameof(CSharpAnalyzersResources.Use_unbound_generic_type));
         return Task.CompletedTask;
     }
 
