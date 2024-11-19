@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // The remaining code is hidden to hide the fact that it can run concurrently with the task's continuation
             }
 
-            bodyBuilder.Add(GenerateHoistedLocalsCleanupForExit(rootScopeHoistedLocals));
+            bodyBuilder.Add(GenerateCleanupForExit(rootScopeHoistedLocals));
 
             bodyBuilder.Add(GenerateSetResultCall());
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     exceptionFilterOpt: null,
                     body: F.Block(
                         assignFinishedState, // _state = finishedState;
-                        GenerateHoistedLocalsCleanupForExit(rootHoistedLocals),
+                        GenerateCleanupForExit(rootHoistedLocals),
                         callSetException, // builder.SetException(ex);  OR  _promiseOfValueOrEnd.SetException(ex);
                         GenerateReturn(false)), // return;
                     isSynthesizedAsyncCatchAll: true);
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         : ImmutableArray<BoundExpression>.Empty));
         }
 
-        protected virtual BoundStatement GenerateHoistedLocalsCleanupForExit(ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
+        protected virtual BoundStatement GenerateCleanupForExit(ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
         {
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 

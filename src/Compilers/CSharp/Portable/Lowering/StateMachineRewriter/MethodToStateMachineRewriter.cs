@@ -135,11 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.proxies.Add(proxy.Key, proxy.Value);
             }
 
-            _fieldsForCleanup = new ArrayBuilder<FieldSymbol>();
-            foreach (FieldSymbol fieldForCleanup in nonReusableFieldsForCleanup)
-            {
-                _fieldsForCleanup.Add(fieldForCleanup);
-            }
+            _fieldsForCleanup = new ArrayBuilder<FieldSymbol>(nonReusableFieldsForCleanup.Length);
+            _fieldsForCleanup.AddRange(nonReusableFieldsForCleanup);
 
             // create cache local for reference type "this" in Release
             var thisParameter = originalMethod.ThisParameter;

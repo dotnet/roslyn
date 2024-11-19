@@ -3033,7 +3033,6 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75666")]
-
         public void AddVariableCleanup_StringLocal()
         {
             string src = """

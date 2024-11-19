@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (asyncDispatch != null) ? F.Block(asyncDispatch, iteratorDispatch) : iteratorDispatch;
         }
 
-        protected override BoundStatement GenerateHoistedLocalsCleanupForExit(ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
+        protected override BoundStatement GenerateCleanupForExit(ImmutableArray<StateMachineFieldSymbol> rootHoistedLocals)
         {
             // We need to clean nested hoisted local variables too (not just top-level ones)
             // as they are not cleaned when exiting a block if we exit using a `yield break`
