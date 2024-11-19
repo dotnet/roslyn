@@ -941,7 +941,23 @@ internal static partial class ExpressionSyntaxExtensions
         }
 
         ITypeSymbol? GetTargetTypeForArgument(ArgumentSyntax argument)
-            => argument.DetermineParameter(semanticModel, allowUncertainCandidates: false, allowParams: true, cancellationToken)?.Type;
+        {
+            if (argument.Parent is TupleExpressionSyntax tupleExpression)
+            {
+                var tupleType = tupleExpression.GetTargetType(semanticModel, cancellationToken);
+                if (tupleType is null)
+                    return null;
+
+                var typeArguments = tupleType.GetTypeArguments();
+                var index = tupleExpression.Arguments.IndexOf(argument);
+
+                return index < typeArguments.Length ? typeArguments[index] : null;
+            }
+            else
+            {
+                return argument.DetermineParameter(semanticModel, allowUncertainCandidates: false, allowParams: true, cancellationToken)?.Type;
+            }
+        }
 
         ITypeSymbol? GetTargetTypeForAttributeArgument(AttributeArgumentSyntax argument)
             => argument.DetermineParameter(semanticModel, allowUncertainCandidates: false, allowParams: true, cancellationToken)?.Type;
