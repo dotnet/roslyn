@@ -19,7 +19,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseTupleSwapCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseTupleSwap)]
-public partial class UseTupleSwapTests
+public sealed class UseTupleSwapTests
 {
     [Fact]
     public async Task TestMissingBeforeCSharp7()

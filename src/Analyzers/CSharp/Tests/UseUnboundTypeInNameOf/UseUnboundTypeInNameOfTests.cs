@@ -21,7 +21,7 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseUnboundTypeInNameOfCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseUnboundTypeInNameOf)]
-public partial class UseUnboundTypeInNameOfTests
+public sealed class UseUnboundTypeInNameOfTests
 {
     [Fact]
     public async Task TestBaseCase()
