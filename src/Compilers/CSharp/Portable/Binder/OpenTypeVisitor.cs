@@ -42,7 +42,7 @@ internal partial class Binder
             SeparatedSyntaxList<TypeSyntax> typeArguments = node.TypeArgumentList.Arguments;
             if (node.IsUnboundGenericName)
             {
-                _allowedMap ??= [];
+                _allowedMap ??= new Dictionary<GenericNameSyntax, bool>();
                 _allowedMap[node] = !_seenConstructed;
             }
             else
