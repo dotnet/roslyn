@@ -1205,7 +1205,7 @@ class C : I
             
             class C : IFoo
             {
-                static bool IFoo.TryDecode([NotNullWhen(false)] out DecodeError? decodeError, [NotNullWhen(false)] out string? errorMessage)
+                static bool IFoo.TryDecode(out DecodeError? decodeError, out string? errorMessage)
                 {
                     throw new System.NotImplementedException();$$
                 }

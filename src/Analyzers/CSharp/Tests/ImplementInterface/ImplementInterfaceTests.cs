@@ -4732,7 +4732,7 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
 
                 public class C : IGoo
                 {
-                    void IGoo.Goo([DateTimeConstant(100), Optional] DateTime x)
+                    void IGoo.Goo(DateTime x)
                     {
                         throw new NotImplementedException();
                     }
@@ -4819,12 +4819,12 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
 
             public class C : IGoo
             {
-                void IGoo.Goo1([IUnknownConstant, Optional] object x)
+                void IGoo.Goo1(object x)
                 {
                     throw new System.NotImplementedException();
                 }
 
-                void IGoo.Goo2([IDispatchConstant, Optional] object x)
+                void IGoo.Goo2(object x)
                 {
                     throw new System.NotImplementedException();
                 }
@@ -6732,14 +6732,13 @@ class C : I
 
             class C : I
             {
-                [return: MarshalAs(UnmanagedType.U1)]
-                bool I.Goo([MarshalAs(UnmanagedType.U1)] bool x)
+                bool I.Goo(bool x)
                 {
                     throw new System.NotImplementedException();
                 }
             }
             """,
-codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+            codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546443")]
@@ -7629,29 +7628,6 @@ class Program : IDisposable
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
     public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced2()
     {
-        const string equatableParameter =
-#if NET9_0_OR_GREATER
-            "[AllowNull] int other"
-#else
-            "int other"
-#endif
-            ;
-
-        const string resultUsings =
-#if NET9_0_OR_GREATER
-            """
-            using System;
-            using System.Collections.Generic;
-            using System.Diagnostics.CodeAnalysis;
-            """
-#else
-            """
-            using System;
-            using System.Collections.Generic;
-            """
-#endif
-            ;
-
         await TestWithAllCodeStyleOptionsOffAsync(
             """
             interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
@@ -7669,7 +7645,8 @@ class Program : IDisposable
             }
             """,
             $$"""
-            {{resultUsings}}
+            using System;
+            using System.Collections.Generic;
 
             interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
             {
@@ -7681,7 +7658,7 @@ class Program : IDisposable
             {
                 private bool disposedValue;
 
-                bool IEquatable<int>.Equals({{equatableParameter}})
+                bool IEquatable<int>.Equals(int other)
                 {
                     throw new NotImplementedException();
                 }

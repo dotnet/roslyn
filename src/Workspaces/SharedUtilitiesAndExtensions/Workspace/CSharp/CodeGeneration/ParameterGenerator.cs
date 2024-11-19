@@ -67,7 +67,7 @@ internal static class ParameterGenerator
             return reusableSyntax;
 
         return Parameter(parameter.Name.ToIdentifierToken())
-            .WithAttributeLists(GenerateAttributes(parameter, info))
+            .WithAttributeLists(GenerateAttributes(parameter, isExplicit, info))
             .WithModifiers(GenerateModifiers(parameter, isFirstParam))
             .WithType(parameter.Type.GenerateTypeSyntax())
             .WithDefault(GenerateEqualsValueClause(info.Generator, parameter, isExplicit, seenOptional));
@@ -119,8 +119,13 @@ internal static class ParameterGenerator
         => ExpressionGenerator.GenerateExpression(generator, parameter.Type, value, canUseFieldReference: true);
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-        IParameterSymbol parameter, CSharpCodeGenerationContextInfo info)
+        IParameterSymbol parameter, bool isExplicit, CSharpCodeGenerationContextInfo info)
     {
+        if (isExplicit)
+        {
+            return default;
+        }
+
         var attributes = parameter.GetAttributes();
         if (attributes.Length == 0)
         {

@@ -121,7 +121,7 @@ internal static class MethodGenerator
 
         var isExplicit = explicitInterfaceSpecifier != null;
         var methodDeclaration = MethodDeclaration(
-            attributeLists: GenerateAttributes(method, info),
+            attributeLists: GenerateAttributes(method, isExplicit, info),
             modifiers: GenerateModifiers(method, destination, info),
             returnType: method.GenerateReturnTypeSyntax(),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
@@ -193,8 +193,13 @@ internal static class MethodGenerator
     }
 
     private static SyntaxList<AttributeListSyntax> GenerateAttributes(
-        IMethodSymbol method, CSharpCodeGenerationContextInfo info)
+        IMethodSymbol method, bool isExplicit, CSharpCodeGenerationContextInfo info)
     {
+        if (isExplicit)
+        {
+            return default;
+        }
+
         var attributes = new List<AttributeListSyntax>();
 
         attributes.AddRange(AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info));
