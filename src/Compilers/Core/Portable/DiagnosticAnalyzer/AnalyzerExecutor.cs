@@ -863,7 +863,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     var syntaxNodesToAnalyzeBuilder = ArrayBuilder<SyntaxNode>.GetInstance(nodesToAnalyzeBuilder.Count);
                     foreach (var syntaxNode in nodesToAnalyzeBuilder)
-                        syntaxNodesToAnalyzeBuilder.Add((syntaxNode as SyntaxNode)!);
+                        syntaxNodesToAnalyzeBuilder.Add((SyntaxNode)(object)syntaxNode!);
 
                     var executableNodeActionsByKind = GetNodeActionsByKind(syntaxNodeActions);
                     ExecuteSyntaxNodeActions(syntaxNodesToAnalyzeBuilder, executableNodeActionsByKind, analyzer, declaredSymbol, semanticModel, getKind, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasCodeBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     var operationsToAnalyzeBuilder = ArrayBuilder<IOperation>.GetInstance(nodesToAnalyzeBuilder.Count);
                     foreach (var syntaxNode in nodesToAnalyzeBuilder)
-                        operationsToAnalyzeBuilder.Add((syntaxNode as IOperation)!);
+                        operationsToAnalyzeBuilder.Add((IOperation)syntaxNode!);
 
                     var operationActionsByKind = GetOperationActionsByKind(operationActions);
                     ExecuteOperationActions(operationsToAnalyzeBuilder, operationActionsByKind, analyzer, declaredSymbol, semanticModel, diagReporter, isSupportedDiagnostic, filterSpan, isGeneratedCode, hasOperationBlockStartOrSymbolStartActions: startActions.Any(), cancellationToken);
