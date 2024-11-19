@@ -4663,40 +4663,40 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
         await new VerifyCS.Test
         {
             TestCode = """
-                using System;
-                using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
 
-                interface IGoo
-                {
-                    void Goo([Optional][DateTimeConstant(100)] DateTime x);
-                }
+            interface IGoo
+            {
+                void Goo([Optional][DateTimeConstant(100)] DateTime x);
+            }
 
-                public class C : {|CS0535:IGoo|}
-                {
-                }
-                """,
+            public class C : {|CS0535:IGoo|}
+            {
+            }
+            """,
             FixedCode = """
-                using System;
-                using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
 
-                interface IGoo
-                {
-                    void Goo([Optional][DateTimeConstant(100)] DateTime x);
-                }
+            interface IGoo
+            {
+                void Goo([Optional][DateTimeConstant(100)] DateTime x);
+            }
 
-                public class C : IGoo
+            public class C : IGoo
+            {
+                public void Goo([DateTimeConstant(100), Optional] DateTime x)
                 {
-                    public void Goo([DateTimeConstant(100), Optional] DateTime x)
-                    {
-                        throw new NotImplementedException();
-                    }
+                    throw new NotImplementedException();
                 }
-                """,
+            }
+            """,
             Options = { AllOptionsOff },
 
-            // 🐛 one value is generated with 100L instead of 100L
+            // 🐛 one value is generated with 100L instead of 100
             CodeActionValidationMode = CodeActionValidationMode.None,
         }.RunAsync();
     }
@@ -4704,46 +4704,40 @@ codeAction: ("True;False;False:global::IOptional;Microsoft.CodeAnalysis.Implemen
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545476")]
     public async Task TestOptionalDateTime2()
     {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                using System;
-                using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
+        await TestWithAllCodeStyleOptionsOffAsync(
+            """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
 
-                interface IGoo
+            interface IGoo
+            {
+                void Goo([Optional][DateTimeConstant(100)] DateTime x);
+            }
+
+            public class C : {|CS0535:IGoo|}
+            {
+            }
+            """,
+            """
+            using System;
+            using System.Runtime.CompilerServices;
+            using System.Runtime.InteropServices;
+
+            interface IGoo
+            {
+                void Goo([Optional][DateTimeConstant(100)] DateTime x);
+            }
+
+            public class C : IGoo
+            {
+                void IGoo.Goo(DateTime x)
                 {
-                    void Goo([Optional][DateTimeConstant(100)] DateTime x);
+                    throw new NotImplementedException();
                 }
-
-                public class C : {|CS0535:IGoo|}
-                {
-                }
-                """,
-            FixedCode = """
-                using System;
-                using System.Runtime.CompilerServices;
-                using System.Runtime.InteropServices;
-
-                interface IGoo
-                {
-                    void Goo([Optional][DateTimeConstant(100)] DateTime x);
-                }
-
-                public class C : IGoo
-                {
-                    void IGoo.Goo(DateTime x)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                """,
-            Options = { AllOptionsOff },
-
-            CodeActionEquivalenceKey = "True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
-            // 🐛 one value is generated with 0L instead of 0
-            CodeActionValidationMode = CodeActionValidationMode.None,
-        }.RunAsync();
+            }
+            """,
+codeAction: ("True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545477")]
@@ -6738,7 +6732,7 @@ class C : I
                 }
             }
             """,
-            codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
+codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;", 1));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546443")]
