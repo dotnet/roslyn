@@ -55,6 +55,26 @@ public partial class UseUnboundTypeInNameOfTests
     }
 
     [Fact]
+    public async Task TestNotIfAlreadyOmitted()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(List<>);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersionExtensions.CSharpNext,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestMissingBeforeCSharp14()
     {
         await new VerifyCS.Test
