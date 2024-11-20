@@ -7,3 +7,7 @@ updates:
   directory: /
   schedule:
     interval: weekly
+- package-ecosystem: dotnet-sdk
+  directory: /
+  schedule:
+    interval: monthly
