@@ -229,8 +229,7 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
 
     public bool IsPartial(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
     {
-        var syntaxRefs = typeSymbol.DeclaringSyntaxReferences;
-        foreach (var syntaxRef in syntaxRefs)
+        foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)
         {
             var node = syntaxRef.GetSyntax(cancellationToken);
             if (node is BaseTypeDeclarationSyntax { Modifiers: { } modifiers } &&
@@ -243,23 +242,15 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         return false;
     }
 
-    public IEnumerable<ISymbol> GetDeclaredSymbols(
-        SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
-    {
-        switch (memberDeclaration)
+    public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
+        => memberDeclaration switch
         {
-            case FieldDeclarationSyntax field:
-                return field.Declaration.Variables.Select(
-                    v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken));
-
-            case EventFieldDeclarationSyntax eventField:
-                return eventField.Declaration.Variables.Select(
-                    v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken));
-
-            default:
-                return [semanticModel.GetRequiredDeclaredSymbol(memberDeclaration, cancellationToken)];
-        }
-    }
+            FieldDeclarationSyntax field
+                => field.Declaration.Variables.Select(v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken)),
+            EventFieldDeclarationSyntax eventField
+                => eventField.Declaration.Variables.Select(v => semanticModel.GetRequiredDeclaredSymbol(v, cancellationToken)),
+            _ => [semanticModel.GetRequiredDeclaredSymbol(memberDeclaration, cancellationToken)],
+        };
 
     public IParameterSymbol? FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argument, bool allowUncertainCandidates, bool allowParams, CancellationToken cancellationToken)
         => ((ArgumentSyntax)argument).DetermineParameter(semanticModel, allowUncertainCandidates, allowParams, cancellationToken);
@@ -364,13 +355,13 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
                 type.Equals(symbol, SymbolEqualityComparer.Default) &&
                 !type.Equals(symbol, SymbolEqualityComparer.IncludeNullability))
             {
-                return ImmutableArray.Create<ISymbol>(type);
+                return [type];
             }
         }
 
         var preprocessingSymbol = GetPreprocessingSymbol(semanticModel, node);
         return preprocessingSymbol != null
-            ? ImmutableArray.Create<ISymbol>(preprocessingSymbol)
+            ? [preprocessingSymbol]
             : semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols();
     }
 
@@ -405,40 +396,23 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         => semanticModel.GenerateNameForExpression((ExpressionSyntax)expression, capitalize, cancellationToken);
 
     public IPreprocessingSymbol? GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node)
-    {
-        return node switch
+        => node switch
         {
-            IdentifierNameSyntax nameSyntax
-            when IsInPreprocessingSymbolContext(nameSyntax) => CreatePreprocessingSymbol(semanticModel, nameSyntax.Identifier),
+            IdentifierNameSyntax nameSyntax when IsInPreprocessingSymbolContext(nameSyntax) => CreatePreprocessingSymbol(semanticModel, nameSyntax.Identifier),
             DefineDirectiveTriviaSyntax defineSyntax => CreatePreprocessingSymbol(semanticModel, defineSyntax.Name),
             UndefDirectiveTriviaSyntax undefSyntax => CreatePreprocessingSymbol(semanticModel, undefSyntax.Name),
             _ => null,
         };
-    }
 
     private static IPreprocessingSymbol? CreatePreprocessingSymbol(SemanticModel model, SyntaxToken identifier)
-    {
-        return model.Compilation.CreatePreprocessingSymbol(identifier.ValueText);
-    }
+        => model.Compilation.CreatePreprocessingSymbol(identifier.ValueText);
 
     private static bool IsInPreprocessingSymbolContext(SyntaxNode node)
-    {
-        if (node.Ancestors().Any(n => IsPreprocessorDirectiveAcceptingPreprocessingSymbols(n.Kind())))
-        {
-            return true;
-        }
-
-        return false;
-
-        static bool IsPreprocessorDirectiveAcceptingPreprocessingSymbols(SyntaxKind kind)
-        {
-            return kind
-                is SyntaxKind.IfDirectiveTrivia
-                or SyntaxKind.ElifDirectiveTrivia
-                or SyntaxKind.DefineDirectiveTrivia
-                or SyntaxKind.UndefDirectiveTrivia;
-        }
-    }
+        => node.Ancestors().Any(n => n.Kind() is
+            SyntaxKind.IfDirectiveTrivia or
+            SyntaxKind.ElifDirectiveTrivia or
+            SyntaxKind.DefineDirectiveTrivia or
+            SyntaxKind.UndefDirectiveTrivia);
 
 #if !CODE_STYLE
 
