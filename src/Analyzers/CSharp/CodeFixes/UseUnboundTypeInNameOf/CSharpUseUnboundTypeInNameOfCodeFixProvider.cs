@@ -16,19 +16,19 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseUnboundTypeInNameOf;
+namespace Microsoft.CodeAnalysis.CSharp.UseUnboundGenericTypeInNameOf;
 
 using static SyntaxFactory;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseUnboundTypeInNameOf), Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseUnboundGenericTypeInNameOf), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed partial class CSharpUseUnboundTypeInNameOfCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed partial class CSharpUseUnboundGenericTypeInNameOfCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private static readonly SyntaxNodeOrToken s_omittedArgument = (SyntaxNodeOrToken)OmittedTypeArgument();
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = [IDEDiagnosticIds.UseUnboundTypeInNameOfDiagnosticId];
+        = [IDEDiagnosticIds.UseUnboundGenericTypeInNameOfDiagnosticId];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {

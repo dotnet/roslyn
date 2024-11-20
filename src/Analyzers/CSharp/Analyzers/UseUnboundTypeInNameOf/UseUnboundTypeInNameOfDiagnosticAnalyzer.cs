@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.UseUnboundTypeInNameOf;
+namespace Microsoft.CodeAnalysis.CSharp.UseUnboundGenericTypeInNameOf;
 
 /// <summary>
 /// Looks for code of the form:
@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseUnboundTypeInNameOf;
 /// 
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpUseUnboundTypeInNameOfDiagnosticAnalyzer()
+internal sealed class CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer()
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer(
-        IDEDiagnosticIds.UseUnboundTypeInNameOfDiagnosticId,
-        EnforceOnBuildValues.UseUnboundTypeInNameOf,
-        CSharpCodeStyleOptions.PreferUnboundTypeInNameOf,
+        IDEDiagnosticIds.UseUnboundGenericTypeInNameOfDiagnosticId,
+        EnforceOnBuildValues.UseUnboundGenericTypeInNameOf,
+        CSharpCodeStyleOptions.PreferUnboundGenericTypeInNameOf,
         new LocalizableResourceString(
             nameof(CSharpAnalyzersResources.Use_unbound_generic_type), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
@@ -57,7 +57,7 @@ internal sealed class CSharpUseUnboundTypeInNameOfDiagnosticAnalyzer()
     private void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext syntaxContext)
     {
         var cancellationToken = syntaxContext.CancellationToken;
-        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferUnboundTypeInNameOf;
+        var styleOption = syntaxContext.GetCSharpAnalyzerOptions().PreferUnboundGenericTypeInNameOf;
         if (!styleOption.Value || ShouldSkipAnalysis(syntaxContext, styleOption.Notification))
             return;
 

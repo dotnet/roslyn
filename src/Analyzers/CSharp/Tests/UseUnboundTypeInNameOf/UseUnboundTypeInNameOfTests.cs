@@ -7,21 +7,21 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseTupleSwap;
-using Microsoft.CodeAnalysis.CSharp.UseUnboundTypeInNameOf;
+using Microsoft.CodeAnalysis.CSharp.UseUnboundGenericTypeInNameOf;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUnboundTypeInNameOf;
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUnboundGenericTypeInNameOf;
 
 using VerifyCS = CSharpCodeFixVerifier<
-    CSharpUseUnboundTypeInNameOfDiagnosticAnalyzer,
-    CSharpUseUnboundTypeInNameOfCodeFixProvider>;
+    CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer,
+    CSharpUseUnboundGenericTypeInNameOfCodeFixProvider>;
 
-[Trait(Traits.Feature, Traits.Features.CodeActionsUseUnboundTypeInNameOf)]
-public sealed class UseUnboundTypeInNameOfTests
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseUnboundGenericTypeInNameOf)]
+public sealed class UseUnboundGenericTypeInNameOfTests
 {
     [Fact]
     public async Task TestBaseCase()
@@ -112,7 +112,7 @@ public sealed class UseUnboundTypeInNameOfTests
                 """,
             Options =
             {
-                { CSharpCodeStyleOptions.PreferUnboundTypeInNameOf, false, CodeStyle.NotificationOption2.Silent }
+                { CSharpCodeStyleOptions.PreferUnboundGenericTypeInNameOf, false, CodeStyle.NotificationOption2.Silent }
             },
             LanguageVersion = LanguageVersionExtensions.CSharpNext,
         }.RunAsync();

@@ -204,7 +204,7 @@ internal static class IDEDiagnosticIds
 
     public const string UseSystemThreadingLockDiagnosticId = "IDE0330";
 
-    public const string UseUnboundTypeInNameOfDiagnosticId = "IDE0340";
+    public const string UseUnboundGenericTypeInNameOfDiagnosticId = "IDE0340";
 
     // Analyzer error Ids
     public const string AnalyzerChangedId = "IDE1001";
