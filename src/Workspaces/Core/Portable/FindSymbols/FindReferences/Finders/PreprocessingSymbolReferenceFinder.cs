@@ -27,12 +27,13 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        await FindDocumentsWithPredicateAsync(project, documents, DetermineDocument, processResult, processResultData, cancellationToken).ConfigureAwait(false);
-
-        bool DetermineDocument(SyntaxTreeIndex syntaxTreeIndex)
-        {
-            return syntaxTreeIndex.ContainsDirective && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
-        }
+        await FindDocumentsWithPredicateAsync(
+            project,
+            documents,
+            index => index.ContainsDirective && index.ProbablyContainsIdentifier(symbol.Name),
+            processResult,
+            processResultData,
+            cancellationToken).ConfigureAwait(false);
     }
 
     protected override void FindReferencesInDocument<TData>(
