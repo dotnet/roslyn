@@ -171,6 +171,12 @@ internal static class RenameUtilities
             return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
         }
 
+        // If we have overload resolution issues at the callsite, we generally don't want to rename (as it's unclear
+        // which overload the user is actually calling).  However, if there is just a single overload, there's no real
+        // issue since it's clear which one the user wants to rename in that case.
+        if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && symbolInfo.CandidateSymbols.Length == 1)
+            return TokenRenameInfo.CreateMemberGroupTokenInfo(symbolInfo.CandidateSymbols);
+
         if (RenameLocation.ShouldRename(symbolInfo.CandidateReason) &&
             symbolInfo.CandidateSymbols.Length == 1)
         {

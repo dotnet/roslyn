@@ -402,7 +402,7 @@ namespace BuildActionTelemetryTable
             { "Microsoft.CodeAnalysis.VisualBasic.ReplaceConditionalWithStatements.VisualBasicReplaceConditionalWithStatementsCodeRefactoringProvider", "Replace Conditional With Statements (Refactoring)" },
             { "Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag.VisualBasicReplaceDocCommentTextWithTagCodeRefactoringProvider", "Replace Doc Comment Text With Tag (Refactoring)" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation.VisualBasicSimplifyInterpolationCodeFixProvider", "Simplify Interpolation" },
-            { "Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression.VisualBasicSimplifyLinqExpressionCodeFixProvider", "Simplify Linq Expression" },
+            { "Microsoft.CodeAnalysis.VisualBasic.SimplifyLinqExpression.SimplifyLinqExpressionCodeFixProvider", "Simplify Linq Expression" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation.VisualBasicSimplifyObjectCreationCodeFixProvider", "Simplify Object Creation" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe.VisualBasicSimplifyThisOrMeCodeFixProvider", "Simplify This Or Me" },
             { "Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames.SimplifyTypeNamesCodeFixProvider", "Simplify Type Names" },

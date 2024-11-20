@@ -14,8 +14,14 @@ namespace Microsoft.CodeAnalysis.Navigation;
 
 internal abstract class AbstractNavigableItemsService : INavigableItemsService
 {
-    public async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(
+    public Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(
         Document document, int position, CancellationToken cancellationToken)
+    {
+        return GetNavigableItemsAsync(document, position, forSymbolType: false, cancellationToken);
+    }
+
+    public async Task<ImmutableArray<INavigableItem>> GetNavigableItemsAsync(
+        Document document, int position, bool forSymbolType, CancellationToken cancellationToken)
     {
         var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
 
@@ -45,6 +51,22 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
 
             if (symbol is null or IErrorTypeSymbol)
                 return null;
+
+            if (forSymbolType)
+            {
+                // We have found the symbol at the position in the document. Now we need to find the symbol's type.
+                var typeSymbol = symbol.GetSymbolType() as ISymbol;
+                if (typeSymbol is null)
+                    return null;
+
+                typeSymbol = await SymbolFinder.FindSourceDefinitionAsync(typeSymbol, solution, cancellationToken).ConfigureAwait(false) ?? typeSymbol;
+                typeSymbol = await GoToDefinitionFeatureHelpers.TryGetPreferredSymbolAsync(solution, typeSymbol, cancellationToken).ConfigureAwait(false);
+
+                if (typeSymbol is null or IErrorTypeSymbol)
+                    return null;
+
+                symbol = typeSymbol;
+            }
 
             return (symbol, solution);
         }

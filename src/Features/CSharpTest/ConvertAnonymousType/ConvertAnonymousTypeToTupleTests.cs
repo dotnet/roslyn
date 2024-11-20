@@ -9,12 +9,13 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAnonymousType;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAnonymousType;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertAnonymousTypeToTuple)]
-public partial class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new CSharpConvertAnonymousTypeToTupleCodeRefactoringProvider();
@@ -482,5 +483,22 @@ public partial class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeAction
             }
             """;
         await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/34749")]
+    public async Task NotInExpressionTree()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            using System.Linq.Expressions;
+
+            class C
+            {
+                static void Main(string[] args)
+                {
+                    Expression<Func<string, string, dynamic>> test =
+                        (par1, par2) => [||]new { Parameter1 = par1, Parameter2 = par2 };
+                }
+            }
+            """);
     }
 }

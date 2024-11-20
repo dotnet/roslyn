@@ -168,8 +168,8 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Same as <see cref="ForkProject(StateChange, Func{StateChange, TranslationAction?}?,
-    /// bool)"/> except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
+    /// Same as <see cref="ForkProject{TArg}(StateChange, Func{StateChange, TArg, TranslationAction?}, bool, TArg)"/>
+    /// except that it will still fork even if newSolutionState is unchanged from <see cref="SolutionState"/>.
     /// </summary>
     private SolutionCompilationState ForceForkProject(
         StateChange stateChange,
@@ -538,6 +538,16 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
+    /// <inheritdoc cref="SolutionState.WithHasSdkCodeStyleAnalyzers"/>
+    internal SolutionCompilationState WithHasSdkCodeStyleAnalyzers(
+        ProjectId projectId, bool hasSdkCodeStyleAnalyzers)
+    {
+        return ForkProject(
+            this.SolutionState.WithHasSdkCodeStyleAnalyzers(projectId, hasSdkCodeStyleAnalyzers),
+            translate: null,
+            forkTracker: true);
+    }
+
     /// <inheritdoc cref="SolutionState.WithProjectDocumentsOrder"/>
     public SolutionCompilationState WithProjectDocumentsOrder(
         ProjectId projectId, ImmutableList<DocumentId> documentIds)
@@ -574,7 +584,8 @@ internal sealed partial class SolutionCompilationState
             .WithProjectDefaultNamespace(projectId, attributes.DefaultNamespace)
             .WithHasAllInformation(projectId, attributes.HasAllInformation)
             .WithRunAnalyzers(projectId, attributes.RunAnalyzers)
-            .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm);
+            .WithProjectChecksumAlgorithm(projectId, attributes.ChecksumAlgorithm)
+            .WithHasSdkCodeStyleAnalyzers(projectId, attributes.HasSdkCodeStyleAnalyzers);
     }
 
     public SolutionCompilationState WithProjectInfo(ProjectInfo info)
@@ -702,17 +713,6 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
-    /// <inheritdoc cref="SolutionState.AddAnalyzerReferences(ProjectId, ImmutableArray{AnalyzerReference})"/>
-    public SolutionCompilationState AddAnalyzerReferences(StateChange stateChange, ImmutableArray<AnalyzerReference> analyzerReferences)
-    {
-        return ForkProject(
-            stateChange,
-            static (stateChange, analyzerReferences) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, referencesToAdd: analyzerReferences),
-            forkTracker: true,
-            arg: analyzerReferences);
-    }
-
     public SolutionCompilationState AddAnalyzerReferences(IReadOnlyCollection<AnalyzerReference> analyzerReferences)
     {
         // Note: This is the codepath for adding analyzers from vsixes.  Importantly, we do not ever get SGs added from
@@ -735,17 +735,6 @@ internal sealed partial class SolutionCompilationState
         // from this codepath, and as such we do not need to update the compilation trackers.  The methods that change
         // SGs all come from entrypoints that are specific to a particular project.
         return Branch(this.SolutionState.WithAnalyzerReferences(analyzerReferences));
-    }
-
-    /// <inheritdoc cref="SolutionState.RemoveAnalyzerReference(ProjectId, AnalyzerReference)"/>
-    public SolutionCompilationState RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
-    {
-        return ForkProject(
-            this.SolutionState.RemoveAnalyzerReference(projectId, analyzerReference),
-            static (stateChange, analyzerReference) => new TranslationAction.AddOrRemoveAnalyzerReferencesAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, referencesToRemove: [analyzerReference]),
-            forkTracker: true,
-            arg: analyzerReference);
     }
 
     /// <inheritdoc cref="SolutionState.WithProjectAnalyzerReferences"/>
@@ -977,8 +966,8 @@ internal sealed partial class SolutionCompilationState
             arg: forceEvenIfTreesWouldDiffer,
             static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
                 oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource && oldDocumentState.TreeSource == documentState.TreeSource
-                ? oldDocumentState
-                : oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer));
+                    ? oldDocumentState
+                    : oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer));
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
@@ -1561,7 +1550,12 @@ internal sealed partial class SolutionCompilationState
         // WithDocumentContentsFrom with the current document state no-ops immediately, returning back the same
         // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
         // there is no additional cost processing the initiating document in this loop.
-        var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
+        //
+        // Note: when getting related document ids, we want to include those from different languages.  That way we
+        // ensure a consistent state where all the files (even those shared across languages) agree on their contents.
+        const bool includeDifferentLanguages = true;
+
+        var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId, includeDifferentLanguages);
         var allDocumentIdsWithCurrentDocumentState = allDocumentIds.SelectAsArray(static (docId, currentDocumentState) => (docId, currentDocumentState), currentDocumentState);
         currentCompilationState = currentCompilationState.WithDocumentContentsFrom(allDocumentIdsWithCurrentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
@@ -1573,7 +1567,7 @@ internal sealed partial class SolutionCompilationState
         {
             try
             {
-                var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId);
+                var allDocumentIds = @this.SolutionState.GetRelatedDocumentIds(documentId, includeDifferentLanguages);
                 using var _ = ArrayBuilder<DocumentState>.GetInstance(allDocumentIds.Length, out var documentStates);
 
                 // We grab all the contents of linked files as well to ensure that our snapshot is correct wrt to the

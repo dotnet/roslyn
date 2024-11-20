@@ -413,7 +413,7 @@ public class Test
             int nestingLevel = (IntPtr.Size, ExecutionConditionUtil.Configuration) switch
             {
                 (4, ExecutionConfiguration.Debug) => 310,
-                (4, ExecutionConfiguration.Release) => 1419,
+                (4, ExecutionConfiguration.Release) => 1400,
                 (8, ExecutionConfiguration.Debug) => 200,
                 (8, ExecutionConfiguration.Release) => 474,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")

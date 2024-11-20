@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Kind != OperatorAnalysisResultKind.Undefined; }
         }
 
+        bool IMemberResolutionResultWithPriority<MethodSymbol>.IsApplicable => IsValid;
         MethodSymbol IMemberResolutionResultWithPriority<MethodSymbol>.MemberWithPriority => Signature.Method;
 
         public static UnaryOperatorAnalysisResult Applicable(UnaryOperatorSignature signature, Conversion conversion)

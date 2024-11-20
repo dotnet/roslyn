@@ -16,15 +16,11 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseConditionalExpression;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
-public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class UseConditionalExpressionForReturnTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     private static readonly ParseOptions CSharp8 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
     private static readonly ParseOptions CSharp9 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9);
-
-    public UseConditionalExpressionForReturnTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
 
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseConditionalExpressionForReturnDiagnosticAnalyzer(),
@@ -2280,5 +2276,36 @@ public partial class UseConditionalExpressionForReturnTests : AbstractCSharpDiag
                 }
             }
             """, title: AnalyzersResources.Simplify_check);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38879")]
+    public async Task TesSuppressionOperator()
+    {
+        await TestInRegularAndScript1Async("""
+            #nullable enable
+
+            class Program
+            {
+                public static string Method(bool empty)
+                {
+                    [||]if (empty)
+                    {
+                        return string.Empty;
+                    }
+
+                    return null!;
+                }
+            }
+            """, """
+            #nullable enable
+            
+            class Program
+            {
+                public static string Method(bool empty)
+                {
+                    return empty ? string.Empty : null!;
+                }
+            }
+            """);
     }
 }

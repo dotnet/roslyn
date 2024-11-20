@@ -16,23 +16,20 @@ internal interface IDocumentationCommentSnippetService : ILanguageService
     string DocumentationCommentCharacter { get; }
 
     DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
-        SyntaxTree syntaxTree,
-        SourceText text,
+        ParsedDocument document,
         int position,
         in DocumentationCommentOptions options,
         CancellationToken cancellationToken,
         bool addIndentation = true);
 
     DocumentationCommentSnippet? GetDocumentationCommentSnippetOnCommandInvoke(
-        SyntaxTree syntaxTree,
-        SourceText text,
+        ParsedDocument document,
         int position,
         in DocumentationCommentOptions options,
         CancellationToken cancellationToken);
 
     DocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
-        SyntaxTree syntaxTree,
-        SourceText text,
+        ParsedDocument document,
         int position,
         in DocumentationCommentOptions options,
         CancellationToken cancellationToken);
@@ -42,5 +39,5 @@ internal interface IDocumentationCommentSnippetService : ILanguageService
         TextLine currentLine,
         TextLine previousLine);
 
-    bool IsValidTargetMember(SyntaxTree syntaxTree, SourceText text, int caretPosition, CancellationToken cancellationToken);
+    bool IsValidTargetMember(ParsedDocument document, int caretPosition, CancellationToken cancellationToken);
 }

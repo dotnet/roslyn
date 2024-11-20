@@ -2349,6 +2349,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_UnassignedInternalRefField = 9265,
         WRN_AccessorDoesNotUseBackingField = 9266,
 
+        ERR_IteratorRefLikeElementType = 9267,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
 

@@ -166,22 +166,18 @@ internal sealed partial class CSharpSemanticFacts : ISemanticFacts
         }
     }
 
-    public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode forEachStatement)
+    public ForEachSymbols GetForEachSymbols(SemanticModel semanticModel, SyntaxNode node)
     {
-        if (forEachStatement is CommonForEachStatementSyntax csforEachStatement)
-        {
-            var info = semanticModel.GetForEachStatementInfo(csforEachStatement);
-            return new ForEachSymbols(
-                info.GetEnumeratorMethod,
-                info.MoveNextMethod,
-                info.CurrentProperty,
-                info.DisposeMethod,
-                info.ElementType);
-        }
-        else
-        {
+        if (node is not CommonForEachStatementSyntax forEachStatement)
             return default;
-        }
+
+        var info = semanticModel.GetForEachStatementInfo(forEachStatement);
+        return new ForEachSymbols(
+            info.GetEnumeratorMethod,
+            info.MoveNextMethod,
+            info.CurrentProperty,
+            info.DisposeMethod,
+            info.ElementType);
     }
 
     public SymbolInfo GetCollectionInitializerSymbolInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
