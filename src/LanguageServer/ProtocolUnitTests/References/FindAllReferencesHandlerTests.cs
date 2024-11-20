@@ -292,7 +292,6 @@ class C
                 class PREPROCESSING_SYMBOL
                 {
                 }
-
                 """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
