@@ -3164,6 +3164,8 @@ Next_i:
             Dim liftOperators As Boolean = nullableOfT.GetUseSiteInfo().DiagnosticInfo Is Nothing
 
             Dim candidates = ArrayBuilder(Of CandidateAnalysisResult).GetInstance()
+            Dim someCandidatesHaveOverloadResolutionPriority As Boolean = InternalSyntax.Parser.CheckFeatureAvailability(binder.Compilation.LanguageVersion, InternalSyntax.Feature.OverloadResolutionPriority) AndAlso
+                                                                          opSet.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
 
             For Each method In opSet
                 Debug.Assert(method.ParameterCount = If(argument2 Is Nothing, 1, 2))
@@ -3191,7 +3193,7 @@ Next_i:
 
                 CombineCandidates(candidates, New CandidateAnalysisResult(New OperatorCandidate(method)), method.ParameterCount,
                                   argumentNames:=Nothing,
-                                  someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                  someCandidatesHaveOverloadResolutionPriority,
                                   useSiteInfo)
 
                 If liftOperators Then
@@ -3235,7 +3237,7 @@ Next_i:
                                                                                               returnType)),
                                           method.ParameterCount,
                                           argumentNames:=Nothing,
-                                          someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                          someCandidatesHaveOverloadResolutionPriority,
                                           useSiteInfo)
                     End If
                 End If
@@ -3249,7 +3251,7 @@ Next_i:
                                                                            ImmutableArray.Create(argument1),
                                                                            ImmutableArray.Create(Of BoundExpression)(argument1, argument2)),
                                                                         argumentNames:=Nothing,
-                                                                        someCandidatesHaveOverloadResolutionPriority:=False, ' PROTOTYPE(Priority): Follow up
+                                                                        someCandidatesHaveOverloadResolutionPriority,
                                                                         delegateReturnType:=Nothing,
                                                                         lateBindingIsAllowed, binder:=binder,
                                                                         asyncLambdaSubToFunctionMismatch:=Nothing,
