@@ -330,6 +330,7 @@ internal static partial class ISymbolExtensions
             IMethodSymbol methodSymbol => methodSymbol.ReturnType,
             IEventSymbol eventSymbol => eventSymbol.Type,
             IParameterSymbol parameterSymbol => parameterSymbol.Type,
+            ILocalSymbol localSymbol => localSymbol.Type,
             _ => null,
         };
 
