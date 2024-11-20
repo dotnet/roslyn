@@ -171,6 +171,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         try
         {
             this.IsInPreparation = true;
+            NotifyPropertyChanged(nameof(IsInProgress));
             if (isAutomaticOnInitialization)
             {
                 await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken)
@@ -217,6 +218,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         finally
         {
             this.IsInPreparation = false;
+            NotifyPropertyChanged(nameof(IsInProgress));
         }
     }
 
@@ -297,8 +299,8 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
 
     /// <summary>
     /// When smart rename operates in explicit mode, this method gets the suggestions.
-    /// When smart rename operates in automatic mode, this method toggles the automatic suggestions, 
-    /// and gets the suggestions if it was just enabled.
+    /// When smart rename operates in automatic mode, this method toggles the automatic suggestions:
+    /// gets the suggestions if it was just enabled, and cancels the ongoing request if it was just disabled.
     /// </summary>
     public void ToggleOrTriggerSuggestions()
     {
@@ -308,6 +310,10 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             if (this.IsAutomaticSuggestionsEnabled)
             {
                 this.FetchSuggestions(isAutomaticOnInitialization: false);
+            }
+            else
+            {
+                _cancellationTokenSource?.Cancel();
             }
             NotifyPropertyChanged(nameof(IsSuggestionsPanelExpanded));
             NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
