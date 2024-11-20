@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 => containingType.AllRequiredMembers.SelectManyAsArray(static kvp => getAllMembersToBeDefaulted(kvp.Value)),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
-                                => containingType.GetMembersUnordered(),
+                                => containingType.GetMembersUnordered().SelectAsArray(getFieldSymbolToBeInitialized),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
                                 => getAllTypeAndRequiredMembers(containingType),
@@ -957,18 +957,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else
                             {
                                 var property = (PropertySymbol)requiredMember;
-                                yield return property;
+                                yield return getFieldSymbolToBeInitialized(property);
 
                                 // If the set method is null (ie missing), that's an error, but we'll recover as best we can
                                 foreach (var notNullMemberName in (property.SetMethod?.NotNullMembers ?? property.NotNullMembers))
                                 {
                                     foreach (var member in property.ContainingType.GetMembers(notNullMemberName))
                                     {
-                                        yield return member;
+                                        yield return getFieldSymbolToBeInitialized(member);
                                     }
                                 }
                             }
                         }
+
+                        static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
+                            => requiredMember is SourcePropertySymbolBase { BackingField: { } backingField } ? backingField : requiredMember;
                     }
                 }
             }
