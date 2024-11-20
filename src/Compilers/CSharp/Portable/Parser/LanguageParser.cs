@@ -11867,7 +11867,7 @@ done:
 
                     // A trailing cond-access or assignment is effectively the "end" of the current cond-access node.
                     // Due to right-associativity, everything that follows will be included in the child node.
-                    // e.g. 'a?.b?.c' parses as '(a) ?. (.b?.c)'
+                    // e.g. 'a?.b?.c' parses as '(a) ? (.b?.c)'
                     // e.g. 'a?.b = c?.d = e?.f' parses as 'a?.b = (c?.d = e?.f)'
 
                     // a?.b?.c
