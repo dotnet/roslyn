@@ -10944,9 +10944,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var conditionalAccessBinder = new BinderWithConditionalReceiver(this, receiver);
             var access = conditionalAccessBinder.BindValue(node.WhenNotNull, diagnostics, BindValueKind.RValue);
-            if (access.Syntax is AssignmentExpressionSyntax)
+            if (access.Syntax is AssignmentExpressionSyntax assignment)
             {
-                CheckFeatureAvailability(node.WhenNotNull, MessageID.IDS_FeatureNullConditionalAssignment, diagnostics);
+                MessageID.IDS_FeatureNullConditionalAssignment.CheckFeatureAvailability(diagnostics, assignment.OperatorToken);
             }
 
             if (receiver.HasAnyErrors || access.HasAnyErrors)
