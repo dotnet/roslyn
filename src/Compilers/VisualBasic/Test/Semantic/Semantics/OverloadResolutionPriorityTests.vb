@@ -142,6 +142,79 @@ End Class
 
             Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
             CompileAndVerify(comp3, expectedOutput:="1").VerifyDiagnostics()
+
+            comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
+            CompileAndVerify(comp1, expectedOutput:="1", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
+
+            comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            comp1.AssertTheseDiagnostics(If(i1First,
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared Sub M(x As I1)': Not most specific.
+    'Public Shared Sub M(x As I2)': Not most specific.
+        C.M(i3)
+          ~
+</expected>,
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared Sub M(x As I2)': Not most specific.
+    'Public Shared Sub M(x As I1)': Not most specific.
+        C.M(i3)
+          ~
+</expected>))
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub Accessibility_01(i1First As Boolean)
+
+            Dim i1Source = "
+<OverloadResolutionPriority(1)>
+protected Shared Sub M(x As I1)
+    System.Console.WriteLine(1)
+End Sub
+"
+
+            Dim i2Source = "
+public Shared Sub M(x As I2)
+    System.Console.WriteLine(2)
+End Sub
+"
+
+            Dim reference = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C" +
+    If(i1First, i1Source, i2Source) +
+    If(i1First, i2Source, i1Source) + "
+End Class
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        C.M(i3)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(comp1, expectedOutput:="2").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="2").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="2").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -221,8 +294,13 @@ Module Test1
 End Module
 "
             Dim compilation = CompilationUtils.CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
-
             CompileAndVerify(compilation, expectedOutput:="23")
+
+            compilation = CompilationUtils.CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
+            CompileAndVerify(compilation, expectedOutput:="23")
+
+            compilation = CompilationUtils.CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            CompileAndVerify(compilation, expectedOutput:="13")
         End Sub
 
         <Fact>
@@ -600,6 +678,182 @@ BC30521: Overload resolution failed because no accessible 'M1' is most specific 
 </expected>)
         End Sub
 
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_01()
+            Dim compilationDef = "
+Option Strict Off
+
+Module Module1
+
+    Sub Main()
+        M1(CDbl(0))
+    End Sub
+
+    Sub M1(x as Decimal)
+        System.Console.Write(1)
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As Single)
+        System.Console.Write(2)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30519: Overload resolution failed because no accessible 'M1' can be called without a narrowing conversion:
+    'Public Sub M1(x As Decimal)': Argument matching parameter 'x' narrows from 'Double' to 'Decimal'.
+    'Public Sub M1(x As Single)': Argument matching parameter 'x' narrows from 'Double' to 'Single'.
+        M1(CDbl(0))
+        ~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_02()
+            Dim compilationDef = "
+Module Module1
+
+    Sub Main()
+        M1(CLng(0))
+        M2(CLng(0))
+    End Sub
+
+    Sub M1(x as Integer)
+        System.Console.Write(1)
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As UInteger)
+        System.Console.Write(2)
+    End Sub
+
+    Sub M2(x as Integer)
+        System.Console.Write(3)
+    End Sub
+
+    Sub M2(x As UInteger)
+        System.Console.Write(4)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="13")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_03()
+            Dim compilationDef = "
+Module Module1
+
+    Sub Main()
+        M1(CLng(0))
+    End Sub
+
+    Sub M1(x as Integer)
+        System.Console.Write(1)
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As UInteger)
+        System.Console.Write(2)
+    End Sub
+
+    Sub M1(x As Long)
+        System.Console.Write(3)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="3")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_04()
+            Dim compilationDef = "
+Module Module1
+
+    Sub Main()
+        M1(Function() CLng(0))
+        M2(Function() CLng(0))
+    End Sub
+
+    Sub M1(x as System.Func(Of Integer))
+        System.Console.Write(1)
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As System.Func(Of UInteger))
+        System.Console.Write(2)
+    End Sub
+
+    Sub M2(x as System.Func(Of Integer))
+        System.Console.Write(3)
+    End Sub
+
+    Sub M2(x As System.Func(Of UInteger))
+        System.Console.Write(4)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="13")
+        End Sub
+
+        <Fact>
+        Public Sub NarrowingFromNumericConstant_05()
+            Dim compilationDef = "
+Module Module1
+
+    Sub Main()
+        M1(Long.MaxValue)
+        M2(Long.MaxValue)
+    End Sub
+
+    Sub M1(x as Integer)
+        System.Console.Write(1)
+    End Sub
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Sub M1(x As UInteger)
+        System.Console.Write(2)
+    End Sub
+
+    Sub M2(x as Integer)
+        System.Console.Write(3)
+    End Sub
+
+    Sub M2(x As UInteger)
+        System.Console.Write(4)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
+
+            CompileAndVerify(compilation, expectedOutput:="13")
+
+            compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30518: Overload resolution failed because no accessible 'M1' can be called with these arguments:
+    'Public Sub M1(x As Integer)': Constant expression not representable in type 'Integer'.
+    'Public Sub M1(x As UInteger)': Constant expression not representable in type 'UInteger'.
+        M1(Long.MaxValue)
+        ~~
+BC30518: Overload resolution failed because no accessible 'M2' can be called with these arguments:
+    'Public Sub M2(x As Integer)': Constant expression not representable in type 'Integer'.
+    'Public Sub M2(x As UInteger)': Constant expression not representable in type 'UInteger'.
+        M2(Long.MaxValue)
+        ~~
+</expected>)
+        End Sub
+
         <Theory, CombinatorialData>
         Public Sub IncreasedPriorityWins_01_CS_Property(i1First As Boolean)
 
@@ -710,6 +964,26 @@ End Class
 
             Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
             CompileAndVerify(comp3, expectedOutput:="1").VerifyDiagnostics()
+
+            comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
+            CompileAndVerify(comp1, expectedOutput:="1", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
+
+            comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            comp1.AssertTheseDiagnostics(If(i1First,
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared WriteOnly Property M(x As I1) As Integer': Not most specific.
+    'Public Shared WriteOnly Property M(x As I2) As Integer': Not most specific.
+        C.M(i3) = 0
+          ~
+</expected>,
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared WriteOnly Property M(x As I2) As Integer': Not most specific.
+    'Public Shared WriteOnly Property M(x As I1) As Integer': Not most specific.
+        C.M(i3) = 0
+          ~
+</expected>))
         End Sub
 
         <Fact>
@@ -981,6 +1255,115 @@ BC30526: Property 'M' is 'ReadOnly'.
         C.M(i3) = 0
         ~~~~~~~~~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub LiftedOperator_01()
+            Dim compilationDef = "
+Structure S
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    public shared operator-(x As S) As S
+        System.Console.Write(1)
+        return Nothing
+    End Operator
+
+    public shared operator-(x As S?) As S?
+        System.Console.Write(2)
+        return Nothing
+    End Operator
+End Structure
+
+Module Module1
+    Sub Main()
+        Dim s As New S?(Nothing)
+        s = -s
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="1")
+
+            compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular17_13)
+            CompileAndVerify(compilation, expectedOutput:="1")
+
+            compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe, parseOptions:=TestOptions.Regular16_9)
+            CompileAndVerify(compilation, expectedOutput:="2")
+        End Sub
+
+        <Fact>
+        Public Sub Plus2()
+            Dim compilationDef = "
+Option Strict Off
+
+Imports System
+
+Module Module1
+
+    Structure S1
+
+        <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+        Public Shared Operator +(x As S1) As S1
+            System.Console.WriteLine(""+(x As S1) As S1"")
+            Return x
+        End Operator
+
+        <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+        Public Shared Operator +(x As S1?) As Integer
+            System.Console.WriteLine(""+(x As S1?) As Integer"")
+            Return 0
+        End Operator
+
+    End Structure
+
+    Sub Main()
+        Dim y1 = +New S1()
+        System.Console.WriteLine(""-----"")
+        Dim y2 = +New S1?()
+        System.Console.WriteLine(""-----"")
+        Dim y3 = +New S1?(New S1())
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
++(x As S1) As S1
+-----
++(x As S1?) As Integer
+-----
++(x As S1?) As Integer
+]]>)
+        End Sub
+
+        <Fact>
+        Public Sub ConversionOperator_01()
+            Dim compilationDef = "
+Structure S
+
+    public shared widening operator CType(x As Integer) As S
+        System.Console.Write(1)
+        return Nothing
+    End Operator
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    public shared widening operator CType(x As Long) As S
+        System.Console.Write(2)
+        return Nothing
+    End Operator
+End Structure
+
+Module Module1
+    Sub Main()
+        Dim val as Integer = 0
+        Dim s As S = val
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
 
     End Class

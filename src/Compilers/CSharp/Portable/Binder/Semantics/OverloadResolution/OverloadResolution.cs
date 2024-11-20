@@ -1835,7 +1835,7 @@ outerDefault:
             where TMemberResolution : IMemberResolutionResultWithPriority<TMember>
             where TMember : Symbol
         {
-            if (!Compilation.IsFeatureEnabled(MessageID.IDS_OverloadResolutionPriority))
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_FeatureOverloadResolutionPriority))
             {
                 return;
             }
