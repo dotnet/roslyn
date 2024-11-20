@@ -59,10 +59,6 @@ Namespace Roslyn.VisualStudio.VisualBasic.UnitTests.UnifiedSettings
                 ' CompletionOptionsStorage.TriggerOnDeletion's default value is null.
                 ' It's enabled by default for Visual Basic
                 Return True
-            ElseIf [option].Equals(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces) Then
-                ' CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces's default value is null
-                ' It's enabled by default for Visual Basic
-                Return True
             ElseIf [option].Equals(CompletionViewOptionsStorage.EnableArgumentCompletionSnippets) Then
                 ' CompletionViewOptionsStorage.EnableArgumentCompletionSnippets' default value is null
                 ' It's disabled by default for Visual Basic

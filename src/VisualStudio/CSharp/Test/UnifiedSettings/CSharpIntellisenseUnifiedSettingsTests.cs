@@ -76,12 +76,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 // It's disabled by default for C#
                 return false;
             }
-            else if (option == CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces)
-            {
-                // CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces's default value is null
-                // It's enabled by default for C#
-                return true;
-            }
             else if (option == CompletionViewOptionsStorage.EnableArgumentCompletionSnippets)
             {
                 // CompletionViewOptionsStorage.EnableArgumentCompletionSnippets' default value is null
