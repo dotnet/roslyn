@@ -116,7 +116,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.UnifiedSettings
                 return [BackgroundAnalysisScope.VisibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics,
                     BackgroundAnalysisScope.OpenFiles,
                     BackgroundAnalysisScope.FullSolution,
-                    BackgroundAnalysisScope.None];
+                    BackgroundAnalysisScope.Minimal];
             }
 
             if (option.Equals(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption))

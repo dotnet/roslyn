@@ -8,7 +8,7 @@
     "textEditor.csharp.advanced.analysis.analyzerDiagnosticsScope": {
       "title": "@Run_background_code_analysis_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
-      "enum": [ "none", "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics", "openFiles", "fullSolution" ],
+      "enum": [ "minimal", "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics", "openFiles", "fullSolution" ],
       "enumItemLabels": [ "@None;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
       "default": "visibleFilesAndOpenFilesWithPreviouslyReportedDiagnostics",
       "order": 0,
@@ -32,7 +32,7 @@
               "match": 2
             },
             {
-              "result": "none",
+              "result": "minimal",
               "match": 3
             }
           ]
@@ -151,7 +151,7 @@
     "textEditor.csharp.advanced.usingDirectives.searchReferenceAssemblies": {
       "title": "@Suggest_usings_for_types_in_dotnet_framework_assemblies;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 20,
       "migration": {
         "pass": {
@@ -166,7 +166,7 @@
     "textEditor.csharp.advanced.usingDirectives.unsupportedSearchNugetPackages": {
       "title": "@Suggest_usings_for_types_in_NuGet_packages;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 30,
       "migration": {
         "pass": {
@@ -181,7 +181,7 @@
     "textEditor.csharp.advanced.usingDirectives.addImportsOnPaste": {
       "title": "@Add_missing_using_directives_on_paste;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 40,
       "migration": {
         "pass": {
@@ -196,7 +196,7 @@
     "textEditor.csharp.advanced.highlighting.highlightReferences": {
       "title": "@Highlight_references_to_symbol_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 0,
       "migration": {
         "pass": {
@@ -211,7 +211,7 @@
     "textEditor.csharp.advanced.highlighting.highlightKeywords": {
       "title": "@Highlight_related_keywords_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 10,
       "migration": {
         "pass": {
@@ -226,7 +226,7 @@
     "textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen": {
       "title": "@Enter_outlining_mode_when_files_open;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 0,
       "migration": {
         "pass": {
@@ -242,7 +242,7 @@
       "title": "@Collapse_regions_on_file_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 1,
       "migration": {
         "pass": {
@@ -258,7 +258,7 @@
       "title": "@Collapse_usings_on_file_open;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 2,
       "migration": {
         "pass": {
@@ -274,7 +274,7 @@
       "title": "@Collapse_sourcelink_embedded_decompiled_files_on_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 3,
       "migration": {
         "pass": {
@@ -290,7 +290,7 @@
       "title": "@Collapse_metadata_signature_files_on_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.outlining.enterOutliningModeOnFileOpen}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 4,
       "migration": {
         "pass": {
@@ -305,7 +305,7 @@
     "textEditor.csharp.advanced.outlining.displayLineSeparators": {
       "title": "@Show_procedure_line_separators;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 10,
       "migration": {
         "pass": {
@@ -320,7 +320,7 @@
     "textEditor.csharp.advanced.outlining.showOutliningForDeclarationLevelConstructs": {
       "title": "@Show_outlining_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 20,
       "migration": {
         "pass": {
@@ -335,7 +335,7 @@
     "textEditor.csharp.advanced.outlining.showOutliningForCodeLevelConstructs": {
       "title": "@Show_outlining_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 30,
       "migration": {
         "pass": {
@@ -350,7 +350,7 @@
     "textEditor.csharp.advanced.outlining.showOutliningForCommentsAndPreprocessorRegions": {
       "title": "@Show_outlining_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 40,
       "migration": {
         "pass": {
@@ -365,7 +365,7 @@
     "textEditor.csharp.advanced.outlining.collapseRegionsWhenCollapsingToDefinitions": {
       "title": "@Collapse_regions_when_collapsing_to_definitions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 50,
       "migration": {
         "pass": {
@@ -380,7 +380,7 @@
     "textEditor.csharp.advanced.outlining.collapseLocalFunctionsWhenCollapsingToDefinitions": {
       "title": "@Collapse_local_functions_when_collapsing_to_definitions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 60,
       "migration": {
         "pass": {
@@ -395,7 +395,7 @@
     "textEditor.csharp.advanced.fading.fadeOutUnusedImports": {
       "title": "@Fade_out_unused_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 10,
       "migration": {
         "pass": {
@@ -410,7 +410,7 @@
     "textEditor.csharp.advanced.fading.fadeOutUnreachableCode": {
       "title": "@Fade_out_unreachable_code;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 20,
       "migration": {
         "pass": {
@@ -425,7 +425,7 @@
     "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForDeclarationLevelConstructs": {
       "title": "@Show_guides_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 0,
       "migration": {
         "pass": {
@@ -440,7 +440,7 @@
     "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForCodeLevelConstructs": {
       "title": "@Show_guides_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 10,
       "migration": {
         "pass": {
@@ -455,7 +455,7 @@
     "textEditor.csharp.advanced.blockStructureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions": {
       "title": "@Show_guides_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 20,
       "migration": {
         "pass": {
@@ -470,7 +470,7 @@
     "textEditor.csharp.advanced.comments.autoXmlDocCommentGeneration": {
       "title": "@Generate_XML_documentation_comments_for;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 0,
       "migration": {
         "pass": {
@@ -485,7 +485,7 @@
     "textEditor.csharp.advanced.comments.splitComments": {
       "title": "@Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 10,
       "migration": {
         "pass": {
@@ -500,7 +500,7 @@
     "textEditor.csharp.advanced.comments.insertBlockCommentStartString": {
       "title": "@Insert_at_the_start_of_new_lines_when_writing_comments;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 20,
       "migration": {
         "pass": {
@@ -515,7 +515,7 @@
     "textEditor.csharp.advanced.editorHelp.fixStringContentsOnPaste": {
       "title": "@Fix_text_pasted_into_string_literals_experimental;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 0,
       "migration": {
         "pass": {
@@ -530,7 +530,7 @@
     "textEditor.csharp.advanced.editorHelp.showRemarksInQuickInfo": {
       "title": "@Show_remarks_in_Quick_Info;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 10,
       "migration": {
         "pass": {
@@ -545,7 +545,7 @@
     "textEditor.csharp.advanced.editorHelp.showPreviewForRenameTracking": {
       "title": "@Show_preview_for_rename_tracking;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 20,
       "migration": {
         "pass": {
@@ -560,7 +560,7 @@
     "textEditor.csharp.advanced.editorHelp.UnsupportedReportInvalidPlaceholdersInStringDotFormatCalls": {
       "title": "@Report_invalid_placeholders_in_string_dot_format_calls;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 30,
       "migration": {
         "pass": {
@@ -575,7 +575,7 @@
     "textEditor.csharp.advanced.editorHelp.classifyReassignedVariables": {
       "title": "@Underline_reassigned_variables;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 40,
       "migration": {
         "pass": {
@@ -590,7 +590,7 @@
     "textEditor.csharp.advanced.editorHelp.classifyObsoleteSymbols": {
       "title": "@Strike_out_obsolete_symbols;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 50,
       "migration": {
         "pass": {
@@ -605,7 +605,7 @@
     "textEditor.csharp.advanced.regularExpression.colorizeRegexPatterns": {
       "title": "@Colorize_regular_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 0,
       "migration": {
         "pass": {
@@ -620,7 +620,7 @@
     "textEditor.csharp.advanced.regularExpression.unsupportedReportInvalidRegexPatterns": {
       "title": "@Report_invalid_regular_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 10,
       "migration": {
         "pass": {
@@ -635,7 +635,7 @@
     "textEditor.csharp.advanced.regularExpression.highlightRelatedRegexComponents": {
       "title": "@Highlight_related_components_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 20,
       "migration": {
         "pass": {
@@ -650,7 +650,7 @@
     "textEditor.csharp.advanced.regularExpression.provideRegexCompletions": {
       "title": "@Show_completion_list;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 30,
       "migration": {
         "pass": {
@@ -665,7 +665,7 @@
     "textEditor.csharp.advanced.jsonStrings.colorizeJsonPatterns": {
       "title": "@Colorize_JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 0,
       "migration": {
         "pass": {
@@ -680,7 +680,7 @@
     "textEditor.csharp.advanced.jsonStrings.unsupportedReportInvalidJsonPatterns": {
       "title": "@Report_invalid_JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 10,
       "migration": {
         "pass": {
@@ -695,7 +695,7 @@
     "textEditor.csharp.advanced.jsonStrings.highlightRelatedJsonComponents": {
       "title": "@Highlight_related_components_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 20,
       "migration": {
         "pass": {
@@ -712,7 +712,7 @@
       "type": "string",
       "enum": [ "withOtherMembersOfTheSameKind", "atTheEnd" ],
       "enumItemLabels": [ "@with_other_members_of_the_same_kind;..\\Microsoft.VisualStudio.LanguageServices.dll", "@at_the_end;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
-      "defaultValue": "withOtherMembersOfTheSameKind",
+      "default": "withOtherMembersOfTheSameKind",
       "order": 0,
       "migration": {
         "enumIntegerToString": {
@@ -739,7 +739,7 @@
       "type": "string",
       "enum": [ "preferThrowingProperties", "preferAutoProperties" ],
       "enumItemLabels": [ "@prefer_throwing_properties;..\\Microsoft.VisualStudio.LanguageServices.dll", "@codegen_prefer_auto_properties;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
-      "defaultValue": "preferThrowingProperties",
+      "default": "preferThrowingProperties",
       "order": 10,
       "migration": {
         "enumIntegerToString": {
@@ -764,7 +764,7 @@
     "textEditor.csharp.advanced.inlayHints.colorizeInlineHints": {
       "title": "@Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 0,
       "migration": {
         "pass": {
@@ -779,7 +779,7 @@
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters": {
       "title": "@Display_inline_parameter_name_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 10,
       "migration": {
         "pass": {
@@ -795,7 +795,7 @@
       "title": "@Show_hints_for_literals;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 20,
       "migration": {
         "pass": {
@@ -811,7 +811,7 @@
       "title": "@Show_hints_for_new_expressions;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 30,
       "migration": {
         "pass": {
@@ -827,7 +827,7 @@
       "title": "@Show_hints_for_everything_else;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 40,
       "migration": {
         "pass": {
@@ -843,7 +843,7 @@
       "title": "@Show_hints_for_indexers;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 50,
       "migration": {
         "pass": {
@@ -859,7 +859,7 @@
       "title": "@Suppress_hints_when_parameter_name_matches_the_method_s_intent;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 60,
       "migration": {
         "pass": {
@@ -875,7 +875,7 @@
       "title": "@Suppress_hints_when_parameter_names_differ_only_by_suffix;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 70,
       "migration": {
         "pass": {
@@ -891,7 +891,7 @@
       "title": "@Suppress_hints_when_argument_matches_parameter_name;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForParameters}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 80,
       "migration": {
         "pass": {
@@ -906,7 +906,7 @@
     "textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes": {
       "title": "@Display_inline_type_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": false,
+      "default": false,
       "order": 90,
       "migration": {
         "pass": {
@@ -922,7 +922,7 @@
       "title": "@Show_hints_for_variables_with_inferred_types;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 100,
       "migration": {
         "pass": {
@@ -938,7 +938,7 @@
       "title": "@Show_hints_for_lambda_parameter_types;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 110,
       "migration": {
         "pass": {
@@ -954,7 +954,7 @@
       "title": "@Show_hints_for_implicit_object_creation;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 110,
       "migration": {
         "pass": {
@@ -970,7 +970,7 @@
       "title": "@Show_hints_for_collection_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "enableWhen": "${config:textEditor.csharp.advanced.inlayHints.enableInlayHintsForTypes}=='true'",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 120,
       "migration": {
         "pass": {
@@ -985,7 +985,7 @@
     "textEditor.csharp.advanced.inheritanceMargin.showInheritanceMargin": {
       "title": "@Show_inheritance_margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 130,
       "migration": {
         "pass": {
@@ -1000,7 +1000,7 @@
     "textEditor.csharp.advanced.inheritanceMargin.showGlobalImportsInInheritanceMargin": {
       "title": "@Include_global_imports;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "defaultValue": true,
+      "default": true,
       "order": 140,
       "migration": {
         "pass": {

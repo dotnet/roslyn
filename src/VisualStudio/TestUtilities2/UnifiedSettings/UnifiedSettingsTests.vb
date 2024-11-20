@@ -190,7 +190,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             ' ]
             Dim actualMappings = CType(registrationJsonObject.SelectToken(String.Format("$.properties['{0}'].migration.enumIntegerToString.map", unifiedSettingPath)), JArray).Select(Function(mapping) (mapping("result").ToString(), Integer.Parse(mapping("match").ToString()))).ToArray()
 
-            Dim enumValues = [option].Type.GetEnumValues().Cast(Of Object).ToDictionary(
+            ' Call Distinct() because some option like SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+            ' BackgroundAnalysisScope.None is the alias for BackgroundAnalysisScope.Minimal
+            Dim enumValues = [option].Type.GetEnumValues().Cast(Of Object).Distinct().ToDictionary(
                 keySelector:=Function(enumValue) enumValue.ToString().ToCamelCase(),
                 elementSelector:=Function(enumValue)
                                      Dim actualDefaultValue = GetOptionsDefaultValue([option])
@@ -215,11 +217,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.UnifiedSettings
             ' If the default value of the enum is a stub value, verify the real value mapping is put in font of the default value mapping.
             ' It makes sure the default value would be converted to the real value by unified settings engine.
             Dim realDefaultValue = GetOptionsDefaultValue([option])
-            Dim indexOfTheRealDefaultMapping = Array.IndexOf(actualMappings, (realDefaultValue.ToString().ToCamelCase(), CInt(realDefaultValue)))
-            Assert.NotEqual(-1, indexOfTheRealDefaultMapping)
-            Dim indexOfTheDefaultMapping = Array.IndexOf(actualMappings, (realDefaultValue.ToString().ToCamelCase(), CInt([option].DefaultValue)))
-            Assert.NotEqual(-1, indexOfTheDefaultMapping)
-            Assert.True(indexOfTheRealDefaultMapping < indexOfTheDefaultMapping)
+            If Not realDefaultValue.Equals([option].DefaultValue) Then
+                Dim indexOfTheRealDefaultMapping = Array.IndexOf(actualMappings, (realDefaultValue.ToString().ToCamelCase(), CInt(realDefaultValue)))
+                Assert.NotEqual(-1, indexOfTheRealDefaultMapping)
+                Dim indexOfTheDefaultMapping = Array.IndexOf(actualMappings, (realDefaultValue.ToString().ToCamelCase(), CInt([option].DefaultValue)))
+                Assert.NotEqual(-1, indexOfTheDefaultMapping)
+                Assert.True(indexOfTheRealDefaultMapping < indexOfTheDefaultMapping)
+            End If
         End Sub
     End Class
 End Namespace
