@@ -11849,25 +11849,44 @@ done:
             {
                 while (true)
                 {
-                    // Nullable suppression operators should only be consumed by a conditional access
-                    // if there are further conditional operations performed after the suppression
-                    if (isOptionalExclamationsFollowedByConditionalOperation())
-                    {
-                        while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
-                            expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
-                    }
+                    // We should consume suppression '!'s which are in the middle of the 'whenNotNull', but not at the end.
+                    // For example, 'a?.b!.c' should be a cond-access whose RHS is '.b!.c',
+                    // while 'a?.b!' should be a suppression-expr containing a cond-access 'a?.b'.
+                    using var beforeSuppressionsResetPoint = GetDisposableResetPoint(resetOnDispose: false);
+                    var expressionBeforeSuppressions = expr;
 
-                    // Expand to consume the `dependent_access *` continuations.
+                    while (this.CurrentToken.Kind == SyntaxKind.ExclamationToken)
+                        expr = _syntaxFactory.PostfixUnaryExpression(SyntaxKind.SuppressNullableWarningExpression, expr, EatToken());
+
+                    // Expand to consume the `dependent_access*` continuations.
                     if (tryParseDependentAccess(expr) is ExpressionSyntax expandedExpression)
                     {
                         expr = expandedExpression;
                         continue;
                     }
 
+                    // A trailing cond-access or assignment is effectively the "end" of the current cond-access node.
+                    // Due to right-associativity, everything that follows will be included in the child node.
+                    // e.g. 'a?.b?.c' parses as '(a) ? (.b?.c)'
+                    // e.g. 'a?.b = c?.d = e?.f' parses as 'a?.b = (c?.d = e?.f)'
+
+                    // a?.b?.c
+                    // a?.b!?.c
                     if (TryParseConditionalAccessExpression(expr, out var conditionalAccess))
                         return conditionalAccess;
 
-                    return expr;
+                    // a?.b = c
+                    // a?.b! = c
+                    var (operatorTokenKind, operatorExpressionKind) = GetExpressionOperatorTokenKindAndExpressionKind();
+                    if (IsExpectedAssignmentOperator(operatorTokenKind))
+                    {
+                        return ParseAssignmentExpression(operatorExpressionKind, expr, EatExpressionOperatorToken(operatorTokenKind));
+                    }
+
+                    // End of the cond-access.
+                    // Any '!' suppressions which followed this are a parent of the cond-access, not a child of it.
+                    beforeSuppressionsResetPoint.Reset();
+                    return expressionBeforeSuppressions;
                 }
             }
 
@@ -11882,26 +11901,6 @@ done:
                         => _syntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, expr, this.EatToken(), this.ParseSimpleName(NameOptions.InExpression)),
                     _ => null,
                 };
-
-            bool isOptionalExclamationsFollowedByConditionalOperation()
-            {
-                var index = 0;
-                while (this.PeekToken(index).Kind == SyntaxKind.ExclamationToken)
-                    index++;
-
-                // a?.b!(
-                // a?.b![
-                // a?.b!.
-                // a?.b!?
-                //
-                // Note: for `a?.b!?`, we consume the ! as a suppression regardless of whether the ? is the start of a
-                // conditional expression or a conditional access expression.
-                return this.PeekToken(index).Kind
-                    is SyntaxKind.OpenParenToken
-                    or SyntaxKind.OpenBracketToken
-                    or SyntaxKind.DotToken
-                    or SyntaxKind.QuestionToken;
-            }
         }
 
 #nullable disable
