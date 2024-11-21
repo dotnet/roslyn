@@ -859,6 +859,7 @@ collection_element
   : expression_element
   | key_value_pair_element
   | spread_element
+  | with_element
   ;
 
 expression_element
@@ -871,6 +872,10 @@ key_value_pair_element
 
 spread_element
   : '..' expression
+  ;
+
+with_element
+  : 'with' argument_list
   ;
 
 conditional_access_expression
