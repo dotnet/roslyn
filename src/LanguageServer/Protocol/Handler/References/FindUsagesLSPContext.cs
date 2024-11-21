@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IMetadataAsSourceFileService metadataAsSourceFileService,
             IAsynchronousOperationListener asyncListener,
             IGlobalOptionService globalOptions,
-            ClientCapabilities clientCapabilities,
+            bool supportsVSExtensions,
             CancellationToken cancellationToken)
         {
             _progress = progress;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _globalOptions = globalOptions;
-            _supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
+            _supportsVSExtensions = supportsVSExtensions;
             _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
                 DelayTimeSpan.Medium, ReportReferencesAsync, asyncListener, cancellationToken);
         }
