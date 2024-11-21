@@ -121,6 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            DecisionDagBuilder.CheckOrReachabilityForIsPattern(this.Compilation, pattern.Syntax, expression, pattern, diagnostics);
+
             // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
             // after removing any outer 'not's, so consumers will need to compensate for negated patterns.
             return new BoundIsPatternExpression(
@@ -1792,9 +1794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collectCandidates(right, narrowedTypeCandidates);
                     var narrowedType = leastSpecificType(node, narrowedTypeCandidates, binder, diagnostics) ?? inputType;
 
-                    var result = new BoundBinaryPattern(node, disjunction: isDisjunction, preboundLeft, right, inputType: inputType, narrowedType: narrowedType, hasErrors);
-                    reportRedundantPatternIfNeeded(result);
-                    return result;
+                    return new BoundBinaryPattern(node, disjunction: isDisjunction, preboundLeft, right, inputType: inputType, narrowedType: narrowedType, hasErrors);
                 }
                 else
                 {
@@ -1873,20 +1873,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     candidates.Add(pat.NarrowedType);
                 }
-            }
-
-            static void reportRedundantPatternIfNeeded(BoundBinaryPattern pattern)
-            {
-                Debug.Assert(pattern.Disjunction);
-                if (pattern.Left is not BoundNegatedPattern negated)
-                {
-                    return;
-                }
-                // TODO2 need to recurse on the right
-                switch (negated, pattern.Right)
-                {
-                }
-                // TODO2
             }
         }
     }

@@ -3203,13 +3203,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_RedundantPattern">
-        <source>The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?</source>
-        <target state="new">The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?</target>
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RedundantPattern_Title">
-        <source>The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?</source>
-        <target state="new">The pattern is redundant. Did you mean to parenthesize the disjunctive 'or' pattern?</target>
+        <source>The pattern is redundant.</source>
+        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefAssignNarrower">

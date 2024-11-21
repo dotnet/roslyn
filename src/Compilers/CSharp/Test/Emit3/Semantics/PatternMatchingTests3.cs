@@ -1999,9 +1999,18 @@ class Animal { }
                 // (19,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y1 or 1) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y1").WithLocation(19, 22),
+                // (19,28): warning CS9268: The pattern is redundant.
+                //         if (o is int y1 or 1) { }
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(19, 28),
                 // (20,22): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is int y2 or (1 or 2)) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y2").WithLocation(20, 22),
+                // (20,29): warning CS9268: The pattern is redundant.
+                //         if (o is int y2 or (1 or 2)) { }
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(20, 29),
+                // (20,34): warning CS9268: The pattern is redundant.
+                //         if (o is int y2 or (1 or 2)) { }
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "2").WithLocation(20, 34),
                 // (21,27): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is 1 or int y3) { }
                 Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y3").WithLocation(21, 27),
@@ -2017,9 +2026,24 @@ class Animal { }
                 // (25,13): warning CS8794: An expression of type 'object' always matches the provided pattern.
                 //         if (o is object or (1 or var y7)) { }
                 Diagnostic(ErrorCode.WRN_IsPatternAlways, "o is object or (1 or var y7)").WithArguments("object").WithLocation(25, 13),
+                // (25,29): warning CS9268: The pattern is redundant.
+                //         if (o is object or (1 or var y7)) { }
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(25, 29),
                 // (25,38): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
                 //         if (o is object or (1 or var y7)) { }
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(25, 38)
+                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "y7").WithLocation(25, 38),
+                // (30,27): warning CS9268: The pattern is redundant.
+                //         if (o is int _ or 1) { }
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(30, 27),
+                // (31,28): warning CS9268: The pattern is redundant.
+                //         if (o is int _ or (1 or 2)) { }
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "1").WithLocation(31, 28),
+                // (31,33): warning CS9268: The pattern is redundant.
+                //         if (o is int _ or (1 or 2)) { }
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "2").WithLocation(31, 33),
+                // (33,24): warning CS9268: The pattern is redundant.
+                //         if (o is (1 or 2) or int _) { }
+                Diagnostic(ErrorCode.WRN_RedundantPattern, "2").WithLocation(33, 24)
                 );
         }
 
