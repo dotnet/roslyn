@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                     m[nameof(SuggestionsPanelTelemetry.CollapseSuggestionsPanelWhenRenameStarts)] = _suggestionsPanelTelemetry.CollapseSuggestionsPanelWhenRenameStarts;
                     m["CollapseSuggestionsPanelWhenRenameEnds"] = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel);
                     m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
+                    m["smartRenameCorrelationId"] = _smartRenameSession.CorrelationId;
                 }));
             }
             else
@@ -63,6 +64,7 @@ namespace Microsoft.CodeAnalysis.InlineRename.UI.SmartRename
                     m["UseDropDown"] = true;
                     m[nameof(SuggestionsDropdownTelemetry.DropdownButtonClickTimes)] = _suggestionsDropdownTelemetry.DropdownButtonClickTimes;
                     m["smartRenameSessionInProgress"] = _smartRenameSession.IsInProgress;
+                    m["smartRenameCorrelationId"] = _smartRenameSession.CorrelationId;
                 }));
             }
         }
