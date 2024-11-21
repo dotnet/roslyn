@@ -198,20 +198,22 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 if (!ShouldAnalyze(symbolStartContext, (INamedTypeSymbol)symbolStartContext.Symbol))
                     return;
 
-                var hasUnsupportedOperation = false;
-                symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
+                symbolStartContext.RegisterOperationAction(AnalyzeDeconstructionAssignment, OperationKind.DeconstructionAssignment);
                 symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                 symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
+                symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
+                symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                 symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                 symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
-                symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
 
                 // We bail out reporting diagnostics for named types if it contains following kind of operations:
-                //  1. Invalid operations, i.e. erroneous code:
-                //     We do so to ensure that we don't report false positives during editing scenarios in the IDE, where the user
-                //     is still editing code and fixing unresolved references to symbols, such as overload resolution errors.
+                //  1. Invalid operations, i.e. erroneous code: We do so to ensure that we don't report false positives
+                //     during editing scenarios in the IDE, where the user is still editing code and fixing unresolved
+                //     references to symbols, such as overload resolution errors.
                 //  2. Dynamic operations, where we do not know the exact member being referenced at compile time.
                 //  3. Operations with OperationKind.None.
+
+                var hasUnsupportedOperation = false;
                 symbolStartContext.RegisterOperationAction(
                     _ => hasUnsupportedOperation = true,
                     OperationKind.Invalid, OperationKind.None, OperationKind.DynamicIndexerAccess, OperationKind.DynamicInvocation, OperationKind.DynamicMemberReference, OperationKind.DynamicObjectCreation);
@@ -255,12 +257,17 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     // Note that we might receive a symbol reference (AnalyzeMemberOperation) callback before
                     // this symbol declaration callback, so even though we cannot receive duplicate callbacks for a symbol,
                     // an entry might already be present of the declared symbol here.
-                    if (!_symbolValueUsageStateMap.ContainsKey(symbol))
-                    {
-                        _symbolValueUsageStateMap.Add(symbol, ValueUsageInfo.None);
-                    }
+                    _symbolValueUsageStateMap.TryAdd(symbol, ValueUsageInfo.None);
                 }
             }
+        }
+
+        private void AnalyzeDeconstructionAssignment(OperationAnalysisContext operationContext)
+        {
+            var operation = operationContext.Operation;
+            var methods = _analyzer.SemanticFacts.GetDeconstructionAssignmentMethods(operation.SemanticModel!, operation.Syntax);
+            foreach (var method in methods)
+                OnSymbolUsage(method, ValueUsageInfo.Read);
         }
 
         private void AnalyzeFieldInitializer(OperationAnalysisContext operationContext)
