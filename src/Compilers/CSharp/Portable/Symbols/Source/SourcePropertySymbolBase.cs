@@ -1579,7 +1579,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
+                    var code = this.GetMethod?.UseUpdatedEscapeRules == false || this.SetMethod?.UseUpdatedEscapeRules == false
+                        ? ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget
+                        : ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget;
+                    diagnostics.Add(code, arguments.AttributeSyntaxOpt.Location);
                 }
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))

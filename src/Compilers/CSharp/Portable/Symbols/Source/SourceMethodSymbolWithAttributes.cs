@@ -625,7 +625,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
+                    var code = !this.UseUpdatedEscapeRules
+                        ? ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget
+                        : ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget;
+                    diagnostics.Add(code, arguments.AttributeSyntaxOpt.Location);
                 }
             }
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))

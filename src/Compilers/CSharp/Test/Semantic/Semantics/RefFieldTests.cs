@@ -22337,6 +22337,9 @@ using @scoped = System.Int32;
                 """;
             CreateCompilation([source, UnscopedRefAttributeDefinition],
                 parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (6,6): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     [UnscopedRef] public ref int Ref() => ref F;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(6, 6),
                 // (6,47): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //     [UnscopedRef] public ref int Ref() => ref F;
                 Diagnostic(ErrorCode.ERR_RefReturnStructThis, "F").WithLocation(6, 47));
@@ -22462,17 +22465,42 @@ using @scoped = System.Int32;
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
         public void UnscopedRefAttribute_RefSafetyRules_Reference()
         {
+            // This is like source1 below compiled with an old compiler that didn't know about the UnscopedRefAttribute.
+            var source1il = """
+                .class public sequential ansi sealed beforefieldinit S extends System.ValueType
+                {
+                    .method public hidebysig instance int32& Ref() cil managed 
+                    {
+                        .param [1] .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (01 00 00 00)
+                        .maxstack 8
+                        ldnull
+                        throw
+                    }
+                }
+
+                .class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.UnscopedRefAttribute extends System.Object
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                    {
+                        .maxstack 8
+                        ret
+                    }
+                }
+                """;
+            var ref1a = CompileIL(source1il);
+
             var source1 = """
                 using System.Diagnostics.CodeAnalysis;
                 public struct S
                 {
-                    public int F;
-
                     [UnscopedRef] public ref int Ref() => throw null;
                 }
                 """;
-            var ref1a = CreateCompilation([source1, UnscopedRefAttributeDefinition],
-                parseOptions: TestOptions.Regular10).VerifyDiagnostics().EmitToImageReference();
+            CreateCompilation([source1, UnscopedRefAttributeDefinition],
+                parseOptions: TestOptions.Regular10).VerifyDiagnostics(
+                // (4,6): error CS9063: UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+                //     [UnscopedRef] public ref int Ref() => throw null;
+                Diagnostic(ErrorCode.ERR_UnscopedRefAttributeUnsupportedTarget, "UnscopedRef").WithLocation(4, 6));
             var ref1b = CreateCompilation(source1,
                 parseOptions: TestOptions.Regular10,
                 targetFramework: TargetFramework.Net70).VerifyDiagnostics().EmitToImageReference();
