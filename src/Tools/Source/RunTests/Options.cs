@@ -171,7 +171,7 @@ namespace RunTests
                 { "runtime=", "The runtime to test: both, core or framework", (TestRuntime t) => testRuntime = t},
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", (string s) => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", (string s) => excludeFilter.Add(s) },
-                { "arch=", "Architecture to test on: x86, x64 or arm64", (string s) => architecture = s },
+                { "arch=", "Architecture to test on: x86, x64, loongarch64 or arm64", (string s) => architecture = s },
                 { "html", "Include HTML file output", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Run tests on Helix", o => helix = o is object },
