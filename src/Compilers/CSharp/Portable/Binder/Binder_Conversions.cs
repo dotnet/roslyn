@@ -400,6 +400,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(conversion.UnderlyingConversions.IsDefault);
                     conversion.MarkUnderlyingConversionsChecked();
                 }
+                else if (conversion.IsKeyValuePair)
+                {
+                    if (!ConversionsBase.IsKeyValuePairType(Compilation, source.Type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var sourceKeyType, out var sourceValueType) ||
+                        !ConversionsBase.IsKeyValuePairType(Compilation, destination, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var destinationKeyType, out var destinationValueType))
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(source.Type);
+                    }
+                    // PROTOTYPE: Test that we're reporting errors from this code path.
+                    _ = CreateConversion(
+                        syntax,
+                        new BoundValuePlaceholder(source.Syntax, sourceKeyType.Type),
+                        conversion.UnderlyingConversions[0],
+                        isCast: false,
+                        conversionGroupOpt: null,
+                        wasCompilerGenerated: true,
+                        destinationKeyType.Type,
+                        diagnostics);
+                    _ = CreateConversion(
+                        syntax,
+                        new BoundValuePlaceholder(source.Syntax, sourceValueType.Type),
+                        conversion.UnderlyingConversions[1],
+                        isCast: false,
+                        conversionGroupOpt: null,
+                        wasCompilerGenerated: true,
+                        destinationValueType.Type,
+                        diagnostics);
+                    conversion.MarkUnderlyingConversionsChecked();
+                }
 
                 conversion.AssertUnderlyingConversionsCheckedRecursive();
             }
@@ -909,20 +937,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var collectionInitializerAddMethodBinder = new CollectionInitializerAddMethodBinder(syntax, targetType, this);
                 foreach (var element in elements)
                 {
-                    BoundNode convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                        (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
+                    BoundNode convertedElement = element switch
+                    {
+                        BoundCollectionExpressionSpreadElement spreadElement => (BoundNode)BindCollectionExpressionSpreadElementAddMethod(
                             (SpreadElementSyntax)spreadElement.Syntax,
                             spreadElement,
                             collectionInitializerAddMethodBinder,
                             implicitReceiver,
-                            diagnostics) :
-                        BindCollectionInitializerElementAddMethod(
+                            diagnostics),
+                        BoundKeyValuePairElement keyValuePairElement => BindKeyValuePairAddMethod(
+                            keyValuePairElement,
+                            implicitReceiver,
+                            diagnostics),
+                        _ => BindCollectionInitializerElementAddMethod(
                             element.Syntax,
                             ImmutableArray.Create((BoundExpression)element),
                             hasEnumerableInitializerType: true,
                             collectionInitializerAddMethodBinder,
                             diagnostics,
-                            implicitReceiver);
+                            implicitReceiver)
+                    };
                     builder.Add(convertedElement);
                 }
             }
@@ -950,20 +984,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var element = elements[i];
                     var elementConversion = elementConversions[i];
-                    var convertedElement = element is BoundCollectionExpressionSpreadElement spreadElement ?
-                        bindSpreadElement(
-                            spreadElement,
-                            elementType,
-                            elementConversion,
-                            diagnostics) :
-                        CreateConversion(
+                    var convertedElement = element switch
+                    {
+                        BoundCollectionExpressionSpreadElement spreadElement =>
+                            bindSpreadElement(
+                                spreadElement,
+                                elementType,
+                                elementConversion,
+                                diagnostics),
+                        BoundKeyValuePairElement keyValuePairElement =>
+                            bindKeyValuePairElement(
+                                keyValuePairElement,
+                                elementType,
+                                elementConversion,
+                                diagnostics),
+                        _ => CreateConversion(
                             element.Syntax,
                             (BoundExpression)element,
                             elementConversion,
                             isCast: false,
                             conversionGroupOpt: null,
                             destination: elementType,
-                            diagnostics);
+                            diagnostics)
+                    };
+
                     builder.Add(convertedElement!);
                 }
                 conversion.MarkUnderlyingConversionsChecked();
@@ -1008,6 +1052,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementPlaceholder: elementPlaceholder,
                     iteratorBody: new BoundExpressionStatement(expressionSyntax, convertElement) { WasCompilerGenerated = true },
                     lengthOrCount: element.LengthOrCount);
+            }
+
+            BoundNode bindKeyValuePairElement(BoundKeyValuePairElement element, TypeSymbol elementType, Conversion elementConversion, BindingDiagnosticBag diagnostics)
+            {
+                Debug.Assert(ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)));
+                Debug.Assert(elementConversion is { Kind: ConversionKind.KeyValuePair, UnderlyingConversions.Length: 2 });
+
+                var typeArguments = ((NamedTypeSymbol)elementType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                var underlyingConversions = elementConversion.UnderlyingConversions;
+                var keyConversion = CreateConversion(
+                    element.Key.Syntax,
+                    element.Key,
+                    underlyingConversions[0],
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    destination: typeArguments[0].Type,
+                    diagnostics);
+                var valueConversion = CreateConversion(
+                    element.Value.Syntax,
+                    element.Value,
+                    underlyingConversions[1],
+                    isCast: false,
+                    conversionGroupOpt: null,
+                    destination: typeArguments[1].Type,
+                    diagnostics);
+                return element.Update(keyConversion, valueConversion);
             }
         }
 
@@ -1132,6 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 var binder = new ParamsCollectionTypeInProgressBinder(namedType, this);
 
+                // PROTOTYPE: Test with constructor that takes a comparer as well.
+                // PROTOTYPE: Test the comparer case for non-dictionary collections as well.
+                // PROTOTYPE: Test the comparer case with/without an explicit comparer in the collection expression.
                 bool overloadResolutionSucceeded = binder.TryPerformConstructorOverloadResolution(
                         namedType,
                         analyzedArguments,
@@ -1235,13 +1308,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        // PROTOTYPE: This is a simple implementation. What else is needed?
+        internal bool HasCollectionExpressionApplicableIndexer(SyntaxNode syntax, TypeSymbol targetType, TypeSymbol elementType, out ImmutableArray<PropertySymbol> indexers, BindingDiagnosticBag diagnostics)
+        {
+            var lookupResult = LookupResult.GetInstance();
+            var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            // PROTOTYPE: Test with missing indexer, multiple indexers, readonly/writeonly indexer, different member kind, etc.
+            // PROTOTYPE: Test with indexer that doesn't match elementType key and value types.
+            LookupMembersWithFallback(lookupResult, targetType, WellKnownMemberNames.Indexer, arity: 0, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo); // PROTOTYPE: Test use-site diagnostics.
+            indexers = lookupResult.SingleSymbolOrDefault is PropertySymbol property ?
+                ImmutableArray.Create(property) :
+                ImmutableArray<PropertySymbol>.Empty;
+            lookupResult.Free();
+            return indexers.Length > 0;
+        }
+
         internal bool HasCollectionExpressionApplicableAddMethod(SyntaxNode syntax, TypeSymbol targetType, out ImmutableArray<MethodSymbol> addMethods, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(!targetType.IsDynamic());
 
             NamedTypeSymbol? namedType = targetType as NamedTypeSymbol;
 
-            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _))
+            if (namedType is not null && HasParamsCollectionTypeInProgress(namedType, out _, out _)) // PROTOTYPE: Test cycles with params for indexers with dictionary types and non-dictionary types.
             {
                 // We are in a cycle. Optimistically assume we have the right Add to break the cycle
                 addMethods = [];
@@ -1810,6 +1899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
+                        // PROTOTYPE: Handle k:v.
                         Conversion elementConversion = Conversions.ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo);
                         if (!elementConversion.Exists)
                         {

@@ -193,17 +193,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return Conversion.NoConversion;
                 }
 
-                if (elements.Length > 0 &&
+                if ((!ReferenceEquals(elementType.OriginalDefinition, Compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV)) ||
+                    !_binder.HasCollectionExpressionApplicableIndexer(syntax, targetType, elementType, out _, BindingDiagnosticBag.Discarded)) &&
+                    elements.Length > 0 &&
                     !_binder.HasCollectionExpressionApplicableAddMethod(syntax, targetType, addMethods: out _, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
             }
 
+            TypeWithAnnotations keyType;
+            TypeWithAnnotations valueType;
+            bool usesKeyValuePairs = IsKeyValuePairType(Compilation, elementType, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out keyType, out valueType);
+
             var builder = ArrayBuilder<Conversion>.GetInstance(elements.Length);
             foreach (var element in elements)
             {
-                Conversion elementConversion = convertElement(element, elementType, ref useSiteInfo);
+                Conversion elementConversion;
+                if (usesKeyValuePairs)
+                {
+                    // PROTOTYPE: This change in behavior should only be enabled in C#14. Test both
+                    // dictionaries and other collections of KeyValuePair<,> with earlier language version.
+                    Debug.Assert(keyType.Type is { });
+                    Debug.Assert(valueType.Type is { });
+                    elementConversion = element switch
+                    {
+                        BoundCollectionExpressionSpreadElement spreadElement => GetSpreadElementAsKeyValuePairConversion(spreadElement, keyType.Type, valueType.Type, ref useSiteInfo),
+                        BoundKeyValuePairElement keyValuePairElement => GetKeyValuePairElementConversion(keyValuePairElement, keyType.Type, valueType.Type, ref useSiteInfo),
+                        _ => GetExpressionElementAsKeyValuePairConversion((BoundExpression)element, keyType.Type, valueType.Type, ref useSiteInfo),
+                    };
+                }
+                else
+                {
+                    elementConversion = element switch
+                    {
+                        BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
+                        BoundKeyValuePairElement keyValuePairElement => Conversion.NoConversion, // PROTOTYPE: Test this case.
+                        _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
+                    };
+                }
+
                 if (!elementConversion.Exists)
                 {
                     builder.Free();
@@ -214,15 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.CreateCollectionExpressionConversion(collectionTypeKind, elementType, constructor, isExpanded, builder.ToImmutableAndFree());
-
-            Conversion convertElement(BoundNode element, TypeSymbol elementType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-            {
-                return element switch
-                {
-                    BoundCollectionExpressionSpreadElement spreadElement => GetCollectionExpressionSpreadElementConversion(spreadElement, elementType, ref useSiteInfo),
-                    _ => ClassifyImplicitConversionFromExpression((BoundExpression)element, elementType, ref useSiteInfo),
-                };
-            }
         }
 
         internal Conversion GetCollectionExpressionSpreadElementConversion(
@@ -235,10 +255,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Conversion.NoConversion;
             }
+            // PROTOTYPE: This should be conversion from type rather than conversion
+            // from expression. The difference is in handling of dynamic.
             return ClassifyImplicitConversionFromExpression(
                 new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
                 targetType,
                 ref useSiteInfo);
+        }
+
+        private Conversion GetExpressionElementAsKeyValuePairConversion(
+            BoundExpression element,
+            TypeSymbol keyType,
+            TypeSymbol valueType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            // PROTOTYPE: Test expression element with no type.
+            if (IsKeyValuePairType(Compilation, element.Type, WellKnownType.System_Collections_Generic_KeyValuePair_KV, out var elementKeyType, out var elementValueType))
+            {
+                var key = ClassifyImplicitConversionFromType(elementKeyType.Type, keyType, ref useSiteInfo);
+                var value = ClassifyImplicitConversionFromType(elementValueType.Type, valueType, ref useSiteInfo);
+                if (key.Exists && value.Exists)
+                {
+                    return new Conversion(ConversionKind.KeyValuePair, [key, value]);
+                }
+            }
+            return Conversion.NoConversion;
+        }
+
+        private Conversion GetSpreadElementAsKeyValuePairConversion(
+            BoundCollectionExpressionSpreadElement element,
+            TypeSymbol keyType,
+            TypeSymbol valueType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var enumeratorInfo = element.EnumeratorInfoOpt;
+            if (enumeratorInfo is null)
+            {
+                return Conversion.NoConversion;
+            }
+            return GetExpressionElementAsKeyValuePairConversion(
+                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
+                keyType,
+                valueType,
+                ref useSiteInfo);
+        }
+
+        private Conversion GetKeyValuePairElementConversion(
+            BoundKeyValuePairElement element,
+            TypeSymbol keyType,
+            TypeSymbol valueType,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var key = ClassifyImplicitConversionFromExpression(element.Key, keyType, ref useSiteInfo);
+            var value = ClassifyImplicitConversionFromExpression(element.Value, valueType, ref useSiteInfo);
+            if (key.Exists && value.Exists)
+            {
+                return new Conversion(ConversionKind.KeyValuePair, [key, value]);
+            }
+            return Conversion.NoConversion;
         }
 #nullable disable
 

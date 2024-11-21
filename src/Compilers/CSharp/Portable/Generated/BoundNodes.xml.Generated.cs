@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CollectionExpression,
         CollectionExpressionSpreadExpressionPlaceholder,
         CollectionExpressionSpreadElement,
+        KeyValuePairElement,
         TupleLiteral,
         ConvertedTupleLiteral,
         DynamicObjectCreationExpression,
@@ -6542,6 +6543,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal sealed partial class BoundKeyValuePairElement : BoundNode
+    {
+        public BoundKeyValuePairElement(SyntaxNode syntax, BoundExpression key, BoundExpression value, bool hasErrors = false)
+            : base(BoundKind.KeyValuePairElement, syntax, hasErrors || key.HasErrors() || value.HasErrors())
+        {
+
+            RoslynDebug.Assert(key is object, "Field 'key' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.Key = key;
+            this.Value = value;
+        }
+
+        public BoundExpression Key { get; }
+        public BoundExpression Value { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitKeyValuePairElement(this);
+
+        public BoundKeyValuePairElement Update(BoundExpression key, BoundExpression value)
+        {
+            if (key != this.Key || value != this.Value)
+            {
+                var result = new BoundKeyValuePairElement(this.Syntax, key, value, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
     internal abstract partial class BoundTupleExpression : BoundExpression
     {
         protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
@@ -9172,6 +9204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitCollectionExpressionSpreadExpressionPlaceholder((BoundCollectionExpressionSpreadExpressionPlaceholder)node, arg);
                 case BoundKind.CollectionExpressionSpreadElement:
                     return VisitCollectionExpressionSpreadElement((BoundCollectionExpressionSpreadElement)node, arg);
+                case BoundKind.KeyValuePairElement:
+                    return VisitKeyValuePairElement((BoundKeyValuePairElement)node, arg);
                 case BoundKind.TupleLiteral:
                     return VisitTupleLiteral((BoundTupleLiteral)node, arg);
                 case BoundKind.ConvertedTupleLiteral:
@@ -9473,6 +9507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitCollectionExpression(BoundCollectionExpression node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitKeyValuePairElement(BoundKeyValuePairElement node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitTupleLiteral(BoundTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9709,6 +9744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitCollectionExpression(BoundCollectionExpression node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitKeyValuePairElement(BoundKeyValuePairElement node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitTupleLiteral(BoundTupleLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node) => this.DefaultVisit(node);
@@ -10499,6 +10535,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
             this.Visit(node.Expression);
+            return null;
+        }
+        public override BoundNode? VisitKeyValuePairElement(BoundKeyValuePairElement node)
+        {
+            this.Visit(node.Key);
+            this.Visit(node.Value);
             return null;
         }
         public override BoundNode? VisitTupleLiteral(BoundTupleLiteral node)
@@ -11800,6 +11842,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundValuePlaceholder? elementPlaceholder = node.ElementPlaceholder;
             BoundStatement? iteratorBody = node.IteratorBody;
             return node.Update(expression, expressionPlaceholder, conversion, node.EnumeratorInfoOpt, lengthOrCount, elementPlaceholder, iteratorBody);
+        }
+        public override BoundNode? VisitKeyValuePairElement(BoundKeyValuePairElement node)
+        {
+            BoundExpression key = (BoundExpression)this.Visit(node.Key);
+            BoundExpression value = (BoundExpression)this.Visit(node.Value);
+            return node.Update(key, value);
         }
         public override BoundNode? VisitTupleLiteral(BoundTupleLiteral node)
         {
@@ -16498,6 +16546,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("lengthOrCount", null, new TreeDumperNode[] { Visit(node.LengthOrCount, null) }),
             new TreeDumperNode("elementPlaceholder", null, new TreeDumperNode[] { Visit(node.ElementPlaceholder, null) }),
             new TreeDumperNode("iteratorBody", null, new TreeDumperNode[] { Visit(node.IteratorBody, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitKeyValuePairElement(BoundKeyValuePairElement node, object? arg) => new TreeDumperNode("keyValuePairElement", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("key", null, new TreeDumperNode[] { Visit(node.Key, null) }),
+            new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

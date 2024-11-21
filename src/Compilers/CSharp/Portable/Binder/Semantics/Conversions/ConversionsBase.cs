@@ -1693,6 +1693,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return CollectionExpressionTypeKind.ArrayInterface;
             }
+            else if (isDictionaryInterface(compilation, destination, out elementType))
+            {
+                return CollectionExpressionTypeKind.DictionaryInterface;
+            }
 
             elementType = default;
             return CollectionExpressionTypeKind.None;
@@ -1703,9 +1707,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var specialType = compilation.GetSpecialType(specialInterface);
                 return allInterfaces.Any(static (a, b) => ReferenceEquals(a.OriginalDefinition, b), specialType);
             }
+
+            static bool isDictionaryInterface(CSharpCompilation compilation, TypeSymbol targetType, out TypeWithAnnotations elementType)
+            {
+                // PROTOTYPE: Support IReadOnlyDictionary<K, V> as well.
+                if (targetType is NamedTypeSymbol { Arity: 2 } namedType &&
+                    ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IDictionary_KV)))
+                {
+                    // PROTOTYPE: Test with missing KeyValuePair<,>.
+                    elementType = TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_KeyValuePair_KV).
+                        Construct(namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics));
+                    return true;
+                }
+                elementType = default;
+                return false;
+            }
         }
 
-        internal static bool IsSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, [NotNullWhen(true)] out TypeWithAnnotations elementType)
+        internal static bool IsSpanOrListType(CSharpCompilation compilation, TypeSymbol targetType, WellKnownType spanType, out TypeWithAnnotations elementType)
         {
             if (targetType is NamedTypeSymbol { Arity: 1 } namedType
                 && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(spanType)))
@@ -1714,6 +1733,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
             elementType = default;
+            return false;
+        }
+
+        internal static bool IsKeyValuePairType(CSharpCompilation compilation, TypeSymbol? targetType, WellKnownType keyValuePairType, out TypeWithAnnotations keyType, out TypeWithAnnotations valueType)
+        {
+            if (targetType is NamedTypeSymbol { Arity: 2 } namedType
+                && ReferenceEquals(namedType.OriginalDefinition, compilation.GetWellKnownType(keyValuePairType)))
+            {
+                var typeArguments = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+                keyType = typeArguments[0];
+                valueType = typeArguments[1];
+                return true;
+            }
+            keyType = default;
+            valueType = default;
             return false;
         }
 #nullable disable

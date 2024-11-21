@@ -9417,10 +9417,7 @@ static class Program
             comp.VerifyEmitDiagnostics(
                 // (7,15): error CS8652: The feature 'dictionary expressions' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(7, 15),
-                // (7,15): error CS1003: Syntax error, ',' expected
-                //         d = [3:4];
-                Diagnostic(ErrorCode.ERR_SyntaxError, ":").WithArguments(",").WithLocation(7, 15));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, ":").WithArguments("dictionary expressions").WithLocation(7, 15));
         }
 
         [Theory]
