@@ -59,7 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.DotToken);
             }
 
-            if (symbol.ContainingType.TypeKind == TypeKind.Enum)
+            if (symbol.AssociatedSymbol is IPropertySymbol associatedProperty)
+            {
+                AddPropertyNameAndParameters(associatedProperty);
+                AddPunctuation(SyntaxKind.DotToken);
+                AddKeyword(SyntaxKind.FieldKeyword);
+            }
+            else if (symbol.ContainingType.TypeKind == TypeKind.Enum)
             {
                 Builder.Add(CreatePart(SymbolDisplayPartKind.EnumMemberName, symbol, symbol.Name));
             }
