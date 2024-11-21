@@ -12718,6 +12718,9 @@ done:
 
         private CollectionElementSyntax ParseCollectionElement()
         {
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WithKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
+                return _syntaxFactory.WithElement(this.EatContextualToken(SyntaxKind.WithKeyword), this.ParseParenthesizedArgumentList());
+
             if (this.IsAtDotDotToken())
                 return _syntaxFactory.SpreadElement(this.EatDotDotToken(), this.ParseExpressionCore());
 
@@ -12727,10 +12730,9 @@ done:
                 : this.ParseExpressionCore();
 
             var colonToken = this.TryEatToken(SyntaxKind.ColonToken);
-            if (colonToken != null)
-                return _syntaxFactory.KeyValuePairElement(expression, colonToken, this.ParseExpressionCore());
-
-            return _syntaxFactory.ExpressionElement(expression);
+            return colonToken != null
+                ? _syntaxFactory.KeyValuePairElement(expression, colonToken, this.ParseExpressionCore())
+                : _syntaxFactory.ExpressionElement(expression);
         }
 
         private bool IsAnonymousType()
