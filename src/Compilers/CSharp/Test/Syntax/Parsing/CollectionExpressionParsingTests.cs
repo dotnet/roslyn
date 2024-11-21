@@ -10,10 +10,8 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
-public sealed class CollectionExpressionParsingTests : ParsingTests
+public sealed class CollectionExpressionParsingTests(ITestOutputHelper output) : ParsingTests(output)
 {
-    public CollectionExpressionParsingTests(ITestOutputHelper output) : base(output) { }
-
     [Theory]
     [InlineData(LanguageVersion.CSharp11)]
     [InlineData(LanguageVersion.Preview)]
@@ -18418,5 +18416,155 @@ class C
                 }
             }
             """).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement1()
+    {
+        UsingExpression("[with]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement2()
+    {
+        UsingExpression("[with: with]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement3()
+    {
+        UsingExpression("[.. with]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement4()
+    {
+        UsingExpression("[with + with]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement5()
+    {
+        UsingExpression("[with.X]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement6()
+    {
+        UsingExpression("[with[X]]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement1()
+    {
+        UsingExpression("[with(]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement2()
+    {
+        UsingExpression("[with()]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement3()
+    {
+        UsingExpression("[with(,)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement4()
+    {
+        UsingExpression("[with(a)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement5()
+    {
+        UsingExpression("[with(ref a)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement6()
+    {
+        UsingExpression("[with(out a)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement7()
+    {
+        UsingExpression("[with(out var a)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement8()
+    {
+        UsingExpression("[with(name: value)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement9()
+    {
+        UsingExpression("[with(a, b)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement10()
+    {
+        UsingExpression("[with(), with()]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement11()
+    {
+        UsingExpression("[a, with()]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement12()
+    {
+        UsingExpression("[a:b, with()]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement13()
+    {
+        UsingExpression("[..a, with()]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement14()
+    {
+        UsingExpression("[with(), a]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement15()
+    {
+        UsingExpression("[with(), a:b]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement16()
+    {
+        UsingExpression("[with(), ..a]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement17()
+    {
+        UsingExpression("[with([])]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement18()
+    {
+        UsingExpression("[with(() => {})]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement19()
+    {
+        UsingExpression("[with(from x in y select x)]");
     }
 }

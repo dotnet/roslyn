@@ -2342,6 +2342,11 @@
         <target state="translated">O objeto 'this' não pode ser usado antes que todos os seus campos serem atribuídos. Considere atualizar para a versão de linguagem '{0}' para auto-padrão dos campos não atribuídos.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_WithElementMustBeFirst">
+        <source>'with(...)' element must be first element in collection expression</source>
+        <target state="new">'with(...)' element must be first element in collection expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
         <source>A generic task-like return type was expected, but the type '{0}' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.</source>
         <target state="translated">Um tipo de retorno semelhante à tarefa genérica era esperado, mas o tipo '{0}' encontrado no atributo 'AsyncMethodBuilder' não era adequado. Ele deve ser um tipo genérico não associado de arity um e seu tipo recipiente (se houver) deve ser não genérico.</target>
