@@ -18419,265 +18419,277 @@ class C
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement1()
+    public void NotWithElement1()
     {
         UsingExpression("[with]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement2()
+    public void NotWithElement2()
     {
         UsingExpression("[with: with]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement3()
+    public void NotWithElement3()
     {
         UsingExpression("[.. with]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement4()
+    public void NotWithElement4()
     {
         UsingExpression("[with + with]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement5()
+    public void NotWithElement5()
     {
         UsingExpression("[with.X]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement6()
+    public void NotWithElement6()
     {
         UsingExpression("[with[X]]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement7()
+    public void NotWithElement7()
     {
         UsingExpression("[with ? with : with]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement8()
+    public void NotWithElement8()
     {
         UsingExpression("[with?.with]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement9()
+    public void NotWithElement9()
     {
         UsingExpression("[with++]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement10()
+    public void NotWithElement10()
     {
         UsingExpression("[with)]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement11()
+    public void NotWithElement11()
     {
         UsingExpression("[with..with]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement12()
+    public void NotWithElement12()
     {
         UsingExpression("[with..with()]");
     }
 
     [Fact]
-    public void CollectionExpression_NotWithElement13()
+    public void NotWithElement13()
     {
         UsingExpression("[@with()]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement1()
+    public void NotWithElement14()
+    {
+        UsingExpression("with()");
+    }
+
+    [Fact]
+    public void NotWithElement15()
+    {
+        UsingExpression("a with()");
+    }
+
+    [Fact]
+    public void WithElement1()
     {
         UsingExpression("[with(]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement2()
+    public void WithElement2()
     {
         UsingExpression("[with()]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement3()
+    public void WithElement3()
     {
         UsingExpression("[with(,)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement4()
+    public void WithElement4()
     {
         UsingExpression("[with(a)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement5()
+    public void WithElement5()
     {
         UsingExpression("[with(ref a)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement6()
+    public void WithElement6()
     {
         UsingExpression("[with(out a)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement7()
+    public void WithElement7()
     {
         UsingExpression("[with(out var a)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement8()
+    public void WithElement8()
     {
         UsingExpression("[with(name: value)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement9()
+    public void WithElement9()
     {
         UsingExpression("[with(a, b)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement10()
+    public void WithElement10()
     {
         UsingExpression("[with(), with()]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement11()
+    public void WithElement11()
     {
         UsingExpression("[a, with()]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement12()
+    public void WithElement12()
     {
         UsingExpression("[a:b, with()]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement13()
+    public void WithElement13()
     {
         UsingExpression("[..a, with()]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement14()
+    public void WithElement14()
     {
         UsingExpression("[with(), a]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement15()
+    public void WithElement15()
     {
         UsingExpression("[with(), a:b]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement16()
+    public void WithElement16()
     {
         UsingExpression("[with(), ..a]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement17()
+    public void WithElement17()
     {
         UsingExpression("[with([])]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement18()
+    public void WithElement18()
     {
         UsingExpression("[with(() => {})]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement19()
+    public void WithElement19()
     {
         UsingExpression("[with(async () => {})]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement20()
+    public void WithElement20()
     {
         UsingExpression("[with(from x in y select x)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement21()
+    public void WithElement21()
     {
         UsingExpression("[with([with()])]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement22()
+    public void WithElement22()
     {
         UsingExpression("[with(with: with)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement23()
+    public void WithElement23()
     {
         UsingExpression("[with(out _)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement24()
+    public void WithElement24()
     {
         UsingExpression("[with(in a)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement25()
+    public void WithElement25()
     {
         UsingExpression("[with(name: ref a)]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement26()
+    public void WithElement26()
     {
         UsingExpression("[with(ref int () => { })]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement27()
+    public void WithElement27()
     {
         UsingExpression("[with()..x]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement28()
+    public void WithElement28()
     {
         UsingExpression("[with().x]");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement29()
+    public void WithElement29()
     {
         UsingExpression("[with()");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement30()
+    public void WithElement30()
     {
         UsingExpression("[with(),");
     }
 
     [Fact]
-    public void CollectionExpression_WithElement31()
+    public void WithElement31()
     {
         UsingExpression("[with(_)]");
     }
