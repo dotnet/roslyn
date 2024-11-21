@@ -501,4 +501,28 @@ public sealed class ConvertAnonymousTypeToTupleTests : AbstractCSharpCodeActionT
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75950")]
+    public async Task RemoveTrailingComma()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = [||]new { a = 1, b = 2, };
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var t1 = (a: 1, b: 2);
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 }

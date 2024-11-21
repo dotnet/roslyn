@@ -254,6 +254,9 @@ internal abstract partial class AbstractSemanticFactsService : ISemanticFacts
     public string GenerateNameForExpression(SemanticModel semanticModel, SyntaxNode expression, bool capitalize, CancellationToken cancellationToken)
         => SemanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize, cancellationToken);
 
+    public IPreprocessingSymbol GetPreprocessingSymbol(SemanticModel semanticModel, SyntaxNode node)
+        => SemanticFacts.GetPreprocessingSymbol(semanticModel, node);
+
 #if !CODE_STYLE
 
     public Task<ISymbol> GetInterceptorSymbolAsync(Document document, int position, CancellationToken cancellationToken)

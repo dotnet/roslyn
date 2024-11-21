@@ -222,9 +222,9 @@ internal static class DefinitionItemFactory
 
     private static ImmutableArray<DocumentSpan> GetSourceLocations(ISymbol definition, ImmutableArray<Location> locations, Solution solution, bool includeHiddenLocations)
     {
-        // Assembly, module and global namespace locations include all source documents; displaying all of them is not useful.
+        // Assembly, module, global namespace and preprocessing symbol locations include all source documents; displaying all of them is not useful.
         // We could consider creating a definition item that points to the project source instead.
-        if (definition is IAssemblySymbol or IModuleSymbol or INamespaceSymbol { IsGlobalNamespace: true })
+        if (definition is IAssemblySymbol or IModuleSymbol or INamespaceSymbol { IsGlobalNamespace: true } or IPreprocessingSymbol)
         {
             return [];
         }

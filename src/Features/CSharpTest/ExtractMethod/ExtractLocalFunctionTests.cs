@@ -590,7 +590,7 @@ public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
                 static void Main()
                 {
                     byte z = 0;
-                    Goo({|Rename:NewMethod|}(), y => (byte)0, z, z);
+                    Goo<byte, byte>({|Rename:NewMethod|}(), y => 0, z, z);
 
                     static Func<byte, byte> NewMethod()
                     {
@@ -632,7 +632,7 @@ public class ExtractLocalFunctionTests : AbstractCSharpCodeActionTest_NoEditor
                 static void Main()
                 {
                     byte z = 0;
-                    Goo({|Rename:NewMethod|}(), y => { return (byte)0; }, z, z);
+                    Goo<byte, byte>({|Rename:NewMethod|}(), y => { return 0; }, z, z);
 
                     static Func<byte, byte> NewMethod()
                     {
