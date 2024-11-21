@@ -1041,6 +1041,200 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub TestObsoleteAttributeCycles()
+            Dim source = "
+Imports System
+
+Public Class Test
+    <Obsolete(""F1 is obsolete"")>
+    <SomeAttr(F1)>
+    Public Const F1 As Integer = 10
+
+    <Obsolete(""F2 is obsolete"", True)>
+    <SomeAttr(F3)>
+    Public Const F2 As Integer = 10
+
+    <Obsolete(""F3 is obsolete"")>
+    <SomeAttr(F2)>
+    Public Const F3 As Integer = 10
+
+    <Obsolete(F4, True)>
+    Public Const F4 As String = ""blah""
+
+    <Obsolete(F5)>
+    Public F5 As String = ""blah""
+
+    <Obsolete(P1, True)>
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Public ReadOnly Property P1 As String
+        Get
+            Return ""blah""
+        End Get
+    End Property
+
+    <Obsolete>
+    <SomeAttr(P2, True)>
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Public ReadOnly Property P2 As String
+        Get
+            Return ""blah""
+        End Get
+    End Property
+
+    <Obsolete(Method1)>
+    Public Sub Method1()
+    End Sub
+
+    <Obsolete()>
+    <SomeAttr1(Method2)>
+    Public Sub Method2()
+    End Sub
+
+    <Obsolete(F6)>
+    <SomeAttr(F6)>
+    <SomeAttr(F7)>
+    Public Const F6 As String = ""F6 is obsolete""
+
+    <Obsolete(F7, True)>
+    <SomeAttr(F6)>
+    <SomeAttr(F7)>
+    Public Const F7 As String = ""F7 is obsolete""
+End Class
+
+<AttributeUsage(AttributeTargets.All, AllowMultiple:=True)>
+Public Class SomeAttr
+    Inherits Attribute
+    Public Sub New(x As Integer)
+    End Sub
+    Public Sub New(x As String)
+    End Sub
+End Class
+
+Public Class SomeAttr1
+    Inherits Attribute
+    Public Sub New(x As Action)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB})
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30059: Constant expression is required.
+    <Obsolete(F5)>
+              ~~
+BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
+    <Obsolete(F5)>
+              ~~
+BC30059: Constant expression is required.
+    <Obsolete(P1, True)>
+              ~~
+BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
+    <Obsolete(P1, True)>
+              ~~
+BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
+    <SomeAttr(P2, True)>
+     ~~~~~~~~
+BC30059: Constant expression is required.
+    <SomeAttr(P2, True)>
+              ~~
+BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
+    <SomeAttr(P2, True)>
+              ~~
+BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
+    <Obsolete(Method1)>
+              ~~~~~~~
+BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
+    <SomeAttr1(Method2)>
+               ~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact>
+        Public Sub PropertyInAttribute_01()
+            Dim source = "
+Imports System
+
+<AttributeUsage(AttributeTargets.All, AllowMultiple:=True)>
+Public Class SomeAttr
+    Inherits Attribute
+
+    Public Property P1 As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    <System.Runtime.CompilerServices.OverloadResolutionPriority(1)>
+    Public Property P1(ParamArray x As Integer()) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+End Class
+
+<SomeAttr(P1:=1)>
+Public Class SomeAttr1
+End Class
+"
+            Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB})
+            compilation.AssertNoDiagnostics()
+
+            Dim attr = compilation.GetTypeByMetadataName("SomeAttr1").GetAttributes().Single()
+            Assert.Equal("SomeAttr(P1:=1)", attr.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub PropertyInAttribute_02()
+            Dim source = "
+Imports System
+
+<AttributeUsage(AttributeTargets.All, AllowMultiple:=True)>
+Public Class SomeAttr
+    Inherits Attribute
+
+    Public Property P1(Optional x As Integer = 0) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Property P2(ParamArray x As Integer()) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+End Class
+
+<SomeAttr(P1:=1)>
+<SomeAttr(P2:=2)>
+Public Class SomeAttr1
+End Class
+"
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30658: Property 'P1' with no parameters cannot be found.
+<SomeAttr(P1:=1)>
+          ~~
+BC30658: Property 'P2' with no parameters cannot be found.
+<SomeAttr(P2:=2)>
+          ~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact>
         Public Sub DefaultProperty_01()
             Dim compilationDef = "
 Class Module1

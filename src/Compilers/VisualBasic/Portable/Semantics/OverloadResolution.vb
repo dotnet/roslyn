@@ -1093,7 +1093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Given the way VB name lookup works, the least derived forms are also among the candidates and are getting filtered out by CombineCandidates.
             ' Therefore, this simple check gets to them as well without explicitly traversing the overrides hierarchy.
             Dim someCandidatesHaveOverloadResolutionPriority As Boolean =
-                candidates.Count > 1 AndAlso ' PROTOTYPE(Priority): AttributeTests_ObsoleteAttribute.TestObsoleteAttributeCycles fails with a stack overflow otherwise. Might need a more robust way to break a cycle.
+                binder.BindingLocation <> BindingLocation.Attribute AndAlso
                 InternalSyntax.Parser.CheckFeatureAvailability(binder.Compilation.LanguageVersion, InternalSyntax.Feature.OverloadResolutionPriority) AndAlso
                 candidates.Any(Function(candidate) candidate.OverloadResolutionPriority <> 0)
 
