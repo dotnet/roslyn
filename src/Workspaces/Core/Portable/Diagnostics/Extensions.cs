@@ -104,8 +104,6 @@ internal static partial class Extensions
         DocumentAnalysisScope? documentAnalysisScope,
         Project project,
         VersionStamp version,
-        Compilation? projectCompilation,
-        Compilation? hostCompilation,
         ImmutableArray<DiagnosticAnalyzer> projectAnalyzers,
         ImmutableArray<DiagnosticAnalyzer> hostAnalyzers,
         SkippedHostAnalyzersInfo skippedAnalyzersInfo,
@@ -155,13 +153,13 @@ internal static partial class Extensions
                         {
                             if (analysisResult.MergedSyntaxDiagnostics.TryGetValue(treeToAnalyze, out diagnosticsByAnalyzerMap))
                             {
-                                AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, projectCompilation, hostCompilation,
+                                AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                                     treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                             }
                         }
                         else if (analysisResult.MergedAdditionalFileDiagnostics.TryGetValue(additionalFileToAnalyze!, out diagnosticsByAnalyzerMap))
                         {
-                            AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, projectCompilation, hostCompilation,
+                            AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                                 tree: null, documentAnalysisScope.TextDocument.Id, spanToAnalyze, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                         }
 
@@ -170,7 +168,7 @@ internal static partial class Extensions
                     case AnalysisKind.Semantic:
                         if (analysisResult.MergedSemanticDiagnostics.TryGetValue(treeToAnalyze!, out diagnosticsByAnalyzerMap))
                         {
-                            AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, projectCompilation, hostCompilation,
+                            AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                                 treeToAnalyze, additionalDocumentId: null, spanToAnalyze, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                         }
 
@@ -184,13 +182,13 @@ internal static partial class Extensions
             {
                 foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.MergedSyntaxDiagnostics)
                 {
-                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, projectCompilation, hostCompilation,
+                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                         tree, additionalDocumentId: null, span: null, AnalysisKind.Syntax, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                 }
 
                 foreach (var (tree, diagnosticsByAnalyzerMap) in analysisResult.MergedSemanticDiagnostics)
                 {
-                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, projectCompilation, hostCompilation,
+                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                         tree, additionalDocumentId: null, span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                 }
 
@@ -198,11 +196,11 @@ internal static partial class Extensions
                 {
                     var additionalDocumentId = project.GetDocumentForFile(file);
                     var kind = additionalDocumentId != null ? AnalysisKind.Syntax : AnalysisKind.NonLocal;
-                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result, projectCompilation, hostCompilation,
+                    AddAnalyzerDiagnosticsToResult(analyzer, diagnosticsByAnalyzerMap, ref result,
                         tree: null, additionalDocumentId, span: null, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                 }
 
-                AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.MergedCompilationDiagnostics, ref result, projectCompilation, hostCompilation,
+                AddAnalyzerDiagnosticsToResult(analyzer, analysisResult.MergedCompilationDiagnostics, ref result,
                     tree: null, additionalDocumentId: null, span: null, AnalysisKind.NonLocal, diagnosticIdsToFilter, includeSuppressedDiagnostics);
             }
 
@@ -215,7 +213,7 @@ internal static partial class Extensions
                     if (treeToAnalyze != null)
                     {
                         var diagnostics = additionalPragmaSuppressionDiagnostics.WhereAsArray(d => d.Location.SourceTree == treeToAnalyze);
-                        AddDiagnosticsToResult(diagnostics, ref result, projectCompilation, hostCompilation, treeToAnalyze, additionalDocumentId: null,
+                        AddDiagnosticsToResult(diagnostics, ref result, treeToAnalyze, additionalDocumentId: null,
                             documentAnalysisScope.Span, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                     }
                 }
@@ -223,7 +221,7 @@ internal static partial class Extensions
                 {
                     foreach (var group in additionalPragmaSuppressionDiagnostics.GroupBy(d => d.Location.SourceTree!))
                     {
-                        AddDiagnosticsToResult(group.AsImmutable(), ref result, projectCompilation, hostCompilation, group.Key, additionalDocumentId: null,
+                        AddDiagnosticsToResult(group.AsImmutable(), ref result, group.Key, additionalDocumentId: null,
                             span: null, AnalysisKind.Semantic, diagnosticIdsToFilter, includeSuppressedDiagnostics);
                     }
                 }
@@ -240,8 +238,6 @@ internal static partial class Extensions
             DiagnosticAnalyzer analyzer,
             ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>> diagnosticsByAnalyzer,
             ref DiagnosticAnalysisResultBuilder result,
-            Compilation? projectCompilation,
-            Compilation? hostCompilation,
             SyntaxTree? tree,
             DocumentId? additionalDocumentId,
             TextSpan? span,
@@ -251,7 +247,7 @@ internal static partial class Extensions
         {
             if (diagnosticsByAnalyzer.TryGetValue(analyzer, out var diagnostics))
             {
-                AddDiagnosticsToResult(diagnostics, ref result, projectCompilation, hostCompilation,
+                AddDiagnosticsToResult(diagnostics, ref result,
                     tree, additionalDocumentId, span, kind, diagnosticIdsToFilter, includeSuppressedDiagnostics);
             }
         }
@@ -259,8 +255,6 @@ internal static partial class Extensions
         static void AddDiagnosticsToResult(
             ImmutableArray<Diagnostic> diagnostics,
             ref DiagnosticAnalysisResultBuilder result,
-            Compilation? projectCompilation,
-            Compilation? hostCompilation,
             SyntaxTree? tree,
             DocumentId? additionalDocumentId,
             TextSpan? span,
@@ -274,9 +268,6 @@ internal static partial class Extensions
             }
 
             diagnostics = diagnostics.Filter(diagnosticIdsToFilter, includeSuppressedDiagnostics, span);
-
-            // ⚠️ No obvious way to keep this assertion
-            //Debug.Assert(diagnostics.Length == CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation).Count());
 
             switch (kind)
             {

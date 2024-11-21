@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var map = await analysisResult.ToResultBuilderMapAsync(
                     additionalPragmaSuppressionDiagnostics, documentAnalysisScope, project, version,
-                    compilationWithAnalyzers.ProjectCompilation, compilationWithAnalyzers.HostCompilation, projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
+                    projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo,
                     compilationWithAnalyzers.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
                 builderMap = builderMap.AddRange(map);
             }

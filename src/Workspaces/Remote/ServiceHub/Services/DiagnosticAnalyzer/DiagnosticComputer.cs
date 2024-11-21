@@ -406,7 +406,7 @@ internal class DiagnosticComputer
         {
             builderMap = builderMap.AddRange(await analysisResult.ToResultBuilderMapAsync(
                 additionalPragmaSuppressionDiagnostics, documentAnalysisScope,
-                _project, VersionStamp.Default, compilationWithAnalyzers.ProjectCompilation, compilationWithAnalyzers.HostCompilation,
+                _project, VersionStamp.Default,
                 projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
         }
 
