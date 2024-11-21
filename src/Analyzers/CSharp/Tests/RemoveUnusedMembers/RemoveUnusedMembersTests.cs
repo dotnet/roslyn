@@ -3305,9 +3305,11 @@ public class RemoveUnusedMembersTests
         await new VerifyCS.Test
         {
             TestCode = """
+                #nullable enable
+
                 class C
                 {
-                    void M(
+                    public void M(
                         ref object o,
                         ref object p)
                     {
@@ -3323,9 +3325,11 @@ public class RemoveUnusedMembersTests
                 }
                 """,
             FixedCode = """
+                #nullable enable
+
                 class C
                 {
-                    void M(
+                    public void M(
                         ref object o,
                         ref object p)
                     {
