@@ -2295,6 +2295,10 @@ namespace Microsoft.CodeAnalysis
                     machine = Machine.I386;
                     break;
 
+                case Platform.LoongArch64:
+                    machine = Machine.LoongArch64;
+                    break;
+
                 case Platform.AnyCpu:
                 case Platform.AnyCpu32BitPreferred:
                     machine = Machine.Unknown;

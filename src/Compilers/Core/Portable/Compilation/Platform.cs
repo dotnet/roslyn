@@ -40,18 +40,23 @@ namespace Microsoft.CodeAnalysis
         /// Compiles your assembly to run on a computer that has an Advanced RISC Machine 64 bit (ARM64) processor.
         /// </summary>
         Arm64 = 6,
+
+        /// <summary>
+        /// Compiles your assembly to run on a computer that has LoongArch64 processor.
+        /// </summary>
+        LoongArch64 = 7,
     };
 
     internal static partial class EnumBounds
     {
         internal static bool IsValid(this Platform value)
         {
-            return value >= Platform.AnyCpu && value <= Platform.Arm64;
+            return value >= Platform.AnyCpu && value <= Platform.LoongArch64;
         }
 
         internal static bool Requires64Bit(this Platform value)
         {
-            return value == Platform.X64 || value == Platform.Itanium || value == Platform.Arm64;
+            return value == Platform.X64 || value == Platform.Itanium || value == Platform.Arm64 || value == Platform.LoongArch64;
         }
 
         internal static bool Requires32Bit(this Platform value)

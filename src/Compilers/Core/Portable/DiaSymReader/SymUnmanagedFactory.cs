@@ -20,6 +20,7 @@ namespace Microsoft.DiaSymReader
         private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
         private const string DiaSymReaderModuleNameAmd64 = "Microsoft.DiaSymReader.Native.amd64.dll";
         private const string DiaSymReaderModuleNameArm64 = "Microsoft.DiaSymReader.Native.arm64.dll";
+        private const string DiaSymReaderModuleNameLoongArch64 = "Microsoft.DiaSymReader.Native.loongarch64.dll";
 
         private const string CreateSymReaderFactoryName = "CreateSymReader";
         private const string CreateSymWriterFactoryName = "CreateSymWriter";
@@ -38,6 +39,7 @@ namespace Microsoft.DiaSymReader
                 Architecture.X86 => DiaSymReaderModuleName32,
                 Architecture.X64 => DiaSymReaderModuleNameAmd64,
                 Architecture.Arm64 => DiaSymReaderModuleNameArm64,
+                Architecture.LoongArch64 => DiaSymReaderModuleNameLoongArch64,
                 _ => throw new NotSupportedException()
             };
 
@@ -54,6 +56,10 @@ namespace Microsoft.DiaSymReader
         private static extern void CreateSymReaderArm64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
+        [DllImport(DiaSymReaderModuleNameLoongArch64, EntryPoint = CreateSymReaderFactoryName)]
+        private static extern void CreateSymReaderLoongArch64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = CreateSymWriterFactoryName)]
         private static extern void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
@@ -64,6 +70,10 @@ namespace Microsoft.DiaSymReader
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleNameArm64, EntryPoint = CreateSymWriterFactoryName)]
         private static extern void CreateSymWriterArm64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
+        [DllImport(DiaSymReaderModuleNameLoongArch64, EntryPoint = CreateSymWriterFactoryName)]
+        private static extern void CreateSymWriterLoongArch64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
         [DllImport("kernel32")]
         private static extern IntPtr LoadLibrary(string path);
@@ -194,6 +204,12 @@ namespace Microsoft.DiaSymReader
                             break;
                         case (Architecture.Arm64, false):
                             CreateSymWriterArm64(ref clsid, out instance);
+                            break;
+                        case (Architecture.LoongArch64, true):
+                            CreateSymReaderLoongArch64(ref clsid, out instance);
+                            break;
+                        case (Architecture.LoongArch64, false):
+                            CreateSymWriterLoongArch64(ref clsid, out instance);
                             break;
                         default:
                             throw new NotSupportedException();
