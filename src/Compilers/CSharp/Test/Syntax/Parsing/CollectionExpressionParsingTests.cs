@@ -18473,6 +18473,24 @@ class C
     }
 
     [Fact]
+    public void CollectionExpression_NotWithElement10()
+    {
+        UsingExpression("[with)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement11()
+    {
+        UsingExpression("[with..with]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement12()
+    {
+        UsingExpression("[with..with()]");
+    }
+
+    [Fact]
     public void CollectionExpression_WithElement1()
     {
         UsingExpression("[with(]");
@@ -18626,5 +18644,17 @@ class C
     public void CollectionExpression_WithElement26()
     {
         UsingExpression("[with(ref int () => { })]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement27()
+    {
+        UsingExpression("[with()..x]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement28()
+    {
+        UsingExpression("[with().x]");
     }
 }
