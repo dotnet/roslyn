@@ -18663,4 +18663,22 @@ class C
     {
         UsingExpression("[with().x]");
     }
+
+    [Fact]
+    public void CollectionExpression_WithElement29()
+    {
+        UsingExpression("[with()");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement30()
+    {
+        UsingExpression("[with(),");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement31()
+    {
+        UsingExpression("[with(_)]");
+    }
 }
