@@ -89,3 +89,42 @@ class C
     }
 }
 ```
+
+## `UnscopedRefAttribute` cannot be used with old ref safety rules
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+The `UnscopedRefAttribute` accidentally affected code compiled by new Roslyn versions
+even when the code was compiled in the context of the old ref safety rules
+(i.e., targeting C# 10 or older with net6.0 or older).
+However, the attribute should not have an effect in that context, and that is now fixed.
+
+Code that previously did not report any errors in C# 10 or older with net6.0 or older can now fail to compile:
+
+```cs
+using System.Diagnostics.CodeAnalysis;
+struct S
+{
+    public int F;
+
+    // previously accidentally allowed in C# 10 with net6.0
+    // now fails with the same error as if the [UnscopedRef] wasn't there
+    // (struct members cannot return 'this' or other instance members by reference)
+    [UnscopedRef] public ref int Ref() => ref F;
+}
+```
+
+To prevent misunderstanding (thinking the attribute has an effect
+but it actually does not because your code is compiled with the old ref safety rules),
+an error is reported when the attribute is used in C# 10 or older with net6.0 or older:
+
+```cs
+using System.Diagnostics.CodeAnalysis;
+struct S
+{
+    // both are errors in C# 10 with net6.0:
+    // UnscopedRefAttribute cannot be applied to this parameter because it is unscoped by default.
+    [UnscopedRef] public ref int Ref() => throw null!;
+    public static void M([UnscopedRef] ref int x) { }
+}
+```
