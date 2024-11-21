@@ -18,14 +18,19 @@ Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.WithWithKeyword(Microsoft
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.KeyValuePairElement = 9079 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithElement = 9080 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
 override Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
 override Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
 override Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.KeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.KeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! keyExpression, Microsoft.CodeAnalysis.SyntaxToken colonToken, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax! valueExpression) -> Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax? argumentList = null) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.WithElement(Microsoft.CodeAnalysis.SyntaxToken withKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax! argumentList) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax! node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitKeyValuePairElement(Microsoft.CodeAnalysis.CSharp.Syntax.KeyValuePairElementSyntax! node) -> TResult?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitWithElement(Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax! node) -> TResult?
 [RSEXPERIMENTAL002]Microsoft.CodeAnalysis.CSharp.InterceptableLocation
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Data.get -> string!
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetDisplayLocation() -> string!
