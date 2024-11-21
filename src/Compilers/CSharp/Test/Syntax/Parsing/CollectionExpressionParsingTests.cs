@@ -18491,6 +18491,12 @@ class C
     }
 
     [Fact]
+    public void CollectionExpression_NotWithElement13()
+    {
+        UsingExpression("[@with()]");
+    }
+
+    [Fact]
     public void CollectionExpression_WithElement1()
     {
         UsingExpression("[with(]");
