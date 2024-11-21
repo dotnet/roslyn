@@ -5199,6 +5199,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
 
+            for (int i = 1, n = syntax.Elements.Count - 1; i < n; i++)
+            {
+                var element = syntax.Elements[i];
+                if (element is WithElementSyntax withElement)
+                {
+                    Error(diagnostics, ErrorCode.ERR_WithElementMustBeFirst, withElement.WithKeyword.GetLocation());
+                    break;
+                }
+            }
+
             foreach (var element in syntax.Elements)
             {
                 if (element is KeyValuePairElementSyntax keyValuePairElement)

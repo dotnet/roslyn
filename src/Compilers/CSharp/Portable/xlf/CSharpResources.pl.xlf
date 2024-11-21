@@ -2382,6 +2382,11 @@
         <target state="translated">zaznaczone operatory zdefiniowane przez użytkownika</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionConstructionArguments">
+        <source>collection expression construction arguments</source>
+        <target state="new">collection expression construction arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
         <target state="translated">wyrażenia kolekcji</target>

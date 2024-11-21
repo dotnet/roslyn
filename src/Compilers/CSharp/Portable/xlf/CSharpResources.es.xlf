@@ -2382,6 +2382,11 @@
         <target state="translated">operadores definidos por el usuario comprobados</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressionConstructionArguments">
+        <source>collection expression construction arguments</source>
+        <target state="new">collection expression construction arguments</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
         <target state="translated">expresiones de colección</target>

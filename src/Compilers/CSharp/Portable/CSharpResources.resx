@@ -8023,4 +8023,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_IteratorRefLikeElementType" xml:space="preserve">
     <value>Element type of an iterator may not be a ref struct or a type parameter allowing ref structs</value>
   </data>
+  <data name="ERR_WithElementMustBeFirst" xml:space="preserve">
+    <value>'with(...)' element must be first element in collection expression</value>
+  </data>
 </root>
