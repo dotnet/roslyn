@@ -9554,7 +9554,8 @@ static class Program
                                     System.ReadOnlySpan<int> V_3,
                                     int V_4,
                                     int[] V_5,
-                                    System.Span<int> V_6)
+                                    System.Span<int> V_6,
+                                    System.Span<int> V_7)
                       IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=8_Align=4 <PrivateImplementationDetails>.34FB5C825DE7CA4AEA6E712F19D439C1DA0C92C37B423936C5F618545CA4FA1F4"
                       IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                       IL_000a:  stloc.0
@@ -9590,8 +9591,8 @@ static class Program
                       IL_0056:  ldloca.s   V_3
                       IL_0058:  ldloc.s    V_5
                       IL_005a:  newobj     "System.Span<int>..ctor(int[])"
-                      IL_005f:  stloc.s    V_6
-                      IL_0061:  ldloca.s   V_6
+                      IL_005f:  stloc.s    V_7
+                      IL_0061:  ldloca.s   V_7
                       IL_0063:  ldloc.s    V_4
                       IL_0065:  ldloca.s   V_3
                       IL_0067:  call       "int System.ReadOnlySpan<int>.Length.get"
@@ -11607,7 +11608,8 @@ static class Program
                                 T[] V_2,
                                 System.Span<T> V_3,
                                 System.Span<T> V_4,
-                                System.Span<T> V_5)
+                                System.Span<T> V_5,
+                                System.Span<T> V_6)
                   IL_0000:  ldarg.0
                   IL_0001:  ldarg.1
                   IL_0002:  stloc.0
@@ -11643,8 +11645,8 @@ static class Program
                   IL_004e:  ldloca.s   V_4
                   IL_0050:  ldloc.2
                   IL_0051:  newobj     "System.Span<T>..ctor(T[])"
-                  IL_0056:  stloc.s    V_5
-                  IL_0058:  ldloca.s   V_5
+                  IL_0056:  stloc.s    V_6
+                  IL_0058:  ldloca.s   V_6
                   IL_005a:  ldloc.1
                   IL_005b:  ldloca.s   V_4
                   IL_005d:  call       "int System.Span<T>.Length.get"
@@ -33775,7 +33777,8 @@ partial class Program
                                 System.ReadOnlySpan<int> V_3,
                                 int V_4,
                                 int[] V_5,
-                                System.Span<int> V_6)
+                                System.Span<int> V_6,
+                                System.Span<int> V_7)
                   IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
                   IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_000a:  stloc.0
@@ -33817,8 +33820,8 @@ partial class Program
                   IL_006d:  ldloca.s   V_3
                   IL_006f:  ldloc.s    V_5
                   IL_0071:  newobj     "System.Span<int>..ctor(int[])"
-                  IL_0076:  stloc.s    V_6
-                  IL_0078:  ldloca.s   V_6
+                  IL_0076:  stloc.s    V_7
+                  IL_0078:  ldloca.s   V_7
                   IL_007a:  ldloc.s    V_4
                   IL_007c:  ldloca.s   V_3
                   IL_007e:  call       "int System.ReadOnlySpan<int>.Length.get"
@@ -34383,7 +34386,8 @@ partial class Program
                                 int V_3,
                                 Base[] V_4,
                                 System.ReadOnlySpan<Base> V_5,
-                                System.Span<Base> V_6)
+                                System.Span<Base> V_6,
+                                System.Span<Base> V_7)
                   IL_0000:  ldc.i4.1
                   IL_0001:  newarr     "Derived"
                   IL_0006:  dup
@@ -34435,8 +34439,8 @@ partial class Program
                   IL_006a:  ldloca.s   V_5
                   IL_006c:  ldloc.s    V_4
                   IL_006e:  newobj     "System.Span<Base>..ctor(Base[])"
-                  IL_0073:  stloc.s    V_6
-                  IL_0075:  ldloca.s   V_6
+                  IL_0073:  stloc.s    V_7
+                  IL_0075:  ldloca.s   V_7
                   IL_0077:  ldloc.3
                   IL_0078:  ldloca.s   V_5
                   IL_007a:  call       "int System.ReadOnlySpan<Base>.Length.get"
@@ -35049,7 +35053,8 @@ partial class Program
                                 int[] V_3,
                                 System.ReadOnlySpan<int> V_4,
                                 System.ReadOnlySpan<int> V_5,
-                                System.Span<int> V_6)
+                                System.Span<int> V_6,
+                                System.Span<int> V_7)
                   IL_0000:  ldc.i4.2
                   IL_0001:  newarr     "int"
                   IL_0006:  dup
@@ -35101,8 +35106,8 @@ partial class Program
                   IL_005f:  ldloca.s   V_5
                   IL_0061:  ldloc.3
                   IL_0062:  newobj     "System.Span<int>..ctor(int[])"
-                  IL_0067:  stloc.s    V_6
-                  IL_0069:  ldloca.s   V_6
+                  IL_0067:  stloc.s    V_7
+                  IL_0069:  ldloca.s   V_7
                   IL_006b:  ldloc.2
                   IL_006c:  ldloca.s   V_5
                   IL_006e:  call       "int System.ReadOnlySpan<int>.Length.get"
@@ -35330,7 +35335,8 @@ partial class Program
                                 System.ReadOnlySpan<int> V_6,
                                 System.Runtime.CompilerServices.TaskAwaiter<int[]> V_7,
                                 System.Span<int> V_8,
-                                System.Exception V_9)
+                                System.Span<int> V_9,
+                                System.Exception V_10)
                   IL_0000:  ldarg.0
                   IL_0001:  ldfld      "int C.<Main>d__0.<>1__state"
                   IL_0006:  stloc.0
@@ -35425,8 +35431,8 @@ partial class Program
                     IL_00ea:  ldarg.0
                     IL_00eb:  ldfld      "int[] C.<Main>d__0.<>7__wrap4"
                     IL_00f0:  newobj     "System.Span<int>..ctor(int[])"
-                    IL_00f5:  stloc.s    V_8
-                    IL_00f7:  ldloca.s   V_8
+                    IL_00f5:  stloc.s    V_9
+                    IL_00f7:  ldloca.s   V_9
                     IL_00f9:  ldloc.s    V_4
                     IL_00fb:  ldloca.s   V_6
                     IL_00fd:  call       "int System.ReadOnlySpan<int>.Length.get"
@@ -35505,13 +35511,13 @@ partial class Program
                   }
                   catch System.Exception
                   {
-                    IL_01c5:  stloc.s    V_9
+                    IL_01c5:  stloc.s    V_10
                     IL_01c7:  ldarg.0
                     IL_01c8:  ldc.i4.s   -2
                     IL_01ca:  stfld      "int C.<Main>d__0.<>1__state"
                     IL_01cf:  ldarg.0
                     IL_01d0:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Main>d__0.<>t__builder"
-                    IL_01d5:  ldloc.s    V_9
+                    IL_01d5:  ldloc.s    V_10
                     IL_01d7:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
                     IL_01dc:  leave.s    IL_01f1
                   }

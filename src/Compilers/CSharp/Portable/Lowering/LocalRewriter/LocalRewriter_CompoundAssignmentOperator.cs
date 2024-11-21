@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (indexer.ContainingType.IsComImport)
             {
-                RewriteArgumentsForComCall(parameters, actualArguments, refKinds, temps);
+                RewriteArgumentsForComCall(parameters, actualArguments, refKinds);
             }
 
             Debug.Assert(actualArguments.All(static arg => arg is not null));

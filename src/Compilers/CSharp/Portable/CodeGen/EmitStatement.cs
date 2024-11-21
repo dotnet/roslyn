@@ -673,6 +673,8 @@ oneMoreTime:
             {
                 EmitUninstrumentedBlock(block);
             }
+
+            ReleaseBlockTemps();
         }
 
         private void EmitInstrumentedBlock(BoundBlockInstrumentation instrumentation, BoundBlock block)

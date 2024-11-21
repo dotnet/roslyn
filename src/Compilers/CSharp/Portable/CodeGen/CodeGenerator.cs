@@ -38,7 +38,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         // There are scenarios where rvalues need to be passed to ref/in parameters
         // in such cases the values must be spilled into temps and retained for the entirety of
         // the most encompassing expression.
+        // If a ref to the temp could escape, it is retained for the most encompassing block.
         private ArrayBuilder<LocalDefinition> _expressionTemps;
+        private ArrayBuilder<LocalDefinition> _blockTemps;
+        private bool _tempRefsMightEscape;
 
         // not 0 when in a protected region with a handler. 
         private int _tryNestingLevel;
@@ -504,35 +507,47 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void AddExpressionTemp(LocalDefinition temp)
         {
-            // in some cases like stack locals, there is no slot allocated.
+            if (_tempRefsMightEscape)
+            {
+                AddBlockTemp(temp);
+            }
+            else
+            {
+                AddTemp(ref _expressionTemps, temp);
+            }
+        }
+
+        private void ReleaseExpressionTemps() => ReleaseTemps(_expressionTemps);
+
+        private void AddBlockTemp(LocalDefinition temp) => AddTemp(ref _blockTemps, temp);
+
+        private void ReleaseBlockTemps() => ReleaseTemps(_blockTemps);
+
+        private static void AddTemp(ref ArrayBuilder<LocalDefinition> temps, LocalDefinition temp)
+        {
             if (temp == null)
             {
                 return;
             }
 
-            ArrayBuilder<LocalDefinition> exprTemps = _expressionTemps;
-            if (exprTemps == null)
-            {
-                exprTemps = ArrayBuilder<LocalDefinition>.GetInstance();
-                _expressionTemps = exprTemps;
-            }
+            temps ??= ArrayBuilder<LocalDefinition>.GetInstance();
 
-            Debug.Assert(!exprTemps.Contains(temp));
-            exprTemps.Add(temp);
+            Debug.Assert(!temps.Contains(temp));
+            temps.Add(temp);
         }
 
-        private void ReleaseExpressionTemps()
+        private void ReleaseTemps(ArrayBuilder<LocalDefinition> temps)
         {
-            if (_expressionTemps?.Count > 0)
+            if (temps?.Count > 0)
             {
                 // release in reverse order to keep same temps on top of the temp stack if possible
-                for (int i = _expressionTemps.Count - 1; i >= 0; i--)
+                for (int i = temps.Count - 1; i >= 0; i--)
                 {
-                    var temp = _expressionTemps[i];
+                    var temp = temps[i];
                     FreeTemp(temp);
                 }
 
-                _expressionTemps.Clear();
+                temps.Clear();
             }
         }
     }

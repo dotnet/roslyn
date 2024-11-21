@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
                 argumentNamesOpt: default(ImmutableArray<String?>), argumentRefKindsOpt: refKinds, isDelegateCall: false, expanded: false, invokedAsExtensionMethod: false,
-                argsToParamsOpt: ImmutableArray<int>.Empty, defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable, type: method.ReturnType)
+                argsToParamsOpt: default, defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable, type: method.ReturnType)
             { WasCompilerGenerated = true };
         }
 

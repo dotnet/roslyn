@@ -64,6 +64,23 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // maps local identities to locals.
         private Dictionary<ILocalSymbolInternal, LocalDefinition>? _localMap;
 
+        // The lowered tree might define the same local symbol
+        // in multiple sequences that are part of one expression, for example:
+        //
+        //   call:
+        //     arguments:
+        //       sequence:
+        //         locals: LoweringTemp.1
+        //         ...
+        //       sequence:
+        //         locals: LoweringTemp.1
+        //         ...
+        //
+        // At the same time, these expression locals might be lifted to the containing block
+        // (to avoid reusing them if they might be captured by a ref struct).
+        // Then we use this map to keep track of the redeclared locals.
+        private Dictionary<LocalDefinition, LocalDefinition>? _redeclaredLocals;
+
         // pool of free slots partitioned by their signature.
         private KeyedStack<LocalSignature, LocalDefinition>? _freeSlots;
 
@@ -102,6 +119,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
+        private Dictionary<LocalDefinition, LocalDefinition> RedeclaredLocals
+        {
+            get
+            {
+                return _redeclaredLocals ??= new Dictionary<LocalDefinition, LocalDefinition>(ReferenceEqualityComparer.Instance);
+            }
+        }
+
         private KeyedStack<LocalSignature, LocalDefinition> FreeSlots
         {
             get
@@ -136,7 +161,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 local = this.DeclareLocalImpl(type, symbol, name, kind, id, pdbAttributes, constraints, dynamicTransformFlags, tupleElementNames);
             }
 
-            LocalMap.Add(symbol, local);
+            if (LocalMap.TryGetValue(symbol, out var previous))
+            {
+                RedeclaredLocals.Add(local, previous);
+                LocalMap[symbol] = local;
+            }
+            else
+            {
+                LocalMap.Add(symbol, local);
+            }
+
             return local;
         }
 
@@ -155,8 +189,17 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void FreeLocal(ILocalSymbolInternal symbol)
         {
             var slot = GetLocal(symbol);
-            LocalMap.Remove(symbol);
-            FreeSlot(slot);
+
+            if (RedeclaredLocals.TryGetValue(slot, out var previous))
+            {
+                LocalMap[symbol] = previous;
+                RedeclaredLocals.Remove(slot);
+            }
+            else
+            {
+                LocalMap.Remove(symbol);
+                FreeSlot(slot);
+            }
         }
 
         /// <summary>
