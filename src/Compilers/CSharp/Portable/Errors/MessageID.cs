@@ -295,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureFirstClassSpan = MessageBase + 12849,
         IDS_FeatureDictionaryExpressions = MessageBase + 12850,
+        IDS_FeatureCollectionExpressionConstructionArguments = MessageBase + 12851,
     }
 
     // Message IDs may refer to strings that need to be localized.

@@ -5209,6 +5209,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_SyntaxError, keyValuePairElement.ColonToken, ",");
                     return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType());
                 }
+                else if (element is WithElementSyntax withElement)
+                {
+                    MessageID.IDS_FeatureCollectionExpressionConstructionArguments.CheckFeatureAvailability(diagnostics, syntax, withElement.WithKeyword.GetLocation());
+
+                    // PROTOTYPE: Error for now.  Flesh this out when we do the binding for `with(...)` arguments.
+                    Error(diagnostics, ErrorCode.ERR_SyntaxError, withElement.WithKeyword, ",");
+                    return new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType());
+                }
             }
 
             var builder = ArrayBuilder<BoundNode>.GetInstance(syntax.Elements.Count);
