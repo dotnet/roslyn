@@ -410,7 +410,6 @@ internal class DiagnosticComputer
                 projectAnalyzers, hostAnalyzers, skippedAnalyzersInfo, reportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false));
         }
 
-        // TODO Does this need adjustment?
         var telemetry = getTelemetryInfo
             ? GetTelemetryInfo(analysisResult, projectAnalyzers, hostAnalyzers, analyzerToIdMap)
             : [];
@@ -462,21 +461,9 @@ internal class DiagnosticComputer
         }
 
         using var _2 = ArrayBuilder<(string analyzerId, AnalyzerTelemetryInfo)>.GetInstance(out var telemetryBuilder);
-        if (analysisResult?.ProjectAnalysisResult is not null)
+        if (analysisResult is not null)
         {
-            foreach (var (analyzer, analyzerTelemetry) in analysisResult.ProjectAnalysisResult.AnalyzerTelemetryInfo)
-            {
-                if (shouldInclude(analyzer))
-                {
-                    var analyzerId = GetAnalyzerId(analyzerToIdMap, analyzer);
-                    telemetryBuilder.Add((analyzerId, analyzerTelemetry));
-                }
-            }
-        }
-
-        if (analysisResult?.HostAnalysisResult is not null)
-        {
-            foreach (var (analyzer, analyzerTelemetry) in analysisResult.HostAnalysisResult.AnalyzerTelemetryInfo)
+            foreach (var (analyzer, analyzerTelemetry) in analysisResult.MergedAnalyzerTelemetryInfo)
             {
                 if (shouldInclude(analyzer))
                 {
