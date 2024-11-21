@@ -18422,108 +18422,513 @@ class C
     public void NotWithElement1()
     {
         UsingExpression("[with]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "with");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement2()
     {
         UsingExpression("[with: with]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.KeyValuePairElement);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "with");
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "with");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement3()
     {
         UsingExpression("[.. with]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.SpreadElement);
+            {
+                N(SyntaxKind.DotDotToken);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "with");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement4()
     {
         UsingExpression("[with + with]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.AddExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.PlusToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement5()
     {
         UsingExpression("[with.X]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.SimpleMemberAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.DotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement6()
     {
         UsingExpression("[with[X]]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.ElementAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.BracketedArgumentList);
+                    {
+                        N(SyntaxKind.OpenBracketToken);
+                        N(SyntaxKind.Argument);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                        }
+                        N(SyntaxKind.CloseBracketToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement7()
     {
         UsingExpression("[with ? with : with]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.ConditionalExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.ColonToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement8()
     {
         UsingExpression("[with?.with]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.ConditionalAccessExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.QuestionToken);
+                    N(SyntaxKind.MemberBindingExpression);
+                    {
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "with");
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement9()
     {
         UsingExpression("[with++]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.PostIncrementExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.PlusPlusToken);
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement10()
     {
-        UsingExpression("[with)]");
+        UsingExpression("[with)]",
+            // (1,6): error CS1003: Syntax error, ',' expected
+            // [with)]
+            Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments(",").WithLocation(1, 6));
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "with");
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement11()
     {
         UsingExpression("[with..with]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement12()
     {
         UsingExpression("[with..with()]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.RangeExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.DotDotToken);
+                    N(SyntaxKind.InvocationExpression);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "with");
+                        }
+                        N(SyntaxKind.ArgumentList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement13()
     {
         UsingExpression("[@with()]");
+
+        N(SyntaxKind.CollectionExpression);
+        {
+            N(SyntaxKind.OpenBracketToken);
+            N(SyntaxKind.ExpressionElement);
+            {
+                N(SyntaxKind.InvocationExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "@with");
+                    }
+                    N(SyntaxKind.ArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+            }
+            N(SyntaxKind.CloseBracketToken);
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement14()
     {
         UsingExpression("with()");
+
+        N(SyntaxKind.InvocationExpression);
+        {
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "with");
+            }
+            N(SyntaxKind.ArgumentList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
+            }
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement15()
     {
-        UsingExpression("a with()");
+        UsingExpression("a with()",
+            // (1,1): error CS1073: Unexpected token 'with'
+            // a with()
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "a").WithArguments("with").WithLocation(1, 1));
+
+        N(SyntaxKind.IdentifierName);
+        {
+            N(SyntaxKind.IdentifierToken, "a");
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement16()
     {
         UsingExpression("[with()] a => b");
+
+        N(SyntaxKind.SimpleLambdaExpression);
+        {
+            N(SyntaxKind.AttributeList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Attribute);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.AttributeArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            N(SyntaxKind.Parameter);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.EqualsGreaterThanToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "b");
+            }
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement17()
     {
         UsingExpression("[with()] async a => b");
+
+        N(SyntaxKind.SimpleLambdaExpression);
+        {
+            N(SyntaxKind.AttributeList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Attribute);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.AttributeArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            N(SyntaxKind.AsyncKeyword);
+            N(SyntaxKind.Parameter);
+            {
+                N(SyntaxKind.IdentifierToken, "a");
+            }
+            N(SyntaxKind.EqualsGreaterThanToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "b");
+            }
+        }
+        EOF();
     }
 
     [Fact]
     public void NotWithElement18()
     {
         UsingExpression("[with()] (a) => b");
+
+        N(SyntaxKind.ParenthesizedLambdaExpression);
+        {
+            N(SyntaxKind.AttributeList);
+            {
+                N(SyntaxKind.OpenBracketToken);
+                N(SyntaxKind.Attribute);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "with");
+                    }
+                    N(SyntaxKind.AttributeArgumentList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                }
+                N(SyntaxKind.CloseBracketToken);
+            }
+            N(SyntaxKind.ParameterList);
+            {
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.Parameter);
+                {
+                    N(SyntaxKind.IdentifierToken, "a");
+                }
+                N(SyntaxKind.CloseParenToken);
+            }
+            N(SyntaxKind.EqualsGreaterThanToken);
+            N(SyntaxKind.IdentifierName);
+            {
+                N(SyntaxKind.IdentifierToken, "b");
+            }
+        }
+        EOF();
     }
 
     [Fact]
