@@ -18509,6 +18509,24 @@ class C
     }
 
     [Fact]
+    public void NotWithElement16()
+    {
+        UsingExpression("[with()] a => b");
+    }
+
+    [Fact]
+    public void NotWithElement17()
+    {
+        UsingExpression("[with()] async a => b");
+    }
+
+    [Fact]
+    public void NotWithElement18()
+    {
+        UsingExpression("[with()] (a) => b");
+    }
+
+    [Fact]
     public void WithElement1()
     {
         UsingExpression("[with(]");
@@ -18692,5 +18710,17 @@ class C
     public void WithElement31()
     {
         UsingExpression("[with(_)]");
+    }
+
+    [Fact]
+    public void WithElement32()
+    {
+        UsingExpression("[with(a,)]");
+    }
+
+    [Fact]
+    public void WithElement33()
+    {
+        UsingExpression("[with(,a)]");
     }
 }
