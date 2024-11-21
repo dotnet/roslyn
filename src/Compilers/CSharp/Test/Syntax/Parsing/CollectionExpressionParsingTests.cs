@@ -18455,6 +18455,24 @@ class C
     }
 
     [Fact]
+    public void CollectionExpression_NotWithElement7()
+    {
+        UsingExpression("[with ? with : with]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement8()
+    {
+        UsingExpression("[with?.with]");
+    }
+
+    [Fact]
+    public void CollectionExpression_NotWithElement9()
+    {
+        UsingExpression("[with++]");
+    }
+
+    [Fact]
     public void CollectionExpression_WithElement1()
     {
         UsingExpression("[with(]");
@@ -18565,6 +18583,24 @@ class C
     [Fact]
     public void CollectionExpression_WithElement19()
     {
+        UsingExpression("[with(async () => {})]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement20()
+    {
         UsingExpression("[with(from x in y select x)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement21()
+    {
+        UsingExpression("[with([with()])]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement22()
+    {
+        UsingExpression("[with(with: with)]");
     }
 }
