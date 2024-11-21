@@ -600,8 +600,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // which flows as the escape scope of all ref-struct declaration subpatterns
             // and so the ref safety of the pattern is equivalent to a `Deconstruct(out var ...)` invocation
             // where "safe-context inference of declaration expressions" would have the same effect.
-            if (node.DeconstructMethod is { HasUnscopedRefAttribute: true } or
-                { IsExtensionMethod: true, Parameters: [{ EffectiveScope: ScopedKind.None }, ..] })
+            if (node.DeconstructMethod is { } m &&
+                tryGetThisParameter(m)?.EffectiveScope == ScopedKind.None)
             {
                 using (new PatternInput(this, _localScopeDepth))
                 {
@@ -610,6 +610,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitRecursivePattern(node);
+
+            static ParameterSymbol? tryGetThisParameter(MethodSymbol method)
+            {
+                if (method.IsExtensionMethod)
+                {
+                    return method.Parameters is [{ } firstParameter, ..] ? firstParameter : null;
+                }
+
+                return method.TryGetThisParameter(out var thisParameter) ? thisParameter : null;
+            }
         }
 
         public override BoundNode? VisitPositionalSubpattern(BoundPositionalSubpattern node)
