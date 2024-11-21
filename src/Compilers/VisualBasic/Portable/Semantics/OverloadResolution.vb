@@ -966,6 +966,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim someCandidatesHaveOverloadResolutionPriority As Boolean = False
             Dim respectOverloadResolutionPriority As Boolean = InternalSyntax.Parser.CheckFeatureAvailability(binder.Compilation.LanguageVersion, InternalSyntax.Feature.OverloadResolutionPriority)
 
+            If respectOverloadResolutionPriority AndAlso binder.IsEarlyAttributeBinder Then
+                Dim possiblyConstructor = TryCast(binder.ContainingMember, MethodSymbol)
+                If possiblyConstructor IsNot Nothing AndAlso
+                   possiblyConstructor.MethodKind = MethodKind.Constructor AndAlso
+                   possiblyConstructor.ContainingType.Name = AttributeDescription.OverloadResolutionPriorityAttribute.Name AndAlso
+                   possiblyConstructor.ContainingType.IsCompilerServicesTopLevelType() Then
+                    ' Avoid possible cycle during attribute binding
+                    respectOverloadResolutionPriority = False
+                End If
+            End If
+
             ' First collect instance methods.
             If instanceCandidates.Count > 0 Then
 

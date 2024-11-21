@@ -5,6 +5,8 @@
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -1558,6 +1560,1614 @@ End Module
             Dim compilation = CreateCompilation({compilationDef, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, expectedOutput:="1")
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub IncreasedPriorityWins_02_CS(i1First As Boolean)
+
+            Dim reference = CreateCSharpCompilation("
+using System.Runtime.CompilerServices;
+
+public interface I1 {}
+public interface I2 {}
+public interface I3 : I1, I2 {}
+
+public class C
+{
+    [OverloadResolutionPriority(2)]
+    public static void M(object o) => System.Console.WriteLine(1);
+
+    [OverloadResolutionPriority(1)]
+    public static void M(I1 x) => throw null;
+
+    public static void M(I2 x) => throw null;
+}
+" + OverloadResolutionPriorityAttributeDefinitionCS, parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        C.M(i3)
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, references:={reference}, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub IncreasedPriorityWins_02()
+
+            Dim i1Source = "
+<OverloadResolutionPriority(1)>
+public Shared Sub M(x As I1)
+    System.Console.WriteLine(1)
+End Sub
+"
+
+            Dim i2Source = "
+public Shared Sub M(x As I2)
+    throw DirectCast(Nothing, System.Exception)
+End Sub
+"
+
+            Dim reference = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C
+    <OverloadResolutionPriority(2)>
+    public Shared Sub M(x As Object)
+        System.Console.WriteLine(1)
+    End Sub
+    <OverloadResolutionPriority(1)>
+    public Shared Sub M(x As I1)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+    public Shared Sub M(x As I2)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+End Class
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        C.M(i3)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(comp1, expectedOutput:="1").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="1").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub DecreasedPriorityLoses(i1First As Boolean)
+
+            Dim i1Source = "
+public Shared Sub M(x As I1)
+    System.Console.WriteLine(1)
+End Sub
+"
+
+            Dim i2Source = "
+<OverloadResolutionPriority(-1)>
+public Shared Sub M(x As I2)
+    throw DirectCast(Nothing, System.Exception)
+End Sub
+"
+
+            Dim reference = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C" +
+    If(i1First, i1Source, i2Source) +
+    If(i1First, i2Source, i1Source) + "
+End Class
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        C.M(i3)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(comp1, expectedOutput:="1").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="1").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ZeroIsTreatedAsDefault()
+
+            Dim reference = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C
+    public Shared Sub M(x As I1)
+        System.Console.WriteLine(1)
+    End Sub
+    <OverloadResolutionPriority(0)>
+    public Shared Sub M(x As I2)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+End Class
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        C.M(i3)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            Dim expected =
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared Sub M(x As I1)': Not most specific.
+    'Public Shared Sub M(x As I2)': Not most specific.
+        C.M(i3)
+          ~
+</expected>
+
+            comp1.AssertTheseDiagnostics(expected)
+
+            comp1 = CreateCompilation({reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
+            Dim validate = Sub([module] As ModuleSymbol)
+                               Dim c = [module].ContainingAssembly.GetTypeByMetadataName("C")
+                               Dim ms = c.GetMembers("M").Cast(Of MethodSymbol)()
+                               For Each m In ms
+                                   Assert.Equal(0, m.OverloadResolutionPriority)
+                               Next
+                           End Sub
+            CompileAndVerify(comp1, sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            comp2.AssertTheseDiagnostics(expected)
+
+            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            comp3.AssertTheseDiagnostics(expected)
+        End Sub
+
+        <Theory>
+        <InlineData(-1)>
+        <InlineData(1)>
+        <InlineData(Integer.MaxValue)>
+        <InlineData(Integer.MinValue)>
+        Public Sub AmbiguityWithinPriority(priority As Integer)
+
+            Dim reference = $"
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C
+    <OverloadResolutionPriority({priority})>
+    public Shared Sub M(x As I1)
+        System.Console.WriteLine(1)
+    End Sub
+    <OverloadResolutionPriority({priority})>
+    public Shared Sub M(x As I2)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+End Class
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        C.M(i3)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            Dim expected =
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared Sub M(x As I1)': Not most specific.
+    'Public Shared Sub M(x As I2)': Not most specific.
+        C.M(i3)
+          ~
+</expected>
+
+            comp1.AssertTheseDiagnostics(expected)
+        End Sub
+
+        <Fact>
+        Public Sub MethodDiscoveryStopsAtFirstApplicableMethod_CS()
+
+            Dim reference = CreateCSharpCompilation("
+using System.Runtime.CompilerServices;
+
+public interface I1 {}
+public interface I2 {}
+public interface I3 : I1, I2 {}
+
+public class Base
+{
+    [OverloadResolutionPriority(1)]
+    public static void M(I2 x) => throw null;
+}
+public class Derived : Base
+{
+    public static void M(I1 x) => System.Console.WriteLine(1);
+}
+" + OverloadResolutionPriorityAttributeDefinitionCS, parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        Derived.M(i3)
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, references:={reference}, options:=TestOptions.DebugExe)
+
+            ' Unlike C#, VB doesn't stop collecting candidates at Derived
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    'Public Shared Overloads Sub Derived.M(x As I1)': Not most specific.
+    'Public Shared Overloads Sub Base.M(x As I2)': Not most specific.
+        Derived.M(i3)
+                ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub MethodDiscoveryStopsAtFirstApplicableIndexer_CS()
+
+            Dim reference = CreateCSharpCompilation("
+using System.Runtime.CompilerServices;
+
+public interface I1 {}
+public interface I2 {}
+public interface I3 : I1, I2 {}
+
+public class Base
+{
+    [OverloadResolutionPriority(1)]
+    public int this[I2 x]
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+public class Derived : Base
+{
+    public int this[I1 x]
+    {
+        get { System.Console.Write(1); return 1; }
+        set => System.Console.Write(2);
+    }
+}
+" + OverloadResolutionPriorityAttributeDefinitionCS, parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        Dim d = new Derived()
+        Dim x = d(i3)
+        d(i3) = 0
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, references:={reference}, options:=TestOptions.DebugExe)
+
+            ' Unlike C#, VB doesn't stop collecting candidates at Derived
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Overloads Default Property Derived.Item(x As I1) As Integer': Not most specific.
+    'Public Overloads Default Property Base.Item(x As I2) As Integer': Not most specific.
+        Dim x = d(i3)
+                ~
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Overloads Default Property Derived.Item(x As I1) As Integer': Not most specific.
+    'Public Overloads Default Property Base.Item(x As I2) As Integer': Not most specific.
+        d(i3) = 0
+        ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub OrderingWithAnExtensionMethodContainingClass_CS()
+
+            Dim reference = CreateCSharpCompilation("
+using System.Runtime.CompilerServices;
+
+public interface I1 {}
+public interface I2 {}
+public interface I3 : I1, I2 {}
+
+public static class C
+{
+    [OverloadResolutionPriority(1)]
+    public static void M(this I1 x) => System.Console.WriteLine(1);
+
+    public static void M(this I2 x) => throw null;
+}
+" + OverloadResolutionPriorityAttributeDefinitionCS, parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        i3.M()
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, references:={reference}, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub DoesNotOrderBetweenExtensionMethodContainingClasses_CS()
+
+            Dim reference = CreateCSharpCompilation("
+using System.Runtime.CompilerServices;
+
+public interface I1 {}
+public interface I2 {}
+public interface I3 : I1, I2 {}
+
+public static class C1
+{
+    [OverloadResolutionPriority(1)]
+    public static void M(this I1 x) => System.Console.WriteLine(1);
+}
+
+public static class C2
+{
+    public static void M(this I2 x) => throw null;
+}
+" + OverloadResolutionPriorityAttributeDefinitionCS, parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim i3 As I3 = Nothing
+        i3.M()
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, references:={reference}, options:=TestOptions.DebugExe)
+            compilation.AssertTheseDiagnostics(
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M()' defined in 'C1': Not most specific.
+    Extension method 'Public Sub M()' defined in 'C2': Not most specific.
+        i3.M()
+           ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub Overrides_NoPriorityChangeFromBase_Methods_CS()
+
+            Dim reference = CreateCSharpCompilation("
+using System.Runtime.CompilerServices;
+
+public class Base
+{
+    [OverloadResolutionPriority(1)]
+    public virtual void M(object o) => throw null;
+    public virtual void M(string s) => throw null;
+}
+
+public class Derived : Base
+{
+    public override void M(object o) => System.Console.WriteLine(""1"");
+    public override void M(string s) => throw null;
+}
+" + OverloadResolutionPriorityAttributeDefinitionCS, parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim d = new Derived()
+        d.M(""test"")
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, references:={reference}, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Overrides_ChangePriorityInSource_Methods()
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+public class Base
+    <OverloadResolutionPriority(1)>
+    public Overridable Sub M(o As Object)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+    public Overridable Sub M(s As String)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+End Class
+
+public class Derived
+    Inherits Base
+
+    <OverloadResolutionPriority(0)>
+    public Overrides Sub M(o As Object)
+        System.Console.WriteLine(""1"")
+    End Sub
+    <OverloadResolutionPriority(2)>
+    public Overrides Sub M(s As String)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+End Class
+
+public class Program 
+    Shared Sub Main
+        Dim d = new Derived()
+        d.M(""test"")
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            ' Note, VB silently ignores attributes at wrong location 
+            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Overrides_ChangePriorityInMetadata_Methods()
+
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+
+public class Base
+    <OverloadResolutionPriority(1)>
+    public Overridable Sub M(o As Object)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+    public Overridable Sub M(s As String)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source1, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll, assemblyName:="assembly1")
+            Dim assembly1 = comp1.EmitToImageReference()
+
+            ' Equivalent to:
+            '
+            ' public class Derived : Base
+            ' {
+            '     [OverloadResolutionPriority(0)]
+            '     public override void M(object o) => System.Console.WriteLine("1");
+            '     [OverloadResolutionPriority(2)]
+            '     public override void M(string s) => throw null;
+            ' }
+            Dim il2 = "
+.assembly extern assembly1 {}
+
+.class public auto ansi beforefieldinit Derived extends [assembly1]Base
+{
+    .method public hidebysig virtual 
+        instance void M (
+            object o
+        ) cil managed 
+    {
+        .custom instance void [assembly1]System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+            01 00 00 00 00 00 00 00
+        )
+        ldstr ""1""
+        call void [mscorlib]System.Console::WriteLine(string)
+        ret
+    } // end of method Derived::M
+
+    .method public hidebysig virtual 
+        instance void M (
+            string s
+        ) cil managed 
+    {
+        .custom instance void [assembly1]System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+            01 00 02 00 00 00 00 00
+        )
+        ldnull
+        throw
+    } // end of method Derived::M
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [assembly1]Base::.ctor()
+        ret
+    } // end of method Derived::.ctor
+
+}
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim d = new Derived()
+        d.M(""test"")
+    End Sub
+End Class
+"
+            Dim assembly2 = CompileIL(il2)
+
+            Dim compilation = CreateCompilation(source, references:={assembly1, assembly2}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Overrides_ChangePriorityInMetadata_Indexers()
+
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+
+public class Base
+    <OverloadResolutionPriority(1)>
+    public Overridable Default Property Item(o As Object) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+    public Overridable Default Property Item(s As String) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source1, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll, assemblyName:="assembly1")
+            Dim assembly1 = comp1.EmitToImageReference()
+
+            ' Equivalent to:
+            '
+            ' public class Derived: Base
+            ' {
+            '     public override int this[object o]
+            '     {
+            '         get { System.Console.Write(1); return 1; }
+            '         set => System.Console.Write(2);
+            '     }
+            '     [OverloadResolutionPriority(2)]
+            '     public override int this[string s]
+            '     {
+            '         get => throw null;
+            '         set => throw null;
+            '     }
+            ' }
+            Dim il2 = "
+.assembly extern assembly1 {}
+
+.class public auto ansi beforefieldinit Derived extends [assembly1]Base
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+    // Methods
+    .method public hidebysig specialname virtual 
+        instance int32 get_Item (
+            object o
+        ) cil managed 
+    {
+        ldc.i4.1
+        call void [mscorlib]System.Console::Write(int32)
+        ldc.i4.1
+        ret
+    } // end of method Derived::get_Item
+
+    .method public hidebysig specialname virtual 
+        instance void set_Item (
+            object o,
+            int32 'value'
+        ) cil managed 
+    {
+        ldc.i4.2
+        call void [mscorlib]System.Console::Write(int32)
+        ret
+    } // end of method Derived::set_Item
+
+    .method public hidebysig specialname virtual 
+        instance int32 get_Item (
+            string s
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::get_Item
+
+    .method public hidebysig specialname virtual 
+        instance void set_Item (
+            string s,
+            int32 'value'
+        ) cil managed 
+    {
+        ldnull
+        throw
+    } // end of method Derived::set_Item
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        ldarg.0
+        call instance void [assembly1]Base::.ctor()
+        ret
+    } // end of method Derived::.ctor
+
+    // Properties
+    .property instance int32 Item(
+        object o
+    )
+    {
+        .get instance int32 Derived::get_Item(object)
+        .set instance void Derived::set_Item(object, int32)
+    }
+    .property instance int32 Item(
+        string s
+    )
+    {
+        .custom instance void [assembly1]System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute::.ctor(int32) = (
+            01 00 02 00 00 00 00 00
+        )
+        .get instance int32 Derived::get_Item(string)
+        .set instance void Derived::set_Item(string, int32)
+    }
+}
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim d = new Derived()
+        Dim x = d(""test"")
+        d(""test"") = 0
+        x = d.Item(""test"")
+        d.Item(""test"") = 0
+    End Sub
+End Class
+"
+            Dim assembly2 = CompileIL(il2)
+
+            Dim compilation = CreateCompilation(source, references:={assembly1, assembly2}, options:=TestOptions.DebugExe)
+
+            CompileAndVerify(compilation, expectedOutput:="1212").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Overrides_ChangePriorityInSource_Indexers()
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+public class Base
+    <OverloadResolutionPriority(1)>
+    public Overridable Default Property Item(o As Object) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+    public Overridable Default Property Item(s As String) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+End Class
+
+public class Derived
+    Inherits Base
+
+    public Overrides Default Property Item(o As Object) As Integer
+        Get
+             System.Console.Write(1)
+             return 1
+        End Get
+        Set
+            System.Console.Write(2)
+        End Set
+    End Property
+
+    <OverloadResolutionPriority(2)>
+    public Overrides Default Property Item(s As String) As Integer
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+End Class
+
+public class Program 
+    Shared Sub Main
+        Dim d = new Derived()
+        Dim x = d(""test"")
+        d(""test"") = 0
+        x = d.Item(""test"")
+        d.Item(""test"") = 0
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            ' Note, VB silently ignores attributes at wrong location 
+            CompileAndVerify(compilation, expectedOutput:="1212").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ThroughRetargeting_Methods()
+
+            Dim source1 = "
+public class RetValue
+End Class
+"
+
+            Dim comp1_1 = CreateCompilation(source1, options:=TestOptions.DebugDll, assemblyName:="Ret")
+            DirectCast(comp1_1.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True)
+            Dim comp1_2 = CreateCompilation(source1, options:=TestOptions.DebugDll, assemblyName:="Ret")
+            DirectCast(comp1_2.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True)
+
+            Dim source2 = "
+Imports System.Runtime.CompilerServices
+
+public class C
+    <OverloadResolutionPriority(1)>
+    public Function M(o As Object) As RetValue
+        System.Console.WriteLine(""1"")
+        return new RetValue()
+    End Function
+    public Function M(s As String)
+        throw DirectCast(Nothing, System.Exception)
+    End Function
+End Class
+"
+
+            Dim comp2 = CreateCompilation({source2, OverloadResolutionPriorityAttributeDefinitionVB}, references:={comp1_1.ToMetadataReference()}, options:=TestOptions.DebugDll)
+            comp2.VerifyDiagnostics()
+
+            Dim source3 = "
+public class Program 
+    Shared Sub Main
+        Dim c = new C()
+        c.M(""test"")
+    End Sub
+End Class
+"
+
+            Dim comp3 = CreateCompilation(source3, references:={comp2.ToMetadataReference(), comp1_2.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            Dim c = comp3.GetTypeByMetadataName("C")
+            Dim ms = c.GetMembers("M").Cast(Of MethodSymbol)().ToArray()
+            Assert.Equal(2, ms.Length)
+            Assert.All(ms, Function(m) Assert.IsType(Of RetargetingMethodSymbol)(m))
+            AssertEx.Equal("Function C.M(o As System.Object) As RetValue", ms(0).ToTestDisplayString())
+            Assert.Equal(1, ms(0).OverloadResolutionPriority)
+            AssertEx.Equal("Function C.M(s As System.String) As System.Object", ms(1).ToTestDisplayString())
+            Assert.Equal(0, ms(1).OverloadResolutionPriority)
+
+            comp3.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub ThroughRetargeting_Indexers()
+
+            Dim source1 = "
+public class RetValue
+End Class
+"
+
+            Dim comp1_1 = CreateCompilation(source1, options:=TestOptions.DebugDll, assemblyName:="Ret")
+            DirectCast(comp1_1.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Ret", New Version(1, 0, 0, 0), isRetargetable:=True)
+            Dim comp1_2 = CreateCompilation(source1, options:=TestOptions.DebugDll, assemblyName:="Ret")
+            DirectCast(comp1_2.Assembly, SourceAssemblySymbol).m_lazyIdentity = New AssemblyIdentity("Ret", New Version(2, 0, 0, 0), isRetargetable:=True)
+
+            Dim source2 = "
+Imports System.Runtime.CompilerServices
+
+public class C
+    <OverloadResolutionPriority(1)>
+    public Default Property M(o As Object) As RetValue
+        Get
+            System.Console.WriteLine(""1"")
+            return new RetValue()
+        End Get
+        Set
+            System.Console.WriteLine(""2"")
+        End Set
+    End Property
+    public Default Property M(s As String)
+        Get
+            throw DirectCast(Nothing, System.Exception)
+        End Get
+        Set
+            throw DirectCast(Nothing, System.Exception)
+        End Set
+    End Property
+End Class
+"
+
+            Dim comp2 = CreateCompilation({source2, OverloadResolutionPriorityAttributeDefinitionVB}, references:={comp1_1.ToMetadataReference()}, options:=TestOptions.DebugDll)
+            comp2.VerifyDiagnostics()
+
+            Dim source3 = "
+public class Program 
+    Shared Sub Main
+        Dim c = new C()
+        Dim x = c(""test"")
+        c(""test"") = new RetValue()
+    End Sub
+End Class
+"
+
+            Dim comp3 = CreateCompilation(source3, references:={comp2.ToMetadataReference(), comp1_2.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            Dim c = comp3.GetTypeByMetadataName("C")
+            Dim ms = c.GetMembers("M").Cast(Of PropertySymbol)().ToArray()
+            Assert.Equal(2, ms.Length)
+            Assert.All(ms, Function(m) Assert.IsType(Of RetargetingPropertySymbol)(m))
+            AssertEx.Equal("Property C.M(o As System.Object) As RetValue", ms(0).ToTestDisplayString())
+            Assert.Equal(1, ms(0).OverloadResolutionPriority)
+            AssertEx.Equal("Property C.M(s As System.String) As System.Object", ms(1).ToTestDisplayString())
+            Assert.Equal(0, ms(1).OverloadResolutionPriority)
+
+            comp3.VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub AppliedToAttributeConstructors()
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+<C(""test"")>
+public class C
+    Inherits System.Attribute
+
+    <OverloadResolutionPriority(1)>
+    public Sub New(o As object)
+    End Sub
+
+    public Sub New(s As string)
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
+            CompileAndVerify(compilation).VerifyDiagnostics()
+
+            Dim c = compilation.GetTypeByMetadataName("C")
+
+            Dim attr = c.GetAttributes().Single()
+            AssertEx.Equal("Sub C..ctor(o As System.Object)", attr.AttributeConstructor.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub CycleOnOverloadResolutionPriorityConstructor_01()
+
+            Dim source = "
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Method Or AttributeTargets.Constructor Or AttributeTargets.Property, AllowMultiple:= false, Inherited:= false)>
+    public class OverloadResolutionPriorityAttribute
+        Inherits Attribute
+
+        <OverloadResolutionPriority(1)>
+        Public Sub New(priority As Integer)
+            Me.Priority = priority
+        End Sub
+
+        public Readonly Property Priority As Integer
+    End Class
+End Namespace
+"
+
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll)
+            CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
+        <Theory>
+        <InlineData(0)>
+        <InlineData(1)>
+        Public Sub CycleOnOverloadResolutionPriorityConstructor_02(ctorToForce As Integer)
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Method Or AttributeTargets.Constructor Or AttributeTargets.Property, AllowMultiple:= false, Inherited:= false)>
+    public class OverloadResolutionPriorityAttribute
+        Inherits Attribute
+
+        Public Sub New(priority As Integer)
+            Me.Priority = priority
+        End Sub
+
+        ' Attribute is intentionally ignored, as this will cause a cycle
+        <OverloadResolutionPriority(1)>
+        Public Sub New(priority As Object)
+            Me.Priority = priority
+        End Sub
+
+        public Readonly Property Priority As Integer
+    End Class
+End Namespace
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public Module Program 
+
+    <OverloadResolutionPriority(1)>
+    <Extension>
+    Sub M(this As I1)
+        System.Console.WriteLine(1)
+    End Sub
+
+    <Extension>
+    Sub M(this As I2)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+
+    Sub Main
+        Dim i3 As I3 = Nothing
+        i3.M()
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugExe)
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M()' defined in 'Program': Not most specific.
+    Extension method 'Public Sub M()' defined in 'Program': Not most specific.
+        i3.M()
+           ~
+</expected>
+            )
+
+            compilation = CreateCompilation(source, options:=TestOptions.DebugExe)
+            Dim ctors = compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute").Constructors
+            Dim ctor = ctors(1)
+            AssertEx.Equal("Sub System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(priority As System.Object)", ctor.ToTestDisplayString())
+
+            ctors(ctorToForce).GetAttributes()
+            compilation.AssertTheseEmitDiagnostics(
+<expected>
+BC30521: Overload resolution failed because no accessible 'M' is most specific for these arguments:
+    Extension method 'Public Sub M()' defined in 'Program': Not most specific.
+    Extension method 'Public Sub M()' defined in 'Program': Not most specific.
+        i3.M()
+           ~
+</expected>
+            )
+
+            Assert.Equal(1, ctor.OverloadResolutionPriority)
+            AssertEx.Equal("Sub System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(priority As System.Int32)", ctor.GetAttributes().Single().AttributeConstructor.ToTestDisplayString())
+
+            Dim m = compilation.GetTypeByMetadataName("Program").GetMembers("M").OfType(Of MethodSymbol)().First()
+            Assert.Equal(0, m.OverloadResolutionPriority)
+            AssertEx.Equal("Sub System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(priority As System.Object)", m.GetAttributes().First().AttributeConstructor.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub CycleOnOverloadResolutionPriorityConstructor_04()
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Method Or AttributeTargets.Constructor Or AttributeTargets.Property, AllowMultiple:= false, Inherited:= false)>
+    public class OverloadResolutionPriorityAttribute
+        Inherits Attribute
+
+        <OtherAttribute()>
+        Public Sub New(priority As Integer)
+            Me.Priority = priority
+        End Sub
+
+        public Readonly Property Priority As Integer
+    End Class
+End Namespace
+
+public class OtherAttribute
+    Inherits System.Attribute
+
+    <OverloadResolutionPriority(1)>
+    Public Sub New()
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll)
+            CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub CycleOnOverloadResolutionPriorityConstructor_05()
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Method Or AttributeTargets.Constructor Or AttributeTargets.Property, AllowMultiple:= false, Inherited:= false)>
+    public class OverloadResolutionPriorityAttribute
+        Inherits Attribute
+
+        <ObsoleteAttribute()>
+        Public Sub New(priority As Integer)
+            Me.Priority = priority
+        End Sub
+
+        public Readonly Property Priority As Integer
+    End Class
+End Namespace
+
+Namespace System
+    public class ObsoleteAttribute
+        Inherits System.Attribute
+
+        <OverloadResolutionPriority(1)>
+        Public Sub New()
+        End Sub
+    End Class
+End Namespace
+"
+
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugDll)
+            CompileAndVerify(compilation).Diagnostics.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC40008: 'Public Sub New(priority As Integer)' is obsolete.
+        <OverloadResolutionPriority(1)>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Theory>
+        <InlineData(0)>
+        <InlineData(1)>
+        Public Sub CycleOnOverloadResolutionPriorityConstructor_06(ctorToForce As Integer)
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+namespace System.Runtime.CompilerServices
+    <AttributeUsage(AttributeTargets.Method Or AttributeTargets.Constructor Or AttributeTargets.Property, AllowMultiple:= false, Inherited:= false)>
+    public class OverloadResolutionPriorityAttribute
+        Inherits Attribute
+
+        Public Sub New(priority As Integer)
+            Me.Priority = priority
+        End Sub
+
+        ' Attribute is intentionally ignored, as this will cause a cycle
+        <OverloadResolutionPriority(CType(-1, SByte))>
+        Public Sub New(priority As SByte)
+            Me.Priority = priority
+        End Sub
+
+        public Readonly Property Priority As Integer
+    End Class
+End Namespace
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public Module Program 
+
+    <OverloadResolutionPriority(1)>
+    <Extension>
+    Sub M(this As I1)
+        System.Console.WriteLine(1)
+    End Sub
+
+    <Extension>
+    Sub M(this As I2)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+
+    Sub Main
+        Dim i3 As I3 = Nothing
+        i3.M()
+    End Sub
+End Module
+"
+
+            Dim compilation = CreateCompilation(source, options:=TestOptions.DebugExe)
+            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+
+            compilation = CreateCompilation(source, options:=TestOptions.DebugExe)
+            Dim ctors = compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute").Constructors
+            Dim ctor = ctors(1)
+            AssertEx.Equal("Sub System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(priority As System.SByte)", ctor.ToTestDisplayString())
+
+            ctors(ctorToForce).GetAttributes()
+            CompileAndVerify(compilation, expectedOutput:="1").VerifyDiagnostics()
+
+            Assert.Equal(0, ctor.OverloadResolutionPriority)
+            AssertEx.Equal("Sub System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(priority As System.SByte)", ctor.GetAttributes().Single().AttributeConstructor.ToTestDisplayString())
+
+            Dim m = compilation.GetTypeByMetadataName("Program").GetMembers("M").OfType(Of MethodSymbol)().First()
+            Assert.Equal(1, m.OverloadResolutionPriority)
+            AssertEx.Equal("Sub System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute..ctor(priority As System.Int32)", m.GetAttributes().First().AttributeConstructor.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub CycleOnOverloadResolutionPriorityConstructor_07()
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+Namespace System
+    public class ObsoleteAttribute
+        Inherits System.Attribute
+
+        Public Sub New(x As String)
+        End Sub
+
+        <OverloadResolutionPriority(1)>
+        Public Sub New(x As String, Optional y As Boolean = False)
+        End Sub
+        
+    End Class
+End Namespace
+
+<System.Obsolete(""Test"")>
+Class C
+End Class
+
+Class D
+    Dim x As C
+End Class
+"
+
+            Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
+            Dim verifier = CompileAndVerify(
+                    compilation,
+                    symbolValidator:=Sub(m)
+                                         AssertEx.Equal("Sub System.ObsoleteAttribute..ctor(x As System.String, [y As System.Boolean = False])",
+                                                        m.ContainingAssembly.GetTypeByMetadataName("C").GetAttributes.Single().AttributeConstructor.ToTestDisplayString())
+                                     End Sub)
+
+            verifier.Diagnostics.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC40000: 'C' is obsolete: 'Test'.
+    Dim x As C
+             ~
+]]></expected>
+            )
+        End Sub
+
+        <Fact>
+        Public Sub CycleOnOverloadResolutionPriorityConstructor_08()
+
+            Dim source = "
+Imports System.Runtime.CompilerServices
+
+Namespace System
+    public class ObsoleteAttribute
+        Inherits System.Attribute
+
+        Public Sub New(x As String)
+        End Sub
+
+        <OverloadResolutionPriority(1)>
+        Public Sub New(x As String, Optional y As Boolean = True)
+        End Sub
+        
+    End Class
+End Namespace
+
+<System.Obsolete(""Test"")>
+Class C
+End Class
+
+Class D
+    Dim x As C
+End Class
+"
+
+            Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
+            AssertEx.Equal("Sub System.ObsoleteAttribute..ctor(x As System.String, [y As System.Boolean = True])",
+                           compilation.GetTypeByMetadataName("C").GetAttributes.Single().AttributeConstructor.ToTestDisplayString())
+
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30668: 'C' is obsolete: 'Test'.
+    Dim x As C
+             ~
+]]></expected>
+            )
+        End Sub
+
+        <Theory, CombinatorialData>
+        Public Sub OverloadResolutionAppliedToIndexers(i1First As Boolean)
+
+            Dim i1Source = "
+<OverloadResolutionPriority(1)>
+public Default Property Item(x As I1) As Integer
+    Get
+        System.Console.Write(1)
+        Return 0
+    End Get
+    Set
+        System.Console.Write(2)
+    End Set
+End Property
+"
+
+            Dim i2Source = "
+public Default Property Item(x As I2) As Integer
+    Get
+        throw DirectCast(Nothing, System.Exception)
+    End Get
+    Set
+        throw DirectCast(Nothing, System.Exception)
+    End Set
+End Property
+"
+
+            Dim reference = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+public class C" +
+    If(i1First, i1Source, i2Source) +
+    If(i1First, i2Source, i1Source) + "
+End Class
+"
+
+            Dim source = "
+public class Program 
+    Shared Sub Main
+        Dim c = new C()
+        Dim i3 As I3 = Nothing
+        Dim x = c(i3)
+        c(i3) = 0
+    End Sub
+End Class
+"
+
+            Dim comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+
+            Dim validate = Sub([module] As ModuleSymbol)
+                               Dim c = [module].ContainingAssembly.GetTypeByMetadataName("C")
+                               Dim ms = c.GetMembers("Item").Cast(Of PropertySymbol)()
+                               For Each m In ms
+                                   Assert.Equal(If(m.Parameters(0).Type.Name = "I1", 1, 0), m.OverloadResolutionPriority)
+                               Next
+                           End Sub
+
+            CompileAndVerify(comp1, expectedOutput:="12", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="12").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="12").VerifyDiagnostics()
+
+            comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular17_13)
+            CompileAndVerify(comp1, expectedOutput:="12", sourceSymbolValidator:=validate, symbolValidator:=validate).VerifyDiagnostics()
+
+            comp1 = CreateCompilation({source, reference, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe, parseOptions:=TestOptions.Regular16_9)
+            comp1.AssertTheseDiagnostics(If(i1First,
+<expected>
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Default Property Item(x As I1) As Integer': Not most specific.
+    'Public Default Property Item(x As I2) As Integer': Not most specific.
+        Dim x = c(i3)
+                ~
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Default Property Item(x As I1) As Integer': Not most specific.
+    'Public Default Property Item(x As I2) As Integer': Not most specific.
+        c(i3) = 0
+        ~
+</expected>,
+<expected>
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Default Property Item(x As I2) As Integer': Not most specific.
+    'Public Default Property Item(x As I1) As Integer': Not most specific.
+        Dim x = c(i3)
+                ~
+BC30521: Overload resolution failed because no accessible 'Item' is most specific for these arguments:
+    'Public Default Property Item(x As I2) As Integer': Not most specific.
+    'Public Default Property Item(x As I1) As Integer': Not most specific.
+        c(i3) = 0
+        ~
+</expected>))
+        End Sub
+
+        <Fact>
+        Public Sub NoImpactToFunctionType()
+
+            Dim source = "
+Option Infer On 
+
+Imports System.Runtime.CompilerServices
+
+Class C
+
+    Shared Sub Main()
+        Dim x = AddressOf M1
+    End Sub
+
+    <OverloadResolutionPriority(1)>
+    Shared Sub M1(x As Integer)
+    End Sub
+
+    Shared Sub M1(x As String)
+    End Sub
+End Class
+"
+
+            Dim compilation = CreateCompilation({source, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugDll)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30581: 'AddressOf' expression cannot be converted to 'Object' because 'Object' is not a delegate type.
+        Dim x = AddressOf M1
+                ~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact>
+        Public Sub DelegateConversion()
+
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+
+Public Class C
+
+    <OverloadResolutionPriority(1)>
+    Shared Sub M(x As Object)
+        System.Console.Write(1)
+    End Sub
+
+    Shared Sub M(x As String)
+        throw DirectCast(Nothing, System.Exception)
+    End Sub
+End Class
+"
+            Dim source2 = "
+Module Program
+    Sub Main()
+        Dim a As System.Action(Of string) = AddressOf C.M
+        a(Nothing)
+    End Sub
+End Module
+"
+
+            Dim comp1 = CreateCompilation({source1, source2, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="1").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source2, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="1").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="1").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Interface_DifferentPriorities_Methods()
+
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+Public Interface I
+    <OverloadResolutionPriority(1)>
+    Sub M(x As I1)
+    Sub M(x As I2)
+End Interface
+
+Public Class C
+    Implements I
+
+    public Sub M(x As I1) Implements I.M
+        System.Console.Write(1)
+    End Sub
+
+    <OverloadResolutionPriority(2)>
+    public Sub M(x As I2) Implements I.M
+        System.Console.Write(2)
+    End Sub
+End Class
+"
+            Dim source2 = "
+Module Program
+    Sub Main()
+        Dim c = new C()
+        Dim i3 As I3 = Nothing
+        c.M(i3)
+        DirectCast(c, I).M(i3)
+    End Sub
+End Module
+"
+
+            Dim comp1 = CreateCompilation({source1, source2, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="21").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source2, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="21").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="21").VerifyDiagnostics()
+        End Sub
+
+        <Fact>
+        Public Sub Interface_DifferentPriorities_Indexers()
+
+            Dim source1 = "
+Imports System.Runtime.CompilerServices
+
+public interface I1
+End Interface
+public interface I2
+End Interface
+public interface I3
+    Inherits I1, I2
+End Interface
+
+Public Interface I
+    <OverloadResolutionPriority(1)>
+    Default Property Item(x As I1) As Integer
+    Default Property Item(x As I2) As Integer
+End Interface
+
+Public Class C
+    Implements I
+
+    Default Property Item(x As I1) As Integer Implements I.Item
+        Get
+            System.Console.Write(1)
+            return 0
+        End Get
+        Set
+            System.Console.Write(2)
+        End Set
+    End Property
+    <OverloadResolutionPriority(2)>
+    Default Property Item(x As I2) As Integer Implements I.Item
+        Get
+            System.Console.Write(3)
+            return 0
+        End Get
+        Set
+            System.Console.Write(4)
+        End Set
+    End Property
+End Class
+"
+            Dim source2 = "
+Module Program
+    Sub Main()
+        Dim c = new C()
+        Dim i3 As I3 = Nothing
+
+        c(I3) = 1
+        Dim x = c(i3)
+        c.Item(I3) = 1
+        x = c.Item(i3)
+        
+        Dim i As I = DirectCast(c, I)
+        i(I3) = 1
+        x = i(i3)
+        i.Item(I3) = 1
+        x = i.Item(i3)
+    End Sub
+End Module
+"
+
+            Dim comp1 = CreateCompilation({source1, source2, OverloadResolutionPriorityAttributeDefinitionVB}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp1, expectedOutput:="43432121").VerifyDiagnostics()
+
+            Dim comp2 = CreateCompilation(source2, references:={comp1.ToMetadataReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp2, expectedOutput:="43432121").VerifyDiagnostics()
+
+            Dim comp3 = CreateCompilation(source2, references:={comp1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            CompileAndVerify(comp3, expectedOutput:="43432121").VerifyDiagnostics()
         End Sub
 
     End Class
