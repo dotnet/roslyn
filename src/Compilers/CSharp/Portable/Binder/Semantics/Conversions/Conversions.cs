@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // If synthesizing a delegate with an [UnscopedRef] parameter, check the attribute is available.
-                if (invoke.Parameters.Any(p => p.HasUnscopedRefAttribute))
+                if (invoke.Parameters.Any(p => p.HasUnscopedRefAttribute && p.UseUpdatedEscapeRules))
                 {
                     Binder.AddUseSiteDiagnosticForSynthesizedAttribute(
                         Compilation,

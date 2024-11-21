@@ -22511,6 +22511,84 @@ using @scoped = System.Int32;
             }
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_Reference_SynthesizedDelegate_01()
+        {
+            var source1 = """
+                using System.Diagnostics.CodeAnalysis;
+                public static class C
+                {
+                    public static void M([UnscopedRef] ref int x) { }
+                }
+                """;
+            var ref1 = CreateCompilation([source1, UnscopedRefAttributeDefinition])
+                .VerifyDiagnostics().EmitToImageReference();
+
+            var source2 = """
+                using System;
+
+                Delegate d = C.M;
+                Console.WriteLine(d.GetType());
+                """;
+            CompileAndVerify(source2, [ref1],
+                parseOptions: TestOptions.Regular10,
+                symbolValidator: static (module) =>
+                {
+                    var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                    AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(ref System.Int32 arg)", m.ToTestDisplayString());
+                    var a = m.Parameters[0].GetAttributes().Single().AttributeClass.ToTestDisplayString();
+                    AssertEx.Equal("System.Diagnostics.CodeAnalysis.UnscopedRefAttribute", a);
+                },
+                expectedOutput: "<>f__AnonymousDelegate0").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75828")]
+        public void UnscopedRefAttribute_RefSafetyRules_Reference_SynthesizedDelegate_02()
+        {
+            /*
+                public static class C
+                {
+                    public static void M([UnscopedRef] ref int x) { }
+                }
+             */
+            var source1 = """
+                .class public auto ansi abstract sealed beforefieldinit C extends System.Object
+                {
+                    .method public hidebysig static void M(int32& x) cil managed 
+                    {
+                        .param [1] .custom instance void [mscorlib]System.Diagnostics.CodeAnalysis.UnscopedRefAttribute::.ctor() = (01 00 00 00)
+                        .maxstack 8
+                        ret
+                    }
+                }
+
+                .class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.UnscopedRefAttribute extends System.Object
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                    {
+                        .maxstack 8
+                        ret
+                    }
+                }
+                """;
+            var ref1 = CompileIL(source1);
+
+            var source2 = """
+                using System;
+
+                Delegate d = C.M;
+                Console.WriteLine(d.GetType());
+                """;
+            CompileAndVerify(source2, [ref1],
+                symbolValidator: static (module) =>
+                {
+                    var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>A{00000001}.Invoke");
+                    AssertEx.Equal("void <>A{00000001}<T1>.Invoke(ref T1 arg)", m.ToTestDisplayString());
+                    Assert.Empty(m.Parameters[0].GetAttributes());
+                },
+                expectedOutput: "<>A{00000001}`1[System.Int32]").VerifyDiagnostics();
+        }
+
         [Theory]
         [InlineData("struct")]
         [InlineData("ref struct")]
