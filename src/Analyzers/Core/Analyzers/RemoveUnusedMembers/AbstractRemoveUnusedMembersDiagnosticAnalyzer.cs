@@ -198,12 +198,13 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 if (!ShouldAnalyze(symbolStartContext, (INamedTypeSymbol)symbolStartContext.Symbol))
                     return;
 
-                symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
+                symbolStartContext.RegisterOperationAction(AnalyzeDeconstructionAssignment, OperationKind.DeconstructionAssignment);
                 symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
                 symbolStartContext.RegisterOperationAction(AnalyzeInvocationOperation, OperationKind.Invocation);
+                symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
+                symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                 symbolStartContext.RegisterOperationAction(AnalyzeNameOfOperation, OperationKind.NameOf);
                 symbolStartContext.RegisterOperationAction(AnalyzeObjectCreationOperation, OperationKind.ObjectCreation);
-                symbolStartContext.RegisterOperationAction(AnalyzeLoopOperation, OperationKind.Loop);
 
                 // We bail out reporting diagnostics for named types if it contains following kind of operations:
                 //  1. Invalid operations, i.e. erroneous code: We do so to ensure that we don't report false positives
@@ -259,6 +260,14 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     _symbolValueUsageStateMap.TryAdd(symbol, ValueUsageInfo.None);
                 }
             }
+        }
+
+        private void AnalyzeDeconstructionAssignment(OperationAnalysisContext operationContext)
+        {
+            var operation = operationContext.Operation;
+            var methods = _analyzer.SemanticFacts.GetDeconstructionAssignmentMethods(operation.SemanticModel!, operation.Syntax);
+            foreach (var method in methods)
+                OnSymbolUsage(method, ValueUsageInfo.Read);
         }
 
         private void AnalyzeFieldInitializer(OperationAnalysisContext operationContext)
