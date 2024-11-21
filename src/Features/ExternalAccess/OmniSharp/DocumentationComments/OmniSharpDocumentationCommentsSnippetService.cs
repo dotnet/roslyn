@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
 {
     internal static class OmniSharpDocumentationCommentsSnippetService
     {
+#pragma warning disable IDE0060 // Remove unused parameter
         public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnCharacterTyped(
             Document document,
             SyntaxTree syntaxTree,
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            return Translate(service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, text, position, options.UnderlyingObject, cancellationToken));
+            return Translate(service.GetDocumentationCommentSnippetOnCharacterTyped(ParsedDocument.CreateSynchronously(document, cancellationToken), position, options.UnderlyingObject, cancellationToken));
         }
 
         public static OmniSharpDocumentationCommentSnippet? GetDocumentationCommentSnippetOnEnterTyped(
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.DocumentationComments
             CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
-            return Translate(service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, text, position, options.UnderlyingObject, cancellationToken));
+            return Translate(service.GetDocumentationCommentSnippetOnEnterTyped(ParsedDocument.CreateSynchronously(document, cancellationToken), position, options.UnderlyingObject, cancellationToken));
         }
 
         private static OmniSharpDocumentationCommentSnippet? Translate(DocumentationCommentSnippet? result)

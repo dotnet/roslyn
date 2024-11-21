@@ -8837,5 +8837,37 @@ class Program
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
         }
+
+        [Fact, WorkItem(66009, "https://github.com/dotnet/roslyn/issues/66009")]
+        public void PreprocessingSymbol()
+        {
+            var source = """
+                #if NET5_0_OR_GREATER
+                #endif
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var preprocessingNameSyntax = tree.GetRoot().DescendantNodes(descendIntoTrivia: true)
+                .OfType<IdentifierNameSyntax>().First();
+            var preprocessingSymbolInfo = model.GetPreprocessingSymbolInfo(preprocessingNameSyntax);
+            var preprocessingSymbol = preprocessingSymbolInfo.Symbol;
+
+            var format = new SymbolDisplayFormat(
+                 memberOptions: SymbolDisplayMemberOptions.IncludeParameters,
+                 parameterOptions: SymbolDisplayParameterOptions.IncludeType |
+                                   SymbolDisplayParameterOptions.IncludeName |
+                                   SymbolDisplayParameterOptions.IncludeDefaultValue);
+
+            Assert.Equal("NET5_0_OR_GREATER", preprocessingSymbol.ToDisplayString(format));
+
+            var displayParts = preprocessingSymbol.ToDisplayParts(format);
+            AssertEx.Equal(
+                expected: [
+                    new SymbolDisplayPart(SymbolDisplayPartKind.Text, preprocessingSymbol, "NET5_0_OR_GREATER")
+                ],
+                actual: displayParts);
+        }
     }
 }

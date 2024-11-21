@@ -6001,6 +6001,37 @@ end class"
                 SymbolDisplayPartKind.Punctuation)
         End Sub
 
+        <Fact>
+        Public Sub PreprocessingSymbol()
+            Dim source =
+"
+#If NET5_0_OR_GREATER
+#End If"
+            Dim format = New SymbolDisplayFormat(
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeModifiers,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            Dim comp = CreateCompilation(source)
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim preprocessingNameSyntax = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax).First()
+            Dim preprocessingSymbolInfo = model.GetPreprocessingSymbolInfo(preprocessingNameSyntax)
+            Dim preprocessingSymbol = preprocessingSymbolInfo.Symbol
+
+            Assert.Equal(
+                "NET5_0_OR_GREATER",
+                SymbolDisplay.ToDisplayString(preprocessingSymbol, format))
+
+            Dim displayParts = preprocessingSymbol.ToDisplayParts(format)
+            Dim expectedDisplayParts =
+            {
+                New SymbolDisplayPart(SymbolDisplayPartKind.Text, preprocessingSymbol, "NET5_0_OR_GREATER")
+            }
+            Assert.Equal(
+                expected:=expectedDisplayParts,
+                actual:=displayParts)
+        End Sub
+
 #Region "Helpers"
 
         Private Shared Sub TestSymbolDescription(

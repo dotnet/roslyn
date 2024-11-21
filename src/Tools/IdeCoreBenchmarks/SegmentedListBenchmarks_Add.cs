@@ -38,28 +38,21 @@ namespace IdeCoreBenchmarks
                 array.Add(item);
         }
 
-        private struct LargeStruct
+        private struct MediumStruct
         {
             public int i1 { get; set; }
             public int i2 { get; set; }
             public int i3 { get; set; }
             public int i4 { get; set; }
             public int i5 { get; set; }
-            public int i6 { get; set; }
-            public int i7 { get; set; }
-            public int i8 { get; set; }
-            public int i9 { get; set; }
-            public int i10 { get; set; }
-            public int i11 { get; set; }
-            public int i12 { get; set; }
-            public int i13 { get; set; }
-            public int i14 { get; set; }
-            public int i15 { get; set; }
-            public int i16 { get; set; }
-            public int i17 { get; set; }
-            public int i18 { get; set; }
-            public int i19 { get; set; }
-            public int i20 { get; set; }
+        }
+
+        private struct LargeStruct
+        {
+            public MediumStruct s1 { get; set; }
+            public MediumStruct s2 { get; set; }
+            public MediumStruct s3 { get; set; }
+            public MediumStruct s4 { get; set; }
         }
 
         private struct EnormousStruct

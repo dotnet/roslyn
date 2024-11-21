@@ -5026,7 +5026,7 @@ End Class
         End Sub
 
         <Fact()>
-        Public Sub UnableWriteOutput()
+        Public Sub UnableWriteOutput_OutputFileIsDirectory()
             Dim tempFolder = Temp.CreateDirectory()
             Dim baseDirectory = tempFolder.ToString()
             Dim subFolder = tempFolder.CreateDirectory("temp.dll")
@@ -5038,6 +5038,34 @@ End Class
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & subFolder.ToString(), src.ToString()}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)
             Assert.True(outWriter.ToString().Contains("error BC2012: can't open '" & subFolder.ToString() & "' for writing: ")) ' Cannot create a file when that file already exists.
+
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub UnableWriteOutput_OutputFileLocked()
+            Dim tempFolder = Temp.CreateDirectory()
+            Dim baseDirectory = tempFolder.ToString()
+            Dim filePath = tempFolder.CreateFile("temp.dll").Path
+
+            Dim src = Temp.CreateFile("a.vb")
+            src.WriteAllText("Imports System")
+
+            Using New FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None)
+                Dim currentProcess = Process.GetCurrentProcess()
+
+                Dim outWriter As New StringWriter()
+                Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, baseDirectory, {"/nologo", "/preferreduilang:en", "/t:library", "/out:" & filePath, src.ToString()}).Run(outWriter, Nothing)
+                Assert.Equal(1, exitCode)
+                Dim output = outWriter.ToString().Trim()
+
+                Dim pattern = "vbc : error BC2012: can't open '(?<path>.*)' for writing: (?<message>.*); file may be locked by '(?<app>.*)' \((?<pid>.*)\)"
+                Dim match = Regex.Match(output, pattern)
+                Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}")
+                Assert.Equal(filePath, match.Groups("path").Value)
+                Assert.Contains("testhost", match.Groups("app").Value)
+                Assert.Equal(currentProcess.Id, Integer.Parse(match.Groups("pid").Value))
+            End Using
 
             CleanupAllGeneratedFiles(src.Path)
         End Sub

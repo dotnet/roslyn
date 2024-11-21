@@ -1860,12 +1860,17 @@ outerDefault:
 
             bool removedMembers = false;
             var resultsByContainingType = PooledDictionary<NamedTypeSymbol, OneOrMany<TMemberResolution>>.GetInstance();
+            var inapplicableMembers = ArrayBuilder<TMemberResolution>.GetInstance();
 
             foreach (var result in results)
             {
-                if (result.MemberWithPriority is null)
+                Debug.Assert(result.MemberWithPriority is not null);
+
+                // We don't filter out inapplicable members here, as we want to keep them in the list for diagnostics
+                // However, we don't want to take them into account for the priority filtering
+                if (!result.IsApplicable)
                 {
-                    // Can happen for things like built-in binary operators
+                    inapplicableMembers.Add(result);
                     continue;
                 }
 
@@ -1900,6 +1905,7 @@ outerDefault:
             {
                 // No changes, so we can just return
                 resultsByContainingType.Free();
+                inapplicableMembers.Free();
                 return;
             }
 
@@ -1908,7 +1914,9 @@ outerDefault:
             {
                 results.AddRange(resultsForType);
             }
+            results.AddRange(inapplicableMembers);
             resultsByContainingType.Free();
+            inapplicableMembers.Free();
         }
 
         private void RemoveWorseMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
