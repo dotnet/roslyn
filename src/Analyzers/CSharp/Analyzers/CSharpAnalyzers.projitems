@@ -155,6 +155,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpUseNotPatternDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseSimpleUsingStatement\UseSimpleUsingStatementDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\CSharpUseThrowExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseUnboundGenericTypeInNameOf\CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseUtf8StringLiteral\UseUtf8StringLiteralDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\CSharpValidateFormatStringDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\EmbeddedStatementPlacement\EmbeddedStatementPlacementDiagnosticAnalyzer.cs" />

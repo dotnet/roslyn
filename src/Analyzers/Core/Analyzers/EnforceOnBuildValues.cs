@@ -99,6 +99,7 @@ internal static class EnforceOnBuildValues
     public const EnforceOnBuild UseCollectionExpressionForNew = /*IDE0306*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild MakeAnonymousFunctionStatic = /*IDE0320*/ EnforceOnBuild.Recommended;
     public const EnforceOnBuild UseSystemThreadingLock = /*IDE0330*/ EnforceOnBuild.Recommended;
+    public const EnforceOnBuild UseUnboundGenericTypeInNameOf = /*IDE0340*/ EnforceOnBuild.Recommended;
 
     /* EnforceOnBuild.WhenExplicitlyEnabled */
     public const EnforceOnBuild RemoveUnnecessaryCast = /*IDE0004*/ EnforceOnBuild.WhenExplicitlyEnabled; // TODO: Move to 'Recommended' OR 'HighlyRecommended' bucket once performance problems are addressed: https://github.com/dotnet/roslyn/issues/43304
