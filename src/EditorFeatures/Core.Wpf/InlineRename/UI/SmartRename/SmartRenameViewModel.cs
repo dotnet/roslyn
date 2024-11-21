@@ -38,7 +38,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     private bool _isDisposed;
     private TimeSpan AutomaticFetchDelay => _smartRenameSession.AutomaticFetchDelay;
     private Task _getSuggestionsTask = Task.CompletedTask;
-    private bool IsInPreparation = false;
+    private bool _isInPreparation = false;
     private TimeSpan _semanticContextDelay;
     private bool _semanticContextError;
     private bool _semanticContextUsed;
@@ -52,6 +52,16 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
     public bool IsAvailable => _smartRenameSession.IsAvailable;
 
     public bool HasSuggestions => _smartRenameSession.HasSuggestions;
+
+    public bool IsInPreparation
+    {
+        get => _isInPreparation;
+        set
+        {
+            _isInPreparation = value;
+            NotifyPropertyChanged(nameof(IsInProgress)); // UI is bound to IsInProgress
+        }
+    }
 
     public bool IsInProgress => IsInPreparation || _smartRenameSession.IsInProgress;
 
@@ -171,7 +181,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         try
         {
             this.IsInPreparation = true;
-            NotifyPropertyChanged(nameof(IsInProgress));
             if (isAutomaticOnInitialization)
             {
                 await Task.Delay(_smartRenameSession.AutomaticFetchDelay, cancellationToken)
@@ -218,7 +227,6 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         finally
         {
             this.IsInPreparation = false;
-            NotifyPropertyChanged(nameof(IsInProgress));
         }
     }
 
