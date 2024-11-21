@@ -18603,4 +18603,28 @@ class C
     {
         UsingExpression("[with(with: with)]");
     }
+
+    [Fact]
+    public void CollectionExpression_WithElement23()
+    {
+        UsingExpression("[with(out _)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement24()
+    {
+        UsingExpression("[with(in a)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement25()
+    {
+        UsingExpression("[with(name: ref a)]");
+    }
+
+    [Fact]
+    public void CollectionExpression_WithElement26()
+    {
+        UsingExpression("[with(ref int () => { })]");
+    }
 }
