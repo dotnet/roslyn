@@ -248,7 +248,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/57323")]
-    public void EmbededStatementFollowedByStatement()
+    public void EmbeddedStatementFollowedByStatement()
     {
         Test("""
             class C
@@ -1079,7 +1079,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     }
 
     [WpfFact]
-    public void TestMulitpleNamespace()
+    public void TestMultipleNamespace()
     {
         Test($$"""
             namespace Bar2
@@ -1855,7 +1855,7 @@ public sealed class AutomaticLineEnderTests : AbstractAutomaticLineEnderTests
     }
 
     [WpfFact]
-    public void TestMulitpleFields()
+    public void TestMultipleFields()
     {
         Test("""
             public class Bar
