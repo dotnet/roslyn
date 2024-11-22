@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -120,20 +121,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private byte[]? GetUtf8ByteRepresentation(BoundUtf8String node)
+        internal static bool TryGetUtf8ByteRepresentation(
+            string s,
+            [NotNullWhen(returnValue: true)] out byte[]? result,
+            [NotNullWhen(returnValue: false)] out string? error)
         {
-            var utf8 = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
-
             try
             {
-                return utf8.GetBytes(node.Value);
+                result = s_utf8.GetBytes(s);
+                error = null;
+                return true;
             }
             catch (Exception ex)
+            {
+                result = null;
+                error = ex.Message;
+                return false;
+            }
+        }
+
+        private byte[]? GetUtf8ByteRepresentation(BoundUtf8String node)
+        {
+            if (TryGetUtf8ByteRepresentation(node.Value, out byte[]? result, out string? error))
+            {
+                return result;
+            }
+            else
             {
                 _diagnostics.Add(
                     ErrorCode.ERR_CannotBeConvertedToUtf8,
                     node.Syntax.Location,
-                    ex.Message);
+                    error);
 
                 return null;
             }

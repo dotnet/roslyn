@@ -3481,11 +3481,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     EmitInitObj(type, used, syntaxNode);
                 }
-                else
+                else if (!TryEmitStringLiteralAsUtf8Encoded(constantValue, syntaxNode))
                 {
                     _builder.EmitConstantValue(constantValue);
                 }
             }
+        }
+
+        private bool TryEmitStringLiteralAsUtf8Encoded(ConstantValue constantValue, SyntaxNode syntaxNode)
+        {
+            // Emit long strings into data section so they don't overflow the UserString heap.
+            if (constantValue.IsString &&
+                constantValue.StringValue.Length > _utf8StringEncodingThreshold &&
+                LocalRewriter.TryGetUtf8ByteRepresentation(constantValue.StringValue, out byte[] utf8Bytes, out _))
+            {
+                var data = utf8Bytes.ToImmutableArray();
+                var field = _builder.module.GetFieldForDataString(data, syntaxNode, _diagnostics.DiagnosticBag);
+                if (field is null)
+                {
+                    return false;
+                }
+
+                _builder.EmitOpCode(ILOpCode.Ldsfld);
+                _builder.EmitToken(field, syntaxNode, _diagnostics.DiagnosticBag);
+                return true;
+            }
+
+            return false;
         }
 
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)

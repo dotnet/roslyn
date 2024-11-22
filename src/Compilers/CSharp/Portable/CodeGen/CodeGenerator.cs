@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Text;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private readonly BindingDiagnosticBag _diagnostics;
         private readonly ILEmitStyle _ilEmitStyle;
         private readonly bool _emitPdbSequencePoints;
+        private readonly int? _utf8StringEncodingThreshold;
 
         private readonly HashSet<LocalSymbol> _stackLocals;
 
@@ -87,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             PEModuleBuilder moduleBuilder,
             BindingDiagnosticBag diagnostics,
             OptimizationLevel optimizations,
-            bool emittingPdb)
+            bool emittingPdb,
+            Compilation compilation)
         {
             Debug.Assert((object)method != null);
             Debug.Assert(boundBody != null);
@@ -101,6 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder = builder;
             _module = moduleBuilder;
             _diagnostics = diagnostics;
+            _utf8StringEncodingThreshold = compilation.Utf8StringEncodingThreshold;
 
             if (!method.GenerateDebugInfo)
             {

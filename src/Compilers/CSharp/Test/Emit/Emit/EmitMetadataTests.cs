@@ -2936,5 +2936,173 @@ public class Child : Parent, IParent
                     Assert.False(proxyChildParameters[1].IsMetadataIn); // User placed attributes are not copied.
                 });
         }
+
+        [Fact]
+        public void Utf8StringEncoding_MissingMembers()
+        {
+            var source = """
+                System.Console.WriteLine("Hello");
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
+            comp.VerifyEmitDiagnostics(
+                // (1,26): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                // System.Console.WriteLine("Hello");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Hello""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 26));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
+            comp.VerifyEmitDiagnostics(
+                // (1,26): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                // System.Console.WriteLine("Hello");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Hello""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 26));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
+            comp.VerifyEmitDiagnostics(
+                // (1,26): error CS0656: Missing compiler required member 'System.Text.Encoding.get_UTF8'
+                // System.Console.WriteLine("Hello");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Hello""").WithArguments("System.Text.Encoding", "get_UTF8").WithLocation(1, 26),
+                // (1,26): error CS0656: Missing compiler required member 'System.Text.Encoding.GetString'
+                // System.Console.WriteLine("Hello");
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""Hello""").WithArguments("System.Text.Encoding", "GetString").WithLocation(1, 26));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "20"));
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__get_UTF8);
+            comp.MakeMemberMissing(WellKnownMember.System_Text_Encoding__GetString);
+            CompileAndVerify(comp, expectedOutput: "Hello").VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Utf8StringEncoding_InvalidUtf8()
+        {
+            var source = """
+                System.Console.WriteLine("Hello \uD801\uD802");
+                """;
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"),
+                expectedOutput: "Hello \uD801\uD802",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    // No <S> types expected.
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <Module>
+                        EmbeddedAttribute
+                        RefSafetyRulesAttribute
+                        Program
+                        """, module.TypeNames.Join("\n"));
+                })
+                .VerifyDiagnostics()
+                .VerifyIL("<top-level-statements-entry-point>", $$"""
+                    {
+                      // Code size       11 (0xb)
+                      .maxstack  1
+                      IL_0000:  ldstr      "Hello {{"\uD801\uD802"}}"
+                      IL_0005:  call       "void System.Console.WriteLine(string)"
+                      IL_000a:  ret
+                    }
+                    """);
+        }
+
+        [Fact]
+        public void Utf8StringEncoding_SynthesizedTypes()
+        {
+            var source = """
+                System.Console.WriteLine("Hello");
+                """;
+            var verifier = CompileAndVerify(source,
+                targetFramework: TargetFramework.Mscorlib46,
+                parseOptions: TestOptions.Regular.WithFeature("utf8-string-encoding", "0"),
+                verify: Verification.Fails,
+                expectedOutput: "Hello",
+                symbolValidator: static (ModuleSymbol module) =>
+                {
+                    AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                        <Module>
+                        EmbeddedAttribute
+                        RefSafetyRulesAttribute
+                        Program
+                        <PrivateImplementationDetails>
+                        <S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969
+                        __StaticArrayInitTypeSize=5
+                        """, module.TypeNames.Join("\n"));
+                });
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  IL_0000:  ldsfld     "string DataStringHolder: <S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969.s"
+                  IL_0005:  call       "void System.Console.WriteLine(string)"
+                  IL_000a:  ret
+                }
+                """);
+
+            verifier.VerifyTypeIL("<PrivateImplementationDetails>", """
+                .class private auto ansi sealed '<PrivateImplementationDetails>'
+                	extends [mscorlib]System.Object
+                {
+                	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Nested Types
+                	.class nested assembly explicit ansi sealed '__StaticArrayInitTypeSize=5'
+                		extends [mscorlib]System.ValueType
+                	{
+                		.pack 1
+                		.size 5
+                	} // end of class __StaticArrayInitTypeSize=5
+                	// Methods
+                	.method assembly hidebysig static 
+                		string BytesToString (
+                			uint8* bytes,
+                			int32 length
+                		) cil managed 
+                	{
+                		// Method begins at RVA 0x207b
+                		// Code size 13 (0xd)
+                		.maxstack 8
+                		IL_0000: call class [mscorlib]System.Text.Encoding [mscorlib]System.Text.Encoding::get_UTF8()
+                		IL_0005: ldarg.0
+                		IL_0006: ldarg.1
+                		IL_0007: callvirt instance string [mscorlib]System.Text.Encoding::GetString(uint8*, int32)
+                		IL_000c: ret
+                	} // end of method '<PrivateImplementationDetails>'::BytesToString
+                } // end of class <PrivateImplementationDetails>
+                """);
+
+            var offset = ExecutionConditionUtil.IsLinux ? "00002878" : "00002830";
+            verifier.VerifyTypeIL("<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969", $$"""
+                .class private auto ansi sealed '<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'
+                	extends [mscorlib]System.Object
+                {
+                	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                		01 00 00 00
+                	)
+                	// Fields
+                	.field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' f at I_{{offset}}
+                    .data cil I_{{offset}} = bytearray (
+                		48 65 6c 6c 6f
+                	)
+                	.field assembly static initonly string s
+                	// Methods
+                	.method private hidebysig specialname rtspecialname static 
+                		void .cctor () cil managed 
+                	{
+                		// Method begins at RVA 0x2089
+                		// Code size 17 (0x11)
+                		.maxstack 8
+                		IL_0000: ldsflda valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=5' '<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'::f
+                		IL_0005: ldc.i4.5
+                		IL_0006: call string '<PrivateImplementationDetails>'::BytesToString(uint8*, int32)
+                		IL_000b: stsfld string '<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'::s
+                		IL_0010: ret
+                	} // end of method '<S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969'::.cctor
+                } // end of class <S>185F8DB32271FE25F561A6FC938B2E264306EC304EDA518007D1764826381969
+                """);
+        }
     }
 }
