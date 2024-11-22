@@ -1389,7 +1389,7 @@ class C
         }.RunAsync();
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69721")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61256")]
     public async Task TestWithRawString()
     {
         await new VerifyCS.Test
