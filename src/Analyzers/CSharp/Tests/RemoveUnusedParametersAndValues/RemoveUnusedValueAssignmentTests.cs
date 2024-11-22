@@ -65,7 +65,6 @@ public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.None },
@@ -93,7 +92,6 @@ public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable, NotificationOption2.None },
@@ -406,7 +404,6 @@ public class RemoveUnusedValueAssignmentTests : RemoveUnusedValuesTestsBase
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.UnusedLocalVariable },
@@ -1317,7 +1314,6 @@ class C
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -1401,7 +1397,6 @@ class C
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -1525,7 +1520,6 @@ class C
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -1555,7 +1549,6 @@ class C
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -1586,7 +1579,6 @@ class C
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, (UnusedValuePreference)option },
@@ -10063,7 +10055,6 @@ parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSh
         await new VerifyCS.Test
         {
             TestCode = source,
-            FixedCode = source,
             Options =
             {
                 { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },

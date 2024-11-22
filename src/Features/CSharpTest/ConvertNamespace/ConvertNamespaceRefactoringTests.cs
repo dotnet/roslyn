@@ -36,7 +36,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp9,
             Options =
             {
@@ -56,7 +55,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -119,7 +117,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -139,7 +136,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -163,7 +159,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -186,7 +181,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -209,7 +203,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -231,7 +224,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -253,7 +245,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -623,7 +614,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -684,7 +674,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -703,7 +692,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {
@@ -721,7 +709,6 @@ public sealed class ConvertNamespaceRefactoringTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             LanguageVersion = LanguageVersion.CSharp10,
             Options =
             {

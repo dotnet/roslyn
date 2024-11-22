@@ -438,7 +438,6 @@ public class RemoveUnusedMembersTests
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             ExpectedDiagnostics =
             {
                 // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.

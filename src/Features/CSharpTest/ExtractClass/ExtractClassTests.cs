@@ -115,7 +115,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
         }.RunAsync();
     }
 
@@ -135,7 +134,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             WorkspaceKind = WorkspaceKind.MiscellaneousFiles
         }.RunAsync();
     }
@@ -432,7 +430,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp9,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -450,7 +447,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -466,7 +462,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -484,7 +479,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -500,7 +494,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -521,7 +514,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp10,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -542,7 +534,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
         }.RunAsync();
@@ -2817,8 +2808,7 @@ public class ExtractClassTests
             """;
         await new Test
         {
-            TestCode = input,
-            FixedCode = input
+            TestCode = input
         }.RunAsync();
     }
 
@@ -2836,8 +2826,7 @@ public class ExtractClassTests
             """;
         await new Test
         {
-            TestCode = input,
-            FixedCode = input
+            TestCode = input
         }.RunAsync();
     }
 
@@ -2850,7 +2839,6 @@ public class ExtractClassTests
         await new Test
         {
             TestCode = input,
-            FixedCode = input,
             LanguageVersion = LanguageVersion.CSharp10,
             TestState =
             {
@@ -2987,8 +2975,7 @@ public class ExtractClassTests
 
         await new Test()
         {
-            TestCode = code,
-            FixedCode = code
+            TestCode = code
         }.RunAsync();
     }
 
@@ -3009,8 +2996,7 @@ public class ExtractClassTests
 
         await new Test()
         {
-            TestCode = code,
-            FixedCode = code
+            TestCode = code
         }.RunAsync();
     }
 

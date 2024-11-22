@@ -11924,7 +11924,6 @@ interface I
         await new VerifyCS.Test
         {
             TestCode = code,
-            FixedCode = code,
             //LanguageVersion = LanguageVersion.CSharp12,
             ExpectedDiagnostics =
             {
