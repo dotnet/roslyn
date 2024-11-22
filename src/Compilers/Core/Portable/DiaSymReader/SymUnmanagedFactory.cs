@@ -39,7 +39,9 @@ namespace Microsoft.DiaSymReader
                 Architecture.X86 => DiaSymReaderModuleName32,
                 Architecture.X64 => DiaSymReaderModuleNameAmd64,
                 Architecture.Arm64 => DiaSymReaderModuleNameArm64,
+#if NET7_0_OR_GREATER
                 Architecture.LoongArch64 => DiaSymReaderModuleNameLoongArch64,
+#endif
                 _ => throw new NotSupportedException()
             };
 
@@ -55,9 +57,11 @@ namespace Microsoft.DiaSymReader
         [DllImport(DiaSymReaderModuleNameArm64, EntryPoint = CreateSymReaderFactoryName)]
         private static extern void CreateSymReaderArm64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
 
+#if NET7_0_OR_GREATER
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleNameLoongArch64, EntryPoint = CreateSymReaderFactoryName)]
         private static extern void CreateSymReaderLoongArch64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symReader);
+#endif
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleName32, EntryPoint = CreateSymWriterFactoryName)]
@@ -71,9 +75,11 @@ namespace Microsoft.DiaSymReader
         [DllImport(DiaSymReaderModuleNameArm64, EntryPoint = CreateSymWriterFactoryName)]
         private static extern void CreateSymWriterArm64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
 
+#if NET7_0_OR_GREATER
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
         [DllImport(DiaSymReaderModuleNameLoongArch64, EntryPoint = CreateSymWriterFactoryName)]
         private static extern void CreateSymWriterLoongArch64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)] out object symWriter);
+#endif
 
         [DllImport("kernel32")]
         private static extern IntPtr LoadLibrary(string path);
@@ -205,11 +211,13 @@ namespace Microsoft.DiaSymReader
                         case (Architecture.Arm64, false):
                             CreateSymWriterArm64(ref clsid, out instance);
                             break;
+#if NET7_0_OR_GREATER
                         case (Architecture.LoongArch64, true):
                             CreateSymReaderLoongArch64(ref clsid, out instance);
                             break;
                         case (Architecture.LoongArch64, false):
                             CreateSymWriterLoongArch64(ref clsid, out instance);
+#endif
                             break;
                         default:
                             throw new NotSupportedException();
