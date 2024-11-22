@@ -18,6 +18,8 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.EditAndContinue.AbstractEditAndContinueAnalyzer;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -44,13 +46,31 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             EditAndContinueCapabilities.GenericUpdateMethod |
             EditAndContinueCapabilities.GenericAddFieldToExistingType;
 
-        public abstract AbstractEditAndContinueAnalyzer Analyzer { get; }
+        public AbstractEditAndContinueAnalyzer Analyzer { get; }
+
+        protected EditAndContinueTestVerifier(Action<SyntaxNode>? faultInjector)
+        {
+            Analyzer = CreateAnalyzer(faultInjector, LanguageName);
+        }
 
         public abstract ImmutableArray<SyntaxNode> GetDeclarators(ISymbol method);
         public abstract string LanguageName { get; }
         public abstract string ProjectFileExtension { get; }
         public abstract TreeComparer<SyntaxNode> TopSyntaxComparer { get; }
         public abstract string? TryGetResource(string keyword);
+
+        internal static AbstractEditAndContinueAnalyzer CreateAnalyzer(Action<SyntaxNode>? faultInjector, string languageName)
+        {
+            var exportProvider = FeaturesTestCompositions.Features.ExportProviderFactory.CreateExportProvider();
+
+            var analyzer = (AbstractEditAndContinueAnalyzer)exportProvider
+                .GetExports<ILanguageService, LanguageServiceMetadata>()
+                .Single(e => e.Metadata.Language == languageName && e.Metadata.ServiceType == typeof(IEditAndContinueAnalyzer).AssemblyQualifiedName)
+                .Value;
+
+            analyzer.GetTestAccessor().FaultInjector = faultInjector;
+            return analyzer;
+        }
 
         private void VerifyDocumentActiveStatementsAndExceptionRegions(
             ActiveStatementsDescription description,

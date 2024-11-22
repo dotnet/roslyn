@@ -69,12 +69,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
     // used by tests to validate correct handlign of unexpected exceptions
-    private readonly Action<SyntaxNode>? _testFaultInjector;
-
-    protected AbstractEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector)
-    {
-        _testFaultInjector = testFaultInjector;
-    }
+    private Action<SyntaxNode>? _testFaultInjector;
 
     private static TraceLog Log
         => EditAndContinueService.AnalysisLog;
@@ -6779,19 +6774,23 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     internal TestAccessor GetTestAccessor()
         => new(this);
 
-    internal readonly struct TestAccessor(AbstractEditAndContinueAnalyzer abstractEditAndContinueAnalyzer)
+    internal readonly struct TestAccessor(AbstractEditAndContinueAnalyzer analyzer)
     {
-        private readonly AbstractEditAndContinueAnalyzer _abstractEditAndContinueAnalyzer = abstractEditAndContinueAnalyzer;
+        internal Action<SyntaxNode>? FaultInjector
+        {
+            get => analyzer._testFaultInjector = FaultInjector;
+            set => analyzer._testFaultInjector = value;
+        }
 
         internal void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, EditScript<SyntaxNode> syntacticEdits, Dictionary<SyntaxNode, EditKind> editMap)
-            => _abstractEditAndContinueAnalyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
+            => analyzer.ReportTopLevelSyntacticRudeEdits(diagnostics, syntacticEdits, editMap);
 
         internal DeclarationBodyMap IncludeLambdaBodyMaps(
             DeclarationBodyMap bodyMap,
             ArrayBuilder<ActiveNode> memberBodyActiveNodes,
             ref Dictionary<LambdaBody, LambdaInfo>? lazyActiveOrMatchedLambdas)
         {
-            return _abstractEditAndContinueAnalyzer.IncludeLambdaBodyMaps(bodyMap, memberBodyActiveNodes, ref lazyActiveOrMatchedLambdas);
+            return analyzer.IncludeLambdaBodyMaps(bodyMap, memberBodyActiveNodes, ref lazyActiveOrMatchedLambdas);
         }
     }
 

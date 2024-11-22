@@ -6,17 +6,13 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
-internal sealed class CSharpEditAndContinueTestVerifier(Action<SyntaxNode>? faultInjector = null) : EditAndContinueTestVerifier
+internal sealed class CSharpEditAndContinueTestVerifier(Action<SyntaxNode>? faultInjector = null) : EditAndContinueTestVerifier(faultInjector)
 {
-    private readonly CSharpEditAndContinueAnalyzer _analyzer = new(faultInjector);
-
-    public override AbstractEditAndContinueAnalyzer Analyzer => _analyzer;
     public override string LanguageName => LanguageNames.CSharp;
     public override string ProjectFileExtension => ".csproj";
     public override TreeComparer<SyntaxNode> TopSyntaxComparer => SyntaxComparer.TopLevel;
