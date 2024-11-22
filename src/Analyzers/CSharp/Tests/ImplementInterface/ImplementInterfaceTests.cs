@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,12 +23,12 @@ using VerifyCS = CSharpCodeFixVerifier<
     CSharpImplementInterfaceCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-public class ImplementInterfaceTests
+public sealed class ImplementInterfaceTests
 {
     private readonly NamingStylesTestOptionSets _options = new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
     private static OptionsCollection AllOptionsOff
-        => new OptionsCollection(LanguageNames.CSharp)
+        => new(LanguageNames.CSharp)
         {
              { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
              { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
@@ -38,7 +39,7 @@ public class ImplementInterfaceTests
         };
 
     private static OptionsCollection AllOptionsOn
-        => new OptionsCollection(LanguageNames.CSharp)
+        => new(LanguageNames.CSharp)
         {
              { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
              { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement },
@@ -49,7 +50,7 @@ public class ImplementInterfaceTests
         };
 
     private static OptionsCollection AccessorOptionsOn
-        => new OptionsCollection(LanguageNames.CSharp)
+        => new(LanguageNames.CSharp)
         {
              { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
              { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
@@ -60,7 +61,8 @@ public class ImplementInterfaceTests
         };
 
     internal static async Task TestWithAllCodeStyleOptionsOffAsync(
-        string initialMarkup, string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         (string equivalenceKey, int index)? codeAction = null)
     {
         await new VerifyCS.Test
@@ -74,7 +76,9 @@ public class ImplementInterfaceTests
         }.RunAsync();
     }
 
-    internal static async Task TestWithAllCodeStyleOptionsOnAsync(string initialMarkup, string expectedMarkup)
+    internal static async Task TestWithAllCodeStyleOptionsOnAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup)
     {
         await new VerifyCS.Test
         {
@@ -84,7 +88,9 @@ public class ImplementInterfaceTests
         }.RunAsync();
     }
 
-    internal static async Task TestWithAccessorCodeStyleOptionsOnAsync(string initialMarkup, string expectedMarkup)
+    internal static async Task TestWithAccessorCodeStyleOptionsOnAsync(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup)
     {
         await new VerifyCS.Test
         {
@@ -95,8 +101,8 @@ public class ImplementInterfaceTests
     }
 
     private static async Task TestInRegularAndScriptAsync(
-        string initialMarkup,
-        string expectedMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
         (string equivalenceKey, int index)? codeAction = null)
     {
         await new VerifyCS.Test
@@ -1444,7 +1450,7 @@ codeAction: ("False;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterf
                 {
                     get
                     {
-                        throw new System.NotImplementedException();
+                        return Prop;
                     }
 
                     set
@@ -11896,7 +11902,7 @@ interface I
 
                 IEnumerator IEnumerable.GetEnumerator()
                 {
-                    throw new System.NotImplementedException();
+                    return GetEnumerator();
                 }
             }
             """,
@@ -11932,5 +11938,123 @@ interface I
                 DiagnosticResult.CompilerError("CS0102").WithSpan(10, 33, 10, 38)
             }
         }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67023")]
+    public async Task TestIEnumerable1()
+    {
+        await TestWithAllCodeStyleOptionsOffAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : {|CS0535:{|CS0535:IEnumerable<int>|}|}
+            {
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator()
+                {
+                    throw new NotImplementedException();
+                }
+            
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    return GetEnumerator();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67023")]
+    public async Task TestIEnumerable2()
+    {
+        await TestWithAllCodeStyleOptionsOffAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : {|CS0535:{|CS0535:{|CS0535:{|CS0535:{|CS0535:IEnumerator<int>|}|}|}|}|}
+            {
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : IEnumerator<int>
+            {
+                public int Current
+                {
+                    get
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            
+                object IEnumerator.Current
+                {
+                    get
+                    {
+                        return Current;
+                    }
+                }
+
+                public void Dispose()
+                {
+                    throw new NotImplementedException();
+                }
+            
+                public bool MoveNext()
+                {
+                    throw new NotImplementedException();
+                }
+            
+                public void Reset()
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67023")]
+    public async Task TestIEnumerable3()
+    {
+        await TestWithAllCodeStyleOptionsOnAsync(
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : {|CS0535:{|CS0535:{|CS0535:{|CS0535:{|CS0535:IEnumerator<int>|}|}|}|}|}
+            {
+            }
+            """,
+            """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Class : IEnumerator<int>
+            {
+                public int Current => throw new NotImplementedException();
+            
+                object IEnumerator.Current => Current;
+            
+                public void Dispose() => throw new NotImplementedException();
+                public bool MoveNext() => throw new NotImplementedException();
+                public void Reset() => throw new NotImplementedException();
+            }
+            """);
     }
 }
